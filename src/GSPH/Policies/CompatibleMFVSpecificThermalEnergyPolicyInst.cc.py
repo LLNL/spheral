@@ -3,7 +3,7 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "Hydro/CompatibleMFVSpecificThermalEnergyPolicy.cc"
+#include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.cc"
 
 namespace Spheral {
   template class CompatibleMFVSpecificThermalEnergyPolicy<Dim< %(ndim)s > >;

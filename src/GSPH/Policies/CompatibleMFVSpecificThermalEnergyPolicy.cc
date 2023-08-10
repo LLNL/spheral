@@ -9,7 +9,8 @@
 // difference between the conservative and consistent formulations is added 
 // back in.
 //----------------------------------------------------------------------------//
-#include "Hydro/CompatibleMFVSpecificThermalEnergyPolicy.hh"
+#include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
+#include "GSPH/GSPHFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
@@ -80,17 +81,21 @@ update(const KeyType& key,
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  const auto  DmassDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::mass, 0.0);
+  const auto  DmomentumDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto& pairDepsDt = derivs.getAny(HydroFieldNames::pairWork, vector<Scalar>());
+  const auto& pairMassFlux = derivs.getAny(GSPHFieldNames::pairMassFlux, vector<Scalar>());
+
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
   CHECK(pairAccelerations.size() == npairs);
+  CHECK(pairMassFlux.size() == npairs);
   CHECK(pairDepsDt.size() == 2*npairs);
 
-  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
+  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar >::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
   DepsDt.Zero();
 
   const auto hdt = 0.5*multiplier;
@@ -111,33 +116,48 @@ update(const KeyType& key,
       const auto& paccij = pairAccelerations[kk];
       const auto& DepsDt0i = pairDepsDt[2*kk];
       const auto& DepsDt0j = pairDepsDt[2*kk+1];
+      const auto& massFlux = pairMassFlux[kk];
 
       const auto  mi = mass(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto& ai = acceleration(nodeListi, i);
+      const auto  pi = mi*velocity(nodeListi, i);
+      const auto& DPDti = DmomentumDt(nodeListi, i);
+      const auto& DmDti = DmassDt(nodeListi,i);
 
       const auto  mj = mass(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& aj = acceleration(nodeListj, j);
+      const auto  pj = mj*velocity(nodeListj, j);
+      const auto& DPDtj = DmomentumDt(nodeListj, j);
+      const auto& DmDtj = DmassDt(nodeListj,j);
 
-      // half-step velocity
-      const auto vi12 = vi + ai*hdt;
-      const auto vj12 = vj + aj*hdt;
-      const auto vij = vi12 - vj12;
-
+      // half-step momenta
+      const auto pi12 = pi + DPDti*hdt;
+      const auto pj12 = pj + DPDtj*hdt;
+      //const auto pij = pi12 - pj12;
+      
       // weighting scheme
       const auto weighti = abs(DepsDt0i) + tiny;
       const auto weightj = abs(DepsDt0j) + tiny;
       const auto wi = weighti/(weighti+weightj);
 
-      // difference between assessed derivs and conserative ones
-      const Scalar delta_duij = vij.dot(paccij)-DepsDt0i-DepsDt0j;
+      // safeInv
+      const auto invmi0 = safeInv(mi);
+      const auto invmj0 = safeInv(mj);
+      const auto invmi1 = safeInv(mi+DmDti*multiplier);
+      const auto invmj1 = safeInv(mj+DmDtj*multiplier);
+
+      const Scalar delta_duij = (pi12*invmi1 - pj12*invmj1).dot(paccij)
+                              + (pj.dot(pj)*invmj0*invmj1 - pi.dot(pi)*invmi0*invmi1) * massFlux*0.5
+                              - DepsDt0i-DepsDt0j;
 
       CHECK(wi >= 0.0 and wi <= 1.0);
+      CHECK(invmi0 >= 0.0);
+      CHECK(invmj0 >= 1.0);
+
+      const auto depsi =      (wi *delta_duij+DepsDt0i);
+      const auto depsj = ((1.0-wi)*delta_duij+DepsDt0j);
 
       // make conservative
-      DepsDt_thread(nodeListi, i) += mj*(wi*delta_duij+DepsDt0i);
-      DepsDt_thread(nodeListj, j) += mi*((1.0-wi)*delta_duij+DepsDt0j);
+      DepsDt_thread(nodeListi, i) += depsi;
+      DepsDt_thread(nodeListj, j) += depsj;
 
     }
 
@@ -147,12 +167,13 @@ update(const KeyType& key,
     }
   }
 
-  // Now we can update the energy.
+//   // Now we can update the energy.
   for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
+      const auto m1 = mass(nodeListi,i)+DmassDt(nodeListi,i)*multiplier;
+      if (m1 > tiny) eps(nodeListi, i) += (DepsDt(nodeListi, i) - DmassDt(nodeListi, i)*eps(nodeListi, i)) * multiplier * safeInv(m1);
     }
   }
 }

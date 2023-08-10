@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// CompatibleDifferenceSpecificThermalEnergyPolicy -- An implementation of 
+// CompatibleMFVSpecificThermalEnergyPolicy -- An implementation of 
 // UpdatePolicyBase specialized for the updating the specific thermal energy 
 // as a dependent quantity.
 // 
@@ -7,8 +7,8 @@
 // method.
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_CompatibleDifferenceSpecificThermalEnergyPolicy_hh__
-#define __Spheral_CompatibleDifferenceSpecificThermalEnergyPolicy_hh__
+#ifndef __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__
+#define __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__
 
 #include "DataBase/IncrementFieldList.hh"
 
@@ -24,7 +24,7 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class CompatibleDifferenceSpecificThermalEnergyPolicy: 
+class CompatibleMFVSpecificThermalEnergyPolicy: 
     public IncrementFieldList<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -34,8 +34,8 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  CompatibleDifferenceSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
-  virtual ~CompatibleDifferenceSpecificThermalEnergyPolicy();
+  CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
+  virtual ~CompatibleMFVSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -68,8 +68,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   const DataBase<Dimension>* mDataBasePtr;
 
-  CompatibleDifferenceSpecificThermalEnergyPolicy(const CompatibleDifferenceSpecificThermalEnergyPolicy& rhs);
-  CompatibleDifferenceSpecificThermalEnergyPolicy& operator=(const CompatibleDifferenceSpecificThermalEnergyPolicy& rhs);
+  CompatibleMFVSpecificThermalEnergyPolicy(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
+  CompatibleMFVSpecificThermalEnergyPolicy& operator=(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
 };
 
 }
@@ -78,7 +78,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class CompatibleDifferenceSpecificThermalEnergyPolicy;
+  template<typename Dimension> class CompatibleMFVSpecificThermalEnergyPolicy;
 }
 
 #endif
