@@ -10,7 +10,6 @@ set(GSPH_inst
     MFMHydroBase
     MFVHydroBase
     Policies/MassFluxPolicy
-    Policies/ALEPositionPolicy
     Policies/PureReplaceWithStateFieldList
     Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
@@ -45,7 +44,6 @@ set(GSPH_headers
     MFMHydroBase.hh
     MFVHydroBase.hh
     Policies/MassFluxPolicy.hh
-    Policies/ALEPositionPolicy.hh
     Policies/PureReplaceWithStateFieldList.hh
     Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
