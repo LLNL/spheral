@@ -94,7 +94,14 @@ function(Spheral_Handle_TPL lib_name dep_list target_type)
     else()
       message("Found: ${temp_abs_path}")
     endif()
-    unset(temp_abs_path CACHE) # Remove this line when using cmake 3.21+, same as find_file(NO_CACHE)
+
+    # find_file treats output as a standard variable from 3.21+ We get different behavior on later CMake versions.
+    if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
+      unset(temp_abs_path CACHE)
+    else()
+      unset(temp_abs_path)
+    endif()
+
   endforeach()
 
   # Register any libs/includes under a blt dir for later use/depends

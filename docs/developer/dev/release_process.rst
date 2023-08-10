@@ -9,14 +9,22 @@ The Spheral release process typically involves the following sequence of steps:
   #. Merge all PRs containing work to be included in the release into the 
      develop branch.
   #. Make a :ref:`rcbranch-label` from the develop branch. Finalize the 
-     release by completing remaining release tasks on that branch.
+     release by completing remaining release tasks on that branch. Be sure to
+     set the version number in ``spheral/cmake/SpheralVersion.cmake`` and commit
+     the changes. The file should become:
+     ::
+
+	set(SPHERAL_VERSION YYYY.MM.pp)
+
+     See :ref:`semver-label` for a description of the version numbering scheme
+     we use.
   #. When the release candidate branch is ready, make a PR for it to be merged
      into the **main branch.** When it is approved and all CI checks pass,
      merge the release candidate branch into the Spheral main branch.
   #. On GitHub, make a new release with a tag for the release. Following our
-     convention, the tag label should have the format ``vYYYY.MM.pp``. See 
-     :ref:`semver-label` for a description of the version numbering scheme we 
-     use.  In the GitHub release description, please note key features, 
+     convention, the tag label should have the format ``vYYYY.MM.pp`` and
+     should be consistent the updates in ``spheral/cmake/SpheralVersion.cmake``.
+     In the GitHub release description, please note key features, 
      bugfixes, etc. in the release. Also, add a note to the 
      release description to remind users to download the gzipped tarfile for 
      the release instead of the assets GitHub creates for the release.

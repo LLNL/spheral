@@ -24,7 +24,7 @@ echo $BUILD_ALLOC
 
 mkdir -p $INSTALL_DIR
 
-./spheral/scripts/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --spec=none --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls
+./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --spec=none --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls
 
 source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
 spack bootstrap add --trust local-sources $PWD/resources/metadata/sources
