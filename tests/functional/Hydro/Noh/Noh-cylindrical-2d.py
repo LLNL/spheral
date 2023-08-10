@@ -68,6 +68,7 @@ commandLine(order = 5,
             fsisph = False,
             gsph = False,
             mfm = False,
+            mfv=False,
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
@@ -141,7 +142,7 @@ commandLine(order = 5,
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not((gsph or mfm) and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)
-assert sum([crksph,psph,fsisph,svph,gsph,mfm])<=1
+assert sum([crksph,psph,fsisph,svph,gsph,mfm,mfv])<=1
 assert thetaFactor in (0.5, 1.0, 2.0)
 theta = thetaFactor * pi
 
@@ -170,6 +171,8 @@ elif gsph:
     hydroname = "GSPH"
 elif mfm:
     hydroname = "MFM"
+elif mfv:
+    hydroname = "MFV"
 elif psph:
     hydroname = "PSPH"
 else:
@@ -343,7 +346,7 @@ elif fsisph:
                    cfl = cfl,
                    interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
-                   densityStabilizationCoefficient = 0.00,
+                   densityStabilizationCoefficient = 0.1,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    correctVelocityGradient = correctVelocityGradient,
@@ -362,7 +365,7 @@ elif gsph:
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
-                gradientType = RiemannGradient,
+                gradientType = SPHSameTimeGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
@@ -381,7 +384,28 @@ elif mfm:
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
-                gradientType = RiemannGradient,
+                gradientType = HydroAccelerationGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+
+elif mfv:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                nodeMotionType=NodeMotionType.Lagrangian,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                ASPH = asph,
+                gradientType = SPHSameTimeGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
@@ -414,7 +438,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not (gsph or mfm):
+if not (gsph or mfm or mfv):
     q = hydro.Q
     if Cl:
         q.Cl = Cl
@@ -720,7 +744,11 @@ if outputFile != "None":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
+
+
+Masserror = (control.conserve.massHistory[-1] - control.conserve.massHistory[0])/max(1.0e-30, control.conserve.massHistory[0])           
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/max(1.0e-30, control.conserve.EHistory[0])
+print("Total mass error: %g" % Masserror)
 print("Total energy error: %g" % Eerror)
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError("Energy error outside allowed bounds.")
