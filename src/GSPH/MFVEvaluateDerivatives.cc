@@ -16,7 +16,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& smoothingScale = this->smoothingScaleMethod();
   
   // A few useful constants we'll use in the following loop.
-  //const auto tiny = std::numeric_limits<Scalar>::epsilon();
+  const auto tiny = std::numeric_limits<Scalar>::epsilon();
   const auto xsph = this->XSPH();
   const auto epsTensile = this->epsilonTensile();
   //const auto epsDiffusionCoeff = this->specificThermalEnergyDiffusionCoefficient();
@@ -80,14 +80,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
 
+  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
+  auto& pairMassFlux = derivatives.getAny(GSPHFieldNames::pairMassFlux, vector<Scalar>());
   CHECK(DrhoDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
@@ -109,6 +110,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   if (compatibleEnergy){
     pairAccelerations.resize(npairs);
     pairDepsDt.resize(2*npairs);
+    pairMassFlux.resize(npairs);
   }
 
   this->computeMCorrection(time,dt,dataBase,state,derivatives);
@@ -143,12 +145,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
 
+      const auto& mi = mass(nodeListi, i);
+      const auto& mj = mass(nodeListj, j);
+
+      if( mi >tiny or mj > tiny){
+
       // Get the state for node i.
       const auto& ui = nodalVelocity(nodeListi,i);
       const auto& riemannDpDxi = riemannDpDx(nodeListi, i);
       const auto& riemannDvDxi = riemannDvDx(nodeListi, i);
       const auto& ri = position(nodeListi, i);
-      const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& voli = volume(nodeListi, i);
@@ -157,7 +163,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
-      CHECK(mi > 0.0);
+      //CHECK(mi > 0.0);
       CHECK(voli > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -184,7 +190,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& riemannDpDxj = riemannDpDx(nodeListj, j);
       const auto& riemannDvDxj = riemannDvDx(nodeListj, j);
       const auto& rj = position(nodeListj, j);
-      const auto& mj = mass(nodeListj, j);
+      //const auto& mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& volj = volume(nodeListj, j);
@@ -193,7 +199,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hj = H(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
-      CHECK(mj > 0.0);
+      //CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(volj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -324,10 +330,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DEDtj += deltaDepsDtj;
      
       if(compatibleEnergy){
-        const auto invmij = 1.0/(mi*mj);
-        pairAccelerations[kk] = deltaDvDt*invmij; 
-        pairDepsDt[2*kk]   = deltaDepsDti*invmij; 
-        pairDepsDt[2*kk+1] = deltaDepsDtj*invmij; 
+        pairMassFlux[kk] = massFlux;
+        pairAccelerations[kk] = deltaDvDt;
+        pairDepsDt[2*kk]   = deltaDepsDti;
+        pairDepsDt[2*kk+1] = deltaDepsDtj;
       }
 
       // volume change based on nodal velocity
@@ -355,8 +361,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         case GradientType::HydroAccelerationGradient: // based on hydro accel for DpDx
           newRiemannDvDxi -= deltaDvDxi;
           newRiemannDvDxj -= deltaDvDxj;
-          newRiemannDpDxi += rhoi/mi*deltaDvDt;
-          newRiemannDpDxj -= rhoj/mj*deltaDvDt;
+          newRiemannDpDxi += deltaDvDt/voli;
+          newRiemannDpDxj -= deltaDvDt/volj;
           break;
         case GradientType::SPHGradient: // raw gradients
           newRiemannDvDxi -= (vi-vj).dyad(gradPsii);
@@ -384,6 +390,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       normi += psii;
       normj += psij;
+      } //if statement
 
     } // loop over pairs
     threadReduceFieldLists<Dimension>(threadStack);
@@ -422,7 +429,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DvDxi = DvDx(nodeListi, i);
       auto& DHDti = DHDt(nodeListi, i);
       auto& Hideali = Hideal(nodeListi, i);
-      //auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
@@ -439,9 +446,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       DxDti = ui;
-      // if (xsph){
-      //   DxDti += XSPHDeltaVi/max(tiny, normi);
-      // } 
+      if (xsph){
+         DxDti += XSPHDeltaVi/max(tiny, normi);
+      } 
 
       // The H tensor evolution.
       DHDti = smoothingScale.smoothingScaleDerivative(Hi,

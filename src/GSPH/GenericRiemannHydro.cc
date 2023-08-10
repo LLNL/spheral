@@ -287,7 +287,7 @@ registerState(DataBase<Dimension>& dataBase,
     auto thermalEnergyPolicy = make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
     auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,
                                                                              HydroFieldNames::specificThermalEnergy,
-                                                                             true) ;
+                                                                             true);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
 

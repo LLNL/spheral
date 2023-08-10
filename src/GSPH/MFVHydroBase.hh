@@ -161,6 +161,8 @@ public:
   const FieldList<Dimension,Vector>& DmomentumDt() const;
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
 
+  const std::vector<Scalar>& pairMassFlux() const;
+  
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "MFVHydroBase" ; }
@@ -176,7 +178,9 @@ private:
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;
   FieldList<Dimension, Scalar> mDvolumeDt;
-
+  
+  std::vector<Scalar> mPairMassFlux;
+  
   // No default constructor, copying, or assignment.
   MFVHydroBase();
   MFVHydroBase(const MFVHydroBase&);

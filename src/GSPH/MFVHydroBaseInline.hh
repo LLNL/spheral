@@ -59,4 +59,11 @@ MFVHydroBase<Dimension>::
 DvolumeDt() const {
   return mDvolumeDt;
 }
+template<typename Dimension>
+inline
+const std::vector<typename Dimension::Scalar>&
+MFVHydroBase<Dimension>::
+pairMassFlux() const {
+  return mPairMassFlux;
+}
 }

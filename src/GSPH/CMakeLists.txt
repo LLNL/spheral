@@ -15,6 +15,7 @@ set(GSPH_inst
     Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
     Policies/IncrementSpecificFromTotalPolicy
+    Policies/CompatibleMFVSpecificThermalEnergyPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
     Limiters/SuperbeeLimiter
@@ -49,6 +50,7 @@ set(GSPH_headers
     Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
     Policies/IncrementSpecificFromTotalPolicy.hh
+    Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
     Limiters/SuperbeeLimiter.hh

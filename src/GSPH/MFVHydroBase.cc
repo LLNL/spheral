@@ -31,6 +31,8 @@
 //   3 maybe seperate flux polies for all conserved variables 
 //     similar to an advect step in ALE schemes. Might give better e-conserve
 //   4 compatible energy for MFV
+//
+//   5 ADD DpDt and DmDt to the finalize bc application.
 //---------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
@@ -60,6 +62,7 @@
 #include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
 #include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "GSPH/Policies/PureReplaceWithStateFieldList.hh"
+#include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -121,12 +124,14 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDmassDt(FieldStorageType::CopyFields),
   mDthermalEnergyDt(FieldStorageType::CopyFields),
   mDmomentumDt(FieldStorageType::CopyFields),
-  mDvolumeDt(FieldStorageType::CopyFields){
+  mDvolumeDt(FieldStorageType::CopyFields),
+  mPairMassFlux(){
     mNodalVelocity = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::nodalVelocity);
     mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
     mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
+    mPairMassFlux.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -157,18 +162,18 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
-  
-  //state.removePolicy(HydroFieldNames::position);
 
   dataBase.resizeFluidFieldList(mNodalVelocity, Vector::zero, GSPHFieldNames::nodalVelocity);
 
-  auto massDensity = dataBase.fluidMassDensity();
-
-  auto position = dataBase.fluidPosition();//state.fields(HydroFieldNames::position,Vector::zero);
+  auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto position = state.fields(HydroFieldNames::position,Vector::zero);
   auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+
+ // ensure we're not sure compat energy scheme for pure-lang methods
+  state.removePolicy(specificThermalEnergy);
 
   CHECK(position.numFields() == dataBase.numFluidNodeLists());
   CHECK(velocity.numFields() == dataBase.numFluidNodeLists());
@@ -187,42 +192,68 @@ registerState(DataBase<Dimension>& dataBase,
                                                                          maxVolume));
   }
 
-  auto rhoPolicy = std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
-                                                                              HydroFieldNames::volume,
-                                                                              HydroFieldNames::volume);
+  auto rhoPolicy = std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,   // numerator
+                                                                              HydroFieldNames::volume, // denominator
+                                                                              HydroFieldNames::mass,   // depends on
+                                                                              HydroFieldNames::volume);// depends on
 
-  auto massPolicy = std::make_shared<MassFluxPolicy<Dimension>>(GSPHFieldNames::momentumPolicy,GSPHFieldNames::thermalEnergyPolicy);
-  auto momentumPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
-  auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
-
+  auto massPolicy = std::make_shared<MassFluxPolicy<Dimension>>(GSPHFieldNames::momentumPolicy,        //depends on
+                                                                GSPHFieldNames::thermalEnergyPolicy);  //depends on
+  auto momentumPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, 
+                                                                                              IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum,
+                                                                                              HydroFieldNames::specificThermalEnergy);
+  
   // special policies to get velocity update from momentum deriv
   state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
-  state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
 
   switch (mNodeMotionType){
     case NodeMotionType::Eulerian:
     {
-      std::cout <<"Eulerian" << std::endl;
+      //std::cout <<"Eulerian" << std::endl;
       state.enroll(mNodalVelocity); // Eulerian
     }
       break;
-    case NodeMotionType::Lagrangian:
+    case NodeMotionType::Lagrangian:  // pure MFV
       {
-        std::cout <<"Lagrangian" << std::endl;
-        auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,HydroFieldNames::velocity);
+        //std::cout <<"Lagrangian" << std::endl;
+        auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,
+                                                                                                     HydroFieldNames::velocity); // depends on
         state.enroll(mNodalVelocity, nodalVelocityPolicy);
       }
       break;
     case NodeMotionType::XSPH:
-      {
-        std::cout <<"XSPH" << std::endl;
+      { // this is currently wrong, its the delta not the full xsph velocity and time step delayed
+        //std::cout <<"XSPH" << std::endl;
         auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
         state.enroll(mNodalVelocity, nodalVelocityPolicy);
       }
       break;
     default:
-      std::cout <<"default" << std::endl;
+      //std::cout <<"default" << std::endl;
       break;
+  }
+
+    // conditional for energy method
+  if (this->compatibleEnergyEvolution()) {
+    //std::cout << "compatible MFV" << std::endl;
+    auto thermalEnergyPolicy = std::make_shared<CompatibleMFVSpecificThermalEnergyPolicy<Dimension>>(dataBase);
+    //auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
+    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+    //state.enroll(velocity, velocityPolicy);
+
+  }else if (this->evolveTotalEnergy()) {
+    // warning not implemented yet
+    std::cout <<"evolve total energy not implemented for MFV" << std::endl;
+    //auto thermalEnergyPolicy = std::make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
+    //auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
+    //state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+    //state.enroll(velocity, velocityPolicy);
+
+  } else {
+    auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
+    auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,true);
+    state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
+    state.enroll(velocity, velocityPolicy);
   }
 
   // normal state variables
@@ -248,6 +279,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDthermalEnergyDt);
   derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
+  derivs.enrollAny(GSPHFieldNames::pairMassFlux, mPairMassFlux);
 }
 
 //------------------------------------------------------------------------------
@@ -262,7 +294,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   GenericRiemannHydro<Dimension>::preStepInitialize(dataBase,state,derivs);
 
   if(this->densityUpdate() == MassDensityType::RigorousSumDensity){
-    // plop into an intialize volume function
+    
     const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -309,7 +341,21 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  GenericRiemannHydro<Dimension>::finalizeDerivatives(time,dt,dataBase,state,derivs);
+  // hackish solution and I should be ashamed.
+  if (this->compatibleEnergyEvolution()) {
+    auto DpDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
+    auto DmDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, 0.0);
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr){
+      (*boundaryItr)->applyFieldListGhostBoundary(DpDt);
+      (*boundaryItr)->applyFieldListGhostBoundary(DmDt);
+  }
+    
+    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+         boundaryItr != this->boundaryEnd();
+         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -321,6 +367,14 @@ MFVHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
+
+  auto nodalVelocity = state.fields(GSPHFieldNames::nodalVelocity, Vector::zero);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->applyFieldListGhostBoundary(nodalVelocity);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -332,6 +386,14 @@ MFVHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::enforceBoundaries(state,derivs);
+
+  auto nodalVelocity = state.fields(GSPHFieldNames::nodalVelocity, Vector::zero);
+
+  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+       boundaryItr != this->boundaryEnd();
+       ++boundaryItr) {
+    (*boundaryItr)->enforceFieldListBoundary(nodalVelocity);
+  }
 }
 
 
@@ -343,6 +405,7 @@ void
 MFVHydroBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   GenericRiemannHydro<Dimension>::dumpState(file,pathName);
+  file.write(mNodalVelocity, pathName + "/nodalVelocity");
   file.write(mDmassDt, pathName + "/DmassDt");
   file.write(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
   file.write(mDmomentumDt, pathName + "/DmomentumDt");
@@ -357,6 +420,7 @@ void
 MFVHydroBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   GenericRiemannHydro<Dimension>::restoreState(file,pathName);
+  file.read(mNodalVelocity, pathName + "/nodalVelocity");
   file.read(mDmassDt, pathName + "/DmassDt");
   file.read(mDthermalEnergyDt, pathName + "/DthermalEnergyDt");
   file.read(mDmomentumDt, pathName + "/DmomentumDt");

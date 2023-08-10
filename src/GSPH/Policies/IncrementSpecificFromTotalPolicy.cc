@@ -107,7 +107,7 @@ update(const KeyType& /*key*/,
        const double t,
        const double dt) {
 
-  //const auto tiny = std::numeric_limits<typename Dimension::Scalar>::epsilon();
+  const auto tiny = std::numeric_limits<typename Dimension::Scalar>::epsilon();
 
   const auto  m = state.fields(HydroFieldNames::mass, Scalar());
         auto  q = state.fields(mStateKey, Value());
@@ -120,13 +120,11 @@ update(const KeyType& /*key*/,
   for (unsigned k = 0; k != numNodeLists; ++k) {
     const unsigned n = q[k]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
-      //const auto m1 = m(k,i)+DmDt(k,i)*multiplier;
-      //q(k, i) = (DQDt(k, i) * multiplier + m(k,i)*q(k, i))*safeInv(m1);
-      q(k, i) += (DQDt(k, i) - DmDt(k, i)*q(k, i)) * multiplier * safeInv(m(k,i)+DmDt(k,i)*multiplier);
+      const auto m1 = m(k,i)+DmDt(k,i)*multiplier;
+      if (m1 > tiny) q(k, i) += (DQDt(k, i) - DmDt(k, i)*q(k, i)) * multiplier * safeInv(m1);
     }
   }
 }
-
 
 //------------------------------------------------------------------------------
 // Equivalence operator.
