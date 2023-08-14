@@ -25,24 +25,27 @@
 #
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
-import os, shutil
+import os, shutil, mpi, sys
 from math import *
+
 from SolidSpheral2d import *
 from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
 
-import mpi
-import DistributeNodes
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
 title("2-D integrated hydro test -- cylindrical Noh problem")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(order = 5,
-            seed = "constantDTheta",
+commandLine(seed = "constantDTheta",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
@@ -50,7 +53,6 @@ commandLine(order = 5,
             nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 2.01,
             rho0 = 1.0,
             eps0 = 0.0,
             smallPressure = False,
@@ -60,23 +62,50 @@ commandLine(order = 5,
             gamma = 5.0/3.0,
             mu = 1.0,
 
+            # hydro type (only one!)
+            svph = False,
+            crksph = False,   # high order conservative formulation of SPH
+            psph = False,     # pressure-based formulation of SPH
+            fsisph = False,   # formulation for multimaterial problems
+            gsph = False,     # godunov SPH
+            mfm = False,      # moving finite mass of Hopkins 2015
+            mfv=False,        # moving finite volume of Hopkins 2015
+            asph = False,     # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
-            svph = False,
-            crksph = False,
-            psph = False,
-            fsisph = False,
-            gsph = False,
-            mfm = False,
-            mfv=False,
-            asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            boolReduceViscosity = False,
+            # general hydro options
+            densityUpdate = RigorousSumDensity, # (IntegrateDensity)
+            evolveTotalEnergy = False,          # evolve total rather than specific energy
+            compatibleEnergy = True,            # evolve specific in a energy conserving manner
+            gradhCorrection = True,             # only for SPH, PSPH (correction for time evolution of h)
+            correctVelocityGradient = True,     # linear gradient correction
+            XSPH = False,                       # monaghan's xsph -- move w/ averaged velocity
+            epsilonTensile = 0.0,               # coefficient for the tensile correction
+            nTensile = 8,                       # exponent for tensile correction
+            filter = 0.0,
+
+            # PSPH options
             HopkinsConductivity = False,     # For PSPH
+
+            #CRKSPH options
+            correctionOrder = LinearOrder,
+            volumeType = RKSumVolume,
+
+            # artificial viscosity
+            Cl = None, 
+            Cq = None,
+            linearInExpansion = None,
+            Qlimiter = None,
+            balsaraCorrection = None,
+            epsilon2 = None,
+
+            boolReduceViscosity = False, # morris-monaghan reducing AV
             nhQ = 5.0,
             nhL = 10.0,
             aMin = 0.1,
             aMax = 2.0,
-            boolCullenViscosity = False,
+
+            boolCullenViscosity = False, # cullen dehnen AV limiter
             alphMax = 2.0,
             alphMin = 0.02,
             betaC = 0.7,
@@ -86,22 +115,18 @@ commandLine(order = 5,
             boolHopkinsCorrection = True,
             linearConsistent = False,
 
-            Cl = None, 
-            Cq = None,
-            linearInExpansion = None,
-            Qlimiter = None,
-            balsaraCorrection = None,
-            epsilon2 = None,
+            # kernel options
+            KernelConstructor = NBSplineKernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
+            nPerh = 1.00,
+            HUpdate = IdealH,
+            order = 3,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
-            cfl = 0.25,
-            XSPH = False,
-            epsilonTensile = 0.0,
-            nTensile = 8,
-            filter = 0.0,
 
+            # integrator options
             IntegratorConstructor = CheapSynchronousRK2Integrator,
+            cfl = 0.07,
             goalTime = 0.6,
             steps = None,
             vizCycle = None,
@@ -113,19 +138,11 @@ commandLine(order = 5,
             maxSteps = None,
             statsStep = 10,
             smoothIters = 0,
-            HUpdate = IdealH,
-            correctionOrder = LinearOrder,
-            volumeType = RKSumVolume,
             domainIndependent = False,
             rigorousBoundaries = False,
             dtverbose = False,
 
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
-
+            # output options
             useVoronoiOutput = True,
             clearDirectories = False,
             vizDerivs = False,
@@ -202,7 +219,6 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -220,7 +236,10 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+if KernelConstructor==NBSplineKernel:
+    WT = TableKernel(KernelConstructor(order), 1000)
+else:
+    WT = TableKernel(KernelConstructor(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -270,12 +289,6 @@ else:
                                            azimuthalOffsetFraction = azimuthalOffsetFraction,
                                            nNodePerh = nPerh,
                                            SPH = not asph)
-
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-    #from PeanoHilbertDistributeNodes import distributeNodes2d
-else:
-    from DistributeNodes import distributeNodes2d
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -405,7 +418,7 @@ elif mfv:
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
-                gradientType = SPHSameTimeGradient,
+                gradientType = RiemannGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
