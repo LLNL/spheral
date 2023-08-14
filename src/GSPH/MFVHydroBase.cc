@@ -125,12 +125,14 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDthermalEnergyDt(FieldStorageType::CopyFields),
   mDmomentumDt(FieldStorageType::CopyFields),
   mDvolumeDt(FieldStorageType::CopyFields),
+  mXSPHHfield(FieldStorageType::CopyFields),
   mPairMassFlux(){
     mNodalVelocity = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::nodalVelocity);
     mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
     mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
+    mXSPHHfield = dataBase.newFluidFieldList(SymTensor::zero, "XSPHHfield");
     mPairMassFlux.clear();
 }
 
@@ -163,7 +165,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
 
-  dataBase.resizeFluidFieldList(mNodalVelocity, Vector::zero, GSPHFieldNames::nodalVelocity);
+  dataBase.resizeFluidFieldList(mNodalVelocity, Vector::zero, GSPHFieldNames::nodalVelocity,false);
 
   auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   auto position = state.fields(HydroFieldNames::position,Vector::zero);
@@ -275,10 +277,12 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
   dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
   dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
+  dataBase.resizeFluidFieldList(mXSPHHfield,SymTensor::zero, "XSPHHfield", false);
   derivs.enroll(mDmassDt);
   derivs.enroll(mDthermalEnergyDt);
   derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
+  derivs.enroll(mXSPHHfield);
   derivs.enrollAny(GSPHFieldNames::pairMassFlux, mPairMassFlux);
 }
 

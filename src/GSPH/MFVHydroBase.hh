@@ -160,6 +160,7 @@ public:
   const FieldList<Dimension,Scalar>& DthermalEnergyDt() const;
   const FieldList<Dimension,Vector>& DmomentumDt() const;
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
+  const FieldList<Dimension,SymTensor>& xsphHfield() const;
 
   const std::vector<Scalar>& pairMassFlux() const;
   
@@ -178,7 +179,8 @@ private:
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;
   FieldList<Dimension, Scalar> mDvolumeDt;
-  
+  FieldList<Dimension, SymTensor> mXSPHHfield;
+
   std::vector<Scalar> mPairMassFlux;
   
   // No default constructor, copying, or assignment.
