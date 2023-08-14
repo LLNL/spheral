@@ -17,7 +17,6 @@ set (_python_packages
   Boundary
   Physics
   Hydro
-  ExternalForce
   Gravity
   Integrator
   NodeGenerators
@@ -33,7 +32,6 @@ set (_python_packages
   Damage
   SolidMaterial
   Strength
-  ArtificialConduction
   KernelIntegrator
   polytope
   OpenMP
@@ -47,6 +45,14 @@ if (ENABLE_ANEOS)
 endif()
 if (ENABLE_HELMHOLTZ)
   list(APPEND _python_packages Helmholtz)
+endif()
+
+if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)
+  list(APPEND _python_packages ArtificialConduction)
+endif()
+
+if (SPHERAL_ENABLE_EXTERNAL_FORCE)
+  list(APPEND _python_packages ExternalForce)
 endif()
 
 foreach(_python_package ${_python_packages})
