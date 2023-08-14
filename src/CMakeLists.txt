@@ -47,8 +47,12 @@ list(APPEND _packages
   Utilities
   )
 
-if (SPHERAL_ENABLE_C)
-  list(APPEND _packages CInterface)
+if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)
+  list(APPEND _packages ArtificialConduction)
+endif()
+
+if (SPHERAL_ENABLE_EXTERNAL_FORCE)
+  list(APPEND _packages ExternalForce)
 endif()
 
 if(NOT ENABLE_CXXONLY)
