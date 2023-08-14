@@ -350,12 +350,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto Wij = 0.5*(Wi+Wj);
       if(averageKernelij){
         const auto gWij = 0.5*(gWi+gWj);
-        Wi = Wij;
-        Wj = Wij;
-        gWi = gWij;
-        gWj = gWij;
-        gradWi = gradWij;
-        gradWj = gradWij;
+        const auto geoGradWij = (gradWi*gradWj)*safeInv(gradWij)
+        const auto geoWij = gWi*gWj*safeInv(Wij)
+        const auto geogWij = Wi*Wj*safeInv(gWij)
+        Wi = geoWij;
+        Wj = geoWij;
+        gWi = geogWij;
+        gWj = geoWij;
+        gradWi = geoGradWij;
+        gradWj = geoGradWij;
       }
 
       if(this->correctVelocityGradient()){
@@ -465,11 +468,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       
         // Velocity Gradient
         //-----------------------------------------------------------
-
+        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
-        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
-
+        
         if (constructInterface){
           
           // components
@@ -494,7 +496,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
           // interface velocity
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
-          const auto wstar = weightWi*wi + weightWj*wj + (constructHLLC ? (Seffi - Seffj).dot(rhatij)*CsiCsjInv : Vector::zero); ;
+          const auto wstar = weightWi*wi + weightWj*wj;// + (constructHLLC ? (Seffi - Seffj).dot(rhatij)*CsiCsjInv : Vector::zero); ;
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
 
           
@@ -519,9 +521,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
-          const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
-          const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
-          vstar += (constructHLLC ? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
+          
+          //const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
+          //const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
+          vstar +=  (1-fDij) * rhoStabilizeCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
         }
 
         // global velocity gradient
@@ -827,8 +830,9 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       //Wi & Wj --> Wij for interface better agreement DrhoDt and DepsDt
       if(averageKernelij){
         const auto gradWij = 0.5*(gradWi+gradWj);
-        gradWi = gradWij;
-        gradWj = gradWij;
+        const auto geoGradWij = (gradWi*gradWj)*safeInv(gradWij)
+        gradWi = geoGradWij;
+        gradWj = geoGradWij;
       }
 
       gradWi *= mj/rhoj;
