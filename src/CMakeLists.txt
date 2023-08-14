@@ -12,8 +12,8 @@ set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 list(APPEND _packages 
   ArtificialViscosity
-  ArtificialConduction
   Boundary
+  CInterface
   CRKSPH
   CXXTests
   Damage
@@ -21,7 +21,6 @@ list(APPEND _packages
   DataOutput
   DEM
   Distributed
-  ExternalForce
   Field
   FieldOperations
   FileIO
