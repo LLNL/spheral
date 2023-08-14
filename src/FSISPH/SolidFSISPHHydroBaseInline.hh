@@ -258,6 +258,58 @@ newInterfaceSmoothness() const {
 
 
 //------------------------------------------------------------------------------
+// The internal state field lists.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+DdeviatoricStressDt() const {
+  return mDdeviatoricStressDt;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+bulkModulus() const {
+  return mBulkModulus;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+shearModulus() const {
+  return mShearModulus;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+yieldStrength() const {
+  return mYieldStrength;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+plasticStrain0() const {
+  return mPlasticStrain0;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+Hfield0() const {
+  return mHfield0;
+}
+
+
+//------------------------------------------------------------------------------
 // Ref to the slide surface obj
 //------------------------------------------------------------------------------
 template<typename Dimension>

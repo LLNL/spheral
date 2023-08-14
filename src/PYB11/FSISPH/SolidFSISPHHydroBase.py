@@ -2,12 +2,12 @@
 # SolidFSISPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidSPHHydroBase import *
+from SPHHydroBase import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralFSISPH")
-class SolidFSISPHHydroBase(SolidSPHHydroBase):
+class SolidFSISPHHydroBase(SPHHydroBase):
     "SolidFSISPHHydroBase -- SolidSPHHydro modified for large density discontinuities"
 
     PYB11typedefs = """

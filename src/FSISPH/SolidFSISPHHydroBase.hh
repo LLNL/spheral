@@ -7,7 +7,7 @@
 #include <float.h>
 #include <string>
 #include <vector>
-#include "SPH/SolidSPHHydroBase.hh"
+#include "SPH/SPHHydroBase.hh"
 
 namespace Spheral {
 
@@ -35,7 +35,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class SolidFSISPHHydroBase: public SolidSPHHydroBase<Dimension> {
+class SolidFSISPHHydroBase: public SPHHydroBase<Dimension> {
 
 public:
 
@@ -176,6 +176,13 @@ public:
   const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
 
+  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
+  const FieldList<Dimension, Scalar>& bulkModulus() const;
+  const FieldList<Dimension, Scalar>& shearModulus() const;
+  const FieldList<Dimension, Scalar>& yieldStrength() const;
+  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldList<Dimension, SymTensor>& Hfield0() const;
+
   const FieldList<Dimension, Scalar>& inverseEquivalentDeviatoricStress() const;
   
   //****************************************************************************
@@ -210,6 +217,13 @@ private:
   FieldList<Dimension, Vector> mSmoothedInterfaceNormals;          // SPH interp of surface normal
   FieldList<Dimension, Scalar> mNewInterfaceFraction;              // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mNewInterfaceSmoothness;            // smoothness metric (0-1) next time step 
+
+  FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
+  FieldList<Dimension, Scalar> mBulkModulus;
+  FieldList<Dimension, Scalar> mShearModulus;
+  FieldList<Dimension, Scalar> mYieldStrength;
+  FieldList<Dimension, Scalar> mPlasticStrain0;
+  FieldList<Dimension, SymTensor> mHfield0;
 
   FieldList<Dimension, Scalar> mInverseEquivalentDeviatoricStress; // equivalent stress deviator
 
