@@ -1,14 +1,19 @@
 #-------------------------------------------------------------------------------
 # The cylindrical Sedov test case (2-D).
 #-------------------------------------------------------------------------------
-import os, sys, shutil
+import os, sys, shutil, mpi
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+#from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 
-import mpi
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+    #from PeanoHilbertDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
+
 
 title("2-D integrated hydro test -- planar Sedov problem")
 #-------------------------------------------------------------------------------
@@ -22,8 +27,8 @@ commandLine(seed = "lattice",
             nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 1.51,
-            order = 5,
+            nPerh = 1.00,
+            order = 3,
 
             rho0 = 1.0,
             eps0 = 0.0,
@@ -46,6 +51,8 @@ commandLine(seed = "lattice",
             psph = False,
             fsisph = False,
             gsph = False,
+            mfm = False,
+            mfv = False,
 
             # hydro options
             solid = False,
@@ -64,7 +71,7 @@ commandLine(seed = "lattice",
 
             # gsph options
             RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
-            linearReconstruction = True,
+            linearReconstruction = False,
 
             # Artifical Viscosity
             boolReduceViscosity = False,
@@ -95,6 +102,7 @@ commandLine(seed = "lattice",
             statsStep = 1,
             smoothIters = 0,
             useVelocityMagnitudeForDt = False,
+            dtverbose = False,
 
             # IO
             vizCycle = None,
@@ -117,7 +125,7 @@ if smallPressure:
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert thetaFactor in (0.5, 1.0, 2.0)
-assert not(gsph and (boolReduceViscosity or boolCullenViscosity))
+assert not((gsph or mfm or mfv) and (boolReduceViscosity or boolCullenViscosity))
 assert not(fsisph and not solid)
 theta = thetaFactor * pi
 
@@ -154,6 +162,10 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
+elif mfm:
+    hydroname = "MFM"
+elif mfv:
+    hydroname = "MFV"
 else:
     hydroname = "SPH"
 if asph:
@@ -175,7 +187,6 @@ restartBaseName = os.path.join(restartDir, "Sedov-cylindrical-2d-%i" % nRadial)
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -248,12 +259,6 @@ else:
                                            azimuthalOffsetFraction = azimuthalOffsetFraction,
                                            nNodePerh = nPerh,
                                            SPH = (not ASPH))
-
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-    #from PeanoHilbertDistributeNodes import distributeNodes2d
-else:
-    from DistributeNodes import distributeNodes2d
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -350,6 +355,41 @@ elif gsph:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
+                gradientType = SPHGradient,
+                XSPH = XSPH,
+                ASPH = asph,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate)
+elif mfm:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction)
+    hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradientType = RiemannGradient,
+                XSPH = XSPH,
+                ASPH = asph,
+                densityUpdate=densityUpdate,
+                HUpdate = HUpdate)
+elif mfv:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,linearReconstruction)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                specificThermalEnergyDiffusionCoefficient = 0.00,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradientType = SPHSameTimeGradient,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,
@@ -389,7 +429,7 @@ output("hydro.XSPH")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
 
-if not gsph:
+if not (gsph or mfm or mfv):
     q = hydro.Q
     output("q")
     output("q.Cl")
@@ -436,6 +476,7 @@ if dtMin:
 if dtMax:
     integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
+integrator.verbose = dtverbose
 integrator.allowDtCheck = True
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
