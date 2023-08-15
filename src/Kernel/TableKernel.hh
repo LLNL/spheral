@@ -24,14 +24,19 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
+  using ContainerType = chai::ManagedArray<Scalar>;
+
   // Constructors.
   template<typename KernelType>
   TableKernel(const KernelType& kernel,
               const unsigned numPoints = 100u);
+
+  RAJA_HOST_DEVICE
   TableKernel(const TableKernel<Dimension>& rhs);
 
   // Destructor.
-  virtual ~TableKernel();
+  //RAJA_HOST_DEVICE
+  //~TableKernel();
 
   // Assignment.
   TableKernel& operator=(const TableKernel& rhs);
@@ -49,10 +54,12 @@ public:
   Scalar grad2Value(const Scalar etaij, const Scalar Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
+  RAJA_HOST_DEVICE
   void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
                      Scalar& W,
                      Vector& gradW,
                      Scalar& deltaWsum) const;
+  RAJA_HOST_DEVICE
   void kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
                           Scalar& W,
                           Scalar& gW) const;
@@ -71,8 +78,8 @@ public:
   Scalar equivalentWsum(const Scalar nPerh) const;
 
   // Allow read only access to the tabular data.
-  const std::vector<Scalar>& nperhValues() const;
-  const std::vector<Scalar>& WsumValues() const;
+  const ContainerType& nperhValues() const;
+  const ContainerType& WsumValues() const;
 
   // Number of points in our lookup data
   size_t numPoints() const;
@@ -85,7 +92,7 @@ private:
   size_t mNumPoints;
 
   // Data for the nperh lookup algorithm.
-  std::vector<Scalar> mNperhValues, mWsumValues;
+  ContainerType mNperhValues, mWsumValues;
   Scalar mMinNperh, mMaxNperh;
 
   // Initialize the table relating Wsum to nodes per smoothing scale.

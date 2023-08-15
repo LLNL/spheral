@@ -5,6 +5,32 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Copy
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+TableKernel<Dimension>::
+TableKernel(const TableKernel<Dimension>& rhs):
+  Kernel<Dimension, TableKernel<Dimension>>(rhs),
+  mInterp(rhs.mInterp),
+  mGradInterp(rhs.mGradInterp),
+  mGrad2Interp(rhs.mGrad2Interp),
+  mNumPoints(rhs.mNumPoints),
+  mNperhValues(rhs.mNperhValues),
+  mWsumValues( rhs.mWsumValues),
+  mMinNperh(rhs.mMinNperh),
+  mMaxNperh(rhs.mMaxNperh) {
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+//template<typename Dimension>
+//TableKernel<Dimension>::
+//~TableKernel() {
+//}
+
+//------------------------------------------------------------------------------
 // Return the kernel weight for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -138,7 +164,7 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
+const typename TableKernel<Dimension>::ContainerType&
 TableKernel<Dimension>::
 nperhValues() const {
   return mNperhValues;
@@ -146,7 +172,7 @@ nperhValues() const {
 
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
+const typename TableKernel<Dimension>::ContainerType&
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;

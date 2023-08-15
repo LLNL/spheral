@@ -898,9 +898,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
-#ifndef USE_DEVICE
       // Symmetrized kernel weight and gradient.
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
+      //printf("Check SPH\n");
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
       gradWi = gWi*Hi*etaUnit;
       gradWj = gWj*Hj*etaUnit;
@@ -935,6 +935,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         ATOMIC_ADD(&a_normj, mj/rhoj*Wj);
       }
 
+#ifndef USE_DEVICE
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
@@ -1011,6 +1012,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     } // loop over pairs
     );
 
+    printf("CHECK Back to host\n");
     // Reduce the thread values to the master.
     //threadReduceFieldLists<Dimension>(threadStack);
 

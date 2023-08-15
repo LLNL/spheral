@@ -39,10 +39,10 @@ Kernel<Dimension, Descendant>::Kernel(const Kernel& rhs):
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Descendant>
-inline
-Kernel<Dimension, Descendant>::~Kernel() {
-}
+//template<typename Dimension, typename Descendant>
+//inline
+//Kernel<Dimension, Descendant>::~Kernel() {
+//}
 
 //------------------------------------------------------------------------------
 // Assignment
