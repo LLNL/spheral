@@ -4,7 +4,6 @@
 #define ATOMIC_ADD(P, V) RAJA::atomicAdd<RAJA::auto_atomic>(P, V)
 
 #include "DeviceTestLib/DeviceTest.hh"
-#include "tests/SPHEvalDerivTest.hh"
 
 #include <iostream>
 

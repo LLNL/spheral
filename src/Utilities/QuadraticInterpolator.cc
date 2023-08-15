@@ -24,8 +24,7 @@ QuadraticInterpolator::QuadraticInterpolator():
 //------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
-void
-QuadraticInterpolator::initialize(const double xmin,
+QuadraticInterpolator::QuadraticInterpolator(const double xmin,
                                   const double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
@@ -37,7 +36,8 @@ QuadraticInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(mN1 + 1u);
-  mcoeffs.resize(3*(mN1 + 1u));
+  mcoeffs.allocate(3*(mN1 + 1u), chai::CPU);
+  mcoeffs.registerTouch(chai::CPU);
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -61,12 +61,6 @@ QuadraticInterpolator::initialize(const double xmin,
     mcoeffs[3*i0 + 1u] = X(1);
     mcoeffs[3*i0 + 2u] = X(2);
   }
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-QuadraticInterpolator::~QuadraticInterpolator() {
 }
 
 //------------------------------------------------------------------------------

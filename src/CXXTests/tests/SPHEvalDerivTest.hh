@@ -13,6 +13,7 @@
 #include <omp.h>
 
 #include "NodeList/FluidNodeList.hh"
+#include "Utilities/QuadraticInterpolator.hh"
 
 //*****************************************************************************
 // Initialize execution platform
