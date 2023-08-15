@@ -32,8 +32,8 @@ GeomSymmetricTensor<2>::elementIndex(const GeomSymmetricTensor<2>::size_type row
                                      const GeomSymmetricTensor<2>::size_type column) const {
   REQUIRE(row < 2);
   REQUIRE(column < 2);
-  int i = std::min(row, column);
-  int j = std::max(row, column);
+  int i = SPHERAL_MIN(row, column);
+  int j = SPHERAL_MAX(row, column);
   int result = (5 - i)*i/2 + j - i;
   ENSURE(result >= 0 and result < (int)numElements);
   return result;
@@ -46,8 +46,8 @@ GeomSymmetricTensor<3>::elementIndex(const GeomSymmetricTensor<3>::size_type row
                             const GeomSymmetricTensor<3>::size_type column) const {
   REQUIRE(row < 3);
   REQUIRE(column < 3);
-  int i = std::min(row, column);
-  int j = std::max(row, column);
+  int i = SPHERAL_MIN(row, column);
+  int j = SPHERAL_MAX(row, column);
   int result = (7 - i)*i/2 + j - i;
   ENSURE(result >= 0 and result < (int)numElements);
   return result;
@@ -1891,7 +1891,11 @@ inline
 double
 GeomSymmetricTensor<1>::
 selfDoubledot() const {
+#ifndef __CUDA_ARCH__
   return FastMath::square(this->mxx);
+#else
+  return this->mxx*this->mxx;
+#endif
 }
 
 template<>
@@ -2042,7 +2046,7 @@ void
 GeomSymmetricTensor<1>::
 rotationalTransform(const GeomTensor<1>& R) {
   CONTRACT_VAR(R);
-  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
+  REQUIRE2(fuzzyEqual(SPHERAL_ABS(R.Determinant()), 1.0, 1.0e-5), R);
 }
 
 template<>
@@ -2050,7 +2054,7 @@ inline
 void
 GeomSymmetricTensor<2>::
 rotationalTransform(const GeomTensor<2>& R) {
-  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
+  REQUIRE2(fuzzyEqual(SPHERAL_ABS(R.Determinant()), 1.0, 1.0e-5), R);
 
   const double A0 = this->mxx;
   const double A1 = this->mxy;
@@ -2074,7 +2078,7 @@ inline
 void
 GeomSymmetricTensor<3>::
 rotationalTransform(const GeomTensor<3>& R) {
-  REQUIRE2(fuzzyEqual(std::abs(R.Determinant()), 1.0, 1.0e-5), R);
+  REQUIRE2(fuzzyEqual(SPHERAL_ABS(R.Determinant()), 1.0, 1.0e-5), R);
 
   const double A0 = this->mxx;
   const double A1 = this->mxy;
@@ -2116,7 +2120,7 @@ inline
 double
 GeomSymmetricTensor<1>::
 maxAbsElement() const {
-  return std::abs(this->mxx);
+  return SPHERAL_ABS(this->mxx);
 }
 
 template<>
@@ -2124,9 +2128,9 @@ inline
 double
 GeomSymmetricTensor<2>::
 maxAbsElement() const {
-  return std::max(std::abs(this->mxx),
-                  std::max(std::abs(this->mxy), 
-                           std::abs(this->myy)));
+  return SPHERAL_MAX(SPHERAL_ABS(this->mxx),
+                  SPHERAL_MAX(SPHERAL_ABS(this->mxy), 
+                           SPHERAL_ABS(this->myy)));
 }
 
 template<>
@@ -2134,12 +2138,12 @@ inline
 double
 GeomSymmetricTensor<3>::
 maxAbsElement() const {
-  return std::max(std::abs(this->mxx), 
-                  std::max(std::abs(this->mxy), 
-                           std::max(std::abs(this->mxz), 
-                                    std::max(std::abs(this->myy), 
-                                             std::max(std::abs(this->myz), 
-                                                      std::abs(this->mzz))))));
+  return SPHERAL_MAX(SPHERAL_ABS(this->mxx), 
+                  SPHERAL_MAX(SPHERAL_ABS(this->mxy), 
+                           SPHERAL_MAX(SPHERAL_ABS(this->mxz), 
+                                    SPHERAL_MAX(SPHERAL_ABS(this->myy), 
+                                             SPHERAL_MAX(SPHERAL_ABS(this->myz), 
+                                                      SPHERAL_ABS(this->mzz))))));
 }
 
 //------------------------------------------------------------------------------
@@ -2157,12 +2161,12 @@ template<>
 inline
 GeomVector<2>
 GeomSymmetricTensor<2>::eigenValues() const {
-  if (std::abs(xy()) < 1.0e-50) {
+  if (SPHERAL_ABS(xy()) < 1.0e-50) {
     return diagonalElements();
   } else {
     const double b = Trace();
     const double c = Determinant();
-    const double q = 0.5*(b + sgn(b)*std::sqrt(std::max(0.0, b*b - 4.0*c)));
+    const double q = 0.5*(b + sgn(b)*std::sqrt(SPHERAL_MAX(0.0, b*b - 4.0*c)));
     CHECK(q != 0.0);
     return GeomVector<2>(q, c/q); // (q + 1.0e-50*sgn(q)));
   }
@@ -2176,7 +2180,7 @@ template<>
 inline
 GeomVector<3>
 GeomSymmetricTensor<3>::eigenValues() const {
-  const double fscale = std::max(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
+  const double fscale = SPHERAL_MAX(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
   CHECK(fscale > 0.0);
   const double fscalei = 1.0/fscale;
   const double a00 = this->xx()*fscalei;
@@ -2189,9 +2193,9 @@ GeomSymmetricTensor<3>::eigenValues() const {
   const double c1 = a00*a11 - a01*a01 + a00*a22 - a02*a02 + a11*a22 - a12*a12;
   const double c2 = a00 + a11 + a22;
   const double c2Div3 = c2*onethird;
-  const double aDiv3 = std::min(0.0, onethird*(c1 - c2*c2Div3));
+  const double aDiv3 = SPHERAL_MIN(0.0, onethird*(c1 - c2*c2Div3));
   const double mbDiv2 = 0.5*(c0 + c2Div3*(2.0*c2Div3*c2Div3 - c1));
-  const double q = std::min(0.0, mbDiv2*mbDiv2 + aDiv3*aDiv3*aDiv3);
+  const double q = SPHERAL_MIN(0.0, mbDiv2*mbDiv2 + aDiv3*aDiv3*aDiv3);
   CHECK(-aDiv3 >= 0.0);
   CHECK(-q >= 0.0);
   const double mag = std::sqrt(-aDiv3);
@@ -2223,14 +2227,14 @@ template<>
 inline
 EigenStruct<2>
 GeomSymmetricTensor<2>::eigenVectors() const {
-  const double fscale = std::max(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
+  const double fscale = SPHERAL_MAX(10.0*std::numeric_limits<double>::epsilon(), this->maxAbsElement()); 
   CHECK(fscale > 0.0);
   const double fscalei = 1.0/fscale;
   const double axx = mxx*fscalei;
   const double axy = mxy*fscalei;
   const double ayy = myy*fscalei;
   EigenStruct<2> result;
-  if (std::abs(axy) < 1.0e-50) {
+  if (SPHERAL_ABS(axy) < 1.0e-50) {
     result.eigenValues = diagonalElements();
     result.eigenVectors = one;
   } else {
@@ -2290,7 +2294,7 @@ pow(const double p) const {
   const typename GeomSymmetricTensor<nDim>::EigenStructType eigen = this->eigenVectors();
   GeomSymmetricTensor<nDim> result;
   for (int i = 0; i != nDim; ++i)
-    result(i,i) = std::pow(std::abs(eigen.eigenValues(i)), p) * sgn(eigen.eigenValues(i));
+    result(i,i) = std::pow(SPHERAL_ABS(eigen.eigenValues(i)), p) * sgn(eigen.eigenValues(i));
   result.rotationalTransform(eigen.eigenVectors);
   return result;
 }
@@ -2396,7 +2400,7 @@ min(const double minValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
   } else {
     SymTensor result;
     for (int i = 0; i != nDim; ++i) {
-      result(i,i) = std::min(minValue, eigen.eigenValues(i));
+      result(i,i) = SPHERAL_MIN(minValue, eigen.eigenValues(i));
     }
     result.rotationalTransform(eigen.eigenVectors);
     return result;
@@ -2429,7 +2433,7 @@ max(const double maxValue, const Spheral::GeomSymmetricTensor<nDim>& tensor) {
   } else {
     SymTensor result;
     for (int i = 0; i != nDim; ++i) {
-      result(i,i) = std::max(maxValue, eigen.eigenValues(i));
+      result(i,i) = SPHERAL_MAX(maxValue, eigen.eigenValues(i));
     }
     result.rotationalTransform(eigen.eigenVectors);
     return result;

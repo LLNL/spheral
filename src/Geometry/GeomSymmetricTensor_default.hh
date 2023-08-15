@@ -26,8 +26,13 @@
 
 namespace Spheral {
 
+
 template<int nDim>
 class GeomSymmetricTensor: public GeomSymmetricTensorBase<nDim> {
+
+  RAJA_HOST_DEVICE
+  static constexpr unsigned triangleSummation(unsigned n) {return (n*(n+1))/2;}
+
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -38,8 +43,9 @@ public:
   typedef EigenStruct<nDim> EigenStructType;
 
   // Useful static memeber data.
-  static const size_type nDimensions;
-  static const size_type numElements;
+  static constexpr size_type nDimensions = nDim;
+  //static constexpr size_type numElements = triangleSummation(nDim);
+  static constexpr size_type numElements = (nDim*(nDim+1))/2;//triangleSummation(nDim);
   static const GeomSymmetricTensor zero;
   static const GeomSymmetricTensor one;
   static const double onethird;
@@ -75,12 +81,12 @@ public:
   template<typename Derived> GeomSymmetricTensor& operator=(const Eigen::MatrixBase<Derived>& rhs);
 
   // Access the elements by indicies.
-  double operator()(const size_type row, const size_type column) const;
-  double& operator()(const size_type row, const size_type column);
+  RAJA_HOST_DEVICE double operator()(const size_type row, const size_type column) const;
+  RAJA_HOST_DEVICE double& operator()(const size_type row, const size_type column);
 
   // More C++ style indexing.
-  double operator[](size_type index) const;
-  double& operator[](size_type index);
+  RAJA_HOST_DEVICE double operator[](size_type index) const;
+  RAJA_HOST_DEVICE double& operator[](size_type index);
 
   // Access the individual elements by (x,y,z) notation.
   RAJA_HOST_DEVICE double xx() const;
@@ -103,62 +109,62 @@ public:
   RAJA_HOST_DEVICE void zz(double val);
 
   // Get/set rows and columns.
-  GeomVector<nDim> getRow(size_type index) const;
-  GeomVector<nDim> getColumn(size_type index) const;
-  void setRow(size_type index, const GeomVector<nDim>& vec);
-  void setColumn(size_type index, const GeomVector<nDim>& vec);
+  RAJA_HOST_DEVICE GeomVector<nDim> getRow(size_type index) const;
+  RAJA_HOST_DEVICE GeomVector<nDim> getColumn(size_type index) const;
+  RAJA_HOST_DEVICE void setRow(size_type index, const GeomVector<nDim>& vec);
+  RAJA_HOST_DEVICE void setColumn(size_type index, const GeomVector<nDim>& vec);
 
   // Iterator access to the raw data.
-  iterator begin();
-  iterator end();
+  RAJA_HOST_DEVICE iterator begin();
+  RAJA_HOST_DEVICE iterator end();
 
-  const_iterator begin() const;
-  const_iterator end() const;
+  RAJA_HOST_DEVICE const_iterator begin() const;
+  RAJA_HOST_DEVICE const_iterator end() const;
 
   // The zero and identity matrices.
   void Zero();
   void Identity();
 
-  GeomSymmetricTensor operator-() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor operator-() const;
 
-  GeomTensor<nDim> operator+(const GeomTensor<nDim>& rhs) const;
-  GeomTensor<nDim> operator-(const GeomTensor<nDim>& rhs) const;
-  GeomTensor<nDim> operator*(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> operator+(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> operator-(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> operator*(const GeomTensor<nDim>& rhs) const;
 
-  GeomSymmetricTensor operator+(const GeomSymmetricTensor& rhs) const;
-  GeomSymmetricTensor operator-(const GeomSymmetricTensor& rhs) const;
-  GeomTensor<nDim>    operator*(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor operator+(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor operator-(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim>    operator*(const GeomSymmetricTensor& rhs) const;
 
-  GeomVector<nDim> operator*(const GeomVector<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomVector<nDim> operator*(const GeomVector<nDim>& rhs) const;
   // GeomSymmetricTensor operator+(const double rhs) const;
   // GeomSymmetricTensor operator-(const double rhs) const;
-  GeomSymmetricTensor operator*(const double rhs) const;
-  GeomSymmetricTensor operator/(const double rhs) const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor operator*(const double rhs) const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor operator/(const double rhs) const;
 
-  GeomSymmetricTensor& operator+=(const GeomSymmetricTensor& rhs);
-  GeomSymmetricTensor& operator-=(const GeomSymmetricTensor& rhs);
+  RAJA_HOST_DEVICE GeomSymmetricTensor& operator+=(const GeomSymmetricTensor& rhs);
+  RAJA_HOST_DEVICE GeomSymmetricTensor& operator-=(const GeomSymmetricTensor& rhs);
 
   template<typename Derived> GeomSymmetricTensor& operator+=(const Eigen::MatrixBase<Derived>& rhs);
   template<typename Derived> GeomSymmetricTensor& operator-=(const Eigen::MatrixBase<Derived>& rhs);
 
   // GeomSymmetricTensor& operator+=(const double rhs);
   // GeomSymmetricTensor& operator-=(const double rhs);
-  GeomSymmetricTensor& operator*=(const double rhs);
-  GeomSymmetricTensor& operator/=(const double rhs);
+  RAJA_HOST_DEVICE GeomSymmetricTensor& operator*=(const double rhs);
+  RAJA_HOST_DEVICE GeomSymmetricTensor& operator/=(const double rhs);
 
-  bool operator==(const GeomTensor<nDim>& rhs) const;
-  bool operator!=(const GeomTensor<nDim>& rhs) const;
-  bool operator<(const GeomTensor<nDim>& rhs) const;
-  bool operator>(const GeomTensor<nDim>& rhs) const;
-  bool operator<=(const GeomTensor<nDim>& rhs) const;
-  bool operator>=(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator==(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator!=(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator<(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator>(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator<=(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE bool operator>=(const GeomTensor<nDim>& rhs) const;
 
-  bool operator==(const GeomSymmetricTensor& rhs) const;
-  bool operator!=(const GeomSymmetricTensor& rhs) const;
-  bool operator<(const GeomSymmetricTensor& rhs) const;
-  bool operator>(const GeomSymmetricTensor& rhs) const;
-  bool operator<=(const GeomSymmetricTensor& rhs) const;
-  bool operator>=(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator==(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator!=(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator<(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator>(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator<=(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE bool operator>=(const GeomSymmetricTensor& rhs) const;
 
   // bool operator==(const double rhs) const;
   // bool operator!=(const double rhs) const;
@@ -167,26 +173,26 @@ public:
   // bool operator<=(const double rhs) const;
   // bool operator>=(const double rhs) const;
 
-  GeomSymmetricTensor Symmetric() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor Symmetric() const;
   GeomTensor<nDim> SkewSymmetric() const;
-  GeomSymmetricTensor Transpose() const;
-  GeomSymmetricTensor Inverse() const;
-  GeomVector<nDim> diagonalElements() const;
-  double Trace() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor Transpose() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor Inverse() const;
+  RAJA_HOST_DEVICE GeomVector<nDim> diagonalElements() const;
+  RAJA_HOST_DEVICE double Trace() const;
   RAJA_HOST_DEVICE double Determinant() const;
-  GeomVector<nDim> dot(const GeomVector<nDim>& rhs) const;
-  GeomTensor<nDim> dot(const GeomTensor<nDim>& rhs) const;
-  GeomTensor<nDim> dot(const GeomSymmetricTensor& rhs) const;
-  double doubledot(const GeomTensor<nDim>& rhs) const;
-  double doubledot(const GeomSymmetricTensor& rhs) const;
-  double selfDoubledot() const;
+  RAJA_HOST_DEVICE GeomVector<nDim> dot(const GeomVector<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> dot(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE GeomTensor<nDim> dot(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE double doubledot(const GeomTensor<nDim>& rhs) const;
+  RAJA_HOST_DEVICE double doubledot(const GeomSymmetricTensor& rhs) const;
+  RAJA_HOST_DEVICE double selfDoubledot() const;
 
   // Return the square of this tensor (using matrix multiplication).  Note that
   // for a symmetric tensor this is guaranteed to return a symmetric product.
-  GeomSymmetricTensor square() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor square() const;
 
   // Same idea for the cube.
-  GeomSymmetricTensor cube() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor cube() const;
 
   // Compute the "square root" of the tensor: the tensor that, 
   // when squared, equals this tensor.
@@ -200,7 +206,7 @@ public:
 
   // Return a tensor where each element is the square of the corresponding 
   // element of this tensor.
-  GeomSymmetricTensor squareElements() const;
+  RAJA_HOST_DEVICE GeomSymmetricTensor squareElements() const;
 
   // A simple method for returning the eigenvalues of a tensor.
   GeomVector<nDim> eigenValues() const;
@@ -214,25 +220,25 @@ public:
   EigenStructType eigenVectors() const;
 
   // Return the max absolute element.
-  double maxAbsElement() const;
+  RAJA_HOST_DEVICE double maxAbsElement() const;
 
   //  Convert to an Eigen Vector
   EigenType eigen() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  size_type elementIndex(const size_type row, const size_type column) const;
+  RAJA_HOST_DEVICE size_type elementIndex(const size_type row, const size_type column) const;
 };
 
 // Declare specializations.
 #ifndef WIN32
-template<> const unsigned GeomSymmetricTensor<1>::nDimensions;
-template<> const unsigned GeomSymmetricTensor<2>::nDimensions;
-template<> const unsigned GeomSymmetricTensor<3>::nDimensions;
-
-template<> const unsigned GeomSymmetricTensor<1>::numElements;
-template<> const unsigned GeomSymmetricTensor<2>::numElements;
-template<> const unsigned GeomSymmetricTensor<3>::numElements;
+//template<> const unsigned GeomSymmetricTensor<1>::nDimensions;
+//template<> const unsigned GeomSymmetricTensor<2>::nDimensions;
+//template<> const unsigned GeomSymmetricTensor<3>::nDimensions;
+//
+//template<> const unsigned GeomSymmetricTensor<1>::numElements;
+//template<> const unsigned GeomSymmetricTensor<2>::numElements;
+//template<> const unsigned GeomSymmetricTensor<3>::numElements;
 #endif
 
 template<> GeomVector<1> GeomSymmetricTensor<1>::eigenValues() const;

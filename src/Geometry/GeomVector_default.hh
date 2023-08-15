@@ -94,10 +94,10 @@ public:
   RAJA_HOST_DEVICE const_iterator end() const;
 
   // Zero the vector.
-  void Zero();
+  RAJA_HOST_DEVICE void Zero();
 
   // Mathematical operators.
-  GeomVector operator-() const;
+  RAJA_HOST_DEVICE GeomVector operator-() const;
 
   RAJA_HOST_DEVICE GeomVector operator+(const GeomVector& vec) const;
   RAJA_HOST_DEVICE GeomVector operator-(const GeomVector& vec) const;
@@ -136,7 +136,7 @@ public:
   RAJA_HOST_DEVICE GeomSymmetricTensor<nDim> selfdyad() const;
   RAJA_HOST_DEVICE GeomTensor<nDim> operator*(const GeomVector& vec) const;
 
-  GeomVector unitVector() const;
+  RAJA_HOST_DEVICE GeomVector unitVector() const;
 
   RAJA_HOST_DEVICE double magnitude() const;
   RAJA_HOST_DEVICE double magnitude2() const;
