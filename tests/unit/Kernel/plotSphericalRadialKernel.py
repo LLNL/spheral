@@ -78,7 +78,7 @@ def integrate_Wr(R):
             ScalarScalarFunctor.__init__(self)
             return
         def __call__(self, ri):
-            return ri*ri*Wr0(Vector1d(R/h), Vector1d(ri/h), 1.0/h)
+            return ri*ri*Wr0(Vector1d(ri/h), Vector1d(R/h), 1.0/h)
     return simpsonsIntegrationDouble(Wvol_shell(), R - h*Wr0.etamax, R + h*Wr0.etamax, 200)
 
 rvals = np.linspace(0.0, 20.0*h, 80)
