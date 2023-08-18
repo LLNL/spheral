@@ -95,7 +95,6 @@ figWrsum.set_title(r"Integral of $W_r$ over volume")
 #-------------------------------------------------------------------------------
 # Try interpolating some functions
 #-------------------------------------------------------------------------------
-raise ValueError("Stop me!")
 r0, r1 = 0.0, 2.0
 nr = 100
 nPerh = 1.35
