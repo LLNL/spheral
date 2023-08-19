@@ -227,6 +227,40 @@ private:
 
   FieldList<Dimension, Scalar> mInverseEquivalentDeviatoricStress; // equivalent stress deviator
 
+  // Some internal scratch fields.
+  FieldList<Dimension, int>       mTimeStepMask;
+  FieldList<Dimension, Scalar>    mPressure;
+  FieldList<Dimension, Scalar>    mSoundSpeed;
+  FieldList<Dimension, Scalar>    mOmegaGradh;
+  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
+  FieldList<Dimension, Scalar>    mEntropy;
+
+  FieldList<Dimension, SymTensor> mHideal;
+  FieldList<Dimension, Scalar>    mMaxViscousPressure;
+  FieldList<Dimension, Scalar>    mEffViscousPressure;
+  FieldList<Dimension, Scalar>    mMassDensityCorrection;
+  FieldList<Dimension, Scalar>    mViscousWork;
+  FieldList<Dimension, Scalar>    mMassDensitySum;
+  FieldList<Dimension, Scalar>    mNormalization;
+
+  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
+  FieldList<Dimension, SymTensor> mMassSecondMoment;
+
+  FieldList<Dimension, Scalar>    mXSPHWeightSum;
+  FieldList<Dimension, Vector>    mXSPHDeltaV;
+
+  FieldList<Dimension, Vector>    mDxDt;
+  FieldList<Dimension, Vector>    mDvDt;
+  FieldList<Dimension, Scalar>    mDmassDensityDt;
+  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
+  FieldList<Dimension, SymTensor> mDHDt;
+  FieldList<Dimension, Tensor>    mDvDx;
+  FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Tensor>    mM;
+  FieldList<Dimension, Tensor>    mLocalM;
+
+  FieldList<Dimension, Scalar>    mVolume;
+
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
