@@ -10,8 +10,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivatives) const {
-
+                          StateDerivatives<Dimension>& derivatives) const { 
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -893,6 +892,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-} // method 
+ } // method 
 
 } // spheral namespace

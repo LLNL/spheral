@@ -7,7 +7,8 @@
 #include <float.h>
 #include <string>
 #include <vector>
-#include "SPH/SPHHydroBase.hh"
+
+#include "Physics/GenericHydro.hh"
 
 namespace Spheral {
 
@@ -35,7 +36,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class SolidFSISPHHydroBase: public SPHHydroBase<Dimension> {
+class SolidFSISPHHydroBase: public GenericHydro<Dimension> {
 
 public:
 
@@ -138,6 +139,38 @@ public:
                                   typename Dimension::Scalar& ytildei,
                                   typename Dimension::Scalar& ytildej) const;
 
+
+  const TableKernel<Dimension>& kernel() const;
+  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
+  SlideSurface<Dimension>& slideSurface() const;
+
+  MassDensityType densityUpdate() const;
+  void densityUpdate(MassDensityType type);
+
+  HEvolutionType HEvolution() const;
+  void HEvolution(HEvolutionType type);
+
+  InterfaceMethod interfaceMethod() const;
+  void interfaceMethod(InterfaceMethod method);
+
+  KernelAveragingMethod kernelAveragingMethod() const;
+  void kernelAveragingMethod(KernelAveragingMethod method);
+
+  bool compatibleEnergyEvolution() const;
+  void compatibleEnergyEvolution(bool val);
+
+  bool evolveTotalEnergy() const;
+  void evolveTotalEnergy(bool val);
+
+  bool correctVelocityGradient() const;
+  void correctVelocityGradient(bool val);
+
+  bool applySelectSumDensity() const;
+  void applySelectSumDensity(bool x);
+
+  std::vector<int> sumDensityNodeLists() const;
+  void sumDensityNodeLists(std::vector<int> x);
+
   double surfaceForceCoefficient() const;
   void surfaceForceCoefficient(double x);
 
@@ -150,66 +183,123 @@ public:
   double xsphCoefficient() const;
   void xsphCoefficient(double x);
 
-  bool applySelectSumDensity() const;
-  void applySelectSumDensity(bool x);
+  Scalar epsilonTensile() const;
+  void epsilonTensile(Scalar val);
 
-  std::vector<int> sumDensityNodeLists() const;
-  void sumDensityNodeLists(std::vector<int> x);
+  Scalar nTensile() const;
+  void nTensile(Scalar val);
 
-  const std::vector<Scalar>& pairDepsDt() const;
-  SlideSurface<Dimension>& slideSurface() const;
+  const Vector& xmin() const;
+  const Vector& xmax() const;
+  void xmin(const Vector& x);
+  void xmax(const Vector& x);
 
-  InterfaceMethod interfaceMethod() const;
-  void interfaceMethod(InterfaceMethod method);
+  const std::vector<Vector>&             pairAccelerations() const;
+  const std::vector<Scalar>&             pairDepsDt() const;
 
-  KernelAveragingMethod kernelAveragingMethod() const;
-  void kernelAveragingMethod(KernelAveragingMethod method);
-
-  const FieldList<Dimension, Scalar>& rawPressure() const;
-  const FieldList<Dimension, Vector>& DPDx() const;
-  const FieldList<Dimension, Vector>& DepsDx() const;
-  const FieldList<Dimension, Vector>& interfaceNormals() const;
-  const FieldList<Dimension, Scalar>& interfaceFraction() const;
-  const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
-  const FieldList<Dimension, Vector>& newInterfaceNormals() const;
-  const FieldList<Dimension, Vector>& smoothedInterfaceNormals() const;
-  const FieldList<Dimension, Scalar>& newInterfaceFraction() const;
-  const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
-
+  const FieldList<Dimension, int>&       timeStepMask() const;
+  const FieldList<Dimension, Scalar>&    pressure() const;
+  const FieldList<Dimension, Scalar>&    rawPressure() const;
+  const FieldList<Dimension, Scalar>&    soundSpeed() const;
+  const FieldList<Dimension, Scalar>&    bulkModulus() const;
+  const FieldList<Dimension, Scalar>&    shearModulus() const;
+  const FieldList<Dimension, Scalar>&    yieldStrength() const;
+  const FieldList<Dimension, Scalar>&    plasticStrain0() const;
+  const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
+  const FieldList<Dimension, Scalar>&    volume() const;
+  const FieldList<Dimension, Vector>&    DxDt() const;
+  const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
+  const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
+  const FieldList<Dimension, Vector>&    DvDt() const;
+  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
+  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, Scalar>& bulkModulus() const;
-  const FieldList<Dimension, Scalar>& shearModulus() const;
-  const FieldList<Dimension, Scalar>& yieldStrength() const;
-  const FieldList<Dimension, Scalar>& plasticStrain0() const;
-  const FieldList<Dimension, SymTensor>& Hfield0() const;
-
-  const FieldList<Dimension, Scalar>& inverseEquivalentDeviatoricStress() const;
+  const FieldList<Dimension, SymTensor>& DHDt() const;
+  const FieldList<Dimension, SymTensor>& Hideal() const;
+  const FieldList<Dimension, Vector>&    DPDx() const;
+  const FieldList<Dimension, Vector>&    DepsDx() const;
+  const FieldList<Dimension, Tensor>&    DvDx() const;
+  const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldList<Dimension, Tensor>&    M() const;
+  const FieldList<Dimension, Tensor>&    localM() const;
+  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
+  const FieldList<Dimension, Scalar>&    normalization() const;
+  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
+  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Vector>&    interfaceNormals() const;
+  const FieldList<Dimension, Scalar>&    interfaceFraction() const;
+  const FieldList<Dimension, Scalar>&    interfaceSmoothness() const;
+  const FieldList<Dimension, Vector>&    newInterfaceNormals() const;
+  const FieldList<Dimension, Vector>&    smoothedInterfaceNormals() const;
+  const FieldList<Dimension, Scalar>&    newInterfaceFraction() const;
+  const FieldList<Dimension, Scalar>&    newInterfaceSmoothness() const;
   
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
-  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
  //****************************************************************************
 
 private:
+  const TableKernel<Dimension>& mKernel;
+  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
+  SlideSurface<Dimension>& mSlideSurface;
 
-  SlideSurface<Dimension>& mSlideSurface;             // ref to the obj tracking slideSurfs between nodelists
+  MassDensityType mDensityUpdate;
+  HEvolutionType mHEvolution;
+  InterfaceMethod mInterfaceMethod;                   // switch for material interface method
+  KernelAveragingMethod mKernelAveragingMethod;       // how do we handle our kernels?
+
+  bool mCompatibleEnergyEvolution;
+  bool mEvolveTotalEnergy; 
+  bool mCorrectVelocityGradient;
+  bool mApplySelectDensitySum;                        // switch for density sum
+  std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
+
   double mSurfaceForceCoefficient;                    // Monaghan 2013 force increase @ interface
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   double mXSPHCoefficient;                            // controls amount of xsph-ing
-  InterfaceMethod mInterfaceMethod;                   // switch for material interface method
-  KernelAveragingMethod mKernelAveragingMethod;       // how do we handle our kernels?
 
-  bool   mApplySelectDensitySum;                      // switch for density sum
-  std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
-  
+  Scalar mEpsTensile;
+  Scalar mnTensile;
+
+  Vector mxmin;
+  Vector mxmax;
+
+  std::vector<Vector> mPairAccelerations;              // store pairwise contribution to DvDt for compatible
   std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
- 
-  FieldList<Dimension, Scalar> mRawPressure;                       // material interface normals
-  FieldList<Dimension, Vector> mDPDx;                              // pressure gradient     
-  FieldList<Dimension, Vector> mDepsDx;                            // specific thermal energy gradient    
+
+  FieldList<Dimension, int>       mTimeStepMask;
+  FieldList<Dimension, Scalar>    mPressure;
+  FieldList<Dimension, Scalar>    mRawPressure;
+  FieldList<Dimension, Scalar>    mSoundSpeed;
+  FieldList<Dimension, Scalar>    mBulkModulus;
+  FieldList<Dimension, Scalar>    mShearModulus;
+  FieldList<Dimension, Scalar>    mYieldStrength;
+  FieldList<Dimension, Scalar>    mPlasticStrain0;
+  FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
+  FieldList<Dimension, Scalar>    mVolume;
+  FieldList<Dimension, Vector>    mDxDt;
+  FieldList<Dimension, Vector>    mXSPHDeltaV;
+  FieldList<Dimension, Scalar>    mXSPHWeightSum;
+  FieldList<Dimension, Vector>    mDvDt;
+  FieldList<Dimension, Scalar>    mDmassDensityDt;
+  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
+  FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
+  FieldList<Dimension, SymTensor> mDHDt;
+  FieldList<Dimension, SymTensor> mHideal;
+  FieldList<Dimension, Vector>    mDPDx;
+  FieldList<Dimension, Vector>    mDepsDx;
+  FieldList<Dimension, Tensor>    mDvDx;
+  FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Tensor>    mM;
+  FieldList<Dimension, Tensor>    mLocalM;
+  FieldList<Dimension, Scalar>    mMaxViscousPressure;
+  FieldList<Dimension, Scalar>    mNormalization;
+  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
+  FieldList<Dimension, SymTensor> mMassSecondMoment;
   FieldList<Dimension, Vector> mInterfaceNormals;                  // surface normals between nodelists     
   FieldList<Dimension, Scalar> mInterfaceFraction;                 // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mInterfaceSmoothness;               // smoothness metric (0-1)    
@@ -218,53 +308,15 @@ private:
   FieldList<Dimension, Scalar> mNewInterfaceFraction;              // fraction of dissimilar neighbor volume     
   FieldList<Dimension, Scalar> mNewInterfaceSmoothness;            // smoothness metric (0-1) next time step 
 
-  FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
-  FieldList<Dimension, Scalar> mBulkModulus;
-  FieldList<Dimension, Scalar> mShearModulus;
-  FieldList<Dimension, Scalar> mYieldStrength;
-  FieldList<Dimension, Scalar> mPlasticStrain0;
-  FieldList<Dimension, SymTensor> mHfield0;
-
-  FieldList<Dimension, Scalar> mInverseEquivalentDeviatoricStress; // equivalent stress deviator
-
-  // Some internal scratch fields.
-  FieldList<Dimension, int>       mTimeStepMask;
-  FieldList<Dimension, Scalar>    mPressure;
-  FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mOmegaGradh;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
-  FieldList<Dimension, Scalar>    mEntropy;
-
-  FieldList<Dimension, SymTensor> mHideal;
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffViscousPressure;
-  FieldList<Dimension, Scalar>    mMassDensityCorrection;
-  FieldList<Dimension, Scalar>    mViscousWork;
-  FieldList<Dimension, Scalar>    mMassDensitySum;
-  FieldList<Dimension, Scalar>    mNormalization;
-
-  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
-
-  FieldList<Dimension, Scalar>    mXSPHWeightSum;
-  FieldList<Dimension, Vector>    mXSPHDeltaV;
-
-  FieldList<Dimension, Vector>    mDxDt;
-  FieldList<Dimension, Vector>    mDvDt;
-  FieldList<Dimension, Scalar>    mDmassDensityDt;
-  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldList<Dimension, SymTensor> mDHDt;
-  FieldList<Dimension, Tensor>    mDvDx;
-  FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldList<Dimension, Tensor>    mM;
-  FieldList<Dimension, Tensor>    mLocalM;
-
-  FieldList<Dimension, Scalar>    mVolume;
-
   // No default constructor, copying, or assignment.
   SolidFSISPHHydroBase();
   SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
   SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&);
+
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  // The restart registration.
+  RestartRegistrationType mRestart;
 };
 
 }
