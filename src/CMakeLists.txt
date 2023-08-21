@@ -26,7 +26,6 @@ list(APPEND _packages
   FileIO
   FSISPH
   Geometry
-  Gravity
   Hydro
   Integrator
   Kernel
@@ -52,6 +51,10 @@ endif()
 
 if (SPHERAL_ENABLE_EXTERNAL_FORCE)
   list(APPEND _packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_GRAVITY)
+   list(APPEND _packages Gravity)
 endif()
 
 if(NOT ENABLE_CXXONLY)
