@@ -8,12 +8,9 @@
 #include "Field/FieldListView.hh"
 
 
+
 //template<typename Dimension, typename DATA_TYPE>
 //class LvFieldView;
-
-template<typename Dimension, typename DATA_TYPE>
-class LvFieldListView;
-
 
 //template<typename DATA_TYPE>
 //class LvField {
