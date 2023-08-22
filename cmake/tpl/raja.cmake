@@ -1,1 +1,1 @@
-set(${lib_name}_libs libRAJA.a)
+set(${lib_name}_libs libRAJA.a libdesul_atomics.a)
