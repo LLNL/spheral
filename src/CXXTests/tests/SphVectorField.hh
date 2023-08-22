@@ -79,12 +79,7 @@ public:
     setName("");
   }
 
-  RAJA_HOST LvField(size_t elems, std::string name) : mDataArray{elems} { 
-    strcpy(m_name, name.c_str());
-    setName(name);
-  }
-
-  RAJA_HOST LvField(size_t elems, std::string name, RAJA::Platform platform) : mDataArray{elems} { 
+  RAJA_HOST LvField(std::string name, size_t elems, chai::ExecutionSpace const& platform = chai::CPU) : mDataArray{elems} { 
     strcpy(m_name, name.c_str());
     mDataArray.move(platform);
     setName(name);
@@ -118,7 +113,10 @@ public:
   std::string getName() const {return m_name;}
 
   RAJA_HOST
-  void move (RAJA::Platform platform) {mDataArray.move(platform);}
+  //void move (RAJA::Platform platform) {mDataArray.move(platform);}
+  void move(chai::ExecutionSpace const& space, bool touch = true) const {
+    mDataArray.move(space,touch);
+  }
 
   RAJA_HOST
   LvField make_pool_field(size_t num_pools, RAJA::Platform platform) const {
@@ -136,7 +134,7 @@ public:
   // Required to Allow SphVector to be properly CHAICopyable
   RAJA_HOST_DEVICE LvField<DATA_TYPE>& operator=(std::nullptr_t) {mDataArray = nullptr; return *this;}
   RAJA_HOST_DEVICE void shallowCopy(const LvField& other) {
-    strcpy(m_name, other.getName().c_str());
+    strcpy(m_name, other.m_name);
     mDataArray.shallowCopy(other.mDataArray);
   }
 
@@ -154,9 +152,12 @@ public:
 
   using FIELD_TYPE = LvField<DATA_TYPE>;
   using ARRAY_TYPE = SphVector<FIELD_TYPE>;
+  using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
 
-  LvFieldList() {setName();}
+  RAJA_HOST
+  LvFieldList() {setName("\0");}
 
+  RAJA_HOST
   LvFieldList(std::string name) {
     setName(name);
   }
@@ -165,16 +166,22 @@ public:
   //  mFieldArray.push_back(field);
   //}
 
+  RAJA_HOST
   void appendField(FIELD_TYPE field) { 
     mFieldArray.push_back(field);
   }
 
-  void move(LvArray::MemorySpace const& space, bool touch = true) const {
-    mFieldArray.move(space,touch);
+  RAJA_HOST
+  void move(chai::ExecutionSpace const& space, bool touch = true) {
+    mFieldArray.move(space, touch);
+    for(int i = 0; i < mFieldArray.size(); i++) mFieldArray[i].move(space, touch);
   }
 
   RAJA_HOST_DEVICE
   DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldArray[field_id][idx]; }
+
+  RAJA_HOST_DEVICE
+  ATOMIC_DATA_TYPE& atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldArray[field_id][idx]); }
 
   RAJA_HOST_DEVICE
   FIELD_TYPE& operator[](const unsigned int index) {return mFieldArray(index);}

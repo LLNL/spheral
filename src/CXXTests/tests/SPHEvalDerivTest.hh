@@ -23,7 +23,8 @@
 
 #include "ExecStrategy.hh"
 #include "memoryManager.hh"
-#include "LvField.hh"
+//#include "LvField.hh"
+#include "SphVectorField.hh"
 
 //*****************************************************************************
 // Set up problem size
@@ -33,11 +34,11 @@
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
 
-#elif 1 // Large Problem
+#elif 0 // Large Problem
 #define N_PAIRS  5000000
 #define DATA_SZ  50000
 
-#elif 1 // Medium Problem
+#elif 0 // Medium Problem
 #define N_PAIRS  1000000
 #define DATA_SZ  10000
 
@@ -75,10 +76,12 @@ void SpheralEvalDerivTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  using FIELD_TYPE = LvField<DATA_TYPE>;
+  //using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
 
-  using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
-  using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
+  using FIELDLIST_TYPE = LvFieldList<DATA_TYPE>;
+  //using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
+  //using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
@@ -109,55 +112,60 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   
   // Generate pair data...
-  //LvField<unsigned> pair_data(n_pairs, "Pairs");
-  Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
-  Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
+  LvField<unsigned> pair_data("Pairs", n_pairs, chai::CPU);
+  //Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
+  //Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
-  const Spheral::FieldView<DIM, unsigned> pairs(pair_data);
-  //pairs.move(strat.platform);
+  //const Spheral::FieldView<DIM, unsigned> pairs(pair_data);
+  //pair_data.move(chai::GPU);
 
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
 
-  FIELD_TYPE A("A", data_node_list);
-  FIELD_TYPE B("B", data_node_list);
-  FIELD_TYPE C("C", data_node_list);
+  //FIELD_TYPE A("A", data_node_list);
+  //FIELD_TYPE B("B", data_node_list);
+  //FIELD_TYPE C("C", data_node_list);
 
-  FIELD_TYPE One("One", data_node_list);
+  FIELD_TYPE A("A", data_sz);
+  FIELD_TYPE B("B", data_sz);
+  FIELD_TYPE C("C", data_sz);
+
+  FIELD_TYPE One("One", data_sz);
+  //FIELD_TYPE One("One", data_node_list);
   for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
 
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
   // In evalderivs we will want to return Something like LvFieldListView types for RAJA lambda 
   // capture and chai data migration. 
-  //FIELDLIST_TYPE fl("MyFirstFieldList");
-  //FIELDLIST_TYPE fl2("MySecondFieldList");
-  FIELDLIST_TYPE fl;
-  FIELDLIST_TYPE fl2;
+  FIELDLIST_TYPE fl("MyFirstFieldList");
+  FIELDLIST_TYPE fl2("MySecondFieldList");
+  //FIELDLIST_TYPE fl;
+  //FIELDLIST_TYPE fl2;
 
   // Setting up global device pool memory for each Field...
-  auto g_A = A.make_pool_field(strat.n_data_pools, strat.platform);
-  auto g_B = B.make_pool_field(strat.n_data_pools, strat.platform);
-  auto g_C = C.make_pool_field(strat.n_data_pools, strat.platform);
+  //auto g_A = A.make_pool_field(strat.n_data_pools, strat.platform);
+  //auto g_B = B.make_pool_field(strat.n_data_pools, strat.platform);
+  //auto g_C = C.make_pool_field(strat.n_data_pools, strat.platform);
 
   // Wrap the fields with their pools this isn't entirely necessary.
-  auto Av = A.toViewWithPool(g_A);
-  auto Bv = B.toViewWithPool(g_B);
-  auto Cv = C.toViewWithPool(g_C);
+  //auto Av = A.toViewWithPool(g_A);
+  //auto Bv = B.toViewWithPool(g_B);
+  //auto Cv = C.toViewWithPool(g_C);
 
-  fl.appendField(Av);
-  fl.appendField(Bv);
-  fl2.appendField(Cv);
-  fl2.appendField(Av);
+  fl.appendField(A);
+  fl.appendField(B);
+  fl2.appendField(C);
+  fl2.appendField(A);
 
-  FIELDLIST_TYPE flo;
+  FIELDLIST_TYPE flo("OneFieldList");
   flo.appendField(One);
 
   // The FieldList types used in evalderivs.
-  FIELDLISTVIEW_TYPE flv(fl);
-  FIELDLISTVIEW_TYPE flv2(fl2);
-  
-  const FIELDLISTVIEW_TYPE fl_one(flo);
+  //FIELDLISTVIEW_TYPE flv(fl);
+  //FIELDLISTVIEW_TYPE flv2(fl2);
+  //
+  //const FIELDLISTVIEW_TYPE fl_one(flo);
 
   //flv.move(strat.platform);
   //flv2.move(strat.platform);
@@ -175,18 +183,18 @@ void SpheralEvalDerivTest()
   launch_timer.start();
   timer_pair.start();
 
-  RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, strat.n_pairs),
+  RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, n_pairs),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
-      auto pair_idx = pairs[t_idx];
-      auto p_b_idx = t_idx / strat.pool_block_sz;
-      auto pool_idx = p_b_idx*data_sz + pair_idx;
+      auto pair_idx = pair_data[t_idx];
+      //auto p_b_idx = t_idx / strat.pool_block_sz;
+      //auto pool_idx = p_b_idx*data_sz + pair_idx;
 
-      const auto& one = fl_one(0, pair_idx);
+      const auto& one = flo(0, pair_idx);
 
-      auto& a =  flv.pool_atomic(0, pool_idx);
-      auto& b =  flv.pool_atomic(1, pool_idx);
-      auto& c = flv2.pool_atomic(0, pool_idx);
+      auto& a =  fl.atomic(0, pair_idx);
+      auto& b =  fl.atomic(1, pair_idx);
+      auto& c = fl2.atomic(0, pair_idx);
 
       a += one;
       b += one;
@@ -198,28 +206,33 @@ void SpheralEvalDerivTest()
   timer_red.start();
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
   // device to reduce when applicable to minize data movement back to the CPU.
-  RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
-    [=] RAJA_HOST_DEVICE (unsigned t_idx) {
-      for (unsigned b_idx = 0; b_idx < strat.n_data_pools; b_idx++) {
-        auto g_idx = b_idx*data_sz + t_idx;
+  //RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
+  //  [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+  //    for (unsigned b_idx = 0; b_idx < strat.n_data_pools; b_idx++) {
+  //      auto g_idx = b_idx*data_sz + t_idx;
 
-        auto& a = flv(0, t_idx);
-        auto& b = flv(1, t_idx);
-        auto& c = flv2(0, t_idx);
+  //      auto& a = fl(0, t_idx);
+  //      auto& b = fl(1, t_idx);
+  //      auto& c = fl2(0, t_idx);
 
-        a +=  flv.pool(0, g_idx);
-        b +=  flv.pool(1, g_idx);
-        c += flv2.pool(0, g_idx);
-      }
-    });
+  //      a +=  fl.pool(0, g_idx);
+  //      b +=  fl.pool(1, g_idx);
+  //      c += fl2.pool(0, g_idx);
+  //    }
+  //  });
 
-  flv.move(strat.host_platform);
-  flv2.move(strat.host_platform);
+  //RAJA::forall<RAJA::loop_exec>(TRS_UINT(0,1),
+  //  [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+  //    printf("%d dummy\n", fl(0, t_idx).x());
+  //  }
+  //);
+  fl2.move(chai::CPU);
+  fl.move(chai::CPU);
 
   timer_red.stop();
   launch_timer.stop();
 
-  pairs.move(strat.host_platform);
+  pair_data.move(chai::CPU);
 
   PRINT_DATA(A, DATA_SZ)
   PRINT_DATA(B, DATA_SZ)
@@ -239,9 +252,9 @@ void SpheralEvalDerivTest()
   std::cout << "C++ Sequential Implementation.\n";
   for(int i = 0; i < N_PAIRS; i++){
     DATA_TYPE inc(1.0);
-    check_A[pairs[i]] += inc;  
-    check_B[pairs[i]] += inc;  
-    check_C[pairs[i]] += inc;  
+    check_A[pair_data[i]] += inc;  
+    check_B[pair_data[i]] += inc;  
+    check_C[pair_data[i]] += inc;  
   }
   seq_timer.stop();
 
