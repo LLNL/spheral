@@ -9,7 +9,7 @@ option(ENABLE_NAN_EXCEPTIONS "Raise an excpetion when a NAN occurs (Gnu only)" O
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("-- building Debug")
   add_definitions("-DDEBUG=1")
-  if (NOT DBC_MODE)
+  if (NOT DEFINED DBC_MODE)
     set(DBC_MODE "All")
   endif()
 else()
