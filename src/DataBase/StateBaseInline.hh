@@ -46,18 +46,6 @@ allFields(const Value&) const {
 }
 
 //------------------------------------------------------------------------------
-// Test if the given FieldList is registered.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename DataType>
-bool
-StateBase<Dimension>::
-registered(const FieldList<Dimension, DataType>& fieldList) const {
-  REQUIRE(fieldList.begin() != fieldList.end());
-  return this->registered(**fieldList.begin());
-}
-
-//------------------------------------------------------------------------------
 // Return a FieldList containing all registered fields of the given name.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -78,45 +66,6 @@ fields(const std::string& name, const Value& dummy) const {
     }
   }
   return result;
-}
-
-////------------------------------------------------------------------------------
-//// Return a FieldList containing all registered fields of the given name.
-////------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename Value>
-inline
-FieldListView<Dimension, Value>
-StateBase<Dimension>::
-pooledFieldViews(const std::string& name, const Value& dummy) const {
-  FieldList<Dimension, Value> result;
-  KeyType fieldName, nodeListName;
-  for (auto itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
-    if (fieldName == name) {
-      CHECK(nodeListName != "");
-      result.appendField(this->field<Value>(itr->first, dummy));
-    }
-  }
-  FieldListView<Dimension, Value> resultView(result);
-  return resultView;
-}
-
-//------------------------------------------------------------------------------
-// Add the fields from a FieldList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename DataType>
-void
-StateBase<Dimension>::
-enroll(FieldList<Dimension, DataType>& fieldList) {
-  for (auto itr = fieldList.begin();
-       itr != fieldList.end();
-       ++itr) {
-    this->enroll(**itr);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -171,13 +120,12 @@ key(const FieldBase<Dimension>& field) {
 // Construct the lookup key for the given FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename DataType>
 inline
 typename StateBase<Dimension>::KeyType
 StateBase<Dimension>::
-key(const FieldList<Dimension, DataType>& fieldList) {
-  REQUIRE(fieldList.begin() != fieldList.end());
-  return buildFieldKey((*fieldList.begin())->name(), UpdatePolicyBase<Dimension>::wildcard());
+key(const FieldListBase<Dimension>& fieldList) {
+  REQUIRE(fieldList.begin_base() != fieldList.end_base());
+  return buildFieldKey((*fieldList.begin_base())->name(), UpdatePolicyBase<Dimension>::wildcard());
 }
 
 //------------------------------------------------------------------------------

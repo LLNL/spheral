@@ -31,6 +31,7 @@ class State(StateBase):
 
     #...........................................................................
     # Virtual methods
+    @PYB11virtual
     def enroll(self, field="FieldBase<%(Dimension)s>&"):
         "Enroll a field to track"
         return "void"
@@ -41,9 +42,9 @@ class State(StateBase):
     #     "Enroll a shared_ptr<Field> to track"
     #     return "void"
 
-    @PYB11template("DataType")
+    @PYB11virtual
     @PYB11pycppname("enroll")
-    def enroll_fieldlist(self, fieldList="FieldList<%(Dimension)s, %(DataType)s>&"):
+    def enroll_fieldlist(self, fieldList="FieldListBase<%(Dimension)s>&"):
         "Enroll a FieldList to track"
         return "void"
 
@@ -76,10 +77,9 @@ class State(StateBase):
         "Enroll a Field and associated update policy"
         return "void"
 
-    @PYB11template("DataType")
     @PYB11pycppname("enroll")
     def enroll3(self,
-                fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                fieldList = "FieldListBase<%(Dimension)s>&",
                 policy = "PolicyPointer"):
         "Enroll a FieldList and associated update policy"
         return "void"
@@ -93,9 +93,8 @@ class State(StateBase):
         "Remove the policy associated with the Field"
         return "void"
 
-    @PYB11template("DataType")
     @PYB11pycppname("removePolicy")
-    def removePolicy2(self, fieldList="FieldList<%(Dimension)s, %(DataType)s>&"):
+    def removePolicy2(self, fieldList="FieldListBase<%(Dimension)s>&"):
         "Remove the policy associated with the FieldList"
         return "void"
 

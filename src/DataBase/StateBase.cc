@@ -170,6 +170,17 @@ registered(const FieldBase<Dimension>& field) const {
 }
 
 //------------------------------------------------------------------------------
+// Test if the given FieldList is registered.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+StateBase<Dimension>::
+registered(const FieldListBase<Dimension>& fieldList) const {
+  REQUIRE(fieldList.begin_base() != fieldList.end_base());
+  return this->registered(**fieldList.begin_base());
+}
+
+//------------------------------------------------------------------------------
 // Test if the given field name is registered.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -215,6 +226,20 @@ enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
   mNodeListPtrs.insert(fieldPtr->nodeListPtr());
   mFieldCache.push_back(fieldPtr);
   ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
+// Add the fields from a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(FieldListBase<Dimension>& fieldList) {
+  for (auto itr = fieldList.begin_base();
+       itr != fieldList.end_base();
+       ++itr) {
+    this->enroll(**itr);
+  }
 }
 
 //------------------------------------------------------------------------------

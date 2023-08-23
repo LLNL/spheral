@@ -360,5 +360,15 @@ removePolicy(FieldBase<Dimension>& field) {
   this->removePolicy(StateBase<Dimension>::key(field));
 }
 
+//------------------------------------------------------------------------------
+// Remove the policy associated with a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(FieldListBase<Dimension>& fieldList) {
+  this->removePolicy(StateBase<Dimension>::key(fieldList));
+}
+
 }
 

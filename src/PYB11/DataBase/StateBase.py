@@ -27,6 +27,7 @@ class StateBase:
 
     #...........................................................................
     # Virtual methods
+    @PYB11virtual
     def enroll(self, field="FieldBase<%(Dimension)s>&"):
         "Enroll a field to track"
         return "void"
@@ -37,9 +38,9 @@ class StateBase:
     #     "Enroll a shared_ptr<Field> to track"
     #     return "void"
 
-    @PYB11template("DataType")
+    @PYB11virtual
     @PYB11pycppname("enroll")
-    def enroll_fieldlist(self, fieldList="FieldList<%(Dimension)s, %(DataType)s>&"):
+    def enroll_fieldlist(self, fieldList="FieldListBase<%(Dimension)s>&"):
         "Enroll a FieldList to track"
         return "void"
 
@@ -66,10 +67,9 @@ class StateBase:
         "Test if the specified Field is registered"
         return "bool"
 
-    @PYB11template("DataType")
     @PYB11const
     @PYB11pycppname("registered")
-    def registered2(self, fieldList="const FieldList<%(Dimension)s, %(DataType)s>&"):
+    def registered2(self, fieldList="const FieldListBase<%(Dimension)s>&"):
         "Test if the specified FieldList is registered"
         return "bool"
 
@@ -135,10 +135,9 @@ class StateBase:
         "Construct a key for the given Field"
         return "KeyType"
 
-    @PYB11template("DataType")
     @PYB11static
     @PYB11pycppname("key")
-    def key1(self, fieldList="const FieldList<%(Dimension)s, %(DataType)s>&"):
+    def key1(self, fieldList="const FieldListBase<%(Dimension)s>&"):
         "Construct a key for the given FieldList"
         return "KeyType"
 
