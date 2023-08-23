@@ -21,7 +21,6 @@ from FieldListSet import *
 PYB11includes += ['"Geometry/Dimension.hh"',
                   '"Field/FieldBase.hh"',
                   '"Field/Field.hh"',
-                  '"Field/FieldView.hh"',
                   '"Field/FieldList.hh"',
                   '"Field/FieldListSet.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',

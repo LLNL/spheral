@@ -24,7 +24,6 @@ class MinMaxField(FieldBase):
         "Enforce a double ceiling on the values of the Field."
         return
 
-
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------

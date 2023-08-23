@@ -148,7 +148,6 @@ class ArithmeticField(FieldBase):
         "Return the maximum value in the Field local to each processor."
         return
 
-
 #-------------------------------------------------------------------------------
 # Inject base field methods
 #-------------------------------------------------------------------------------

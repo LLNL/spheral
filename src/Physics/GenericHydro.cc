@@ -182,12 +182,12 @@ dt(const DataBase<Dimension>& dataBase,
     // Check if we have a longitudinal sound speed for this material.
     const bool useCsl = haveLongCs and csl.haveNodeList(fluidNodeList);
     const Field<Dimension, Scalar>* cslptr = nullptr;
-    if (useCsl) cslptr = (*csl.fieldForNodeList(fluidNodeList)).operator->();
+    if (useCsl) cslptr = *csl.fieldForNodeList(fluidNodeList);
 
     // Check if we have a deviatoric stress for this material.
     const bool useS = haveDS and S.haveNodeList(fluidNodeList);
     const Field<Dimension, SymTensor>* Sptr = nullptr;
-    if (useS) Sptr = (*S.fieldForNodeList(fluidNodeList)).operator->();
+    if (useS) Sptr = *S.fieldForNodeList(fluidNodeList);
 
     // Walk all the nodes in this FluidNodeList.
     const auto ni = connectivityMap.numNodes(nodeListi);

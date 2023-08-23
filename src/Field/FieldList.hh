@@ -12,10 +12,6 @@
 
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
-#include "FieldView.hh"
-#include "FieldListView.hh"
-
-#include "CXXTests/tests/LvField.hh"
 
 #include <vector>
 #include <list>
@@ -45,11 +41,6 @@ enum class FieldStorageType {
 template<typename Dimension, typename DataType>
 class FieldList: public FieldListBase<Dimension> {
 public:
-
-  friend class FieldListView<Dimension, DataType>;
-  //friend class ::LvFieldListView<Dimension, DataType>;
-
-
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -59,15 +50,15 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
-  using ElementType = FieldView<Dimension, DataType>;
-  using value_type = ElementType;    // STL compatibility
-  using StorageType = SphArray<ElementType>;
+  typedef FieldBase<Dimension>* BaseElementType;
+  typedef Field<Dimension, DataType>* ElementType;
+  typedef Field<Dimension, DataType>* value_type;    // STL compatibility
+  typedef std::vector<ElementType> StorageType;
 
-  using iterator = SphArrayIterator<SphArrayView<ElementType>>;
-  using const_iterator = SphArrayIterator<typename SphArrayView<ElementType>::ViewTypeConst>;
-
-  using field_iterator = SphArrayFieldIterator<SphArrayView<ElementType>>;
-  using const_field_iterator = SphArrayFieldIterator<typename SphArrayView<ElementType>::ViewTypeConst>;
+  typedef typename StorageType::iterator iterator;
+  typedef typename StorageType::const_iterator const_iterator;
+  typedef typename StorageType::reverse_iterator reverse_iterator;
+  typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
 
   typedef std::vector<DataType> CacheElementsType;
   typedef typename CacheElementsType::iterator cache_iterator;
@@ -106,9 +97,7 @@ public:
   void referenceFields(const FieldList& fieldList);
 
   // Convenience methods to add and delete Fields.
-  void appendField(const FieldView<Dimension, DataType>& field);
   void appendField(const Field<Dimension, DataType>& field);
-
   void deleteField(const Field<Dimension, DataType>& field);
 
   // Construct a new field and add it to the FieldList.
@@ -120,15 +109,24 @@ public:
   // Provide the standard iterators over the Fields.
   iterator begin();
   iterator end();
+  reverse_iterator rbegin();
+  reverse_iterator rend();
 
   const_iterator begin() const;
   const_iterator end() const;
+  const_reverse_iterator rbegin() const;
+  const_reverse_iterator rend() const;
 
-  field_iterator fbegin();
-  field_iterator fend();
+  // Iterators over FieldBase* required by base class.
+  virtual typename FieldListBase<Dimension>::iterator begin_base();
+  virtual typename FieldListBase<Dimension>::iterator end_base();
+  virtual typename FieldListBase<Dimension>::reverse_iterator rbegin_base();
+  virtual typename FieldListBase<Dimension>::reverse_iterator rend_base();
 
-  const_field_iterator fbegin() const;
-  const_field_iterator fend() const;
+  virtual typename FieldListBase<Dimension>::const_iterator begin_base() const;
+  virtual typename FieldListBase<Dimension>::const_iterator end_base() const;
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rbegin_base() const;
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rend_base() const;
 
   // Index operator.
   ElementType operator[](const unsigned index);
@@ -286,8 +284,8 @@ private:
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
-  //SphArray<ElementViewType> mFieldViews;
-  StorageType mFieldPtrs;
+  std::vector<ElementType> mFieldPtrs;
+  std::vector<BaseElementType> mFieldBasePtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
 

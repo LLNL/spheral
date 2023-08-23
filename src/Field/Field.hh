@@ -11,10 +11,8 @@
 #ifndef __Spheral_Field_hh__
 #define __Spheral_Field_hh__
 
-#include "Field/SphArray.hh"
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
-#include "FieldView.hh"
 
 #include <vector>
 
@@ -43,9 +41,6 @@ class Field:
     public FieldBase<Dimension> {
    
 public:
-
-  friend class FieldView<Dimension, DataType>;
-  using view_type = FieldView<Dimension, DataType>;
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
@@ -57,9 +52,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  using StorageType = SphArray<DataType>;
-  typedef SphArrayIterator<SphArrayView<DataType>> iterator;
-  typedef SphArrayIterator<typename SphArrayView<DataType>::ViewTypeConst> const_iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
+  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -71,7 +65,7 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeList<Dimension>& nodeList, 
-        const SphArray<DataType>& array);
+        const std::vector<DataType,DataAllocator<DataType>>& array);
   Field(const NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
@@ -82,7 +76,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
   Field& operator=(const Field& rhs);
-  Field& operator=(const SphArray<DataType>& rhs);
+  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -247,22 +241,12 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
-  // Move Internal Data to given RAJA::Platform.
-  void move (RAJA::Platform platform);
-
-  // FieldView Generators.
-  view_type toView() const;
-  view_type toViewWithPool(const Field& pool) const;
-
-  // Generate a pool field object.
-  Field make_pool_field(size_t num_pools, RAJA::Platform platform);
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-
-  SphArray<DataType> mDataArray;
-  //std::vector<DataType, DataAllocator<DataType>> mDataArray;
+//  std::vector<DataType,std::allocator<DataType> > mDataArray;
+  std::vector<DataType, DataAllocator<DataType>> mDataArray;
   bool mValid;
 
   // No default constructor.
