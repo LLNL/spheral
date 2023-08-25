@@ -217,4 +217,44 @@ tangentialBeta(typename Dimension::Scalar x) {
   mTangentialBeta = x;
 }
 
+
+//------------------------------------------------------------------------------
+// moment of interia specializations
+//------------------------------------------------------------------------------
+template<>
+inline
+Dim<1>::Scalar
+LinearSpringDEM<Dim<1>>::
+momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) const {
+  return 0.5*m*R*R;
+}
+
+template<>
+inline
+Dim<2>::Scalar
+LinearSpringDEM<Dim<2>>::
+momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) const {
+  return 0.5*m*R*R;
+}
+
+template<>
+inline
+Dim<3>::Scalar
+LinearSpringDEM<Dim<3>>::
+momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) const {
+  return 0.4*m*R*R;
+}
+
+
+//------------------------------------------------------------------------------
+// FieldList
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+LinearSpringDEM<Dimension>::
+momentOfInertia() const {
+  return mMomentOfInertia;
+}
+
 }

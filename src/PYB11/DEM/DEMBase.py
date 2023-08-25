@@ -19,7 +19,7 @@ class DEMBase(Physics):
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
-               stepsPerCollision = "const double",
+               stepsPerCollision = "const Scalar",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"
@@ -45,8 +45,7 @@ class DEMBase(Physics):
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&", 
+    def preStepInitialize(dataBase = "const DataBase<%(Dimension)s>&", 
                           state = "State<%(Dimension)s>&",
                           derivs = "StateDerivatives<%(Dimension)s>&"):
         "Optional hook to be called at the beginning of a time step."
@@ -84,10 +83,42 @@ class DEMBase(Physics):
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    def initializeOverlap(dataBase = "const DataBase<%(Dimension)s>&",
+                          startCompositeParticleIndex = "const int"):
+        "set the equilibrium overlap pairwise fieldlist for comp. particle id's > specified value"
+        return "void"
+
+    def updateContactMap(dataBase = "const DataBase<%(Dimension)s>&"):
+        "update DEM contact/neighbor tracker"
+        return "void"
+
+    def resizePairFieldLists(self):
+        "resize all pair fieldlists consistent w/ neighborIndices"
+        return "void"
+
+    def appendSolidBoundary(boundary = "SolidBoundaryBase<%(Dimension)s>&"):
+        "add a solid boundary to the end of the list"
+        return "void"
+
+    def clearSolidBoundaries(self):
+        "remove all solid boundaries from the dem package"
+        return "void"
+
     @PYB11const
-    def momentOfInertia(massi = "const Scalar",
-                        partialRadiusi = "const Scalar"):
-        return "Scalar"
+    def numSolidBoundaries(self):
+        "return the number of solid boundaries being tracked"
+        return "unsigned int"
+
+    @PYB11const
+    def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
+        "is this boundary being tracked?"
+        return "bool"
+
+    @PYB11const
+    def getSolidBoundaryUniqueIndex(x="const int"):
+        "Unique index for neighborIndices pairFieldList (returns -x-1)"
+        return "int"
+
     #...........................................................................
     # Properties
     xmin = PYB11property("const Vector&", "xmin", "xmin",
@@ -101,14 +132,12 @@ class DEMBase(Physics):
     
     cycle = PYB11property("int", "cycle", "cycle", doc="tracks what cycle we are on.")
     contactRemovalFrequency = PYB11property("int", "contactRemovalFrequency", "contactRemovalFrequency", doc="every n-cycles we prune our contact list to only the active contacts. This is the frequency.")
-    firstCycle = PYB11property("bool", "firstCycle", "firstCycle", doc="boolean flag thats true for the first cycle of a run.")
-    
+
     timeStepMask =  PYB11property("const FieldList<%(Dimension)s, int>&", "timeStepMask", returnpolicy="reference_internal")
     DxDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&","DxDt", returnpolicy="reference_internal")
     DvDt =          PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
     DomegaDt =      PYB11property("const FieldList<%(Dimension)s, RotationType>&","DomegaDt", returnpolicy="reference_internal")
     omega =         PYB11property("const FieldList<%(Dimension)s, RotationType>&","omega", returnpolicy="reference_internal")
-    uniqueIndices = PYB11property("const FieldList<%(Dimension)s, int>&","uniqueIndices", returnpolicy="reference_internal")
 
     equilibriumOverlap = PYB11property("const FieldList<%(Dimension)s, vector<Scalar>>&","equilibriumOverlap", returnpolicy="reference_internal")
     neighborIndices = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","neighborIndices", returnpolicy="reference_internal")
@@ -116,6 +145,11 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    numContacts = PYB11property("unsigned int", "numContacts", doc="Total number of contacts")
+    numParticleParticleContacts = PYB11property("unsigned int", "numParticleParticleContacts", doc="Number of interactions with other dem particles")
+    numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")
+    contactStorageIndices = PYB11property("const std::vector<ContactIndex>&", "contactStorageIndices")
+    solidBoundaryConditions = PYB11property("const std::vector<SolidBoundaryBase<%(Dimension)s>*>&", "solidBoundaryConditions", doc="The set of NodeLists in the DataBase")
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------

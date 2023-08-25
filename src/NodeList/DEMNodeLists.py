@@ -20,6 +20,7 @@ def DEMNodeListFactory(ndim):
                 hminratio = 0.1,
                 nPerh = 1.01,
                 maxNumNeighbors = 500,
+                neighborSearchBuffer=0.1,
 
                 # Neighboring stuff
                 NeighborType = TreeNeighbor,
@@ -31,7 +32,7 @@ def DEMNodeListFactory(ndim):
                 xmax = Vector.one *  10.0):
         result = DEMNodeList(name, numInternal, numGhost, 
                              hmin, hmax, hminratio, 
-                             nPerh, maxNumNeighbors)
+                             nPerh, neighborSearchBuffer, maxNumNeighbors)
 
         if NeighborType == TreeNeighbor:
             result._neighbor = TreeNeighbor(result, searchType, kernelExtent, xmin, xmax)

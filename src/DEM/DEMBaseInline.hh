@@ -41,22 +41,6 @@ xmax(const typename Dimension::Vector& x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-bool
-DEMBase<Dimension>::
-firstCycle() const {
-  return mFirstCycle;
-}
-
-template<typename Dimension>
-inline
-void
-DEMBase<Dimension>::
-firstCycle(bool x) {
-  mFirstCycle = x;
-}
-
-template<typename Dimension>
-inline
 int
 DEMBase<Dimension>::
 contactRemovalFrequency() const {
@@ -86,6 +70,7 @@ DEMBase<Dimension>::
 cycle(int x) {
   mCycle = x;
 }
+
 
 //------------------------------------------------------------------------------
 // CFL number (ratio to estimated contact duration)
@@ -148,14 +133,6 @@ const FieldList<Dimension, typename DEMDimension<Dimension>::AngularVector>&
 DEMBase<Dimension>::
 omega() const {
   return mOmega;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, int>&
-DEMBase<Dimension>::
-uniqueIndices() const {
-  return mUniqueIndices;
 }
 
 
@@ -270,33 +247,13 @@ contactStorageIndices() const {
   return mContactStorageIndices;
 }
 
-//------------------------------------------------------------------------------
-// moment of interia specializations
-//------------------------------------------------------------------------------
-template<>
+template<typename Dimension>
 inline
-Dim<1>::Scalar
-DEMBase<Dim<1>>::
-momentOfInertia(const Dim<1>::Scalar m, const Dim<1>::Scalar R) const {
-  return 0.5*m*R*R;
+const DataBase<Dimension>&
+DEMBase<Dimension>::
+dataBase() const {
+  return mDataBase;
 }
-
-template<>
-inline
-Dim<2>::Scalar
-DEMBase<Dim<2>>::
-momentOfInertia(const Dim<2>::Scalar m, const Dim<2>::Scalar R) const {
-  return 0.5*m*R*R;
-}
-
-template<>
-inline
-Dim<3>::Scalar
-DEMBase<Dim<3>>::
-momentOfInertia(const Dim<3>::Scalar m, const Dim<3>::Scalar R) const {
-  return 0.4*m*R*R;
-}
-
 //------------------------------------------------------------------------------
 // torsion specializations
 //------------------------------------------------------------------------------
@@ -365,5 +322,91 @@ rollingMoment(const Dim<3>::Vector rhatij,
 }
 
 
+
+//------------------------------------------------------------------------------
+// Add a Boundary condition to the end of the current boundary list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+appendSolidBoundary(SolidBoundaryBase<Dimension>& boundary) {
+    mSolidBoundaries.push_back(&boundary);
+}
+
+//------------------------------------------------------------------------------
+// Clear (erase) the boundary condition list.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+DEMBase<Dimension>::
+clearSolidBoundaries() {
+  mSolidBoundaries = std::vector<SolidBoundaryBase<Dimension>*>();
+}
+
+//------------------------------------------------------------------------------
+// Test if the given Boundary condition is listed in the physics package.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+DEMBase<Dimension>::
+haveSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) const {
+  return std::count(mSolidBoundaries.begin(), mSolidBoundaries.end(), &boundary) > 0;
+}
+
+template<typename Dimension>
+inline
+unsigned int
+DEMBase<Dimension>::
+numSolidBoundaries() const {
+  return mSolidBoundaries.size();
+}
+
+template<typename Dimension>
+inline
+const std::vector<SolidBoundaryBase<Dimension>*>&
+DEMBase<Dimension>::solidBoundaryConditions() const {
+  return mSolidBoundaries;
+}
+
+
+//------------------------------------------------------------------------------
+// contact counts
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+unsigned int
+DEMBase<Dimension>::
+numParticleParticleContacts() const {
+  const auto& cm = mDataBase.connectivityMap();
+  const auto& pairs = cm.nodePairList();
+  return pairs.size();
+}
+
+template<typename Dimension>
+inline
+unsigned int
+DEMBase<Dimension>::
+numContacts() const {
+  return mContactStorageIndices.size();
+}
+
+template<typename Dimension>
+inline
+unsigned int
+DEMBase<Dimension>::
+numParticleBoundaryContacts() const {
+  return (mContactStorageIndices.size()-this->numParticleParticleContacts());
+}
+
+template<typename Dimension>
+inline
+int
+DEMBase<Dimension>::
+getSolidBoundaryUniqueIndex(const int x) const {
+  return -x-1;
+}
 
 }

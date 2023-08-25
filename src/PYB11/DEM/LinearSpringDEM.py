@@ -40,6 +40,11 @@ class LinearSpringDEM(DEMBase):
         return "TimeStepType"
 
     @PYB11virtual
+    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
+        "Tasks we do once on problem startup."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
@@ -49,6 +54,21 @@ class LinearSpringDEM(DEMBase):
         "calculate the derivatives for Linear Spring DEM."
         return "void"
 
+    @PYB11virtual 
+    def registerState(dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state Hydro expects to use and evolve."
+        return "void"
+
+    @PYB11const
+    def momentOfInertia(massi = "const Scalar",
+                        partialRadiusi = "const Scalar"):
+        return "Scalar"
+
+
+    def setMomentOfInertia(self):
+        return "void"
+        
     normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="normal spring constant")
     normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")
     tangentialSpringConstant = PYB11property("Scalar", "tangentialSpringConstant", "tangentialSpringConstant", doc="tangential spring constant")
@@ -63,3 +83,5 @@ class LinearSpringDEM(DEMBase):
     shapeFactor = PYB11property("Scalar", "shapeFactor", "shapeFactor", doc="shape factor - simple approach to non-spherical particles")
     normalBeta = PYB11property("Scalar", "normalBeta", "normalBeta", doc="a damping parameter")
     tangentialBeta = PYB11property("Scalar", "tangentialBeta", "tangentialBeta", doc="a damping parameter")
+
+    momentOfInertia = PYB11property("const FieldList<%(Dimension)s, Scalar>&","momentOfInertia", returnpolicy="reference_internal")
