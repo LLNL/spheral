@@ -347,6 +347,8 @@ NodeList<Dimension>::numFields() const {
 template<typename Dimension>
 void
 NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
+#pragma omp critical
+  {
   if (haveField(field)) {
     cerr << "WARNING: Attempt to register field " << &field
          << " with NodeList " << this << " that already has it." 
@@ -354,6 +356,7 @@ NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
   } else {
     CHECK(&mFieldBaseList);
     mFieldBaseList.push_back(&field);
+  }
   }
 }
 
