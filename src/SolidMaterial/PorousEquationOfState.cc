@@ -63,15 +63,57 @@ setPressure(Field<Dimension, Scalar>& Pressure,
   REQUIRE(mAlphaPtr->nodeListPtr() == Pressure.nodeListPtr());
 
   // The base EOS set's the solid (compacted) pressure.
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setPressure(Pressure, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
-  const unsigned n = Pressure.numInternalElements();
-  for (unsigned i = 0; i != n; ++i) {
-    Pressure(i) = max(this->minimumPressure(),
-                      min(this->maximumPressure(),
-                          Pressure(i)/(*mAlphaPtr)(i)));
+  const auto n = Pressure.numInternalElements();
+  const auto Pmin = this->minimumPressure();
+  const auto Pmax = this->maximumPressure();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    Pressure(i) = max(Pmin, min(Pmax, Pressure(i)/(*mAlphaPtr)(i)));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PorousEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  REQUIRE(this->valid());
+  REQUIRE(massDensity.nodeListPtr() == Pressure.nodeListPtr());
+  REQUIRE(specificThermalEnergy.nodeListPtr() == Pressure.nodeListPtr());
+  REQUIRE(mAlphaPtr->nodeListPtr() == Pressure.nodeListPtr());
+
+  // The base EOS set's the solid (compacted) pressure.
+  const auto rhoS = (*mAlphaPtr)*massDensity;
+  mEOS.setPressureAndDerivs(pressure, dPdu, dPdrho, rhoS, specificThermalEnergy);
+
+  // Now apply the porosity modifier.
+  const auto n = pressure.numInternalElements();
+  const auto Pmin = this->minimumPressure();
+  const auto Pmax = this->maximumPressure();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const auto Pi = pressure(i)/(*mAlphaPtr)(i);
+    dPdu(i) /= (*mAlphaPtr)(i);
+    if (Pi < Pmin) {
+      pressure(i) = Pmin;
+      dPdrho(i) = 0.0;
+    } else if (Pi > Pmax) {
+      pressure(i) = Pmin;
+      dPdrho(i) = 0.0;
+    } else {
+      pressure(i) = Pi;
+      dPdrho(i) /= (*mAlphaPtr)(i);
+    }
   }
 }
 
@@ -88,7 +130,7 @@ setTemperature(Field<Dimension, Scalar>& temperature,
   REQUIRE(massDensity.nodeListPtr() == temperature.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == temperature.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == temperature.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setTemperature(temperature, rhoS, specificThermalEnergy);
 }
 
@@ -105,7 +147,7 @@ setSpecificThermalEnergy(Field<Dimension, Scalar>& specificThermalEnergy,
   REQUIRE(massDensity.nodeListPtr() == specificThermalEnergy.nodeListPtr());
   REQUIRE(temperature.nodeListPtr() == specificThermalEnergy.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == specificThermalEnergy.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setSpecificThermalEnergy(specificThermalEnergy, rhoS, temperature);
 }
 
@@ -122,7 +164,7 @@ setSpecificHeat(Field<Dimension, Scalar>& specificHeat,
   REQUIRE(massDensity.nodeListPtr() == specificHeat.nodeListPtr());
   REQUIRE(temperature.nodeListPtr() == specificHeat.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == specificHeat.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setSpecificHeat(specificHeat, rhoS, temperature);
 }
 
@@ -151,7 +193,8 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
   
   // Now apply the porosity modifier.
   const auto n = soundSpeed.numInternalElements();
-  for (auto i = 0u; i != n; ++i) {
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     const auto alpha0i = (*mAlpha0Ptr)(i);
     const auto alphai = (*mAlphaPtr)(i);
     const auto c0i = (*mC0Ptr)(i);
@@ -174,7 +217,7 @@ setGammaField(Field<Dimension, Scalar>& gamma,
   REQUIRE(massDensity.nodeListPtr() == gamma.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == gamma.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == gamma.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setGammaField(gamma, rhoS, specificThermalEnergy);
 }
 
@@ -191,12 +234,13 @@ setBulkModulus(Field<Dimension, Scalar>& bulkModulus,
   REQUIRE(massDensity.nodeListPtr() == bulkModulus.nodeListPtr());
   REQUIRE(specificThermalEnergy.nodeListPtr() == bulkModulus.nodeListPtr());
   REQUIRE(mAlphaPtr->nodeListPtr() == bulkModulus.nodeListPtr());
-  const Field<Dimension, Scalar> rhoS = (*mAlphaPtr)*massDensity;
+  const auto rhoS = (*mAlphaPtr)*massDensity;
   mEOS.setBulkModulus(bulkModulus, rhoS, specificThermalEnergy);
 
   // Now apply the porosity modifier.
-  const unsigned n = bulkModulus.numInternalElements();
-  for (unsigned i = 0; i != n; ++i) {
+  const auto n = bulkModulus.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     bulkModulus(i) /= (*mAlphaPtr)(i);
   }
 }
@@ -214,7 +258,9 @@ setEntropy(Field<Dimension, Scalar>& entropy,
   Field<Dimension, Scalar> gamma("gamma", entropy.nodeList());
   this->setPressure(entropy, massDensity, specificThermalEnergy);
   this->setGammaField(gamma, massDensity, specificThermalEnergy);
-  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+  const auto n = massDensity.numElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     entropy(i) *= safeInvVar(pow(massDensity(i), gamma(i)));
   }
 }

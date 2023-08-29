@@ -159,6 +159,16 @@ public:
     }
   }
 
+  double dTdeps(const double rho, const double eps) const {
+    if (eps < mEpsMinInterp(rho)) {
+      return 0.0;
+    } else if (eps > mEpsMaxInterp(rho)) {
+      return 0.0;
+    } else {
+      return mTinterp.prime_y(rho, eps);
+    }
+  }
+
 private:
   double mTmin, mTmax;
   const CubicHermiteInterpolator& mEpsMinInterp, mEpsMaxInterp;
@@ -184,6 +194,60 @@ public:
                 &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
     if (P != P) P = 0.0;   // Hack for ANEOS giving us a NaN
     return P * mPconv;
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// dPdeps(rho, eps)
+//------------------------------------------------------------------------------
+class dPdeps_func {
+public:
+  dPdeps_func(int matNum, double rhoConv, double Tconv, double Pconv,
+              const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (DPDT != DPDT) DPDT = 0.0;   // Hack for ANEOS giving us a NaN
+    return DPDT * mPconv/mTconv * mTextra.dTdeps(x, y);  // Last term is (partial T)/(partial eps) in Spheral units
+  }
+private:
+  mutable int mMatNum;
+  double mRhoConv, mTconv, mPconv;
+  const Textrapolator& mTextra;
+  mutable double rho, T, P, eps, S, cV, DPDT, DPDR, cs;
+};
+
+//------------------------------------------------------------------------------
+// dPdrho(rho, eps)
+//------------------------------------------------------------------------------
+class dPdrho_func {
+public:
+  dPdrho_func(int matNum, double rhoConv, double Tconv, double Pconv,
+              const Textrapolator& Textra):
+    mMatNum(matNum),
+    mRhoConv(rhoConv),
+    mTconv(Tconv),
+    mPconv(Pconv),
+    mTextra(Textra) {}
+  double operator()(const double x, const double y) const {
+    rho = x/mRhoConv;
+    T = mTextra(x, y)/mTconv;
+    call_aneos_(&mMatNum, &T, &rho,
+                &P, &eps, &S, &cV, &DPDT, &DPDR, &cs);
+    if (DPDR != DPDR) DPDR = 0.0;   // Hack for ANEOS giving us a NaN
+    return DPDR * mPconv/mRhoConv;
   }
 private:
   mutable int mMatNum;
@@ -346,6 +410,8 @@ ANEOS(const int materialNumber,
   mCSinterp(std::make_shared<BiCubicInterpolator>()),
   mKinterp(std::make_shared<BiCubicInterpolator>()),
   mSinterp(std::make_shared<BiCubicInterpolator>()),
+  mDPDepsInterp(std::make_shared<BiCubicInterpolator>()),
+  mDPDRinterp(std::make_shared<BiCubicInterpolator>()),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
               1.0),   // sec in secs.
@@ -471,6 +537,20 @@ ANEOS(const int materialNumber,
                                                    mEpsMin, mEpsMax,
                                                    mNumRhoVals, mNumTvals, Fs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto Fdpdeps = dPdeps_func(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
+  mDPDepsInterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+                                                        mEpsMin, mEpsMax,
+                                                        mNumRhoVals, mNumTvals, Fdpdeps);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build DPDUinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
+
+  t0 = clock();
+  const auto Fdpdrho = dPdrho_func(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
+  mDPDRinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+                                                      mEpsMin, mEpsMax,
+                                                      mNumRhoVals, mNumTvals, Fdpdrho);
+  if (Process::getRank() == 0) cout << "ANEOS: Time to build DPDRinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -499,6 +579,8 @@ ANEOS(const ANEOS& rhs):
   mCSinterp(rhs.mCSinterp),
   mKinterp(rhs.mKinterp),
   mSinterp(rhs.mSinterp),
+  mDPDepsInterp(rhs.mDPDepsInterp),
+  mDPDRinterp(rhs.mDPDRinterp),
   mANEOSunits(rhs.mANEOSunits),
   mRhoConv(rhs.mRhoConv),
   mTconv(rhs.mTconv),
@@ -531,6 +613,26 @@ setPressure(Field<Dimension, Scalar>& pressure,
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
     pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ANEOS<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    dPdu(i) = (*mDPDepsInterp)(massDensity(i), specificThermalEnergy(i));      // We don't bother with the non-interpolation option for the derivs
+    dPdrho(i) = (*mDPDRinterp)(massDensity(i), specificThermalEnergy(i));
   }
 }
 

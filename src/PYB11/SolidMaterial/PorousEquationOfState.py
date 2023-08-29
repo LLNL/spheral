@@ -48,4 +48,4 @@ pressure (forbidding the single value P lookup the EOS usually allows)."""
 #-------------------------------------------------------------------------------
 # Inject the EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, PorousEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, PorousEquationOfState, virtual=True)

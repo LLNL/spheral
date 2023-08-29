@@ -92,7 +92,28 @@ setPressure(Field<Dimension, Scalar>& pressure,
   const auto n = pressure.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    pressure(i) = std::get<0>(this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i)));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TillotsonEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  const auto n = Pressure.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const auto stuff = this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i));
+    Pressure(i) = std::get<0>(stuff);
+    dPdu(i) = std::get<1>(stuff);
+    dPdrho(i) = std::get<2>(stuff);
   }
 }
 
@@ -201,18 +222,18 @@ setEntropy(Field<Dimension, Scalar>& entropy,
   const auto n = massDensity.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
+    entropy(i) = this->entropy(massDensity(i), specificThermalEnergy(i));
   }
 }
 
 //------------------------------------------------------------------------------
-// Calculate an individual pressure.
+// Calculate an individual pressure and it's derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
+std::tuple<typename Dimension::Scalar, typename Dimension::Scalar, typename Dimension::Scalar>
 TillotsonEquationOfState<Dimension>::
-pressure(const Scalar massDensity,
-         const Scalar specificThermalEnergy) const {
+pressureAndDerivs(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity),
                mu = eta - 1.0,
                rho0 = this->referenceDensity(),
@@ -226,24 +247,36 @@ pressure(const Scalar massDensity,
   // A forth category (P3) is interpreted as a mixture of gaseous and solid
   // phases, and is interpolated between P2 and P4.
 
-  double P;
-  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
-  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
+  const auto ack = safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
+  const auto phi = mb*ack;
+  const auto dphidu = -phi*ack*safeInvVar(meps0*eta*eta);
+  const auto dphidrho = 2.0*phi*eps*safeInvVar(rho0*meps0*eta*eta*eta)*ack;
 
+  const auto chi = safeInvVar(eta, 1.0e-10) - 1.0;
+  const auto dchidrho = -safeInvVar(rho0*eta*eta);
+
+  double P, dPdu, dPdrho;
   if (mu >= 0.0) {
 
     // Regime 1: compression, solid.
     P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
+    dPdu = (ma + phi)*rho;
+    dPdrho = (ma + phi)*eps + (mA + 2.0*mB*mu)*safeInvVar(rho0);
 
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, only if rho>cutoff density.
     P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
+    dPdu = rho*(ma + phi + eps*dphidu);
+    dPdrho = eps*(ma + phi + rho*dphidrho) + (mA + 2.0*mB*mu)*safeInvVar(rho0);
 
   } else if (eps >= mepsVapor) {
 
     // Regime 4: expansion, vapor.
     P = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
+    dPdu = ma*rho + phi*rho*exp(-malpha*chi*chi);
+    dPdrho = ma*eps - exp(-malpha*chi*chi)*((phi*rho*eps + mA*mu*exp(-mbeta*chi))*2.0*malpha*chi*dchidrho +
+                                            (phi*eps + mA*exp(-mbeta*chi)*(safeInvVar(rho0) - mu*mbeta*dchidrho)));
 
   } else {
 
@@ -252,15 +285,25 @@ pressure(const Scalar massDensity,
     // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
     // epsVapor specific energies</strike> Melosh (personal communication) we
     // compute P2 and P4 at the given energy.
-    double P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
-    double P4 = ma*rho*eps + 
-               (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
+    const auto P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
+    const auto dP2du = rho*(ma + phi + eps*dphidu);
+    const auto dP2drho = eps*(ma + phi + rho*dphidrho) + (mA + 2.0*mB*mu)*safeInv(rho0);
+
+    const auto P4 = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
+    const auto dP4du = ma*rho + rho*(phi + eps*dphidu)*exp(-malpha*chi*chi);
+    const auto dP4drho = ma*eps + exp(-malpha*chi*chi)*(eps*(phi + rho*dphidrho) + mA*exp(-mbeta*chi)*(safeInvVar(rho0) - mbeta*dchidrho) -
+                                                        2.0*malpha*chi*dchidrho*(phi*rho*eps + mA*mu*exp(-mbeta*chi)));
+
     P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
+    dPdu = dP2du + (P4 - P2 + eps*(dP4du - dP2du))/(mepsVapor - mepsLiquid);
+    dPdrho = dP2drho + (dP4drho - dP2drho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
 
   }
 
   // That's it.
-  return this->applyPressureLimits(P);
+  return std::make_tuple(this->applyPressureLimits(P),
+                         dPdu,
+                         dPdrho);
 }
 
 //------------------------------------------------------------------------------
@@ -378,7 +421,7 @@ typename Dimension::Scalar
 TillotsonEquationOfState<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
-  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
+  return std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))*safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
 }
 
 //------------------------------------------------------------------------------
@@ -448,7 +491,7 @@ computeDPDrho(const Scalar massDensity,
   }
 
   // That's it.
-  dPdrho_ad = dPdrho_eps + dPdeps_rho*pressure(rho, eps)/(rho*rho);
+  dPdrho_ad = dPdrho_eps + dPdeps_rho*std::get<0>(pressureAndDerivs(rho, eps))/(rho*rho);
   return std::abs(dPdrho_ad);
 }
 
