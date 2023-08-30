@@ -67,7 +67,10 @@ foreach(e_package ${extra_packages})
 endforeach()
 
 set(CXX_sources spheralCXX.cc)
+set(cxx_obj_list )
+foreach(_package ${_packages})
+  list(APPEND cxx_obj_list Spheral_${_package})
+endforeach()
+spheral_add_cxx_library(CXX ${cxx_obj_list})
 
-spheral_add_cxx_library(CXX)
-
-install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
+install(EXPORT spheral_cxx-targets DESTINATION lib/cmake)

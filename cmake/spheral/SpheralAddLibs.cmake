@@ -18,51 +18,53 @@
 #         - List of blt/libs the library depends on
 #
 #-----------------------------------------------------------------------------------
-function(spheral_add_obj_library
-         package_name)
+function(spheral_add_obj_library package_name)
 
-  set(obj_libs_list SPHERAL_OBJ_LIBS)
-
-  # We can optionally specify the obj_libs_list
   set(extra_args ${ARGN})
   list(LENGTH extra_args extra_count)
   if (${extra_count} GREATER 0)
     list(GET extra_args 0 obj_libs_list)
   endif()
-
+  get_property(spheral_blt_depends GLOBAL PROPERTY spheral_blt_depends)
   blt_add_library(NAME        Spheral_${package_name}
-                  HEADERS     ${${package_name}_headers}
-                  SOURCES     ${${package_name}_sources}
-                  DEPENDS_ON  ${spheral_blt_depends} ${spheral_blt_cxx_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
-                  OBJECT TRUE
-                  )
-  target_include_directories(Spheral_${package_name} PRIVATE ${SPHERAL_INCLUDES})
-  target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
-
+    HEADERS     ${${package_name}_headers}
+    SOURCES     ${${package_name}_sources}
+    DEPENDS_ON  ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+    OBJECT      TRUE)
+  target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
   # Install the headers
-  install(FILES       ${${package_name}_headers}
-          DESTINATION include/${package_name}
-          )
+  install(FILES ${${package_name}_headers}
+    DESTINATION include/${package_name})
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
 
-  # Add this to the obj_libs_list list
-  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
-  list(APPEND ${obj_libs_list} Spheral_${package_name})
-  set_property(GLOBAL PROPERTY ${obj_libs_list} "${${obj_libs_list}}")
-
 endfunction()
 
-#-----------------------------------------------------------------------------------
-# spheral_add_cxx_library
-#     - same interface as spheral_add_obj_library
-#-----------------------------------------------------------------------------------
-function(spheral_add_cxx_library
-         package_name)
+#----------------------------------------------------------------------------------------
+#                                   spheral_add_cxx_library
+#----------------------------------------------------------------------------------------
+# -------------------------------------------
+# VARIBALES THAT NEED TO BE PREVIOUSLY DEFINED
+# -------------------------------------------
+# spheral_blt_depends    : REQUIRED : List of external dependencies
+# SPHERAL_SUBMOD_DEPENDS : REQUIRED : List of submodule dependencies
 
-  set(obj_libs_list SPHERAL_OBJ_LIBS)
+# ----------------------
+# INPUT-OUTPUT VARIBALES
+# ----------------------
+# <package_name>   : REQUIRED : Desired package name
+# <obj_libs_list>  : REQUIRED : List of internal targets to include
+
+# -----------------------
+# OUTPUT VARIABLES TO USE - Made available implicitly after function call
+# -----------------------
+# <Spheral_package_name> : Exportable target for interal package name library
+#----------------------------------------------------------------------------------------
+function(spheral_add_cxx_library package_name obj_libs_list)
+
+  get_property(spheral_blt_depends GLOBAL PROPERTY spheral_blt_depends)
   set(EXTRA_CXX_DEPENDS )
 
   # We can optionally specify the obj_libs_list and any additional dependencies
@@ -75,47 +77,37 @@ function(spheral_add_cxx_library
     list(GET extra_args 1 optional_arg)
     list(APPEND EXTRA_CXX_DEPENDS ${optional_arg})
   endif()
-  get_property(${obj_libs_list} GLOBAL PROPERTY ${obj_libs_list})
+  get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
-                    HEADERS     ${${package_name}_headers}
-                    SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
-                    SHARED      FALSE
-                    )
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${obj_libs_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      SHARED      FALSE)
   else()
     # Build shared spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
-                    HEADERS     ${${package_name}_headers}
-                    SOURCES     ${${package_name}_sources}
-                    DEPENDS_ON  ${${obj_libs_list}} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS}
-                    SHARED      TRUE
-                    )
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${obj_libs_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      SHARED      TRUE)
   endif()
-
-  get_target_property(_INTERFACE_INCLUDE_DIRECTORIES Spheral_${package_name} INTERFACE_INCLUDE_DIRECTORIES)
-  set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${_INTERFACE_INCLUDE_DIRECTORIES}>")
-
-  get_target_property(_LINK_LIBRARIES Spheral_${package_name} LINK_LIBRARIES)
-  LIST(REMOVE_DUPLICATES _LINK_LIBRARIES)
-  set_target_properties(Spheral_${package_name} PROPERTIES LINK_LIBRARIES "${_LINK_LIBRARIES};${_LINK_LIBRARIES}") 
+  target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
 
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
 
   # Install Spheral C++ target and set it as an exportable CMake target
-  install(TARGETS             Spheral_${package_name}
-          DESTINATION         lib
-          EXPORT              ${PROJECT_NAME}-targets
-          )
+  install(TARGETS Spheral_${package_name}
+    DESTINATION   lib
+    EXPORT        spheral_cxx-targets)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
-                        )
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}")
 endfunction()
 
 
@@ -215,15 +207,15 @@ function(spheral_add_pybind11_library package_name)
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             INSTALL         OFF
                             )
-  target_include_directories(${package_name} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
-  target_compile_options(${package_name} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
+  target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
+  target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
-  install(TARGETS     ${package_name}
+  install(TARGETS     ${MODULE_NAME}
           DESTINATION Spheral
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
-  set_target_properties(${package_name} PROPERTIES
+  set_target_properties(${MODULE_NAME} PROPERTIES
                         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 

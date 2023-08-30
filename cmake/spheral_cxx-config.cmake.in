@@ -1,0 +1,24 @@
+
+@PACKAGE_INIT@
+
+set(ENABLE_CXXONLY "@ENABLE_CXXONLY@")
+set(axom_DIR "@axom_DIR@" CACHE PATH "")
+set(silo_DIR "@silo_DIR@" CACHE PATH "")
+set(hdf5_DIR "@hdf5_DIR@" CACHE PATH "")
+set(eigen_DIR "@eigen_DIR@" CACHE PATH "")
+set(eigen_INCLUDES "@eigen_INCLUDES@" CACHE PATH "")
+set(polytope_DIR "@polytope_DIR@" CACHE PATH "")
+set(boost_DIR "@boost_DIR@" CACHE PATH "")
+set(qhull_DIR "@qhull_DIR@" CACHE PATH "")
+
+set(SPHERAL_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+set(SPHERAL_INCLUDE_DIRS "${SPHERAL_INSTALL_PREFIX}/include")
+find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
+include("${SPHERAL_INSTALL_PREFIX}/lib/cmake/spheral_cxx-targets.cmake")
+
+set_property(TARGET Spheral_CXX
+  APPEND PROPERTY
+  INTERFACE_INCLUDE_DIRECTORIES ${SPHERAL_INCLUDE_DIRS}
+)
+
+set(spheral_cxx_FOUND TRUE)

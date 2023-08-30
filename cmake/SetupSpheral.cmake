@@ -37,6 +37,14 @@ endif()
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 #-------------------------------------------------------------------------------
+# Set global variables used for dependencies
+#-------------------------------------------------------------------------------
+set_property(GLOBAL PROPERTY spheral_blt_depends)
+
+# These are includes for packages that are git submodules
+set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
+
+#-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
