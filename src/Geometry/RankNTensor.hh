@@ -34,7 +34,7 @@ public:
   RankNTensor(const RankNTensor& rhs);
 
   // Destructor.
-  virtual ~RankNTensor() = 0;
+  virtual ~RankNTensor();
 
   // Assignment.
   RankNTensor& operator=(const RankNTensor& rhs);

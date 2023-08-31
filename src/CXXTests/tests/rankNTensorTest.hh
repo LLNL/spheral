@@ -2,6 +2,11 @@
 #include "Geometry/GeomThirdRankTensor.hh"
 #include "Geometry/GeomFourthRankTensor.hh"
 #include "NodeList/FluidNodeList.hh"
+#include <typeinfo>
+
+void dothing(Spheral::RankNTensor<2, 4, Spheral::GeomFourthRankTensor<2>>* src) {
+  std::cout << typeid(*src).name() << std::endl;
+}
 
 void rankNTensorTest() {
 
@@ -22,5 +27,11 @@ void rankNTensorTest() {
   for (std::ptrdiff_t i = 0; i < data_sz; i++) {
     std::cout << testf[i] << "\n";
   }
+
+  Spheral::GeomFourthRankTensor<2>* ptr = &testf[1];
+
+  dothing(&testf[1]);
+
+  std::cout << typeid(&ptr).name() << std::endl;
 
 }
