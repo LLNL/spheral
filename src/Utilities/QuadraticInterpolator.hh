@@ -12,13 +12,13 @@
 #include <cstddef>
 #include <vector>
 
-#include "chai/ManagedArray.hpp"
+#include "Field/SphArray.hh"
 
 namespace Spheral {
 
 class QuadraticInterpolator {
   using DataType = double;
-  using ContainerType = chai::ManagedArray<DataType>;
+  using ContainerType = ManagedVector<DataType>;
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
@@ -80,7 +80,6 @@ private:
   size_t mN1;
   double mXmin, mXmax, mXstep;
   ContainerType mcoeffs;
-  //std::vector<double> mcoeffs;
 };
 
 }

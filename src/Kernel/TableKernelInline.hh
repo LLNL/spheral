@@ -164,18 +164,20 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const typename TableKernel<Dimension>::ContainerType&
+const std::vector<typename Dimension::Scalar>
 TableKernel<Dimension>::
 nperhValues() const {
   return mNperhValues;
+  //return std::vector<Scalar>(mNperhValues.begin(), mNperhValues.end());
 }
 
 template<typename Dimension>
 inline
-const typename TableKernel<Dimension>::ContainerType&
+const std::vector<typename Dimension::Scalar>
 TableKernel<Dimension>::
 WsumValues() const {
   return mWsumValues;
+  //return std::vector<Scalar>(mWsumValues.begin(), mNperhValues.end());
 }
 
 template<typename Dimension>

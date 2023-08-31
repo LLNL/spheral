@@ -308,7 +308,7 @@ equivalentNodesPerSmoothingScale(const Scalar Wsum) const {
 
   // Find the lower bound in the tabulated Wsum's bracketing the input
   // value.
-  std::vector<Scalar> vecWsumValues(mWsumValues.data(), mWsumValues.data() + mWsumValues.size());
+  std::vector<Scalar> vecWsumValues(mWsumValues.begin(), mWsumValues.end());
   const int lb = bisectSearch(vecWsumValues, Wsum);
   CHECK((lb >= -1) and (lb <= int(mWsumValues.size()) - 1));
   const int ub = lb + 1;
@@ -345,7 +345,7 @@ equivalentWsum(const Scalar nPerh) const {
 
   // Find the lower bound in the tabulated n per h's bracketing the input
   // value.
-  std::vector<Scalar> vecNperhValues(mNperhValues.data(), mNperhValues.data() + mNperhValues.size());
+  std::vector<Scalar> vecNperhValues(mNperhValues.begin(), mNperhValues.end());
   const int lb = bisectSearch(vecNperhValues, nPerh);
   CHECK((lb >= -1) and (lb <= int(mNperhValues.size()) - 1));
   const int ub = lb + 1;
@@ -385,11 +385,13 @@ setNperhValues(const bool scaleTo1D) {
   REQUIRE(this->kernelExtent() > 0.0);
 
   // Size the Nperh array.
-  mWsumValues.allocate(mNumPoints, chai::CPU);
-  mWsumValues.registerTouch(chai::CPU);
+  mWsumValues.resize(mNumPoints);
+  mNperhValues.resize(mNumPoints);
+  //mWsumValues.allocate(mNumPoints, chai::CPU);
+  //mWsumValues.registerTouch(chai::CPU);
 
-  mNperhValues.allocate(mNumPoints, chai::CPU);
-  mNperhValues.registerTouch(chai::CPU);
+  //mNperhValues.allocate(mNumPoints, chai::CPU);
+  //mNperhValues.registerTouch(chai::CPU);
 
   // For the allowed range of n per h, sum up the kernel values.
   const Scalar dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);

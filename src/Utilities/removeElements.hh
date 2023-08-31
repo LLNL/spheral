@@ -30,7 +30,7 @@ namespace Spheral {
 template<typename Value, typename Allocator, typename index_t>
 inline
 void
-removeElements(SphArray<Value>& vec,
+removeElements(ManagedVector<Value>& vec,
                const std::vector<index_t>& elements) {
 
   // Is there anything to do?
@@ -82,7 +82,7 @@ removeElements(SphArray<Value>& vec,
 template<typename Value, typename index_t>
 inline
 void
-removeElements(SphArray<Value>& vec,
+removeElements(ManagedVector<Value>& vec,
                const std::vector<index_t,DataAllocator<index_t>>& elements) {
 
   // Is there anything to do?

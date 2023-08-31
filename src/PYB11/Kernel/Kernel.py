@@ -245,6 +245,7 @@ class TableKernel(Kernel):
     using Scalar = typename %(Dimension)s::Scalar;
     using Vector = typename %(Dimension)s::Vector;
     using SymTensor = typename %(Dimension)s::SymTensor;
+    using ContainerType = ManagedVector<Scalar>;
 """
 
     #...........................................................................
@@ -368,8 +369,10 @@ class TableKernel(Kernel):
 
     #...........................................................................
     # Properties
-    nperhValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
-    WsumValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
+    #nperhValues = PYB11property("const ContainerType&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
+    #WsumValues = PYB11property("const ContainerType&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
+    nperhValues = PYB11property("const std::vector<Scalar>", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
+    WsumValues = PYB11property("const std::vector<Scalar>", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
     numPoints = PYB11property("size_t", doc="The number of points in the table")
 
 #-------------------------------------------------------------------------------

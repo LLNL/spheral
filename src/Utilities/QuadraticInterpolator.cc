@@ -36,8 +36,7 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(mN1 + 1u);
-  mcoeffs.allocate(3*(mN1 + 1u), chai::CPU);
-  mcoeffs.registerTouch(chai::CPU);
+  mcoeffs.resize(3*(mN1 + 1u));
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;

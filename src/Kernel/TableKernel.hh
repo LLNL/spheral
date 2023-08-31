@@ -9,6 +9,7 @@
 
 #include "Kernel.hh"
 #include "Utilities/QuadraticInterpolator.hh"
+#include "Field/SphArray.hh"
 
 #include <vector>
 
@@ -24,7 +25,8 @@ public:
   typedef typename Dimension::Tensor Tensor;
   typedef typename Dimension::SymTensor SymTensor;
 
-  using ContainerType = chai::ManagedArray<Scalar>;
+  using ContainerType = ManagedVector<Scalar>;
+  //using ContainerType = chai::ManagedArray<Scalar>;
 
   // Constructors.
   template<typename KernelType>
@@ -78,8 +80,8 @@ public:
   Scalar equivalentWsum(const Scalar nPerh) const;
 
   // Allow read only access to the tabular data.
-  const ContainerType& nperhValues() const;
-  const ContainerType& WsumValues() const;
+  const std::vector<Scalar> nperhValues() const;
+  const std::vector<Scalar> WsumValues() const;
 
   // Number of points in our lookup data
   size_t numPoints() const;
