@@ -13,6 +13,7 @@
 
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
+#include "SphArray.hh"
 
 #include <vector>
 
@@ -52,8 +53,12 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+  using ContainerType = ManagedVector<DataType>;
+
+  using iterator = typename ContainerType::iterator;
+  using const_iterator = typename ContainerType::const_iterator;
+  //typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
+  //typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -65,7 +70,7 @@ public:
         DataType value);
   Field(FieldName name,
         const NodeList<Dimension>& nodeList, 
-        const std::vector<DataType,DataAllocator<DataType>>& array);
+        const ContainerType& array);
   Field(const NodeList<Dimension>& nodeList, const Field& field);
   Field(const Field& field);
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
@@ -76,7 +81,7 @@ public:
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
   Field& operator=(const Field& rhs);
-  Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
+  Field& operator=(const ContainerType& rhs);
   Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
@@ -241,12 +246,13 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  void move(chai::ExecutionSpace space, bool touch = true) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
 //  std::vector<DataType,std::allocator<DataType> > mDataArray;
-  std::vector<DataType, DataAllocator<DataType>> mDataArray;
+  ContainerType mDataArray;
   bool mValid;
 
   // No default constructor.

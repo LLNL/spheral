@@ -3,8 +3,113 @@
 
 #include "LvArray/Array.hpp"
 #include "LvArray/ChaiBuffer.hpp"
+#include "chai/ManagedArray.hpp"
 
 namespace Spheral {
+
+
+template<typename DataType>
+class ManagedVector:
+  public chai::ManagedArray<DataType>{
+  using ManagedArray = chai::ManagedArray<DataType>;
+
+  //friend LvField<DataType>;
+public:
+
+  using iterator = DataType*;
+  using const_iterator = const DataType*;
+
+  iterator begin() { return ManagedArray::begin(); }
+  const_iterator begin() const { return ManagedArray::begin(); }
+
+  iterator end() { return begin() + m_size; }
+  const_iterator end() const { return begin() + m_size; }
+
+
+  RAJA_HOST ManagedVector() : ManagedArray(2) {}
+  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems), m_size(elems) {}
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::data()[i] = identity; }
+  //RAJA_HOST ~ManagedVector() { ManagedArray::free(chai::NONE); }
+  //RAJA_HOST ~ManagedVector() { destroy(begin(), end()); }
+
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {}
+
+  RAJA_HOST void push_back(const DataType& value) {
+    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+    ManagedArray::data()[m_size] = value;
+    m_size++;
+  }
+  RAJA_HOST void push_back(DataType&& value) {
+    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+
+    ManagedArray::data()[m_size] = std::move(value);
+    m_size++;
+  }
+  template<typename... Args>
+  RAJA_HOST
+  DataType& emplace_back(Args&&... args) {
+    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+
+    new(&ManagedArray::data()[m_size]) DataType(std::forward<Args>(args)...);
+    return ManagedArray::data()[m_size++];
+  }
+
+  RAJA_HOST
+  void resize(size_t size) {
+    const size_t old_size = m_size;
+
+    if (old_size < size) {
+      ManagedArray::reallocate(size);
+    }
+    if (old_size > size) {
+      destroy(begin() + old_size, begin() + size);
+    }
+
+    m_size = size;
+  }
+
+  RAJA_HOST
+  void erase(iterator pos) {
+    for (iterator it = pos; it < end(); it++) {
+      *it = std::move(*(it + 1));
+    }
+    m_size--;
+  }
+
+  RAJA_HOST_DEVICE size_t capacity() {return ManagedArray::m_elems;}
+  RAJA_HOST_DEVICE size_t size() const {return m_size;}
+
+
+  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) {
+    if (m_size != rhs.m_size) return false;
+    for (size_t i = 0; i < m_size; i++) if (ManagedArray::data()[i] != rhs[i]) return false;
+    return true;
+  }
+
+
+  // *******************************************************
+  // Required to Allow ManagedVector to be properly CHAICopyable
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { ManagedArray::operator=(nullptr); return *this; }
+  RAJA_HOST_DEVICE void shallowCopy(const ManagedVector& other) {
+    m_size=other.m_size;
+    ManagedArray::shallowCopy(other);
+  }
+  // *******************************************************
+  
+  RAJA_HOST operator std::vector<DataType>() const { return std::vector<DataType>(begin(), end()); }
+
+private:
+  size_t m_size = 0;
+
+  RAJA_HOST void destroy(iterator first, iterator last) {
+    if ( !std::is_trivially_destructible< DataType >::value ) {
+      for (iterator it = first; it < last; it++) {
+        *it = DataType(); 
+      }
+    }
+  }
+
+};
 
 template<typename DataType>
 using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
@@ -78,6 +183,7 @@ public:
 private:
   pointer mPtr;
 };
+
 
 } //  namespace Spheral
 

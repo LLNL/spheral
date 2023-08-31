@@ -117,7 +117,7 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
       const NodeList<Dimension>& nodeList,
-      const std::vector<DataType,DataAllocator<DataType>>& array):
+      const ContainerType& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
   mValid(true) {
@@ -213,7 +213,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
-Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
+Field<Dimension, DataType>::operator=(const ContainerType& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
   mDataArray = rhs;
@@ -237,8 +237,8 @@ Field<Dimension, DataType>::operator=(const DataType& rhs) {
 //------------------------------------------------------------------------------
 template<typename Value>
 struct CrappyFieldCompareMethod {
-  static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
-                      const std::vector<Value,DataAllocator<Value>>& rhs) {
+  static bool compare(const ManagedVector<Value>& lhs, 
+                      const ManagedVector<Value>& rhs) {
     return lhs == rhs;
   }
 };
@@ -1986,6 +1986,15 @@ axom::sidre::DataTypeId
 Field<Dimension, DataType>::
 getAxomTypeID() const {
   return DataTypeTraits<DataType>::axomTypeID();
+}
+
+
+template<typename Dimension, typename DataType>
+inline
+void
+Field<Dimension, DataType>::
+move (chai::ExecutionSpace space, bool touch) const {
+  mDataArray.move(space, touch);
 }
 
 
