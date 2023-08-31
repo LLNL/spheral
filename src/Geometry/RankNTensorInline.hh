@@ -14,9 +14,9 @@ namespace Spheral {
 template<int nDim, int rank, typename Descendant>
 inline
 RankNTensor<nDim,rank, Descendant>::
-RankNTensor():
-  mElements(new double[Descendant::numElements]) {
-  std::fill(mElements, mElements + Descendant::numElements, 0.0);
+RankNTensor()
+{
+  for (std::ptrdiff_t i = 0; i < numElements; i++) mElements[i] = 0.0;
 }
 
 //------------------------------------------------------------------------------
@@ -25,9 +25,9 @@ RankNTensor():
 template<int nDim, int rank, typename Descendant>
 inline
 RankNTensor<nDim,rank, Descendant>::
-RankNTensor(const double val):
-  mElements(new double[Descendant::numElements]) {
-  std::fill(mElements, mElements + Descendant::numElements, val);
+RankNTensor(const double val)
+{
+  for (std::ptrdiff_t i = 0; i < numElements; i++) mElements[i] = val;
 }
 
 //------------------------------------------------------------------------------
@@ -36,9 +36,9 @@ RankNTensor(const double val):
 template<int nDim, int rank, typename Descendant>
 inline
 RankNTensor<nDim,rank, Descendant>::
-RankNTensor(const RankNTensor& ten):
-  mElements(new double[Descendant::numElements]) {
-  std::copy(ten.begin(), ten.begin() + Descendant::numElements, this->begin());
+RankNTensor(const RankNTensor& ten)
+{
+  for (std::ptrdiff_t i = 0; i < numElements; i++) mElements[i] = ten.mElements[i];
 }
 
 //------------------------------------------------------------------------------
@@ -48,7 +48,6 @@ template<int nDim, int rank, typename Descendant>
 inline
 RankNTensor<nDim,rank, Descendant>::
 ~RankNTensor() {
-  delete [] mElements;
 }
 
 //------------------------------------------------------------------------------
@@ -59,7 +58,9 @@ inline
 RankNTensor<nDim,rank, Descendant>&
 RankNTensor<nDim,rank, Descendant>::
 operator=(const RankNTensor& rhs) {
-  if (this != &rhs) std::copy(rhs.begin(), rhs.begin() + Descendant::numElements, this->begin());
+  if (this != &rhs) {
+    for (std::ptrdiff_t i = 0; i < numElements; i++) mElements[i] = rhs.mElements[i];
+  }
   return *this;
 }
 
@@ -71,7 +72,7 @@ inline
 RankNTensor<nDim,rank, Descendant>&
 RankNTensor<nDim,rank, Descendant>::
 operator=(const double rhs) {
-  std::fill(mElements, mElements + Descendant::numElements, rhs);
+  for (std::ptrdiff_t i = 0; i < numElements; i++) mElements[i] = rhs;
   return *this;
 }
 
@@ -82,7 +83,7 @@ template<int nDim, int rank, typename Descendant>
 inline
 double
 RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) const {
-  REQUIRE(index < Descendant::numElements);
+  REQUIRE(index < numElements);
   return *(begin() + index);
 }
 
@@ -90,7 +91,7 @@ template<int nDim, int rank, typename Descendant>
 inline
 double&
 RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) {
-  REQUIRE(index < Descendant::numElements);
+  REQUIRE(index < numElements);
   return *(begin() + index);
 }
 
@@ -110,7 +111,7 @@ inline
 typename RankNTensor<nDim,rank, Descendant>::iterator
 RankNTensor<nDim,rank, Descendant>::
 end() {
-  return mElements + Descendant::numElements;
+  return mElements + numElements;
 }
 
 template<int nDim, int rank, typename Descendant>
@@ -126,7 +127,7 @@ inline
 typename RankNTensor<nDim,rank, Descendant>::const_iterator
 RankNTensor<nDim,rank, Descendant>::
 end() const {
-  return mElements + Descendant::numElements;
+  return mElements + numElements;
 }
 
 //------------------------------------------------------------------------------
@@ -137,7 +138,7 @@ inline
 void
 RankNTensor<nDim,rank, Descendant>::
 Zero() {
-  std::fill(mElements, mElements + Descendant::numElements, 0.0);
+  std::fill(mElements, mElements + numElements, 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -161,7 +162,7 @@ inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator+=(const RankNTensor& rhs) {
-  for (size_type i = 0; i != Descendant::numElements; ++i) mElements[i] += rhs.mElements[i];
+  for (size_type i = 0; i != numElements; ++i) mElements[i] += rhs.mElements[i];
   return dynamic_cast<Descendant&>(*this);
 }
 
@@ -173,7 +174,7 @@ inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator-=(const RankNTensor& rhs) {
-  for (size_type i = 0; i != Descendant::numElements; ++i) mElements[i] -= rhs.mElements[i];
+  for (size_type i = 0; i != numElements; ++i) mElements[i] -= rhs.mElements[i];
   return dynamic_cast<Descendant&>(*this);
 }
 
@@ -211,7 +212,7 @@ inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator*=(const double rhs) {
-  for (size_type i = 0; i != Descendant::numElements; ++i) mElements[i] *= rhs;
+  for (size_type i = 0; i != numElements; ++i) mElements[i] *= rhs;
   return dynamic_cast<Descendant&>(*this);
 }
 
@@ -224,7 +225,7 @@ Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator/=(const double rhs) {
   REQUIRE(rhs != 0.0);
-  for (size_type i = 0; i != Descendant::numElements; ++i) mElements[i] /= rhs;
+  for (size_type i = 0; i != numElements; ++i) mElements[i] /= rhs;
   return dynamic_cast<Descendant&>(*this);
 }
 
@@ -265,7 +266,7 @@ RankNTensor<nDim,rank, Descendant>::
 operator==(const RankNTensor& rhs) const {
   bool result = mElements[0] == rhs.mElements[0];
   size_type i = 1;
-  while (i != Descendant::numElements and result) {
+  while (i != numElements and result) {
     result = result and (mElements[i] == rhs.mElements[i]);
     ++i;
   }
@@ -337,7 +338,7 @@ RankNTensor<nDim,rank, Descendant>::
 operator==(const double rhs) const {
   bool result = mElements[0] == rhs;
   size_type i = 1;
-  while (i != Descendant::numElements and result) {
+  while (i != numElements and result) {
     result = result and (mElements[i] == rhs);
     ++i;
   }
@@ -364,7 +365,7 @@ double
 RankNTensor<nDim,rank, Descendant>::
 doubledot(const RankNTensor& rhs) const {
   double result = mElements[0] * rhs.mElements[0];
-  for (size_type i = 1; i != Descendant::numElements; ++i) 
+  for (size_type i = 1; i != numElements; ++i) 
     result += mElements[i] * rhs.mElements[i];
   return result;
 }
@@ -378,7 +379,7 @@ Descendant
 RankNTensor<nDim,rank, Descendant>::
 squareElements() const {
   Descendant result(dynamic_cast<const Descendant&>(*this));
-  for (size_type i = 1; i != Descendant::numElements; ++i) 
+  for (size_type i = 1; i != numElements; ++i) 
     *(result.begin() + i) *= mElements[i];
   return result;
 }
@@ -392,7 +393,7 @@ double
 RankNTensor<nDim,rank, Descendant>::
 maxAbsElement() const {
   double result = mElements[0];
-  for (size_type i = 1; i != Descendant::numElements; ++i) result = std::max(result, mElements[i]);
+  for (size_type i = 1; i != numElements; ++i) result = std::max(result, mElements[i]);
   return result;
 }
 
