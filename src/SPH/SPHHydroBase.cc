@@ -753,39 +753,39 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massSecondMoment.size() == numNodeLists);
 
-  const auto mass_v = FieldListView<Dimension, Scalar>(mass);
-  const auto position_v = FieldListView<Dimension, Vector>(position);
-  const auto velocity_v = FieldListView<Dimension, Vector>(velocity);
-  const auto massDensity_v = FieldListView<Dimension, Scalar>(massDensity);
-  const auto H_v = FieldListView<Dimension, SymTensor>(H);
-  const auto pressure_v = FieldListView<Dimension, Scalar>(pressure);
-  const auto soundSpeed_v = FieldListView<Dimension, Scalar>(soundSpeed);
-  const auto omega_v = FieldListView<Dimension, Scalar>(omega);
+  //const auto mass_v = FieldListView<Dimension, Scalar>(mass);
+  //const auto position_v = FieldListView<Dimension, Vector>(position);
+  //const auto velocity_v = FieldListView<Dimension, Vector>(velocity);
+  //const auto massDensity_v = FieldListView<Dimension, Scalar>(massDensity);
+  //const auto H_v = FieldListView<Dimension, SymTensor>(H);
+  //const auto pressure_v = FieldListView<Dimension, Scalar>(pressure);
+  //const auto soundSpeed_v = FieldListView<Dimension, Scalar>(soundSpeed);
+  //const auto omega_v = FieldListView<Dimension, Scalar>(omega);
 
-  auto  rhoSum_v = FieldListView<Dimension, Scalar>(rhoSum);
-  auto  normalization_v = FieldListView<Dimension, Scalar>(normalization);
-  auto  DxDt_v = FieldListView<Dimension, Vector>(DxDt);
-  auto  DrhoDt_v = FieldListView<Dimension, Scalar>(rhoSum);
-  auto  DvDt_v = FieldListView<Dimension, Vector>(DvDt);
-  auto  DepsDt_v = FieldListView<Dimension, Scalar>(DepsDt);
-  auto  DvDx_v = FieldListView<Dimension, Tensor>(DvDx);
-  auto  localDvDx_v = FieldListView<Dimension, Tensor>(localDvDx);
-  auto  M_v = FieldListView<Dimension, Tensor>(M);
-  auto  localM_v = FieldListView<Dimension, Tensor>(localM);
-  auto  DHDt_v = FieldListView<Dimension, SymTensor>(DHDt);
-  auto  Hideal_v = FieldListView<Dimension, SymTensor>(Hideal);
-  auto  maxViscousPressure_v = FieldListView<Dimension, Scalar>(maxViscousPressure);
-  auto  effViscousPressure_v = FieldListView<Dimension, Scalar>(effViscousPressure);
-  auto  viscousWork_v = FieldListView<Dimension, Scalar>(viscousWork);
-//  auto& pairAccelerations_v = FieldListView<Dimension, Scalar>(pairAccelerations);derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto  XSPHWeightSum_v = FieldListView<Dimension, Scalar>(XSPHWeightSum);
-  auto  XSPHDeltaV_v = FieldListView<Dimension, Vector>(XSPHDeltaV);
-  auto  weightedNeighborSum_v = FieldListView<Dimension, Scalar>(weightedNeighborSum);
-  auto  massSecondMoment_v = FieldListView<Dimension, SymTensor>(massSecondMoment);
+  //auto  rhoSum_v = FieldListView<Dimension, Scalar>(rhoSum);
+  //auto  normalization_v = FieldListView<Dimension, Scalar>(normalization);
+  //auto  DxDt_v = FieldListView<Dimension, Vector>(DxDt);
+  //auto  DrhoDt_v = FieldListView<Dimension, Scalar>(rhoSum);
+  //auto  DvDt_v = FieldListView<Dimension, Vector>(DvDt);
+  //auto  DepsDt_v = FieldListView<Dimension, Scalar>(DepsDt);
+  //auto  DvDx_v = FieldListView<Dimension, Tensor>(DvDx);
+  //auto  localDvDx_v = FieldListView<Dimension, Tensor>(localDvDx);
+  //auto  M_v = FieldListView<Dimension, Tensor>(M);
+  //auto  localM_v = FieldListView<Dimension, Tensor>(localM);
+  //auto  DHDt_v = FieldListView<Dimension, SymTensor>(DHDt);
+  //auto  Hideal_v = FieldListView<Dimension, SymTensor>(Hideal);
+  //auto  maxViscousPressure_v = FieldListView<Dimension, Scalar>(maxViscousPressure);
+  //auto  effViscousPressure_v = FieldListView<Dimension, Scalar>(effViscousPressure);
+  //auto  viscousWork_v = FieldListView<Dimension, Scalar>(viscousWork);
+////  auto& pairAccelerations_v = FieldListView<Dimension, Scalar>(pairAccelerations);derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  //auto  XSPHWeightSum_v = FieldListView<Dimension, Scalar>(XSPHWeightSum);
+  //auto  XSPHDeltaV_v = FieldListView<Dimension, Vector>(XSPHDeltaV);
+  //auto  weightedNeighborSum_v = FieldListView<Dimension, Scalar>(weightedNeighborSum);
+  //auto  massSecondMoment_v = FieldListView<Dimension, SymTensor>(massSecondMoment);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
-  const auto pairs_v = pairs.toView();
+  //const auto pairs_v = pairs.toView();
   const auto  npairs = pairs.size();
 
   // Size up the pair-wise accelerations before we start.
@@ -801,7 +801,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   TIME_BEGIN("SPHevalDerivs_pairs");
   {
 #ifndef USE_DEVICE
-    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [=, &pairAccelerations] RAJA_HOST_DEVICE (int kk) {
+    RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [&, &pairAccelerations] RAJA_HOST_DEVICE (int kk) {
 #else
     RAJA::forall<PAIR_EXEC_POL>(RAJA::RangeSegment(0, npairs), [=] RAJA_HOST_DEVICE (int kk) {
 #endif
@@ -817,72 +817,72 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Tensor QPiij, QPiji;
 
     // Thread private scratch variables
-      i = pairs_v[kk].i_node;
-      j = pairs_v[kk].j_node;
-      nodeListi = pairs_v[kk].i_list;
-      nodeListj = pairs_v[kk].j_list;
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
-      const auto& ri = position_v(nodeListi, i);
-      const auto& mi = mass_v(nodeListi, i);
-      const auto& vi = velocity_v(nodeListi, i);
-      const auto& rhoi = massDensity_v(nodeListi, i);
-      const auto& Pi = pressure_v(nodeListi, i);
-      const auto& Hi = H_v(nodeListi, i);
-      const auto& ci = soundSpeed_v(nodeListi, i);
-      const auto& omegai = omega_v(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto& ci = soundSpeed(nodeListi, i);
+      const auto& omegai = omega(nodeListi, i);
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  Hdeti = Hi.Determinant();
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& a_rhoSumi = rhoSum_v.atomic(nodeListi, i);
-      auto& a_normi = normalization_v(nodeListi, i);
-      auto& a_DvDti = DvDt_v(nodeListi, i);
-      auto& a_DepsDti = DepsDt_v(nodeListi, i);
-      auto& a_DvDxi = DvDx_v(nodeListi, i);
-      auto& a_localDvDxi = localDvDx_v(nodeListi, i);
-      auto& a_Mi = M_v(nodeListi, i);
-      auto& a_localMi = localM_v(nodeListi, i);
-      auto& a_maxViscousPressurei = maxViscousPressure_v(nodeListi, i);
-      auto& a_effViscousPressurei = effViscousPressure_v(nodeListi, i);
-      auto& a_viscousWorki = viscousWork_v(nodeListi, i);
-      auto& a_XSPHWeightSumi = XSPHWeightSum_v(nodeListi, i);
-      auto& a_XSPHDeltaVi = XSPHDeltaV_v(nodeListi, i);
-      auto& a_weightedNeighborSumi = weightedNeighborSum_v(nodeListi, i);
-      auto& a_massSecondMomenti = massSecondMoment_v(nodeListi, i);
+      auto& a_rhoSumi = rhoSum(nodeListi, i);
+      auto& a_normi = normalization(nodeListi, i);
+      auto& a_DvDti = DvDt(nodeListi, i);
+      auto& a_DepsDti = DepsDt(nodeListi, i);
+      auto& a_DvDxi = DvDx(nodeListi, i);
+      auto& a_localDvDxi = localDvDx(nodeListi, i);
+      auto& a_Mi = M(nodeListi, i);
+      auto& a_localMi = localM(nodeListi, i);
+      auto& a_maxViscousPressurei = maxViscousPressure(nodeListi, i);
+      auto& a_effViscousPressurei = effViscousPressure(nodeListi, i);
+      auto& aiscousWorki = viscousWork(nodeListi, i);
+      auto& a_XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
+      auto& a_XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& a_weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
+      auto& a_massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Get the state for node j
-      const auto& rj = position_v(nodeListj, j);
-      const auto& mj = mass_v(nodeListj, j);
-      const auto& vj = velocity_v(nodeListj, j);
-      const auto& rhoj = massDensity_v(nodeListj, j);
-      const auto& Pj = pressure_v(nodeListj, j);
-      const auto& Hj = H_v(nodeListj, j);
-      const auto& cj = soundSpeed_v(nodeListj, j);
-      const auto& omegaj = omega_v(nodeListj, j);
+      const auto& rj = position(nodeListj, j);
+      const auto& mj = mass(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto& rhoj = massDensity(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto& cj = soundSpeed(nodeListj, j);
+      const auto& omegaj = omega(nodeListj, j);
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       const auto  Hdetj = Hj.Determinant();
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& a_rhoSumj = rhoSum_v(nodeListj, j);
-      auto& a_normj = normalization_v(nodeListj, j);
-      auto& a_DvDtj = DvDt_v(nodeListj, j);
-      auto& a_DepsDtj = DepsDt_v(nodeListj, j);
-      auto& a_DvDxj = DvDx_v(nodeListj, j);
-      auto& a_localDvDxj = localDvDx_v(nodeListj, j);
-      auto& a_Mj = M_v(nodeListj, j);
-      auto& a_localMj = localM_v(nodeListj, j);
-      auto& a_maxViscousPressurej = maxViscousPressure_v(nodeListj, j);
-      auto& a_effViscousPressurej = effViscousPressure_v(nodeListj, j);
-      auto& a_viscousWorkj = viscousWork_v(nodeListj, j);
-      auto& a_XSPHWeightSumj = XSPHWeightSum_v(nodeListj, j);
-      auto& a_XSPHDeltaVj = XSPHDeltaV_v(nodeListj, j);
-      auto& a_weightedNeighborSumj = weightedNeighborSum_v(nodeListj, j);
-      auto& a_massSecondMomentj = massSecondMoment_v(nodeListj, j);
+      auto& a_rhoSumj = rhoSum(nodeListj, j);
+      auto& a_normj = normalization(nodeListj, j);
+      auto& a_DvDtj = DvDt(nodeListj, j);
+      auto& a_DepsDtj = DepsDt(nodeListj, j);
+      auto& a_DvDxj = DvDx(nodeListj, j);
+      auto& a_localDvDxj = localDvDx(nodeListj, j);
+      auto& a_Mj = M(nodeListj, j);
+      auto& a_localMj = localM(nodeListj, j);
+      auto& a_maxViscousPressurej = maxViscousPressure(nodeListj, j);
+      auto& a_effViscousPressurej = effViscousPressure(nodeListj, j);
+      auto& aiscousWorkj = viscousWork(nodeListj, j);
+      auto& a_XSPHWeightSumj = XSPHWeightSum(nodeListj, j);
+      auto& a_XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
+      auto& a_weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
+      auto& a_massSecondMomentj = massSecondMoment(nodeListj, j);
 
 
       // Flag if this is a contiguous material pair or not.
@@ -954,8 +954,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       ATOMIC_MAX(&a_maxViscousPressurej, SPHERAL_MAX(a_maxViscousPressurej, Qj));
       ATOMIC_ADD(&a_effViscousPressurei, -mj*Qi*WQi/rhoj);
       ATOMIC_ADD(&a_effViscousPressurej, -mi*Qj*WQj/rhoi);
-      ATOMIC_ADD(&a_viscousWorki, -mj*workQi);
-      ATOMIC_ADD(&a_viscousWorkj, -mi*workQj);
+      ATOMIC_ADD(&aiscousWorki, -mj*workQi);
+      ATOMIC_ADD(&aiscousWorkj, -mi*workQj);
 
       // Determine an effective pressure including a term to fight the tensile instability.
       const auto Ri = mEpsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh))*(Pi < 0.0 ? -Pi : 0.0);
@@ -1019,7 +1019,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   }   // OpenMP parallel region
   TIME_END("SPHevalDerivs_pairs");
 
-  pairs_v.move(RAJA::Platform::host);
+  //pairs.move(RAJA::Platform::host);
 
   // Finish up the derivatives for each point.
   TIME_BEGIN("SPHevalDerivs_final");
@@ -1033,36 +1033,36 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto ni = nodeList.numInternalNodes();
 //#pragma omp parallel for
 //    for (auto i = 0u; i < ni; ++i) {
-    RAJA::forall<FINAL_EXEC_POL>(RAJA::RangeSegment(0, ni), [=, &connectivityMap] (int i) {
+    RAJA::forall<FINAL_EXEC_POL>(RAJA::RangeSegment(0, ni), [&, &connectivityMap] (int i) {
 
       // Get the state for node i.
-      const auto& ri = position_v(nodeListi, i);
-      const auto& mi = mass_v(nodeListi, i);
-      const auto& vi = velocity_v(nodeListi, i);
-      const auto& rhoi = massDensity_v(nodeListi, i);
-      const auto& Hi = H_v(nodeListi, i);
+      const auto& ri = position(nodeListi, i);
+      const auto& mi = mass(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto& rhoi = massDensity(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
       const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& rhoSumi = rhoSum_v(nodeListi, i);
-      auto& normi = normalization_v(nodeListi, i);
-      auto& DxDti = DxDt_v(nodeListi, i);
-      auto& DrhoDti = DrhoDt_v(nodeListi, i);
-      auto& DvDti = DvDt_v(nodeListi, i);
-      auto& DepsDti = DepsDt_v(nodeListi, i);
-      auto& DvDxi = DvDx_v(nodeListi, i);
-      auto& localDvDxi = localDvDx_v(nodeListi, i);
-      auto& Mi = M_v(nodeListi, i);
-      auto& localMi = localM_v(nodeListi, i);
-      auto& DHDti = DHDt_v(nodeListi, i);
-      auto& Hideali = Hideal_v(nodeListi, i);
-      auto& XSPHWeightSumi = XSPHWeightSum_v(nodeListi, i);
-      auto& XSPHDeltaVi = XSPHDeltaV_v(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum_v(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_v(nodeListi, i);
+      auto& rhoSumi = rhoSum(nodeListi, i);
+      auto& normi = normalization(nodeListi, i);
+      auto& DxDti = DxDt(nodeListi, i);
+      auto& DrhoDti = DrhoDt(nodeListi, i);
+      auto& DvDti = DvDt(nodeListi, i);
+      auto& DepsDti = DepsDt(nodeListi, i);
+      auto& DvDxi = DvDx(nodeListi, i);
+      auto& localDvDxi = localDvDx(nodeListi, i);
+      auto& Mi = M(nodeListi, i);
+      auto& localMi = localM(nodeListi, i);
+      auto& DHDti = DHDt(nodeListi, i);
+      auto& Hideali = Hideal(nodeListi, i);
+      auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;

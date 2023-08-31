@@ -61,6 +61,30 @@
 
 void SpheralEvalDerivTest()
 {
+
+
+  using vec_type = Spheral::ManagedVector<double>;
+
+  //vec_type vec;
+
+  //for (std::ptrdiff_t i = 0; i < 10; i++) vec.push_back(i);
+  //PRINT_DATA(vec, vec.size())
+
+  //vec.erase(vec.begin()+5);
+  //PRINT_DATA(vec, vec.size())
+
+  //vec.resize(12);
+  //PRINT_DATA(vec, vec.size())
+
+  //vec.resize(5);
+  //PRINT_DATA(vec, vec.size())
+
+
+
+
+
+
+
   
   // Setup Timers
   srand(3);
@@ -76,10 +100,10 @@ void SpheralEvalDerivTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using FIELD_TYPE = LvField<DATA_TYPE>;
-  //using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  //using FIELD_TYPE = LvField<DATA_TYPE>;
+  using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
 
-  using FIELDLIST_TYPE = LvFieldList<DATA_TYPE>;
+  using FIELDLIST_TYPE = LvFieldList<DIM, DATA_TYPE>;
   //using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
   //using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
@@ -112,9 +136,9 @@ void SpheralEvalDerivTest()
   //---------------------------------------------------------------------------
   
   // Generate pair data...
-  LvField<unsigned> pair_data("Pairs", n_pairs, chai::CPU);
-  //Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
-  //Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
+  //LvField<unsigned> pair_data("Pairs", n_pairs, chai::CPU);
+  Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
+  Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
   for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
   PRINT_DATA(pair_data, N_PAIRS)
   //const Spheral::FieldView<DIM, unsigned> pairs(pair_data);
@@ -123,16 +147,16 @@ void SpheralEvalDerivTest()
   // Setting up our "Field Data", this is done through simulation setup in spheral e.g. node generation.
   Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
 
-  //FIELD_TYPE A("A", data_node_list);
-  //FIELD_TYPE B("B", data_node_list);
-  //FIELD_TYPE C("C", data_node_list);
+  FIELD_TYPE A("A", data_node_list);
+  FIELD_TYPE B("B", data_node_list);
+  FIELD_TYPE C("C", data_node_list);
 
-  FIELD_TYPE A("A", data_sz);
-  FIELD_TYPE B("B", data_sz);
-  FIELD_TYPE C("C", data_sz);
+  //FIELD_TYPE A("A", data_sz);
+  //FIELD_TYPE B("B", data_sz);
+  //FIELD_TYPE C("C", data_sz);
 
-  FIELD_TYPE One("One", data_sz);
-  //FIELD_TYPE One("One", data_node_list);
+  //FIELD_TYPE One("One", data_sz);
+  FIELD_TYPE One("One", data_node_list);
   for (size_t i = 0; i < data_sz; i++) One[i] = DATA_TYPE(1.0);
 
   // Creating "FieldLists" In evalDerivs we call STATE_TYPE::fields(...) to return a fieldList.
@@ -187,6 +211,7 @@ void SpheralEvalDerivTest()
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
       auto pair_idx = pair_data[t_idx];
+      //printf("CHECK\n");
       //auto p_b_idx = t_idx / strat.pool_block_sz;
       //auto pool_idx = p_b_idx*data_sz + pair_idx;
 

@@ -3,9 +3,7 @@
 
 #include "LvArray/bufferManipulation.hpp"
 #include "Field/SphArray.hh"
-#include "Field/FieldView.hh"
 #include "Field/FieldList.hh"
-#include "Field/FieldListView.hh"
 
 
 //template<typename Dimension, typename DATA_TYPE>
@@ -145,12 +143,12 @@ private:
 };
 
 
-template<typename DATA_TYPE>
+template<typename DIM, typename DATA_TYPE>
 class LvFieldList{
 public:
 
 
-  using FIELD_TYPE = LvField<DATA_TYPE>;
+  using FIELD_TYPE = Spheral::Field<DIM,DATA_TYPE>;
   using ARRAY_TYPE = SphVector<FIELD_TYPE>;
   using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
 
@@ -162,12 +160,8 @@ public:
     setName(name);
   }
 
-  //void appendField(FIELD_TYPE& field) { 
-  //  mFieldArray.push_back(field);
-  //}
-
   RAJA_HOST
-  void appendField(FIELD_TYPE field) { 
+  void appendField(const FIELD_TYPE& field) { 
     mFieldArray.push_back(field);
   }
 
@@ -189,7 +183,8 @@ public:
   RAJA_HOST_DEVICE
   FIELD_TYPE& operator[](const unsigned int index) const {return mFieldArray(index);}
 
-  template< typename U=LvFieldList< DATA_TYPE > >
+  template< typename U=LvFieldList< DIM, DATA_TYPE > >
+  RAJA_HOST
   void setName(std::string name) {
     strcpy(m_name, name.c_str());
     std::string const typeString = LvArray::system::demangleType< U >();
@@ -212,49 +207,6 @@ private:
   ARRAY_TYPE mFieldArray;
   char m_name[256] = "\0";
 };
-
-
-//template<typename Dimension, typename DATA_TYPE>
-//class LvFieldListView{
-//public:
-//
-//  using FIELD_VIEW_TYPE = Spheral::FieldView<Dimension, DATA_TYPE>;
-//  using ARRAY_VIEW_TYPE = Spheral::SphArrayView<FIELD_VIEW_TYPE>;
-//
-//#if USE_DEVICE
-//  using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
-//#else
-//  using ATOMIC_DATA_TYPE = DATA_TYPE;
-//#endif
-//
-//  RAJA_HOST_DEVICE
-//  LvFieldListView(const Spheral::FieldList<Dimension, DATA_TYPE>& field) : mFieldViewsView{field.mFieldPtrs.toView()} {}
-//
-//  void move(LvArray::MemorySpace const& space, bool touch = true) const {
-//    mFieldViewsView.move(space,touch);
-//  }
-//
-//  RAJA_HOST_DEVICE
-//  DATA_TYPE& operator()(const unsigned int field_id, const unsigned int idx) const { return mFieldViewsView(field_id)[idx]; }
-//
-//  RAJA_HOST_DEVICE
-//  FIELD_VIEW_TYPE& operator[](const unsigned int index) {return mFieldViewsView(index);}
-//
-//  RAJA_HOST_DEVICE
-//  FIELD_VIEW_TYPE& operator[](const unsigned int index) const {return mFieldViewsView(index);}
-//
-//  RAJA_HOST_DEVICE
-//  DATA_TYPE& pool(const unsigned field_id, const unsigned idx) const {return mFieldViewsView(field_id).pool(idx); }
-//
-//  RAJA_HOST_DEVICE
-//  ATOMIC_DATA_TYPE& pool_atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldViewsView(field_id).pool(idx)); }
-//
-//  RAJA_HOST_DEVICE
-//  inline LvFieldListView( LvFieldListView const & source) noexcept : mFieldViewsView{source.mFieldViewsView} {}
-//
-//private:
-//  ARRAY_VIEW_TYPE mFieldViewsView;
-//};
 
 
 #endif
