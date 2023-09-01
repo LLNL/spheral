@@ -8,10 +8,11 @@ class ThirdRankTensor:
     "Spheral third rank tensor (%(ndim)sx%(ndim)sx%(ndim)s) class"
 
     # Static attributes
-    nrank = PYB11readonly(static=True, doc="Rank of the tensor", returnpolicy="copy")
-    nDimensions = PYB11readonly(static=True, doc="Number of dimensions", returnpolicy="copy")
-    numElements = PYB11readonly(static=True, doc="Number of elements stored in the type", returnpolicy="copy")
     zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
+
+    numElements = PYB11property(constexpr=True)
+    nDimensions = PYB11property(constexpr=True)
+    nrank = PYB11property(constexpr=True)
 
     # Constructors
     def pyinit0(self):

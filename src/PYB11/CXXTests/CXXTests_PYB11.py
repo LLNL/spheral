@@ -8,7 +8,7 @@ from PYB11Generator import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-PYB11includes = ['"CXXTests/DeviceTestLib/DeviceTest.hh"']
+#PYB11includes = ['"CXXTests/DeviceTestLib/DeviceTest.hh"']
 
 PYB11namespaces = ["Spheral"]
 

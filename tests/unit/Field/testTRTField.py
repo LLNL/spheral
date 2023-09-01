@@ -1,0 +1,30 @@
+from Spheral import *
+
+import os
+import unittest
+
+def main():
+    WT1d = TableKernel1d(BSplineKernel1d(), 100)
+    eos1d = GammaLawGasMKS1d(2.0, 2.0)
+    nodes1d = makeFluidNodeList1d("nodes1d", eos1d)
+    nodes1d.numInternalNodes = 10
+
+
+    v0 = ThirdRankTensorField1d("third rank tensor field 1d control", nodes1d)
+
+    print(len(v0))
+
+    #print(ThirdRankTensor1d())
+
+    for i in range(nodes1d.numInternalNodes):
+        print(v0[i])
+
+
+
+
+#-------------------------------------------------------------------------------
+# Run those tests.
+#-------------------------------------------------------------------------------
+if __name__ == "__main__":
+    main()
+    #unittest.main()

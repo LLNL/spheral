@@ -1,21 +1,16 @@
-#include <iostream>
-#include "DeviceTestLib/DeviceTest.hh"
+//#include "Spheral_CXX_tests.hh"
+//#include "tests/SPHEvalDerivTest.hh"
+#include "tests/rankNTensorTest.hh"
+//#include "tests/QuadInterpolatorTest.hh"
+//#include "tests/SphVectorTest.hh"
 
 int main() {
-  int a,b,c;
-  a = 3; b = 4;
-
-#if 1
-  c = Spheral::launchCaller(a,b);
-#else
-  int *d_c;
-  cudaMalloc((void**) &d_c, sizeof(int));
-  launch<<<1,1>>>(a,b,d_c);
-  cudaMemcpy(&c, d_c, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaFree(d_c);
-#endif
-
-  std::cout << "C : " << c << "\n";
-  
+  //basicLaunchCallerTest();
+  //SpheralEvalDerivTest();
+  //QuadInterpolatorTest();
+  //SpheralVectorTest();
+  rankNTensorTest();
+    
   return EXIT_SUCCESS;
+
 }
