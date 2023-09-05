@@ -401,29 +401,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\axom\Win32\core\core.vcxproj">
-      <Project>{0511e583-4ee3-3921-9ed1-55446a1d8366}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\mint\mint.vcxproj">
-      <Project>{c61534e9-3fa5-38eb-aaf6-0d1c93e8fa56}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\quest\quest.vcxproj">
-      <Project>{d9a11388-4fe9-3141-b965-ed84efe8e922}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\sidre\sidre.vcxproj">
-      <Project>{f16f06d8-78bd-4467-8ae9-74a0999c387b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\slam\slam.vcxproj">
-      <Project>{19cb4748-ef76-3ba2-8651-5f80163a008a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\axom\Win32\slic\slic.vcxproj">
-      <Project>{cecd16a5-7143-31ad-8a39-eee27988ff3c}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\conduit\Win32\blueprint\conduit_blueprint.vcxproj">
       <Project>{3a84033b-6bd6-3e0f-a80b-101936097c7b}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\qhull\build\qhullstatic.vcxproj">
       <Project>{3a95de97-a2de-4e8b-8e2d-f17652aeb947}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\umpire\Win32\umpire.vcxproj">
+      <Project>{8b884c3a-651b-3b63-826a-5d024c31c87d}</Project>
     </ProjectReference>
     <ProjectReference Include="..\spheral_ArtificialViscosity\spheral_ArtificialViscosity.vcxproj">
       <Project>{cbb02b84-ff87-435b-917a-d88ad712a009}</Project>
