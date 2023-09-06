@@ -463,6 +463,7 @@ void spheral_compute_fragments(const int ndims,
                                                                      frag_density,
                                                                      frag_damage,
                                                                      fragments);
+    break;
 
   default:
     VERIFY2(false, "Error in SpheralC -- incorrect number of dimensions " << ndims << " requested.");
