@@ -47,6 +47,8 @@ class HydroFieldNames:
     massSecondMoment = PYB11readonly(static=True, returnpolicy="copy")
     weightedNeighborSum = PYB11readonly(static=True, returnpolicy="copy")
     pressure = PYB11readonly(static=True, returnpolicy="copy")
+    partialPpartialEps = PYB11readonly(static=True, returnpolicy="copy")
+    partialPpartialRho = PYB11readonly(static=True, returnpolicy="copy")
     temperature = PYB11readonly(static=True, returnpolicy="copy")
     soundSpeed = PYB11readonly(static=True, returnpolicy="copy")
     pairAccelerations = PYB11readonly(static=True, returnpolicy="copy")

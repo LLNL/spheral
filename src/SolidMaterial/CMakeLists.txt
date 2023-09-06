@@ -15,6 +15,8 @@ set(SolidMaterial_inst
     PiecewiseLinearPorousStrengthModel
     PorousStrengthModel
     StrainPorosity
+    PalphaPorosity
+    PalphaPressurePolicy
     PhysicsEvolvingMaterialLibrary
     )
 
@@ -51,6 +53,8 @@ set(SolidMaterial_headers
     StrengthModel.hh
     TillotsonEquationOfState.hh
     TillotsonEquationOfStateInline.hh
+    PalphaPorosity.hh
+    PalphaPressurePolicy.hh
     )
 
 configure_file(
