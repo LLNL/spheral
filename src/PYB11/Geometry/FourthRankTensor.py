@@ -10,9 +10,9 @@ class FourthRankTensor:
     # Static attributes
     zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
 
-    numElements = PYB11property(returnType="int", constexpr=True)
-    nDimensions = PYB11property(returnType="int", constexpr=True)
-    nrank       = PYB11property(returnType="int", constexpr=True)
+    numElements = PYB11property(returnType="int", constexpr=True, static=True)
+    nDimensions = PYB11property(returnType="int", constexpr=True, static=True)
+    nrank       = PYB11property(returnType="int", constexpr=True, static=True)
 
     # Constructors
     def pyinit0(self):

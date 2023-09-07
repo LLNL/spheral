@@ -10,6 +10,8 @@ def main():
     nodes1d.numInternalNodes = 10
 
     print(ThirdRankTensor1d.nDimensions)
+    print(FourthRankTensor1d.nDimensions)
+    print(FifthRankTensor1d.nDimensions)
 
     #x0 = vector_of_int(range(10))
     ##v0 = VectorIntField1d("vector<int> field", nodes1d, x0)
