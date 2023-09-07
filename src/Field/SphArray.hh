@@ -26,9 +26,9 @@ public:
   const_iterator end() const { return begin() + m_size; }
 
 
-  RAJA_HOST ManagedVector() : ManagedArray(2) {}
-  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems), m_size(elems) {}
-  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::data()[i] = identity; }
+  RAJA_HOST ManagedVector() : ManagedArray(6, chai::CPU) {}
+  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::operator[](i) = DataType(); }
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::operator[](i) = identity; }
   //RAJA_HOST ~ManagedVector() { ManagedArray::free(chai::NONE); }
   //RAJA_HOST ~ManagedVector() { destroy(begin(), end()); }
 
@@ -79,6 +79,8 @@ public:
   RAJA_HOST_DEVICE size_t capacity() {return ManagedArray::m_elems;}
   RAJA_HOST_DEVICE size_t size() const {return m_size;}
 
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) {return ManagedArray::data()[idx]; }
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) const {return ManagedArray::data()[idx]; }
 
   RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) {
     if (m_size != rhs.m_size) return false;

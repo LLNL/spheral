@@ -6,6 +6,22 @@
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
 
+#include "pybind11/pybind11.h"
+
+namespace PYBIND11_NAMESPACE {
+    template<int nDim> struct polymorphic_type_hook<Spheral::GeomThirdRankTensor<nDim>> {
+        static const void *get(const Spheral::GeomThirdRankTensor<nDim> *src, const std::type_info*& type) {
+            if (src) {
+                //type = &typeid(Spheral::GeomThirdRankTensor<nDim>);
+                type = &typeid(*src);
+                return static_cast<const Spheral::GeomThirdRankTensor<nDim>*>(src);
+            }
+            return src;
+        }
+    };
+} // namespace PYBIND11_NAMESPACE
+
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------

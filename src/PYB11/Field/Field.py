@@ -69,12 +69,12 @@ class Field(FieldBase):
     def __iter__(self):
         "Python iteration through a Field."
 
-    @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
-    def __call__(self):
-        "Index into a Field"
-        #return "%(Value)s&"
-        return
+    #@PYB11returnpolicy("reference_internal")
+    #@PYB11implementation("[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
+    #def __call__(self):
+    #    "Index into a Field"
+    #    #return "%(Value)s&"
+    #    return
 
     #...........................................................................
     # FieldBase virtual methods

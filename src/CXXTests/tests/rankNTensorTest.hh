@@ -17,6 +17,9 @@ void rankNTensorTest() {
 
   Spheral::Field<DIM, Spheral::GeomFourthRankTensor<2>> testf("TRTField", data_node_list);
 
+  std::vector<int> init = {0,1,2,3,4};
+  Spheral::Field<DIM, std::vector<int>> testvecint("VecIntField", data_node_list, init);
+
   std::cout << "sizeof GeomTRT<1> : " << sizeof(Spheral::GeomThirdRankTensor<1>) << std::endl;
   std::cout << "sizeof GeomTRT<2> : " << sizeof(Spheral::GeomThirdRankTensor<2>) << std::endl;
   std::cout << "sizeof GeomTRT<3> : " << sizeof(Spheral::GeomThirdRankTensor<3>) << std::endl;
@@ -30,7 +33,7 @@ void rankNTensorTest() {
 
   Spheral::GeomFourthRankTensor<2>* ptr = &testf[1];
 
-  dothing(&testf[1]);
+  //dothing(&testf[1]);
 
   std::cout << typeid(&ptr).name() << std::endl;
 

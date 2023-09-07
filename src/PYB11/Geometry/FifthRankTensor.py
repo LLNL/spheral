@@ -10,9 +10,9 @@ class FifthRankTensor:
     # Static attributes
     zero = PYB11readonly(static=True, doc="The zero value equivalent", returnpolicy="copy")
 
-    numElements = PYB11property(constexpr=True)
-    nDimensions = PYB11property(constexpr=True)
-    nrank = PYB11property(constexpr=True)
+    numElements = PYB11property(returnType="int", constexpr=True)
+    nDimensions = PYB11property(returnType="int", constexpr=True)
+    nrank       = PYB11property(returnType="int", constexpr=True)
 
     # Constructors
     def pyinit0(self):
