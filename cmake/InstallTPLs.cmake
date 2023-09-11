@@ -83,6 +83,7 @@ foreach(lib ${SPHERAL_EXTERN_LIBS})
   Spheral_Handle_TPL(${lib} FALSE)
   list(APPEND spheral_blt_depends ${lib})
 endforeach()
+
 # Install each TPL target library
 foreach(lib ${SPHERAL_EXTERN_LIBS})
   get_target_property(_is_imported ${lib} IMPORTED)
@@ -93,8 +94,7 @@ foreach(lib ${SPHERAL_EXTERN_LIBS})
     set_target_properties(${lib} PROPERTIES EXPORT_NAME spheral::${lib})
   endif()
 endforeach()
-# Make the list of all TPLs global
-set_property(GLOBAL PROPERTY spheral_blt_depends "${spheral_blt_depends}")
+# Note: spheral_blt_depends is made global after this in SetupSpheral.cmake
 
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})

@@ -37,14 +37,6 @@ endif()
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 #-------------------------------------------------------------------------------
-# Set global variables used for dependencies
-#-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY spheral_blt_depends)
-
-# These are includes for packages that are git submodules
-set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
-
-#-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
@@ -125,15 +117,12 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #-------------------------------------------------------------------------------
-# We need the set of Spheral C++ libraries globally
+# Set global variables used for dependencies
 #-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
-
-#-------------------------------------------------------------------------------
-# Also globally set the variable for the list we accumulate the obj files from
-# each library into
-#-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+# List of external dependencies
+set_property(GLOBAL PROPERTY spheral_blt_depends "${spheral_blt_depends}")
+# List of compiler dependencies
+set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 
 #-------------------------------------------------------------------------------
 # Prepare to build the src

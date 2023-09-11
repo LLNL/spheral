@@ -19,14 +19,17 @@
 #
 #-----------------------------------------------------------------------------------
 function(spheral_add_obj_library package_name)
+  # Assumes global variable spheral_blt_depends exists and is filled with external dependencies
+  get_property(spheral_blt_depends GLOBAL PROPERTY spheral_blt_depends)
+  # Assumes global variable spheral_cxx_depends exists and is filled with compiler dependencies
+  get_property(SPHERAL_CXX_DEPENDS GLOBAL PROPERTY SPHERAL_CXX_DEPENDS)
 
   set(extra_args ${ARGN})
   list(LENGTH extra_args extra_count)
   if (${extra_count} GREATER 0)
     list(GET extra_args 0 obj_libs_list)
   endif()
-  get_property(spheral_blt_depends GLOBAL PROPERTY spheral_blt_depends)
-  blt_add_library(NAME        Spheral_${package_name}
+  blt_add_library(NAME Spheral_${package_name}
     HEADERS     ${${package_name}_headers}
     SOURCES     ${${package_name}_sources}
     DEPENDS_ON  ${spheral_blt_depends} ${${package_name}_ADDITIONAL_DEPENDS} ${SPHERAL_CXX_DEPENDS}
@@ -55,47 +58,46 @@ endfunction()
 # INPUT-OUTPUT VARIBALES
 # ----------------------
 # <package_name>   : REQUIRED : Desired package name
-# <obj_libs_list>  : REQUIRED : List of internal targets to include
+# <_cxx_obj_list>  : REQUIRED : List of internal targets to include
 
 # -----------------------
 # OUTPUT VARIABLES TO USE - Made available implicitly after function call
 # -----------------------
 # <Spheral_package_name> : Exportable target for interal package name library
 #----------------------------------------------------------------------------------------
-function(spheral_add_cxx_library package_name obj_libs_list)
+function(spheral_add_cxx_library package_name _cxx_obj_list)
 
   get_property(spheral_blt_depends GLOBAL PROPERTY spheral_blt_depends)
-  set(EXTRA_CXX_DEPENDS )
+  get_property(SPHERAL_CXX_DEPENDS GLOBAL PROPERTY SPHERAL_CXX_DEPENDS)
 
+  set(EXTRA_CXX_DEPENDS )
   # We can optionally specify the obj_libs_list and any additional dependencies
   set(extra_args ${ARGN})
   list(LENGTH extra_args extra_count)
   if (${extra_count} GREATER 0)
-    list(GET extra_args 0 obj_libs_list)
+    list(GET extra_args 0 spheral_blt_depends)
   endif()
   if (${extra_count} GREATER 1)
     list(GET extra_args 1 optional_arg)
     list(APPEND EXTRA_CXX_DEPENDS ${optional_arg})
   endif()
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
-
   if(NOT ENABLE_SHARED)
     # Build static spheral C++ library
-    blt_add_library(NAME        Spheral_${package_name}
+    blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${obj_libs_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
       SHARED      FALSE)
   else()
     # Build shared spheral C++ library
     blt_add_library(NAME        Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${obj_libs_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${spheral_blt_depends} ${EXTRA_CXX_DEPENDS} ${SPHERAL_CXX_DEPENDS}
       SHARED      TRUE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
-
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
@@ -106,8 +108,9 @@ function(spheral_add_cxx_library package_name obj_libs_list)
     EXPORT        spheral_cxx-targets)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
-  set_target_properties(Spheral_${package_name} PROPERTIES
-    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}")
+  # TODO: Determine if this is still necessary
+  # set_target_properties(Spheral_${package_name} PROPERTIES
+  #   INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}")
 endfunction()
 
 

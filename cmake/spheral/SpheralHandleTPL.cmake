@@ -9,6 +9,7 @@
 # TPL_CMAKE_DIR         : REQUIRED : Directory containing files for each TPL
 #                                    listing their library names
 # <lib_name>_DIR        : REQUIRED : The installation location of the TPL
+# <lib_name>_INCLUDES   : OPTIONAL : Specific includes for the TPL
 
 # ----------------------
 # INPUT-OUTPUT VARIBALES
@@ -77,5 +78,4 @@ function(Spheral_Handle_TPL lib_name)
     INCLUDES ${${lib_name}_INCLUDE_DIR}
     LIBRARIES ${${lib_name}_LIBRARIES}
     EXPORTABLE ON)
-  # INCLUDE $<BUILD_INTERFACE:${${lib_name}_INCLUDE_DIR}> $<INSTALL_INTERFACE:${${lib_name}_INCLUDE_DIR}>
 endfunction()

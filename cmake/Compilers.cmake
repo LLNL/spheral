@@ -19,6 +19,8 @@ if (ENABLE_WARNINGS)
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 endif()
+# This prevents all of the warnings for Polyclipper
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
 message("-- Compiler warnings ${ENABLE_WARNINGS}")
 
 if (ENABLE_WARNINGS_AS_ERRORS)

@@ -15,7 +15,6 @@ list(APPEND _packages
   ArtificialConduction
   Boundary
   CRKSPH
-  CXXTests
   Damage
   DataBase
   DataOutput
@@ -56,7 +55,8 @@ endif()
 
 configure_file(config.hh.in
   ${PROJECT_BINARY_DIR}/src/config.hh)
-
+# CXXTests should be added but not made into a target
+add_subdirectory(CXXTests)
 foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
@@ -69,8 +69,9 @@ endforeach()
 set(CXX_sources spheralCXX.cc)
 set(cxx_obj_list )
 foreach(_package ${_packages})
-  list(APPEND cxx_obj_list Spheral_${_package})
+  list(APPEND cxx_obj_list "Spheral_${_package}")
 endforeach()
-spheral_add_cxx_library(CXX ${cxx_obj_list})
+# Must use quotes when passing lists as inputs for functions
+spheral_add_cxx_library(CXX "${cxx_obj_list}")
 
 install(EXPORT spheral_cxx-targets DESTINATION lib/cmake)
