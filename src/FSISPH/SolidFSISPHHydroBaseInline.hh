@@ -577,12 +577,125 @@ massSecondMoment() const {
   return mMassSecondMoment;
 }
 
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Vector>&
+// SolidFSISPHHydroBase<Dimension>::
+// interfaceNormals() const {
+//   return mInterfaceNormals;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// interfaceFraction() const {
+//   return mInterfaceFraction;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// interfaceSmoothness() const {
+//   return mInterfaceSmoothness;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Vector>&
+// SolidFSISPHHydroBase<Dimension>::
+// newInterfaceNormals() const {
+//   return mNewInterfaceNormals;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Vector>&
+// SolidFSISPHHydroBase<Dimension>::
+// smoothedInterfaceNormals() const {
+//   return mSmoothedInterfaceNormals;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// newInterfaceFraction() const {
+//   return mNewInterfaceFraction;
+// }
+
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension,  typename Dimension::Scalar>&
+// SolidFSISPHHydroBase<Dimension>::
+// newInterfaceSmoothness() const {
+//   return mNewInterfaceSmoothness;
+// }
+
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  int>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceFlags() const {
+  return mInterfaceFlags;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceAreaVectors() const {
+  return mInterfaceAreaVectors;
+}
+
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
 SolidFSISPHHydroBase<Dimension>::
 interfaceNormals() const {
   return mInterfaceNormals;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceSmoothness() const {
+  return mInterfaceSmoothness;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  int>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceFlags() const {
+  return mNewInterfaceFlags;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceAreaVectors() const {
+  return mNewInterfaceAreaVectors;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Vector>&
+SolidFSISPHHydroBase<Dimension>::
+newInterfaceNormals() const {
+  return mNewInterfaceNormals;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceSmoothnessNormalization() const {
+  return mInterfaceSmoothnessNormalization;
 }
 
 template<typename Dimension>
@@ -597,41 +710,16 @@ template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
-interfaceSmoothness() const {
-  return mInterfaceSmoothness;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-newInterfaceNormals() const {
-  return mNewInterfaceNormals;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
-smoothedInterfaceNormals() const {
-  return mSmoothedInterfaceNormals;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
-newInterfaceFraction() const {
-  return mNewInterfaceFraction;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
 newInterfaceSmoothness() const {
   return mNewInterfaceSmoothness;
 }
 
+template<typename Dimension>
+inline
+const FieldList<Dimension,  typename Dimension::Scalar>&
+SolidFSISPHHydroBase<Dimension>::
+interfaceAngles() const {
+  return mInterfaceAngles;
+}
 
 }

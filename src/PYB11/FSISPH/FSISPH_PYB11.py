@@ -59,4 +59,4 @@ class FSIFieldNames:
     interfaceFraction = PYB11readonly(static=True, returnpolicy="copy")
     interfaceSmoothness = PYB11readonly(static=True, returnpolicy="copy")
     smoothedInterfaceNormals = PYB11readonly(static=True, returnpolicy="copy")
-    smoothnessNormalization = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceSmoothnessNormalization = PYB11readonly(static=True, returnpolicy="copy")

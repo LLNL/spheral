@@ -6,6 +6,7 @@ text = """
 #include "GSPH/Policies/PureReplaceFieldList.cc"
 
 namespace Spheral {
+  template class PureReplaceFieldList<Dim< %(ndim)s >, int>;
   template class PureReplaceFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
   template class PureReplaceFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>;
   template class PureReplaceFieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector3d>;

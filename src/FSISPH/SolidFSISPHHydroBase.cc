@@ -10,6 +10,10 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
+#include "GSPH/computeSPHVolume.hh"
+#include "GSPH/Policies/PureReplaceFieldList.hh"
+#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
+
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
@@ -200,13 +204,17 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mNormalization(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
   mMassSecondMoment(FieldStorageType::CopyFields),
+  mInterfaceFlags(FieldStorageType::CopyFields),
+  mInterfaceAreaVectors(FieldStorageType::CopyFields),
   mInterfaceNormals(FieldStorageType::CopyFields),
-  mInterfaceFraction(FieldStorageType::CopyFields),
   mInterfaceSmoothness(FieldStorageType::CopyFields),
+  mNewInterfaceFlags(FieldStorageType::CopyFields),
+  mNewInterfaceAreaVectors(FieldStorageType::CopyFields),
   mNewInterfaceNormals(FieldStorageType::CopyFields),
-  mSmoothedInterfaceNormals(FieldStorageType::CopyFields),
-  mNewInterfaceFraction(FieldStorageType::CopyFields),
+  mInterfaceSmoothnessNormalization(FieldStorageType::CopyFields),
+  mInterfaceFraction(FieldStorageType::CopyFields),
   mNewInterfaceSmoothness(FieldStorageType::CopyFields),
+  mInterfaceAngles(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
 
     // see if we're summing density for any nodelist
@@ -248,13 +256,17 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
     mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
     mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+    mInterfaceFlags = dataBase.newFluidFieldList(int(0),  FSIFieldNames::interfaceFlags);
+    mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
-    mInterfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
     mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
-    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
-    mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
-    mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
-    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness); 
+    mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
+    mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
+    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
+    mInterfaceSmoothnessNormalization = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceSmoothnessNormalization);
+    mInterfaceFraction = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceFraction);
+    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    mInterfaceAngles = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceAngles);
   }
 
 //------------------------------------------------------------------------------
@@ -276,6 +288,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase){
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
   mRawPressure+=this->pressure();
+
+  const auto& mass = dataBase.fluidMass();
+  const auto& massDensity = dataBase.fluidMassDensity();
+  computeSPHVolume(mass,massDensity,mVolume);
 
   // Set the moduli.
   auto nodeListi = 0;
@@ -334,7 +350,7 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   // Create the local storage.
-  dataBase.resizeSolidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
+  dataBase.resizeSolidFieldList(mTimeStepMask, int(1), HydroFieldNames::timeStepMask);
   dataBase.resizeSolidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
   dataBase.resizeSolidFieldList(mPressure, 0.0, HydroFieldNames::pressure, false);
   dataBase.resizeSolidFieldList(mSoundSpeed, 0.0, HydroFieldNames::soundSpeed, false);
@@ -347,23 +363,28 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeSolidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction, false); 
   dataBase.resizeSolidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness, false);
   dataBase.resizeSolidFieldList(mInverseEquivalentDeviatoricStress, 0.0, FSIFieldNames::inverseEquivalentDeviatoricStress, false);
+  dataBase.resizeFluidFieldList(mInterfaceFlags, int(0), FSIFieldNames::interfaceFlags,false);
+  dataBase.resizeFluidFieldList(mInterfaceAreaVectors, Vector::zero, FSIFieldNames::interfaceAreaVectors,false);
+  dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
 
   // Register the deviatoric stress and plastic strain to be evolved.
   auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
+  auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
   auto deviatoricStressPolicy = make_shared<DeviatoricStressPolicy<Dimension>>();
+  auto Ppolicy = make_shared<DamagedPressurePolicy<Dimension>>();
+  auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
+  auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
+  auto plasticStrainPolicy = make_shared<PairwisePlasticStrainPolicy<Dimension>>();
   auto bulkModulusPolicy = make_shared<BulkModulusPolicy<Dimension>>();
   auto shearModulusPolicy = make_shared<ShearModulusPolicy<Dimension>>();
   auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>();
-  auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
-  auto Ppolicy = make_shared<DamagedPressurePolicy<Dimension>>();
-  auto plasticStrainPolicy = make_shared<PairwisePlasticStrainPolicy<Dimension>>();
-  auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
-  auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
-  auto interfaceFractionPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
-  auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
-  auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy,
-                                                                           true);
+  auto volumePolicy = make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,HydroFieldNames::massDensity,HydroFieldNames::massDensity);
+  auto interfaceFlagsPolicy = make_shared<PureReplaceFieldList<Dimension,int>>(PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
+  auto interfaceAreaVectorsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
+  auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
+  auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+  
 
   if(this->compatibleEnergyEvolution()){
     auto  thermalEnergyPolicy = make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
@@ -395,6 +416,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   state.enroll(position,             positionPolicy);
   state.enroll(velocity,             velocityPolicy);
+  state.enroll(mVolume,              volumePolicy);
   state.enroll(massDensity,          rhoPolicy);
   state.enroll(deviatoricStress,     deviatoricStressPolicy);
   state.enroll(Hfield,               Hpolicy);
@@ -405,9 +427,14 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mShearModulus,        shearModulusPolicy);
   state.enroll(mYieldStrength,       yieldStrengthPolicy);
   state.enroll(plasticStrain,        plasticStrainPolicy);
-  state.enroll(mInterfaceNormals,    interfaceNormalsPolicy); 
-  state.enroll(mInterfaceFraction,   interfaceFractionPolicy);
-  state.enroll(mInterfaceSmoothness, interfaceSmoothnessPolicy); 
+  // state.enroll(mInterfaceNormals,    interfaceNormalsPolicy); 
+  // state.enroll(mInterfaceFraction,   interfaceFractionPolicy);
+  // state.enroll(mInterfaceSmoothness, interfaceSmoothnessPolicy);
+
+  state.enroll(mInterfaceFlags,interfaceFlagsPolicy);
+  state.enroll(mInterfaceAreaVectors,interfaceAreaVectorsPolicy); 
+  state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
+  state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -450,10 +477,13 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
-  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
-  dataBase.resizeFluidFieldList(mSmoothedInterfaceNormals, Vector::zero,  FSIFieldNames::smoothedInterfaceNormals,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
-  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mInterfaceSmoothnessNormalization, 0.0, FSIFieldNames::interfaceSmoothnessNormalization,false); 
+  dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mInterfaceAngles, 0.0,  FSIFieldNames::interfaceAngles,false);
 
   if (not derivs.registered(mDxDt)) {
     dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
@@ -484,10 +514,13 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
+  derivs.enroll(mNewInterfaceFlags);
+  derivs.enroll(mNewInterfaceAreaVectors);
   derivs.enroll(mNewInterfaceNormals);
-  derivs.enroll(mSmoothedInterfaceNormals);
-  derivs.enroll(mNewInterfaceFraction);
+  derivs.enroll(mInterfaceSmoothnessNormalization);
+  derivs.enroll(mInterfaceFraction);
   derivs.enroll(mNewInterfaceSmoothness);
+  derivs.enroll(mInterfaceAngles);
 
   TIME_END("SolidFSISPHregisterDerivs");
 }
@@ -503,14 +536,22 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_BEGIN("SolidFSISPHpreStepInitialize");
   if (mApplySelectDensitySum){
+
       const auto& connectivityMap = dataBase.connectivityMap();
       const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
       const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
       const auto& W = this->kernel();
             auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+            auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+
       computeHWeightedFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      computeSPHVolume(mass,massDensity,volume);
+
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr){
+        (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+        (*boundaryItr)->applyFieldListGhostBoundary(volume);
+      }
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
   }
   TIME_END("SolidFSISPHpreStepInitialize");
@@ -595,7 +636,8 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
-  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
+  FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
+  FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
 
@@ -616,7 +658,8 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
     (*boundaryItr)->applyFieldListGhostBoundary(invSqrtJ2);
-    (*boundaryItr)->applyFieldListGhostBoundary(interfaceFraction);
+    (*boundaryItr)->applyFieldListGhostBoundary(interfaceFlags);
+    (*boundaryItr)->applyFieldListGhostBoundary(interfaceAreaVectors);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceSmoothness);
   }
@@ -645,7 +688,8 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
-  FieldList<Dimension, Scalar> interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
+  FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
+  FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
   FieldList<Dimension, Scalar> interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
 
@@ -666,7 +710,8 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
     (*boundaryItr)->enforceFieldListBoundary(invSqrtJ2);
-    (*boundaryItr)->enforceFieldListBoundary(interfaceFraction);
+    (*boundaryItr)->enforceFieldListBoundary(interfaceFlags);
+    (*boundaryItr)->enforceFieldListBoundary(interfaceAreaVectors);
     (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
     (*boundaryItr)->enforceFieldListBoundary(interfaceSmoothness);
   }
@@ -707,13 +752,18 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mInterfaceFlags, pathName + "/interfaceFlags");
+  file.write(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.write(mInterfaceNormals, pathName + "/interfaceNormals");
-  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
   file.write(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.write(mNewInterfaceFlags, pathName + "/newInterfaceFlags");
+  file.write(mNewInterfaceAreaVectors, pathName + "/newInterfaceAreaVectors");
   file.write(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
-  file.write(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
-  file.write(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.write(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.write(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.write(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.write(mInterfaceAngles, pathName + "/interfaceAngles");
+  
 }
 
 
@@ -753,13 +803,17 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mInterfaceFlags, pathName + "/interfaceFlags");
+  file.read(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.read(mInterfaceNormals, pathName + "/interfaceNormals");
-  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
   file.read(mInterfaceSmoothness, pathName + "/interfaceSmoothness");
+  file.read(mNewInterfaceFlags, pathName + "/newInterfaceFlags");
+  file.read(mNewInterfaceAreaVectors, pathName + "/newInterfaceAreaVectors");
   file.read(mNewInterfaceNormals, pathName + "/newInterfaceNormals");
-  file.read(mSmoothedInterfaceNormals, pathName + "/smoothedInterfaceNormals");
-  file.read(mNewInterfaceFraction, pathName + "/newInterfaceFraction");
+  file.read(mInterfaceSmoothnessNormalization, pathName + "/interfaceSmoothnessNormalization");
   file.read(mNewInterfaceSmoothness, pathName + "/newInterfaceSmoothness");
+  file.read(mInterfaceFraction, pathName + "/interfaceFraction");
+  file.read(mInterfaceAngles, pathName + "/interfaceAngles");
 
   // For backwards compatibility on change 3597 -- drop in the near future.
   for (auto DvDtPtr: mDvDt) DvDtPtr->name(HydroFieldNames::hydroAcceleration);
