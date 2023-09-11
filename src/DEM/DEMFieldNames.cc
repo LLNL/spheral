@@ -2,10 +2,12 @@
 // DEMFieldNames -- A collection of standard Field names for the hydro 
 // physics package.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 
 #include "DEMFieldNames.hh"
 
+const std::string Spheral::DEMFieldNames::momentOfInertia = "moment of inertia";
 const std::string Spheral::DEMFieldNames::particleRadius = "particle radius";
 const std::string Spheral::DEMFieldNames::compositeParticleIndex = "composite particle flags";
 const std::string Spheral::DEMFieldNames::angularVelocity = "angular velocity";
@@ -16,3 +18,4 @@ const std::string Spheral::DEMFieldNames::shearDisplacement = "shear displacemen
 const std::string Spheral::DEMFieldNames::rollingDisplacement = "rolling displacement";
 const std::string Spheral::DEMFieldNames::torsionalDisplacement = "torsional displacement";
 const std::string Spheral::DEMFieldNames::equilibriumOverlap = "equilibrium overlap";
+const std::string Spheral::DEMFieldNames::solidBoundaries = "solid boundaries";

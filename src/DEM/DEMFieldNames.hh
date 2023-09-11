@@ -2,6 +2,7 @@
 // DEMFieldNames -- A collection of standard Field names for the DEM 
 // physics package.
 //
+// J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 #ifndef _Spheral_DEMFieldNames_
 #define _Spheral_DEMFieldNames_
@@ -11,6 +12,7 @@
 namespace Spheral {
 
 struct DEMFieldNames {
+  static const std::string momentOfInertia;
   static const std::string particleRadius;
   static const std::string compositeParticleIndex;
   static const std::string angularVelocity;
@@ -21,6 +23,7 @@ struct DEMFieldNames {
   static const std::string rollingDisplacement;
   static const std::string torsionalDisplacement;
   static const std::string equilibriumOverlap;
+  static const std::string solidBoundaries;
 };
 
 }
