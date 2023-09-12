@@ -88,9 +88,9 @@ setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
                      const Field<Dimension, Scalar>& massDensity,
                      const Field<Dimension, Scalar>& specificThermalEnergy) const {
   REQUIRE(this->valid());
-  REQUIRE(massDensity.nodeListPtr() == Pressure.nodeListPtr());
-  REQUIRE(specificThermalEnergy.nodeListPtr() == Pressure.nodeListPtr());
-  REQUIRE(mAlphaPtr->nodeListPtr() == Pressure.nodeListPtr());
+  REQUIRE(massDensity.nodeListPtr() == pressure.nodeListPtr());
+  REQUIRE(specificThermalEnergy.nodeListPtr() == pressure.nodeListPtr());
+  REQUIRE(mAlphaPtr->nodeListPtr() == pressure.nodeListPtr());
 
   // The base EOS set's the solid (compacted) pressure.
   const auto rhoS = (*mAlphaPtr)*massDensity;
