@@ -59,8 +59,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mAlpha0(SolidFieldNames::porosityAlpha0, nodeList, 1.0/(1.0 - phi0)),
   mAlpha(SolidFieldNames::porosityAlpha, nodeList, 1.0/(1.0 - phi0)),
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
-  mdPdU(HydroFieldNames::partialPpartialEps),
-  mdPdR(HydroFieldNames::partialPpartialRho),
+  mdPdU(HydroFieldNames::partialPpartialEps, nodeList),
+  mdPdR(HydroFieldNames::partialPpartialRho, nodeList),
   mRestart(registerWithRestart(*this)) {
   VERIFY2(mPe <= mPt,
           "PalphaPorosity input ERROR : require Pe <= Pt: Pe = " << mPe << ", Pt = " << mPt);
@@ -307,6 +307,23 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mAlpha0, pathName + "/alpha0");
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
+}
+
+//------------------------------------------------------------------------------
+// Compute the current porosity
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Field<Dimension, typename Dimension::Scalar>
+PalphaPorosity<Dimension>::
+phi() const {
+  Field<Dimension, Scalar> phi("porosity", mNodeList, 0.0);
+  const auto n = mNodeList.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    CHECK(mAlpha(i) > 0.0);
+    phi(i) = 1.0 - 1.0*safeInvVar(mAlpha(i));
+  }
+  return phi;
 }
 
 }

@@ -99,6 +99,13 @@ parameter (alpha) and gives it to the PorousEquationOfState."""
         return "void"
 
     #...........................................................................
+    # Methods
+    @PYB11const
+    def phi(self):
+        "Compute the current porosity from the distention"
+        return "ScalarField"
+
+    #...........................................................................
     # Properties
     epsE = PYB11property(doc="Elastic-plastic transition strain")
     epsX = PYB11property(doc="Threshold strain between compaction regimes")

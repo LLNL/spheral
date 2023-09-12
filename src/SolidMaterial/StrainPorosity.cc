@@ -272,4 +272,21 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDstrainDt, pathName + "/DstrainDt");
 }
 
+//------------------------------------------------------------------------------
+// Compute the current porosity
+//------------------------------------------------------------------------------
+template<typename Dimension>
+Field<Dimension, typename Dimension::Scalar>
+StrainPorosity<Dimension>::
+phi() const {
+  Field<Dimension, Scalar> phi("porosity", mNodeList, 0.0);
+  const auto n = mNodeList.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    CHECK(mAlpha(i) > 0.0);
+    phi(i) = 1.0 - 1.0*safeInvVar(mAlpha(i));
+  }
+  return phi;
+}
+
 }

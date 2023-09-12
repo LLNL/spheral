@@ -128,6 +128,9 @@ public:
   const Field<Dimension, Scalar>& strain() const;
   const Field<Dimension, Scalar>& DstrainDt() const;
 
+  // Provide the porosity (phi) computed from the internally stored distention alpha
+  Field<Dimension, Scalar> phi() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   double mEpsE, mEpsX, mKappa, mGammaS0, mcS0;

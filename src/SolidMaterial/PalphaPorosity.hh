@@ -128,6 +128,9 @@ public:
   const Field<Dimension, Scalar>& partialPpartialEps() const;
   const Field<Dimension, Scalar>& partialPpartialRho() const;
 
+  // Provide the porosity (phi) computed from the internally stored distention alpha
+  Field<Dimension, Scalar> phi() const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   double mPe, mPt, mAlphae, mAlphat, mn1, mn2, mcS0;

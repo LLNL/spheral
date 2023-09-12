@@ -102,6 +102,13 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         return "void"
 
     #...........................................................................
+    # Methods
+    @PYB11const
+    def phi(self):
+        "Compute the current porosity from the distention"
+        return "ScalarField"
+
+    #...........................................................................
     # Properties
     Pe = PYB11property(doc="Elastic pressure threshold")
     Pt = PYB11property(doc="Transition pressure (Pe <= Pt)")
