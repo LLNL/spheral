@@ -200,7 +200,8 @@ setSoundSpeed(Field<Dimension, Scalar>& soundSpeed,
     const auto c0i = (*mC0Ptr)(i);
     CHECK(alpha0i >= 1.0 and alphai >= 1.0);
     CHECK(c0i > 0.0);
-    soundSpeed(i) += (alphai - 1.0)*safeInv(alpha0i - 1.0)*(c0i - soundSpeed(i));
+    soundSpeed(i) += (std::min(alphai, alpha0i) - 1.0)*safeInv(alpha0i - 1.0)*(c0i - soundSpeed(i));
+    ENSURE2(soundSpeed(i) >= 0.0, "Bad porous sound speed for " << i << " : " << soundSpeed(i));
   }
 }
 
