@@ -194,35 +194,26 @@ evaluateDerivatives(const Scalar time,
 
     // First compute the derivative with respect to pressure
     Scalar DalphaDpi = 0.0;
-    if (Pi < Psi) {
+    if (Pi < mPe or dPsdti < 0.0) {
 
-      // Pressure above solid limit implies fully compacted (alpha = 1)
-      // Just set the time derivative to overshoot this limit, and alpha will be limited to 1
-      DalphaDt(i) = 2.0*(1.0 - alphai)*safeInvVar(dt);
+      // Elastic
+      if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
+        const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
+        DalphaDpi = alphai*alphai/(mcS0*mcS0*rho0)*(1.0 - safeInvVar(halpha*halpha));
+      }
 
     } else {
 
-      if (Pi < mPe or dPsdti < 0.0) {
+      // Plastic
+      DalphaDpi = (Pi < mPt ?
+                   1.0 - mn1*(mAlphae - mAlphat)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)*safeInv(Psi - Pi) :
+                   1.0 - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)*safeInv(Psi - Pi));
 
-        // Elastic
-        if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
-          const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
-          DalphaDpi = alphai*alphai/(mcS0*mcS0*rho0)*(1.0 - safeInvVar(halpha*halpha));
-        }
-
-      } else {
-
-        // Plastic
-        DalphaDpi = (Pi < mPt ?
-                     1.0 - mn1*(mAlphae - mAlphat)*pow((mPt - Pi)/(mPt - mPe), mn1)/(mPt - Pi) - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)/(Psi - Pi) :
-                     1.0 - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)/(Psi - Pi));
-
-      }
-
-      // Now we can compute the final time derivative
-      const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
-      DalphaDt(i) = DalphaDpi*dPdti;
     }
+
+    // Now we can compute the final time derivative
+    const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
+    DalphaDt(i) = DalphaDpi*dPdti;
   }
 }
 

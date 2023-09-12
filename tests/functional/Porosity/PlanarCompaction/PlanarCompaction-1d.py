@@ -377,6 +377,11 @@ if graphics:
     hPlot = plotFieldList(h,
                           plotStyle = "o-",
                           winTitle = "h @ %g %i" % (control.time(), mpi.procs))
+    csPlot = plotFieldList(state.scalarFields(HydroFieldNames.soundSpeed),
+                           plotStyle = "o-",
+                           xlabel = r"$x$",
+                           ylabel = r"$c_S$",
+                           winTitle = "Sound speed @ %g %i" %  (control.time(), mpi.procs))
     alpha = porosityAl.alpha
     alphaPlot = plotField(alpha,
                           plotStyle = "o-",
