@@ -78,4 +78,6 @@ function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
     INCLUDES ${${lib_name}_INCLUDE_DIR}
     LIBRARIES ${${lib_name}_LIBRARIES}
     EXPORTABLE ON)
+  # TODO: This shouldn't be necessary since it is set above
+  blt_patch_target(NAME ${lib_name} TREAT_INCLUDE_AS_SYSTEM ON)
 endfunction()

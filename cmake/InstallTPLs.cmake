@@ -48,6 +48,7 @@ endif()
 # Must set this so PolyClipper doesn't include unnecessary python scripts
 set(IMPORTED_POLYCLIPPER ON CACHE BOOL "")
 add_subdirectory(${polyclipper_DIR})
+# Treat includes as system to prevent warnings
 blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
 list(APPEND spheral_blt_depends PolyClipperAPI)
 install(TARGETS PolyClipperAPI
