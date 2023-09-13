@@ -6,7 +6,7 @@ include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
 include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
 
 include_directories(.)
-include_directories(${PROJECT_BINARY_DIR}/src)
+#include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
@@ -76,3 +76,7 @@ list(APPEND cxx_obj_list "Spheral_DeviceTestLib")
 spheral_add_cxx_library(CXX "${cxx_obj_list}")
 
 #install(EXPORT spheral_cxx-targets DESTINATION lib/cmake)
+# This calls LLNLSpheralInstallObjs.cmake
+if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
+  include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
+endif()

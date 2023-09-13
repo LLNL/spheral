@@ -100,6 +100,7 @@ foreach(lib ${SPHERAL_EXTERN_LIBS})
 endforeach()
 # Note: spheral_blt_depends is made global after this in SetupSpheral.cmake
 
+# This calls LLNLSpheralInstallTPLs.cmake
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
