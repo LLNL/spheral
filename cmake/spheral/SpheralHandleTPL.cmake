@@ -4,17 +4,17 @@
 #----------------------------------------------------------------------------------------
 
 # -------------------------------------------
-# VARIBALES THAT NEED TO BE PREVIOUSLY DEFINED
+# VARIABLES THAT NEED TO BE PREVIOUSLY DEFINED
 # -------------------------------------------
-# TPL_CMAKE_DIR         : REQUIRED : Directory containing files for each TPL
-#                                    listing their library names
 # <lib_name>_DIR        : REQUIRED : The installation location of the TPL
 # <lib_name>_INCLUDES   : OPTIONAL : Specific includes for the TPL
 
 # ----------------------
-# INPUT-OUTPUT VARIBALES
+# INPUT-OUTPUT VARIABLES
 # ----------------------
-# <lib_name>   : REQUIRED : The name of the target TPL
+# <lib_name>     : REQUIRED : The name of the target TPL
+# TPL_CMAKE_DIR  : REQUIRED : Directory containing files for each TPL
+#                             listing their library names
 
 # -----------------------
 # OUTPUT VARIABLES TO USE - Made available implicitly after function call
@@ -22,7 +22,7 @@
 # <lib_name> : Exportable target for the TPL
 #----------------------------------------------------------------------------------------
 
-function(Spheral_Handle_TPL lib_name)
+function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
 
   # Make shortcut variable for directory assigned to ${lib_name}_DIR
   set(lib_dir "${${lib_name}_DIR}")

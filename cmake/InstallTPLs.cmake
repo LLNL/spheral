@@ -6,46 +6,53 @@
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 
 # Set the location of the <tpl>.cmake files
-set(TPL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
+set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
 #-----------------------------------------------------------------------------------
 # Submodules
+#-----------------------------------------------------------------------------------
+
+if (NOT ENABLE_CXXONLY)
+  # Find the appropriate Python
+  set(Python3_ROOT_DIR ${python_DIR})
+  find_package(Python3 COMPONENTS Interpreter Development)
+  set(PYTHON_EXE ${Python3_EXECUTABLE})
+  list(APPEND spheral_blt_depends Python3::Python)
+
+  # Set the PYB11Generator path
+  if (NOT PYB11GENERATOR_ROOT_DIR)
+    set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
+  endif()
+  # Set the pybind11 path
+  if (NOT PYBIND11_ROOT_DIR)
+    set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+  endif()
+  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
+  list(APPEND spheral_blt_depends pybind11_headers)
+  install(TARGETS pybind11_headers
+    EXPORT spheral_cxx-targets
+    DESTINATION lib/cmake)
+  set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
+endif()
+
+# This is currently unfilled in spheral
+set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}")
+#-----------------------------------------------------------------------------------
+# Find pre-compiled TPLs
 #-----------------------------------------------------------------------------------
 
 # PolyClipper
 if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
 endif()
+# Must set this so PolyClipper doesn't include unnecessary python scripts
+set(IMPORTED_POLYCLIPPER ON CACHE BOOL "")
 add_subdirectory(${polyclipper_DIR})
 list(APPEND spheral_blt_depends PolyClipperAPI)
 install(TARGETS PolyClipperAPI
   EXPORT spheral_cxx-targets
   DESTINATION lib/cmake)
 set_target_properties(PolyClipperAPI PROPERTIES EXPORT_NAME spheral::PolyClipperAPI)
-
-if (NOT ENABLE_CXXONLY)
-  # Find the appropriate Python
-  set(Python3_ROOT_DIR ${python_DIR})
-  find_package(Python3 COMPONENTS Interpreter Development)
-
-  # Set the PYB11Generator path
-  if (NOT PYB11GENERATOR_ROOT_DIR)
-    set(PYB11GENERATOR_ROOT_DIR "${SPHERAL_ROOT_DIR}/extern/PYB11Generator" CACHE PATH "")
-  endif()
-  include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
-
-  # Set the pybind11 path
-  if (NOT PYBIND11_ROOT_DIR)
-    set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
-  endif()
-
-  list(APPEND SPHERAL_SUBMOD_INCLUDES ${PYBIND11_ROOT_DIR}/include)
-endif()
-
-set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}")
-#-----------------------------------------------------------------------------------
-# Find pre-compiled TPLs
-#-----------------------------------------------------------------------------------
 
 # TPLs that can use find_package
 list(APPEND SPHERAL_EXTERN_PACKAGES axom)
@@ -60,9 +67,6 @@ if(ENABLE_OPENSUBDIV)
 endif()
 if(ENABLE_TIMER)
   list(APPEND SPHERAL_EXTERN_LIBS caliper)
-endif()
-if(NOT ENABLE_CXXONLY)
-  list(APPEND SPHERAL_EXTERN_LIBS python)
 endif()
 
 # Initialize TPL options
@@ -80,7 +84,7 @@ blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
 
 # Create target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})
-  Spheral_Handle_TPL(${lib} FALSE)
+  Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
   list(APPEND spheral_blt_depends ${lib})
 endforeach()
 

@@ -10,6 +10,7 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
+# These are packages that must be made into targets and added as dependencies to SpheralCXX
 list(APPEND _packages 
   ArtificialViscosity
   ArtificialConduction
@@ -47,10 +48,8 @@ list(APPEND _packages
   )
 
 if(NOT ENABLE_CXXONLY)
-  list(APPEND _packages 
-    SimulationControl
-    PYB11
-    )
+  add_subdirectory(SimulationControl)
+  add_subdirectory(PYB11)
 endif()
 
 configure_file(config.hh.in
@@ -61,17 +60,19 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
-include_directories(${extra_packages_DIR})
-foreach(e_package ${extra_packages})
-  add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
-endforeach()
+# include_directories(${extra_packages_DIR})
+# foreach(e_package ${extra_packages})
+#   add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
+# endforeach()
 
 set(CXX_sources spheralCXX.cc)
 set(cxx_obj_list )
 foreach(_package ${_packages})
   list(APPEND cxx_obj_list "Spheral_${_package}")
 endforeach()
+# Add target nested in CXXTests
+list(APPEND cxx_obj_list "Spheral_DeviceTestLib")
 # Must use quotes when passing lists as inputs for functions
 spheral_add_cxx_library(CXX "${cxx_obj_list}")
 
-install(EXPORT spheral_cxx-targets DESTINATION lib/cmake)
+#install(EXPORT spheral_cxx-targets DESTINATION lib/cmake)
