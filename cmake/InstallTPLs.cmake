@@ -46,7 +46,7 @@ if (NOT polyclipper_DIR)
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
 endif()
 # Must set this so PolyClipper doesn't include unnecessary python scripts
-set(IMPORTED_POLYCLIPPER ON CACHE BOOL "")
+set(POLYCLIPPER_MODULE_GEN OFF CACHE BOOL "Turn off Python module generation for PolyClipper")
 add_subdirectory(${polyclipper_DIR})
 # Treat includes as system to prevent warnings
 blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
