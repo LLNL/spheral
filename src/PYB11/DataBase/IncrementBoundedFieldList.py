@@ -1,7 +1,7 @@
 from PYB11Generator import *
 from FieldListUpdatePolicyBase import *
 
-@PYB11module("DataBase")
+@PYB11module("SpheralDataBase")
 @PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
 class IncrementBoundedFieldList(FieldListUpdatePolicyBase):
