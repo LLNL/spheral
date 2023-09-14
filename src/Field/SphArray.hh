@@ -13,6 +13,7 @@ class ManagedVector:
   public chai::ManagedArray<DataType>{
   using ManagedArray = chai::ManagedArray<DataType>;
 
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedArray const& rhs) noexcept : ManagedArray(rhs) {}
   //friend LvField<DataType>;
 public:
 
@@ -26,13 +27,16 @@ public:
   const_iterator end() const { return begin() + m_size; }
 
 
-  RAJA_HOST ManagedVector() : ManagedArray(6, chai::CPU) {}
-  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::operator[](i) = DataType(); }
-  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) ManagedArray::operator[](i) = identity; }
-  //RAJA_HOST ~ManagedVector() { ManagedArray::free(chai::NONE); }
-  //RAJA_HOST ~ManagedVector() { destroy(begin(), end()); }
+  RAJA_HOST ManagedVector() : ManagedArray(6, chai::CPU) { ManagedArray::registerTouch(chai::CPU); }
+  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) new (&ManagedArray::operator[](i)) DataType(); ManagedArray::registerTouch(chai::CPU); }
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) new (&ManagedArray::operator[](i)) DataType(identity); ManagedArray::registerTouch(chai::CPU); }
 
-  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {}
+  //RAJA_HOST ~ManagedVector() { destroy(begin(), end()); ManagedArray::free(); }
+
+  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {}
+  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {*this = chai::deepCopy(rhs);}
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(chai::deepCopy(rhs)), m_size(rhs.m_size) {}
+  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : m_size(rhs.m_size) { *this = chai::deepCopy(rhs); }
 
   RAJA_HOST void push_back(const DataType& value) {
     if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
@@ -60,6 +64,7 @@ public:
 
     if (old_size < size) {
       ManagedArray::reallocate(size);
+      for (size_t i = old_size; i < size; i++) new(&ManagedArray::operator[](i)) DataType();
     }
     if (old_size > size) {
       destroy(begin() + old_size, begin() + size);
