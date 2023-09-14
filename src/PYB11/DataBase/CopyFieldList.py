@@ -1,6 +1,8 @@
 from PYB11Generator import *
 from FieldListUpdatePolicyBase import *
 
+@PYB11module("DataBase")
+@PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
 class CopyFieldList(FieldListUpdatePolicyBase):
     """CopyFieldList -- An implementation of UpdatePolicyBase appropriate for

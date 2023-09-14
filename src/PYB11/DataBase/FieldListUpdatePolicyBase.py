@@ -1,6 +1,8 @@
 from PYB11Generator import *
 from UpdatePolicyBase import *
 
+@PYB11module("DataBase")
+@PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
 class FieldListUpdatePolicyBase(UpdatePolicyBase):
 

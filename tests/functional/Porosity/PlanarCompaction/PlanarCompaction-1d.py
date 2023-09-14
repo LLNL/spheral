@@ -397,6 +397,13 @@ if graphics:
                         plotStyle = "o-",
                         winTitle = r"$\phi$ @ %g %i" %  (control.time(), mpi.procs))
 
+    dPdRplot = plotField(porosityAl.partialPpartialRho,
+                         plotStyle = "o-",
+                         winTitle = r"$\partial P/\partial \rho$ @ %g %i" %  (control.time(), mpi.procs))
+    dPdUplot = plotField(porosityAl.partialPpartialEps,
+                         plotStyle = "o-",
+                         winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
+
     plots = [(rhoPlot, "rho.png"),
              (velPlot, "vel.png"),
              (PPlot, "pressure.png"),

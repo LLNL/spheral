@@ -1,6 +1,8 @@
 from PYB11Generator import *
 from FieldUpdatePolicyBase import *
 
+@PYB11module("DataBase")
+@PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
 class IncrementState(FieldUpdatePolicyBase):
 
