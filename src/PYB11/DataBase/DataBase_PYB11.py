@@ -120,6 +120,20 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"DataBase/StateBase.hh"',
                   '"DataBase/State.hh"',
                   '"DataBase/StateDerivatives.hh"',
+                  '"DataBase/UpdatePolicyBase.hh"',
+                  '"DataBase/FieldUpdatePolicyBase.hh"',
+                  '"DataBase/CopyState.hh"',
+                  '"DataBase/IncrementState.hh"',
+                  '"DataBase/IncrementBoundedState.hh"',
+                  '"DataBase/ReplaceState.hh"',
+                  '"DataBase/ReplaceBoundedState.hh"',
+                  '"DataBase/FieldListUpdatePolicyBase.hh"',
+                  '"DataBase/IncrementFieldList.hh"',
+                  '"DataBase/IncrementBoundedFieldList.hh"',
+                  '"DataBase/ReplaceFieldList.hh"',
+                  '"DataBase/ReplaceBoundedFieldList.hh"',
+                  '"DataBase/CompositeFieldListPolicy.hh"',
+                  '"DataBase/CopyFieldList.hh"',
                   '"Field/Field.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"Physics/Physics.hh"',
@@ -139,11 +153,46 @@ from StateBase import *
 from State import *
 from StateDerivatives import *
 from DataBase import *
+from UpdatePolicyBase import *
+from FieldUpdatePolicyBase import *
+from CopyState import *
+from IncrementState import *
+from IncrementBoundedState import *
+from ReplaceState import *
+from ReplaceBoundedState import *
+from FieldListUpdatePolicyBase import *
+from IncrementFieldList import *
+from IncrementBoundedFieldList import *
+from ReplaceFieldList import *
+from ReplaceBoundedFieldList import *
+from CompositeFieldListPolicy import *
+from CopyFieldList import *
 
 for ndim in dims:
-    exec('''
-StateBase%(ndim)id = PYB11TemplateClass(StateBase, template_parameters="Dim<%(ndim)i>")
-State%(ndim)id = PYB11TemplateClass(State, template_parameters="Dim<%(ndim)i>")
-StateDerivatives%(ndim)id = PYB11TemplateClass(StateDerivatives, template_parameters="Dim<%(ndim)i>")
-DataBase%(ndim)id = PYB11TemplateClass(DataBase, template_parameters="Dim<%(ndim)i>")
-''' % {"ndim" : ndim})
+    exec(f'''
+StateBase{ndim}d = PYB11TemplateClass(StateBase, template_parameters="Dim<{ndim}>")
+State{ndim}d = PYB11TemplateClass(State, template_parameters="Dim<{ndim}>")
+StateDerivatives{ndim}d = PYB11TemplateClass(StateDerivatives, template_parameters="Dim<{ndim}>")
+DataBase{ndim}d = PYB11TemplateClass(DataBase, template_parameters="Dim<{ndim}>")
+UpdatePolicyBase{ndim}d = PYB11TemplateClass(UpdatePolicyBase, template_parameters="Dim<{ndim}>")
+''')
+
+    for (value, label) in (("Dim<%i>::Scalar" % ndim,        "Scalar"),
+                          ):
+        Dimension = f"Dim<{ndim}>"
+        suffix = f"{ndim}d"
+        exec(f'''
+{label}FieldUpdatePolicyBase{suffix} = PYB11TemplateClass(FieldUpdatePolicyBase, template_parameters = ("{Dimension}", "{value}"))
+{label}CopyState{suffix} = PYB11TemplateClass(CopyState, template_parameters = ("{Dimension}", "{value}"))
+{label}IncrementState{suffix} = PYB11TemplateClass(IncrementState, template_parameters = ("{Dimension}", "{value}"))
+{label}IncrementBoundedState{suffix} = PYB11TemplateClass(IncrementBoundedState, template_parameters = ("{Dimension}", "{value}"))
+{label}ReplaceState{suffix} = PYB11TemplateClass(ReplaceState, template_parameters = ("{Dimension}", "{value}"))
+{label}ReplaceBoundedState{suffix} = PYB11TemplateClass(ReplaceBoundedState, template_parameters = ("{Dimension}", "{value}"))
+{label}FieldListUpdatePolicyBase{suffix} = PYB11TemplateClass(FieldListUpdatePolicyBase, template_parameters = ("{Dimension}", "{value}"))
+{label}IncrementFieldList{suffix} = PYB11TemplateClass(IncrementFieldList, template_parameters = ("{Dimension}", "{value}"))
+{label}IncrementBoundedFieldList{suffix} = PYB11TemplateClass(IncrementBoundedFieldList, template_parameters = ("{Dimension}", "{value}"))
+{label}ReplaceFieldList{suffix} = PYB11TemplateClass(ReplaceFieldList, template_parameters = ("{Dimension}", "{value}"))
+{label}ReplaceBoundedFieldList{suffix} = PYB11TemplateClass(ReplaceBoundedFieldList, template_parameters = ("{Dimension}", "{value}"))
+{label}CompositeFieldListPolicy{suffix} = PYB11TemplateClass(CompositeFieldListPolicy, template_parameters = ("{Dimension}", "{value}"))
+{label}CopyFieldList{suffix} = PYB11TemplateClass(CopyFieldList, template_parameters = ("{Dimension}", "{value}"))
+''')
