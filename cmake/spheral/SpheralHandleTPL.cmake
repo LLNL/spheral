@@ -74,10 +74,8 @@ function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
   endif()
 
   blt_import_library(NAME ${lib_name}
-    TREAT_INCLUDE_AS_SYSTEM ON
+    TREAT_INCLUDES_AS_SYSTEM ON
     INCLUDES ${${lib_name}_INCLUDE_DIR}
     LIBRARIES ${${lib_name}_LIBRARIES}
     EXPORTABLE ON)
-  # TODO: This shouldn't be necessary since it is set above
-  blt_patch_target(NAME ${lib_name} TREAT_INCLUDE_AS_SYSTEM ON)
 endfunction()
