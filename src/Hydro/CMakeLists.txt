@@ -34,10 +34,8 @@ instantiate(Hydro_inst Hydro_sources)
 set(Hydro_headers
     EntropyPolicy.hh
     GammaPolicy.hh
-    HybridMassDensityPolicyInline.hh
     HydroFieldNames.hh
     HydroInline.hh
-    MashCorrectionPolicy.hh
     MeshScaledMassDensityPolicy.hh
     CompatibleDifferenceSpecificThermalEnergyPolicy.hh
     NonSymmetricSpecificThermalEnergyPolicy.hh

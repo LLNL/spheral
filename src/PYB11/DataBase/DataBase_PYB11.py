@@ -177,8 +177,13 @@ DataBase{ndim}d = PYB11TemplateClass(DataBase, template_parameters="Dim<{ndim}>"
 UpdatePolicyBase{ndim}d = PYB11TemplateClass(UpdatePolicyBase, template_parameters="Dim<{ndim}>")
 ''')
 
-    for (value, label) in (("Dim<%i>::Scalar" % ndim,        "Scalar"),
-                          ):
+    for (value, label) in (("Dim<%i>::Scalar" % ndim,          "Scalar"),
+                           ("Dim<%i>::Vector" % ndim,          "Vector"),
+                           ("Dim<%i>::Tensor" % ndim,          "Tensor"),
+                           ("Dim<%i>::SymTensor" % ndim,       "SymTensor"),
+                           ("Dim<%i>::ThirdRankTensor" % ndim, "ThirdRankTensor"),
+                           ("Dim<%i>::FourthRankTensor" % ndim, "FourthRankTensor"),
+                           ("Dim<%i>::FifthRankTensor" % ndim,  "FifthRankTensor")):
         Dimension = f"Dim<{ndim}>"
         suffix = f"{ndim}d"
         exec(f'''

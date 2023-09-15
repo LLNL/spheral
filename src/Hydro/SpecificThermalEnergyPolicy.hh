@@ -3,7 +3,9 @@
 // for the updating the specific thermal energy as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
-// method.
+// method described in
+// Owen, J. M. (2014). A compatibly differenced total energy conserving form of
+// SPH. International Journal for Numerical Methods in Fluids, 75(11), 749–774. 
 //
 // Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//

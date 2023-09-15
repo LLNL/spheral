@@ -13,7 +13,24 @@ dims = spheralDimensions()
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Geometry/GeomPlane.hh"',
-                  '"Hydro/HydroFieldNames.hh"']
+                  '"DataBase/DataBase.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
+                  '"Hydro/HydroFieldNames.hh"',
+                  '"Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"',
+                  '"Hydro/EntropyPolicy.hh"',
+                  '"Hydro/GammaPolicy.hh"',
+                  '"Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"',
+                  '"Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"',
+                  '"Hydro/PositionPolicy.hh"',
+                  '"Hydro/SphericalPositionPolicy.hh"',
+                  '"Hydro/PressurePolicy.hh"',
+                  '"Hydro/SoundSpeedPolicy.hh"',
+                  '"Hydro/SpecificFromTotalThermalEnergyPolicy.hh"',
+                  '"Hydro/SpecificThermalEnergyPolicy.hh"',
+                  '"Hydro/SumVoronoiMassDensityPolicy.hh"',
+                  '"Hydro/VolumePolicy.hh"',
+                  '"Hydro/VoronoiMassDensityPolicy.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -21,60 +38,44 @@ PYB11includes += ['"Geometry/GeomPlane.hh"',
 PYB11namespaces = ["Spheral"]
 
 #-------------------------------------------------------------------------------
-# HydroFieldNames
+# Instantiate our types
 #-------------------------------------------------------------------------------
-class HydroFieldNames:
+from HydroFieldNames import *
+from CompatibleDifferenceSpecificThermalEnergyPolicy import *
+from NonSymmetricSpecificThermalEnergyPolicy import *
+from SpecificThermalEnergyPolicy import *
+from SpecificFromTotalThermalEnergyPolicy import *
+from EntropyPolicy import *
+from GammaPolicy import *
+from PositionPolicy import *
+from PressurePolicy import *
+from SoundSpeedPolicy import *
+from SumVoronoiMassDensityPolicy import *
+from VoronoiMassDensityPolicy import *
+from VolumePolicy import *
 
-    mass = PYB11readonly(static=True, returnpolicy="copy")
-    position = PYB11readonly(static=True, returnpolicy="copy")
-    velocity = PYB11readonly(static=True, returnpolicy="copy")
-    H = PYB11readonly(static=True, returnpolicy="copy")
-    work = PYB11readonly(static=True, returnpolicy="copy")
-    velocityGradient = PYB11readonly(static=True, returnpolicy="copy")
-    internalVelocityGradient = PYB11readonly(static=True, returnpolicy="copy")
-    hydroAcceleration = PYB11readonly(static=True, returnpolicy="copy")
-    massDensity = PYB11readonly(static=True, returnpolicy="copy")
-    normalization = PYB11readonly(static=True, returnpolicy="copy")
-    specificThermalEnergy = PYB11readonly(static=True, returnpolicy="copy")
-    maxViscousPressure = PYB11readonly(static=True, returnpolicy="copy")
-    effectiveViscousPressure = PYB11readonly(static=True, returnpolicy="copy")
-    massDensityCorrection = PYB11readonly(static=True, returnpolicy="copy")
-    viscousWork = PYB11readonly(static=True, returnpolicy="copy")
-    XSPHDeltaV = PYB11readonly(static=True, returnpolicy="copy")
-    XSPHWeightSum = PYB11readonly(static=True, returnpolicy="copy")
-    Hsmooth = PYB11readonly(static=True, returnpolicy="copy")
-    massFirstMoment = PYB11readonly(static=True, returnpolicy="copy")
-    massSecondMoment = PYB11readonly(static=True, returnpolicy="copy")
-    weightedNeighborSum = PYB11readonly(static=True, returnpolicy="copy")
-    pressure = PYB11readonly(static=True, returnpolicy="copy")
-    partialPpartialEps = PYB11readonly(static=True, returnpolicy="copy")
-    partialPpartialRho = PYB11readonly(static=True, returnpolicy="copy")
-    temperature = PYB11readonly(static=True, returnpolicy="copy")
-    soundSpeed = PYB11readonly(static=True, returnpolicy="copy")
-    pairAccelerations = PYB11readonly(static=True, returnpolicy="copy")
-    pairWork = PYB11readonly(static=True, returnpolicy="copy")
-    gamma = PYB11readonly(static=True, returnpolicy="copy")
-    entropy = PYB11readonly(static=True, returnpolicy="copy")
-    PSPHcorrection = PYB11readonly(static=True, returnpolicy="copy")
-    omegaGradh = PYB11readonly(static=True, returnpolicy="copy")
-    numberDensitySum = PYB11readonly(static=True, returnpolicy="copy")
-    timeStepMask = PYB11readonly(static=True, returnpolicy="copy")
-    surfacePoint = PYB11readonly(static=True, returnpolicy="copy")
-    voidPoint = PYB11readonly(static=True, returnpolicy="copy")
-    etaVoidPoints = PYB11readonly(static=True, returnpolicy="copy")
-    cells = PYB11readonly(static=True, returnpolicy="copy")
-    cellFaceFlags = PYB11readonly(static=True, returnpolicy="copy")
-    M_SPHCorrection = PYB11readonly(static=True, returnpolicy="copy")
-    volume = PYB11readonly(static=True, returnpolicy="copy")
-    linearMomentum = PYB11readonly(static=True, returnpolicy="copy")
-    totalEnergy = PYB11readonly(static=True, returnpolicy="copy")
-    mesh = PYB11readonly(static=True, returnpolicy="copy")
-    hourglassMask = PYB11readonly(static=True, returnpolicy="copy")
-    faceVelocity = PYB11readonly(static=True, returnpolicy="copy")
-    faceForce = PYB11readonly(static=True, returnpolicy="copy")
-    faceMass = PYB11readonly(static=True, returnpolicy="copy")
-    polyvols = PYB11readonly(static=True, returnpolicy="copy")
-    massDensityGradient = PYB11readonly(static=True, returnpolicy="copy")
-    specificHeat = PYB11readonly(static=True, returnpolicy="copy")
-    normal = PYB11readonly(static=True, returnpolicy="copy")
-    surfaceArea = PYB11readonly(static=True, returnpolicy="copy")
+for ndim in dims:
+
+    exec(f'''
+CompatibleDifferenceSpecificThermalEnergyPolicy{ndim}d = PYB11TemplateClass(CompatibleDifferenceSpecificThermalEnergyPolicy, template_parameters="Dim<{ndim}>")
+NonSymmetricSpecificThermalEnergyPolicy{ndim}d = PYB11TemplateClass(NonSymmetricSpecificThermalEnergyPolicy, template_parameters="Dim<{ndim}>")
+SpecificThermalEnergyPolicy{ndim}d = PYB11TemplateClass(SpecificThermalEnergyPolicy, template_parameters="Dim<{ndim}>")
+SpecificFromTotalThermalEnergyPolicy{ndim}d = PYB11TemplateClass(SpecificFromTotalThermalEnergyPolicy, template_parameters="Dim<{ndim}>")
+EntropyPolicy{ndim}d = PYB11TemplateClass(EntropyPolicy, template_parameters="Dim<{ndim}>")
+GammaPolicy{ndim}d = PYB11TemplateClass(GammaPolicy, template_parameters="Dim<{ndim}>")
+PositionPolicy{ndim}d = PYB11TemplateClass(PositionPolicy, template_parameters="Dim<{ndim}>")
+PressurePolicy{ndim}d = PYB11TemplateClass(PressurePolicy, template_parameters="Dim<{ndim}>")
+SoundSpeedPolicy{ndim}d = PYB11TemplateClass(SoundSpeedPolicy, template_parameters="Dim<{ndim}>")
+SumVoronoiMassDensityPolicy{ndim}d = PYB11TemplateClass(SumVoronoiMassDensityPolicy, template_parameters="Dim<{ndim}>")
+VoronoiMassDensityPolicy{ndim}d = PYB11TemplateClass(VoronoiMassDensityPolicy, template_parameters="Dim<{ndim}>")
+VolumePolicy{ndim}d = PYB11TemplateClass(VolumePolicy, template_parameters="Dim<{ndim}>")
+''')
+
+#-------------------------------------------------------------------------------
+# Specialized types
+#-------------------------------------------------------------------------------
+if 1 in dims:
+    from SphericalPositionPolicy import *
+
+if 2 in dims:
+    from RZNonSymmetricSpecificThermalEnergyPolicy import *
