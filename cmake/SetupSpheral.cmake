@@ -52,6 +52,10 @@ set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state packa
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)
 
+option(SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION "Build artificial conduction package" ON)
+option(SPHERAL_ENABLE_EXTERNAL_FORCE "Build external force package" ON)
+option(SPHERAL_ENABLE_GRAVITY "Build gravity package" ON)
+
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
   set(ENABLE_SHARED OFF)
