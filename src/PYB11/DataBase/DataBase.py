@@ -360,7 +360,7 @@ will get the new value regardless of resetValues."""
     newSolidvector_of_doubleFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<double>")
     newSolidvector_of_VectorFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<Vector>")
     newSolidvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<CellFaceFlag>")
-    newSolidvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<int>")
+    newSolidDomainNodeFieldList       = PYB11TemplateMethod(newSolidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
     resizeGlobalIntFieldList              = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="int")
     resizeGlobalScalarFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="double")
@@ -401,7 +401,7 @@ will get the new value regardless of resetValues."""
     resizeSolidFacetedVolumeFieldList    = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="FacetedVolume")
     resizeSolidvector_of_intFieldList    = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<int>")
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
-    resizeSolidvector_of_VectorFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<Vector>")
+    resizeSolidDomainNodeFieldList       = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
     #...........................................................................
     # Array generation methods
