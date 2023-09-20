@@ -87,9 +87,7 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "ReplaceBoundedFieldListInline.hh"
-#endif
 
 #else
 

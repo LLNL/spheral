@@ -4,7 +4,6 @@
 //
 // Created by JMO, Sun Oct 27 11:32:51 PDT 2013
 //----------------------------------------------------------------------------//
-#include "IncrementFieldList.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -12,14 +11,6 @@
 
 #include <regex>
 #include <vector>
-using std::vector;
-using std::string;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::min;
-using std::max;
-using std::abs;
 
 namespace Spheral {
 
@@ -27,6 +18,7 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const bool wildCardDerivs):
   FieldListUpdatePolicyBase<Dimension, Value>(),
@@ -34,6 +26,7 @@ IncrementFieldList(const bool wildCardDerivs):
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const bool wildCardDerivs):
@@ -42,6 +35,7 @@ IncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const std::string& depend1,
@@ -51,6 +45,7 @@ IncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const std::string& depend1,
@@ -61,6 +56,7 @@ IncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const std::string& depend1,
@@ -72,6 +68,7 @@ IncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const std::string& depend1,
@@ -84,6 +81,7 @@ IncrementFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 IncrementFieldList(const std::string& depend0,
                    const std::string& depend1,
@@ -100,6 +98,7 @@ IncrementFieldList(const std::string& depend0,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 IncrementFieldList<Dimension, Value>::
 ~IncrementFieldList() {
 }
@@ -108,6 +107,7 @@ IncrementFieldList<Dimension, Value>::
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 void
 IncrementFieldList<Dimension, Value>::
 update(const KeyType& key,
@@ -128,9 +128,9 @@ update(const KeyType& key,
 
   // Find all the available matching derivative FieldList keys.
   const auto incrementKey = prefix() + fieldKey;
-  // cerr << "IncrementFieldList: [" << fieldKey << "] [" << incrementKey << "] : " << endl;
+  // std::cerr << "IncrementFieldList: [" << fieldKey << "] [" << incrementKey << "] : " << std::endl;
   const auto allkeys = derivs.fieldKeys();
-  vector<string> incrementKeys;
+  std::vector<std::string> incrementKeys;
   for (const auto& key: allkeys) {
     // if (std::regex_search(key, std::regex("^" + incrementKey))) {
     if (key.compare(0, incrementKey.size(), incrementKey) == 0) {
@@ -160,6 +160,7 @@ update(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 bool
 IncrementFieldList<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
@@ -173,6 +174,7 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 // Wildcard derivs attribute.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 bool
 IncrementFieldList<Dimension, Value>::
 wildCardDerivs() const {
@@ -180,6 +182,7 @@ wildCardDerivs() const {
 }
 
 template<typename Dimension, typename Value>
+inline
 void
 IncrementFieldList<Dimension, Value>::
 wildCardDerivs(const bool val) {

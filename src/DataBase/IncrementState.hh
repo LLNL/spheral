@@ -49,6 +49,8 @@ private:
 
 }
 
+#include "IncrementStateInline.hh"
+
 #else
 
 // Forward declaration.

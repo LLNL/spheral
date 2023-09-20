@@ -4,7 +4,6 @@
 //
 // Created by JMO, Thu Aug 26 16:30:02 2004
 //----------------------------------------------------------------------------//
-#include "ReplaceState.hh"
 #include "IncrementState.hh"
 #include "FieldUpdatePolicyBase.hh"
 #include "State.hh"
@@ -18,18 +17,21 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState():
   FieldUpdatePolicyBase<Dimension, ValueType>() {
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0):
   FieldUpdatePolicyBase<Dimension, ValueType>(depend0) {
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0,
              const std::string& depend1):
@@ -37,6 +39,7 @@ ReplaceState(const std::string& depend0,
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0,
              const std::string& depend1,
@@ -45,6 +48,7 @@ ReplaceState(const std::string& depend0,
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0,
              const std::string& depend1,
@@ -54,6 +58,7 @@ ReplaceState(const std::string& depend0,
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0,
              const std::string& depend1,
@@ -64,6 +69,7 @@ ReplaceState(const std::string& depend0,
 }
 
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ReplaceState(const std::string& depend0,
              const std::string& depend1,
@@ -78,6 +84,7 @@ ReplaceState(const std::string& depend0,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 ReplaceState<Dimension, ValueType>::
 ~ReplaceState() {
 }
@@ -86,6 +93,7 @@ ReplaceState<Dimension, ValueType>::
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 void
 ReplaceState<Dimension, ValueType>::
 update(const KeyType& key,
@@ -107,6 +115,7 @@ update(const KeyType& key,
 }
 
 template<typename Dimension, typename ValueType>
+inline
 void
 ReplaceState<Dimension, ValueType>::
 updateAsIncrement(const KeyType& key,
@@ -123,6 +132,7 @@ updateAsIncrement(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 bool
 ReplaceState<Dimension, ValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {

@@ -74,7 +74,7 @@ class UpdatePolicyBase:
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
+    @PYB11pure_virtual
     def update(self,
                key = "const KeyType&",
                state = "State<%(Dimension)s>&",

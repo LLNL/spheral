@@ -51,6 +51,8 @@ private:
 
 }
 
+#include "CopyFieldListInline.hh"
+
 #else
 
 // Forward declaration.

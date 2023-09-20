@@ -7,7 +7,6 @@
 // Created by JMO, Tue Oct 5 11:08:48 2004
 //----------------------------------------------------------------------------//
 
-#include "CopyState.hh"
 #include "FieldUpdatePolicyBase.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
@@ -20,6 +19,7 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 CopyState<Dimension, ValueType>::
 CopyState(const std::string& masterState,
           const std::string& copyState):
@@ -32,6 +32,7 @@ CopyState(const std::string& masterState,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 CopyState<Dimension, ValueType>::
 ~CopyState() {
 }
@@ -40,6 +41,7 @@ CopyState<Dimension, ValueType>::
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 void
 CopyState<Dimension, ValueType>::
 update(const KeyType& key,
@@ -68,6 +70,7 @@ update(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 bool
 CopyState<Dimension, ValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {

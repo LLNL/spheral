@@ -59,6 +59,8 @@ private:
 
 }
 
+#include "ReplaceFieldListInline.hh"
+
 #else
 
 // Forward declaration.

@@ -51,6 +51,8 @@ private:
 
 }
 
+#include "CopyStateInline.hh"
+
 #else
 
 // Forward declaration.

@@ -5,21 +5,11 @@
 //
 // Created by JMO, Sun Nov  3 14:11:32 PST 2013
 //----------------------------------------------------------------------------//
-#include "CompositeFieldListPolicy.hh"
 #include "FieldListUpdatePolicyBase.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
-
-using std::vector;
-using std::string;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::min;
-using std::max;
-using std::abs;
 
 namespace Spheral {
 
@@ -27,6 +17,7 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 CompositeFieldListPolicy<Dimension, ValueType>::
 CompositeFieldListPolicy():
   FieldListUpdatePolicyBase<Dimension, ValueType>(),
@@ -37,6 +28,7 @@ CompositeFieldListPolicy():
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 CompositeFieldListPolicy<Dimension, ValueType>::
 ~CompositeFieldListPolicy() {
 }
@@ -45,6 +37,7 @@ CompositeFieldListPolicy<Dimension, ValueType>::
 // Update the FieldList.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 void
 CompositeFieldListPolicy<Dimension, ValueType>::
 update(const KeyType& key,
@@ -75,6 +68,7 @@ update(const KeyType& key,
 // Update the FieldList as increment.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 void
 CompositeFieldListPolicy<Dimension, ValueType>::
 updateAsIncrement(const KeyType& key,
@@ -105,6 +99,7 @@ updateAsIncrement(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 bool
 CompositeFieldListPolicy<Dimension, ValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
@@ -119,13 +114,14 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 // Add a new UpdatePolicy to this thing.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
+inline
 void
 CompositeFieldListPolicy<Dimension, ValueType>::
 push_back(UpdatePolicyBase<Dimension>* policyPtr) {
   mPolicyPtrs.push_back(std::unique_ptr<UpdatePolicyBase<Dimension> >(policyPtr));
-  const vector<string> newdeps = policyPtr->dependencies();
+  const auto newdeps = policyPtr->dependencies();
   if (mPolicyPtrs.size() == 1) {
-    for (vector<string>::const_iterator itr = newdeps.begin();
+    for (auto itr = newdeps.begin();
          itr != newdeps.end();
          ++itr) this->addDependency(*itr);
   }

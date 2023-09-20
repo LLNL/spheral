@@ -1,17 +1,6 @@
 include_directories(.)
 set(DataBase_inst
-    CompositeFieldListPolicy
-    CopyFieldList
-    CopyState
     DataBase
-    IncrementBoundedFieldList
-    IncrementBoundedState
-    IncrementFieldList
-    IncrementState
-    ReplaceBoundedFieldList
-    ReplaceBoundedState
-    ReplaceFieldList
-    ReplaceState
     State
     StateBase
     StateDerivatives
@@ -24,8 +13,11 @@ instantiate(DataBase_inst DataBase_sources)
 
 set(DataBase_headers
     CompositeFieldListPolicy.hh
+    CompositeFieldListPolicyInline.hh
     CopyFieldList.hh
+    CopyFieldListInline.hh
     CopyState.hh
+    CopyStateInline.hh
     DataBase.hh
     DataBaseInline.hh
     FieldListUpdatePolicyBase.hh
@@ -37,13 +29,17 @@ set(DataBase_headers
     IncrementBoundedState.hh
     IncrementBoundedStateInline.hh
     IncrementFieldList.hh
+    IncrementFieldListInline.hh
     IncrementState.hh
+    IncrementStateInline.hh
     ReplaceBoundedFieldList.hh
     ReplaceBoundedFieldListInline.hh
     ReplaceBoundedState.hh
     ReplaceBoundedStateInline.hh
     ReplaceFieldList.hh
+    ReplaceFieldListInline.hh
     ReplaceState.hh
+    ReplaceStateInline.hh
     State.hh
     StateBase.hh
     StateBaseInline.hh

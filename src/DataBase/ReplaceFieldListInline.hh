@@ -4,7 +4,6 @@
 //
 // Created by JMO, Sun Oct 27 11:32:51 PDT 2013
 //----------------------------------------------------------------------------//
-#include "ReplaceFieldList.hh"
 #include "IncrementFieldList.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
@@ -17,18 +16,21 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList():
   FieldListUpdatePolicyBase<Dimension, Value>() {
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0):
   FieldListUpdatePolicyBase<Dimension, Value>(depend0) {
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0,
                  const std::string& depend1):
@@ -36,6 +38,7 @@ ReplaceFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0,
                  const std::string& depend1,
@@ -44,6 +47,7 @@ ReplaceFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0,
                  const std::string& depend1,
@@ -53,6 +57,7 @@ ReplaceFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0,
                  const std::string& depend1,
@@ -63,6 +68,7 @@ ReplaceFieldList(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ReplaceFieldList(const std::string& depend0,
                  const std::string& depend1,
@@ -77,6 +83,7 @@ ReplaceFieldList(const std::string& depend0,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 ReplaceFieldList<Dimension, Value>::
 ~ReplaceFieldList() {
 }
@@ -85,6 +92,7 @@ ReplaceFieldList<Dimension, Value>::
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 void
 ReplaceFieldList<Dimension, Value>::
 update(const KeyType& key,
@@ -116,6 +124,7 @@ update(const KeyType& key,
 }
 
 template<typename Dimension, typename Value>
+inline
 void
 ReplaceFieldList<Dimension, Value>::
 updateAsIncrement(const KeyType& key,
@@ -132,6 +141,7 @@ updateAsIncrement(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 bool
 ReplaceFieldList<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {

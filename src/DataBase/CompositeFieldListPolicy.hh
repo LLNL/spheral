@@ -65,6 +65,8 @@ private:
 
 }
 
+#include "CompositeFieldListPolicyInline.hh"
+
 #else
 
 // Forward declaration.

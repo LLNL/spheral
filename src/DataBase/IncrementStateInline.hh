@@ -5,7 +5,6 @@
 // Created by JMO, Thu Aug 26 14:28:07 2004
 //----------------------------------------------------------------------------//
 
-#include "IncrementState.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
 #include "Field/Field.hh"
@@ -17,18 +16,21 @@ namespace Spheral {
 // Constructors.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState():
   FieldUpdatePolicyBase<Dimension, Value>() {
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0):
   FieldUpdatePolicyBase<Dimension, Value>(depend0) {
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1):
@@ -36,6 +38,7 @@ IncrementState(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
@@ -44,6 +47,7 @@ IncrementState(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
@@ -53,6 +57,7 @@ IncrementState(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
@@ -63,6 +68,7 @@ IncrementState(const std::string& depend0,
 }
 
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
@@ -77,6 +83,7 @@ IncrementState(const std::string& depend0,
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 IncrementState<Dimension, Value>::
 ~IncrementState() {
 }
@@ -85,6 +92,7 @@ IncrementState<Dimension, Value>::
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 void
 IncrementState<Dimension, Value>::
 update(const KeyType& key,
@@ -109,6 +117,7 @@ update(const KeyType& key,
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
+inline
 bool
 IncrementState<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {

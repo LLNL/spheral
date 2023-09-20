@@ -62,6 +62,8 @@ private:
 
 }
 
+#include "IncrementFieldListInline.hh"
+
 #else
 
 // Forward declaration.

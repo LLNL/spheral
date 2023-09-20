@@ -63,6 +63,8 @@ private:
 
 }
 
+#include "ReplaceStateInline.hh"
+
 #else
 
 // Forward declaration.
