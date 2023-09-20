@@ -65,8 +65,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   VERIFY2(mPe <= mPt,
           "PalphaPorosity input ERROR : require Pe <= Pt: Pe = " << mPe << ", Pt = " << mPt);
   const auto alpha0_min = mAlpha0.min();
-  VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
-          "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
+  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_min),
+          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_min);
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
           "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0) : phi0 = " << phi0);
   mPorousEOS.alpha(mAlpha);
