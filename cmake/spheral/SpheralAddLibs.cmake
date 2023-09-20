@@ -107,7 +107,7 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
       SHARED      FALSE)
   else()
     # Build shared spheral C++ library
-    blt_add_library(NAME        Spheral_${package_name}
+    blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
       DEPENDS_ON  ${_cxx_obj_list} ${spheral_blt_depends} ${SPHERAL_CXX_DEPENDS}
@@ -130,8 +130,8 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   # TODO: Determine if this is still necessary
-  # set_target_properties(Spheral_${package_name} PROPERTIES
-  #   INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}")
+  set_target_properties(Spheral_${package_name} PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  #${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}")
 endfunction()
 
 

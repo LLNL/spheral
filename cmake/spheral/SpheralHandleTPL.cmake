@@ -37,20 +37,28 @@ function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
   set(${lib_name}_libs "")
   # Library names to be set in <tpl>.cmake file
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-  string(COMPARE EQUAL "${${lib_name}_libs}" "" lib_test)
   # If library names are given, find them
-  if(NOT lib_test)
-    find_library(${lib_name}_LIBRARIES NAMES ${${lib_name}_libs}
+  set(${lib_name}_LIBRARIES )
+  foreach(libpath ${${lib_name}_libs})
+    find_library(${libpath}_clib NAMES ${libpath}
       PATHS ${lib_dir}/lib
+      REQUIRED
+      NO_CACHE
       NO_DEFAULT_PATH
       NO_CMAKE_ENVIRONMENT_PATH
       NO_CMAKE_PATH
       NO_SYSTEM_ENVIRONMENT_PATH
       NO_CMAKE_SYSTEM_PATH)
-    message("Importing libraries for ${lib_name}")
-    message("")
-  endif()
-
+    list(APPEND ${lib_name}_LIBRARIES ${${libpath}_clib})
+    message("Importing libraries for ${${libpath}_clib}")
+    # find_library treats output as a standard variable from 3.21+
+    # We get different behavior on earlier CMake versions.
+    if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
+      unset(${libpath}_clib CACHE)
+    else()
+      unset(${libpath}_clib)
+    endif()
+  endforeach()
   # Find includes by assuming they are explicitly provided as ${lib_name}_INCLUDES
   set(${lib_name}_INCLUDE_DIR ${${lib_name}_INCLUDES})
 
