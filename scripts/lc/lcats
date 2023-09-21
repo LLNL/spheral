@@ -507,7 +507,7 @@ elif 'blue' in SYS_TYPE:
     machineSettings = blueosSettings
 
 elif 'toss' in SYS_TYPE:
-    if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
+    if 'ruby' in LCSCHEDCLUSTER or 'rzwhippet' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
         # Developer machines are interactive
         machineSettings = tossSettings
     elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
@@ -738,7 +738,7 @@ def getUniqueTestPath():
         for name in ['zin', 'max']:
             filesystems[name] = ['/p/lscratch2', '/p/lustre1', '/p/lscratch1']
 
-        for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
+        for name in ['jade', 'agate', 'mica', 'magma', 'ruby', 'rzwhippet']:
             filesystems[name] = ['/p/lustre2', '/p/lustre1']
 
         for name in ['sierra', 'tron']:
