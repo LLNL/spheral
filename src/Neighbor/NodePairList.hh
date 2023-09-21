@@ -3,7 +3,6 @@
 
 #include "Utilities/size_t_bits.hh"
 #include "Utilities/DBC.hh"
-#include "Field/SphArray.hh"
 
 #include <iostream>
 #include <vector>
@@ -20,7 +19,7 @@ namespace Spheral {
 
 //------------------------------------------------------------------------------
 struct NodePairIdxType {
-  NodePairIdxType(int i_n = -1, int i_l = -1, int j_n = -1, int j_l = -1,
+  NodePairIdxType(int i_n, int i_l, int j_n, int j_l,
                   double f = 1.0);
   int i_node, i_list, j_node, j_list;
   double f_couple;                       // An arbitrary fraction in [0,1] to hold the effective coupling of the pair
@@ -48,26 +47,19 @@ struct NodePairIdxType {
 //------------------------------------------------------------------------------
 class NodePairList {
 public:
-  typedef NodePairIdxType value_type;
-  typedef NodePairIdxType& reference;
-  typedef const reference const_reference;
-
-  typedef SphArray<value_type> ContainerType;
-  typedef SphArrayView<value_type> ViewType;
-
-  typedef SphArrayIterator<ViewType> iterator;
-  typedef SphArrayIterator<typename ViewType::ViewTypeConst> const_iterator;
-  //typedef typename ContainerType::iterator iterator;
-  //typedef typename ContainerType::const_iterator const_iterator;
-  //typedef typename ContainerType::reverse_iterator reverse_iterator;
-  //typedef typename ContainerType::const_reverse_iterator const_reverse_iterator;
+  typedef std::vector<NodePairIdxType> ContainerType;
+  typedef typename ContainerType::value_type value_type;
+  typedef typename ContainerType::reference reference;
+  typedef typename ContainerType::const_reference const_reference;
+  typedef typename ContainerType::iterator iterator;
+  typedef typename ContainerType::const_iterator const_iterator;
+  typedef typename ContainerType::reverse_iterator reverse_iterator;
+  typedef typename ContainerType::const_reverse_iterator const_reverse_iterator;
 
   NodePairList();
   void push_back(NodePairIdxType nodePair);
   void clear(); 
   size_t size() const { return mNodePairList.size(); }
-
-  ViewType toView() const {return mNodePairList.toView(); }
 
   // Iterators
   iterator begin() { return mNodePairList.begin(); }
@@ -76,18 +68,18 @@ public:
   const_iterator end() const { return mNodePairList.end(); }
 
   // Reverse iterators
-  //reverse_iterator rbegin() { return mNodePairList.rbegin(); }
-  //reverse_iterator rend() { return mNodePairList.rend(); }
-  //const_reverse_iterator rbegin() const { return mNodePairList.rbegin(); }
-  //const_reverse_iterator rend() const { return mNodePairList.rend(); }
+  reverse_iterator rbegin() { return mNodePairList.rbegin(); }
+  reverse_iterator rend() { return mNodePairList.rend(); }
+  const_reverse_iterator rbegin() const { return mNodePairList.rbegin(); }
+  const_reverse_iterator rend() const { return mNodePairList.rend(); }
 
   // Indexing
   reference operator[](const size_t i) { return mNodePairList[i]; }
   const_reference operator[](const size_t i) const { return mNodePairList[i]; }
 
   // Inserting
-  //template<typename InputIterator>
-  //iterator insert(const_iterator pos, InputIterator first, InputIterator last) { return mNodePairList.insert(pos, first, last); }
+  template<typename InputIterator>
+  iterator insert(const_iterator pos, InputIterator first, InputIterator last) { return mNodePairList.insert(pos, first, last); }
 
 private:
   ContainerType mNodePairList;

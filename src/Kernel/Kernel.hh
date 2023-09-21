@@ -6,8 +6,6 @@
 #ifndef __Spheral_Kernel_hh__
 #define __Spheral_Kernel_hh__
 
-#include "RAJA/RAJA.hpp"
-
 namespace Spheral {
 
 template<typename Dimension, typename Descendant>
@@ -25,11 +23,8 @@ public:
 
   // Constructors, destructors.
   Kernel();
-
-  RAJA_HOST_DEVICE
   Kernel(const Kernel& rhs);
-
-  //~Kernel();
+  virtual ~Kernel();
 
   // Assignment.
   Kernel& operator=(const Kernel& rhs);

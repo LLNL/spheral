@@ -1,18 +1,9 @@
 #include "Utilities/DBC.hh"
-#include "chai/ArrayManager.hpp"
 #include <algorithm>
 
 #include <Eigen/Dense>
 
 namespace Spheral {
-
-inline
-QuadraticInterpolator::QuadraticInterpolator(const QuadraticInterpolator& qInt):
-  mN1(qInt.mN1),
-  mXmin(qInt.mXmin),
-  mXmax(qInt.mXmax),
-  mXstep(qInt.mXstep),
-  mcoeffs{qInt.mcoeffs} {}
 
 //------------------------------------------------------------------------------
 // Construct to fit the given function
@@ -26,10 +17,9 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
   mN1(n - 1),
   mXmin(xmin),
   mXmax(xmax),
-  mXstep((xmax - xmin)/n) {
+  mXstep((xmax - xmin)/n),
+  mcoeffs(3u*n) {
 
-  mcoeffs.allocate(3u*n, chai::CPU);
-  mcoeffs.registerTouch(chai::CPU);
   // Preconditions
   VERIFY2(n > 0, "QuadraticInterpolator requires n > 1 : n=" << n);
   VERIFY2(xmax > xmin, "QuadraticInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
@@ -152,7 +142,7 @@ QuadraticInterpolator::xstep() const {
 }
 
 inline
-const typename QuadraticInterpolator::ContainerType&
+const std::vector<double>&
 QuadraticInterpolator::coeffs() const {
   return mcoeffs;
 }

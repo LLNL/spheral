@@ -31,10 +31,7 @@ public:
   typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructors.
-  RAJA_HOST_DEVICE
   BSplineKernel();
-
-  RAJA_HOST_DEVICE
   ~BSplineKernel();
 
   // Return the kernel weight for a given normalized distance or position.

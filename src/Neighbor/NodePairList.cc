@@ -8,7 +8,7 @@ namespace Spheral {
   NodePairList::NodePairList(){}
 
   void NodePairList::push_back(NodePairIdxType nodePair) {
-    mNodePairList.emplace_back(nodePair);
+    mNodePairList.push_back(nodePair);
   } 
 
   void NodePairList::clear() {

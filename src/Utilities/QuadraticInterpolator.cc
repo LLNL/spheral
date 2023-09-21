@@ -24,7 +24,8 @@ QuadraticInterpolator::QuadraticInterpolator():
 //------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
-QuadraticInterpolator::QuadraticInterpolator(const double xmin,
+void
+QuadraticInterpolator::initialize(const double xmin,
                                   const double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
@@ -60,6 +61,12 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
     mcoeffs[3*i0 + 1u] = X(1);
     mcoeffs[3*i0 + 2u] = X(2);
   }
+}
+
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+QuadraticInterpolator::~QuadraticInterpolator() {
 }
 
 //------------------------------------------------------------------------------

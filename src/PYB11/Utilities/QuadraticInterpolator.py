@@ -20,12 +20,11 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
         "Constructs an interpolator based on the given function"
         return
 
-    def pyinit_func2(self,
+    def initialize(self,
                    xmin = "const double",
                    xmax = "const double",
                    yvals = "const std::vector<double>&"):
         "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
-        return
 
     @PYB11const
     def __call__(self,
