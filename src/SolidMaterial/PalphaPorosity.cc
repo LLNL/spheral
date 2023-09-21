@@ -38,7 +38,7 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
                const double phi0,
                const double Pe,
                const double Pt,
-               const double alphae,
+               const double Ps,
                const double alphat,
                const double n1,
                const double n2,
@@ -47,7 +47,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
-  mAlphae(alphae),
+  mPs(Ps),
+  mAlphae(0.0),      // alphae is specified by the other parameters
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
@@ -62,11 +63,12 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mdPdU(HydroFieldNames::partialPpartialEps, nodeList),
   mdPdR(HydroFieldNames::partialPpartialRho, nodeList),
   mRestart(registerWithRestart(*this)) {
-  VERIFY2(mPe <= mPt,
-          "PalphaPorosity input ERROR : require Pe <= Pt: Pe = " << mPe << ", Pt = " << mPt);
-  const auto alpha0_min = mAlpha0.min();
-  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_min),
-          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_min);
+  VERIFY2((mPe <= mPt) and (mPt <= mPs),
+          "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
+  const auto alpha0_max = mAlpha0.max();
+  mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
+  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
+          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
           "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0) : phi0 = " << phi0);
   mPorousEOS.alpha(mAlpha);
@@ -87,7 +89,7 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
                const Field<Dimension, Scalar>& phi0,
                const double Pe,
                const double Pt,
-               const double alphae,
+               const double Ps,
                const double alphat,
                const double n1,
                const double n2,
@@ -96,7 +98,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
-  mAlphae(alphae),
+  mPs(Ps),
+  mAlphae(0.0),      // alphae is specified by the other parameters
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
@@ -111,8 +114,12 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mdPdU(HydroFieldNames::partialPpartialEps),
   mdPdR(HydroFieldNames::partialPpartialRho),
   mRestart(registerWithRestart(*this)) {
-  VERIFY2(mPe <= mPt,
-          "PalphaPorosity input ERROR : require Pe <= Pt: Pe = " << mPe << ", Pt = " << mPt);
+  VERIFY2((mPe <= mPt) and (mPt <= mPs),
+          "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
+  const auto alpha0_max = mAlpha0.max();
+  mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
+  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
+          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
   const auto phi0_min = phi0.min();
   const auto phi0_max = phi0.max();
   VERIFY2(phi0_min >= 0.0 and phi0_max < 1.0,
@@ -187,7 +194,6 @@ evaluateDerivatives(const Scalar time,
     const auto c0i = mc0(i);         // Initial sound speed with porosity
     const auto DrhoDti = DrhoDt(i);
     const auto DuDti = DuDt(i);
-    const auto Psi = alphai*Pi;
 
     // Time evolution of the solid pressure
     const auto dPsdti = dPsdri*DrhoDti + dPsdui*DuDti;
@@ -206,8 +212,8 @@ evaluateDerivatives(const Scalar time,
 
       // Plastic
       DalphaDpi = (Pi < mPt ?
-                   1.0 - mn1*(mAlphae - mAlphat)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)*safeInv(Psi - Pi) :
-                   1.0 - mn2*(mAlphat - 1.0)*pow((Psi - Pi)/(Psi - mPe), mn2)*safeInv(Psi - Pi));
+                   1.0 - mn1*(mAlphae - mAlphat)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) - mn2*(mAlphat - 1.0)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi) :
+                   1.0 - mn2*(mAlphat - 1.0)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi));
 
     }
 
@@ -269,9 +275,17 @@ registerDerivatives(DataBase<Dimension>& /*dataBase*/,
 template<typename Dimension>
 void
 PalphaPorosity<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Initialize the distention field.
   mAlpha = mAlpha0;
+
+  // We also need the partial derivatives of the pressure.
+  const auto rhoFL = dataBase.fluidMassDensity();
+  const auto epsFL = dataBase.fluidSpecificThermalEnergy();
+  const auto& rho = **rhoFL.fieldForNodeList(mNodeList);
+  const auto& eps = **epsFL.fieldForNodeList(mNodeList);
+  Field<Dimension, Scalar> P("tmp pressure", mNodeList);
+  mPorousEOS.setPressureAndDerivs(P, mdPdU, mdPdR, rho, eps);
 }
 
 //------------------------------------------------------------------------------

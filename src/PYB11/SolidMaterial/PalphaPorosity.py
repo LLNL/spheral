@@ -46,7 +46,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                phi0 = "const double",
                Pe = "const double",
                Pt = "const double",
-               alphae = "const double",
+               Ps = "const double",
                alphat = "const double",
                n1 = "const double",
                n2 = "const double",
@@ -59,7 +59,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         phi0:            Initial porosity (single value)
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
-        alphae:          Elastic distension threshold
+        Ps:              Solid transition pressure (from fit, Pt <= Ps)
         alphat:          Transition distension
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
@@ -73,7 +73,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 phi0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
                 Pe = "const double",
                 Pt = "const double",
-                alphae = "const double",
+                Ps = "const double",
                 alphat = "const double",
                 n1 = "const double",
                 n2 = "const double",
@@ -86,7 +86,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         phi0:            Initial porosity (field of values)
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
-        alphae:          Elastic distension threshold
+        Ps:              Solid transition pressure (from fit, Pt <= Ps)
         alphat:          Transition distension
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
@@ -112,6 +112,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     # Properties
     Pe = PYB11property(doc="Elastic pressure threshold")
     Pt = PYB11property(doc="Transition pressure (Pe <= Pt)")
+    Ps = PYB11property(doc="Transition pressure (Pe <= Pt)")
     alphae = PYB11property(doc="Elastic distension threshold")
     alphat = PYB11property(doc="Elastic distension threshold")
     n1 = PYB11property(doc="Fitted exponent for plastic distention evolution")

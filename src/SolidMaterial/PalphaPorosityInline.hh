@@ -23,6 +23,14 @@ template<typename Dimension>
 inline
 double
 PalphaPorosity<Dimension>::
+Ps() const {
+  return mPs;
+}
+
+template<typename Dimension>
+inline
+double
+PalphaPorosity<Dimension>::
 alphae() const {
   return mAlphae;
 }

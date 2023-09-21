@@ -53,7 +53,7 @@ public:
                  const double phi0,                               // Initial porosity
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
-                 const double alphae,                             // Elastic distension threshold
+                 const double Ps,                                 // Solid transition pressure (from fit, Pt <= Ps)
                  const double alphat,                             // Transition distension
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
@@ -66,7 +66,7 @@ public:
                  const Field<Dimension, Scalar>& phi0,            // Initial porosity
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
-                 const double alphae,                             // Elastic distension threshold
+                 const double Ps,                                 // Solid transition pressure (from fit, Pt <= Ps)
                  const double alphat,                             // Transition distension
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
@@ -113,6 +113,7 @@ public:
   // Access the material parameters.
   double Pe() const;
   double Pt() const;
+  double Ps() const;
   double alphae() const;
   double alphat() const;
   double n1() const;
@@ -133,7 +134,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mAlphae, mAlphat, mn1, mn2, mcS0;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mcS0;
   PorousEquationOfState<Dimension>& mPorousEOS;
   PorousStrengthModel<Dimension>& mPorousStrength;
   const NodeList<Dimension>& mNodeList;

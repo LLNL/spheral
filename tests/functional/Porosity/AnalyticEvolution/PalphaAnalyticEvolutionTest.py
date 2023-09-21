@@ -5,6 +5,7 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
+from NodeHistory import *
 from math import *
 import os, shutil
 import mpi
@@ -40,10 +41,7 @@ class FakeHydro(Physics):
         return
 
     def dt(self, db, state, derivs, t):
-        print("FakeHydro::dt ", state.keys())
         rho = state.scalarFields(HydroFieldNames.massDensity)
-        print("              ", rho)
-        print("              ", rho[0].internalValues())
         return pair_double_string(1.0, "Fake timestep")
 
     def registerState(self, db, state):
@@ -51,13 +49,11 @@ class FakeHydro(Physics):
         state.enroll(rho, ScalarIncrementBoundedFieldList(0.0))
         state.enroll(db.fluidSpecificThermalEnergy, ScalarIncrementFieldList())
         state.enroll(self.pressure, PressurePolicy())
-        print("All keys registered in state following FakeHydro::registerState: ", state.keys())
         return
 
     def registerDerivatives(self, db, derivs):
         derivs.enroll(self.DrhoDt)
         derivs.enroll(self.DuDt)
-        print("All keys registered in derivs following FakeHydro::registerDerivatives: ", derivs.keys())
         return
 
     def label(self):
@@ -75,19 +71,17 @@ units = CGuS()
 commandLine(
 
     # Porosity
-    alpha0 = 1.275,                    # Initial distention
-    alphae = 1.2,                      # Elastic limiting distention
-    alphat = 1.1,                      # Plastic limiting distention
+    alpha0 = 1.5,                      # Initial distention
+    alphat = 1.2,                      # Plastic limiting distention
     c0frac = 0.5,                      # Fraction of initial solid sound speed for initial porous sound speed
     Pe = 0.1,                          # Elastic limiting pressure
     Pt = 0.5,                          # Transition pressure in plastic regime
+    Ps = 2.0,                          # A solid pressure fitting parameter, where alpha should go to 1
     n1 = 1.0,
     n2 = 1.0,
 
     # Fake hydro
-    dPdrho0 = 0.5,
-    dPdu0 = 0.75,
-    DrhoDt0 = 1.5,
+    DrhoDt0 = 0.5,
     DuDt0 = 0.1,
 
     # Initial conditions (initial density set by alpha0 and rhoS0)
@@ -107,6 +101,7 @@ commandLine(
     IntegratorConstructor = SynchronousRK1Integrator,
     goalTime = 1.0,
     steps = None,
+    sampleCycle = 1,
     dt = 1e-2,
     dtMin = 1e-2,
     dtMax = 1e-2,
@@ -114,28 +109,28 @@ commandLine(
     graphics = True,
     clearDirectories = False,
     dataDir = "dumps-PalphaAnalyticEvolution",
+    outputFileName = "PorosityTimeHistory.gnu",
 )
 
 assert 1.0 <= alpha0
-assert 1.0 <= alphat <= alphae <= alpha0
+assert 1.0 <= alphat <= alpha0
 assert c0frac <= 1.0
 assert Pe <= Pt
 
 phi0 = 1.0 - 1.0/alpha0
 
-# restartDir = os.path.join(dataDir, "restarts")
-# restartBaseName = os.path.join(restartDir, "PalphaAnalyticEvolution")
+outputFileName = os.path.join(dataDir, outputFileName)
 
-# #-------------------------------------------------------------------------------
-# # Check if the necessary output directories exist.  If not, create them.
-# #-------------------------------------------------------------------------------
-# import os, sys
-# if mpi.rank == 0:
-#     if clearDirectories and os.path.exists(dataDir):
-#         shutil.rmtree(dataDir)
-#     if not os.path.exists(restartDir):
-#         os.makedirs(restartDir)
-# mpi.barrier()
+#-------------------------------------------------------------------------------
+# Check if the necessary output directories exist.  If not, create them.
+#-------------------------------------------------------------------------------
+import os, sys
+if mpi.rank == 0:
+    if clearDirectories and os.path.exists(dataDir):
+        shutil.rmtree(dataDir)
+    if not os.path.exists(dataDir):
+        os.makedirs(dataDir)
+mpi.barrier()
 
 #-------------------------------------------------------------------------------
 # Material models
@@ -229,7 +224,7 @@ porosityAl = PalphaPorosity(eos, strengthModel, nodes,
                             phi0 = phi0,
                             Pe = Pe,
                             Pt = Pt,
-                            alphae = alphae,
+                            Ps = Ps,
                             alphat = alphat,
                             n1 = n1,
                             n2 = n2,
@@ -269,11 +264,30 @@ output("integrator.dtGrowth")
 output("integrator.domainDecompositionIndependent")
 
 #-------------------------------------------------------------------------------
+# Use a NodeHistory object to track the time evolution of the porosity and other
+# state.
+#-------------------------------------------------------------------------------
+def sampleState(nodes, nodeIndices):
+    rho = nodes.massDensity()
+    eps = nodes.specificThermalEnergy()
+    alpha = porosityAl.alpha
+    dPdR = porosityAl.partialPpartialRho
+    dPdu = porosityAl.partialPpartialEps
+    return alpha[0], 1.0 - 1.0/alpha[0], rho[0], eps[0], hydro.pressure(0,0), dPdR[0], dPdu[0]
+    
+history = NodeHistory(nodes,
+                      nodeIndices = [0],
+                      sampleMethod = sampleState,
+                      filename = outputFileName,
+                      labels = ("alpha", "phi", "rho", "eps", "P", "dPdR", "dPdu"))
+
+#-------------------------------------------------------------------------------
 # Build the controller.
 #-------------------------------------------------------------------------------
 control = SpheralController(integrator, WT,
                             restartStep = None,
-                            iterateInitialH = False)
+                            iterateInitialH = False,
+                            periodicWork = [(history, sampleCycle)])
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -288,72 +302,43 @@ else:
 #-------------------------------------------------------------------------------
 # Plot the state.
 #-------------------------------------------------------------------------------
-# if graphics:
-#     from SpheralMatplotlib import *
-#     state = State(db, integrator.physicsPackages())
-#     H = state.symTensorFields("H")
-#     h = db.newFluidScalarFieldList(0.0, "h")
-#     for i in range(nodes.numInternalNodes):
-#         h[0][i] = 1.0/H[0][i].xx
-#     rhoPlot = plotFieldList(state.scalarFields("mass density"),
-#                             plotStyle = "o-",
-#                             winTitle = "rho @ %g %i" % (control.time(), mpi.procs))
-#     velPlot = plotFieldList(state.vectorFields("velocity"),
-#                             yFunction = "%s.x",
-#                             plotStyle = "o-",
-#                             winTitle = "vel @ %g %i" % (control.time(), mpi.procs))
-#     PPlot = plotFieldList(state.scalarFields("pressure"),
-#                           plotStyle = "o-",
-#                           winTitle = "pressure @ %g %i" % (control.time(), mpi.procs))
-#     uPlot = plotFieldList(state.scalarFields("specific thermal energy"),
-#                           plotStyle = "o-",
-#                           winTitle = "specific thermal energy @ %g %i" % (control.time(), mpi.procs))
-#     SPlot = plotFieldList(state.symTensorFields("deviatoric stress"),
-#                           yFunction = "%s.xx",
-#                           plotStyle = "o-",
-#                           winTitle = "$S_{xx}$ @ %g %i" % (control.time(), mpi.procs))
-#     hPlot = plotFieldList(h,
-#                           plotStyle = "o-",
-#                           winTitle = "h @ %g %i" % (control.time(), mpi.procs))
-#     csPlot = plotFieldList(state.scalarFields(HydroFieldNames.soundSpeed),
-#                            plotStyle = "o-",
-#                            xlabel = r"$x$",
-#                            ylabel = r"$c_S$",
-#                            winTitle = "Sound speed @ %g %i" %  (control.time(), mpi.procs))
-#     alpha = porosityAl.alpha
-#     alphaPlot = plotField(alpha,
-#                           plotStyle = "o-",
-#                           winTitle = r"$\alpha$ @ %g %i" %  (control.time(), mpi.procs))
-#     DalphaDt = porosityAl.DalphaDt
-#     DalphaDtPlot = plotField(DalphaDt,
-#                              plotStyle = "o-",
-#                              xlabel = r"$x$",
-#                              ylabel = r"$D\alpha/Dt$",
-#                              winTitle = r"$D\alpha/Dt$ @ %g %i" %  (control.time(), mpi.procs))
-#     phi = porosityAl.phi()
-#     phiPlot = plotField(phi,
-#                         plotStyle = "o-",
-#                         winTitle = r"$\phi$ @ %g %i" %  (control.time(), mpi.procs))
+if graphics:
+    from matplotlib import pyplot as plt
+    def makePlot(x, y, marker, xlabel=None, ylabel=None, title=None):
+        result = plt.figure().add_subplot(111)
+        plt.plot(x, y, marker)
+        if title:    plt.title(title)
+        if xlabel:   plt.xlabel(xlabel)
+        if ylabel:   plt.ylabel(ylabel)
+        return result
 
-#     dPdRplot = plotField(porosityAl.partialPpartialRho,
-#                          plotStyle = "o-",
-#                          winTitle = r"$\partial P/\partial \rho$ @ %g %i" %  (control.time(), mpi.procs))
-#     dPdUplot = plotField(porosityAl.partialPpartialEps,
-#                          plotStyle = "o-",
-#                          winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
+    # def alpha_of_P(P):
+    #     "The analytic expectation for how alpha(P) should vary"
+    #     if P <= Pe:
+    #         return 1.0 + (alphae - 1.0)*((Ps - P)/(
 
-#     plots = [(rhoPlot, "rho.png"),
-#              (velPlot, "vel.png"),
-#              (PPlot, "pressure.png"),
-#              (SPlot, "devstress.png"),
-#              (uPlot, "u.png"),
-#              (hPlot, "h.png"),
-#              (alphaPlot, "alpha.png"),
-#              (phiPlot, "phi.png")]
+    t = history.timeHistory
+    alphaPlot = makePlot(history.timeHistory, [x[0] for x in history.sampleHistory], "r-", r"$t$", r"$\alpha$", r"$\alpha$ history")
+    phiPlot = makePlot(history.timeHistory, [x[1] for x in history.sampleHistory], "r-", r"$t$", r"$\phi$", r"$\phi$ history")
+    rhoPlot = makePlot(history.timeHistory, [x[2] for x in history.sampleHistory], "r-", r"$t$", r"$\rho$", r"Bulk $\rho$ history")
+    epsPlot = makePlot(history.timeHistory, [x[3] for x in history.sampleHistory], "r-", r"$t$", r"$\varepsilon$", r"$\varepsilon$ history")
+    PPlot = makePlot(history.timeHistory, [x[4] for x in history.sampleHistory], "r-", r"$t$", r"$P$", r"Bulk $P$ history")
+    dPdRPlot = makePlot(history.timeHistory, [x[5] for x in history.sampleHistory], "r-", r"$t$", r"$\partial P/\partial \rho$", r"Solid $\partial P/\partial \rho$ history")
+    dPduPlot = makePlot(history.timeHistory, [x[6] for x in history.sampleHistory], "r-", r"$t$", r"$\partial P/\partial \varepsilon$", r"Solid $\partial P/\partial \varepsilon$ history")
+    alphaVSPplot = makePlot([x[4] for x in history.sampleHistory],
+                            [x[0] for x in history.sampleHistory], "ro", r"$P$", r"$\alpha$", r"$\alpha(P)$")
 
-#     # Save the figures.
-#     for p, fname in plots:
-#         savefig(p, os.path.join(dataDir, fname))
+    plots = [(alphaPlot, "alpha.png"),
+             (phiPlot, "phi.png"),
+             (rhoPlot, "rho.png"),
+             (epsPlot, "eps.png"),
+             (PPlot, "pressure.png"),
+             (dPdRPlot, "partialPpartialRho.png"),
+             (dPduPlot, "partialPpartialEps.png"),
+             (alphaVSPplot, "alpha_vs_pressure.png")]
 
-# if graphics:
-#     plt.show()
+    # Save the figures.
+    for p, fname in plots:
+        p.figure.savefig(os.path.join(dataDir, fname))
+
+    plt.show()

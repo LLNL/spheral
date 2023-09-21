@@ -103,7 +103,6 @@ setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
     const auto Pi = pressure(i)/(*mAlphaPtr)(i);
-    dPdu(i) /= (*mAlphaPtr)(i);
     if (Pi < Pmin) {
       pressure(i) = Pmin;
       dPdrho(i) = 0.0;
@@ -112,7 +111,6 @@ setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
       dPdrho(i) = 0.0;
     } else {
       pressure(i) = Pi;
-      dPdrho(i) /= (*mAlphaPtr)(i);
     }
   }
 }
