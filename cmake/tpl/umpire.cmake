@@ -1,1 +1,1 @@
-set(${lib_name}_libs libumpire.a)
+set(${lib_name}_libs libumpire.so)

@@ -10,52 +10,80 @@ namespace Spheral {
 
 template<typename DataType>
 class ManagedVector:
-  public chai::ManagedArray<DataType>{
-  using ManagedArray = chai::ManagedArray<DataType>;
+  private chai::ManagedArray<DataType>{
+  using MA = chai::ManagedArray<DataType>;
 
-  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedArray const& rhs) noexcept : ManagedArray(rhs) {}
-  //friend LvField<DataType>;
 public:
 
   using iterator = DataType*;
   using const_iterator = const DataType*;
 
-  iterator begin() { return ManagedArray::begin(); }
-  const_iterator begin() const { return ManagedArray::begin(); }
+  iterator begin() { return MA::begin(); }
+  const_iterator begin() const { return MA::begin(); }
 
   iterator end() { return begin() + m_size; }
   const_iterator end() const { return begin() + m_size; }
 
+  // ---------------------
+  // Constructors
+  // ---------------------
+  RAJA_HOST ManagedVector() : MA(6, chai::CPU) {}
+  RAJA_HOST ManagedVector(size_t elems) : MA(elems, chai::CPU), m_size(elems) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
+  }
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) : MA(elems, chai::CPU), m_size(elems) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
+  }
+  
+  // ---------------------
+  // Copy Constructor
+  // ---------------------
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs.capacity()), m_size(rhs.m_size) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
+  }
 
-  RAJA_HOST ManagedVector() : ManagedArray(6, chai::CPU) { ManagedArray::registerTouch(chai::CPU); }
-  RAJA_HOST ManagedVector(size_t elems) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) new (&ManagedArray::operator[](i)) DataType(); ManagedArray::registerTouch(chai::CPU); }
-  RAJA_HOST ManagedVector(size_t elems, DataType identity) : ManagedArray(elems, chai::CPU), m_size(elems) { for (size_t i = 0; i < m_size; i++) new (&ManagedArray::operator[](i)) DataType(identity); ManagedArray::registerTouch(chai::CPU); }
+  // ---------------------
+  // Assignment
+  // ---------------------
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) { 
+    if (capacity() != rhs.capacity()) MA::reallocate(rhs.capacity());
+    m_size = rhs.m_size;
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
+    return *this; 
+  }
 
-  //RAJA_HOST ~ManagedVector() { destroy(begin(), end()); ManagedArray::free(); }
-
-  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {}
-  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(rhs), m_size(rhs.m_size) {*this = chai::deepCopy(rhs);}
-  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : ManagedArray(chai::deepCopy(rhs)), m_size(rhs.m_size) {}
-  //RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : m_size(rhs.m_size) { *this = chai::deepCopy(rhs); }
+  // ---------------------
+  // Equivalence
+  // ---------------------
+  bool operator==(ManagedVector const& rhs) = delete;
+  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
+    if (m_size != rhs.m_size) return false;
+    for (size_t i = 0; i < m_size; i++) {
+      if (MA::operator[](i) != rhs[i]) { 
+        return false;
+      }
+    }
+    return true;
+  }
 
   RAJA_HOST void push_back(const DataType& value) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
-    ManagedArray::data()[m_size] = value;
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
+    MA::data()[m_size] = value;
     m_size++;
   }
   RAJA_HOST void push_back(DataType&& value) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
 
-    ManagedArray::data()[m_size] = std::move(value);
+    MA::data()[m_size] = std::move(value);
     m_size++;
   }
   template<typename... Args>
   RAJA_HOST
   DataType& emplace_back(Args&&... args) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
 
-    new(&ManagedArray::data()[m_size]) DataType(std::forward<Args>(args)...);
-    return ManagedArray::data()[m_size++];
+    new(&MA::data()[m_size]) DataType(std::forward<Args>(args)...);
+    return MA::data()[m_size++];
   }
 
   RAJA_HOST
@@ -63,8 +91,8 @@ public:
     const size_t old_size = m_size;
 
     if (old_size < size) {
-      ManagedArray::reallocate(size);
-      for (size_t i = old_size; i < size; i++) new(&ManagedArray::operator[](i)) DataType();
+      MA::reallocate(size);
+      for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
     }
     if (old_size > size) {
       destroy(begin() + old_size, begin() + size);
@@ -81,29 +109,23 @@ public:
     m_size--;
   }
 
-  RAJA_HOST_DEVICE size_t capacity() {return ManagedArray::m_elems;}
+  RAJA_HOST_DEVICE size_t capacity() const {return MA::m_elems;}
   RAJA_HOST_DEVICE size_t size() const {return m_size;}
 
-  RAJA_HOST_DEVICE DataType& operator[](size_t idx) {return ManagedArray::data()[idx]; }
-  RAJA_HOST_DEVICE DataType& operator[](size_t idx) const {return ManagedArray::data()[idx]; }
-
-  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) {
-    if (m_size != rhs.m_size) return false;
-    for (size_t i = 0; i < m_size; i++) if (ManagedArray::data()[i] != rhs[i]) return false;
-    return true;
-  }
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) {return MA::data()[idx]; }
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) const {return MA::data()[idx]; }
 
 
   // *******************************************************
   // Required to Allow ManagedVector to be properly CHAICopyable
-  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { ManagedArray::operator=(nullptr); return *this; }
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { MA::operator=(nullptr); return *this; }
   RAJA_HOST_DEVICE void shallowCopy(const ManagedVector& other) {
     m_size=other.m_size;
-    ManagedArray::shallowCopy(other);
+    MA::shallowCopy(other);
   }
   // *******************************************************
   
-  RAJA_HOST operator std::vector<DataType>() const { return std::vector<DataType>(begin(), end()); }
+  //RAJA_HOST operator std::vector<DataType>() const { return std::vector<DataType>(begin(), end()); }
 
 private:
   size_t m_size = 0;

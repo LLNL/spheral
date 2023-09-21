@@ -114,7 +114,7 @@ function(spheral_add_cxx_library
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(Spheral_${package_name} PROPERTIES
-    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${chai_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 endfunction()
 
@@ -224,7 +224,7 @@ function(spheral_add_pybind11_library package_name)
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${package_name} PROPERTIES
-                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${lvarray_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
+                        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${chai_DIR}/lib;${conduit_DIR}/lib;${axom_DIR}/lib;${boost_DIR}/lib;${python_DIR}/lib;${lvarray_DIR}/lib;${hdf5_DIR}/lib;${zlib_DIR}/lib;${SPHERAL_ADDITIONAL_RPATHS}"
                         )
 
 endfunction()

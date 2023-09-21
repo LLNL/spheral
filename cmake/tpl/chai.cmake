@@ -1,1 +1,1 @@
-set(${lib_name}_libs libchai.a)
+set(${lib_name}_libs libchai.so)
