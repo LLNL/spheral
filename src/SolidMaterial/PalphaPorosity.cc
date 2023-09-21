@@ -212,8 +212,8 @@ evaluateDerivatives(const Scalar time,
 
       // Plastic
       DalphaDpi = (Pi < mPt ?
-                   1.0 - mn1*(mAlphae - mAlphat)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) - mn2*(mAlphat - 1.0)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi) :
-                   1.0 - mn2*(mAlphat - 1.0)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi));
+                   mn1*(mAlphat - mAlphae)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) + mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi) :
+                   mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi));
 
     }
 

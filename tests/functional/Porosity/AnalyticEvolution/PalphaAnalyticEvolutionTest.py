@@ -99,7 +99,7 @@ commandLine(
     mu = 2.0,
 
     IntegratorConstructor = SynchronousRK1Integrator,
-    goalTime = 1.0,
+    goalTime = 2.5,
     steps = None,
     sampleCycle = 1,
     dt = 1e-2,
