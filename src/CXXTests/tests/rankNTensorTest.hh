@@ -27,7 +27,7 @@ void rankNTensorTest() {
   testf[0] = Spheral::GeomFourthRankTensor<2>(5.0);
   testf[2] = Spheral::GeomFourthRankTensor<2>(5.0);
 
-  for (std::ptrdiff_t i = 0; i < data_sz; i++) {
+  for (size_t i = 0; i < data_sz; i++) {
     std::cout << testf[i] << "\n";
   }
 
