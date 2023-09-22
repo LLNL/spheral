@@ -83,8 +83,8 @@ commandLine(
     
     # FSISPH parameters
     fsiSurfaceCoefficient = 0.00,          # adds additional repulsive force to material interfaces)
-    fsiRhoStabilizeCoeff = 0.0,            # coefficient that smooths the density field
-    fsiEpsDiffuseCoeff = 0.0,              # explicit diiffusion of the thermal energy
+    fsiRhoStabilizeCoeff = 0.1,            # coefficient that smooths the density field
+    fsiEpsDiffuseCoeff = 0.1,              # explicit diiffusion of the thermal energy
     fsiXSPHCoeff = 0.00,                   # fsi uses multiplier for XSPH instead of binary switch
     fsiInterfaceMethod = ModulusInterface, # (HLLCInterface, ModulusInterface)
     
@@ -457,15 +457,14 @@ elif fsisph:
                    specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,  
                    xsphCoefficient = fsiXSPHCoeff,
                    interfaceMethod = fsiInterfaceMethod,      
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergyEvolution,  
                    evolveTotalEnergy = totalEnergyEvolution,         
                    ASPH = asph,
                    HUpdate=HEvolution,
                    epsTensile = epsilonTensile,
                    nTensile = nTensile,
-                   strengthInDamage=False,
-                   damageRelieveRubble=False)
+                   strengthInDamage=False,)
 
 else:
     hydro = SPH(dataBase = db,
@@ -501,7 +500,6 @@ output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.densityUpdate")
 output("hydro.HEvolution")
-output("hydro.XSPH")
 if hasattr(hydro, "correctionOrder"):
     output("hydro.correctionOrder")
 if hasattr(hydro, "volumeType"):
@@ -882,7 +880,7 @@ if mpi.rank==0 and graphics:
     plt.xlabel(r'x-$cm$',fontsize=FS)
     plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
     plt.savefig('DiametralCompression-xaxis.png')
-    #plt.show()
+    plt.show()
 
 #-----------------------
 # Plot along the y-axis  
@@ -933,18 +931,20 @@ if mpi.rank==0:
 
         ax.plot(Yreduced,Sxxreduced,'c.',label='$\sigma_{xx}$ -- FSISPH')
         ax.plot(yY0,SxxAnalyticY0,'b--',label='$\sigma_{xx}$ -- Analytic')
-        ax.plot(Yreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
-        ax.plot(yY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
+        #ax.plot(Yreduced,Syyreduced,'y.',label='$\sigma_{yy}$ -- FSISPH')
+        #ax.plot(yY0,SyyAnalyticY0,'k-',label='$\sigma_{yy}$ -- Analytic')
         ax.legend(fontsize=FS)
         plt.xlabel(r'y-$cm$',fontsize=FS)
         plt.ylabel(r'Stress-$CGuS$',fontsize=FS)
         plt.savefig('DiametralCompression-yaxis.png')
-        #plt.show()
+        plt.show()
 
     if checkError:
 
         avgSxxanalytic = sum(Sxxanalytic)/len(Sxxanalytic)
         avgSxxreduced = sum(Sxxreduced)/len(Sxxreduced)
+        print avgSxxanalytic
+        print avgSxxreduced
         error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
         
         if error > tol:
