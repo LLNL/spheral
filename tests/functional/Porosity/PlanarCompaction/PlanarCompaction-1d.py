@@ -26,11 +26,13 @@ class OverrideNodeProperties:
                  nodeList,
                  rho0,
                  eps0,
+                 H0,
                  controlNodeIDs):
         self.restart = RestartableObject(self)
         self.nodeList = nodeList
         self.rho0 = rho0
         self.eps0 = eps0
+        self.H0 = H0
         self.controlNodeFlags = ScalarField("flag nodes",
                                               nodeList,
                                               0.0)
@@ -53,12 +55,14 @@ class OverrideNodeProperties:
     def dumpState(self, file, path):
         file.writeObject(self.rho0, path + "/rho0")
         file.writeObject(self.eps0, path + "/eps0")
+        file.writeObject(self.eps0, path + "/H0")
         file.write(self.controlNodeFlags, path + "/controlNodeFlags")
         return
 
     def restoreState(self, file, path):
         self.rho0 = file.readObject(path + "/rho0")
         self.eps0 = file.readObject(path + "/eps0")
+        self.eps0 = file.readObject(path + "/H0")
         file.read(self.controlNodeFlags, path + "/controlNodeFlags")
         return
 
@@ -73,14 +77,15 @@ units = CGuS()
 #-------------------------------------------------------------------------------
 commandLine(nx = 500,                          # Number of internal free points
             vright = -45.8e-3,                 # Fixed velocity on right-end
-            vleft = 0.0,                       # Fixed velocity on left-end
-            nbound = 10,                       # Number of points in each fixed velocity boundaries
+            nbound = 20,                       # Number of points in each fixed velocity boundaries
+            nPerh = 4.01,
 
             PorousModel = PalphaPorosity,
+            alpha0 = 1.275,
 
-            crksph = False,
-            cfl = 0.5,
-            useVelocityMagnitudeForDt = False,
+            hydro = "SPH",                     # SPH, CRKSPH, FSISPH
+            cfl = 0.25,
+            useVelocityMagnitudeForDt = True,
             XSPH = False,
             epsilonTensile = 0.3,
             nTensile = 4,
@@ -90,7 +95,7 @@ commandLine(nx = 500,                          # Number of internal free points
             goalTime = 3.5,
             steps = None,
             dt = 1e-10,
-            dtMin = 1e-6,
+            dtMin = 1e-10,
             dtMax = 10.0,
             dtGrowth = 2.0,
             maxSteps = None,
@@ -111,18 +116,11 @@ commandLine(nx = 500,                          # Number of internal free points
             comparisonFile = "None",
             )
 
-if crksph:
-    hydroname = "CRKSPH"
-    nPerh = 1.51
-    order = 5
-else:
-    hydroname = "SPH"
-    nPerh = 1.51
-    order = 5
+hydro = hydro.upper()
 
 dataDir = os.path.join(dataDirBase,
                        PorousModel.__name__,
-                       hydroname,
+                       hydro,
                        "nx=%i" % nx)
 
 restartDir = os.path.join(dataDir, "restarts")
@@ -151,12 +149,12 @@ eosS = TillotsonEquationOfState("aluminum",
 strengthModelS = NullStrength()
 eos = PorousEquationOfState(eosS)
 strengthModel = PorousStrengthModel(strengthModelS)
-rho0 = eosS.referenceDensity
+rhoS0 = eosS.referenceDensity
 eps0 = 0.0
-Ps0 = eosS.pressure(rho0, eps0)
-cS0 = eosS.soundSpeed(rho0, eps0)
+Ps0 = eosS.pressure(rhoS0, eps0)
+cS0 = eosS.soundSpeed(rhoS0, eps0)
 print("Aluminum equation of state initial properties:")
-output("  rho0")
+output(" rhoS0")
 output("  eps0")
 output("   Ps0")
 output("   cS0")
@@ -183,6 +181,8 @@ print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
 dx = 2.0/nx
 xmax = 1.0 + (nbound + 0.5)*dx
+phi0 = 1.0 - 1.0/alpha0
+rho0 = rhoS0/alpha0
 distributeNodesInRange1d([(nodes, nx, rho0, (-xmax, xmax))])
 output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
@@ -191,10 +191,7 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # Set node velocites and find the boundary nodes
 pos = nodes.positions()
 vel = nodes.velocity()
-xmin_nodes = [i for i in range(nodes.numInternalNodes) if pos[i].x < -1.0]
 xmax_nodes = [i for i in range(nodes.numInternalNodes) if pos[i].x >  1.0]
-for i in xmin_nodes:
-    vel[i].x = vleft
 for i in xmax_nodes:
     vel[i].x = vright
 
@@ -213,8 +210,8 @@ output("db.numSolidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct constant velocity boundary conditions to be applied to the rod ends.
 #-------------------------------------------------------------------------------
-print("Selected %i constant velocity nodes." % (mpi.allreduce(len(xmin_nodes) + len(xmax_nodes), mpi.SUM)))
-xbc0 = ConstantVelocityBoundary(nodes, xmin_nodes)
+print("Selected %i constant velocity nodes." % (mpi.allreduce(len(xmax_nodes), mpi.SUM)))
+xbc0 = ReflectingBoundary(Plane(Vector(-xmax), Vector(1.0)))
 xbc1 = ConstantVelocityBoundary(nodes, xmax_nodes)
 
 bcs = [xbc0, xbc1]
@@ -222,13 +219,13 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if crksph:
+if hydro == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate)
-else:
+elif hydro == "SPH":
     hydro = SPH(dataBase = db,
                 W = WT,
                 cfl = cfl,
@@ -237,12 +234,18 @@ else:
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+elif hydro == "FSISPH":
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy)
 output("hydro")
 output("  hydro.cfl")
 output("  hydro.useVelocityMagnitudeForDt")
 output("  hydro.HEvolution")
-output("  hydro.densityUpdate")
-output("  hydro.compatibleEnergyEvolution")
+if hydro != FSISPH:
+    output("  hydro.densityUpdate")
+    output("  hydro.compatibleEnergyEvolution")
 
 packages = [hydro]
 
@@ -258,7 +261,6 @@ PCGSconv = mCGSconv/(tCGSconv*tCGSconv*lCGSconv)
 vCGSconv = lCGSconv/tCGSconv
 
 if PorousModel is PalphaPorosity:
-    alpha0 = 1.275
     Pe = 8e8      # dynes/cm^2
     Ps = 7e9      # dynes/cm^2
     cS0 = 5.35e5  # cm/sec
@@ -271,7 +273,7 @@ if PorousModel is PalphaPorosity:
     output("     cS0")
     output("      ce")
     output("  alphae")
-    print("Computing cS0 from solid EOS yields ", eosS.soundSpeed(rho0, 0.0))
+    print("Computing cS0 from solid EOS yields ", eosS.soundSpeed(rhoS0, 0.0))
     porosityAl = PalphaPorosity(eos, strengthModel, nodes,
                                 phi0 = 1.0 - 1.0/alpha0,
                                 Pe = Pe * PCGSconv,
@@ -337,15 +339,15 @@ control = SpheralController(integrator, WT,
 output("control")
 
 #-------------------------------------------------------------------------------
-# Since we are creating a forced velocity gradient on the control nodes, we have
-# to override their mass density evolution or they falsely wander away from the
-# reference density.
+# Override properties on the piston nodes
 #-------------------------------------------------------------------------------
-## override = OverrideNodeProperties(nodes,
-##                                   rho0,
-##                                   eps0,
-##                                   xNodes)
-## control.appendPeriodicWork(override.override, 1)
+H0 = nodes.Hfield()[0]
+override = OverrideNodeProperties(nodes,
+                                  rho0,
+                                  eps0,
+                                  H0,
+                                  xmax_nodes)
+control.appendPeriodicWork(override.override, 1)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
@@ -375,7 +377,8 @@ if graphics:
                             winTitle = "vel @ %g %i" % (control.time(), mpi.procs))
     PPlot = plotFieldList(state.scalarFields("pressure"),
                           plotStyle = "o-",
-                          winTitle = "pressure @ %g %i" % (control.time(), mpi.procs))
+                          winTitle = "pressure @ %g %i" % (control.time(), mpi.procs),
+                          semilogy = True)
     uPlot = plotFieldList(state.scalarFields("specific thermal energy"),
                           plotStyle = "o-",
                           winTitle = "specific thermal energy @ %g %i" % (control.time(), mpi.procs))
