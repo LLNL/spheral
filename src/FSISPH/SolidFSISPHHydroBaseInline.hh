@@ -147,15 +147,15 @@ SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::linearCorrectKernel() const {
-  return mLinearCorrectKernel;
+SolidFSISPHHydroBase<Dimension>::linearCorrectGradients() const {
+  return mLinearCorrectGradients;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::linearCorrectKernel(bool val) {
-  mLinearCorrectKernel = val;
+SolidFSISPHHydroBase<Dimension>::linearCorrectGradients(bool val) {
+  mLinearCorrectGradients = val;
 }
 
 //------------------------------------------------------------------------------

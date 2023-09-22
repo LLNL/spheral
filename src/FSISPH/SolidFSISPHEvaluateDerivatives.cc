@@ -386,7 +386,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWj = gradWij;
       }
 
-      if(this->linearCorrectKernel()){
+      if(this->linearCorrectGradients()){
         gradWiMi = Mi.Transpose()*gradWi;
         gradWjMj = Mj.Transpose()*gradWj;
       }
@@ -774,7 +774,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      if(this->linearCorrectKernel()) localDvDxi = localDvDxi*localMi;
+      if(this->linearCorrectGradients()) localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();

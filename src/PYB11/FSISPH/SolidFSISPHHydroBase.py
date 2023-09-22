@@ -24,7 +24,6 @@ class SolidFSISPHHydroBase(GenericHydro):
                Q = "ArtificialViscosity<%(Dimension)s>&",
                slides = "SlideSurface<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               #filter = "const double",
                cfl = "const double",
                surfaceForceCoefficient = "const double",
                densityStabilizationCoefficient = "const double",
@@ -36,9 +35,7 @@ class SolidFSISPHHydroBase(GenericHydro):
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
                evolveTotalEnergy = "const bool",
-               #gradhCorrection = "const bool",
-               #XSPH = "const bool",
-               linearCorrectKernel = "const bool",
+               linearCorrectGradients = "const bool",
                planeStrain = "const bool",
                interfacePmin = "const double",
                interfaceNeighborAngleThreshold = "const double ",
@@ -46,8 +43,6 @@ class SolidFSISPHHydroBase(GenericHydro):
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
-               #damageRelieveRubble = "const bool",
-               #strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "SolidFSISPHHydroBase constructor"
@@ -109,7 +104,7 @@ mass density, velocity, and specific thermal energy."""
     planeStrain = PYB11property("bool", "planeStrain", "planeStrain",doc="use plane strain approach for 1D or 2D problems.")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
     evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",doc="Flag controlling if we evolve total or specific energy.")
-    linearCorrectKernel = PYB11property("bool", "linearCorrectKernel", "linearCorrectKernel",doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
+    linearCorrectGradients = PYB11property("bool", "linearCorrectGradients", "linearCorrectGradients",doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
     sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists",doc="control if rigorous density sum is applied to individual node lists.")
     
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",doc="additional force between different materials ala Monaghan 2013.")

@@ -75,7 +75,7 @@ public:
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
                     const bool evolveTotalEnergy,
-                    const bool linearCorrectKernel,
+                    const bool linearCorrectGradients,
                     const bool planeStrain,
                     const double interfacePmin,
                     const double interfaceNeighborAngleThreshold,
@@ -170,8 +170,8 @@ public:
   bool evolveTotalEnergy() const;
   void evolveTotalEnergy(bool val);
 
-  bool linearCorrectKernel() const;
-  void linearCorrectKernel(bool val);
+  bool linearCorrectGradients() const;
+  void linearCorrectGradients(bool val);
 
   bool applySelectSumDensity() const;
   void applySelectSumDensity(bool x);
@@ -276,7 +276,7 @@ private:
 
   bool mCompatibleEnergyEvolution;
   bool mEvolveTotalEnergy; 
-  bool mLinearCorrectKernel;
+  bool mLinearCorrectGradients;
   bool mPlaneStrain;
   bool mApplySelectDensitySum;                        // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
