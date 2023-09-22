@@ -32,6 +32,10 @@ KernelAveragingMethod = PYB11enum(("NeverAverageKernels",
                                    "AlwaysAverageKernels",
                                    "AverageInterfaceKernels"), export_values = True)
 
+FSIMassDensityMethod = PYB11enum(("FSISumMassDensity",
+                                  "PressureCorrectSumMassDensity",
+                                  "HWeightedSumMassDensity"), export_values = True)
+
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------

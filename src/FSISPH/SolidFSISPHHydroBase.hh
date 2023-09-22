@@ -1,5 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidFSISPHHydroBase -- 
+// SolidFSISPHHydroBase -- SolidSPHHydro modified to better handle 
+//                         multimaterial material problems with interfaces
+//                         and large density ratios. 
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_SolidFSISPHHydroBase_hh__
 #define __Spheral_SolidFSISPHHydroBase_hh__
@@ -22,6 +26,12 @@ enum class KernelAveragingMethod {
   NeverAverageKernels = 0,
   AlwaysAverageKernels = 1,
   AverageInterfaceKernels = 2,
+};
+
+enum class FSIMassDensityMethod {
+  FSISumMassDensity = 0,
+  PressureCorrectSumMassDensity = 1,
+  HWeightedSumMassDensity = 2,
 };
 
 template<typename Dimension> class State;
@@ -54,7 +64,6 @@ public:
                     ArtificialViscosity<Dimension>& Q,
                     SlideSurface<Dimension>& slide,
                     const TableKernel<Dimension>& W,
-                    const double filter,
                     const double cfl,
                     const double surfaceForceCoefficient,
                     const double densityStabilizationCoefficient,
@@ -66,15 +75,14 @@ public:
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
                     const bool evolveTotalEnergy,
-                    const bool gradhCorrection,
-                    const bool XSPH,
-                    const bool correctVelocityGradient,
-                    const MassDensityType densityUpdate,
+                    const bool linearCorrectKernel,
+                    const bool planeStrain,
+                    const double interfacePmin,
+                    const double interfaceNeighborAngleThreshold,
+                    const FSIMassDensityMethod densityUpdate,
                     const HEvolutionType HUpdate,
                     const double epsTensile,
                     const double nTensile,
-                    const bool damageRelieveRubble,
-                    const bool strengthInDamage,
                     const Vector& xmin,
                     const Vector& xmax);
 
@@ -144,8 +152,8 @@ public:
   const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
   SlideSurface<Dimension>& slideSurface() const;
 
-  MassDensityType densityUpdate() const;
-  void densityUpdate(MassDensityType type);
+  FSIMassDensityMethod densityUpdate() const;
+  void densityUpdate(FSIMassDensityMethod type);
 
   HEvolutionType HEvolution() const;
   void HEvolution(HEvolutionType type);
@@ -162,11 +170,14 @@ public:
   bool evolveTotalEnergy() const;
   void evolveTotalEnergy(bool val);
 
-  bool correctVelocityGradient() const;
-  void correctVelocityGradient(bool val);
+  bool linearCorrectKernel() const;
+  void linearCorrectKernel(bool val);
 
   bool applySelectSumDensity() const;
   void applySelectSumDensity(bool x);
+
+  bool planeStrain() const;
+  void planeStrain(bool val);
 
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
@@ -179,6 +190,12 @@ public:
 
   double specificThermalEnergyDiffusionCoefficient() const;
   void specificThermalEnergyDiffusionCoefficient(double x);
+
+  double interfacePmin() const;
+  void interfacePmin(double val);
+
+  double interfaceNeighborAngleThreshold() const;
+  void interfaceNeighborAngleThreshold(double val);
 
   double xsphCoefficient() const;
   void xsphCoefficient(double x);
@@ -239,13 +256,6 @@ public:
   const FieldList<Dimension, Scalar>& interfaceFraction() const;
   const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
   const FieldList<Dimension, Scalar>& interfaceAngles() const;
-  // const FieldList<Dimension, Vector>&    interfaceNormals() const;
-  // const FieldList<Dimension, Scalar>&    interfaceFraction() const;
-  // const FieldList<Dimension, Scalar>&    interfaceSmoothness() const;
-  // const FieldList<Dimension, Vector>&    newInterfaceNormals() const;
-  // const FieldList<Dimension, Vector>&    smoothedInterfaceNormals() const;
-  // const FieldList<Dimension, Scalar>&    newInterfaceFraction() const;
-  // const FieldList<Dimension, Scalar>&    newInterfaceSmoothness() const;
   
   //****************************************************************************
   // Methods required for restarting.
@@ -259,14 +269,15 @@ private:
   const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
   SlideSurface<Dimension>& mSlideSurface;
 
-  MassDensityType mDensityUpdate;
+  FSIMassDensityMethod mDensityUpdate;
   HEvolutionType mHEvolution;
   InterfaceMethod mInterfaceMethod;                   // switch for material interface method
   KernelAveragingMethod mKernelAveragingMethod;       // how do we handle our kernels?
 
   bool mCompatibleEnergyEvolution;
   bool mEvolveTotalEnergy; 
-  bool mCorrectVelocityGradient;
+  bool mLinearCorrectKernel;
+  bool mPlaneStrain;
   bool mApplySelectDensitySum;                        // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
 
@@ -274,6 +285,8 @@ private:
   double mDensityStabilizationCoefficient;            // adjusts DvDx to stabilize rho
   double mSpecificThermalEnergyDiffusionCoefficient;  // controls diffusion of eps
   double mXSPHCoefficient;                            // controls amount of xsph-ing
+  double mInterfacePmin;                              // min pressure across interfaces (similar to eos)
+  double mInterfaceNeighborAngleThreshold;            // opening angle used to id surf/interface nodes
 
   Scalar mEpsTensile;
   Scalar mnTensile;
@@ -313,30 +326,6 @@ private:
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, SymTensor> mMassSecondMoment;
-
-  //   const FieldList<Dimension, int>& interfaceFlags() const;
-  // const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
-  // const FieldList<Dimension, Vector>& interfaceNormals() const;
-  // const FieldList<Dimension, Scalar>& interfaceSmoothness() const;
-
-  // const FieldList<Dimension, int>& newInterfaceFlags() const;
-  // const FieldList<Dimension, Vector>& newInterfaceAreaVectors() const;
-  // const FieldList<Dimension, Vector>& newInterfaceNormals() const;
-  // const FieldList<Dimension, Scalar>& interfaceSmoothnessNormalization() const;
-  // const FieldList<Dimension, Scalar>& interfaceFraction() const;
-  // const FieldList<Dimension, Scalar>& newInterfaceSmoothness() const;
-  // const FieldList<Dimension, Scalar>& interfaceAngles() const;
-
-  // FieldList<Dimension, int> mInterfaceFlags;
-  // FieldList<Dimension, Scalar> mInterfaceFraction;                 // fraction of dissimilar neighbor volume     
-  // FieldList<Dimension, Vector> interfaceAreaVectors;               // interface area * normal vector
-  // FieldList<Dimension, Vector> mInterfaceNormals;                  // surface normals between nodelists     
-  // FieldList<Dimension, Scalar> mInterfaceSmoothness;               // smoothness metric (0-1)    
-  // FieldList<Dimension, Vector> mNewInterfaceAreaVectors;           // fraction of dissimilar neighbor volume     
-  // FieldList<Dimension, Vector> mNewInterfaceNormals;               // surface normals between nodelists next time step    
-  // FieldList<Dimension, Scalar> mNewInterfaceSmoothness;            // smoothness metric (0-1) next time step 
-  // FieldList<Dimension, Vector> mSmoothedInterfaceNormals;          // SPH interp of surface normal
-  // FieldList<Dimension, Scalar> mInterfaceAngle;                    // angle between neighbor and normal
 
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs

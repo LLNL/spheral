@@ -39,7 +39,7 @@ SolidFSISPHHydroBase<Dimension>::slideSurface() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-MassDensityType
+FSIMassDensityMethod
 SolidFSISPHHydroBase<Dimension>::densityUpdate() const {
   return mDensityUpdate;
 }
@@ -48,7 +48,7 @@ template<typename Dimension>
 inline
 void
 SolidFSISPHHydroBase<Dimension>::
-densityUpdate(MassDensityType type) {
+densityUpdate(FSIMassDensityMethod type) {
   mDensityUpdate = type;
 }
 
@@ -147,16 +147,34 @@ SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::correctVelocityGradient() const {
-  return mCorrectVelocityGradient;
+SolidFSISPHHydroBase<Dimension>::linearCorrectKernel() const {
+  return mLinearCorrectKernel;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::correctVelocityGradient(bool val) {
-  mCorrectVelocityGradient = val;
+SolidFSISPHHydroBase<Dimension>::linearCorrectKernel(bool val) {
+  mLinearCorrectKernel = val;
 }
+
+//------------------------------------------------------------------------------
+// plane strain (instead of plane stress) mode for 1D and 2D problems
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+SolidFSISPHHydroBase<Dimension>::planeStrain() const {
+  return mPlaneStrain;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::planeStrain(bool val) {
+  mPlaneStrain = val;
+}
+
 
 //------------------------------------------------------------------------------
 // switch to turn on density sum for different nodeLists
@@ -252,6 +270,36 @@ double
 SolidFSISPHHydroBase<Dimension>::
 xsphCoefficient() const {
   return mXSPHCoefficient;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+interfacePmin(double x) {
+  mInterfacePmin = x;
+}
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+interfacePmin() const {
+  return mInterfacePmin;
+}
+
+template<typename Dimension>
+inline
+void
+SolidFSISPHHydroBase<Dimension>::
+interfaceNeighborAngleThreshold(double x) {
+  mInterfaceNeighborAngleThreshold = x;
+}
+template<typename Dimension>
+inline
+double
+SolidFSISPHHydroBase<Dimension>::
+interfaceNeighborAngleThreshold() const {
+  return mInterfaceNeighborAngleThreshold;
 }
 
 //------------------------------------------------------------------------------

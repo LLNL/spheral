@@ -24,7 +24,7 @@ class SolidFSISPHHydroBase(GenericHydro):
                Q = "ArtificialViscosity<%(Dimension)s>&",
                slides = "SlideSurface<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
+               #filter = "const double",
                cfl = "const double",
                surfaceForceCoefficient = "const double",
                densityStabilizationCoefficient = "const double",
@@ -36,15 +36,18 @@ class SolidFSISPHHydroBase(GenericHydro):
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
                evolveTotalEnergy = "const bool",
-               gradhCorrection = "const bool",
-               XSPH = "const bool",
-               correctVelocityGradient = "const bool",
-               densityUpdate = "const MassDensityType",
+               #gradhCorrection = "const bool",
+               #XSPH = "const bool",
+               linearCorrectKernel = "const bool",
+               planeStrain = "const bool",
+               interfacePmin = "const double",
+               interfaceNeighborAngleThreshold = "const double ",
+               densityUpdate = "const FSIMassDensityMethod",
                HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
-               damageRelieveRubble = "const bool",
-               strengthInDamage = "const bool",
+               #damageRelieveRubble = "const bool",
+               #strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "SolidFSISPHHydroBase constructor"
@@ -98,20 +101,23 @@ mass density, velocity, and specific thermal energy."""
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
     smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod",returnpolicy="reference_internal",doc="The object defining how we evolve smoothing scales.")
     
-    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate", doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
+    densityUpdate = PYB11property("FSIMassDensityMethod", "densityUpdate", "densityUpdate", doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution", doc="Flag to select how we want to evolve the H tensor")
     interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",doc="Flag to select how we want construct material interfaces")
     kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",doc="Flag to select our kernel type")
 
+    planeStrain = PYB11property("bool", "planeStrain", "planeStrain",doc="use plane strain approach for 1D or 2D problems.")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
     evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",doc="Flag controlling if we evolve total or specific energy.")
-    correctVelocityGradient = PYB11property("bool", "correctVelocityGradient", "correctVelocityGradient",doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
+    linearCorrectKernel = PYB11property("bool", "linearCorrectKernel", "linearCorrectKernel",doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
     sumDensityNodeLists = PYB11property("std::vector<int>", "sumDensityNodeLists", "sumDensityNodeLists",doc="control if rigorous density sum is applied to individual node lists.")
     
     surfaceForceCoefficient = PYB11property("double", "surfaceForceCoefficient", "surfaceForceCoefficient",doc="additional force between different materials ala Monaghan 2013.")
     densityStabilizationCoefficient = PYB11property("double", "densityStabilizationCoefficient", "densityStabilizationCoefficient",doc="coefficient used to adjust velocity gradient to prevent unstable rho.")
     specificThermalEnergyDiffusionCoefficient = PYB11property("double", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient",doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
     xsphCoefficient = PYB11property("double", "xsphCoefficient", "xsphCoefficient",doc="coefficient to dial magnitude of xsph.")
+    interfacePmin = PYB11property("double", "interfacePmin", "interfacePmin",doc="minimum pressure allowed across a material face.")
+    interfaceNeighborAngleThreshold = PYB11property("double", "interfaceNeighborAngleThreshold", "interfaceNeighborAngleThreshold",doc="parameter controling interface and free surface detection.")
 
     epsilonTensile = PYB11property("double", "epsilonTensile", "epsilonTensile",doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("double", "nTensile", "nTensile", doc="Parameters for the tensile correction force at small scales.")

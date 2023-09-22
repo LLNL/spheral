@@ -1,8 +1,10 @@
 include_directories(.)
+
 set(FSISPH_inst
     SolidFSISPHHydroBase
     computeFSISPHSumMassDensity
     computeHWeightedFSISPHSumMassDensity
+    computeInterfacePressureCorrectedSumMassDensity
     SlideSurface
     Policies/PairwisePlasticStrainPolicy
     )
@@ -19,6 +21,7 @@ set(FSISPH_headers
     SolidFSISPHHydroBaseInline.hh
     computeFSISPHSumMassDensity.hh
     computeHWeightedFSISPHSumMassDensity.hh
+    computeInterfacePressureCorrectedSumMassDensity.hh
     FSIFieldNames.hh
     SlideSurface.hh
     SlideSurfaceInline.hh

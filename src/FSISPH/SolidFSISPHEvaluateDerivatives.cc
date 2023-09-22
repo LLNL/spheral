@@ -12,10 +12,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                           StateDerivatives<Dimension>& derivatives) const { 
 
-  // bump out 
-  const double interfaceNeighborAngleThreshold = 0.707; // (equiv to 90 deg opening angle threshold)
-
-
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
@@ -26,14 +22,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
-  // A few useful constants we'll use in the following loop.
+  // huge amount of tinies
   const auto tiny = std::numeric_limits<double>::epsilon();
   const auto tinyScalarDamage = 1.0e-2;
   const auto tinyNonDimensional = 1.0e-6;
 
-  const auto interfacePmin = 0.0; // Make this a settable property.
-
+  // constants
   const auto W0 = W(0.0, 1.0);
+  const auto interfaceNeighborAngleThreshold = this->interfaceNeighborAngleThreshold();
+  const auto interfacePmin = this-> interfacePmin();
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto totalEnergy = this->evolveTotalEnergy();
@@ -48,7 +45,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
   const auto constructHLLC = (mInterfaceMethod == InterfaceMethod::HLLCInterface);
   const auto activateConstruction = !(mInterfaceMethod == InterfaceMethod::NoInterface);
-  const auto oneOverDimension = 1.0/Dimension::nDim;
+  const auto oneOverDimension = (this->planeStrain() ? 1.0/3.0 : 1.0/Dimension::nDim);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -82,7 +79,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
   const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
-  CHECK(fragIDs.size()==numNodeLists);
   CHECK(interfaceFlags.size() == numNodeLists);
   CHECK(interfaceAreaVectors.size() == numNodeLists);
   CHECK(interfaceNormals.size() == numNodeLists);
@@ -102,7 +98,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
-  CHECK(yieldStrength.size() == numNodeLists);
+  CHECK(yield.size() == numNodeLists);
   CHECK(invJ2.size() == numNodeLists);
 
   // Derivative FieldLists.
@@ -135,6 +131,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   
+  CHECK(M.size() == numNodeLists);
+  CHECK(localM.size() == numNodeLists);
+  CHECK(DepsDx.size() == numNodeLists);
+  CHECK(DPDx.size() == numNodeLists);
   CHECK(newInterfaceFlags.size() == numNodeLists);
   CHECK(newInterfaceAreaVectors.size() == numNodeLists);
   CHECK(newInterfaceNormals.size() == numNodeLists);
@@ -386,7 +386,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWj = gradWij;
       }
 
-      if(this->correctVelocityGradient()){
+      if(this->linearCorrectKernel()){
         gradWiMi = Mi.Transpose()*gradWi;
         gradWjMj = Mj.Transpose()*gradWj;
       }
@@ -774,7 +774,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      if(this->correctVelocityGradient()) localDvDxi = localDvDxi*localMi;
+      if(this->linearCorrectKernel()) localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();

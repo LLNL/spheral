@@ -1,5 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidFSISPHHydroBase -- SolidSPHHydro modified for large density discontinuities
+// SolidFSISPHHydroBase -- SolidSPHHydro modified to better handle 
+//                         multimaterial material problems with interfaces
+//                         and large density ratios. 
+//
+// J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
 
@@ -56,6 +60,7 @@
 #include "FSISPH/FSIFieldNames.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
 #include "FSISPH/computeHWeightedFSISPHSumMassDensity.hh"
+#include "FSISPH/computeInterfacePressureCorrectedSumMassDensity.hh"
 #include "FSISPH/SlideSurface.hh"
 #include "FSISPH/Policies/PairwisePlasticStrainPolicy.hh"
 
@@ -129,7 +134,6 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   ArtificialViscosity<Dimension>& Q,
                   SlideSurface<Dimension>& slides,
                   const TableKernel<Dimension>& W,
-                  const double filter,
                   const double cfl,
                   const double surfaceForceCoefficient,
                   const double densityStabilizationCoefficient,
@@ -141,15 +145,14 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
                   const bool evolveTotalEnergy,
-                  const bool gradhCorrection,
-                  const bool XSPH,
-                  const bool correctVelocityGradient,
-                  const MassDensityType densityUpdate,
+                  const bool linearCorrectKernel,
+                  const bool planeStrain,
+                  const double interfacePmin,
+                  const double interfaceNeighborAngleThreshold,
+                  const FSIMassDensityMethod densityUpdate,
                   const HEvolutionType HUpdate,
                   const double epsTensile,
                   const double nTensile,
-                  const bool damageRelieveRubble,
-                  const bool strengthInDamage,
                   const Vector& xmin,
                   const Vector& xmax):
   GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
@@ -162,13 +165,16 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mKernelAveragingMethod(kernelAveragingMethod),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
-  mCorrectVelocityGradient(correctVelocityGradient),
+  mLinearCorrectKernel(linearCorrectKernel),
+  mPlaneStrain(planeStrain),
   mApplySelectDensitySum(false),
   mSumDensityNodeLists(sumDensityNodeLists),
   mSurfaceForceCoefficient(surfaceForceCoefficient),
   mDensityStabilizationCoefficient(densityStabilizationCoefficient),
   mSpecificThermalEnergyDiffusionCoefficient(specificThermalEnergyDiffusionCoefficient),
   mXSPHCoefficient(xsphCoefficient),
+  mInterfacePmin(interfacePmin),
+  mInterfaceNeighborAngleThreshold(interfaceNeighborAngleThreshold),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mxmin(xmin),
@@ -371,7 +377,6 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the deviatoric stress and plastic strain to be evolved.
   auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
   auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
-  auto deviatoricStressPolicy = make_shared<DeviatoricStressPolicy<Dimension>>();
   auto Ppolicy = make_shared<DamagedPressurePolicy<Dimension>>();
   auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
   auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
@@ -385,6 +390,13 @@ registerState(DataBase<Dimension>& dataBase,
   auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
   auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
   
+  if(this->planeStrain()){
+    auto deviatoricStressPolicy = make_shared<IncrementFieldList<Dimension, SymTensor>>();
+    state.enroll(deviatoricStress, deviatoricStressPolicy);
+  }else{
+    auto deviatoricStressPolicy = make_shared<DeviatoricStressPolicy<Dimension>>();
+    state.enroll(deviatoricStress, deviatoricStressPolicy);
+  }
 
   if(this->compatibleEnergyEvolution()){
     auto  thermalEnergyPolicy = make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
@@ -418,7 +430,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(velocity,             velocityPolicy);
   state.enroll(mVolume,              volumePolicy);
   state.enroll(massDensity,          rhoPolicy);
-  state.enroll(deviatoricStress,     deviatoricStressPolicy);
   state.enroll(Hfield,               Hpolicy);
   state.enroll(mSoundSpeed,          csPolicy);
   state.enroll(mPressure,            Ppolicy);
@@ -427,14 +438,11 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mShearModulus,        shearModulusPolicy);
   state.enroll(mYieldStrength,       yieldStrengthPolicy);
   state.enroll(plasticStrain,        plasticStrainPolicy);
-  // state.enroll(mInterfaceNormals,    interfaceNormalsPolicy); 
-  // state.enroll(mInterfaceFraction,   interfaceFractionPolicy);
-  // state.enroll(mInterfaceSmoothness, interfaceSmoothnessPolicy);
 
-  state.enroll(mInterfaceFlags,interfaceFlagsPolicy);
-  state.enroll(mInterfaceAreaVectors,interfaceAreaVectorsPolicy); 
-  state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
-  state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
+  state.enroll(mInterfaceFlags,       interfaceFlagsPolicy);
+  state.enroll(mInterfaceAreaVectors, interfaceAreaVectorsPolicy); 
+  state.enroll(mInterfaceNormals,     interfaceNormalsPolicy); 
+  state.enroll(mInterfaceSmoothness,  interfaceSmoothnessPolicy); 
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -536,23 +544,61 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& /*derivs*/) {
   TIME_BEGIN("SolidFSISPHpreStepInitialize");
   if (mApplySelectDensitySum){
-
-      const auto& connectivityMap = dataBase.connectivityMap();
-      const auto& position = state.fields(HydroFieldNames::position, Vector::zero);
-      const auto& mass = state.fields(HydroFieldNames::mass, 0.0);
-      const auto& H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  switch(this->densityUpdate()){
+   case FSIMassDensityMethod::FSISumMassDensity:
+    {
       const auto& W = this->kernel();
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
             auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-            auto  volume = state.fields(HydroFieldNames::volume, 0.0);
-
-      computeHWeightedFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
-      computeSPHVolume(mass,massDensity,volume);
-
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr){
-        (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-        (*boundaryItr)->applyFieldListGhostBoundary(volume);
-      }
+      computeFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+     break;
+    }
+    case FSIMassDensityMethod::PressureCorrectSumMassDensity:
+    {
+      const auto& W = this->kernel();
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+            auto  pressure = state.fields(HydroFieldNames::pressure, 0.0);
+            auto  soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+            auto  volume = state.fields(HydroFieldNames::volume, 0.0);
+            auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      computeInterfacePressureCorrectedSumMassDensity(connectivityMap, 
+                                                      W, 
+                                                      mSumDensityNodeLists, 
+                                                      position, 
+                                                      mass, 
+                                                      H,
+                                                      volume,
+                                                      pressure,
+                                                      soundSpeed,
+                                                      massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      break;
+    }
+    case FSIMassDensityMethod::HWeightedSumMassDensity:
+    {
+      const auto& W = this->kernel();
+      const auto& connectivityMap = dataBase.connectivityMap();
+      const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+      const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+      const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+            auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+      computeHWeightedFSISPHSumMassDensity(connectivityMap, W, mSumDensityNodeLists, position, mass, H, massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
+      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      break;
+    }
+    default:
+      break;
+  }
   }
   TIME_END("SolidFSISPHpreStepInitialize");
 }
