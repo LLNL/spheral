@@ -16,50 +16,6 @@ import mpi
 title("Analytic evolution test of P-alpha porosity model")
 
 #-------------------------------------------------------------------------------
-# Fake hydro class to force known time derviative values
-#-------------------------------------------------------------------------------
-class FakeHydro(Physics):
-    def __init__(self,
-                 db,
-                 DrhoDt0,
-                 DuDt0):
-        Physics.__init__(self)
-        self.DrhoDt0 = DrhoDt0
-        self.DuDt0 = DuDt0
-        self.pressure = db.newFluidScalarFieldList(0.0, HydroFieldNames.pressure)
-        self.DrhoDt = db.newFluidScalarFieldList(0.0, "delta " + HydroFieldNames.massDensity)
-        self.DuDt = db.newFluidScalarFieldList(0.0, "delta " + HydroFieldNames.specificThermalEnergy)
-        return
-
-    def evaluateDerivatives(self, t, dt, db, state, derivs):
-        DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
-        DuDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
-        assert (DrhoDt.numFields == 1 and DuDt.numFields == 1 and
-                DrhoDt[0].numElements == 1 and DuDt[0].numElements == 1)
-        DrhoDt[0][0] = self.DrhoDt0
-        DuDt[0][0] = self.DuDt0
-        return
-
-    def dt(self, db, state, derivs, t):
-        rho = state.scalarFields(HydroFieldNames.massDensity)
-        return pair_double_string(1.0, "Fake timestep")
-
-    def registerState(self, db, state):
-        rho = db.fluidMassDensity
-        state.enroll(rho, ScalarIncrementBoundedFieldList(0.0))
-        state.enroll(db.fluidSpecificThermalEnergy, ScalarIncrementFieldList())
-        state.enroll(self.pressure, PressurePolicy())
-        return
-
-    def registerDerivatives(self, db, derivs):
-        derivs.enroll(self.DrhoDt)
-        derivs.enroll(self.DuDt)
-        return
-
-    def label(self):
-        return "FakeHydro"
-
-#-------------------------------------------------------------------------------
 # Build our units (cm, gm, microsec)
 #-------------------------------------------------------------------------------
 units = CGuS()
@@ -81,8 +37,9 @@ commandLine(
     n2 = 1.0,
 
     # Fake hydro
-    DrhoDt0 = 0.5,
-    DuDt0 = 0.1,
+    evolution = "sinudoidal",          # linear, sinusoidal
+    DrhoDt0 = 1.0,
+    DuDt0 = 2.0,
 
     # Initial conditions (initial density set by alpha0 and rhoS0)
     eps0 = 0.0,
@@ -99,7 +56,7 @@ commandLine(
     mu = 2.0,
 
     IntegratorConstructor = SynchronousRK1Integrator,
-    goalTime = 2.5,
+    goalTime = 5.0,
     steps = None,
     sampleCycle = 1,
     dt = 1e-2,
@@ -111,6 +68,9 @@ commandLine(
     dataDir = "dumps-PalphaAnalyticEvolution",
     outputFileName = "PorosityTimeHistory.gnu",
 )
+
+evolution = evolution.lower()
+assert evolution in ("linear", "sinusoidal")
 
 assert 1.0 <= alpha0
 assert 1.0 <= alphat <= alpha0
@@ -201,10 +161,61 @@ output("db.numFluidNodeLists")
 output("db.numSolidNodeLists")
 
 #-------------------------------------------------------------------------------
+# We create a fake hydro class to force known time derviative values
+#-------------------------------------------------------------------------------
+class FakeHydro(Physics):
+    def __init__(self,
+                 db,
+                 DrhoDt0,
+                 DuDt0,
+                 evolution):
+        Physics.__init__(self)
+        assert evolution in ("linear", "sinusoidal")
+        self.DrhoDt0 = DrhoDt0
+        self.DuDt0 = DuDt0
+        self.evolution = evolution
+        self.pressure = db.newFluidScalarFieldList(0.0, HydroFieldNames.pressure)
+        self.DrhoDt = db.newFluidScalarFieldList(0.0, "delta " + HydroFieldNames.massDensity)
+        self.DuDt = db.newFluidScalarFieldList(0.0, "delta " + HydroFieldNames.specificThermalEnergy)
+        return
+
+    def evaluateDerivatives(self, t, dt, db, state, derivs):
+        DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
+        DuDt = derivs.scalarFields("delta " + HydroFieldNames.specificThermalEnergy)
+        assert (DrhoDt.numFields == 1 and DuDt.numFields == 1 and
+                DrhoDt[0].numElements == 1 and DuDt[0].numElements == 1)
+        if self.evolution == "linear":
+            ft = 1.0
+        elif self.evolution == "sinusoidal":
+            ft = sin(2.0*pi*t)
+        DrhoDt[0][0] = ft * self.DrhoDt0
+        DuDt[0][0] = ft * self.DuDt0
+        return
+
+    def dt(self, db, state, derivs, t):
+        rho = state.scalarFields(HydroFieldNames.massDensity)
+        return pair_double_string(1.0, "Fake timestep")
+
+    def registerState(self, db, state):
+        rho = db.fluidMassDensity
+        state.enroll(rho, ScalarIncrementBoundedFieldList(0.0))
+        state.enroll(db.fluidSpecificThermalEnergy, ScalarIncrementFieldList())
+        state.enroll(self.pressure, PressurePolicy())
+        return
+
+    def registerDerivatives(self, db, derivs):
+        derivs.enroll(self.DrhoDt)
+        derivs.enroll(self.DuDt)
+        return
+
+    def label(self):
+        return "FakeHydro"
+
+#-------------------------------------------------------------------------------
 # Construct the fake hydro physics object.  We force known derivatives for
 # the hydro state in order to drive and test the porosity evolution.
 #-------------------------------------------------------------------------------
-hydro = FakeHydro(db, DrhoDt0, DuDt0)
+hydro = FakeHydro(db, DrhoDt0, DuDt0, evolution)
 output("hydro")
 output("hydro.DrhoDt0")
 output("hydro.DuDt0")
