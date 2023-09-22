@@ -238,11 +238,11 @@ else:
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 output("hydro")
-output("hydro.cfl")
-output("hydro.useVelocityMagnitudeForDt")
-output("hydro.HEvolution")
-output("hydro.densityUpdate")
-output("hydro.compatibleEnergyEvolution")
+output("  hydro.cfl")
+output("  hydro.useVelocityMagnitudeForDt")
+output("  hydro.HEvolution")
+output("  hydro.densityUpdate")
+output("  hydro.compatibleEnergyEvolution")
 
 packages = [hydro]
 
@@ -261,7 +261,7 @@ if PorousModel is PalphaPorosity:
     alpha0 = 1.275
     Pe = 8e8      # dynes/cm^2
     Ps = 7e9      # dynes/cm^2
-    #cS0 = 5.35e5  # cm/sec
+    cS0 = 5.35e5  # cm/sec
     ce = 4.11e5   # cm/sec
     alphae = (alpha0 - 1.0)*((Ps - Pe)/(Ps - Ps0))**2 + 1.0
     print("P-alpha porosity model parameters:")
@@ -276,7 +276,7 @@ if PorousModel is PalphaPorosity:
                                 phi0 = 1.0 - 1.0/alpha0,
                                 Pe = Pe * PCGSconv,
                                 Pt = Pe * PCGSconv,
-                                alphae = alphae,
+                                Ps = Ps * PCGSconv,
                                 alphat = alphae,
                                 n1 = 0.0,
                                 n2 = 2.0,
@@ -284,6 +284,15 @@ if PorousModel is PalphaPorosity:
                                 c0 = ce * vCGSconv)
 
 output("porosityAl")
+output("  porosityAl.Pe")
+output("  porosityAl.Pt")
+output("  porosityAl.Ps")
+output("  porosityAl.alphae")
+output("  porosityAl.alphat")
+output("  porosityAl.n1")
+output("  porosityAl.n2")
+output("  porosityAl.cS0")
+
 packages.append(porosityAl)
 
 #-------------------------------------------------------------------------------
