@@ -334,18 +334,6 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, SymTensor> damage = dataBase.solidDamage();
   FieldList<Dimension, int> fragIDs = dataBase.solidFragmentIDs();
   FieldList<Dimension, int> pTypes = dataBase.solidParticleTypes();
-
-  CHECK(position.numFields() == dataBase.numSolidNodeLists());
-  CHECK(mass.numFields() == dataBase.numSolidNodeLists());
-  CHECK(massDensity.numFields() == dataBase.numSolidNodeLists());
-  CHECK(Hfield.numFields() == dataBase.numSolidNodeLists());
-  CHECK(velocity.numFields() == dataBase.numSolidNodeLists());
-  CHECK(specificThermalEnergy.numFields() == dataBase.numSolidNodeLists());
-  CHECK(deviatoricStress.numFields() == dataBase.numSolidNodeLists());
-  CHECK(plasticStrain.numFields() == dataBase.numSolidNodeLists());
-  CHECK(damage.numFields() == dataBase.numSolidNodeLists());
-  CHECK(fragIDs.numFields() == dataBase.numSolidNodeLists());
-  CHECK(pTypes.numFields() == dataBase.numSolidNodeLists());
   
   auto nodeListi = 0;
   for (auto itr = dataBase.solidNodeListBegin();
