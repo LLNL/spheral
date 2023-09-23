@@ -1,3 +1,18 @@
+Version v2024-01-0 
+==============================================
+
+Notable changes include:
+  * New features/ API changes:
+
+  * Build changes / improvements:
+
+  * Bug Fixes / improvements:
+    * FSISPH new features and modifications to method 
+      * NOTE constructor inputs have changed
+      * strength implementation modified
+      * new features added including plane strain option and settable minP for interfaces
+      * new, more rigorous, interface and free surface tracking
+      
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
 
