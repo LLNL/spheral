@@ -442,12 +442,12 @@ output("hydro")
 try:
     output("hydro.kernel")
     output("hydro.PiKernel")
+    output("hydro.XSPH")
 except:
     pass
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.XSPH")
 
 packages = [hydro]
 
