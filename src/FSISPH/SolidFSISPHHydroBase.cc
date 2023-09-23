@@ -243,6 +243,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
     mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
     mInverseEquivalentDeviatoricStress = dataBase.newFluidFieldList(0.0, FSIFieldNames::inverseEquivalentDeviatoricStress);
+    mVolume = dataBase.newFluidFieldList(0.0,HydroFieldNames::volume);
     mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
     mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
     mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
