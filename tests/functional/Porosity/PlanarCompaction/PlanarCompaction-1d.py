@@ -18,55 +18,6 @@ import mpi
 title("1-D planar compaction of a poroous Al rod")
 
 #-------------------------------------------------------------------------------
-# Stupid little class to override the mass density evolution of the control
-# boundary nodes.
-#-------------------------------------------------------------------------------
-class OverrideNodeProperties:
-    def __init__(self,
-                 nodeList,
-                 rho0,
-                 eps0,
-                 H0,
-                 controlNodeIDs):
-        self.restart = RestartableObject(self)
-        self.nodeList = nodeList
-        self.rho0 = rho0
-        self.eps0 = eps0
-        self.H0 = H0
-        self.controlNodeFlags = ScalarField("flag nodes",
-                                              nodeList,
-                                              0.0)
-        for i in controlNodeIDs:
-            assert i < nodeList.numInternalNodes
-            self.controlNodeFlags[i] = 1.0
-        return
-
-    def override(self, cycle, t, dt):
-        ids = [i for i in range(self.nodeList.numInternalNodes)
-               if self.controlNodeFlags[i] > 0.5]
-        for i in ids:
-            self.nodeList.massDensity()[i] = self.rho0
-            self.nodeList.specificThermalEnergy()[i] = self.eps0
-        return
-
-    def label(self):
-        return "OverrideNodeProperties"
-
-    def dumpState(self, file, path):
-        file.writeObject(self.rho0, path + "/rho0")
-        file.writeObject(self.eps0, path + "/eps0")
-        file.writeObject(self.eps0, path + "/H0")
-        file.write(self.controlNodeFlags, path + "/controlNodeFlags")
-        return
-
-    def restoreState(self, file, path):
-        self.rho0 = file.readObject(path + "/rho0")
-        self.eps0 = file.readObject(path + "/eps0")
-        self.eps0 = file.readObject(path + "/H0")
-        file.read(self.controlNodeFlags, path + "/controlNodeFlags")
-        return
-
-#-------------------------------------------------------------------------------
 # Build our units (cm, gm, microsec)
 #-------------------------------------------------------------------------------
 units = CGuS()
@@ -76,8 +27,7 @@ units = CGuS()
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nx = 500,                          # Number of internal free points
-            vright = -45.8e-3,                 # Fixed velocity on right-end
-            nbound = 20,                       # Number of points in each fixed velocity boundaries
+            v0 = 45.8e-3,                      # Fixed velocity on right-end
             nPerh = 4.01,
 
             PorousModel = PalphaPorosity,
@@ -146,6 +96,10 @@ eosS = TillotsonEquationOfState("aluminum",
                                 etamin = 0.1,
                                 etamax = 10.0,
                                 units = units)
+# eosS = GruneisenEquationOfState("steel",
+#                                 etamin = 0.1,
+#                                 etamax = 10.0,
+#                                 units = units)
 strengthModelS = NullStrength()
 eos = PorousEquationOfState(eosS)
 strengthModel = PorousStrengthModel(strengthModelS)
@@ -179,11 +133,12 @@ nodeSet = [nodes]
 #-------------------------------------------------------------------------------
 print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
-dx = 2.0/nx
-xmax = 1.0 + (nbound + 0.5)*dx
+xmin = -1.0
+xmax = 1.0
+dx = (xmax - xmin)/nx
 phi0 = 1.0 - 1.0/alpha0
 rho0 = rhoS0/alpha0
-distributeNodesInRange1d([(nodes, nx, rho0, (-xmax, xmax))])
+distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
 output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -191,9 +146,8 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # Set node velocites and find the boundary nodes
 pos = nodes.positions()
 vel = nodes.velocity()
-xmax_nodes = [i for i in range(nodes.numInternalNodes) if pos[i].x >  1.0]
-for i in xmax_nodes:
-    vel[i].x = vright
+for i in range(nodes.numInternalNodes):
+    vel[i].x = v0
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -210,9 +164,8 @@ output("db.numSolidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct constant velocity boundary conditions to be applied to the rod ends.
 #-------------------------------------------------------------------------------
-print("Selected %i constant velocity nodes." % (mpi.allreduce(len(xmax_nodes), mpi.SUM)))
-xbc0 = ReflectingBoundary(Plane(Vector(-xmax), Vector(1.0)))
-xbc1 = ConstantVelocityBoundary(nodes, xmax_nodes)
+xbc0 = InflowOutflowBoundary(db, Plane(Vector(xmin), Vector(1.0)))
+xbc1 = ReflectingBoundary(Plane(Vector(xmax), Vector(-1.0)))
 
 bcs = [xbc0, xbc1]
 
@@ -337,17 +290,6 @@ control = SpheralController(integrator, WT,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle)
 output("control")
-
-#-------------------------------------------------------------------------------
-# Override properties on the piston nodes
-#-------------------------------------------------------------------------------
-H0 = nodes.Hfield()[0]
-override = OverrideNodeProperties(nodes,
-                                  rho0,
-                                  eps0,
-                                  H0,
-                                  xmax_nodes)
-control.appendPeriodicWork(override.override, 1)
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
