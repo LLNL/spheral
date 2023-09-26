@@ -39,10 +39,8 @@ list(APPEND _packages
   NodeGenerators
   NodeList
   Physics
-  PYB11
   RK
   GSPH
-  SimulationControl
   SolidMaterial
   SPH
   Strength
@@ -50,6 +48,11 @@ list(APPEND _packages
   Utilities
   )
 
+  if(NOT ENABLE_CXXONLY)
+    list(APPEND _packages
+      SimulationControl
+      PYB11)
+  endif()
 configure_file(config.hh.in
   ${PROJECT_BINARY_DIR}/src/config.hh)
 
