@@ -42,5 +42,5 @@ set(SVPH_headers
 
 spheral_install_python_files(SVPHHydros.py)
 
-spheral_add_obj_library(SVPH)
+spheral_add_obj_library(SVPH "SPHERAL_OBJ_LIBS")
 

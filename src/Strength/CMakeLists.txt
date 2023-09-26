@@ -27,5 +27,5 @@ set(Strength_headers
     effectiveKernelVolume.hh
     )
 
-spheral_add_obj_library(Strength)
+spheral_add_obj_library(Strength "SPHERAL_OBJ_LIBS")
 

@@ -12,16 +12,19 @@
 # ----------------------
 # INPUT-OUTPUT VARIABLES
 # ----------------------
-# <package_name>   : REQUIRED : Desired package name
-# -----------------------,
+# package_name  : REQUIRED : Desired package name
+# obj_list_name : REQUIRED : The NAME of the global variable that is the list of
+#                            internal target libraries (not the list itself)
+# -----------------------
 # OUTPUT VARIABLES TO USE - Made available implicitly after function call
 # -----------------------
-# <Spheral_package_name> : Target for a given spheral package
+# Spheral_<package_name> : Target for a given spheral package
+# <obj_list_name> : List of internal Spheral target objects, appended with target name
 #----------------------------------------------------------------------------------------
-function(spheral_add_obj_library package_name)
+function(spheral_add_obj_library package_name obj_list_name)
   # Assumes global variable SPHERAL_BLT_DEPENDS exists and is filled with external dependencies
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
-  # Assumes global variable spheral_cxx_depends exists and is filled with compiler dependencies
+  # Assumes global variable SPHERAL_CXX_DEPENDS exists and is filled with compiler dependencies
   get_property(SPHERAL_CXX_DEPENDS GLOBAL PROPERTY SPHERAL_CXX_DEPENDS)
   # For including files in submodules, currently unused
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
@@ -36,6 +39,9 @@ function(spheral_add_obj_library package_name)
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
 
+  # Append Spheral_${package_name} to the global object list
+  # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
+  set_property(GLOBAL APPEND PROPERTY ${obj_list_name} Spheral_${package_name})
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
@@ -56,12 +62,12 @@ endfunction()
 # ----------------------
 # INPUT-OUTPUT VARIABLES
 # ----------------------
-# <package_name>   : REQUIRED : Desired package name
-# <_cxx_obj_list>  : REQUIRED : List of internal targets to include
+# package_name   : REQUIRED : Desired package name
+# _cxx_obj_list  : REQUIRED : List of internal targets to include
 # -----------------------
 # OUTPUT VARIABLES TO USE - Made available implicitly after function call
 # -----------------------
-# <Spheral_package_name> : Exportable target for interal package name library
+# Spheral_<package_name> : Exportable target for interal package name library
 #----------------------------------------------------------------------------------------
 function(spheral_add_cxx_library package_name _cxx_obj_list)
   # Assumes global variable SPHERAL_BLT_DEPENDS exists and is filled with external dependencies

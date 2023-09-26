@@ -82,21 +82,10 @@ if(ENABLE_TIMER)
   list(APPEND SPHERAL_EXTERN_LIBS caliper)
 endif()
 
-# Create target library for each external library
+# Create and install target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})
   Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
   list(APPEND SPHERAL_BLT_DEPENDS ${lib})
-endforeach()
-
-# Install each TPL target library
-foreach(lib ${SPHERAL_EXTERN_LIBS})
-  get_target_property(_is_imported ${lib} IMPORTED)
-  if(NOT ${_is_imported})
-    install(TARGETS ${lib}
-      EXPORT spheral_cxx-targets
-      DESTINATION lib/cmake)
-    set_target_properties(${lib} PROPERTIES EXPORT_NAME spheral::${lib})
-  endif()
 endforeach()
 # Note: SPHERAL_BLT_DEPENDS is made global after this in SetupSpheral.cmake
 

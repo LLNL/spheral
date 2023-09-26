@@ -176,4 +176,4 @@ if (ENABLE_TESTS)
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
-include(SpheralConfig)
+include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
