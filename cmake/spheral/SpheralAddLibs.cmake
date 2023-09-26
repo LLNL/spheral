@@ -13,8 +13,6 @@
 # INPUT-OUTPUT VARIABLES
 # ----------------------
 # <package_name>   : REQUIRED : Desired package name
-# any extra args   : OPTIONAL : Can provide the NAME of a global list
-#                               containing additional dependencies
 # -----------------------,
 # OUTPUT VARIABLES TO USE - Made available implicitly after function call
 # -----------------------
