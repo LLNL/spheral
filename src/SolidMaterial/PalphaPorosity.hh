@@ -119,6 +119,8 @@ public:
   double n1() const;
   double n2() const;
   double cS0() const;
+  double fdt() const;
+  double maxAbsDalphaDt() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
   const PorousStrengthModel<Dimension>& porousStrength() const;
   const NodeList<Dimension>& nodeList() const;
@@ -129,12 +131,15 @@ public:
   const Field<Dimension, Scalar>& partialPpartialEps() const;
   const Field<Dimension, Scalar>& partialPpartialRho() const;
 
+  void fdt(const double x);
+
   // Provide the porosity (phi) computed from the internally stored distention alpha
   Field<Dimension, Scalar> phi() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mcS0;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mcS0, mfdt;
+  mutable double mMaxAbsDalphaDt;
   PorousEquationOfState<Dimension>& mPorousEOS;
   PorousStrengthModel<Dimension>& mPorousStrength;
   const NodeList<Dimension>& mNodeList;

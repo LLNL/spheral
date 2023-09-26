@@ -69,6 +69,22 @@ cS0() const {
 
 template<typename Dimension>
 inline
+double
+PalphaPorosity<Dimension>::
+fdt() const {
+  return mfdt;
+}
+
+template<typename Dimension>
+inline
+double
+PalphaPorosity<Dimension>::
+maxAbsDalphaDt() const {
+  return mMaxAbsDalphaDt;
+}
+
+template<typename Dimension>
+inline
 const PorousEquationOfState<Dimension>&
 PalphaPorosity<Dimension>::
 porousEOS() const {
@@ -137,6 +153,17 @@ const Field<Dimension, typename Dimension::Scalar>&
 PalphaPorosity<Dimension>::
 partialPpartialRho() const {
   return mdPdR;
+}
+
+//------------------------------------------------------------------------------
+// setters
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+PalphaPorosity<Dimension>::
+fdt(const double x) {
+  mfdt = x;
 }
 
 }

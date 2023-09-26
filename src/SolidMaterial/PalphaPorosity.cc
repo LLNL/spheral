@@ -14,8 +14,11 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/IncrementFieldList.hh"
 
+#include <string>
+
 using std::vector;
 using std::string;
+using std::to_string;
 using std::pair;
 using std::make_pair;
 using std::cout;
@@ -53,6 +56,7 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mn1(n1),
   mn2(n2),
   mcS0(cS0),
+  mMaxAbsDalphaDt(0.0),
   mPorousEOS(porousEOS),
   mPorousStrength(porousStrength),
   mNodeList(nodeList),
@@ -104,6 +108,7 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mn1(n1),
   mn2(n2),
   mcS0(cS0),
+  mMaxAbsDalphaDt(0.0),
   mPorousEOS(porousEOS),
   mPorousStrength(porousStrength),
   mNodeList(nodeList),
@@ -200,10 +205,10 @@ evaluateDerivatives(const Scalar time,
 
     // First compute the derivative with respect to pressure
     Scalar DalphaDpi = 0.0;
-    if (Pi < mPe or dPsdti < 0.0) {
+    if (dPsdti < 0.0) {
 
       // Elastic
-      if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
+      if (c0i != mcS0 and Pi < mPe) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
         const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
         DalphaDpi = alphai*alphai/(mcS0*mcS0*rho0)*(1.0 - safeInvVar(halpha*halpha));
       }
@@ -220,6 +225,10 @@ evaluateDerivatives(const Scalar time,
     // Now we can compute the final time derivative
     const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
     DalphaDt(i) = DalphaDpi*dPdti;
+#pragma omp critical
+    {
+      mMaxAbsDalphaDt = max(mMaxAbsDalphaDt, abs(DalphaDt(i)));    // For use in the timestep calculation
+    }
   }
 }
 
@@ -235,9 +244,13 @@ dt(const DataBase<Dimension>& dataBase,
    const Scalar currentTime) const {
 
   // Just limit by fractional change (assume we're comparing with min(alpha) = 1.0)
-  const auto& DalphaDt = derivs.field(State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name()), 0.0);
-  const auto dt = 0.05 * safeInvVar(DalphaDt.max());
-  return TimeStepType(dt, "Rate of porosity change.");
+  const auto dt = (mfdt > 0.0 ?
+                   mfdt * safeInvVar(mMaxAbsDalphaDt) :
+                   std::numeric_limits<double>::max());
+  return TimeStepType(dt,
+                      "Rate of porosity change: max(DalphaDt) = " + to_string(mMaxAbsDalphaDt) + "\n" +
+                      "                              material = " + mNodeList.name() + "\n" +
+                      "                               on rank = " + to_string(Process::getRank()));
 }
 
 //------------------------------------------------------------------------------
@@ -299,10 +312,13 @@ template<typename Dimension>
 void
 PalphaPorosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
+  file.write(mMaxAbsDalphaDt, pathName + "/maxAbsDalphaDt");
   file.write(mc0, pathName + "/c0");
   file.write(mAlpha0, pathName + "/alpha0");
   file.write(mAlpha, pathName + "/alpha");
   file.write(mDalphaDt, pathName + "/DalphaDt");
+  file.write(mdPdU, pathName + "/dPdU");
+  file.write(mdPdR, pathName + "/dPdR");
 }
 
 //------------------------------------------------------------------------------
@@ -312,10 +328,13 @@ template<typename Dimension>
 void
 PalphaPorosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
+  file.read(mMaxAbsDalphaDt, pathName + "/maxAbsDalphaDt");
   file.read(mc0, pathName + "/c0");
   file.read(mAlpha0, pathName + "/alpha0");
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
+  file.read(mdPdU, pathName + "/dPdU");
+  file.read(mdPdR, pathName + "/dPdR");
 }
 
 //------------------------------------------------------------------------------

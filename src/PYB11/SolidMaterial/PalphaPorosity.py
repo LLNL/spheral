@@ -118,6 +118,8 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     n1 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     n2 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     cS0 = PYB11property(doc="Reference sound speed at full density")
+    fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
+    maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
     porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
     porousStrength = PYB11property("const PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
     nodeList = PYB11property("const NodeList<%(Dimension)s>&", returnpolicy="reference_internal")
