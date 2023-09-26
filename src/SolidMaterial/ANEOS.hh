@@ -15,6 +15,7 @@
 #include "Utilities/BiCubicInterpolator.hh"
 
 #include <memory>
+#include <tuple>
 
 // Forward declarations.
 namespace Spheral {
@@ -91,6 +92,9 @@ public:
   // We also want the equivalent functions for individual calculations.
   Scalar pressure(const Scalar massDensity,
                   const Scalar specificThermalEnergy) const;
+
+  std::tuple<Scalar, Scalar, Scalar> pressureAndDerivs(const Scalar massDensity,
+                                                       const Scalar specificThermalEnergy) const;
 
   Scalar temperature(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;

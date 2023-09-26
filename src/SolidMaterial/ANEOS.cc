@@ -783,6 +783,32 @@ pressure(const Scalar massDensity,
 }
 
 //------------------------------------------------------------------------------
+// Calculate individual pressure and it's derivatives
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::tuple<typename Dimension::Scalar, typename Dimension::Scalar, typename Dimension::Scalar>
+ANEOS<Dimension>::
+pressureAndDerivs(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const {
+  double P, dPdU, dPdR;
+  if (mUseInterpolation) {
+    P = (*mPinterp)(massDensity, specificThermalEnergy);
+    dPdU = (*mDPDepsInterp)(massDensity, specificThermalEnergy);
+    dPdR = (*mDPDRinterp)(massDensity, specificThermalEnergy);
+  } else {
+    auto T = this->temperature(massDensity, specificThermalEnergy)/mTconv;
+    auto rho = massDensity/mRhoConv;
+    double eps, S, cV, dPdT, cs;
+    call_aneos_(const_cast<int*>(&mMaterialNumber), &T, &rho,
+                &P, &eps, &S, &cV, &dPdT, &dPdR, &cs);
+    P *= mPconv;
+    dPdU = dPdT * mPconv/mEconv;
+    dPdR *= mPconv/mRhoConv;
+  }
+  return std::make_tuple(this->applyPressureLimits(P), dPdU, dPdR);
+}
+
+//------------------------------------------------------------------------------
 // Calculate an individual temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>

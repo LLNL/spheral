@@ -55,6 +55,12 @@ an appropriate range for (rhoMin, rhoMax), (Tmin, Tmax), *and* have enough value
         return "Scalar"
 
     @PYB11const
+    def pressureAndDerivs(self,
+                          massDensity = "const Scalar",
+                          specificThermalEnergy = "const Scalar"):
+        return "std::tuple<Scalar, Scalar, Scalar>"
+
+    @PYB11const
     def temperature(self,
                     massDensity = "const Scalar",
                     specificThermalEnergy = "const Scalar"):
