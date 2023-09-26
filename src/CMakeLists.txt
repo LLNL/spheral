@@ -53,9 +53,6 @@ list(APPEND _dir_packages
 if(ENABLE_MPI)
   # Add Distributed target
   list(APPEND _target_packages Distributed)
-else()
-  # Otherwise, run add_subdirectory
-  list(APPEND _dir_packages Distributed)
 endif()
 
 if(NOT ENABLE_CXXONLY)

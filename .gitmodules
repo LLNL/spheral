@@ -8,9 +8,7 @@
 	branch = origin/master
 [submodule "extern/PYB11Generator"]
 	path = extern/PYB11Generator
-	branch = update_for_cmake_exports
 	url = https://github.com/LLNL/PYB11Generator
 [submodule "extern/PolyClipper"]
 	path = extern/PolyClipper
-	branch = update_for_cmake_exports
 	url = https://github.com/LLNL/PolyClipper

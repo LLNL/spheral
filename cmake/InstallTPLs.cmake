@@ -17,7 +17,7 @@ if (NOT ENABLE_CXXONLY)
   set(Python3_ROOT_DIR ${python_DIR})
   find_package(Python3 COMPONENTS Interpreter Development)
   set(PYTHON_EXE ${Python3_EXECUTABLE})
-  list(APPEND spheral_blt_depends Python3::Python)
+  list(APPEND SPHERAL_BLT_DEPENDS Python3::Python)
 
   # Set the PYB11Generator path
   if (NOT PYB11GENERATOR_ROOT_DIR)
@@ -28,7 +28,7 @@ if (NOT ENABLE_CXXONLY)
     set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
   endif()
   include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
-  list(APPEND spheral_blt_depends pybind11_headers)
+  list(APPEND SPHERAL_BLT_DEPENDS pybind11_headers)
   install(TARGETS pybind11_headers
     EXPORT spheral_cxx-targets
     DESTINATION lib/cmake)
@@ -37,9 +37,6 @@ endif()
 
 # This is currently unfilled in spheral
 set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}")
-#-----------------------------------------------------------------------------------
-# Find pre-compiled TPLs
-#-----------------------------------------------------------------------------------
 
 # PolyClipper
 if (NOT polyclipper_DIR)
@@ -52,17 +49,29 @@ set(POLYCLIPPER_INSTALL_DIR "PolyClipper/include")
 add_subdirectory(${polyclipper_DIR})
 # Treat includes as system to prevent warnings
 blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
-list(APPEND spheral_blt_depends PolyClipperAPI)
+list(APPEND SPHERAL_BLT_DEPENDS PolyClipperAPI)
 install(TARGETS PolyClipperAPI
   EXPORT spheral_cxx-targets
   DESTINATION lib/cmake)
 set_target_properties(PolyClipperAPI PROPERTIES EXPORT_NAME spheral::PolyClipperAPI)
 
-# TPLs that can use find_package
-list(APPEND SPHERAL_EXTERN_PACKAGES axom)
+#-----------------------------------------------------------------------------------
+# Find pre-compiled TPLs
+#-----------------------------------------------------------------------------------
+
+# Use find_package to get axom (which brings in fmt) and patch fmt
+list(APPEND SPHERAL_BLT_DEPENDS axom)
+find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
+# Add fmt library to external library list
+list(APPEND SPHERAL_BLT_DEPENDS fmt)
+blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
+
+# Initialize TPL options
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
+
 if(ENABLE_ANEOS)
   list(APPEND SPHERAL_EXTERN_LIBS aneos)
 endif()
@@ -73,23 +82,10 @@ if(ENABLE_TIMER)
   list(APPEND SPHERAL_EXTERN_LIBS caliper)
 endif()
 
-# Initialize TPL options
-include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
-
-foreach(lib ${SPHERAL_EXTERN_PACKAGES})
-  # Not sure why but _lib becomes an empty string after find_package so
-  # _lib must be added to list before find package
-  list(APPEND spheral_blt_depends ${lib})
-  find_package(${lib} REQUIRED QUIET NO_DEFAULT_PATH PATHS ${${lib}_DIR}/lib/cmake)
-endforeach()
-# Add fmt library to external library list
-list(APPEND spheral_blt_depends fmt)
-blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
-
 # Create target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})
   Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
-  list(APPEND spheral_blt_depends ${lib})
+  list(APPEND SPHERAL_BLT_DEPENDS ${lib})
 endforeach()
 
 # Install each TPL target library
@@ -102,7 +98,7 @@ foreach(lib ${SPHERAL_EXTERN_LIBS})
     set_target_properties(${lib} PROPERTIES EXPORT_NAME spheral::${lib})
   endif()
 endforeach()
-# Note: spheral_blt_depends is made global after this in SetupSpheral.cmake
+# Note: SPHERAL_BLT_DEPENDS is made global after this in SetupSpheral.cmake
 
 # This calls LLNLSpheralInstallTPLs.cmake
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})

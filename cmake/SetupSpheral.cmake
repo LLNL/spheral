@@ -59,11 +59,11 @@ endif()
 
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-  list(APPEND spheral_blt_depends mpi)
+  list(APPEND SPHERAL_BLT_DEPENDS mpi)
 endif()
 
 if(ENABLE_OPENMP)
-  list(APPEND spheral_blt_depends openmp)
+  list(APPEND SPHERAL_BLT_DEPENDS openmp)
 endif()
 
 if(ENABLE_CUDA)
@@ -120,7 +120,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Set global variables used for dependencies
 #-------------------------------------------------------------------------------
 # List of external dependencies
-set_property(GLOBAL PROPERTY spheral_blt_depends "${spheral_blt_depends}")
+set_property(GLOBAL PROPERTY SPHERAL_BLT_DEPENDS "${SPHERAL_BLT_DEPENDS}")
 # List of compiler dependencies
 set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 
@@ -175,3 +175,5 @@ if (ENABLE_TESTS)
     SOURCE      ${SPHERAL_ROOT_DIR}
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
+
+include(SpheralConfig)
