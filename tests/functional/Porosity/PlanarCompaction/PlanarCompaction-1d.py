@@ -30,9 +30,15 @@ commandLine(nx = 500,                          # Number of internal free points
             v0 = 45.8e-3,                      # Fixed velocity on right-end
             nPerh = 4.01,
 
+            # Material models
+            material = "aluminum",             # One of valid materials in our MaterialLibrary
+            EOSConstructor = TillotsonEquationOfState,
+
+            # Porosity
             PorousModel = PalphaPorosity,
             alpha0 = 1.275,
 
+            # Hydro
             hydro = "SPH",                     # SPH, CRKSPH, FSISPH
             cfl = 0.25,
             useVelocityMagnitudeForDt = True,
@@ -40,7 +46,10 @@ commandLine(nx = 500,                          # Number of internal free points
             epsilonTensile = 0.3,
             nTensile = 4,
             volumeType = RKSumVolume,
+            Cl = None,                         # Artificial viscosity linear coefficient
+            Cq = None,                         # Artificial viscosity quadratic coefficient
 
+            # Time integration
             IntegratorConstructor = VerletIntegrator,
             goalTime = 3.5,
             steps = None,
@@ -55,11 +64,12 @@ commandLine(nx = 500,                          # Number of internal free points
             domainIndependent = True,
             dtverbose = False,
 
+            # Problem control
             restoreCycle = -1,
             restartStep = 500,
 
+            # Output
             graphics = True,
-
             clearDirectories = False,
             dataDirBase = "dumps-PlanarCompaction-1d",
             outputFile = "None",
@@ -70,6 +80,7 @@ hydro = hydro.upper()
 
 dataDir = os.path.join(dataDirBase,
                        PorousModel.__name__,
+                       material + "_" + EOSConstructor.__name__,
                        hydro,
                        "nx=%i" % nx)
 
@@ -92,14 +103,10 @@ mpi.barrier()
 # Note, in the test as presented in the reference there is no strength model,
 # just pressure response.
 #-------------------------------------------------------------------------------
-eosS = TillotsonEquationOfState("aluminum",
-                                etamin = 0.1,
-                                etamax = 10.0,
-                                units = units)
-# eosS = GruneisenEquationOfState("steel",
-#                                 etamin = 0.1,
-#                                 etamax = 10.0,
-#                                 units = units)
+eosS = EOSConstructor(material,
+                      etamin = 0.1,
+                      etamax = 10.0,
+                      units = units)
 strengthModelS = NullStrength()
 eos = PorousEquationOfState(eosS)
 strengthModel = PorousStrengthModel(strengthModelS)
@@ -108,6 +115,7 @@ eps0 = 0.0
 Ps0 = eosS.pressure(rhoS0, eps0)
 cS0 = eosS.soundSpeed(rhoS0, eps0)
 print("Aluminum equation of state initial properties:")
+output("  eosS")
 output(" rhoS0")
 output("  eps0")
 output("   Ps0")
@@ -177,7 +185,8 @@ if hydro == "CRKSPH":
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   densityUpdate = densityUpdate)
+                   densityUpdate = densityUpdate,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt)
 elif hydro == "SPH":
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -186,16 +195,25 @@ elif hydro == "SPH":
                 densityUpdate = densityUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt)
 elif hydro == "FSISPH":
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   compatibleEnergyEvolution = compatibleEnergy)
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt)
+if not Cl is None:
+    hydro.Q.Cl = Cl
+if not Cq is None:
+    hydro.Q.Cq = Cq
 output("hydro")
 output("  hydro.cfl")
 output("  hydro.useVelocityMagnitudeForDt")
 output("  hydro.HEvolution")
+output("  hydro.Q")
+output("  hydro.Q.Cl")
+output("  hydro.Q.Cq")
 if hydro != FSISPH:
     output("  hydro.densityUpdate")
     output("  hydro.compatibleEnergyEvolution")
@@ -365,7 +383,9 @@ if graphics:
              (uPlot, "u.png"),
              (hPlot, "h.png"),
              (alphaPlot, "alpha.png"),
-             (phiPlot, "phi.png")]
+             (phiPlot, "phi.png"),
+             (dPdRplot, "dPdR.png"),
+             (dPdUplot, "dPdU.png")]
 
     # Save the figures.
     for p, fname in plots:

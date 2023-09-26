@@ -229,11 +229,15 @@ evaluateDerivatives(const Scalar time,
 template<typename Dimension>
 typename PalphaPorosity<Dimension>::TimeStepType
 PalphaPorosity<Dimension>::
-dt(const DataBase<Dimension>& /*dataBase*/, 
-   const State<Dimension>& /*state*/,
-   const StateDerivatives<Dimension>& /*derivs*/,
-   const Scalar /*currentTime*/) const {
-  return TimeStepType(1.0e100, "Rate of porosity change -- NO VOTE.");
+dt(const DataBase<Dimension>& dataBase, 
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   const Scalar currentTime) const {
+
+  // Just limit by fractional change (assume we're comparing with min(alpha) = 1.0)
+  const auto& DalphaDt = derivs.field(State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name()), 0.0);
+  const auto dt = 0.05 * safeInvVar(DalphaDt.max());
+  return TimeStepType(dt, "Rate of porosity change.");
 }
 
 //------------------------------------------------------------------------------
