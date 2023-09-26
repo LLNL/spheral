@@ -372,36 +372,43 @@ typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
-  CHECK(valid());
-  const double tiny = 1.0e-20;
-  const double eta = this->boundedEta(massDensity);
-  const double mu = eta - 1.0;
-  const double rho0 = this->referenceDensity();
-  const double rho = rho0*eta;
-  const double eps = mEnergyMultiplier*specificThermalEnergy;
+  const double eta = this->boundedEta(massDensity),
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta;
+  const auto [P, dPdeps, dPdrho] = this->pressureAndDerivs(massDensity, specificThermalEnergy);  // Note, requires C++17
+  const auto dPdrho_ad = dPdrho + dPdeps*P/(rho*rho);
+  return std::abs(dPdrho_ad);
 
-  double ack;
-  if (mu <= 0.0) {
-    ack = 1.0;
-  } else {
-    const double N = (1.0 + (1.0 - 0.5*mgamma0 - 0.5*mb*mu)*mu)*mu;
-    const double x = mu/(1.0 + mu);
-    const double D = 1.0 - (mS1 - 1.0 + (mS2 + mS3*x)*x)*mu;
-    const double dNdmu = 1.0 + (2.0 - mgamma0 - 1.5*mb*mu)*mu;
-    const double dDdmu = - (mS1 - 1.0 + (mS2*(mu + 2.0) + mS3*(mu + 3.0)*x)*x/(1.0 + mu));
-    const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
-    ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(Dinv));
-  }
-  CHECK(ack >= 0.0);
-  const double dpdrho_cold = mC0*mC0*ack;
+  // CHECK(valid());
+  // const double tiny = 1.0e-20;
+  // const double eta = this->boundedEta(massDensity);
+  // const double mu = eta - 1.0;
+  // const double rho0 = this->referenceDensity();
+  // const double rho = rho0*eta;
+  // const double eps = mEnergyMultiplier*specificThermalEnergy;
 
-  // Put the whole thing together, depending on the thermal energy.
-  if (mu <= 0.0 or eps < 0.0) {
-    return dpdrho_cold;
-  } else {
-    const double Prho2 = std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))/(rho*rho);
-    return std::max(0.0, dpdrho_cold + max(0.0, mb*eps + mb*Prho2));
-  }
+  // double ack;
+  // if (mu <= 0.0) {
+  //   ack = 1.0;
+  // } else {
+  //   const double N = (1.0 + (1.0 - 0.5*mgamma0 - 0.5*mb*mu)*mu)*mu;
+  //   const double x = mu/(1.0 + mu);
+  //   const double D = 1.0 - (mS1 - 1.0 + (mS2 + mS3*x)*x)*mu;
+  //   const double dNdmu = 1.0 + (2.0 - mgamma0 - 1.5*mb*mu)*mu;
+  //   const double dDdmu = - (mS1 - 1.0 + (mS2*(mu + 2.0) + mS3*(mu + 3.0)*x)*x/(1.0 + mu));
+  //   const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
+  //   ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(Dinv));
+  // }
+  // CHECK(ack >= 0.0);
+  // const double dpdrho_cold = mC0*mC0*ack;
+
+  // // Put the whole thing together, depending on the thermal energy.
+  // if (mu <= 0.0 or eps < 0.0) {
+  //   return dpdrho_cold;
+  // } else {
+  //   const double Prho2 = std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))/(rho*rho);
+  //   return std::max(0.0, dpdrho_cold + max(0.0, mb*eps + mb*Prho2));
+  // }
 }
 
 //------------------------------------------------------------------------------

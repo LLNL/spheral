@@ -1,5 +1,7 @@
-from SolidSpheral3d import *
-import Gnuplot
+from Spheral3d import *
+from SpheralMatplotlib import plotSurface
+import matplotlib.pyplot as plt
+import numpy as np
 
 #-------------------------------------------------------------------------------
 # Granite (solid) material parameters.
@@ -59,57 +61,82 @@ eosGranite = TillotsonEquationOfState(rho0Granite,     # ref density (kg/m^3)
 #-------------------------------------------------------------------------------
 n = 50
 rhoMin, rhoMax = 0.9*etaMinGranite*rho0Granite, 1.1*etaMaxGranite*rho0Granite
-#rhoMin, rhoMax = rho0Granite, 1.1*etaMaxGranite*rho0Granite
-drho = (rhoMax - rhoMin)/n
-rho = [rhoMin + i*drho for i in range(n + 1)]
+epsMin, epsMax = 1e-5, 1.1*eosGranite.epsVapor
+epsOff = min(2.0*epsMin, 0.0)
+rho = np.geomspace(rhoMin, rhoMax, num = n)
+eps = np.geomspace(epsMin - epsOff, epsMax, num = n) + epsOff
 
-epsMin, epsMax = 0.0, 1.1*eosGranite.epsVapor
-deps = (epsMax - epsMin)/n
-eps = [epsMin + i*deps for i in range(n + 1)]
+rho_grid, eps_grid = np.meshgrid(rho, eps)
+
+shape = rho_grid.shape
+P_grid, cs_grid = np.zeros(shape), np.zeros(shape)
+s_grid, g_grid = np.zeros(shape), np.zeros(shape)
+dPdR_grid, dPdU_grid = np.zeros(shape), np.zeros(shape)
 
 # Write the (rho, eps, P, cs) set to a file.
-f = open("Granite_TillotsonEOS.txt", "w")
-f.write("""
+with open("Granite_TillotsonEOS.txt", "w") as f:
+    f.write(f"""
 # Tillotson EOS dump for a granite like material (all units MKS).
-# rho0 = %g kg/m^3
-# a = %g (dimensionless)
-# b = %g (dimensionless)
-# A = %g (Pa)
-# B = %g (Pa)
-# alpha = %g (dimensionless)
-# beta = %g (dimensionless)
-# eps0 = %g (J/kg)
-# epsLiq = %g (J/kg)
-# epsVap = %g (J/kg)
+# rho0 = {eosGranite.referenceDensity} kg/m^3
+# a = {eosGranite.a} (dimensionless)
+# b = {eosGranite.b} (dimensionless)
+# A = {eosGranite.A} (Pa)
+# B = {eosGranite.B} (Pa)
+# alpha = {eosGranite.alpha} (dimensionless)
+# beta = {eosGranite.beta} (dimensionless)
+# eps0 = {eosGranite.eps0} (J/kg)
+# epsLiq = {eosGranite.epsLiquid} (J/kg)
+# epsVap = {eosGranite.epsVapor} (J/kg)
 #
-""" % (eosGranite.referenceDensity,
-       eosGranite.a,
-       eosGranite.b,
-       eosGranite.A,
-       eosGranite.B,
-       eosGranite.alpha,
-       eosGranite.beta,
-       eosGranite.eps0,
-       eosGranite.epsLiquid,
-       eosGranite.epsVapor))
-f.write((4*"%20s " + "\n") % ("rho (kg/m^3)", "eps (J/kg)", "P (Pa)", "cs (m/sec)"))
+""")
+    f.write((4*"%20s " + "\n") % ("rho (kg/m^3)", "eps (J/kg)", "P (Pa)", "cs (m/sec)"))
 
-P, cs = [], []
-for rhoi in rho:
-    for epsi in eps:
-        P.append((rhoi/rho0Granite, epsi/eosGranite.eps0, eosGranite.pressure(rhoi, epsi)))
-        cs.append((rhoi/rho0Granite, epsi/eosGranite.eps0, eosGranite.soundSpeed(rhoi, epsi)))
-        f.write((4*"%20g " + "\n") % (rhoi, epsi, P[-1][-1], cs[-1][-1]))
-f.close()
+    P, cs = [], []
+    for j in range(n):
+        for i in range(n):
+            rhoi = rho_grid[j][i]
+            epsi = rho_grid[j][i]
+            Pi, dPdUi, dPdRi = eosGranite.pressureAndDerivs(rhoi, epsi)
+            P_grid[j][i] = Pi
+            cs_grid[j][i] = eosGranite.soundSpeed(rhoi, epsi)
+            s_grid[j][i] = eosGranite.entropy(rhoi, epsi)
+            g_grid[j][i] = eosGranite.gamma(rhoi, epsi)
+            dPdR_grid[j][i] = dPdRi
+            dPdU_grid[j][i] = dPdUi
+            f.write((4*"%20g " + "\n") % (rhoi, epsi, P_grid[j][i], cs_grid[j][i]))
 
-Pplot = Gnuplot.Gnuplot()
-Pplot.xlabel("rho/rho0")
-Pplot.ylabel("eps (J/kg)")
-Pdata = Gnuplot.Data(P)
-Pplot.splot(Pdata, title="Pressure")
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), P_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$\log(P)$ (Pa)",
+             title = "Pressure")
 
-csplot = Gnuplot.Gnuplot()
-csplot.xlabel("rho/rho0")
-csplot.ylabel("eps (J/kg)")
-csdata = Gnuplot.Data(cs)
-csplot.splot(csdata, title="sound speed")
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), dPdR_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$\partial P/\partial \rho$ (Pa m$^3$/kg)",
+             title = r"$\partial P/\partial \rho$")
+
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), dPdU_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$\partial P/\partial \varepsilon$ (Pa kg/J)",
+             title = r"$\partial P/\partial \varepsilon$")
+
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), cs_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$c_s$ (m/sec)",
+             title = "Sound speed")
+
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), s_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$s$",
+             title = "entropy")
+
+plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), g_grid,
+             xlabel = r"$\log(\rho)$ (kg/m$^3$)",
+             ylabel = r"$\log(\varepsilon)$ (J/kg)",
+             zlabel = r"$\gamma$",
+             title = "gamma")
