@@ -250,33 +250,37 @@ pressureAndDerivs(const Scalar massDensity,
   const auto ack = safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
   const auto phi = mb*ack;
   const auto dphidu = -phi*ack*safeInvVar(meps0*eta*eta);
-  const auto dphidrho = 2.0*phi*eps*safeInvVar(rho0*meps0*eta*eta*eta)*ack;
+  const auto dphidrho = 2.0*phi*ack*eps*safeInvVar(rho0*meps0*eta*eta*eta);
 
   const auto chi = safeInvVar(eta, 1.0e-10) - 1.0;
   const auto dchidrho = -safeInvVar(rho0*eta*eta);
 
+  // Now determine which regime we're in.
   double P, dPdu, dPdrho;
   if (mu >= 0.0) {
 
     // Regime 1: compression, solid.
     P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
-    dPdu = (ma + phi)*rho;
-    dPdrho = (ma + phi)*eps + (mA + 2.0*mB*mu)*safeInvVar(rho0);
+    dPdu = (ma + phi)*rho + rho*eps*dphidu;
+    dPdrho = (ma + phi)*eps + rho*eps*dphidrho + (mA + 2.0*mB*mu)*safeInvVar(rho0);
 
   } else if (eps <= mepsLiquid) {
 
     // Regime 2: expansion, solid : same as 1, only if rho>cutoff density.
-    P = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
-    dPdu = rho*(ma + phi + eps*dphidu);
-    dPdrho = eps*(ma + phi + rho*dphidrho) + (mA + 2.0*mB*mu)*safeInvVar(rho0);
+    // Simply set B = 0 as described in Saito et al. 2008
+    P = (ma + phi)*rho*eps + mA*mu;
+    dPdu = (ma + phi)*rho + rho*eps*dphidu;
+    dPdrho = (ma + phi)*eps + rho*eps*dphidrho + mA*safeInvVar(rho0);
 
   } else if (eps >= mepsVapor) {
 
     // Regime 4: expansion, vapor.
-    P = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
-    dPdu = ma*rho + phi*rho*exp(-malpha*chi*chi);
-    dPdrho = ma*eps - exp(-malpha*chi*chi)*((phi*rho*eps + mA*mu*exp(-mbeta*chi))*2.0*malpha*chi*dchidrho +
-                                            (phi*eps + mA*exp(-mbeta*chi)*(safeInvVar(rho0) - mu*mbeta*dchidrho)));
+    const auto expalpha = exp(-malpha*chi*chi);
+    const auto expbeta = exp(-mbeta*chi);
+    P = ma*rho*eps + (phi*rho*eps + mA*mu*expbeta)*expalpha;
+    dPdu = ma*rho + rho*(phi + eps*dphidu)*expalpha;
+    dPdrho = ma*eps - ((phi*rho*eps + mA*mu*expbeta)*2.0*malpha*chi*dchidrho +
+                       (phi*eps* + rho*eps*dphidrho + mA*(safeInvVar(rho0) - mu*mbeta*dchidrho)*expbeta)*expalpha);
 
   } else {
 
@@ -285,18 +289,24 @@ pressureAndDerivs(const Scalar massDensity,
     // Following <strike>Saito et al. we compute P2 and P4 at the epsLiquid and
     // epsVapor specific energies</strike> Melosh (personal communication) we
     // compute P2 and P4 at the given energy.
+    // Regimes 1 and 2 (solid)
     const auto P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
-    const auto dP2du = rho*(ma + phi + eps*dphidu);
-    const auto dP2drho = eps*(ma + phi + rho*dphidrho) + (mA + 2.0*mB*mu)*safeInv(rho0);
+    const auto dP2du = (ma + phi)*rho + rho*eps*dphidu;
+    const auto dP2drho = (ma + phi)*eps + rho*eps*dphidrho + (mA + 2.0*mB*mu)*safeInvVar(rho0);
 
-    const auto P4 = ma*rho*eps + (phi*rho*eps + mA*mu*exp(-mbeta*chi))*exp(-malpha*chi*chi);
-    const auto dP4du = ma*rho + rho*(phi + eps*dphidu)*exp(-malpha*chi*chi);
-    const auto dP4drho = ma*eps + exp(-malpha*chi*chi)*(eps*(phi + rho*dphidrho) + mA*exp(-mbeta*chi)*(safeInvVar(rho0) - mbeta*dchidrho) -
-                                                        2.0*malpha*chi*dchidrho*(phi*rho*eps + mA*mu*exp(-mbeta*chi)));
+    // Regime 4 (vapor)
+    const auto expalpha = exp(-malpha*chi*chi);
+    const auto expbeta = exp(-mbeta*chi);
+    const auto P4 = ma*rho*eps + (phi*rho*eps + mA*mu*expbeta)*expalpha;
+    const auto dP4du = ma*rho + rho*(phi + eps*dphidu)*expalpha;
+    const auto dP4drho = ma*eps - ((phi*rho*eps + mA*mu*expbeta)*2.0*malpha*chi*dchidrho +
+                                   (phi*eps* + rho*eps*dphidrho + mA*(safeInvVar(rho0) - mu*mbeta*dchidrho)*expbeta)*expalpha);
 
-    P = P2 + (P4 - P2)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
-    dPdu = dP2du + (P4 - P2 + eps*(dP4du - dP2du))/(mepsVapor - mepsLiquid);
-    dPdrho = dP2drho + (dP4drho - dP2drho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
+    const auto denomInv = safeInvVar(mepsVapor - mepsLiquid);
+    const auto feps = (eps - mepsLiquid)*denomInv;
+    P = P2 + (P4 - P2)*feps;
+    dPdu = dP2du + (P4 - P2)*denomInv + (dP4du - dP2du)*feps;
+    dPdrho = dP2drho + (dP4drho - dP2drho)*feps;
 
   }
 
@@ -438,60 +448,10 @@ TillotsonEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
   const double eta = this->boundedEta(massDensity),
-               mu = eta - 1.0,
                rho0 = this->referenceDensity(),
-               rho = rho0*eta,
-               eps = std::max(0.0, specificThermalEnergy);
-
-  double dPdrho_ad, dPdrho_eps, dPdeps_rho;
-  const double phi = mb*safeInvVar(1.0 + eps*safeInvVar(meps0*eta*eta, 1.0e-10), 1.0e-10);
-  const double chi = safeInvVar(eta, 1.0e-10) - 1.0;
-
-  const double dphidrho = 2.0*mb*meps0*eta*eps*safeInvVar(rho0*FastMath::square(eps + meps0*eta*eta), 1.0e-10);
-  const double dphideps = -mb*meps0*eta*eta*safeInvVar(FastMath::square(eps + meps0*eta*eta), 1.0e-10);
-
-  if (mu >= 0.0) {
-
-    // Regime 1: compression, solid.
-    dPdrho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
-    dPdeps_rho = rho*(ma + phi + eps*dphideps);
-
-  } else if (eps <= mepsLiquid) {
-
-    // Regime 2: expansion, solid : same as 1, but only if rho>cutoff density
-    dPdrho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
-    dPdeps_rho = rho*(ma + phi + eps*dphideps);
-
-  } else if (eps >= mepsVapor) {
-     
-    // Regime 4: expansion, gaseous.
-    dPdrho_eps = ma*eps + 
-             eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
-             mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
-                                                        2.0*rho0*mu*malpha*chi/(rho*rho));
-    dPdeps_rho = rho*(ma + exp(-malpha*chi*chi)*(phi + eps*dphideps));
-
-  } else {
-
-    // Regime 3: expansion, liquid.
-    // Treated here as a linear combination of the solid and gaseous phases.
-    double dP2drho_eps, dP4drho_eps, dP2deps_rho, dP4deps_rho;
-
-    dP2drho_eps = eps*(ma + phi + rho*dphidrho) + (1./rho0)*(mA + 2.0*mB*mu);
-    dP4drho_eps = ma*eps + 
-              eps*exp(-malpha*chi*chi)*(phi + rho*dphidrho + 2.0*malpha*chi*phi*rho0/rho) + 
-              mA*exp(-(malpha*chi*chi+mbeta*chi))*(1./rho0 + rho0*mu*mbeta/(rho*rho) + 
-                                                         2.0*rho0*mu*malpha*chi/(rho*rho));
-    dP2deps_rho = rho*(ma + phi + eps*dphideps);
-    dP4deps_rho = rho*(ma + exp(-malpha*chi*chi)*(phi + eps*dphideps));
-
-    dPdrho_eps = dP2drho_eps + (dP4drho_eps - dP2drho_eps)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
-    dPdeps_rho = dP2deps_rho + (dP4deps_rho - dP2deps_rho)*(eps - mepsLiquid)/(mepsVapor - mepsLiquid);
-
-  }
-
-  // That's it.
-  dPdrho_ad = dPdrho_eps + dPdeps_rho*std::get<0>(pressureAndDerivs(rho, eps))/(rho*rho);
+               rho = rho0*eta;
+  const auto [P, dPdeps, dPdrho] = this->pressureAndDerivs(massDensity, specificThermalEnergy);  // Note, requires C++17
+  const auto dPdrho_ad = dPdrho + dPdeps*P/(rho*rho);
   return std::abs(dPdrho_ad);
 }
 
