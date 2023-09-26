@@ -136,6 +136,14 @@ SpheralMaterialPropertiesLib = {
     "aluminum" : {
         "rho0" : 2.700,         # gm/cm^3
         "atomicWeight" : 24.032,# gm/mol
+        "Gruneisen" : {
+            "C0"     : 0.5386*1e6,# cm/sec
+            "S1"     : 1.339,     # dimensionless
+            "S2"     : 0.0,       # dimensionless
+            "S3"     : 0.0,       # dimensionless
+            "gamma0" : 1.97,      # dimensionless
+            "b"      : 0.48,      # dimensionless (beta)
+        },
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
             "b"    : 1.63,          # dimensionless
