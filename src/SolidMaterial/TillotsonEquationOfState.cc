@@ -68,8 +68,12 @@ TillotsonEquationOfState(const double referenceDensity,
   mepsLiquid(epsLiquid),
   mepsVapor(epsVapor),
   mAtomicWeight(atomicWeight),
-  mCv(3.0 * constants.molarGasConstant() / atomicWeight) {
+  mCv(3.0 * constants.molarGasConstant() / atomicWeight),
+  mdPdRhoMin(0.0) {
   VERIFY(distinctlyGreaterThan(mAtomicWeight/constants.molarGasConstant(),0.0));
+  // Tillotson can compute non-physical negative sound speeds in expansion, so
+  // we protect from this with a minimum allowed value (1% of reference sound speed).
+  mdPdRhoMin = 1e-4*computeDPDrho(referenceDensity, 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -310,10 +314,13 @@ pressureAndDerivs(const Scalar massDensity,
 
   }
 
-  // That's it.
-  return std::make_tuple(this->applyPressureLimits(P),
-                         dPdu,
-                         dPdrho);
+  // That's it.  Note, if we run into the pressure limits we also zero out the derivatives.
+  const auto Plim = this->applyPressureLimits(P);
+  if (P == Plim) {
+    return std::make_tuple(Plim, dPdu, dPdrho);
+  } else {
+    return std::make_tuple(Plim, 0.0, 0.0);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -452,7 +459,7 @@ computeDPDrho(const Scalar massDensity,
                rho = rho0*eta;
   const auto [P, dPdeps, dPdrho] = this->pressureAndDerivs(massDensity, specificThermalEnergy);  // Note, requires C++17
   const auto dPdrho_ad = dPdrho + dPdeps*P/(rho*rho);
-  return std::abs(dPdrho_ad);
+  return std::max(dPdrho_ad, mdPdRhoMin);
 }
 
 }
