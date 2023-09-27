@@ -52,6 +52,7 @@ eosTillotsonBasalt = TillotsonEquationOfState(materialName = "basalt",
 # Plot the pressure, entropy, & sound speed as a function of (rho, eps)
 #-------------------------------------------------------------------------------
 n = 50
+rhoMax = eosTillotsonBasalt.referenceDensity
 rho = np.geomspace(rhoMin, rhoMax, num = n)
 
 stuff = []
@@ -59,7 +60,7 @@ stuff = []
 for eos, label in ((eosSiO2, "SiO2"),
                    # (eosForsterite, "Forsterite"),
                    # (eosWater, "water"),
-                   (eosTillotsonBasalt, "Tillotson")
+                   (eosTillotsonBasalt, "Tillotson"),
                    ):
     rho0 = eos.referenceDensity
     epsMin = eos.specificThermalEnergy(rho0, Tmin)
@@ -79,7 +80,7 @@ for eos, label in ((eosSiO2, "SiO2"),
     for j in range(n):
         for i in range(n):
             rhoi = rho_grid[j][i]
-            epsi = rho_grid[j][i]
+            epsi = eps_grid[j][i]
             Pi, dPdUi, dPdRi = eos.pressureAndDerivs(rhoi,epsi)
             PA_grid[j][i] = Pi
             dPdUA_grid[j][i] = dPdUi
@@ -105,56 +106,56 @@ for eos, label in ((eosSiO2, "SiO2"),
     print("T lookup range for %s    : [%g, %g]" % (label, np.min(Teps_grid), np.max(Teps_grid)))
     print("T(rho,eps)/T range for %s: [%g, %g]" % (label, np.min(epsTratio_grid), np.max(epsTratio_grid)))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(PA_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(P)$ (dyne)",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, PA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$P$ (dyne)",
                              title = r"Pressure %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(dPdUA_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(\partial P/\partial \varepsilon)$",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, dPdUA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$\partial P/\partial \varepsilon$",
                              title = r"$\partial P/\partial \varepsilon$"))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), dPdRA_grid,
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(\partial P/\partial \rho)$",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, dPdRA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$\partial P/\partial \rho$",
                              title = r"$\partial P/\partial \rho$"))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(csA_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(c_s)$ (cm/sec)",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, csA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$c_s$ (cm/sec)",
                              title = r"Sound speed %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(sA_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(s)$",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, sA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$s$",
                              title = r"entropy %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(gA_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(\gamma)$",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, gA_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$\gamma$",
                              title = r"gamma %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), epsT_grid,
-                                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, epsT_grid,
+                                             xlabel = r"$\rho$ (g/cm$^3$)",
+                                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
                                              zlabel = r"$\varepsilon(\rho, T)$",
                                              title = r"eps(rho,T) %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(Teps_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(T(\rho, \varepsilon))$",
-                             title = r"log10[T(rho,eps)] %s" % label))
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, Teps_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$T(\rho, \varepsilon)$",
+                             title = r"T(rho,eps) %s" % label))
 
-    stuff.append(plotSurface(np.log10(rho_grid), np.log10(eps_grid - epsOff), np.log10(epsTratio_grid),
-                             xlabel = r"$\log(\rho)$ (g/cm$^3$)",
-                             ylabel = r"$\log(\varepsilon)$ (Mb cm$^2$/g)",
-                             zlabel = r"$\log(T(\rho, \varepsilon)/T)$",
+    stuff.append(plotSurface(rho_grid, eps_grid - epsOff, epsTratio_grid,
+                             xlabel = r"$\rho$ (g/cm$^3$)",
+                             ylabel = r"$\varepsilon$ (Mb cm$^2$/g)",
+                             zlabel = r"$T(\rho, \varepsilon/T)$",
                              title = r"T(rho,eps(rho,T))/T %s" % label))

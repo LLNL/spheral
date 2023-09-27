@@ -283,9 +283,9 @@ pressureAndDerivs(const Scalar massDensity,
     const auto expbeta = exp(-mbeta*chi);
     P = ma*rho*eps + (phi*rho*eps + mA*mu*expbeta)*expalpha;
     dPdu = ma*rho + rho*(phi + eps*dphidu)*expalpha;
-    dPdrho = ma*eps - ((phi*rho*eps + mA*mu*expbeta)*2.0*malpha*chi*dchidrho +
-                       (phi*eps* + rho*eps*dphidrho + mA*(safeInvVar(rho0) - mu*mbeta*dchidrho)*expbeta)*expalpha);
-
+    dPdrho = ma*eps + (-(phi*rho*eps + mA*mu*expbeta)*2.0*malpha*chi*dchidrho +
+                       (phi + rho*dphidrho)*eps + mA*(safeInvVar(rho0) - mu*mbeta*dchidrho)*expbeta)*expalpha;
+  
   } else {
 
     // Regime 3: expansion, partial vapor.
@@ -294,9 +294,9 @@ pressureAndDerivs(const Scalar massDensity,
     // epsVapor specific energies</strike> Melosh (personal communication) we
     // compute P2 and P4 at the given energy.
     // Regimes 1 and 2 (solid)
-    const auto P2 = (ma + phi)*rho*eps + mA*mu + mB*mu*mu;
+    const auto P2 = (ma + phi)*rho*eps + mA*mu;             //  + mB*mu*mu;
     const auto dP2du = (ma + phi)*rho + rho*eps*dphidu;
-    const auto dP2drho = (ma + phi)*eps + rho*eps*dphidrho + (mA + 2.0*mB*mu)*safeInvVar(rho0);
+    const auto dP2drho = (ma + phi)*eps + rho*eps*dphidrho; // + (mA + 2.0*mB*mu)*safeInvVar(rho0);
 
     // Regime 4 (vapor)
     const auto expalpha = exp(-malpha*chi*chi);
