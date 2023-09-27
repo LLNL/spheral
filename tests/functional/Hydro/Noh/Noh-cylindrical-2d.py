@@ -275,8 +275,8 @@ if seed == "square":
     generator = GenerateSquareNodeDistribution(nRadial,
                                                nTheta,
                                                rho0,
-                                               xmin,
-                                               xmax,
+                                               xmin=xmin,
+                                               xmax=xmax,
                                                nNodePerh = nPerh,
                                                SPH = not asph)
 else:

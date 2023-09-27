@@ -82,7 +82,7 @@ interfaceState(const typename Dimension::Vector& ri,
   rhostari = rhoi;
   rhostarj = rhoj;
 
-  if (rhoi*ci > tiny or rhoj*cj > tiny){
+  if (ci > tiny or cj > tiny){
 
 
     // default to nodal values
@@ -92,15 +92,15 @@ interfaceState(const typename Dimension::Vector& ri,
     auto p1i = Pi;
     auto p1j = Pj;
 
-    auto rho1i = rhoi;
-    auto rho1j = rhoj;
+    //auto rho1i = rhoi;
+    //auto rho1j = rhoj;
 
     // linear reconstruction
     if(this->linearReconstruction()){
 
       // gradients along line of action
-      this->linearReconstruction(ri,rj, rhoi,rhoj,DrhoDxi,DrhoDxj, //inputs
-                                 rho1i,rho1j);                     //outputs
+      //this->linearReconstruction(ri,rj, rhoi,rhoj,DrhoDxi,DrhoDxj, //inputs
+      //                           rho1i,rho1j);                     //outputs
       this->linearReconstruction(ri,rj, Pi,Pj,DpDxi,DpDxj,         //inputs
                                  p1i,p1j);                         //outputs
       this->linearReconstruction(ri,rj, vi,vj,DvDxi,DvDxj,         //inputs
@@ -113,7 +113,7 @@ interfaceState(const typename Dimension::Vector& ri,
     const auto wi = v1i - ui*rhatij;
     const auto wj = v1j - uj*rhatij;
 
-    waveSpeedObject.waveSpeed(rho1i,rho1j,ci,cj,ui,uj,  //inputs
+    waveSpeedObject.waveSpeed(rhoi,rhoj,ci,cj,ui,uj,  //inputs
                               Si,Sj);                   //outputs
 
     const auto denom = safeInv(Si - Sj);
@@ -122,8 +122,8 @@ interfaceState(const typename Dimension::Vector& ri,
     const auto wstar = (Si*wi - Sj*wj)*denom;
     vstar = ustar*rhatij + wstar;
     Pstar = Sj * (ustar-uj) + p1j;
-    rhostari = rho1i;// * (Si - ui)*safeInv(Si-ustar);
-    rhostarj = rho1j;// * (Sj - uj)*safeInv(Sj-ustar);
+    //rhostari = rho1i;// * (Si - ui)*safeInv(Si-ustar);
+    //rhostarj = rho1j;// * (Sj - uj)*safeInv(Sj-ustar);
 
   }else{ // if ci & cj too small punt to normal av
     const auto uij = std::min((vi-vj).dot(rhatij),0.0);

@@ -70,8 +70,8 @@ commandLine(seed = "lattice",
             volumeType = RKSumVolume,
 
             # gsph options
-            RiemannGradientType = RiemannGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
-            linearReconstruction = False,
+            RiemannGradientType = SPHSameTimeGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            linearReconstruction = True,
 
             # Artifical Viscosity
             boolReduceViscosity = False,
@@ -106,6 +106,7 @@ commandLine(seed = "lattice",
 
             # IO
             vizCycle = None,
+            vizDerivs = False,
             vizTime = 0.1,
             restoreCycle = -1,
             restartStep = 1000,
@@ -355,7 +356,7 @@ elif gsph:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
-                gradientType = SPHGradient,
+                gradientType = RiemannGradientType,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,
@@ -372,7 +373,7 @@ elif mfm:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
-                gradientType = RiemannGradient,
+                gradientType = RiemannGradientType,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,
@@ -389,7 +390,7 @@ elif mfv:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
-                gradientType = SPHSameTimeGradient,
+                gradientType = RiemannGradientType,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,
@@ -431,6 +432,8 @@ output("hydro.HEvolution")
 
 if not (gsph or mfm or mfv):
     q = hydro.Q
+    q.Cq = 2
+    q.Cl = 2
     output("q")
     output("q.Cl")
     output("q.Cq")
@@ -501,6 +504,7 @@ control = SpheralController(integrator, WT,
                             restoreCycle = restoreCycle,
                             vizMethod = vizMethod,
                             vizBaseName = "Sedov-cylindrical-2d-%ix%i" % (nRadial, nTheta),
+                            vizDerivs=vizDerivs,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
@@ -623,6 +627,7 @@ if serialDump:
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics:
+    from SpheralMatplotlib import *
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotRadialState(db)
     plotAnswer(answer, control.time(),
@@ -635,30 +640,30 @@ if graphics:
              (HPlot, "Sedov-cylindrical-h.png")]
 
     # Plot the specific entropy.
-    AsimData = Gnuplot.Data(xprof, A,
-                            with_ = "points",
-                            title = "Simulation",
-                            inline = True)
-    AansData = Gnuplot.Data(xprof, Aans,
-                            with_ = "lines",
-                            title = "Solution",
-                            inline = True)
+    # AsimData = Gnuplot.Data(xprof, A,
+    #                         with_ = "points",
+    #                         title = "Simulation",
+    #                         inline = True)
+    # AansData = Gnuplot.Data(xprof, Aans,
+    #                         with_ = "lines",
+    #                         title = "Solution",
+    #                         inline = True)
     
-    Aplot = generateNewGnuPlot()
-    Aplot.plot(AsimData)
-    Aplot.replot(AansData)
-    Aplot.title("Specific entropy")
-    Aplot.refresh()
-    plots.append((Aplot, "Sedov-cylindrical-entropy.png"))
+    # Aplot = generateNewGnuPlot()
+    # Aplot.plot(AsimData)
+    # Aplot.replot(AansData)
+    # Aplot.title("Specific entropy")
+    # Aplot.refresh()
+    # plots.append((Aplot, "Sedov-cylindrical-entropy.png"))
 
-    if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier(),
-                                      xFunction = "%s.magnitude()",
-                                      plotStyle = "points",
-                                      winTitle = "Cullen alpha")
-        plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
+    # if boolCullenViscosity:
+    #     cullAlphaPlot = plotFieldList(q.ClMultiplier(),
+    #                                   xFunction = "%s.magnitude()",
+    #                                   plotStyle = "points",
+    #                                   winTitle = "Cullen alpha")
+    #     plots += [(cullAlphaPlot, "Sedov-planar-Cullen-alpha.png")]
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        p.figure.savefig(os.path.join(dataDir, filename))
 

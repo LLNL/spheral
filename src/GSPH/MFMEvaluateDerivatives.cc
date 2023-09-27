@@ -196,6 +196,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Node displacement.
       const auto rij = ri - rj;
       const auto rhatij =rij.unitVector();
+      const auto rMagij = rij.magnitude2();
       const auto vij = vi - vj;
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
@@ -222,7 +223,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       weightedNeighborSumj += std::abs(gWj);
       massSecondMomenti += gradWi.magnitude2()*thpt;
       massSecondMomentj += gradWj.magnitude2()*thpt;
-
+      //massSecondMomenti -= voli*rij.selfdyad()*gWi/rMagij;//.magnitude2()*thpt;
+      //massSecondMomentj -= volj*rij.selfdyad()*gWj/rMagij;//.magnitude2()*thpt;
       // Determine an effective pressure including a term to fight the tensile instability.
       //const auto fij = epsTensile*pow(Wi/(Hdeti*WnPerh), nTensile);
       const auto fij = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
@@ -350,7 +352,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
+    const auto  kernelExtent = nodeList.neighbor().kernelExtent();
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
@@ -403,6 +405,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                       hmax,
                                                       hminratio,
                                                       nPerh);
+      
       Hideali = smoothingScale.newSmoothingScale(Hi,
                                                  ri,
                                                  weightedNeighborSumi,
@@ -415,6 +418,36 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                  connectivityMap,
                                                  nodeListi,
                                                  i);
+      // const auto Ngb_target = (Dimension::nDim == 3 ? 32 :
+      //                           (Dimension::nDim == 2 ? 16 :
+      //                                                   4));
+      // const auto C = (Dimension::nDim == 3 ? 1.33333*3.1415 :
+      //                 (Dimension::nDim == 2 ? 3.1415         :
+      //                                         1.0));
+      // const auto detMSM = massSecondMomenti.Determinant();
+      // weightedNeighborSumi = detMSM;//XSPHHfieldi.Determinant()/Hdeti;
+      // if(abs(detMSM) > 1e-10){
+      //   massSecondMomenti /= Dimension::rootnu(detMSM);
+        
+      //   const auto stretchFactor = 0.25;
+      //   const auto circlerFactor = 0.30;
+      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
+      //   const auto  Hstretch  =  circlerFactor * Dimension::rootnu(Hdeti)*SymTensor::one +
+      //                         ((1.00-stretchFactor-circlerFactor)*SymTensor::one +
+      //                                 stretchFactor*massSecondMomenti)*Hi;
+      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
+      //   Hideali = std::min(std::max(scaleFactor,0.9),1.1) * Hstretch;
+      //   DHDti = 0.25*(Hideali-Hi)/dt;
+      // } else{
+      //   const auto stretchFactor = 0.00;
+      //   const auto circlerFactor = 0.3;
+      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
+      //   const auto  Hstretch  =  circlerFactor * Dimension::rootnu(Hdeti)*SymTensor::one +
+      //                         ((1.00-stretchFactor-circlerFactor)*SymTensor::one)*Hi;
+      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
+      //   Hideali = std::min(std::max(scaleFactor,0.9),1.1) * Hstretch;
+      //   DHDti = 0.25*(Hideali-Hi)/dt;
+      // }
     } // nodes loop
   } // nodeLists loop
 
