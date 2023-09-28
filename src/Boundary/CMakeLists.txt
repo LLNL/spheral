@@ -80,5 +80,5 @@ set(Boundary_headers
 
 spheral_install_python_files(ExpandingDomain.py)
 
-spheral_add_obj_library(Boundary "SPHERAL_OBJ_LIBS")
+spheral_add_obj_library(Boundary SPHERAL_OBJ_LIBS)
 

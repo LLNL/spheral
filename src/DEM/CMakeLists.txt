@@ -44,5 +44,5 @@ add_subdirectory(SolidBoundary)
 
 spheral_install_python_files(DEM.py)
 
-spheral_add_obj_library(DEM "SPHERAL_OBJ_LIBS")
+spheral_add_obj_library(DEM SPHERAL_OBJ_LIBS)
 

@@ -50,5 +50,5 @@ set(ArtificialViscosity_headers
     VonNeumanViscosity.hh
     )
 
-spheral_add_obj_library(ArtificialViscosity "SPHERAL_OBJ_LIBS")
+spheral_add_obj_library(ArtificialViscosity SPHERAL_OBJ_LIBS)
 
