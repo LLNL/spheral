@@ -422,6 +422,9 @@
     <ProjectReference Include="..\..\..\conduit\Win32\blueprint_par\conduit_blueprint_par.vcxproj">
       <Project>{b57f178b-ecdf-41fb-ad8c-e5cfbb4877d6}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\conduit\Win32\conduit\conduit.vcxproj">
+      <Project>{298fc8fd-d93e-44fb-9c49-7af671e1979f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\qhull\build\qhullstatic.vcxproj">
       <Project>{3a95de97-a2de-4e8b-8e2d-f17652aeb947}</Project>
     </ProjectReference>
