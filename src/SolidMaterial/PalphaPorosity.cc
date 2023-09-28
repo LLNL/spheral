@@ -204,11 +204,11 @@ evaluateDerivatives(const Scalar time,
     const auto dPsdti = dPsdri*DrhoDti + dPsdui*DuDti;
 
     // First compute the derivative with respect to pressure
-    Scalar DalphaDpi = 0.0;
-    if (dPsdti < 0.0) {
+    auto DalphaDpi = 0.0;
+    if (Pi < mPe or dPsdti < 0.0) {
 
       // Elastic
-      if (c0i != mcS0 and Pi < mPe) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
+      if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
         const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
         DalphaDpi = alphai*alphai/(mcS0*mcS0*rho0)*(1.0 - safeInvVar(halpha*halpha));
       }
@@ -223,8 +223,10 @@ evaluateDerivatives(const Scalar time,
     }
 
     // Now we can compute the final time derivative
+    DalphaDpi = min(0.0, DalphaDpi);  // Keep things physical
     const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
     DalphaDt(i) = DalphaDpi*dPdti;
+
 #pragma omp critical
     {
       mMaxAbsDalphaDt = max(mMaxAbsDalphaDt, abs(DalphaDt(i)));    // For use in the timestep calculation
