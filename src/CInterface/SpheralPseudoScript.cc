@@ -823,7 +823,12 @@ initialize(const bool     RZ,
   me.mQptr->epsilon2(0.01);
   auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
   std::vector<int> contactTypes;
-  contactTypes.push_back(0);
+  if (Dimension::nDim == 2) {
+    contactTypes.resize(2, 0);
+  }
+  else {
+    contactTypes.push_back(0);
+  }
   SlideSurface<Dimension> slides(*me.mDataBasePtr, contactTypes);
   InterfaceMethod interfaceMethod = InterfaceMethod::HLLCInterface;
   KernelAveragingMethod kernelAveragingMethod = KernelAveragingMethod::NeverAverageKernels;
