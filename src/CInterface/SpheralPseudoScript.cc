@@ -33,6 +33,8 @@
 #include "RK/RKCorrections.hh"
 #include "CRKSPH/SolidCRKSPHHydroBase.hh"
 #include "CRKSPH/SolidCRKSPHHydroBaseRZ.hh"
+#include "FSISPH/SolidFSISPHHydroBase.hh"
+#include "FSISPH/SlideSurface.hh"
 #include "ArtificialViscosity/MonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"
 #include "ArtificialViscosity/LimitedMonaghanGingoldViscosity.hh"
@@ -354,7 +356,7 @@ template<typename Dimension> struct HydroConstructor;
 
 // 3D 
 template<> struct HydroConstructor<Dim<3>> {
-  static std::shared_ptr<GenericHydro<Dim<3>>> newinstance(const bool CRK,
+  static std::shared_ptr<GenericHydro<Dim<3>>> newinstance(const int SPH,
                                                            const SmoothingScaleBase<Dim<3>>& smoothingScaleMethod,
                                                            DataBase<Dim<3>>& db,
                                                            ArtificialViscosity<Dim<3>>& Q,
@@ -363,6 +365,14 @@ template<> struct HydroConstructor<Dim<3>> {
                                                            const TableKernel<Dim<3>>& WGrad,
                                                            const double filter,
                                                            const double cfl,
+                                                           SlideSurface<Dim<3>>& slides,
+                                                           const double surfaceForceCoefficient,
+                                                           const double densityStabilizationCoefficient,
+                                                           const double specificThermalEnergyDiffusionCoefficient,
+                                                           const double xsphCoefficient,
+                                                           const InterfaceMethod interfaceMethod,
+                                                           const KernelAveragingMethod kernelAveragingMethod,
+                                                           const std::vector<int>& sumDensityNodeLists,
                                                            const bool useVelocityMagnitudeForDt,
                                                            const bool compatibleEnergyEvolution,
                                                            const bool evolveTotalEnergy,
@@ -380,7 +390,7 @@ template<> struct HydroConstructor<Dim<3>> {
                                                            const Dim<3>::Vector& xmin,
                                                            const Dim<3>::Vector& xmax,
                                                            const bool RZ) {
-    if (CRK) {
+    if (SPH==1) {
       return std::shared_ptr<GenericHydro<Dim<3>>>(new SolidCRKSPHHydroBase<Dim<3>>(smoothingScaleMethod,
                                                                                     db,
                                                                                     Q,
@@ -396,6 +406,36 @@ template<> struct HydroConstructor<Dim<3>> {
                                                                                     epsTensile,
                                                                                     nTensile,
                                                                                     damageRelieveRubble));
+    }
+    else if (SPH==2) {
+      return std::shared_ptr<GenericHydro<Dim<3>>>(new SolidFSISPHHydroBase<Dim<3>>(smoothingScaleMethod,
+                                                                                    db,
+                                                                                    Q,
+                                                                                    slides,
+                                                                                    W,
+                                                                                    filter,
+                                                                                    cfl,
+                                                                                    surfaceForceCoefficient,
+                                                                                    densityStabilizationCoefficient,
+                                                                                    specificThermalEnergyDiffusionCoefficient,
+                                                                                    xsphCoefficient,
+                                                                                    interfaceMethod,
+                                                                                    kernelAveragingMethod,
+                                                                                    sumDensityNodeLists,
+                                                                                    useVelocityMagnitudeForDt,
+                                                                                    compatibleEnergyEvolution,
+                                                                                    evolveTotalEnergy,
+                                                                                    gradhCorrection,
+                                                                                    XSPH,
+                                                                                    correctVelocityGradient,
+                                                                                    densityUpdate,
+                                                                                    HUpdate,
+                                                                                    epsTensile,
+                                                                                    nTensile,
+                                                                                    damageRelieveRubble,
+                                                                                    strengthInDamage,
+                                                                                    xmin,
+                                                                                    xmax));
     }
     else {
       return std::shared_ptr<GenericHydro<Dim<3>>>(new SolidSPHHydroBase<Dim<3>>(smoothingScaleMethod,
@@ -430,7 +470,7 @@ template<> struct HydroConstructor<Dim<3>> {
 
 // 2D 
 template<> struct HydroConstructor<Dim<2>> {
-  static std::shared_ptr<GenericHydro<Dim<2>>> newinstance(const bool CRK,
+  static std::shared_ptr<GenericHydro<Dim<2>>> newinstance(const int SPH,
                                                            const SmoothingScaleBase<Dim<2>>& smoothingScaleMethod,
                                                            DataBase<Dim<2>>& db,
                                                            ArtificialViscosity<Dim<2>>& Q,
@@ -439,6 +479,14 @@ template<> struct HydroConstructor<Dim<2>> {
                                                            const TableKernel<Dim<2>>& WGrad,
                                                            const double filter,
                                                            const double cfl,
+                                                           SlideSurface<Dim<2>>& slides,
+                                                           const double surfaceForceCoefficient,
+                                                           const double densityStabilizationCoefficient,
+                                                           const double specificThermalEnergyDiffusionCoefficient,
+                                                           const double xsphCoefficient,
+                                                           const InterfaceMethod interfaceMethod,
+                                                           const KernelAveragingMethod kernelAveragingMethod,
+                                                           const std::vector<int>& sumDensityNodeLists,
                                                            const bool useVelocityMagnitudeForDt,
                                                            const bool compatibleEnergyEvolution,
                                                            const bool evolveTotalEnergy,
@@ -457,7 +505,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                            const Dim<2>::Vector& xmax,
                                                            const bool RZ) {
     if (RZ) {
-      if (CRK) {
+      if (SPH==1) {
         return std::shared_ptr<GenericHydro<Dim<2>>>(new SolidCRKSPHHydroBaseRZ(smoothingScaleMethod,
                                                                                 db,
                                                                                 Q,
@@ -473,6 +521,9 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                 epsTensile,
                                                                                 nTensile,
                                                                                 damageRelieveRubble));
+      }
+      else if (SPH==2) {
+        VERIFY2(false, "Error in SpheralPseudoScript -- FSISPH not implemented in RZ yet.");
       }
       else {
         return std::shared_ptr<GenericHydro<Dim<2>>>(new SolidSPHHydroBaseRZ(smoothingScaleMethod,
@@ -500,7 +551,7 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                              xmax));
       }
     } else {
-      if (CRK) {
+      if (SPH==1) {
         return std::shared_ptr<GenericHydro<Dim<2>>>(new SolidCRKSPHHydroBase<Dim<2>>(smoothingScaleMethod,
                                                                                       db,
                                                                                       Q,
@@ -516,6 +567,36 @@ template<> struct HydroConstructor<Dim<2>> {
                                                                                       epsTensile,
                                                                                       nTensile,
                                                                                       damageRelieveRubble));
+      }
+      else if (SPH==2) {
+        return std::shared_ptr<GenericHydro<Dim<2>>>(new SolidFSISPHHydroBase<Dim<2>>(smoothingScaleMethod,
+                                                                                      db,
+                                                                                      Q,
+                                                                                      slides,
+                                                                                      W,
+                                                                                      filter,
+                                                                                      cfl,
+                                                                                      surfaceForceCoefficient,
+                                                                                      densityStabilizationCoefficient,
+                                                                                      specificThermalEnergyDiffusionCoefficient,
+                                                                                      xsphCoefficient,
+                                                                                      interfaceMethod,
+                                                                                      kernelAveragingMethod,
+                                                                                      sumDensityNodeLists,
+                                                                                      useVelocityMagnitudeForDt,
+                                                                                      compatibleEnergyEvolution,
+                                                                                      evolveTotalEnergy,
+                                                                                      gradhCorrection,
+                                                                                      XSPH,
+                                                                                      correctVelocityGradient,
+                                                                                      densityUpdate,
+                                                                                      HUpdate,
+                                                                                      epsTensile,
+                                                                                      nTensile,
+                                                                                      damageRelieveRubble,
+                                                                                      strengthInDamage,
+                                                                                      xmin,
+                                                                                      xmax));
       }
       else {
         return std::shared_ptr<GenericHydro<Dim<2>>>(new SolidSPHHydroBase<Dim<2>>(smoothingScaleMethod,
@@ -575,7 +656,7 @@ template<typename Dimension>
 void
 SpheralPseudoScript<Dimension>::
 initialize(const bool     RZ,
-           const bool     CRK,
+           const int      SPH,
            const bool     ASPH,
            const bool     XSPH,
            const bool     compatibleEnergy,
@@ -708,7 +789,7 @@ initialize(const bool     RZ,
   // Build the RK object if needed
   auto correctionOrder = static_cast<RKOrder>(rkorder);
   auto rkVolumeType = static_cast<RKVolumeType>(rkvolume);
-  if (CRK) {
+  if (SPH==1) {
     me.mRKptr.reset(new RKCorrections<Dimension>(std::set<RKOrder>({correctionOrder}),
                                                  *me.mDataBasePtr,
                                                  *me.mKernelPtr,
@@ -741,7 +822,14 @@ initialize(const bool     RZ,
 
   me.mQptr->epsilon2(0.01);
   auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
-  me.mHydroPtr = HydroConstructor<Dimension>::newinstance(CRK,
+  std::vector<int> contactTypes;
+  contactTypes.push_back(0);
+  SlideSurface<Dimension> slides(*me.mDataBasePtr, contactTypes);
+  InterfaceMethod interfaceMethod = InterfaceMethod::HLLCInterface;
+  KernelAveragingMethod kernelAveragingMethod = KernelAveragingMethod::NeverAverageKernels;
+  std::vector<int> sumDensityNodeLists;
+  sumDensityNodeLists.push_back(0);
+  me.mHydroPtr = HydroConstructor<Dimension>::newinstance(SPH,
                                                           *me.mSmoothingScaleMethodPtr,
                                                           *me.mDataBasePtr,
                                                           *me.mQptr,
@@ -750,6 +838,14 @@ initialize(const bool     RZ,
                                                           *me.mKernelPtr,
                                                           0.0,                                  // filter
                                                           CFL,                                  // cfl
+                                                          slides,                               // slides
+                                                          0.0,                                  // surfaceForceCoefficient
+                                                          0.1,                                  // densityStabilizationCoefficient 
+                                                          0.1,                                  // specificThermalEnergyDiffusionCoefficient 
+                                                          0.0,                                  // xsphCoefficient
+                                                          interfaceMethod,                      // HLLCInterface
+                                                          kernelAveragingMethod,                // NeverAverageKernels
+                                                          sumDensityNodeLists,                  // sumDensityNodeLists
                                                           useVelocityDt,                        // useVelocityMagnitudeForDt
                                                           compatibleEnergy,                     // compatibleEnergyEvolution
                                                           totalEnergy,                          // evolve total energy
@@ -773,7 +869,7 @@ initialize(const bool     RZ,
   me.mIntegratorPtr.reset(new CheapSynchronousRK2<Dimension>(*me.mDataBasePtr));
 
   // Add the physics packages to the integrator.
-  if (CRK) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
+  if (SPH==1) me.mIntegratorPtr->appendPhysicsPackage(*me.mRKptr);
   me.mIntegratorPtr->appendPhysicsPackage(*me.mHydroPtr);
 
   if (damage > 0) {
@@ -843,7 +939,7 @@ initialize(const bool     RZ,
   me.mDamage = damage;
 
   // Are we doing CRK
-  me.mCRK = CRK;
+  me.mCRK = (SPH==1);
 
   // Remember the distributed boundary type.
   me.mDistributedBoundary = distributedBoundary;

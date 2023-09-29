@@ -49,7 +49,7 @@ public:
 
   // initialize -- should be called once at the beginning of a simulation.
   static void initialize(const bool     RZ,
-                         const bool     CRK,
+                         const int      SPH,
                          const bool     ASPH,
                          const bool     XSPH,
                          const bool     compatibleEnergy,
