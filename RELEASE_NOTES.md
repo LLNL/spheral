@@ -1,3 +1,22 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+    * The PolyClipper and PYB11Generator submodules have been modified. Be sure to recursively update the submodules.  
+
+Notable changes include:
+
+  * New features/ API changes:
+
+
+  * Build changes / improvements:
+    * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use
+      ```
+      find_package(Spheral_CXX <path_to_spheral_installation>)
+      ```
+    * CMake variables have a more consistent naming convention. Unused variables are removed.
+
+  * Bug Fixes / improvements:
+
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
 
