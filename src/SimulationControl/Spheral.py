@@ -122,10 +122,10 @@ for shadowedthing in ("TillotsonEquationOfState",
                       "ConstantStrength",
                       "ProbabilisticDamageModel",
                       "IvanoviSALEDamageModel",
+                      "PalphaPorosity",
                       "ANEOS"):
     for dim in dims:
-        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
-                                                                "dim"   : dim})
+        exec(f"from Shadow{shadowedthing} import {shadowedthing}{dim}d")
 
 # ------------------------------------------------------------------------------
 # Prepare for timing
