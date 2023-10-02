@@ -17,6 +17,6 @@ int launchCaller(int a, int b);
 
 #endif
 
-} // namespace Spehral
+} // namespace Spheral
 
 #endif // __Spheral_DeviceTest_hh__ 
