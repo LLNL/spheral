@@ -7,7 +7,6 @@
 
 #include "EntropyPolicy.hh"
 #include "HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
@@ -26,8 +25,8 @@ namespace Spheral {
 template<typename Dimension>
 EntropyPolicy<Dimension>::
 EntropyPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy) {
+  UpdatePolicyBase<Dimension>(HydroFieldNames::massDensity,
+                              HydroFieldNames::specificThermalEnergy) {
 }
 
 //------------------------------------------------------------------------------

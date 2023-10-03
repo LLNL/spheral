@@ -9,8 +9,9 @@
 #ifndef __Spheral_IncrementBoundedState_hh__
 #define __Spheral_IncrementBoundedState_hh__
 
-#include <float.h>
 #include "FieldUpdatePolicyBase.hh"
+
+#include <limits>
 
 namespace Spheral {
 
@@ -25,26 +26,26 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  IncrementBoundedState(const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+  IncrementBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0, const std::string& depend1,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                        const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                        const BoundValueType maxValue = BoundValueType(DBL_MAX));
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   virtual ~IncrementBoundedState();
   
   // Overload the methods describing how to update Fields.

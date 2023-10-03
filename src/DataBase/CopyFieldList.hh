@@ -10,6 +10,7 @@
 #define __Spheral_CopyFieldList_hh__
 
 #include "FieldListUpdatePolicyBase.hh"
+#include "CopyState.hh"
 
 namespace Spheral {
 
@@ -21,30 +22,19 @@ class CopyFieldList: public FieldListUpdatePolicyBase<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
   CopyFieldList(const std::string& masterState, const std::string& copyState);
   virtual ~CopyFieldList();
   
-  // Overload the methods describing how to update Fields.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
-  static const std::string prefix() { return "delta "; }
+  static const std::string prefix() { return CopyState<Dimension, ValueType>::prefix(); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  std::string mMasterStateName;
-  std::string mCopyStateName;
-
   CopyFieldList(const CopyFieldList& rhs);
   CopyFieldList& operator=(const CopyFieldList& rhs);
 };

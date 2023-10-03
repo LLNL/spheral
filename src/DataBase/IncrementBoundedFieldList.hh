@@ -9,8 +9,10 @@
 #ifndef __Spheral_IncrementBoundedFieldList_hh__
 #define __Spheral_IncrementBoundedFieldList_hh__
 
-#include <float.h>
 #include "FieldListUpdatePolicyBase.hh"
+#include "IncrementBoundedState.hh"
+
+#include <limits>
 
 namespace Spheral {
 
@@ -22,62 +24,52 @@ class IncrementBoundedFieldList: public FieldListUpdatePolicyBase<Dimension, Val
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
+  using typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  IncrementBoundedFieldList(const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0, const std::string& depend1,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  IncrementBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                            const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                            const BoundValueType maxValue = BoundValueType(DBL_MAX));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0, const std::string& depend1,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0, const std::string& depend1, const std::string& depend2,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                            const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
+                            const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                            const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   virtual ~IncrementBoundedFieldList();
   
-  // Overload the methods describing how to update Fields.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
-  // Access the min and max's.
-  BoundValueType minValue() const;
-  BoundValueType maxValue() const;
-
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
-  static const std::string prefix() { return "delta "; }
+  static const std::string prefix() { return IncrementBoundedState<Dimension, ValueType>::prefix(); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  BoundValueType mMinValue;
-  BoundValueType mMaxValue;
-
   IncrementBoundedFieldList(const IncrementBoundedFieldList& rhs);
   IncrementBoundedFieldList& operator=(const IncrementBoundedFieldList& rhs);
 };
 
 }
 
-#ifndef __GCCXML__
 #include "IncrementBoundedFieldListInline.hh"
-#endif
 
 #else
 

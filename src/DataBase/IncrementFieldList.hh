@@ -8,6 +8,7 @@
 #define __Spheral_IncrementFieldList_hh__
 
 #include "FieldListUpdatePolicyBase.hh"
+#include "IncrementState.hh"
 
 namespace Spheral {
 
@@ -16,48 +17,43 @@ class IncrementFieldList: public FieldListUpdatePolicyBase<Dimension, ValueType>
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
-  IncrementFieldList(const bool wildCardDerivs = false);
-  explicit IncrementFieldList(const std::string& depend0,
+  explicit IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
                               const bool wildCardDerivs = false);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1,
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0,
                      const bool wildCardDerivs = false);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2,
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1,
                      const bool wildCardDerivs = false);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1, const std::string& depend2,
                      const bool wildCardDerivs = false);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
                      const bool wildCardDerivs = false);
-  IncrementFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
+                     const bool wildCardDerivs = false);
+  IncrementFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                     const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5, const std::string& depend6
                      const bool wildCardDerivs = false);
   virtual ~IncrementFieldList();
   
-  // Overload the methods describing how to update FieldLists.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
-  static const std::string prefix() { return "delta "; }
-
-  // Flip whether we try to find multiple registered increment fields.
-  bool wildCardDerivs() const;
-  void wildCardDerivs(const bool val);
+  static const std::string prefix() { return IncrementState<Dimension, Value>::prefix(); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
   IncrementFieldList(const IncrementFieldList& rhs);
   IncrementFieldList& operator=(const IncrementFieldList& rhs);
-
-  // Flag for looking for multiple increment derivatives.
-  bool mWildCardDerivs;
 };
 
 }

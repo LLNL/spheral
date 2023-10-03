@@ -28,7 +28,6 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
-#include "Hydro/EntropyPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"

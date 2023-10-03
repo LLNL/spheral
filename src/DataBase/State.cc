@@ -177,19 +177,27 @@ update(StateDerivatives<Dimension>& derivs,
 
   // Prepare lists of the keys to be completed.
   vector<KeyType> fieldsToBeCompleted;
-  map<KeyType, set<KeyType> > stateToBeCompleted;
-  for (typename PolicyMapType::const_iterator itr = mPolicyMap.begin();
-       itr != mPolicyMap.end();
-       ++itr) {
-    for (typename map<KeyType, PolicyPointer>::const_iterator pitr = itr->second.begin();
-         pitr != itr->second.end();
-         ++pitr) {
-      stateToBeCompleted[itr->first].insert(pitr->first);
+  map<KeyType, set<KeyType>> stateToBeCompleted;
+  for (auto& fieldkey_policy: mPolicyMap) {
+    auto& fieldkey = fieldkey_policy.first;                // Just Field names
+    for (auto& fullkey_policy: fieldkey_policy.second) {
+      auto& fullkey = fullkey_policy.first;                // Fully encoded Field + NodeList names
+      stateToBeCompleted[fieldkey].insert(fullkey);
     }
   }
-  for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
-       itr != stateToBeCompleted.end();
-       ++itr) fieldsToBeCompleted.push_back(itr->first);
+  for (auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_kullkey.first);
+  // for (typename PolicyMapType::const_iterator itr = mPolicyMap.begin();
+  //      itr != mPolicyMap.end();
+  //      ++itr) {
+  //   for (typename map<KeyType, PolicyPointer>::const_iterator pitr = itr->second.begin();
+  //        pitr != itr->second.end();
+  //        ++pitr) {
+  //     stateToBeCompleted[itr->first].insert(pitr->first);
+  //   }
+  // }
+  // for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
+  //      itr != stateToBeCompleted.end();
+  //      ++itr) fieldsToBeCompleted.push_back(itr->first);
   CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
 
   // Iterate until all state has been updated.

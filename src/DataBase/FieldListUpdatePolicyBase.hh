@@ -9,6 +9,10 @@
 
 #include "UpdatePolicyBase.hh"
 
+#include <string>
+#include <map>
+#include <memory> // unique_ptr/shared_ptr
+
 namespace Spheral {
 
 template<typename Dimension, typename DataType>
@@ -50,17 +54,42 @@ public:
                             const std::string& depend6);
   virtual ~FieldListUpdatePolicyBase() {};
   
+  // Overload the methods describing how to update FieldLists.
+  virtual void update(const KeyType& key,
+                      State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivs,
+                      const double multiplier,
+                      const double t,
+                      const double dt) override;
+
+  // An alternate method to be called when you want to specify that the derivative information
+  // should be assumed to not necessarily be properly time-centered, and therefore you should 
+  // only use time advancement ideas, no "replace" or more sophisticated approaches.
+  // Default to just calling the generic method.
+  virtual void updateAsIncrement(const KeyType& key,
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs,
+                                 const double multiplier,
+                                 const double t,
+                                 const double dt) override;
+
+  // Set the policy for a given NodeList
+  void enroll(const std::string& nodeListName, std::shared_ptr<UpdatePolicyBase<Dimension>> policy);
+  bool havePolicyForNodeList(const std::string& nodeListName) const;
+  const std::shared_ptr<UpdatePolicyBase<Dimension>>& policyForNodeList(const std::string& nodeListName) const;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   FieldListUpdatePolicyBase(const FieldListUpdatePolicyBase& rhs);
   FieldListUpdatePolicyBase& operator=(const FieldListUpdatePolicyBase& rhs);
+
+  // The set of UpdatePolicies by NodeList.
+  std::map<std::string, std::shared_ptr<UpdatePolicyBase<Dimension>>> mNodeListPolicies;
 };
 
 }
 
-#ifndef __GCCXML__
 #include "FieldListUpdatePolicyBaseInline.hh"
-#endif
 
 #else
 

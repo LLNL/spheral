@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -20,12 +20,12 @@ template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class EntropyPolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class EntropyPolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar Scalar;
+  using typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType;
 
   // Constructors, destructor.
   EntropyPolicy();
@@ -37,7 +37,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;

@@ -4,9 +4,7 @@
 //
 // Created by JMO, Thu Aug 26 16:30:02 2004
 //----------------------------------------------------------------------------//
-
-#include "IncrementBoundedFieldList.hh"
-#include "FieldListUpdatePolicyBase.hh"
+#include "ReplaceBoundedFieldList.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -21,82 +19,100 @@ namespace Spheral {
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const BoundValueType minValue,
-                        const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>() {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
+                        const BoundValueType minValue,
+                        const BoundValueType maxValue):
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0,
+                                                                                                      minValue, maxValue));
+  }
+}
+
+template<typename Dimension, typename ValueType, typename BoundValueType>
+inline
+ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
                         const std::string& depend1,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0, depend1,
+                                                                                                      minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
                         const std::string& depend1,
                         const std::string& depend2,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0, depend1, depend2,
+                                                                                                      minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
                         const std::string& depend1,
                         const std::string& depend2,
                         const std::string& depend3,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0, depend1, depend2, depend3,
+                                                                                                      minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
                         const std::string& depend1,
                         const std::string& depend2,
                         const std::string& depend3,
                         const std::string& depend4,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0, depend1, depend2, depend3, depend4,
+                                                                                                      minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedFieldList(const std::string& depend0,
+ReplaceBoundedFieldList(const FieldList<Dimension, Value>& fieldList,
+                        const std::string& depend0,
                         const std::string& depend1,
                         const std::string& depend2,
                         const std::string& depend3,
@@ -104,9 +120,11 @@ ReplaceBoundedFieldList(const std::string& depend0,
                         const std::string& depend5,
                         const BoundValueType minValue,
                         const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4, depend5),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4, depend5) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<ReplaceBoundedState<Dimension, Value>>(depend0, depend1, depend2, depend3, depend4, depend5,
+                                                                                                      minValue, maxValue));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -116,55 +134,6 @@ template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
 ~ReplaceBoundedFieldList() {
-}
-
-//------------------------------------------------------------------------------
-// Update the field.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-void
-ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-update(const KeyType& key,
-       State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double /*multiplier*/,
-       const double /*t*/,
-       const double /*dt*/) {
-
-  // Get the field name portion of the key.
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  CHECK(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-
-  // Find the matching replacement FieldList from the StateDerivatives.
-  KeyType replaceKey = prefix() + fieldKey;
-  FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
-  const FieldList<Dimension, ValueType> df = derivs.fields(replaceKey, ValueType());
-  CHECK(f.size() == df.size());
-
-  // Loop over the internal values of the field.
-  const unsigned numNodeLists = f.size();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = f[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      f(k, i) = std::min(mMaxValue, std::max(mMinValue, df(k, i)));
-    }
-  }
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-void
-ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-updateAsIncrement(const KeyType& key,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs,
-                  const double multiplier,
-                  const double t,
-                  const double dt) {
-  IncrementBoundedFieldList<Dimension, ValueType, BoundValueType> mIncrementFieldListPolicy(mMinValue, mMaxValue);
-  mIncrementFieldListPolicy.update(key, state, derivs, multiplier, t, dt);
 }
 
 //------------------------------------------------------------------------------
@@ -179,28 +148,6 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
   // We're only equal if the other guy is also an increment operator.
   const ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>* rhsPtr = dynamic_cast<const ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>*>(&rhs);
   return rhsPtr != 0;
-}
-
-//------------------------------------------------------------------------------
-// Min value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-minValue() const {
-  return mMinValue;
-}
-
-//------------------------------------------------------------------------------
-// Max value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-ReplaceBoundedFieldList<Dimension, ValueType, BoundValueType>::
-maxValue() const {
-  return mMaxValue;
 }
 
 }

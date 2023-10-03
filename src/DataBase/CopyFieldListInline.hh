@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // CopyFieldList -- An implementation of UpdatePolicyBase appropriate for
-// copying one state field to another.
+// copying one state FieldList to another.
 // Assumes that the copied state is dependent upon the master state, *and* that
 // that is the only dependency.
 //
@@ -20,11 +20,20 @@ namespace Spheral {
 template<typename Dimension, typename ValueType>
 inline
 CopyFieldList<Dimension, ValueType>::
-CopyFieldList(const std::string& masterState,
+CopyFieldList(const FieldList<Dimension, Value>& fieldList,
+              const std::string& masterState,
               const std::string& copyState):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(),
+  FieldListUpdatePolicyBase<Dimension, ValueType>(masterState),
   mMasterStateName(masterState),
   mCopyStateName(copyState) {
+  for (const auto& field: fieldList) {
+    const KeyType key = StateBase::key(field);
+    KeyType fieldKey, nodeListKey;
+    StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+    REQUIRE(fieldKey == copyState);
+    this->enroll(field.nodeList().name(),
+                 std::make_shared<CopyState<Dimension, Field<Dimension, Value>>>(StateBase::buildFieldKey(masterState, nodeListKey), key));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -34,36 +43,6 @@ template<typename Dimension, typename ValueType>
 inline
 CopyFieldList<Dimension, ValueType>::
 ~CopyFieldList() {
-}
-
-//------------------------------------------------------------------------------
-// Update the field.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType>
-inline
-void
-CopyFieldList<Dimension, ValueType>::
-update(const KeyType& key,
-       State<Dimension>& state,
-       StateDerivatives<Dimension>& /*derivs*/,
-       const double /*multiplier*/,
-       const double /*t*/,
-       const double /*dt*/) {
-
-  // Get the field name portion of the key.
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == mCopyStateName);
-  REQUIRE(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-
-  // Find the field for this key.
-  FieldList<Dimension, ValueType> f = state.fields(key, ValueType());
-
-  // Find the master state field from the State.
-  const FieldList<Dimension, ValueType> masterField = state.fields(mMasterStateName, ValueType());
-
-  // Copy the master state.
-  f.assignFields(masterField);
 }
 
 //------------------------------------------------------------------------------

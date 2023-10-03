@@ -20,82 +20,110 @@ namespace Spheral {
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const BoundValueType minValue,
-                          const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>() {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
+                          const BoundValueType minValue,
+                          const BoundValueType maxValue):
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        minValue, maxValue));
+  }
+}
+
+template<typename Dimension, typename ValueType, typename BoundValueType>
+inline
+IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
                           const std::string& depend1,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        depend1,
+                                                                                                        minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
                           const std::string& depend1,
                           const std::string& depend2,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        depend1,
+                                                                                                        depend2,
+                                                                                                        minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
                           const std::string& depend1,
                           const std::string& depend2,
                           const std::string& depend3,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        depend1,
+                                                                                                        depend2,
+                                                                                                        depend3,
+                                                                                                        minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
                           const std::string& depend1,
                           const std::string& depend2,
                           const std::string& depend3,
                           const std::string& depend4,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        depend1,
+                                                                                                        depend2,
+                                                                                                        depend3,
+                                                                                                        depend4,
+                                                                                                        minValue, maxValue));
+  }
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-IncrementBoundedFieldList(const std::string& depend0,
+IncrementBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
                           const std::string& depend1,
                           const std::string& depend2,
                           const std::string& depend3,
@@ -103,9 +131,16 @@ IncrementBoundedFieldList(const std::string& depend0,
                           const std::string& depend5,
                           const BoundValueType minValue,
                           const BoundValueType maxValue):
-  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4, depend5),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  FieldListUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4, depend5) {
+  for (const auto* fieldPtr: fieldList) {
+    this->enroll(fieldPtr->nodeList().name(), std::make_shared<IncrementBoundedState<Dimension, Value>>(depend0,
+                                                                                                        depend1,
+                                                                                                        depend2,
+                                                                                                        depend3,
+                                                                                                        depend4,
+                                                                                                        depend5,
+                                                                                                        minValue, maxValue));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -115,41 +150,6 @@ template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
 ~IncrementBoundedFieldList() {
-}
-
-//------------------------------------------------------------------------------
-// Update the field.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-void
-IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-update(const KeyType& key,
-       State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double multiplier,
-       const double /*t*/,
-       const double /*dt*/) {
-
-  // Get the field name portion of the key.
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  CHECK(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-
-  // Find the matching derivative FieldList from the StateDerivatives.
-  KeyType incrementKey = prefix() + fieldKey;
-  FieldList<Dimension, ValueType> f = state.fields(fieldKey, ValueType());
-  const FieldList<Dimension, ValueType> df = derivs.fields(incrementKey, ValueType());
-  CHECK(f.size() == df.size());
-
-  // Loop over the internal values of the field.
-  const unsigned numNodeLists = f.size();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = f[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      f(k, i) = std::min(mMaxValue, std::max(mMinValue, f(k, i) + multiplier*(df(k, i))));
-    }
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -167,28 +167,6 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // Ok, now do we agree on min & max?
   return (minValue() == rhsPtr->minValue()) && (maxValue() == rhsPtr->maxValue());
-}
-
-//------------------------------------------------------------------------------
-// Min value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-minValue() const {
-  return mMinValue;
-}
-
-//------------------------------------------------------------------------------
-// Max value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-IncrementBoundedFieldList<Dimension, ValueType, BoundValueType>::
-maxValue() const {
-  return mMaxValue;
 }
 
 }

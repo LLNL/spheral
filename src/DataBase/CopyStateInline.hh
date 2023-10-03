@@ -7,10 +7,8 @@
 // Created by JMO, Tue Oct 5 11:08:48 2004
 //----------------------------------------------------------------------------//
 
-#include "FieldUpdatePolicyBase.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
-#include "Field/Field.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -23,7 +21,7 @@ inline
 CopyState<Dimension, ValueType>::
 CopyState(const std::string& masterState,
           const std::string& copyState):
-  FieldUpdatePolicyBase<Dimension, ValueType>(),
+  UpdatePolicyBase<Dimension>(),
   mMasterStateName(masterState),
   mCopyStateName(copyState) {
 }
@@ -38,7 +36,7 @@ CopyState<Dimension, ValueType>::
 }
 
 //------------------------------------------------------------------------------
-// Update the field.
+// Update the state
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>
 inline
@@ -46,24 +44,20 @@ void
 CopyState<Dimension, ValueType>::
 update(const KeyType& key,
        State<Dimension>& state,
-       StateDerivatives<Dimension>& /*derivs*/,
-       const double /*multiplier*/,
-       const double /*t*/,
-       const double /*dt*/) {
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == mCopyStateName);
+       StateDerivatives<Dimension>& derivs,
+       const double multiplier,
+       const double t,
+       const double dt) {
+  REQUIRE(key == mCopyStateName);
+
+  // The state we're updating
+  ValueType& f = state.getAny<ValueType>(key);
   
-  // Find the field for this key.
-  Field<Dimension, ValueType>& f = state.field(key, ValueType());
+  // The master state we're copying
+  const ValueType& fmaster = state.getAny<ValueType>(mMasterStateName);
 
-  // Find the master state field from the State.
-  const KeyType masterKey = StateBase<Dimension>::buildFieldKey(mMasterStateName, nodeListKey);
-  CHECK(state.registered(masterKey));
-  const Field<Dimension, ValueType>& masterField = state.field(masterKey, ValueType());
-
-  // Copy the master state.
-  f = masterField;
+  // Copy the master state using the assignment operator
+  f = fmaster;
 }
 
 //------------------------------------------------------------------------------

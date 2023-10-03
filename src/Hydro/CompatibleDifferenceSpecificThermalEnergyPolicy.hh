@@ -4,7 +4,11 @@
 // as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
-// method.
+// method used in FSISPH as described in
+//
+// Pearl, J. M., Raskin, C. D., & Michael Owen, J. (2022). FSISPH: An SPH
+// formulation for impacts between dissimilar materials. Journal of
+// Computational Physics, 469, 111533.
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_CompatibleDifferenceSpecificThermalEnergyPolicy_hh__

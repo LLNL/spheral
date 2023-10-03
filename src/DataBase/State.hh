@@ -100,7 +100,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::map<KeyType, std::map<KeyType, PolicyPointer> > PolicyMapType;
+  typedef std::map<KeyType, std::map<KeyType, PolicyPointer>> PolicyMapType;
   PolicyMapType mPolicyMap;
   bool mTimeAdvanceOnly;
 };

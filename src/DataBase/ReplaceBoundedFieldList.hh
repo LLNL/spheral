@@ -9,9 +9,11 @@
 #ifndef __Spheral_ReplaceBoundedFieldList_hh__
 #define __Spheral_ReplaceBoundedFieldList_hh__
 
-#include <float.h>
 #include "FieldListUpdatePolicyBase.hh"
+#include "ReplaceBoundedState.hh"
 #include "Utilities/DBC.hh"
+
+#include <limits>
 
 namespace Spheral {
 
@@ -23,64 +25,45 @@ class ReplaceBoundedFieldList: public FieldListUpdatePolicyBase<Dimension, Value
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
-  ReplaceBoundedFieldList(const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0, const std::string& depend1,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                          const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                          const BoundValueType maxValue = BoundValueType(DBL_MAX));
+  explicit ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                                   const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                                   const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0, const std::string& depend1,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0, const std::string& depend1, const std::string& depend2,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                          const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
+                          const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                          const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
   virtual ~ReplaceBoundedFieldList();
   
-  // Overload the methods describing how to update Fields.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
-  // An alternate method to be called when you want to specify that the "Replace" information
-  // in the derivatives is invalid, and instead the value should be treated as a time advancement
-  // algorithm instead.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt);
-
-  // Access the min and max's.
-  BoundValueType minValue() const;
-  BoundValueType maxValue() const;
-
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
-  static const std::string prefix() { return "new "; }
-
+  static const std::string prefix() { return ReplaceBoundedState<Dimension, ValueType>::prefix(); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  BoundValueType mMinValue;
-  BoundValueType mMaxValue;
-
   ReplaceBoundedFieldList(const ReplaceBoundedFieldList& rhs);
   ReplaceBoundedFieldList& operator=(const ReplaceBoundedFieldList& rhs);
 };

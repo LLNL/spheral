@@ -12,8 +12,6 @@ set(DataBase_sources )
 instantiate(DataBase_inst DataBase_sources)
 
 set(DataBase_headers
-    CompositeFieldListPolicy.hh
-    CompositeFieldListPolicyInline.hh
     CopyFieldList.hh
     CopyFieldListInline.hh
     CopyState.hh

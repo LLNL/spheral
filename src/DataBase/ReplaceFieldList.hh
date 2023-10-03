@@ -8,6 +8,7 @@
 #define __Spheral_ReplaceFieldList_hh__
 
 #include "FieldListUpdatePolicyBase.hh"
+#include "ReplaceState.hh"
 
 namespace Spheral {
 
@@ -16,40 +17,28 @@ class ReplaceFieldList: public FieldListUpdatePolicyBase<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
-  ReplaceFieldList();
-  explicit ReplaceFieldList(const std::string& depend0);
-  ReplaceFieldList(const std::string& depend0, const std::string& depend1);
-  ReplaceFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplaceFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplaceFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplaceFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
+  explicit ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0, const std::string& depend1);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0, const std::string& depend1, const std::string& depend2);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
+  ReplaceFieldList(const FieldList<Dimension, ValueType>& fieldList,
+                   const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
   virtual ~ReplaceFieldList();
   
-  // Overload the methods describing how to update FieldLists.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
-  // An alternate method to be called when you want to specify that the "Replace" information
-  // in the derivatives is invalid, and instead the value should be treated as a time advancement
-  // algorithm instead.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt);
-
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
-  static const std::string prefix() { return "new "; }
+  static const std::string prefix() { return ReplaceState<Dimension, ValueType>::prefix(); }
 
 private:
   //--------------------------- Private Interface ---------------------------//
