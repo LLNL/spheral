@@ -9,7 +9,6 @@
 #include "PalphaPressurePolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "FSISPH/FSIFieldNames.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
@@ -28,8 +27,9 @@ namespace Spheral {
 template<typename Dimension>
 PalphaPressurePolicy<Dimension>::
 PalphaPressurePolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>(SolidFieldNames::porsitySolidDensity,
+                               HydroFieldNames::specificThermalEnergy,
+                               SolidFieldNames::porosityAlpha) {
 }
 
 //------------------------------------------------------------------------------
@@ -55,38 +55,33 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE((fieldKey == HydroFieldNames::pressure or 
-           fieldKey == FSIFieldNames::rawPressure) and
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  auto P = state.fields(fieldKey, Scalar());
-  const auto numFields = P.numFields();
+           fieldKey == FSIFieldNames::rawPressure));
+  auto& P = state.field(key, Scalar());
 
-  // Get the mass density and specific thermal energy fields from the state.
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, Scalar());
-  const auto eps = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
-  CHECK(massDensity.numFields() == numFields);
-  CHECK(eps.numFields() == numFields);
+  // Get the solid mass density, specific thermal energy, and distention fields from the state.
+  const auto& rhoS = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
+  const auto& eps = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
+  const auto& alpha = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::porosityAlpha, nodeListKey), Scalar());
 
-  // Walk the fields.
-  for (auto i = 0u; i < numFields; ++i) {
+  // Get the eos.  This cast is ugly, but is a work-around for now.
+  const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(P->nodeListPtr());
+  CHECK(fluidNodeListPtr != nullptr);
+  const auto& eos = fluidNodeListPtr->equationOfState();
 
-    // Get the eos.  This cast is ugly, but is a work-around for now.
-    const auto  fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(P[i]->nodeListPtr());
-    CHECK(fluidNodeListPtr != nullptr);
-    const auto& eos = fluidNodeListPtr->equationOfState();
-
-    // Check if we need to update the pressure derivatives by seeing if they're registered for this NodeList
-    const auto nodeListName = fluidNodeListPtr->name();
-    const auto dPduKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialEps, nodeListName);
-    const auto dPdrKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialRho, nodeListName);
-    if (state.registered(dPduKey)) {
-      CHECK(state.registered(dPdrKey));
-      auto& dPdu = state.field(dPduKey, 0.0);
-      auto& dPdr = state.field(dPdrKey, 0.0);
-      eos.setPressureAndDerivs(*P[i], dPdu, dPdr, *massDensity[i], *eps[i]);
-    } else {
-      eos.setPressure(*P[i], *massDensity[i], *eps[i]);
-    }
+  // Check if we need to update the pressure derivatives by seeing if they're registered for this NodeList
+  const auto dPduKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialEps, nodeListKey);
+  const auto dPdrKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialRho, nodeListKey);
+  if (state.registered(dPduKey)) {
+    CHECK(state.registered(dPdrKey));
+    auto& dPdu = state.field(dPduKey, 0.0);
+    auto& dPdr = state.field(dPdrKey, 0.0);
+    eos.setPressureAndDerivs(P, dPdu, dPdr, rhoS, eps);
+  } else {
+    eos.setPressure(P, rhoS, eps);
   }
+
+  // Scale the pressure to the bulk value.
+  P /= alpha;
 }
 
 //------------------------------------------------------------------------------

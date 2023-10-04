@@ -8,7 +8,7 @@
 #ifndef __Spheral_PalphaPressurePolicy_hh__
 #define __Spheral_PalphaPressurePolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
@@ -18,15 +18,14 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class FluidNodeList;
-template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-class PalphaPressurePolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class PalphaPressurePolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  typedef typename FieldUpdatePolicy<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
   PalphaPressurePolicy();
