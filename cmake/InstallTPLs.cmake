@@ -46,7 +46,7 @@ endif()
 set(POLYCLIPPER_MODULE_GEN OFF)
 set(POLYCLIPPER_ENABLE_DOCS OFF)
 set(POLYCLIPPER_INSTALL_DIR "PolyClipper/include")
-add_subdirectory(${polyclipper_DIR})
+add_subdirectory(${polyclipper_DIR} ${CMAKE_CURRENT_BINARY_DIR}/PolyClipper)
 # Treat includes as system to prevent warnings
 blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
 list(APPEND SPHERAL_BLT_DEPENDS PolyClipperAPI)
