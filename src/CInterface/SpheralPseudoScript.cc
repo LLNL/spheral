@@ -820,20 +820,19 @@ initialize(const bool     RZ,
     VERIFY2(false, "SpheralPsuedoScript::initialize: invalid Qoption " << Qoption);
   }
 
+  // Set the slide surfaces
+  std::vector<int> contactTypes;
+  contactTypes.push_back(0);
+  me.mSlideSurfacePtr.reset(new SlideSurface<Dimension>(*me.mDataBasePtr, contactTypes));
+
+  // Set the sumDensityNodeLists flags
+  me.mSumDensityNodeLists.resize(0);
+  me.mSumDensityNodeLists.push_back(0);
+
   me.mQptr->epsilon2(0.01);
   auto densityUpdateVal = static_cast<MassDensityType>(densityUpdate);
-  std::vector<int> contactTypes;
-  if (Dimension::nDim == 2) {
-    contactTypes.resize(2, 0);
-  }
-  else {
-    contactTypes.push_back(0);
-  }
-  SlideSurface<Dimension> slides(*me.mDataBasePtr, contactTypes);
   InterfaceMethod interfaceMethod = InterfaceMethod::HLLCInterface;
   KernelAveragingMethod kernelAveragingMethod = KernelAveragingMethod::NeverAverageKernels;
-  std::vector<int> sumDensityNodeLists;
-  sumDensityNodeLists.push_back(0);
   me.mHydroPtr = HydroConstructor<Dimension>::newinstance(SPH,
                                                           *me.mSmoothingScaleMethodPtr,
                                                           *me.mDataBasePtr,
@@ -843,14 +842,14 @@ initialize(const bool     RZ,
                                                           *me.mKernelPtr,
                                                           0.0,                                  // filter
                                                           CFL,                                  // cfl
-                                                          slides,                               // slides
+                                                          *me.mSlideSurfacePtr,                 // slides
                                                           0.0,                                  // surfaceForceCoefficient
                                                           0.1,                                  // densityStabilizationCoefficient 
                                                           0.1,                                  // specificThermalEnergyDiffusionCoefficient 
                                                           0.0,                                  // xsphCoefficient
                                                           interfaceMethod,                      // HLLCInterface
                                                           kernelAveragingMethod,                // NeverAverageKernels
-                                                          sumDensityNodeLists,                  // sumDensityNodeLists
+                                                          me.mSumDensityNodeLists,              // sumDensityNodeLists
                                                           useVelocityDt,                        // useVelocityMagnitudeForDt
                                                           compatibleEnergy,                     // compatibleEnergyEvolution
                                                           totalEnergy,                          // evolve total energy

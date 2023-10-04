@@ -25,6 +25,7 @@
 #include "Neighbor/TreeNeighbor.hh"
 #include "Kernel/TableKernel.hh"
 #include "NodeList/SmoothingScaleBase.hh"
+#include "FSISPH/SlideSurface.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Physics/GenericHydro.hh"
 #include "DataBase/DataBase.hh"
@@ -236,6 +237,8 @@ private:
   std::shared_ptr<Physics<Dimension>> mRKptr;
   std::shared_ptr<GenericHydro<Dimension>> mHydroPtr;
   std::shared_ptr<Physics<Dimension>> mDamagePtr;
+  std::shared_ptr<SlideSurface<Dimension>> mSlideSurfacePtr;
+  std::vector<int> mSumDensityNodeLists;
 
   // Integrator and state.
   std::shared_ptr<CheapSynchronousRK2<Dimension>> mIntegratorPtr;
