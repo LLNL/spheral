@@ -16,6 +16,8 @@ Notable changes include:
     * CMake variables have a more consistent naming convention. Unused variables are removed.
 
   * Bug Fixes / improvements:
+    * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.
+    * Fixed range of dimensionless melt temperature for Johnson-Cook strength.
 
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
