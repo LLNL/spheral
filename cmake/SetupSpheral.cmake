@@ -48,6 +48,7 @@ set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
 set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
 set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
+set(ENABLE_MFEM OFF CACHE BOOL "enable MFEM package")
 
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)

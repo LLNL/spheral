@@ -66,10 +66,6 @@ find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 list(APPEND SPHERAL_BLT_DEPENDS fmt)
 blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
 
-list(APPEND SPHERAL_BLT_DEPENDS mfem)
-set(MFEM_DIR ${mfem_DIR}/lib/cmake/mfem CACHE PATH "")
-find_package(mfem REQUIRED QUIET NO_DEFAULT_PATH PATHS ${mfem_DIR}/lib/cmake/mfem)
-
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
@@ -81,6 +77,9 @@ if(ENABLE_ANEOS)
 endif()
 if(ENABLE_OPENSUBDIV)
   list(APPEND SPHERAL_EXTERN_LIBS opensubdiv)
+endif()
+if(ENABLE_MFEM)
+  list(APPEND SPHERAL_EXTERN_LIBS mfem)
 endif()
 if(ENABLE_TIMER)
   list(APPEND SPHERAL_EXTERN_LIBS caliper)
