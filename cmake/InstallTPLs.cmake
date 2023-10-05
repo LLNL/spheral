@@ -8,6 +8,9 @@ set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM 1)
 # Set the location of the <tpl>.cmake files
 set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
+# Initialize TPL options
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
+
 #-----------------------------------------------------------------------------------
 # Submodules
 #-----------------------------------------------------------------------------------
@@ -40,20 +43,24 @@ set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}
 
 # PolyClipper
 if (NOT polyclipper_DIR)
+  # If no PolyClipper is specified, build it as an internal target
   set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+  # Must set this so PolyClipper doesn't include unnecessary python scripts
+  set(POLYCLIPPER_MODULE_GEN OFF)
+  set(POLYCLIPPER_ENABLE_DOCS OFF)
+  set(POLYCLIPPER_INSTALL_DIR "PolyClipper/include")
+  add_subdirectory(${polyclipper_DIR} ${CMAKE_CURRENT_BINARY_DIR}/PolyClipper)
+  # Treat includes as system to prevent warnings
+  blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
+  list(APPEND SPHERAL_BLT_DEPENDS PolyClipperAPI)
+  install(TARGETS PolyClipperAPI
+    EXPORT spheral_cxx-targets
+    DESTINATION lib/cmake)
+  set_target_properties(PolyClipperAPI PROPERTIES EXPORT_NAME spheral::PolyClipperAPI)
+else()
+  Spheral_Handle_TPL(polyclipper ${TPL_SPHERAL_CMAKE_DIR})
+  list(APPEND SPHERAL_BLT_DEPENDS polyclipper)
 endif()
-# Must set this so PolyClipper doesn't include unnecessary python scripts
-set(POLYCLIPPER_MODULE_GEN OFF)
-set(POLYCLIPPER_ENABLE_DOCS OFF)
-set(POLYCLIPPER_INSTALL_DIR "PolyClipper/include")
-add_subdirectory(${polyclipper_DIR} ${CMAKE_CURRENT_BINARY_DIR}/PolyClipper)
-# Treat includes as system to prevent warnings
-blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
-list(APPEND SPHERAL_BLT_DEPENDS PolyClipperAPI)
-install(TARGETS PolyClipperAPI
-  EXPORT spheral_cxx-targets
-  DESTINATION lib/cmake)
-set_target_properties(PolyClipperAPI PROPERTIES EXPORT_NAME spheral::PolyClipperAPI)
 
 #-----------------------------------------------------------------------------------
 # Find pre-compiled TPLs
@@ -65,9 +72,6 @@ find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 # Add fmt library to external library list
 list(APPEND SPHERAL_BLT_DEPENDS fmt)
 blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
-
-# Initialize TPL options
-include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
