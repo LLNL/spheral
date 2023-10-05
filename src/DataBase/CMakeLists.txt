@@ -12,30 +12,18 @@ set(DataBase_sources )
 instantiate(DataBase_inst DataBase_sources)
 
 set(DataBase_headers
-    CopyFieldList.hh
-    CopyFieldListInline.hh
-    CopyState.hh
-    CopyStateInline.hh
     DataBase.hh
     DataBaseInline.hh
-    FieldListUpdatePolicyBase.hh
-    FieldListUpdatePolicyBaseInline.hh
-    FieldUpdatePolicyBase.hh
-    FieldUpdatePolicyBaseInline.hh
-    IncrementBoundedFieldList.hh
-    IncrementBoundedFieldListInline.hh
+    FieldUpdatePolicy.hh
+    FieldUpdatePolicyInline.hh
+    CopyState.hh
+    CopyStateInline.hh
     IncrementBoundedState.hh
     IncrementBoundedStateInline.hh
-    IncrementFieldList.hh
-    IncrementFieldListInline.hh
     IncrementState.hh
     IncrementStateInline.hh
-    ReplaceBoundedFieldList.hh
-    ReplaceBoundedFieldListInline.hh
     ReplaceBoundedState.hh
     ReplaceBoundedStateInline.hh
-    ReplaceFieldList.hh
-    ReplaceFieldListInline.hh
     ReplaceState.hh
     ReplaceStateInline.hh
     State.hh

@@ -23,7 +23,6 @@
 #include "DataBase/CompositeFieldListPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
@@ -231,13 +230,8 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the position update, which depends on whether we're using XSPH or not.
   auto position = dataBase.fluidPosition();
-  if (true) { // (mXSPH) {
-    PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
-    state.enroll(position, positionPolicy);
-  } else {
-    PolicyPointer positionPolicy(new PositionPolicy<Dimension>());
-    state.enroll(position, positionPolicy);
-  }
+  PolicyPointer positionPolicy(new IncrementFieldList<Dimension, Vector>());
+  state.enroll(position, positionPolicy);
 
   // Register the entropy.
   PolicyPointer entropyPolicy(new EntropyPolicy<Dimension>());

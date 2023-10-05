@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// PalphaPressurePolicy -- An implementation of UpdatePolicyBase specialized
+// PorousPressurePolicy -- An implementation of UpdatePolicyBase specialized
 // for the updating the dependent pressure state for use with the P-alpha
 // porosity model.
 //
 // Created by JMO, Wed Aug 30 13:36:37 PDT 2023
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_PalphaPressurePolicy_hh__
-#define __Spheral_PalphaPressurePolicy_hh__
+#ifndef __Spheral_PorousPressurePolicy_hh__
+#define __Spheral_PorousPressurePolicy_hh__
 
 #include "DataBase/FieldUpdatePolicy.hh"
 
@@ -20,7 +20,7 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class FluidNodeList;
 
 template<typename Dimension>
-class PalphaPressurePolicy: public FieldUpdatePolicy<Dimension> {
+class PorousPressurePolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
@@ -28,8 +28,8 @@ public:
   typedef typename FieldUpdatePolicy<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  PalphaPressurePolicy();
-  virtual ~PalphaPressurePolicy();
+  PorousPressurePolicy();
+  virtual ~PorousPressurePolicy();
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -44,8 +44,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  PalphaPressurePolicy(const PalphaPressurePolicy& rhs);
-  PalphaPressurePolicy& operator=(const PalphaPressurePolicy& rhs);
+  PorousPressurePolicy(const PorousPressurePolicy& rhs);
+  PorousPressurePolicy& operator=(const PorousPressurePolicy& rhs);
 };
 
 }
@@ -54,7 +54,7 @@ private:
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension> class PalphaPressurePolicy;
+  template<typename Dimension> class PorousPressurePolicy;
 }
 
 #endif

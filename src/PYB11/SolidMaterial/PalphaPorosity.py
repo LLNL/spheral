@@ -40,8 +40,6 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     #...........................................................................
     # Constructors
     def pyinit(self,
-               porousEOS = "PorousEquationOfState<%(Dimension)s>&",
-               porousStrength = "PorousStrengthModel<%(Dimension)s>&",
                nodeList = "const NodeList<%(Dimension)s>&",
                phi0 = "const double",
                Pe = "const double",
@@ -51,7 +49,8 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                n1 = "const double",
                n2 = "const double",
                cS0 = "const double",
-               c0 = "const double"):
+               c0 = "const double",
+               rho0 = "const double"):
         """Constructor parameters:
         porousEOS:       Porous EOS we're going to modify
         porousStrength:  Porous strength model we're going to modify
@@ -64,11 +63,10 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
         cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity"""
+        c0:              Reference sound speed at initial porosity
+        rho0:            Reference solid density"""
 
     def pyinit1(self,
-                porousEOS = "PorousEquationOfState<%(Dimension)s>&",
-                porousStrength = "PorousStrengthModel<%(Dimension)s>&",
                 nodeList = "const NodeList<%(Dimension)s>&",
                 phi0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
                 Pe = "const double",
@@ -78,7 +76,8 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 n1 = "const double",
                 n2 = "const double",
                 cS0 = "const double",
-                c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&"):
+                c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
+                rho0 = "const double"):
         """Constructor parameters:
         porousEOS:       Porous EOS we're going to modify
         porousStrength:  Porous strength model we're going to modify
@@ -91,7 +90,8 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
         cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity"""
+        c0:              Reference sound speed at initial porosity
+        rho0:            Reference solid density"""
 
     #...........................................................................
     # Virtual methods
@@ -118,6 +118,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     n1 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     n2 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     cS0 = PYB11property(doc="Reference sound speed at full density")
+    rho0 = PYB11property(doc="Reference solid density")
     fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
     maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
     porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")

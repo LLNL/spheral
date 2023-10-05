@@ -7,7 +7,7 @@
 #ifndef __Spheral_ReplaceState_hh__
 #define __Spheral_ReplaceState_hh__
 
-#include "FieldUpdatePolicyBase.hh"
+#include "FieldUpdatePolicy.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -16,11 +16,11 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType>
-class ReplaceState: public FieldUpdatePolicyBase<Dimension, ValueType> {
+class ReplaceState: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   ReplaceState();
@@ -38,7 +38,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // An alternate method to be called when you want to specify that the "Replace" information
   // in the derivatives is invalid, and instead the value should be treated as a time advancement
@@ -48,10 +48,10 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt);
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   static const std::string prefix() { return "new "; }
 

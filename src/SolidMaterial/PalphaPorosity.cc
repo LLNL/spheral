@@ -5,6 +5,15 @@
 //----------------------------------------------------------------------------//
 #include "SolidMaterial/PalphaPorosity.hh"
 #include "SolidMaterial/PalphaPressurePolicy.hh"
+#include "SolidMaterial/PorositySolidMassDensityPolicy.hh"
+#include "Strength/PorousBulkModulusPolicy.hh"
+#include "Strength/PorousPressurePolicy.hh"
+#include "Strength/PorousSoundSpeedPolicy.hh"
+#include "Strength/PorousGammaPolicy.hh"
+#include "Strength/PorousBulkModulusPolicy.hh"
+#include "Strength/PorousEntropyPolicy.hh"
+#include "Strength/PorousShearModulusPolicy.hh"
+#include "Strength/PorousYieldStrengthPolicy.hh"
 #include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -35,9 +44,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PalphaPorosity<Dimension>::
-PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
-               PorousStrengthModel<Dimension>& porousStrength,
-               const NodeList<Dimension>& nodeList,
+PalphaPorosity(const NodeList<Dimension>& nodeList,
                const double phi0,
                const double Pe,
                const double Pt,
@@ -46,7 +53,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
                const double n1,
                const double n2,
                const double cS0,
-               const double c0):
+               const double c0,
+               const double rho0):
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
@@ -55,15 +63,15 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
+  mRho0(rho0),
   mcS0(cS0),
   mMaxAbsDalphaDt(0.0),
-  mPorousEOS(porousEOS),
-  mPorousStrength(porousStrength),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList, c0),
   mAlpha0(SolidFieldNames::porosityAlpha0, nodeList, 1.0/(1.0 - phi0)),
   mAlpha(SolidFieldNames::porosityAlpha, nodeList, 1.0/(1.0 - phi0)),
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
+  mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mdPdU(HydroFieldNames::partialPpartialEps, nodeList),
   mdPdR(HydroFieldNames::partialPpartialRho, nodeList),
   mRestart(registerWithRestart(*this)) {
@@ -75,11 +83,6 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
           "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
           "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0) : phi0 = " << phi0);
-  mPorousEOS.alpha(mAlpha);
-  mPorousEOS.alpha0(mAlpha0);
-  mPorousEOS.c0(mc0);
-  mPorousStrength.alpha(mAlpha);
-  ENSURE(mPorousEOS.valid());
 }
 
 //------------------------------------------------------------------------------
@@ -87,9 +90,7 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PalphaPorosity<Dimension>::
-PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
-               PorousStrengthModel<Dimension>& porousStrength,
-               const NodeList<Dimension>& nodeList,
+PalphaPorosity(const NodeList<Dimension>& nodeList,
                const Field<Dimension, Scalar>& phi0,
                const double Pe,
                const double Pt,
@@ -98,7 +99,8 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
                const double n1,
                const double n2,
                const double cS0,
-               const Field<Dimension, Scalar>& c0):
+               const Field<Dimension, Scalar>& c0,
+               const double rho0):
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
@@ -107,15 +109,15 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
+  mRho0(rho0),
   mcS0(cS0),
   mMaxAbsDalphaDt(0.0),
-  mPorousEOS(porousEOS),
-  mPorousStrength(porousStrength),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList),
   mAlpha0(SolidFieldNames::porosityAlpha0, nodeList),
   mAlpha(SolidFieldNames::porosityAlpha, nodeList),
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
+  mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mdPdU(HydroFieldNames::partialPpartialEps),
   mdPdR(HydroFieldNames::partialPpartialRho),
   mRestart(registerWithRestart(*this)) {
@@ -139,11 +141,6 @@ PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,
   const auto alpha0_min = mAlpha0.min();
   VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
           "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
-  mPorousEOS.alpha(mAlpha);
-  mPorousEOS.alpha0(mAlpha0);
-  mPorousEOS.c0(mc0);
-  mPorousStrength.alpha(mAlpha);
-  ENSURE(mPorousEOS.valid());
 }
 
 //------------------------------------------------------------------------------
@@ -185,8 +182,6 @@ evaluateDerivatives(const Scalar time,
   const auto& DuDt = derivs.field(DuDtKey, 0.0);
   auto&       DalphaDt = derivs.field(DalphaDtKey, 0.0);
 
-  const auto rho0 = mPorousEOS.referenceDensity();
-
   // Walk the nodes.
   const auto n = mNodeList.numInternalNodes();
 #pragma omp parallel for
@@ -210,7 +205,7 @@ evaluateDerivatives(const Scalar time,
       // Elastic
       if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
         const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
-        DalphaDpi = alphai*alphai/(mcS0*mcS0*rho0)*(1.0 - safeInvVar(halpha*halpha));
+        DalphaDpi = alphai*alphai/(mcS0*mcS0*mRho0)*(1.0 - safeInvVar(halpha*halpha));
       }
 
     } else {
@@ -261,20 +256,40 @@ dt(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 PalphaPorosity<Dimension>::
-registerState(DataBase<Dimension>& /*dataBase*/,
+registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  // Override the pressure policy to compute the partial derivatives of the 
-  // pressure as well
-  auto pressurePolicy = std::make_shared<PalphaPressurePolicy<Dimension>>();
-  auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  state.enroll(pressure, pressurePolicy);
+  // Alias for shorter call building State Field keys
+  auto key = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
+
+  // Register the solid mass density
+  state.enroll(mSolidMassDensity, std::make_shared<PorositySolidMassDensityPolicy<Dimension>>());
+
+  // Override the pressure policy.
+  auto& P = state.field(key(HydroFieldNames::pressure), 0.0);
   state.enroll(mdPdU);
   state.enroll(mdPdR);
+  state.enroll(pressure, std::make_shared<PorousPressurePolicy<Dimension>>());
 
   // Register the P-alpha state
-  auto alphaPolicy = std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0);
-  state.enroll(mAlpha, alphaPolicy);
+  state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
+
+  // Check what other state is registered which needs to be overridden for
+  // porosity
+  template<typename Policy>
+  auto optionalOverridePolicy = [&](const std::string& fkey) {
+    const auto fullkey = key(fkey);
+    if (state.registered(fullkey)) {
+      auto& f = state.field(fullkey, 0.0);
+      state.enroll(f, std::make_shared<Policy>());
+    }
+  };
+  optionalOverridePolicy<PorousBulkModulusPolicy>(SolidFieldNames::bulkModulus);
+  optionalOverridePolicy<PorousSoundSpeedPolicy>(HydroFieldNames::soundSpeed);
+  optionalOverridePolicy<GammaSoundSpeedPolicy>(HydroFieldNames::gamma);
+  optionalOverridePolicy<PorousEntropyPolicy>(HydroFieldNames::entropy);
+  optionalOverridePolicy<PorousShearModulusPolicy>(SolidFieldNames::shearModulus);
+  optionalOverridePolicy<PorousYieldStrengthPolicy>(SolidFieldNames::yieldStrength);
 }
 
 //------------------------------------------------------------------------------
@@ -295,16 +310,23 @@ template<typename Dimension>
 void
 PalphaPorosity<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
   // Initialize the distention field.
   mAlpha = mAlpha0;
 
-  // We also need the partial derivatives of the pressure.
-  const auto rhoFL = dataBase.fluidMassDensity();
-  const auto epsFL = dataBase.fluidSpecificThermalEnergy();
+  // Get some state from the DataBase we're gonna need
+  const auto  rhoFL = dataBase.fluidMassDensity();
+  const auto  epsFL = dateBase.fluidSpecificThermalEnergy();
   const auto& rho = **rhoFL.fieldForNodeList(mNodeList);
   const auto& eps = **epsFL.fieldForNodeList(mNodeList);
+
+  // Solid density
+  mSolidMassDensity = mAlpha0*rho;
+
+  // We also need the partial derivatives of the pressure.
   Field<Dimension, Scalar> P("tmp pressure", mNodeList);
-  mPorousEOS.setPressureAndDerivs(P, mdPdU, mdPdR, rho, eps);
+  const auto& eos = mNodeList.equationOfState();
+  eos.setPressureAndDerivs(P, mdPdU, mdPdR, rho, eps);
 }
 
 //------------------------------------------------------------------------------
@@ -319,6 +341,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mAlpha0, pathName + "/alpha0");
   file.write(mAlpha, pathName + "/alpha");
   file.write(mDalphaDt, pathName + "/DalphaDt");
+  file.write(mSolidMassDensity, pathName + "/solidMassDensity");
   file.write(mdPdU, pathName + "/dPdU");
   file.write(mdPdR, pathName + "/dPdR");
 }
@@ -335,6 +358,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mAlpha0, pathName + "/alpha0");
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
+  file.read(mSolidMassDensity, pathName + "/solidMassDensity");
   file.read(mdPdU, pathName + "/dPdU");
   file.read(mdPdR, pathName + "/dPdR");
 }

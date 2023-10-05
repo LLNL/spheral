@@ -25,9 +25,8 @@
 #ifndef __Spheral_PalphaPorosity__
 #define __Spheral_PalphaPorosity__
 
-#include "PorousEquationOfState.hh"
-#include "PorousStrengthModel.hh"
 #include "Physics/Physics.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "DataOutput/registerWithRestart.hh"
 
 #include <limits>
@@ -47,9 +46,7 @@ public:
   typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Constructors, destructors.
-  PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
-                 PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
-                 const NodeList<Dimension>& nodeList,             // The NodeList we're going apply to
+  PalphaPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                  const double phi0,                               // Initial porosity
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
@@ -58,11 +55,10 @@ public:
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
-                 const double c0);                                // Reference sound speed at initial porosity
+                 const double c0,                                 // Reference sound speed at initial porosity
+                 const double rho0);                              // Reference solid density
 
-  PalphaPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify
-                 PorousStrengthModel<Dimension>& porousStrength,  // Porous strength model we're going to modify
-                 const NodeList<Dimension>& nodeList,             // The NodeList we're going apply to
+  PalphaPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                  const Field<Dimension, Scalar>& phi0,            // Initial porosity
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
@@ -72,6 +68,7 @@ public:
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
                  const Field<Dimension, Scalar>& c0);             // Reference sound speed at initial porosity
+                 const double rho0);                              // Reference solid density
 
   virtual ~PalphaPorosity();
 
@@ -118,16 +115,18 @@ public:
   double alphat() const;
   double n1() const;
   double n2() const;
+  double rho0() const;
   double cS0() const;
   double fdt() const;
   double maxAbsDalphaDt() const;
   const PorousEquationOfState<Dimension>& porousEOS() const;
   const PorousStrengthModel<Dimension>& porousStrength() const;
-  const NodeList<Dimension>& nodeList() const;
+  const SolidNodeList<Dimension>& nodeList() const;
   const Field<Dimension, Scalar>& c0() const;
   const Field<Dimension, Scalar>& alpha0() const;
   const Field<Dimension, Scalar>& alpha() const;
   const Field<Dimension, Scalar>& DalphaDt() const;
+  const Field<Dimension, Scalar>& solidMassDensity() const;
   const Field<Dimension, Scalar>& partialPpartialEps() const;
   const Field<Dimension, Scalar>& partialPpartialRho() const;
 
@@ -138,12 +137,10 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mcS0, mfdt;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRho0, mcS0, mfdt;
   mutable double mMaxAbsDalphaDt;
-  PorousEquationOfState<Dimension>& mPorousEOS;
-  PorousStrengthModel<Dimension>& mPorousStrength;
-  const NodeList<Dimension>& mNodeList;
-  Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mdPdU, mdPdR;
+  const SollidNodeList<Dimension>& mNodeList;
+  Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mdPdU, mdPdR;
 
   // The restart registration.
   RestartRegistrationType mRestart;

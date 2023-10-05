@@ -36,8 +36,14 @@ void
 State<Dimension>::
 enroll(FieldListBase<Dimension>& fieldList,
        typename State<Dimension>::PolicyPointer polptr) {
-  this->enroll(fieldList);
-  this->enroll(this->key(fieldList), polptr);
+  if (polptr->clonePerField()) {
+    for (auto bitr = fieldList.begin_base(); bitr < fieldList.end_base(); ++bitr) {
+      this->enroll(**bitr, polptr);
+    }
+  } else {
+    this->enroll(fieldList);
+    this->enroll(this->key(fieldList), polptr);
+  }
 }
 
 //------------------------------------------------------------------------------

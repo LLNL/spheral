@@ -7,7 +7,7 @@
 #include "BulkModulusPolicy.hh"
 #include "SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
+#include "FSISPH/FSIFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -24,8 +24,8 @@ namespace Spheral {
 template<typename Dimension>
 BulkModulusPolicy<Dimension>::
 BulkModulusPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
+                               HydroFieldNames::specificThermalEnergy) {
 }
 
 //------------------------------------------------------------------------------
@@ -50,32 +50,25 @@ update(const KeyType& key,
        const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::bulkModulus and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> stateFields = state.fields(fieldKey, Scalar());
-  const unsigned numFields = stateFields.numFields();
+  REQUIRE((fieldKey == HydroFieldNames::pressure or 
+           fieldKey == FSIFieldNames::rawPressure));
+  auto K = state.field(key, Scalar());
 
   // Get the mass density and specific thermal energy fields from the state.
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  CHECK(massDensity.size() == numFields);
-  CHECK(energy.size() == numFields);
+  const auto massDensity = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
+  const auto eps = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
 
-  // Walk the individual fields.
-  for (unsigned k = 0; k != numFields; ++k) {
+  // Check if we have a FluidNodeList or SolidNodeList.  Has to be at least fluid!
+  const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(K.nodeListPtr());
+  const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(K.nodeListPtr());
+  CHECK(fluidNodeListPtr != nullptr);
 
-    // Check if we have a FluidNodeList or SolidNodeList.  Has to be at least fluid!
-    const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
-    const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
-    CHECK(fluidNodeListPtr != NULL);
-
-    // Is there a strength model that wants to set the bulk modulus?
-    if (solidNodeListPtr != NULL and
-        solidNodeListPtr->strengthModel().providesBulkModulus()) {
-      solidNodeListPtr->strengthModel().bulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
-    } else {
-      fluidNodeListPtr->equationOfState().setBulkModulus(*stateFields[k], *massDensity[k], *energy[k]);
-    }
+  // Is there a strength model that wants to set the bulk modulus?
+  if (solidNodeListPtr != nullptr and
+      solidNodeListPtr->strengthModel().providesBulkModulus()) {
+    solidNodeListPtr->strengthModel().bulkModulus(K, massDensity, eps);
+  } else {
+    fluidNodeListPtr->equationOfState().setBulkModulus(K, massDensity, eps);
   }
 
 //   // Is there a scalar damage field for this NodeList?
@@ -115,12 +108,8 @@ BulkModulusPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also a bulk modulus operator.
-  const BulkModulusPolicy<Dimension>* rhsPtr = dynamic_cast<const BulkModulusPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto rhsPtr = dynamic_cast<const BulkModulusPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

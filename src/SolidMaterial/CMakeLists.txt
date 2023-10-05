@@ -16,7 +16,6 @@ set(SolidMaterial_inst
     PorousStrengthModel
     StrainPorosity
     PalphaPorosity
-    PalphaPressurePolicy
     PhysicsEvolvingMaterialLibrary
     )
 
@@ -54,7 +53,6 @@ set(SolidMaterial_headers
     TillotsonEquationOfState.hh
     TillotsonEquationOfStateInline.hh
     PalphaPorosity.hh
-    PalphaPressurePolicy.hh
     )
 
 configure_file(
@@ -68,6 +66,7 @@ spheral_install_python_files(
     ShadowTillotsonEquationOfState.py
     ShadowGruneisenEquationOfState.py
     ShadowConstantStrength.py
+    ShadowPalphaPorosity.py
     ${CMAKE_CURRENT_BINARY_DIR}/ShadowANEOS.py
     )
 

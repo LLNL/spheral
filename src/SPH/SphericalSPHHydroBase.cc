@@ -15,29 +15,14 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
+#include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
-#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
-#include "DataBase/CompositeFieldListPolicy.hh"
-#include "Hydro/VolumePolicy.hh"
-#include "Hydro/VoronoiMassDensityPolicy.hh"
-#include "Hydro/SumVoronoiMassDensityPolicy.hh"
-#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
-#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
-#include "Hydro/PressurePolicy.hh"
-#include "Hydro/SoundSpeedPolicy.hh"
-#include "Hydro/EntropyPolicy.hh"
 #include "Hydro/SphericalPositionPolicy.hh"
-#include "Mesh/MeshPolicy.hh"
-#include "Mesh/generateMesh.hh"
+#include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
-#include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
@@ -142,15 +127,13 @@ registerState(DataBase<Dim<1>>& dataBase,
 
   // Re-regsiter the position update to prevent things going through the origin
   auto position = dataBase.fluidPosition();
-  auto positionPolicy = make_shared<SphericalPositionPolicy>();
-  state.enroll(position, positionPolicy);
+  state.enroll(position, make_shared<SphericalPositionPolicy>());
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    auto thermalEnergyPolicy = make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase);
-    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+    state.enroll(specificThermalEnergy, make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase));
   }
 }
 
@@ -191,7 +174,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   case MassDensityType::SumDensity:
     {
       auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      const auto massDensitySum = derivs.fields(ReplaceFieldList<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
+      const auto massDensitySum = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + 
                                                 HydroFieldNames::massDensity, 0.0);
       massDensity.assignFields(massDensitySum);
       for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
@@ -258,18 +241,18 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(omega.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  rhoSum = derivs.fields(ReplaceFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  rhoSum = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  normalization = derivs.fields(HydroFieldNames::normalization, 0.0);
-  auto  DxDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  DHDt = derivs.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivs.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  DHDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());

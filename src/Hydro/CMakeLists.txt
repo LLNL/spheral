@@ -3,7 +3,6 @@ set(Hydro_inst
     EntropyPolicy
     CompatibleDifferenceSpecificThermalEnergyPolicy
     NonSymmetricSpecificThermalEnergyPolicy
-    PositionPolicy
     PressurePolicy
     SoundSpeedPolicy
     SpecificFromTotalThermalEnergyPolicy
@@ -36,10 +35,8 @@ set(Hydro_headers
     GammaPolicy.hh
     HydroFieldNames.hh
     HydroInline.hh
-    MeshScaledMassDensityPolicy.hh
     CompatibleDifferenceSpecificThermalEnergyPolicy.hh
     NonSymmetricSpecificThermalEnergyPolicy.hh
-    PositionPolicy.hh
     PressurePolicy.hh
     RZNonSymmetricSpecificThermalEnergyPolicy.hh
     SecondMomentHourglassControl.hh

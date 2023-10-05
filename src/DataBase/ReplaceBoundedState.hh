@@ -10,7 +10,7 @@
 #define __Spheral_ReplaceBoundedState_hh__
 
 #include <float.h>
-#include "FieldUpdatePolicyBase.hh"
+#include "FieldUpdatePolicy.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -19,11 +19,11 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType, typename BoundValueType=ValueType>
-class ReplaceBoundedState: public FieldUpdatePolicyBase<Dimension, ValueType> {
+class ReplaceBoundedState: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   ReplaceBoundedState(const BoundValueType minValue = BoundValueType(-DBL_MAX),
@@ -54,7 +54,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // An alternate method to be called when you want to specify that the "Replace" information
   // in the derivatives is invalid, and instead the value should be treated as a time advancement
@@ -64,17 +64,16 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt);
+                                 const double dt) override;
 
   // Access the min and max's.
   BoundValueType minValue() const;
   BoundValueType maxValue() const;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   static const std::string prefix() { return "new "; }
-
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -87,9 +86,7 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "ReplaceBoundedStateInline.hh"
-#endif
 
 #else
 

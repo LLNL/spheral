@@ -9,7 +9,7 @@
 #include "SumVoronoiMassDensityPolicy.hh"
 #include "HydroFieldNames.hh"
 #include "DataBase/UpdatePolicyBase.hh"
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -40,8 +40,8 @@ SumVoronoiMassDensityPolicy<Dimension>::
 SumVoronoiMassDensityPolicy(const TableKernel<Dimension>& W, 
                             const Physics<Dimension>& package,
                             const double rhoMin, const double rhoMax):
-  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
-                                                          HydroFieldNames::volume),
+  UpdatePolicyBase<Dimension>(HydroFieldNames::mass,
+                              HydroFieldNames::volume),
   mW(W),
   mPackage(package),
   mRhoMin(rhoMin),
@@ -190,16 +190,15 @@ updateAsIncrement(const KeyType& key,
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
 
   // Find the matching derivative field from the StateDerivatives.
-  KeyType incrementKey = IncrementFieldList<Dimension, Scalar>::prefix() + fieldKey;
-  FieldList<Dimension, Scalar> f = state.fields(fieldKey, 0.0);
-  const FieldList<Dimension, Scalar> df = derivs.fields(incrementKey, 0.0);
+  auto incrementKey = IncrementState<Dimension, Scalar>::prefix() + fieldKey;
+  auto       f = state.fields(fieldKey, 0.0);
+  const auto df = derivs.fields(incrementKey, 0.0);
 
-  // Loop over the internal values of the field.
-  const unsigned numFields = f.numFields();
-  for (unsigned i = 0; i != numFields; ++i) {
+  const auto numFields = f.numFields();
+  for (unsigned i = 0u; i < numFields; ++i) {
     const auto ni = f[i]->numInternalElements();
 #pragma omp parallel for
-    for (unsigned j = 0; j < ni; ++j) {
+    for (auto j = 0u; j < ni; ++j) {
       f(i,j) = max(mRhoMin, min(mRhoMax, f(i,j) + multiplier*(df(i,j))));
     }
   }
@@ -214,12 +213,8 @@ SumVoronoiMassDensityPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const SumVoronoiMassDensityPolicy<Dimension>* rhsPtr = dynamic_cast<const SumVoronoiMassDensityPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto rhsPtr = dynamic_cast<const SumVoronoiMassDensityPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

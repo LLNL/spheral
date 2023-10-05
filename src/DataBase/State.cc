@@ -8,7 +8,6 @@
 #include "StateDerivatives.hh"
 #include "DataBase.hh"
 #include "UpdatePolicyBase.hh"
-#include "FieldUpdatePolicyBase.hh"
 #include "Physics/Physics.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -185,19 +184,7 @@ update(StateDerivatives<Dimension>& derivs,
       stateToBeCompleted[fieldkey].insert(fullkey);
     }
   }
-  for (auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_kullkey.first);
-  // for (typename PolicyMapType::const_iterator itr = mPolicyMap.begin();
-  //      itr != mPolicyMap.end();
-  //      ++itr) {
-  //   for (typename map<KeyType, PolicyPointer>::const_iterator pitr = itr->second.begin();
-  //        pitr != itr->second.end();
-  //        ++pitr) {
-  //     stateToBeCompleted[itr->first].insert(pitr->first);
-  //   }
-  // }
-  // for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
-  //      itr != stateToBeCompleted.end();
-  //      ++itr) fieldsToBeCompleted.push_back(itr->first);
+  for (const auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_fullkey.first);
   CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
 
   // Iterate until all state has been updated.

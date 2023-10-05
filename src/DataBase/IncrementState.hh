@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// IncrementState -- An implementation of FieldUpdatePolicyBase appropriate for
+// IncrementState -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to increment by derivatives:  x1 = x0 + A*dx/dt
 //
 // Created by JMO, Thu Aug 26 14:28:07 2004
@@ -7,16 +7,16 @@
 #ifndef __Spheral_IncrementState_hh__
 #define __Spheral_IncrementState_hh__
 
-#include "FieldUpdatePolicyBase.hh"
+#include "FieldUpdatePolicy.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class IncrementState: public FieldUpdatePolicyBase<Dimension, ValueType> {
+class IncrementState: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   IncrementState(const bool wildCardDerivs = false);
@@ -40,10 +40,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   static const std::string prefix() { return "delta "; }
 

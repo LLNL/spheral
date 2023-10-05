@@ -13,11 +13,9 @@
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -41,7 +39,7 @@ namespace Spheral {
 template<typename Dimension>
 SpecificThermalEnergyPolicy<Dimension>::
 SpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
-  IncrementFieldList<Dimension, typename Dimension::Scalar>(),
+  UpdatePolicyBase<Dimension>(),
   mDataBasePtr(&dataBase) {
 }
 
@@ -77,13 +75,13 @@ update(const KeyType& key,
   auto eps = state.fields(fieldKey, Scalar());
   const auto numFields = eps.numFields();
 
-  // Get the state fields.
+  // Get the state field lists
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -147,6 +145,36 @@ update(const KeyType& key,
 }
 
 //------------------------------------------------------------------------------
+// Update the field using increments
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SpecificThermalEnergyPolicy<Dimension>::
+updateAsIncrement(const KeyType& key,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs,
+                  const double multiplier,
+                  const double t,
+                  const double dt) {
+
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  auto eps = state.fields(fieldKey, Scalar());
+  const auto numFields = eps.numFields();
+
+  // Build an increment policy to use.
+  IncrementState<Dimension, Scalar> fpolicy;
+
+  // Do the deed for each of our Fields.
+  for (auto fptr: eps) {
+    fpolicy.updateAsIncrement(State<Dimension>::key(*fptr),
+                              state, derivs, multiplier, t, dt);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Equivalence operator.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -155,12 +183,8 @@ SpecificThermalEnergyPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const SpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const SpecificThermalEnergyPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto rhsPtr = dynamic_cast<const SpecificThermalEnergyPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

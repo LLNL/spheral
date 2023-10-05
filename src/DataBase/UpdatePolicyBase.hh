@@ -85,6 +85,9 @@ public:
   virtual bool operator==(const UpdatePolicyBase& rhs) const = 0;
   bool operator!=(const UpdatePolicyBase& rhs) const;
 
+  // Should this policy be cloned per Field when registering for a FieldList?
+  virtual bool clonePerField() const { return false; }
+
   // Test is this policy is for independent or dependent state.
   bool independent() const;
   bool dependent() const;

@@ -21,7 +21,7 @@ inline
 CopyState<Dimension, ValueType>::
 CopyState(const std::string& masterState,
           const std::string& copyState):
-  UpdatePolicyBase<Dimension>(),
+  FieldUpdatePolicy<Dimension>(),
   mMasterStateName(masterState),
   mCopyStateName(copyState) {
 }

@@ -1,11 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// FieldListUpdatePolicyBase -- Base/interface class for the policies on how 
-// FieldList state variables are to be updated.
+// FieldUpdatePolicy -- Base/interface class for the policies on how 
+// Field state variables are to be updated.
 //
 // Created by JMO, Sun Feb 13 20:50:53 PST 2011
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_FieldListUpdatePolicyBase_hh__
-#define __Spheral_FieldListUpdatePolicyBase_hh__
+#ifndef __Spheral_FieldUpdatePolicy_hh__
+#define __Spheral_FieldUpdatePolicy_hh__
 
 #include "UpdatePolicyBase.hh"
 
@@ -15,87 +15,67 @@
 
 namespace Spheral {
 
-template<typename Dimension, typename DataType>
-class FieldListUpdatePolicyBase: public UpdatePolicyBase<Dimension> {
+template<typename Dimension>
+class FieldUpdatePolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   using typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  FieldListUpdatePolicyBase();
-  explicit FieldListUpdatePolicyBase(const std::string& depend0);
-  FieldListUpdatePolicyBase(const std::string& depend0, 
-                            const std::string& depend1);
-  FieldListUpdatePolicyBase(const std::string& depend0, 
-                            const std::string& depend1,
-                            const std::string& depend2);
-  FieldListUpdatePolicyBase(const std::string& depend0, 
-                            const std::string& depend1, 
-                            const std::string& depend2, 
-                            const std::string& depend3);
-  FieldListUpdatePolicyBase(const std::string& depend0, 
-                            const std::string& depend1,
-                            const std::string& depend2,
-                            const std::string& depend3, 
-                            const std::string& depend4);
-  FieldListUpdatePolicyBase(const std::string& depend0, 
-                            const std::string& depend1,
-                            const std::string& depend2,
-                            const std::string& depend3,
-                            const std::string& depend4, 
-                            const std::string& depend5);
-  FieldListUpdatePolicyBase(const std::string& depend0,
-                            const std::string& depend1,
-                            const std::string& depend2, 
-                            const std::string& depend3, 
-                            const std::string& depend4,
-                            const std::string& depend5,
-                            const std::string& depend6);
-  virtual ~FieldListUpdatePolicyBase() {};
+  FieldUpdatePolicy();
+  explicit FieldUpdatePolicy(const std::string& depend0);
+  FieldUpdatePolicy(const std::string& depend0, 
+                        const std::string& depend1);
+  FieldUpdatePolicy(const std::string& depend0, 
+                        const std::string& depend1,
+                        const std::string& depend2);
+  FieldUpdatePolicy(const std::string& depend0, 
+                        const std::string& depend1, 
+                        const std::string& depend2, 
+                        const std::string& depend3);
+  FieldUpdatePolicy(const std::string& depend0, 
+                        const std::string& depend1,
+                        const std::string& depend2,
+                        const std::string& depend3, 
+                        const std::string& depend4);
+  FieldUpdatePolicy(const std::string& depend0, 
+                        const std::string& depend1,
+                        const std::string& depend2,
+                        const std::string& depend3,
+                        const std::string& depend4, 
+                        const std::string& depend5);
+  FieldUpdatePolicy(const std::string& depend0,
+                        const std::string& depend1,
+                        const std::string& depend2, 
+                        const std::string& depend3, 
+                        const std::string& depend4,
+                        const std::string& depend5,
+                        const std::string& depend6);
+  virtual ~FieldUpdatePolicy() {};
   
-  // Overload the methods describing how to update FieldLists.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt) override;
-
-  // An alternate method to be called when you want to specify that the derivative information
-  // should be assumed to not necessarily be properly time-centered, and therefore you should 
-  // only use time advancement ideas, no "replace" or more sophisticated approaches.
-  // Default to just calling the generic method.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt) override;
-
-  // Set the policy for a given NodeList
-  void enroll(const std::string& nodeListName, std::shared_ptr<UpdatePolicyBase<Dimension>> policy);
-  bool havePolicyForNodeList(const std::string& nodeListName) const;
-  const std::shared_ptr<UpdatePolicyBase<Dimension>>& policyForNodeList(const std::string& nodeListName) const;
+  // Should this policy be cloned per Field when registering for a FieldList?
+  // Setting this to true is the only purpose of this class, so that policies
+  // intended for Fields can be easily registered on FieldLists.  Thie results
+  // in each Field in the FieldList being registered separately with copies of
+  // the shared_ptr to the policy.
+  virtual bool clonePerField() const override { return true; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  FieldListUpdatePolicyBase(const FieldListUpdatePolicyBase& rhs);
-  FieldListUpdatePolicyBase& operator=(const FieldListUpdatePolicyBase& rhs);
-
-  // The set of UpdatePolicies by NodeList.
-  std::map<std::string, std::shared_ptr<UpdatePolicyBase<Dimension>>> mNodeListPolicies;
+  FieldUpdatePolicy(const FieldUpdatePolicy& rhs);
+  FieldUpdatePolicy& operator=(const FieldUpdatePolicy& rhs);
 };
 
 }
 
-#include "FieldListUpdatePolicyBaseInline.hh"
+#include "FieldUpdatePolicyInline.hh"
 
 #else
 
 // Forward declaration.
 namespace Spheral {
-  template<typename Dimension, typename DataType> class FieldListUpdatePolicyBase;
+  template<typename Dimension> class FieldUpdatePolicy;
 }
 
 #endif

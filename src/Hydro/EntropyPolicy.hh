@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "DataBase/UpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 namespace Spheral {
 
@@ -17,15 +17,14 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class FluidNodeList;
-template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class EntropyPolicy: public UpdatePolicyBase<Dimension> {
+class EntropyPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using Scalar = typename Dimension::Scalar Scalar;
-  using typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   EntropyPolicy();
@@ -40,7 +39,7 @@ public:
                       const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -18,23 +18,18 @@ namespace Spheral {
 template<typename Dimension, typename Value>
 inline
 IncrementState<Dimension, Value>::
-IncrementState():
-  FieldUpdatePolicyBase<Dimension, Value>() {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0) {
+IncrementState(const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
 inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
-               const std::string& depend1):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0, depend1) {
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
@@ -42,8 +37,9 @@ inline
 IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
-               const std::string& depend2):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2) {
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0, depend1),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
@@ -52,8 +48,9 @@ IncrementState<Dimension, Value>::
 IncrementState(const std::string& depend0,
                const std::string& depend1,
                const std::string& depend2,
-               const std::string& depend3):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3) {
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
@@ -63,8 +60,9 @@ IncrementState(const std::string& depend0,
                const std::string& depend1,
                const std::string& depend2,
                const std::string& depend3,
-               const std::string& depend4):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4) {
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 template<typename Dimension, typename Value>
@@ -75,8 +73,23 @@ IncrementState(const std::string& depend0,
                const std::string& depend2,
                const std::string& depend3,
                const std::string& depend4,
-               const std::string& depend5):
-  FieldUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4, depend5) {
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
+  mWildCardDerivs(wildCardDerivs) {
+}
+
+template<typename Dimension, typename Value>
+inline
+IncrementState<Dimension, Value>::
+IncrementState(const std::string& depend0,
+               const std::string& depend1,
+               const std::string& depend2,
+               const std::string& depend3,
+               const std::string& depend4,
+               const std::string& depend5,
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 //------------------------------------------------------------------------------
@@ -107,7 +120,7 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
 
   // Get the state we're updating.
-  auto f = state.field(key, Value());
+  auto& f = state.field(key, Value());
 
   // Find all the available matching derivative Field keys.
   const auto incrementKey = prefix() + fieldKey;
@@ -121,9 +134,9 @@ update(const KeyType& key,
       ++numDeltaFields;
 
       // This delta field matches the base of increment key, so apply it.
-      const auto df = derivs.field(key, Value());
-      const auto n = f.numInternalElements();
-#pragma omp paralel for
+      const auto& df = derivs.field(key, Value());
+      const auto  n = f.numInternalElements();
+#pragma omp parallel for
       for (auto i = 0u; i < n; ++i) {
         f(i) += multiplier*(df(i));
       }
@@ -145,8 +158,8 @@ IncrementState<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const IncrementState<Dimension, Value>* rhsPtr = dynamic_cast<const IncrementState<Dimension, Value>*>(&rhs);
-  return rhsPtr != 0;
+  const auto rhsPtr = dynamic_cast<const IncrementState<Dimension, Value>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 //------------------------------------------------------------------------------

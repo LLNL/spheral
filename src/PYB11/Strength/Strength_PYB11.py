@@ -47,6 +47,7 @@ class SolidFieldNames:
     maxFlaw = PYB11readonly(static=True, returnpolicy="copy")
     initialVolume = PYB11readonly(static=True, returnpolicy="copy")
     randomGenerator = PYB11readonly(static=True, returnpolicy="copy")
+    porositySolidDensity = PYB11readonly(static=True, returnpolicy="copy")
     porosityAlpha = PYB11readonly(static=True, returnpolicy="copy")
     porosityStrain = PYB11readonly(static=True, returnpolicy="copy")
     porosityAlpha0 = PYB11readonly(static=True, returnpolicy="copy")

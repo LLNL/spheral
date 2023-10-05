@@ -4,7 +4,6 @@
 //
 // Created by JMO, Thu Aug 26 14:28:07 2004
 //----------------------------------------------------------------------------//
-#include "UpdatePolicyBase.hh"
 #include "State.hh"
 #include "StateDerivatives.hh"
 #include "Field/Field.hh"
@@ -20,7 +19,7 @@ inline
 IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 IncrementBoundedState(const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(),
+  FieldUpdatePolicy<Dimension>(),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -31,7 +30,7 @@ IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 IncrementBoundedState(const std::string& depend0,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0),
+  FieldUpdatePolicy<Dimension>(depend0),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -43,7 +42,7 @@ IncrementBoundedState(const std::string& depend0,
                       const std::string& depend1,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0, depend1),
+  FieldUpdatePolicy<Dimension>(depend0, depend1),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -56,7 +55,7 @@ IncrementBoundedState(const std::string& depend0,
                       const std::string& depend2,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -70,7 +69,7 @@ IncrementBoundedState(const std::string& depend0,
                       const std::string& depend3,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -85,7 +84,7 @@ IncrementBoundedState(const std::string& depend0,
                       const std::string& depend4,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -101,7 +100,7 @@ IncrementBoundedState(const std::string& depend0,
                       const std::string& depend5,
                       const BoundValueType minValue,
                       const BoundValueType maxValue):
-  FieldUpdatePolicyBase<Dimension, ValueType>(depend0, depend1, depend2, depend3, depend4, depend5),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
   mMinValue(minValue),
   mMaxValue(maxValue) {
 }
@@ -130,12 +129,14 @@ update(const KeyType& key,
        const double /*dt*/) {
 
   // Find the matching derivative field from the StateDerivatives.
-  KeyType incrementKey = prefix() + key;
-  Field<Dimension, ValueType>& f = state.field(key, ValueType());
-  const Field<Dimension, ValueType>& df = derivs.field(incrementKey, ValueType());
+  const auto  incrementKey = prefix() + key;
+  auto&       f = state.field(key, ValueType());
+  const auto& df = derivs.field(incrementKey, ValueType());
 
   // Loop over the internal values of the field.
-  for (auto i = 0u; i != f.nodeList().numInternalNodes(); ++i) {
+  const auto n = f.nodeList().numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     f(i) = std::min(mMaxValue, std::max(mMinValue, f(i) + multiplier*(df(i))));
   }
 }
@@ -150,8 +151,8 @@ IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const IncrementBoundedState<Dimension, ValueType, BoundValueType>* rhsPtr = dynamic_cast<const IncrementBoundedState<Dimension, ValueType, BoundValueType>*>(&rhs);
-  if (rhsPtr == 0) return false;
+  const auto rhsPtr = dynamic_cast<const IncrementBoundedState<Dimension, ValueType, BoundValueType>*>(&rhs);
+  if (rhsPtr == nullptr) return false;
 
   // Ok, now do we agree on min & max?
   return (minValue() == rhsPtr->minValue()) && (maxValue() == rhsPtr->maxValue());

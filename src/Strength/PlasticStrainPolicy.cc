@@ -6,11 +6,8 @@
 //----------------------------------------------------------------------------//
 #include "PlasticStrainPolicy.hh"
 #include "NodeList/SolidNodeList.hh"
-#include "SolidFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -66,10 +63,10 @@ computeJ2(const Dim<1>::SymTensor& S) {
 template<typename Dimension>
 PlasticStrainPolicy<Dimension>::
 PlasticStrainPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(SolidFieldNames::deviatoricStress,
-                                                                   HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy,
-                                                                   HydroFieldNames::pressure) {
+  FieldUpdatePolicy<Dimension>(SolidFieldNames::deviatoricStress,
+                               HydroFieldNames::massDensity,
+                               HydroFieldNames::specificThermalEnergy,
+                               HydroFieldNames::pressure) {
 }
 
 //------------------------------------------------------------------------------
@@ -91,51 +88,46 @@ PlasticStrainPolicy<Dimension>::
 update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
-       const double /*multiplier*/,
-       const double /*t*/,
+       const double multiplier,
+       const double t,
        const double dt) {
+
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::plasticStrain and
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  auto ps = state.fields(fieldKey, 0.0);
-  const auto numFields = ps.numFields();
+  REQUIRE(fieldKey == SolidFieldNames::plasticStrain);
 
   // Get the state we depend on.
-  const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto eps = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto G = state.fields(SolidFieldNames::shearModulus, 0.0);
-  const auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  const auto ps0 = state.fields(SolidFieldNames::plasticStrain + "0", 0.0);
-  auto       deviatoricStress = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto       psr = derivs.fields(SolidFieldNames::plasticStrainRate, 0.0);
+  const auto buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& mu = state.field(buildKey(SolidFieldNames::shearModulus), 0.0);
+  const auto& Y = state.field(buildKey(SolidFieldNames::yieldStrength), 0.0);
+  const auto& ps0 = state.field(buildKey(SolidFieldNames::plasticStrain + "0"), 0.0);
+  auto&       ps = state.field(key, 0.0);
+  auto&       deviatoricStress = state.field(buildKey(SolidFieldNames::deviatoricStress), SymTensor::zero);
+  auto&       psr = derivs.field(buildKey(SolidFieldNames::plasticStrainRate), 0.0);
 
   // Iterate over the internal nodes.
-  for (auto k = 0u; k < numFields; ++k) {
-    const auto n = ps[k]->numInternalElements();
+  const auto n = ps.numInternalElements();
 #pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
 
-      // Equivalent stress deviator.
-      const auto J2 = computeJ2(deviatoricStress(k,i));
-      CHECK(J2 >= 0.0);
-      const auto equivalentStressDeviator = sqrt(3.0*J2);
+    // Equivalent stress deviator.
+    const auto J2 = computeJ2(deviatoricStress(i));
+    CHECK(J2 >= 0.0);
+    const auto equivalentStressDeviator = sqrt(3.0*J2);
 
-      // Plastic yield limit.
-      const auto yieldLimit = max(0.0, Y(k,i));
+    // Plastic yield limit.
+    const auto yieldLimit = max(0.0, Y(i));
 
-      // von Mises yield scaling constant.
-      const auto f = min(1.0, yieldLimit*safeInvVar(equivalentStressDeviator));
+    // von Mises yield scaling constant.
+    const auto f = min(1.0, yieldLimit*safeInvVar(equivalentStressDeviator));
 
-      // Scale the stress deviator.
-      deviatoricStress(k,i) *= f;
+    // Scale the stress deviator.
+    deviatoricStress(i) *= f;
 
-      // Update the plastic strain and strain rate.
-      if (distinctlyGreaterThan(G(k,i), 0.0)) {
-        ps(k,i) += (1.0 - f)*equivalentStressDeviator / (3.0*G(k,i));
-        psr(k,i) = (ps(k,i) - ps0(k,i))*safeInv(dt);
-      }
+    // Update the plastic strain and strain rate.
+    if (distinctlyGreaterThan(mu(i), 0.0)) {
+      ps(i) += (1.0 - f)*equivalentStressDeviator / (3.0*mu(i));
+      psr(i) = (ps(i) - ps0(i))*safeInv(dt);
     }
   }
 }
@@ -149,12 +141,8 @@ PlasticStrainPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const PlasticStrainPolicy<Dimension>* rhsPtr = dynamic_cast<const PlasticStrainPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const PlasticStrainPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }
