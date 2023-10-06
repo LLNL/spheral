@@ -464,8 +464,14 @@
     <ProjectReference Include="..\spheral_fileio\spheral_fileio.vcxproj">
       <Project>{8c0a121b-48a2-44e4-9b04-136b83cee211}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\spheral_FSISPH\spheral_FSISPH.vcxproj">
+      <Project>{06f53870-d69a-45f4-86bb-2079acf8b906}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\spheral_geometry\spheral_geometry.vcxproj">
       <Project>{0dd9c844-051c-46d7-81cc-11ac737dd97d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\spheral_GSPH\spheral_GSPH.vcxproj">
+      <Project>{da903328-cecd-49a3-9442-16301537744c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\spheral_hydro\spheral_hydro.vcxproj">
       <Project>{68d258cb-3a49-4a62-aa2b-c23d73993b2e}</Project>

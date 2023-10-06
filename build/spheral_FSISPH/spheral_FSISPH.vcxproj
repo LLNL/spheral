@@ -31,7 +31,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{68D258CB-3A49-4A62-AA2B-C23D73993B2E}</ProjectGuid>
+    <ProjectGuid>{06F53870-D69A-45F4-86BB-2079ACF8B906}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -287,70 +287,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\HydroFieldNames.cc" />
-    <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.cc" />
-    <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\SpecificThermalEnergyPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\SpecificThermalEnergyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\VolumePolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\VolumePolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\FSIFieldNames.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurface.cc" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.py">
-      <Command>
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-      </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py">
-      <Command>
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-        python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-      </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Hydro\entropyWeightingFunction.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\HybridMassDensityPolicyInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\HydroFieldNames.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\HydroInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\MashCorrectionPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\MeshScaledMassDensityPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.py">
+    <CustomBuild Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -358,10 +307,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\PositionPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\PositionPolicyInst.cc.py">
+    <CustomBuild Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -369,10 +315,15 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\PressurePolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\PressurePolicyInst.cc.py">
+    <CustomBuild Include="..\..\src\FSISPH\SlideSurfaceInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -380,78 +331,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\SoundSpeedPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\SoundSpeedPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Hydro\SpecificThermalEnergyPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\SpecificThermalEnergyPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Hydro\SumVoronoiMassDensityPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\SumVoronoiMassDensityPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Hydro\TotalHydro.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\TotalHydroInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Hydro\VolumePolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\VolumePolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <None Include="..\..\src\Hydro\VoronoiMassDensityPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Hydro\VoronoiMassDensityPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
