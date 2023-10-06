@@ -10,16 +10,16 @@
 #ifndef __Spheral_ReplaceAndIncrementPairFieldList_hh__
 #define __Spheral_ReplaceAndIncrementPairFieldList_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename Value>
-class ReplaceAndIncrementPairFieldList: public FieldListUpdatePolicyBase<Dimension, Value> {
+class ReplaceAndIncrementPairFieldList: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // pull up from the parent
-  typedef typename  FieldListUpdatePolicyBase<Dimension, Value>::KeyType KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   ReplaceAndIncrementPairFieldList();

@@ -22,10 +22,10 @@
 #include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 #include "Damage/DamagedPressurePolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
@@ -141,7 +141,7 @@ SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHfield0(FieldStorageType::CopyFields) {
 
   // Create storage for the state we're holding.
-  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+  mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
   mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
   mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
   mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
@@ -193,8 +193,6 @@ SolidCRKSPHHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Invoke CRKSPHHydro's state.
   CRKSPHHydroBase<Dimension>::registerState(dataBase, state);
 
@@ -212,24 +210,17 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
   auto S = dataBase.solidDeviatoricStress();
-  PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>());
-  PolicyPointer plasticStrainPolicy(new PlasticStrainPolicy<Dimension>());
-  state.enroll(S, deviatoricStressPolicy);
-  state.enroll(ps, plasticStrainPolicy);
+  state.enroll(S, std::make_shared<DeviatoricStressPolicy<Dimension>>());
+  state.enroll(ps, std::make_shared<PlasticStrainPolicy<Dimension>>());
 
   // Register the bulk modulus, shear modulus, and yield strength.
-  PolicyPointer bulkModulusPolicy(new BulkModulusPolicy<Dimension>());
-  PolicyPointer shearModulusPolicy(new ShearModulusPolicy<Dimension>());
-  PolicyPointer yieldStrengthPolicy(new YieldStrengthPolicy<Dimension>());
-  state.enroll(mBulkModulus, bulkModulusPolicy);
-  state.enroll(mShearModulus, shearModulusPolicy);
-  state.enroll(mYieldStrength, yieldStrengthPolicy);
+  state.enroll(mBulkModulus, std::make_shared<BulkModulusPolicy<Dimension>>());
+  state.enroll(mShearModulus, std::make_shared<ShearModulusPolicy<Dimension>>());
+  state.enroll(mYieldStrength, std::make_shared<YieldStrengthPolicy<Dimension>>());
 
   // Override the policies for the sound speed and pressure.
-  PolicyPointer csPolicy(new StrengthSoundSpeedPolicy<Dimension>());
-  PolicyPointer Ppolicy(new DamagedPressurePolicy<Dimension>());
-  state.enroll(cs, csPolicy);
-  state.enroll(P, Ppolicy);
+  state.enroll(cs, std::make_shared<StrengthSoundSpeedPolicy<Dimension>>());
+  state.enroll(P, std::make_shared<DamagedPressurePolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.
@@ -267,7 +258,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  const auto DSDtName = IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
+  const auto DSDtName = IncrementState<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress;
   dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, DSDtName, false);
   derivs.enroll(mDdeviatoricStressDt);
 
@@ -344,14 +335,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
@@ -359,7 +350,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto  DSDt = derivatives.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);

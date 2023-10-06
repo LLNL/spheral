@@ -99,6 +99,12 @@ only use time advancement ideas, no "replace" or more sophisticated approaches.
 Default to just calling the generic method."""
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def clonePerField(self):
+        "Returns whether this policy should be cloned for each Field in a FieldList or not"
+        return "bool"
+
     #...........................................................................
     # Methods
     @PYB11const

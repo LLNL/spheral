@@ -53,6 +53,9 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
+  // Return the replacement key
+  virtual KeyType replaceStateKey(const KeyType& fkey) const { return ReplaceState<Dimension, ValueType>::prefix() + fkey; }
+
   static const std::string prefix() { return "new "; }
 
 private:

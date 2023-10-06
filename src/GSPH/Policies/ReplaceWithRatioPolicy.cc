@@ -6,13 +6,13 @@
 //----------------------------------------------------------------------------//
 
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
-#include "DataBase/IncrementFieldList.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/FieldList.hh"
+#include "Field/Field.hh"
+#include "Utilities/safeInv.hh"
 #include "Utilities/DBC.hh"
 
-#include <limits.h>
+#include <limits>
 
 namespace Spheral {
 
@@ -23,7 +23,7 @@ template<typename Dimension, typename Value>
 ReplaceWithRatioPolicy<Dimension, Value>::
 ReplaceWithRatioPolicy(const KeyType& numerator,
                        const KeyType& denomenator):
-  FieldListUpdatePolicyBase<Dimension, Value>(),
+  FieldUpdatePolicy<Dimension>(),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -33,7 +33,7 @@ ReplaceWithRatioPolicy<Dimension, Value>::
 ReplaceWithRatioPolicy(const KeyType& numerator,
                        const KeyType& denomenator,
                        const std::string& depend0):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0),
+  FieldUpdatePolicy<Dimension>(depend0),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -44,7 +44,7 @@ ReplaceWithRatioPolicy(const KeyType& numerator,
                        const KeyType& denomenator,
                        const std::string& depend0,
                        const std::string& depend1):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1),
+  FieldUpdatePolicy<Dimension>(depend0, depend1),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -56,7 +56,7 @@ ReplaceWithRatioPolicy(const KeyType& numerator,
                        const std::string& depend0,
                        const std::string& depend1,
                        const std::string& depend2):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
   mNumerator(numerator),
   mDenomenator(denomenator){
 }
@@ -69,7 +69,7 @@ ReplaceWithRatioPolicy(const KeyType& numerator,
                        const std::string& depend1,
                        const std::string& depend2,
                        const std::string& depend3):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3),
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -78,12 +78,12 @@ template<typename Dimension, typename Value>
 ReplaceWithRatioPolicy<Dimension, Value>::
 ReplaceWithRatioPolicy(const KeyType& numerator,
                        const KeyType& denomenator,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2,
-                 const std::string& depend3,
-                 const std::string& depend4):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4),
+                       const std::string& depend0,
+                       const std::string& depend1,
+                       const std::string& depend2,
+                       const std::string& depend3,
+                       const std::string& depend4):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -92,13 +92,13 @@ template<typename Dimension, typename Value>
 ReplaceWithRatioPolicy<Dimension, Value>::
 ReplaceWithRatioPolicy(const KeyType& numerator,
                        const KeyType& denomenator,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2,
-                 const std::string& depend3,
-                 const std::string& depend4,
-                 const std::string& depend5):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4, depend5),
+                       const std::string& depend0,
+                       const std::string& depend1,
+                       const std::string& depend2,
+                       const std::string& depend3,
+                       const std::string& depend4,
+                       const std::string& depend5):
+  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }
@@ -123,25 +123,25 @@ update(const KeyType& key,
        const double /*multiplier*/,
        const double /*t*/,
        const double /*dt*/) {
+
   const auto tiny = std::numeric_limits<typename Dimension::Scalar>::epsilon();
-  // Get the field name portion of the key.
+
+  // The state we're updating
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  CHECK(nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  auto& f = state.field(key, Value());
 
   // Find the matching replacement FieldList from the StateDerivatives.
-  FieldList<Dimension, Value> f = state.fields(fieldKey, Value());
-  const FieldList<Dimension, Value> numer = state.fields(mNumerator, Value());
-  const FieldList<Dimension, Value> denom = state.fields(mDenomenator, Value());
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& numer = state.field(buildKey(mNumerator), Value());
+  const auto& denom = state.field(buildKey(mDenomenator), Value());
   CHECK(numer.size() == denom.size());
 
   // Loop over the internal values of the field.
-  const unsigned numNodeLists = f.size();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = f[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      f(k, i) = numer(k, i)/std::max(denom(k, i),tiny);
-    }
+  const auto n = f.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    f(i) = numer(i)*safeInvVar(denom(i), tiny);
   }
 }
 
@@ -155,8 +155,8 @@ ReplaceWithRatioPolicy<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an replace operator.
-  const ReplaceWithRatioPolicy<Dimension, Value>* rhsPtr = dynamic_cast<const ReplaceWithRatioPolicy<Dimension, Value>*>(&rhs);
-  return rhsPtr != 0;
+  const auto* rhsPtr = dynamic_cast<const ReplaceWithRatioPolicy<Dimension, Value>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 }

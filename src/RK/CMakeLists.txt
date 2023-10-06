@@ -39,7 +39,6 @@ set(RK_headers
     ContinuityVolumePolicy.hh
     ContinuityVolumePolicyRZ.hh
     HVolumePolicy.hh
-    HullVolumePolicy.hh
     RKCoefficients.hh
     RKCorrectionParams.hh
     RKCorrections.hh

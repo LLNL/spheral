@@ -269,8 +269,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto mass = dataBase.fluidMass();
   state.enroll(mass);
 
-  // We need to build up CompositeFieldListPolicies for the mass density and H fields
-  // in order to enforce NodeList dependent limits.
+  // Register mass density and H fields.
   auto massDensity = dataBase.fluidMassDensity();
   auto Hfield = dataBase.fluidHfield();
   nodeListi = 0u;

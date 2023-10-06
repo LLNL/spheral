@@ -10,19 +10,19 @@
 
 #include <string>
 
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementState.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class ContinuityVolumePolicy: public IncrementFieldList<Dimension, typename Dimension::Scalar> {
+class ContinuityVolumePolicy: public IncrementState<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   ContinuityVolumePolicy();
@@ -34,10 +34,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

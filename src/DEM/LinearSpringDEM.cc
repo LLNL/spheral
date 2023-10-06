@@ -17,8 +17,8 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/ReplaceState.hh"
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -375,9 +375,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(neighborIds.size() == numNodeLists);
 
   // Get the deriv FieldLists
-  auto DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto DomegaDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
+  auto DomegaDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);

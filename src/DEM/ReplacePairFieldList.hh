@@ -7,16 +7,16 @@
 #ifndef __Spheral_ReplacePairFieldList_hh__
 #define __Spheral_ReplacePairFieldList_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class ReplacePairFieldList: public FieldListUpdatePolicyBase<Dimension, ValueType> {
+class ReplacePairFieldList: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // pull up from the parent
-  typedef typename  FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename  UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   ReplacePairFieldList();

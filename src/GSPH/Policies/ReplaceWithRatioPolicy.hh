@@ -7,16 +7,16 @@
 #ifndef __Spheral_ReplaceWithRatioPolicy_hh__
 #define __Spheral_ReplaceWithRatioPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class ReplaceWithRatioPolicy: public FieldListUpdatePolicyBase<Dimension, ValueType> {
+class ReplaceWithRatioPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
 

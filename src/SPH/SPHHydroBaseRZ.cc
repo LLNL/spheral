@@ -139,13 +139,11 @@ registerState(DataBase<Dim<2> >& dataBase,
     state.enroll(specificThermalEnergy, std::make_shared<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
     // Get the policy for the position, and add the specific energy as a dependency.
-    const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
-    for (const auto fptr: pos) {
-      auto positionPolicy = state.policy(*fptr);
-      auto key = State<Dimension>::key(*fptr);
-      State<Dimension>::KeyType fkey, nodeListKey;
+    const auto posPolicies = state.policies(HydroFieldNames::position);      // map<Key, Policy>
+    State<Dimension>::KeyType fkey, nodeListKey;
+    for (auto& [key, policy]: posPolicies) {
       State<Dimension>::splitFieldKey(key, fkey, nodeListKey);
-      positionPolicy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
+      policy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
     }
   }
 }

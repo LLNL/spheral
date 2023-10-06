@@ -162,7 +162,6 @@ updateAsIncrement(const KeyType& key,
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   auto eps = state.fields(fieldKey, Scalar());
-  const auto numFields = eps.numFields();
 
   // Build an increment policy to use.
   IncrementState<Dimension, Scalar> fpolicy;

@@ -12,11 +12,10 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/CompositeFieldListPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -87,7 +86,7 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  xmax),
   mDmassDensityDt(FieldStorageType::CopyFields){
 
-    mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
+    mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
 }
 
 //------------------------------------------------------------------------------
@@ -120,28 +119,21 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_BEGIN("GSPHregister");
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   GenericRiemannHydro<Dimension>::registerState(dataBase,state);
 
   auto massDensity = dataBase.fluidMassDensity();
-  auto volume = state.fields(HydroFieldNames::volume, 0.0);
-
-  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
+  auto nodeListi = 0u;
   for (auto itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr) {
-    rhoPolicy->push_back(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
-                                                                      (*itr)->rhoMax()));
+       itr < dataBase.fluidNodeListEnd();
+       ++itr, ++nodeListi) {
+    state.enroll(*massDensity[nodeListi], std::make_shared<IncrementBoundedState<Dimension, Scalar>>((*itr)->rhoMin(),
+                                                                                                     (*itr)->rhoMax()));
   }
 
-  PolicyPointer volumePolicy(new ReplaceWithRatioPolicy<Dimension,Scalar>(HydroFieldNames::mass,
-                                                                        HydroFieldNames::massDensity,
-                                                                        HydroFieldNames::massDensity));
-  
-  // normal state variables
-  state.enroll(massDensity, rhoPolicy);
-  state.enroll(volume, volumePolicy);
+  auto volume = state.fields(HydroFieldNames::volume, 0.0);
+  state.enroll(volume, std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
+                                                                                  HydroFieldNames::massDensity,
+                                                                                  HydroFieldNames::massDensity));
 
   TIME_END("GSPHregister");
 }
@@ -158,7 +150,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
 
-  dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, false);
+  dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, false);
   derivs.enroll(mDmassDensityDt);
 
   TIME_END("GSPHregisterDerivs");

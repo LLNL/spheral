@@ -11,7 +11,6 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Gravity/CompatibleGravitationalVelocityPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"

@@ -6,7 +6,7 @@
 #include "SPH/SPHHydroBase.hh"                 
 #include "SPH/SolidSPHHydroBase.hh"
 
-#include "GSPH/Policies/PureReplaceFieldList.hh"
+#include "GSPH/Policies/PureReplaceState.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -18,8 +18,8 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"
@@ -189,10 +189,10 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
     mInterfaceFraction = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceFraction);
     mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
-    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
+    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals);
     mSmoothedInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::smoothedInterfaceNormals);
-    mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
-    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    mNewInterfaceFraction = dataBase.newFluidFieldList(0.0, ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction);
+    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
     
   }
 
@@ -230,32 +230,23 @@ registerState(DataBase<Dimension>& dataBase,
 
   SolidSPHHydroBase<Dimension>::registerState(dataBase,state);
   
-
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  
   dataBase.resizeFluidFieldList(mRawPressure, 0.0, FSIFieldNames::rawPressure, false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
   dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
    
-  PolicyPointer rawPressurePolicy(new PressurePolicy<Dimension>());
-  PolicyPointer interfaceNormalsPolicy(new PureReplaceFieldList<Dimension,Vector>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals));
-  PolicyPointer interfaceFractionPolicy(new PureReplaceFieldList<Dimension,Scalar>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction));
-  PolicyPointer interfaceSmoothnessPolicy(new PureReplaceFieldList<Dimension,Scalar>(ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness));
-  
   // Override the specific thermal energy policy if compatible
   if(this->compatibleEnergyEvolution()){
     auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
     CHECK(specificThermalEnergy.numFields() == dataBase.numFluidNodeLists());
-    PolicyPointer epsPolicy(new CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>(dataBase));
-    state.enroll(specificThermalEnergy, epsPolicy);
+    state.enroll(specificThermalEnergy, std::make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase));
   }
 
-  state.enroll(mRawPressure,rawPressurePolicy);
-  state.enroll(mInterfaceNormals,interfaceNormalsPolicy); 
-  state.enroll(mInterfaceFraction,interfaceFractionPolicy);
-  state.enroll(mInterfaceSmoothness,interfaceSmoothnessPolicy); 
-
+  state.enroll(mRawPressure, std::make_shared<PressurePolicy<Dimension>>());
+  state.enroll(mInterfaceNormals, std::make_shared<PureReplaceState<Dimension,Vector>>(ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals));
+  state.enroll(mInterfaceFraction, std::make_shared<PureReplaceState<Dimension,Scalar>>(ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceFraction));
+  state.enroll(mInterfaceSmoothness, std::make_shared<PureReplaceState<Dimension,Scalar>>(ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness));
+  
   TIME_END("SolidFSISPHregisterState");
 }
 
@@ -275,10 +266,10 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   // make sure we're tracking the right number of node lists
   dataBase.resizeFluidFieldList(mDPDx, Vector::zero, FSIFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
-  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mSmoothedInterfaceNormals, Vector::zero,  FSIFieldNames::smoothedInterfaceNormals,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
-  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFraction, 0.0,  ReplaceBoundedState<Dimension,Scalar>::prefix() +  FSIFieldNames::interfaceFraction,false); 
+  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  ReplaceBoundedState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
 
   // enroll 
   derivs.enrollAny(HydroFieldNames::pairWork,  mPairDepsDt);

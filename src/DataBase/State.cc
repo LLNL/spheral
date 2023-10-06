@@ -309,16 +309,30 @@ State<Dimension>::
 policy(const typename State<Dimension>::KeyType& key) const {
   KeyType fieldKey, nodeKey;
   this->splitFieldKey(key, fieldKey, nodeKey);
-  const typename PolicyMapType::const_iterator outerItr = mPolicyMap.find(fieldKey);
+  const auto outerItr = mPolicyMap.find(fieldKey);
   if (outerItr == mPolicyMap.end()) return PolicyPointer();
   // VERIFY2(outerItr != mPolicyMap.end(),
   //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
-  const std::map<KeyType, PolicyPointer>& policies = outerItr->second;
-  const typename std::map<KeyType, PolicyPointer>::const_iterator innerItr = policies.find(key);
-  if (innerItr == policies.end()) return PolicyPointer();
+  const auto& key2policies = outerItr->second;
+  const auto innerItr = key2policies.find(key);
+  if (innerItr == key2policies.end()) return PolicyPointer();
   // VERIFY2(innerItr != policies.end(),
   //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
   return innerItr->second;
+}
+
+//------------------------------------------------------------------------------
+// Return all the policies for the given field key.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::map<typename State<Dimension>::KeyType, typename State<Dimension>::PolicyPointer>
+State<Dimension>::
+policies(const typename State<Dimension>::KeyType& fieldKey) const {
+  const auto outerItr = mPolicyMap.find(fieldKey);
+  if (outerItr == mPolicyMap.end()) return std::map<KeyType, PolicyPointer>();
+  // VERIFY2(outerItr != mPolicyMap.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  return outerItr->second;
 }
 
 //------------------------------------------------------------------------------

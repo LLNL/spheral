@@ -8,7 +8,6 @@
 #include "HVolumePolicy.hh"
 #include "computeHVolumes.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -17,14 +16,13 @@
 
 namespace Spheral {
 
-
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 HVolumePolicy<Dimension>::
 HVolumePolicy(const Scalar kernelExtent):
-  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::H),
+  UpdatePolicyBase<Dimension>(HydroFieldNames::H),
   mKernelExtent(kernelExtent) {
 }
 
@@ -53,10 +51,10 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::volume and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> volume = state.fields(fieldKey, Scalar());
+  FieldList<Dimension, Scalar> volume = state.fields(fieldKey, 0.0);
 
   // Get the H field from the state, and do the deed.
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   computeHVolumes(mKernelExtent, H, volume);
 }
 
@@ -69,12 +67,8 @@ HVolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const HVolumePolicy<Dimension>* rhsPtr = dynamic_cast<const HVolumePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const HVolumePolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

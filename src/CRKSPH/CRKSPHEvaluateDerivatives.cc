@@ -56,14 +56,14 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);

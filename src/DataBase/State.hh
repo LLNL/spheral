@@ -92,6 +92,9 @@ public:
   // Return the policy for the specified key.
   PolicyPointer policy(const KeyType& key) const;
 
+  // Return all the policies associated with the given Field Key
+  std::map<KeyType, PolicyPointer> policies(const KeyType& fieldKey) const;
+
   // Return the policy for the specified field.
   template<typename Value>
   PolicyPointer policy(const Field<Dimension, Value>& field) const;
@@ -103,7 +106,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::map<KeyType, std::map<KeyType, PolicyPointer>> PolicyMapType;
+  using PolicyMapType = std::map<KeyType, std::map<KeyType, PolicyPointer>>;
   PolicyMapType mPolicyMap;
   bool mTimeAdvanceOnly;
 };
