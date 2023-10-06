@@ -102,7 +102,7 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
   Arguments:
     ndims                 : number of dimensions
     axisym                : flag for axisymmetric version
-    CRK                   : flag for CRK (conservative reproducing kernel)
+    SPH                   : type of SPH (SPH=0 for SolidSPH, SPH=1 for SolidCRK, SPH=2 for SolidFSISPH)
     ASPH                  : flag selecting SPH or ASPH (0=false/1=true)
     XSPH                  : flag selecting XSPH, i.e., move points with average fluid motion (0=false/1=true)
     compatibleEnergy      : flag for using the compatible energy method (0=false/1=true)
@@ -141,7 +141,7 @@ SPHERALDLL_API   void spheral_set_communicator(MPI_Comm* comm);
 SPHERALDLL_API 
   void spheral_initialize(const int      ndims,
                           const int      axisym,
-                          const int      CRK,
+                          const int      SPH,
                           const int      ASPH,
                           const int      XSPH,
                           const int      compatibleEnergy,
