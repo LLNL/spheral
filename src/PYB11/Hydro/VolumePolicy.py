@@ -1,10 +1,9 @@
 from PYB11Generator import *
-from ReplaceFieldList import *
+from UpdatePolicyBase import *
 
 @PYB11module("SpheralHydro")
 @PYB11template("Dimension")
-@PYB11template_dict({"ValueType" : "typename %(Dimension)s::Scalar"})
-class VolumePolicy(ReplaceFieldList):
+class VolumePolicy(UpdatePolicyBase):
 
     PYB11typedefs = """
     using Scalar = typename %(Dimension)s::Scalar;

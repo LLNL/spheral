@@ -21,7 +21,7 @@ inline
 CopyState<Dimension, ValueType>::
 CopyState(const std::string& masterState,
           const std::string& copyState):
-  FieldUpdatePolicy<Dimension>(),
+  UpdatePolicyBase<Dimension>(),
   mMasterStateName(masterState),
   mCopyStateName(copyState) {
 }
@@ -70,7 +70,7 @@ CopyState<Dimension, ValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const CopyState<Dimension, ValueType>* rhsPtr = dynamic_cast<const CopyState<Dimension, ValueType>*>(&rhs);
+  const auto* rhsPtr = dynamic_cast<const CopyState<Dimension, ValueType>*>(&rhs);
   if (rhsPtr == 0) return false;
   return (mMasterStateName == rhsPtr->mMasterStateName && 
           mCopyStateName == rhsPtr->mCopyStateName);

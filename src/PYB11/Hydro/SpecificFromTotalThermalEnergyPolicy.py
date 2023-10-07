@@ -1,10 +1,9 @@
 from PYB11Generator import *
-from FieldListUpdatePolicyBase import *
+from UpdatePolicyBase import *
 
 @PYB11module("SpheralHydro")
 @PYB11template("Dimension")
-@PYB11template_dict({"ValueType" : "typename %(Dimension)s::Scalar"})
-class SpecificFromTotalThermalEnergyPolicy(FieldListUpdatePolicyBase):
+class SpecificFromTotalThermalEnergyPolicy(UpdatePolicyBase):
     """SpecificFromTotalThermalEnergyPolicy -- An implementation of UpdatePolicyBase
 specialized for the updating the specific thermal energy from the total
 energy."""

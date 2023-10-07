@@ -122,7 +122,6 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"DataBase/StateDerivatives.hh"',
                   '"DataBase/UpdatePolicyBase.hh"',
                   '"DataBase/FieldUpdatePolicy.hh"',
-                  '"DataBase/CopyState.hh"',
                   '"DataBase/IncrementState.hh"',
                   '"DataBase/IncrementBoundedState.hh"',
                   '"DataBase/ReplaceState.hh"',
@@ -148,7 +147,6 @@ from StateDerivatives import *
 from DataBase import *
 from UpdatePolicyBase import *
 from FieldUpdatePolicy import *
-from CopyState import *
 from IncrementState import *
 from IncrementBoundedState import *
 from ReplaceState import *
@@ -174,7 +172,6 @@ FieldUpdatePolicy{ndim}d = PYB11TemplateClass(FieldUpdatePolicy, template_parame
         Dimension = f"Dim<{ndim}>"
         suffix = f"{ndim}d"
         exec(f'''
-{label}CopyState{suffix} = PYB11TemplateClass(CopyState, template_parameters = ("{Dimension}", "{value}"))
 {label}IncrementState{suffix} = PYB11TemplateClass(IncrementState, template_parameters = ("{Dimension}", "{value}"))
 {label}IncrementBoundedState{suffix} = PYB11TemplateClass(IncrementBoundedState, template_parameters = ("{Dimension}", "{value}"))
 {label}ReplaceState{suffix} = PYB11TemplateClass(ReplaceState, template_parameters = ("{Dimension}", "{value}"))

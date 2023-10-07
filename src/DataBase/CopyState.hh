@@ -9,7 +9,7 @@
 #ifndef __Spheral_CopyState_hh__
 #define __Spheral_CopyState_hh__
 
-#include "FieldUpdatePolicy.hh"
+#include "UpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -17,11 +17,11 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType>
-class CopyState: public FieldUpdatePolicy<Dimension> {
+class CopyState: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename FieldUpdatePolicy<Dimension, ValueType>::KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   CopyState(const std::string& masterState, const std::string& copyState);

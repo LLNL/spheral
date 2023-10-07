@@ -10,7 +10,6 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/IncrementFieldList.hh"
 #include "StrainPorosity.hh"
 
 using std::vector;
@@ -212,11 +211,8 @@ void
 StrainPorosity<Dimension>::
 registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  PolicyPointer strainPolicy(new IncrementState<Dimension, Scalar>());
-  PolicyPointer alphaPolicy(new IncrementBoundedState<Dimension, Scalar, Scalar>(1.0));
-  state.enroll(mStrain, strainPolicy);
-  state.enroll(mAlpha, alphaPolicy);
+  state.enroll(mStrain, std::make_shared<IncrementState<Dimension, Scalar>>());
+  state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
 }
 
 //------------------------------------------------------------------------------

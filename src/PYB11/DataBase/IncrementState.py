@@ -1,10 +1,10 @@
 from PYB11Generator import *
-from FieldUpdatePolicyBase import *
+from FieldUpdatePolicy import *
 
 @PYB11module("SpheralDataBase")
 @PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
-class IncrementState(FieldUpdatePolicyBase):
+class IncrementState(FieldUpdatePolicy):
 
     PYB11typedefs = """
     using KeyType = typename IncrementState<%(Dimension)s, %(ValueType)s>::KeyType;

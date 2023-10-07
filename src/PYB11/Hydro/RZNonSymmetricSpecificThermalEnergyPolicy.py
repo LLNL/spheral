@@ -1,11 +1,10 @@
 from PYB11Generator import *
-from IncrementFieldList import *
+from UpdatePolicyBase import *
 
 @PYB11module("SpheralHydro")
 @PYB11template()
-@PYB11template_dict({"Dimension" : "Dim<2>",
-                     "ValueType" : "Dim<2>::Scalar"})
-class RZNonSymmetricSpecificThermalEnergyPolicy(IncrementFieldList):
+@PYB11template_dict({"Dimension" : "Dim<2>"})
+class RZNonSymmetricSpecificThermalEnergyPolicy(UpdatePolicyBase):
     """NonSymmetricSpecificThermalEnergyPolicy -- An implementation of 
 UpdatePolicyBase specialized for the updating the specific thermal energy
 as a dependent quantity.

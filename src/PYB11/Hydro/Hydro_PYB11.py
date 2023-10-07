@@ -22,7 +22,6 @@ PYB11includes += ['"Geometry/GeomPlane.hh"',
                   '"Hydro/GammaPolicy.hh"',
                   '"Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"',
                   '"Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"',
-                  '"Hydro/PositionPolicy.hh"',
                   '"Hydro/SphericalPositionPolicy.hh"',
                   '"Hydro/PressurePolicy.hh"',
                   '"Hydro/SoundSpeedPolicy.hh"',
@@ -47,7 +46,6 @@ from SpecificThermalEnergyPolicy import *
 from SpecificFromTotalThermalEnergyPolicy import *
 from EntropyPolicy import *
 from GammaPolicy import *
-from PositionPolicy import *
 from PressurePolicy import *
 from SoundSpeedPolicy import *
 from SumVoronoiMassDensityPolicy import *
@@ -63,7 +61,6 @@ SpecificThermalEnergyPolicy{ndim}d = PYB11TemplateClass(SpecificThermalEnergyPol
 SpecificFromTotalThermalEnergyPolicy{ndim}d = PYB11TemplateClass(SpecificFromTotalThermalEnergyPolicy, template_parameters="Dim<{ndim}>")
 EntropyPolicy{ndim}d = PYB11TemplateClass(EntropyPolicy, template_parameters="Dim<{ndim}>")
 GammaPolicy{ndim}d = PYB11TemplateClass(GammaPolicy, template_parameters="Dim<{ndim}>")
-PositionPolicy{ndim}d = PYB11TemplateClass(PositionPolicy, template_parameters="Dim<{ndim}>")
 PressurePolicy{ndim}d = PYB11TemplateClass(PressurePolicy, template_parameters="Dim<{ndim}>")
 SoundSpeedPolicy{ndim}d = PYB11TemplateClass(SoundSpeedPolicy, template_parameters="Dim<{ndim}>")
 SumVoronoiMassDensityPolicy{ndim}d = PYB11TemplateClass(SumVoronoiMassDensityPolicy, template_parameters="Dim<{ndim}>")

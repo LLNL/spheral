@@ -80,12 +80,8 @@ SVPHCorrectionsPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also a SVPHCorrections object.
-  const SVPHCorrectionsPolicy<Dimension>* rhsPtr = dynamic_cast<const SVPHCorrectionsPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const SVPHCorrectionsPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

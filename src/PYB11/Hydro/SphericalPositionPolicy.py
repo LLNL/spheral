@@ -1,11 +1,10 @@
 from PYB11Generator import *
-from IncrementFieldList import *
+from UpdatePolicyBase import *
 
 @PYB11module("SpheralHydro")
 @PYB11template()
-@PYB11template_dict({"Dimension" : "Dim<1>",
-                     "ValueType" : "typename %(Dimension)s::Vector"})
-class SphericalPositionPolicy(FieldListUpdatePolicyBase):
+@PYB11template_dict({"Dimension" : "Dim<1>"})
+class SphericalPositionPolicy(UpdatePolicyBase):
     """Specializes the IncrementFieldListPolicy for use updating the position in
 spherical coordinates.  This position does not allow points to pass through
 the origin."""

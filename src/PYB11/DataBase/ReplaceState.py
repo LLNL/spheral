@@ -1,10 +1,10 @@
 from PYB11Generator import *
-from FieldUpdatePolicyBase import *
+from FieldUpdatePolicy import *
 
 @PYB11module("SpheralDataBase")
 @PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
-class ReplaceState(FieldUpdatePolicyBase):
+class ReplaceState(FieldUpdatePolicy):
 
     PYB11typedefs = """
     using KeyType = typename ReplaceState<%(Dimension)s, %(ValueType)s>::KeyType;
