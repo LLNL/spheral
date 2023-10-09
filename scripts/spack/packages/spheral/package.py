@@ -55,7 +55,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('mfem@4.5.0 +mpi', type='build', when='+mpi')
+    depends_on('mfem@4.5.0 ~shared +mpi', type='build', when='+mpi')
+    depends_on('mfem@4.5.0 ~shared ~mpi', type='build', when='~mpi')
+    depends_on('hypre@2.26.0 ~shared +mpi', type='build', when='+mpi')
+    depends_on('hypre@2.26.0 ~shared ~mpi', type='build', when='~mpi')
 
     depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
@@ -176,6 +179,8 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_path('axom_DIR', spec['axom'].prefix))
 
         entries.append(cmake_cache_path('mfem_DIR', spec['mfem'].prefix))
+
+        entries.append(cmake_cache_path('hypre_DIR', spec['hypre'].prefix))
 
         entries.append(cmake_cache_path('silo_DIR', spec['silo'].prefix))
 
