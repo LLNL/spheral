@@ -6,8 +6,7 @@
 #ifndef __Spheral_IncrementCullenMultipliers_hh__
 #define __Spheral_IncrementCullenMultipliers_hh__
 
-#include <float.h>
-#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -15,12 +14,12 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension>
-class IncrementCullenMultipliers: public IncrementBoundedFieldList<Dimension, typename Dimension::Scalar> {
+class IncrementCullenMultipliers: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   IncrementCullenMultipliers(const Scalar minValue, const Scalar maxValue, const bool hopkinsForm);
@@ -40,6 +39,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   bool mHopkinsForm;
+  Scalar mAlphaMin, mAlphaMax;
   IncrementCullenMultipliers(const IncrementCullenMultipliers& rhs);
   IncrementCullenMultipliers& operator=(const IncrementCullenMultipliers& rhs);
 };
