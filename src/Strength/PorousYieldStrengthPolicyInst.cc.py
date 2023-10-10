@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Strength/YieldStrengthPolicy.cc"
+#include "Strength/PorousYieldStrengthPolicy.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class YieldStrengthPolicy<Dim< %(ndim)s > >;
+  template class PorousYieldStrengthPolicy<Dim< %(ndim)s > >;
 }
 """

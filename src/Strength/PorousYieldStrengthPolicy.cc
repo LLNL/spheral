@@ -11,8 +11,9 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
-#include "NodeList/FluidNodeList.hh"
+#include "NodeList/SolidNodeList.hh"
 #include "Material/EquationOfState.hh"
+#include "SolidMaterial/StrengthModel.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -55,7 +56,7 @@ update(const KeyType& key,
   auto& Y = state.field(key, Scalar());
 
   // Get the strength model.  This cast is ugly, but is a work-around for now.
-  const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(mu->nodeListPtr());
+  const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(Y.nodeListPtr());
   CHECK(solidNodeListPtr != nullptr);
   const auto& strengthModel = solidNodeListPtr->strengthModel();
 

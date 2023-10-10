@@ -17,6 +17,7 @@ set(SolidMaterial_inst
     StrainPorosity
     PalphaPorosity
     PhysicsEvolvingMaterialLibrary
+    PorositySolidMassDensityPolicy
     )
 
 set(SolidMaterial_sources )

@@ -23,6 +23,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   using Scalar = typename Dimension::Scalar;
+  using SymTensor = typename Dimension::SymTensor;
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
