@@ -323,6 +323,7 @@ GeomPolygon():
   mXmax(),
   mConvex(true) {
   if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
+  //std::cout << "Default Ctor : this : "<< this << ", mVertices : " <<  &mVertices <<"\n";
 }
 
 //------------------------------------------------------------------------------
@@ -435,6 +436,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
     }
     END_CONTRACT_SCOPE
   }
+  //std::cout << "Vector Ctor : this : "<< this << ", mVertices : " <<  &mVertices <<"\n";
 }
 
 //------------------------------------------------------------------------------
@@ -471,6 +473,7 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
   mFacetFacetConnectivity.clear();
   mVertexUnitNorms.clear();
   // GeometryUtilities::computeAncillaryGeometry(*this, mVertexFacetConnectivity, mFacetFacetConnectivity, mVertexUnitNorms, false);
+  //std::cout << "Recon Ctor : this : "<< this << ", mVertices : " <<  &mVertices <<"\n";
 }
 
 //------------------------------------------------------------------------------
@@ -479,14 +482,36 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points,
 GeomPolygon::
 GeomPolygon(const GeomPolygon& rhs):
   mVertices(rhs.mVertices),
-  mFacets(rhs.mFacets),
+  //mFacets(rhs.mFacets),
   mVertexUnitNorms(rhs.mVertexUnitNorms),
   mVertexFacetConnectivity(rhs.mVertexFacetConnectivity),
   mFacetFacetConnectivity(rhs.mFacetFacetConnectivity),
   mXmin(rhs.mXmin),
   mXmax(rhs.mXmax),
   mConvex(rhs.mConvex) {
-  for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
+
+  mFacets = vector<Facet>();
+  mFacets.reserve(rhs.mFacets.size());
+  for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
+                                                                facet.ipoint1(),
+                                                                facet.ipoint2()));
+  //for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
+  //std::cout << "CopyCtor : this : "<< this << ", mVertices : " <<  &mVertices <<"\n";
+  //std::cout << "CopyCtor : rhs : "<< &rhs << ", rhs.mVertices : " <<  &(rhs.mVertices) <<"\n";
+  //for (const Facet& f : mFacets) {
+  //  std::cout << "           mFacets[x].mVerticesPtr : " << f.mVerticesPtr << " ";
+  //  for (const auto& elem : *(f.mVerticesPtr)) {
+  //    std::cout << elem << " "; 
+  //  }
+  //  std::cout << std::endl;
+  //}
+  //for (const Facet& f : rhs.mFacets) {
+  //  std::cout << "           rhs.mFacets[x].mVerticesPtr : " << f.mVerticesPtr << " ";
+  //  for (const auto& elem : *(f.mVerticesPtr)) {
+  //    std::cout << elem << " "; 
+  //  }
+  //  std::cout << std::endl;
+  //}
 }
 
 //------------------------------------------------------------------------------
@@ -495,8 +520,20 @@ GeomPolygon(const GeomPolygon& rhs):
 GeomPolygon&
 GeomPolygon::
 operator=(const GeomPolygon& rhs) {
+  //std::cout << "Assignment : this : "<< this << ", mVertices : " <<  &mVertices <<"\n";
+  //std::cout << "Assignment : rhs  : "<< &rhs << ", mVertices : " <<  &(rhs.mVertices) <<"\n";
+  //for (const Facet& f : rhs.mFacets) {
+  //  std::cout << "           rhs.mFacets[x].mVerticesPtr : " << f.mVerticesPtr << " ";
+  //  for (const auto& elem : *(f.mVerticesPtr)) {
+  //    std::cout << elem << " "; 
+  //  }
+  //  std::cout << std::endl;
+  //}
   if (this != &rhs) {
     mVertices = rhs.mVertices;
+    //mFacets = rhs.mFacets;
+    //for (Facet& facet: mFacets) facet.mVerticesPtr = &mVertices;
+
     mFacets = vector<Facet>();
     mFacets.reserve(rhs.mFacets.size());
     for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
@@ -509,6 +546,13 @@ operator=(const GeomPolygon& rhs) {
     mXmax = rhs.mXmax;
     mConvex = rhs.mConvex;
   }
+  //for (const Facet& f : mFacets) {
+  //  std::cout << "           mFacets[x].mVerticesPtr : " << f.mVerticesPtr << " ";
+  //  for (const auto& elem : *(f.mVerticesPtr)) {
+  //    std::cout << elem << " "; 
+  //  }
+  //  std::cout << std::endl;
+  //}
   ENSURE(mFacets.size() == rhs.mFacets.size());
   return *this;
 }
@@ -518,6 +562,7 @@ operator=(const GeomPolygon& rhs) {
 //------------------------------------------------------------------------------
 GeomPolygon::
 ~GeomPolygon() {
+  //std::cout << "Destructor @ : " << this << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -774,6 +819,7 @@ void
 GeomPolygon::
 reconstruct(const vector<GeomPolygon::Vector>& vertices,
             const vector<vector<unsigned> >& facetVertices) {
+  std::cout<< "Reconstrcuting @ : " << this << " with " << &vertices << std::endl;
   mVertices = vertices;
   mFacets = vector<Facet>();
   mFacets.reserve(facetVertices.size());
@@ -946,11 +992,20 @@ transform(const typename GeomPolygon::Tensor& t) {
 bool
 GeomPolygon::
 operator==(const GeomPolygon& rhs) const {
+  //std::cout << "Quivalence this : " << this << " rhs : " << &rhs <<std::endl;
   bool result = (mVertices == rhs.mVertices and
                  mFacets.size() == rhs.mFacets.size());
+  if(!result) std::cout<< "polygon vertices or facet size are not equal\n";
   size_t i = 0;
   while (result and i != mFacets.size()) {
     result = mFacets[i] == rhs.mFacets[i];
+    //if (!result) {
+    //  std::cout<< "facets not equal at : " <<i<<std::endl;
+    //  std::cout <<" Polygon Vertices loc : " << &mVertices <<std::endl;
+    //  std::cout <<" rhs Vertices loc : " << &rhs.mVertices <<std::endl;
+    //  std::cout <<"  p1 : " << mFacets[i].mVerticesPtr << ", rhs.p1 : " << rhs.mFacets[i].mVerticesPtr << std::endl; 
+    //  std::cout <<"  p2 : " << mFacets[i].mVerticesPtr[0][0] << ", rhs.p2 : " << rhs.mFacets[i].mVerticesPtr[0][0] << std::endl; 
+    //}
     ++i;
   }
   return result;

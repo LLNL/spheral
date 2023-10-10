@@ -11,7 +11,6 @@ namespace Spheral {
 // std::vectors of these.
 GeomFacet2d::
 GeomFacet2d():
-  mVerticesPtr(0),
   mPoints(2, 0),
   mNormal(1.0, 0.0) {
   VERIFY(false);
@@ -123,6 +122,18 @@ computeNormal() {
 bool
 GeomFacet2d::
 operator==(const GeomFacet2d& rhs) const {
+  std::cout << "mVerticePtr : "<< mVerticesPtr << " : " << *mVerticesPtr << std::endl;
+  std::cout << "rhs.mVerticePtr : "<< rhs.mVerticesPtr << " : " << *(rhs.mVerticesPtr) << std::endl;
+  if (mVerticesPtr == nullptr) std::cout << "nullptr" << std::endl;
+  if (mVerticesPtr->size() != rhs.mVerticesPtr->size())
+    std::cout << "Sz not equal : " << mVerticesPtr->size() << " : " << rhs.mVerticesPtr->size() << std::endl;
+  for (size_t i = 0; i < mVerticesPtr->size(); i++) {
+    if (mVerticesPtr->at(i) != rhs.mVerticesPtr->at(i)) 
+      std::cout << "Elem not equal : " << mVerticesPtr->at(i) << " : " << rhs.mVerticesPtr->at(i) << std::endl;
+  }
+
+  //return (//*mVerticesPtr == *(rhs.mVerticesPtr) and
+  //return (//*mVerticesPtr == *(rhs.mVerticesPtr) and
   return (*mVerticesPtr == *(rhs.mVerticesPtr) and
           mPoints[0] == rhs.mPoints[0] and
           mPoints[1] == rhs.mPoints[1]);

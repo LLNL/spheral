@@ -6,6 +6,142 @@
 
 namespace Spheral {
 
+
+template<typename DataType>
+class ManagedVector:
+  private chai::ManagedArray<DataType>{
+  using MA = chai::ManagedArray<DataType>;
+
+public:
+
+  using iterator = DataType*;
+  using const_iterator = const DataType*;
+
+  iterator begin() { return MA::begin(); }
+  const_iterator begin() const { return MA::begin(); }
+
+  iterator end() { return begin() + m_size; }
+  const_iterator end() const { return begin() + m_size; }
+
+  // ---------------------
+  // Constructors
+  // ---------------------
+  RAJA_HOST ManagedVector() : MA(6, chai::CPU) {}
+  RAJA_HOST ManagedVector(size_t elems) : MA(elems, chai::CPU), m_size(elems) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
+  }
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) : MA(elems, chai::CPU), m_size(elems) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
+  }
+  
+  // ---------------------
+  // Copy Constructor
+  // ---------------------
+  //RAJA_HOST_DEVICE ManagedVector(ManagedVector const& rhs) : ManagedVector(rhs.size()){
+  RAJA_HOST_DEVICE ManagedVector(ManagedVector const& rhs) : MA(rhs.capacity(), chai::CPU), m_size(rhs.m_size) {
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
+  }
+
+  // ---------------------
+  // Assignment
+  // ---------------------
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) { 
+    if (this != &rhs) {
+      if (m_size < rhs.m_size) MA::reallocate(rhs.capacity());
+      m_size = rhs.m_size;
+      for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
+    }
+    return *this; 
+  }
+
+  // ---------------------
+  // Equivalence
+  // ---------------------
+  //bool operator==(ManagedVector const& rhs) = delete;
+  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
+    if (m_size != rhs.m_size) return false;
+    for (size_t i = 0; i < m_size; i++) {
+      if (MA::operator[](i) != rhs[i]) { 
+        return false;
+      }
+    }
+    return true;
+  }
+
+  RAJA_HOST void push_back(const DataType& value) {
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
+    MA::data()[m_size] = value;
+    m_size++;
+  }
+  RAJA_HOST void push_back(DataType&& value) {
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
+
+    MA::data()[m_size] = std::move(value);
+    m_size++;
+  }
+  template<typename... Args>
+  RAJA_HOST
+  DataType& emplace_back(Args&&... args) {
+    if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
+
+    new(&MA::data()[m_size]) DataType(std::forward<Args>(args)...);
+    return MA::data()[m_size++];
+  }
+
+  RAJA_HOST
+  void resize(size_t size) {
+    const size_t old_size = m_size;
+
+    if (old_size < size) {
+      MA::reallocate(size);
+      for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
+    }
+    if (old_size > size) {
+      destroy(begin() + old_size, begin() + size);
+    }
+
+    m_size = size;
+  }
+
+  RAJA_HOST
+  void erase(iterator pos) {
+    for (iterator it = pos; it < end(); it++) {
+      *it = std::move(*(it + 1));
+    }
+    m_size--;
+  }
+
+  RAJA_HOST_DEVICE size_t capacity() const {return MA::m_elems;}
+  RAJA_HOST_DEVICE size_t size() const {return m_size;}
+
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) {return MA::data()[idx]; }
+  RAJA_HOST_DEVICE DataType& operator[](size_t idx) const {return MA::data()[idx]; }
+
+
+  // *******************************************************
+  // Required to Allow ManagedVector to be properly CHAICopyable
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { MA::operator=(nullptr); return *this; }
+  RAJA_HOST_DEVICE void shallowCopy(const ManagedVector& other) {
+    m_size=other.m_size;
+    MA::shallowCopy(other);
+  }
+  // *******************************************************
+  
+  //RAJA_HOST operator std::vector<DataType>() const { return std::vector<DataType>(begin(), end()); }
+
+private:
+  size_t m_size = 0;
+
+  RAJA_HOST void destroy(iterator first, iterator last) {
+    if ( !std::is_trivially_destructible< DataType >::value ) {
+      for (iterator it = first; it < last; it++) {
+        *it = DataType(); 
+      }
+    }
+  }
+
+};
+
 template<typename DataType>
 using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
 

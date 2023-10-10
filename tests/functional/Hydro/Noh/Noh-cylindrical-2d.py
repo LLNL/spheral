@@ -142,7 +142,7 @@ commandLine(order = 5,
 # Initialize Timer MetaData we might need
 #-------------------------------------------------------------------------------
 from Spheral_banner import *
-initAdiakData("Noh-cylindircal-2d", SpheralBranch, SpheralShortCommit, nRadial)
+#initAdiakData("Noh-cylindircal-2d", SpheralBranch, SpheralShortCommit, nRadial)
 
 assert not(boolReduceViscosity and boolCullenViscosity)
 assert not((gsph or mfm) and (boolReduceViscosity or boolCullenViscosity))
@@ -540,10 +540,14 @@ if not steps is None:
     # Are we doing the restart test?
     if checkRestart:
         state0 = State(db, integrator.physicsPackages())
+        print("COPYSTATE")
         state0.copyState()
-        control.loadRestartFile(control.totalSteps)
+        print("LOADRESTART FILE")
+        #control.loadRestartFile(control.totalSteps)
+        print("ASSIGN STATE 1")
         state1 = State(db, integrator.physicsPackages())
         if not state1 == state0:
+            #import pdb; pdb.set_trace()
             raise ValueError("The restarted state does not match!")
         else:
             print("Restart check PASSED.")

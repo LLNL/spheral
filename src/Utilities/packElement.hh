@@ -895,6 +895,7 @@ unpackElement(GeomPolygon& value,
   unpackElement(vertices, itr, endPackedVector);
   unpackElement(facetVertices, itr, endPackedVector);
   value.reconstruct(vertices, facetVertices);
+  std::cout << "Unpack Polygon @ " << &value << ", vertices @ " << &vertices << std::endl;
 }
 
 template<>

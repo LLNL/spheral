@@ -409,11 +409,13 @@ copyState() {
 
     // Is this a Field?
     try {
+      //std::cout << "StateBase copyState Field : " << itr->first << std::endl;
       auto ptr = boost::any_cast<FieldBase<Dimension>*>(anythingPtr);
       mFieldCache.push_back(ptr->clone());
       itr->second = mFieldCache.back().get();
 
     } catch (const boost::bad_any_cast&) {
+      //std::cout << "StateBase copyState vector<Vector> : " << itr->first << std::endl;
       try {
         auto ptr = boost::any_cast<vector<Vector>*>(anythingPtr);
         auto clone = std::shared_ptr<vector<Vector>>(new vector<Vector>(*ptr));

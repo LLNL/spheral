@@ -78,7 +78,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const std::vector<Vector>* mVerticesPtr;
+  const std::vector<Vector>* mVerticesPtr = nullptr;
   std::vector<unsigned> mPoints;
   Vector mNormal;
 
