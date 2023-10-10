@@ -85,23 +85,7 @@ maxAbsDalphaDt() const {
 
 template<typename Dimension>
 inline
-const PorousEquationOfState<Dimension>&
-PalphaPorosity<Dimension>::
-porousEOS() const {
-  return mPorousEOS;
-}
-
-template<typename Dimension>
-inline
-const PorousStrengthModel<Dimension>&
-PalphaPorosity<Dimension>::
-porousStrength() const {
-  return mPorousStrength;
-}
-
-template<typename Dimension>
-inline
-const NodeList<Dimension>&
+const SolidNodeList<Dimension>&
 PalphaPorosity<Dimension>::
 nodeList() const {
   return mNodeList;

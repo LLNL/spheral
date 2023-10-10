@@ -4,16 +4,15 @@
 // See header for references and such.
 //----------------------------------------------------------------------------//
 #include "SolidMaterial/PalphaPorosity.hh"
-#include "SolidMaterial/PalphaPressurePolicy.hh"
 #include "SolidMaterial/PorositySolidMassDensityPolicy.hh"
 #include "Strength/PorousBulkModulusPolicy.hh"
 #include "Strength/PorousPressurePolicy.hh"
 #include "Strength/PorousSoundSpeedPolicy.hh"
 #include "Strength/PorousGammaPolicy.hh"
-#include "Strength/PorousBulkModulusPolicy.hh"
 #include "Strength/PorousEntropyPolicy.hh"
 #include "Strength/PorousShearModulusPolicy.hh"
 #include "Strength/PorousYieldStrengthPolicy.hh"
+#include "Material/EquationOfState.hh"
 #include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -21,7 +20,6 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/IncrementFieldList.hh"
 
 #include <string>
 
@@ -44,7 +42,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PalphaPorosity<Dimension>::
-PalphaPorosity(const NodeList<Dimension>& nodeList,
+PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double phi0,
                const double Pe,
                const double Pt,
@@ -90,7 +88,7 @@ PalphaPorosity(const NodeList<Dimension>& nodeList,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PalphaPorosity<Dimension>::
-PalphaPorosity(const NodeList<Dimension>& nodeList,
+PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const Field<Dimension, Scalar>& phi0,
                const double Pe,
                const double Pt,
@@ -269,27 +267,26 @@ registerState(DataBase<Dimension>& dataBase,
   auto& P = state.field(key(HydroFieldNames::pressure), 0.0);
   state.enroll(mdPdU);
   state.enroll(mdPdR);
-  state.enroll(pressure, std::make_shared<PorousPressurePolicy<Dimension>>());
+  state.enroll(P, std::make_shared<PorousPressurePolicy<Dimension>>());
 
   // Register the P-alpha state
   state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
 
   // Check what other state is registered which needs to be overridden for
   // porosity
-  template<typename Policy>
-  auto optionalOverridePolicy = [&](const std::string& fkey) {
-    const auto fullkey = key(fkey);
-    if (state.registered(fullkey)) {
-      auto& f = state.field(fullkey, 0.0);
-      state.enroll(f, std::make_shared<Policy>());
-    }
-  };
-  optionalOverridePolicy<PorousBulkModulusPolicy>(SolidFieldNames::bulkModulus);
-  optionalOverridePolicy<PorousSoundSpeedPolicy>(HydroFieldNames::soundSpeed);
-  optionalOverridePolicy<GammaSoundSpeedPolicy>(HydroFieldNames::gamma);
-  optionalOverridePolicy<PorousEntropyPolicy>(HydroFieldNames::entropy);
-  optionalOverridePolicy<PorousShearModulusPolicy>(SolidFieldNames::shearModulus);
-  optionalOverridePolicy<PorousYieldStrengthPolicy>(SolidFieldNames::yieldStrength);
+  auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {
+                                  const auto fullkey = key(fkey);
+                                  if (state.registered(fullkey)) {
+                                    auto& f = state.field(fullkey, 0.0);
+                                    state.enroll(f, policy); //std::make_shared<Policy>());
+                                  }
+                                };
+  optionalOverridePolicy(SolidFieldNames::bulkModulus, std::make_shared<PorousBulkModulusPolicy<Dimension>>());
+  optionalOverridePolicy(HydroFieldNames::soundSpeed, std::make_shared<PorousSoundSpeedPolicy<Dimension>>());
+  optionalOverridePolicy(HydroFieldNames::gamma, std::make_shared<PorousGammaPolicy<Dimension>>());
+  optionalOverridePolicy(HydroFieldNames::entropy, std::make_shared<PorousEntropyPolicy<Dimension>>());
+  optionalOverridePolicy(SolidFieldNames::shearModulus, std::make_shared<PorousShearModulusPolicy<Dimension>>());
+  optionalOverridePolicy(SolidFieldNames::yieldStrength, std::make_shared<PorousYieldStrengthPolicy<Dimension>>());
 }
 
 //------------------------------------------------------------------------------
@@ -316,7 +313,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Get some state from the DataBase we're gonna need
   const auto  rhoFL = dataBase.fluidMassDensity();
-  const auto  epsFL = dateBase.fluidSpecificThermalEnergy();
+  const auto  epsFL = dataBase.fluidSpecificThermalEnergy();
   const auto& rho = **rhoFL.fieldForNodeList(mNodeList);
   const auto& eps = **epsFL.fieldForNodeList(mNodeList);
 

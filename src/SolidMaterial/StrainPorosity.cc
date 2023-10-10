@@ -151,7 +151,7 @@ evaluateDerivatives(const Scalar /*time*/,
   const auto  alphaKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, mNodeList.name());
   const auto  DalphaDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name());
   const auto  DstrainDtKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, mNodeList.name());
-  const auto  DuDtKey = State<Dimension>::buildFieldKey(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, mNodeList.name());
+  const auto  DuDtKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, mNodeList.name());
   const auto& DvDx = derivs.field(gradvKey, Tensor::zero);
   const auto& strain = state.field(strainKey, 0.0);
   const auto& alpha = state.field(alphaKey, 0.0);

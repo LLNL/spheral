@@ -34,7 +34,7 @@ def _PalphaPorosityFactory(ndim):
                      rho0 = None):
             """Construct a P-alpha porosity model.  Valid arguments are
 
-  * nodeList: the (fluid or solid) NodeList whose nodes this porosity model will apply to
+  * nodeList: the solid NodeList whose nodes this porosity model will apply to
   *     phi0: (scalar or Field) initial porosity
   *       Pe: (scalar) Elastic pressure threshold
   *       Pt: (scalar) Transition pressure (Pe <= Pt)

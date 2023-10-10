@@ -67,7 +67,7 @@ public:
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
-                 const Field<Dimension, Scalar>& c0);             // Reference sound speed at initial porosity
+                 const Field<Dimension, Scalar>& c0,              // Reference sound speed at initial porosity
                  const double rho0);                              // Reference solid density
 
   virtual ~PalphaPorosity();
@@ -119,8 +119,6 @@ public:
   double cS0() const;
   double fdt() const;
   double maxAbsDalphaDt() const;
-  const PorousEquationOfState<Dimension>& porousEOS() const;
-  const PorousStrengthModel<Dimension>& porousStrength() const;
   const SolidNodeList<Dimension>& nodeList() const;
   const Field<Dimension, Scalar>& c0() const;
   const Field<Dimension, Scalar>& alpha0() const;
@@ -139,7 +137,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRho0, mcS0, mfdt;
   mutable double mMaxAbsDalphaDt;
-  const SollidNodeList<Dimension>& mNodeList;
+  const SolidNodeList<Dimension>& mNodeList;
   Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mdPdU, mdPdR;
 
   // The restart registration.

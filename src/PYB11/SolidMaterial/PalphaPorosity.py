@@ -40,7 +40,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     #...........................................................................
     # Constructors
     def pyinit(self,
-               nodeList = "const NodeList<%(Dimension)s>&",
+               nodeList = "const SolidNodeList<%(Dimension)s>&",
                phi0 = "const double",
                Pe = "const double",
                Pt = "const double",
@@ -52,9 +52,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                c0 = "const double",
                rho0 = "const double"):
         """Constructor parameters:
-        porousEOS:       Porous EOS we're going to modify
-        porousStrength:  Porous strength model we're going to modify
-        nodeList:        The NodeList we're going apply to
+        nodeList:        The SolidNodeList we're going apply to
         phi0:            Initial porosity (single value)
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
@@ -67,7 +65,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         rho0:            Reference solid density"""
 
     def pyinit1(self,
-                nodeList = "const NodeList<%(Dimension)s>&",
+                nodeList = "const SolidNodeList<%(Dimension)s>&",
                 phi0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
                 Pe = "const double",
                 Pt = "const double",
@@ -79,9 +77,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
                 rho0 = "const double"):
         """Constructor parameters:
-        porousEOS:       Porous EOS we're going to modify
-        porousStrength:  Porous strength model we're going to modify
-        nodeList:        The NodeList we're going apply to
+        nodeList:        The SolidNodeList we're going apply to
         phi0:            Initial porosity (field of values)
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
@@ -121,9 +117,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     rho0 = PYB11property(doc="Reference solid density")
     fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
     maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
-    porousEOS = PYB11property("const PorousEquationOfState<%(Dimension)s>&", returnpolicy="reference_internal")
-    porousStrength = PYB11property("const PorousStrengthModel<%(Dimension)s>&", returnpolicy="reference_internal")
-    nodeList = PYB11property("const NodeList<%(Dimension)s>&", returnpolicy="reference_internal")
+    nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal")
     c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
