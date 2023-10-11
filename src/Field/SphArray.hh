@@ -7,6 +7,7 @@
 
 namespace Spheral {
 
+//#define MV_VALUE_SEMANTICS
 
 template<typename DataType>
 class ManagedVector:
@@ -38,19 +39,33 @@ public:
   // ---------------------
   // Copy Constructor
   // ---------------------
-  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs.capacity()), m_size(rhs.m_size) {
+#ifdef MV_VALUE_SEMANTICS
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : 
+    MA(rhs.capacity()), m_size(rhs.m_size)
+  {
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
+#else
+  RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
+#endif
 
   // ---------------------
   // Assignment
   // ---------------------
+#ifdef MV_VALUE_SEMANTICS
   RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) { 
     if (capacity() != rhs.capacity()) MA::reallocate(rhs.capacity());
     m_size = rhs.m_size;
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
     return *this; 
   }
+#else
+  RAJA_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) {
+    MA::operator=(rhs);
+    m_size = rhs.m_size;
+    return *this; 
+  }
+#endif
 
   // ---------------------
   // Equivalence
@@ -138,7 +153,32 @@ private:
     }
   }
 
+  ManagedVector(MA const& managed_array) : MA(managed_array), m_size(managed_array.size()) {}
+
+  friend ManagedVector deepCopy(ManagedVector const& array)
+  {
+#if 0
+    DataType* data_ptr = array.getActiveBasePointer();
+
+    chai::ArrayManager* manager = chai::ArrayManager::getInstance();
+
+    chai::PointerRecord const* record = manager->getPointerRecord(data_ptr);
+    chai::PointerRecord* copy_record = manager->deepCopyRecord(record);
+
+    return ManagedVector(MA(copy_record, chai::CPU));
+#else
+    size_t size = array.size();
+    auto copy = ManagedVector<DataType>(size);
+    for (size_t i = 0; i < size; i++) new (&copy[i]) DataType(array[i]);
+
+    return copy;
+#endif
+  }
+
 };
+
+
+
 
 template<typename DataType>
 using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;

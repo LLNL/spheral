@@ -248,6 +248,9 @@ public:
 
   void move(chai::ExecutionSpace space, bool touch = true) const;
 
+  // No default constructor.
+  Field();
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
@@ -255,9 +258,18 @@ private:
   ContainerType mDataArray;
   bool mValid;
 
-  // No default constructor.
-  Field();
+  friend Field deepCopy(Field const& rhs)
+  {
+    auto copy = Field<Dimension, DataType>(
+        rhs.name(),
+        rhs.nodeList(),
+        deepCopy(rhs.mDataArray));
+    return copy;
+  }
 };
+
+//template<typename Dimension, typename DataType>
+//Field<Dimension, DataType> deepCopy(Field<Dimension, DataType> const& rhs)
 
 } // namespace Spheral
 
