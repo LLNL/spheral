@@ -71,8 +71,13 @@ find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 if(axom_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS axom)
   # Add fmt library to external library list
-  list(APPEND SPHERAL_BLT_DEPENDS fmt)
-  blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
+  set(fmt_name fmt)
+  # Newer Axom versions call fmt target axom::fmt
+  if(NOT TARGET fmt)
+    set(fmt_name axom::fmt)
+  endif()
+  list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
+  blt_patch_target(NAME ${fmt_name} TREAT_INCLUDES_AS_SYSTEM ON)
 endif()
 
 # TPLs that must be imported
