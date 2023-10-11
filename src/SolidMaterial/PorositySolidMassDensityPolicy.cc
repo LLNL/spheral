@@ -47,7 +47,7 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::porosityAlpha);
+  REQUIRE(fieldKey == SolidFieldNames::porositySolidDensity);
   auto& rhoS = state.field(key, Scalar());
 
   // Get the mass density and alpha fields from the state.

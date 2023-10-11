@@ -3,7 +3,7 @@
 # hydro time derivatives, etc.) to force the P-alpha distension evolution to
 # follow a known analytic solution.
 #-------------------------------------------------------------------------------
-from SolidSpheral1d import *
+from Spheral1d import *
 from SpheralTestUtilities import *
 from NodeHistory import *
 from math import *
@@ -37,7 +37,7 @@ commandLine(
     n2 = 1.0,
 
     # Fake hydro
-    evolution = "sinudoidal",          # linear, sinusoidal
+    evolution = "sinusoidal",          # linear, sinusoidal
     DrhoDt0 = 1.0,
     DuDt0 = 2.0,
 
@@ -109,8 +109,6 @@ eosS = LinearPolynomialEquationOfState(referenceDensity = rhoS0,
                                        constants = units)
 
 strengthModelS = NullStrength()
-eos = PorousEquationOfState(eosS)
-strengthModel = PorousStrengthModel(strengthModelS)
 eps0 = 0.0
 Ps0 = eosS.pressure(rhoS0, eps0)
 cS0 = eosS.soundSpeed(rhoS0, eps0)
@@ -129,7 +127,7 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = makeSolidNodeList("aluminium", eos, strengthModel,
+nodes = makeSolidNodeList("aluminium", eosS, strengthModelS,
                           numInternal = 1,
                           nPerh = 4.01,
                           xmin = -10.0*Vector.one,
@@ -198,8 +196,8 @@ class FakeHydro(Physics):
 
     def registerState(self, db, state):
         rho = db.fluidMassDensity
-        state.enroll(rho, ScalarIncrementBoundedFieldList(0.0))
-        state.enroll(db.fluidSpecificThermalEnergy, ScalarIncrementFieldList())
+        state.enroll(rho, ScalarIncrementBoundedState(0.0))
+        state.enroll(db.fluidSpecificThermalEnergy, ScalarIncrementState())
         state.enroll(self.pressure, PressurePolicy())
         return
 
@@ -231,7 +229,7 @@ c0 = c0frac * cS0
 print("P-alpha porosity model parameters:")
 output("  alpha0")
 output("    phi0")
-porosityAl = PalphaPorosity(eos, strengthModel, nodes,
+porosityAl = PalphaPorosity(nodes,
                             phi0 = phi0,
                             Pe = Pe,
                             Pt = Pt,

@@ -63,6 +63,14 @@ template<typename Dimension>
 inline
 double
 PalphaPorosity<Dimension>::
+rho0() const {
+  return mRho0;
+}
+
+template<typename Dimension>
+inline
+double
+PalphaPorosity<Dimension>::
 cS0() const {
   return mcS0;
 }

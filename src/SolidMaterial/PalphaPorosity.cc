@@ -319,6 +319,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Solid density
   mSolidMassDensity = mAlpha0*rho;
+  mSolidMassDensity.name(SolidFieldNames::porositySolidDensity);
 
   // We also need the partial derivatives of the pressure.
   Field<Dimension, Scalar> P("tmp pressure", mNodeList);

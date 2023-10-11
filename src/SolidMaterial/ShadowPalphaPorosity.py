@@ -49,7 +49,7 @@ def _PalphaPorosityFactory(ndim):
 
             if rho0 is None:
                 try:
-                    rho0 = nodeList.equationOfState.referenceDensity
+                    rho0 = nodeList.equationOfState().referenceDensity
                 except:
                     raise RuntimeError("Unable to extract reference density for PalphaPorosity")
             CXXPalphaPorosity.__init__(self,
@@ -73,4 +73,4 @@ def _PalphaPorosityFactory(ndim):
 # you actually use.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec(f"PalphaPorosity{ndim}d = _PalphaPorosityFactor({ndim})")
+    exec(f"PalphaPorosity{ndim}d = _PalphaPorosityFactory({ndim})")
