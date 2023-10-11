@@ -67,11 +67,13 @@ endif()
 #-----------------------------------------------------------------------------------
 
 # Use find_package to get axom (which brings in fmt) and patch fmt
-list(APPEND SPHERAL_BLT_DEPENDS axom)
 find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
-# Add fmt library to external library list
-list(APPEND SPHERAL_BLT_DEPENDS fmt)
-blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
+if(axom_FOUND)
+  list(APPEND SPHERAL_BLT_DEPENDS axom)
+  # Add fmt library to external library list
+  list(APPEND SPHERAL_BLT_DEPENDS fmt)
+  blt_patch_target(NAME fmt TREAT_INCLUDES_AS_SYSTEM ON)
+endif()
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
