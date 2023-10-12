@@ -44,7 +44,7 @@ set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}
 # PolyClipper
 if (NOT polyclipper_DIR)
   # If no PolyClipper is specified, build it as an internal target
-  set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+  set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper")
   # Must set this so PolyClipper doesn't include unnecessary python scripts
   set(POLYCLIPPER_MODULE_GEN OFF)
   set(POLYCLIPPER_ENABLE_DOCS OFF)
