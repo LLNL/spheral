@@ -16,6 +16,8 @@ class ManagedVector:
 
 public:
 
+  using MA::setUserCallback;
+
   using iterator = DataType*;
   using const_iterator = const DataType*;
 
@@ -71,7 +73,7 @@ public:
   // Equivalence
   // ---------------------
   bool operator==(ManagedVector const& rhs) = delete;
-  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
+  RAJA_HOST bool operator==(ManagedVector const& rhs) const {
     if (m_size != rhs.m_size) return false;
     for (size_t i = 0; i < m_size; i++) {
       if (MA::operator[](i) != rhs[i]) { 
@@ -186,77 +188,77 @@ using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, L
 template<typename DataType>
 using SphArrayView = LvArray::ArrayView<DataType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
-template<typename sph_array_t>
-class SphArrayIterator {
-public:
-  using iterator_category = std::random_access_iterator_tag;
-  using value_type = typename sph_array_t::ValueType;
-  using difference_type = std::ptrdiff_t;
-  using pointer = value_type*;
-  using reference = value_type&;
-  
-  SphArrayIterator(pointer ptr);
-
-  SphArrayIterator& operator++();
-  SphArrayIterator operator++(int);
-
-  SphArrayIterator& operator--();
-  SphArrayIterator operator--(int);
-
-  SphArrayIterator operator+(const difference_type& index) const;
-  SphArrayIterator operator-(const difference_type& index) const;
-
-  difference_type operator-(const SphArrayIterator& it);
-
-  reference operator[](int index);
-  pointer operator->();
-
-  reference operator*() const;
-
-  bool operator==(const SphArrayIterator& rhs) const;
-  bool operator!=(const SphArrayIterator& rhs) const;
-  bool operator<(const SphArrayIterator& rhs) const;
-  bool operator<=(const SphArrayIterator& rhs) const;
-  bool operator>(const SphArrayIterator& rhs) const;
-  bool operator>=(const SphArrayIterator& rhs) const;
-
-  operator SphArrayIterator<typename sph_array_t::ViewTypeConst>() const;
-
-private:
-  pointer mPtr;
-};
-
-template<typename sph_array_t>
-class SphArrayFieldIterator {
-public:
-  using iterator_category = std::input_iterator_tag;
-  using value_type = typename sph_array_t::ValueType;
-  using difference_type = std::ptrdiff_t;
-  using pointer = value_type*;
-  using reference = value_type&;
-
-  using field_type = typename value_type::FieldType;
-  using field_pointer = field_type*;
-  using field_reference = field_type&;
-
-  SphArrayFieldIterator(pointer ptr);
-
-  field_reference operator*() const;
-  field_pointer operator->();
-
-  SphArrayFieldIterator& operator++();
-  SphArrayFieldIterator operator++(int);
-
-  bool operator==(const SphArrayFieldIterator& rhs) const;
-
-private:
-  pointer mPtr;
-};
+//template<typename sph_array_t>
+//class SphArrayIterator {
+//public:
+//  using iterator_category = std::random_access_iterator_tag;
+//  using value_type = typename sph_array_t::ValueType;
+//  using difference_type = std::ptrdiff_t;
+//  using pointer = value_type*;
+//  using reference = value_type&;
+//  
+//  SphArrayIterator(pointer ptr);
+//
+//  SphArrayIterator& operator++();
+//  SphArrayIterator operator++(int);
+//
+//  SphArrayIterator& operator--();
+//  SphArrayIterator operator--(int);
+//
+//  SphArrayIterator operator+(const difference_type& index) const;
+//  SphArrayIterator operator-(const difference_type& index) const;
+//
+//  difference_type operator-(const SphArrayIterator& it);
+//
+//  reference operator[](int index);
+//  pointer operator->();
+//
+//  reference operator*() const;
+//
+//  bool operator==(const SphArrayIterator& rhs) const;
+//  bool operator!=(const SphArrayIterator& rhs) const;
+//  bool operator<(const SphArrayIterator& rhs) const;
+//  bool operator<=(const SphArrayIterator& rhs) const;
+//  bool operator>(const SphArrayIterator& rhs) const;
+//  bool operator>=(const SphArrayIterator& rhs) const;
+//
+//  operator SphArrayIterator<typename sph_array_t::ViewTypeConst>() const;
+//
+//private:
+//  pointer mPtr;
+//};
+//
+//template<typename sph_array_t>
+//class SphArrayFieldIterator {
+//public:
+//  using iterator_category = std::input_iterator_tag;
+//  using value_type = typename sph_array_t::ValueType;
+//  using difference_type = std::ptrdiff_t;
+//  using pointer = value_type*;
+//  using reference = value_type&;
+//
+//  using field_type = typename value_type::FieldType;
+//  using field_pointer = field_type*;
+//  using field_reference = field_type&;
+//
+//  SphArrayFieldIterator(pointer ptr);
+//
+//  field_reference operator*() const;
+//  field_pointer operator->();
+//
+//  SphArrayFieldIterator& operator++();
+//  SphArrayFieldIterator operator++(int);
+//
+//  bool operator==(const SphArrayFieldIterator& rhs) const;
+//
+//private:
+//  pointer mPtr;
+//};
 
 
 } //  namespace Spheral
 
-#include "SphArrayInline.hh"
+//#include "SphArrayInline.hh"
 
 #else
 

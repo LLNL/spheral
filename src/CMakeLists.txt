@@ -11,39 +11,39 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 list(APPEND _packages 
-  ArtificialViscosity
-  ArtificialConduction
-  Boundary
-  CRKSPH
+  #ArtificialViscosity
+  #ArtificialConduction
+  #Boundary
+  #CRKSPH
   CXXTests
-  Damage
+  #Damage
   DataBase
   DataOutput
-  DEM
+  #DEM
   Distributed
-  ExternalForce
+  #ExternalForce
   Field
-  FieldOperations
+  #FieldOperations
   FileIO
-  FSISPH
+  #FSISPH
   Geometry
-  Gravity
+  #Gravity
   Hydro
-  Integrator
-  Kernel
-  KernelIntegrator
-  Material
-  Mesh
-  Neighbor
-  NodeGenerators
+  #Integrator
+  #Kernel
+  #KernelIntegrator
+  #Material
+  #Mesh
+  #Neighbor
+  #NodeGenerators
   NodeList
-  Physics
-  RK
-  GSPH
-  SolidMaterial
-  SPH
-  Strength
-  SVPH
+  #Physics
+  #RK
+  #GSPH
+  #SolidMaterial
+  #SPH
+  #Strength
+  #SVPH
   Utilities
   )
 

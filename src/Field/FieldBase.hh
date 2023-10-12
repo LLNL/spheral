@@ -88,8 +88,9 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  FieldName mName;
-  const NodeList<Dimension>* mNodeListPtr;
+  //FieldName mName;
+  char mName[256] = "\0";
+  const NodeList<Dimension>* mNodeListPtr = nullptr;
 
   // The set of FieldLists currently referencing this Field.
   mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;

@@ -68,7 +68,7 @@ class LvField : public chai::CHAICopyable
 {
 public:
 
-  using ARRAY_TYPE = SphVector<DATA_TYPE>;
+  using ARRAY_TYPE = Spheral::ManagedVector<DATA_TYPE>;
 
   RAJA_HOST LvField(size_t elems) : mDataArray{elems} {setName("");}
 
@@ -77,13 +77,18 @@ public:
     setName("");
   }
 
-  RAJA_HOST LvField(std::string name, size_t elems, chai::ExecutionSpace const& platform = chai::CPU) : mDataArray{elems} { 
-    strcpy(m_name, name.c_str());
-    mDataArray.move(platform);
+  template<typename Dimension>
+  RAJA_HOST LvField(std::string name, Spheral::NodeList<Dimension>& node_list) : mDataArray{node_list.numNodes()} { 
     setName(name);
   }
 
-  RAJA_HOST_DEVICE size_t size() {return mDataArray.size();}
+  RAJA_HOST LvField(std::string name, size_t elems, chai::ExecutionSpace const& platform = chai::CPU) : mDataArray{elems} { 
+    strcpy(m_name, name.c_str());
+    //mDataArray.move(platform);
+    setName(name);
+  }
+
+  RAJA_HOST_DEVICE size_t size() const {return mDataArray.size();}
 
   template< typename U=LvField< DATA_TYPE > >
   RAJA_HOST
@@ -108,7 +113,7 @@ public:
   }
 
   RAJA_HOST
-  std::string getName() const {return m_name;}
+  std::string name() const {return m_name;}
 
   RAJA_HOST
   //void move (RAJA::Platform platform) {mDataArray.move(platform);}
@@ -118,7 +123,7 @@ public:
 
   RAJA_HOST
   LvField make_pool_field(size_t num_pools, RAJA::Platform platform) const {
-    return LvField(mDataArray.size() * num_pools, "POOL_" + getName(), platform);
+    return LvField(mDataArray.size() * num_pools, "POOL_" + name(), platform);
   }
 
   // Index operator.
@@ -140,6 +145,14 @@ private:
   ARRAY_TYPE mDataArray;
   char m_name[256] = "\0";
 
+  friend LvField deepCopy(LvField const& rhs)
+  {
+    auto copy = LvField(
+        rhs.m_name,
+        rhs.size());
+    copy.mDataArray = deepCopy(rhs.mDataArray);
+    return copy;
+  }
 };
 
 
@@ -148,8 +161,9 @@ class LvFieldList{
 public:
 
 
-  using FIELD_TYPE = Spheral::Field<DIM,DATA_TYPE>;
-  using ARRAY_TYPE = SphVector<FIELD_TYPE>;
+  //using ElementType = Spheral::Field<DIM,DATA_TYPE>;
+  using ElementType = LvField<DATA_TYPE>;
+  using ARRAY_TYPE = Spheral::ManagedVector<ElementType>;
   using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
 
   RAJA_HOST
@@ -161,7 +175,7 @@ public:
   }
 
   RAJA_HOST
-  void appendField(const FIELD_TYPE& field) { 
+  void appendField(const ElementType& field) { 
     mFieldArray.push_back(field);
   }
 
@@ -178,10 +192,10 @@ public:
   ATOMIC_DATA_TYPE& atomic(const unsigned field_id, const unsigned idx) const { return *reinterpret_cast<ATOMIC_DATA_TYPE*>(&mFieldArray[field_id][idx]); }
 
   RAJA_HOST_DEVICE
-  FIELD_TYPE& operator[](const unsigned int index) {return mFieldArray(index);}
+  ElementType& operator[](const unsigned int index) {return mFieldArray(index);}
 
   RAJA_HOST_DEVICE
-  FIELD_TYPE& operator[](const unsigned int index) const {return mFieldArray(index);}
+  ElementType& operator[](const unsigned int index) const {return mFieldArray(index);}
 
   template< typename U=LvFieldList< DIM, DATA_TYPE > >
   RAJA_HOST

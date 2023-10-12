@@ -1,14 +1,14 @@
 //#include "Spheral_CXX_tests.hh"
-#include "tests/SPHEvalDerivTest.hh"
+//#include "tests/SPHEvalDerivTest.hh"
 //#include "tests/rankNTensorTest.hh"
 //#include "tests/QuadInterpolatorTest.hh"
-//#include "tests/SphVectorTest.hh"
+#include "tests/SphVectorTest.hh"
 
 int main() {
   //basicLaunchCallerTest();
-  SpheralEvalDerivTest();
+  //SpheralEvalDerivTest();
   //QuadInterpolatorTest();
-  //SpheralVectorTest();
+  SpheralVectorTest();
   //rankNTensorTest();
     
   return EXIT_SUCCESS;

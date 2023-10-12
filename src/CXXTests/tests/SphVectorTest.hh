@@ -74,10 +74,10 @@ void SpheralVectorTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  //using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  using FIELD_TYPE = LvField<DATA_TYPE>;
 
   using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
-  using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
@@ -113,23 +113,36 @@ void SpheralVectorTest()
   //a.emplace_back(4,4,4);
   //a.push_back(DATA_TYPE(6,6,6));
   //chai::ManagedArray<DATA_TYPE> b(10, chai::CPU);
+
+  //Spheral::NodeList<DIM> pair_node_list("PairNodeList", n_pairs, 0);
+  //Spheral::Field<DIM, unsigned> pair_data("Pairs", pair_node_list);
+  //for (unsigned int i = 0; i < n_pairs; i++) pair_data[i] = rand() % DATA_SZ;
+  //PRINT_DATA(pair_data, N_PAIRS)
+
+  //SphVector<DATA_TYPE> test_field(4);
+  //DATA_TYPE foo(5,5,5);
+  //test_field.push_back(foo);
+  //test_field.emplace_back(4,4,4);
+  //test_field.push_back(DATA_TYPE(6,6,6));
+
+  Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
   
-  LvField<DATA_TYPE> a_field(data_sz, "MyFieldA");
-  LvField<DATA_TYPE> b_field(data_sz, "MyFieldB");
-  LvField<DATA_TYPE> c_field(data_sz, "MyFieldC");
+  FIELD_TYPE a_field("MyFieldA", data_node_list);
+  FIELD_TYPE b_field("MyFieldB", data_node_list);
+  //FIELD_TYPE c_field("MyFieldC", data_node_list);
+  FIELD_TYPE c_field(a_field);
 
-  SphVector<DATA_TYPE> test_field(4);
-  DATA_TYPE foo(5,5,5);
-  test_field.push_back(foo);
-  test_field.emplace_back(4,4,4);
-  test_field.push_back(DATA_TYPE(6,6,6));
-
-  LvFieldList<DATA_TYPE> fieldlist("FIELDLIST");
+  LvFieldList<DIM, DATA_TYPE> fieldlist("FIELDLIST");
   fieldlist.appendField(a_field);
   fieldlist.appendField(b_field);
   fieldlist.appendField(c_field);
 
-  std::cout << "a : name " << a_field.getName() << "\n";
+  LvFieldList<DIM, DATA_TYPE> fieldlist2("FIELDLIST-2");
+  fieldlist2.appendField(deepCopy(a_field));
+  fieldlist2.appendField(b_field);
+  fieldlist2.appendField(deepCopy(c_field));
+
+  std::cout << "a : name " << a_field.name() << "\n";
   
 #if 1
   std::cout << "RAJA Teams Implementation Idx.\n";
@@ -137,10 +150,12 @@ void SpheralVectorTest()
   timer_pair.start();
 
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
-    [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+    [=] RAJA_HOST (unsigned t_idx) {
       //a_field[t_idx] = DATA_TYPE(1, 1, 1);
       auto& x = fieldlist(0, t_idx);
+      auto& x2= fieldlist2(0, t_idx);
       x = DATA_TYPE(1, 1, 1);
+      x2= DATA_TYPE(1, 1, 1);
     });
 
   RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, data_sz),
@@ -148,7 +163,9 @@ void SpheralVectorTest()
 
       //a_field[t_idx] += DATA_TYPE(2, 2, 1);
       auto& x = fieldlist(0, t_idx);
+      auto& x2= fieldlist2(0, t_idx);
       x += DATA_TYPE(t_idx, 2, 1);
+      x2+= DATA_TYPE(t_idx, 2, 1);
 
     });
   timer_pair.stop();
@@ -157,10 +174,12 @@ void SpheralVectorTest()
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
   // device to reduce when applicable to minize data movement back to the CPU.
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
-    [=] RAJA_HOST_DEVICE (unsigned t_idx) {
+    [=] RAJA_HOST (unsigned t_idx) {
       //a_field[t_idx] += DATA_TYPE(1, 1, 1);
       auto& x = fieldlist(0, t_idx);
+      auto& x2= fieldlist2(0, t_idx);
       x += DATA_TYPE(1, 1, 1);
+      x2+= DATA_TYPE(1, 1, 1);
       //b[t_idx] += DATA_TYPE(1, 1, 1);
     });
 

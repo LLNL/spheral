@@ -136,12 +136,12 @@ public:
   GeomTensor operator*(const double val) const;
   GeomTensor operator/(const double val) const;
 
-  GeomTensor& operator+=(const GeomTensor& rhs);
-  GeomTensor& operator-=(const GeomTensor& rhs);
+  RAJA_HOST_DEVICE GeomTensor& operator+=(const GeomTensor& rhs);
+  RAJA_HOST_DEVICE GeomTensor& operator-=(const GeomTensor& rhs);
   GeomTensor& operator*=(const GeomTensor& rhs);
 
-  GeomTensor& operator+=(const GeomSymmetricTensor<nDim>& rhs);
-  GeomTensor& operator-=(const GeomSymmetricTensor<nDim>& rhs);
+  RAJA_HOST_DEVICE GeomTensor& operator+=(const GeomSymmetricTensor<nDim>& rhs);
+  RAJA_HOST_DEVICE GeomTensor& operator-=(const GeomSymmetricTensor<nDim>& rhs);
   GeomTensor& operator*=(const GeomSymmetricTensor<nDim>& rhs);
 
   template<typename Derived> GeomTensor& operator+=(const Eigen::MatrixBase<Derived>& rhs);
@@ -177,7 +177,7 @@ public:
   GeomTensor Inverse() const;
   GeomVector<nDim> diagonalElements() const;
   double Trace() const;
-  double Determinant() const;
+  RAJA_HOST_DEVICE double Determinant() const;
   GeomVector<nDim> dot(const GeomVector<nDim>& vec) const;
   GeomTensor dot(const GeomTensor& rhs) const;
   GeomTensor dot(const GeomSymmetricTensor<nDim>& rhs) const;

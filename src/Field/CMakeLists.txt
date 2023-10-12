@@ -7,7 +7,7 @@ set(Field_inst
     MasterNodeIterator
     NodeIteratorBase
     RefineNodeIterator
-    SphArray
+    #SphArray
    )
 
 

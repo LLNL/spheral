@@ -9,10 +9,8 @@ namespace Spheral {
 template<typename Dimension>
 inline
 FieldBase<Dimension>::
-FieldBase(typename FieldBase<Dimension>::FieldName name):
-  mName(name),
-  mNodeListPtr(0),
-  mFieldListBaseList() {
+FieldBase(typename FieldBase<Dimension>::FieldName name) {
+  this->name(name); 
 }
 
 //------------------------------------------------------------------------------
@@ -23,9 +21,9 @@ inline
 FieldBase<Dimension>::
 FieldBase(typename FieldBase<Dimension>::FieldName name,
           const NodeList<Dimension>& nodeList):
-  mName(name),
   mNodeListPtr(&nodeList),
   mFieldListBaseList() {
+  this->name(name);
   mNodeListPtr->registerField(*this);
 }
 
@@ -35,7 +33,6 @@ FieldBase(typename FieldBase<Dimension>::FieldName name,
 template<typename Dimension>
 inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
-  mName(fieldBase.name()),
   mNodeListPtr(fieldBase.nodeListPtr()),
   mFieldListBaseList() {
   mNodeListPtr->registerField(*this);
@@ -91,7 +88,7 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::name(typename FieldBase<Dimension>::FieldName name) {
-  mName = name;
+  strcpy(mName, name.c_str());
 }
 
 //------------------------------------------------------------------------------

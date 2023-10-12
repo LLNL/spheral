@@ -284,6 +284,7 @@ globalNodeIDs(const NodeListIterator& begin,
         int n = (*fieldItr)->nodeListPtr()->numInternalNodes();
         typename Field<Dimension, int>::const_iterator fieldBegin = (*fieldItr)->begin();
         typename Field<Dimension, int>::const_iterator fieldEnd = fieldBegin + n;
+        CONTRACT_VAR(fieldEnd);
         MPI_Bcast(&n, 1, MPI_INT, checkProc, Communicator::communicator());
         for (int i = 0; i != n; ++i) {
           int id;
@@ -292,7 +293,6 @@ globalNodeIDs(const NodeListIterator& begin,
           CONTRACT_VAR(nGlobal);
           ENSURE(i >= 0 && i < nGlobal);
           if (procID != checkProc){
-            CONTRACT_VAR(fieldEnd);
             ENSURE(std::find(fieldBegin, fieldEnd, id) == fieldEnd);
           }
         }

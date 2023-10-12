@@ -39,7 +39,7 @@ using DataAllocator = std::allocator<DataType>;
 
 template<typename Dimension, typename DataType>
 class Field: 
-    public FieldBase<Dimension> {
+    public FieldBase<Dimension>, chai::CHAICopyable{
    
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -250,7 +250,12 @@ public:
 
   // No default constructor.
   Field();
-
+  RAJA_HOST_DEVICE Field& operator=(std::nullptr_t) { mDataArray=nullptr; return *this; }
+  RAJA_HOST_DEVICE void shallowCopy(const Field& field) {
+    Field result(field);
+    result.mDataArray.shallowCopy(field.mDataArray);
+    *this = result;
+  }
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
@@ -266,6 +271,7 @@ private:
         deepCopy(rhs.mDataArray));
     return copy;
   }
+
 };
 
 //template<typename Dimension, typename DataType>
