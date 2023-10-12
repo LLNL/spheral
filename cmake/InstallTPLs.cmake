@@ -95,7 +95,9 @@ endif()
 
 # Create and install target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})
-  Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
+  if(NOT TARGET ${lib})
+    Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
+  endif()
   list(APPEND SPHERAL_BLT_DEPENDS ${lib})
 endforeach()
 # Note: SPHERAL_BLT_DEPENDS is made global after this in SetupSpheral.cmake
