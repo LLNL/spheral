@@ -14,7 +14,6 @@ set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 list(APPEND _packages
   ArtificialViscosity
   Boundary
-  CInterface
   CRKSPH
   CXXTests
   Damage
