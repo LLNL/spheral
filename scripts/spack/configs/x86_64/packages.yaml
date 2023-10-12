@@ -24,7 +24,7 @@ packages:
     buildable: false
   readline:
     externals:
-    - spec: readline@7.0
+    - spec: readline@8.0
       prefix: /usr
     buildable: false
   autoconf:
@@ -34,32 +34,32 @@ packages:
     buildable: false
   automake:
     externals:
-    - spec: automake@1.13.4
+    - spec: automake@1.16.1
       prefix: /usr
     buildable: false
   libtool:
     externals:
-    - spec: libtool@2.4.2
+    - spec: libtool@2.4.6
       prefix: /usr
     buildable: false
   bzip2:
     externals:
-    - spec: bzip2@1.0.6
+    - spec: bzip2@1.0.8
       prefix: /usr
     buildable: false
   expat:
     externals:
-    - spec: expat@2.4.1
+    - spec: expat@2.2.9
       prefix: /usr
     buildable: false
   gdbm:
     externals:
-    - spec: gdbm@1.19
+    - spec: gdbm@1.18.1
       prefix: /usr
     buildable: false
   gettext:
     externals:
-    - spec: gettext@0.19
+    - spec: gettext@0.19.8.1
       prefix: /usr
     buildable: false
   libffi:
@@ -74,22 +74,22 @@ packages:
     buildable: false
   ossp-uuid:
     externals:
-    - spec: ossp-uuid@1.62
+    - spec: ossp-uuid@1.6.2
       prefix: /usr
     buildable: false
   sqlite:
     externals:
-    - spec: sqlite@3.36.0
+    - spec: sqlite@2.8.17
       prefix: /usr
     buildable: false
   pkg-config:
     externals:
-    - spec: pkg-config@0.27.1
+    - spec: pkg-config@0.29.1
       prefix: /usr
     buildable: false
   tar:
     externals:
-    - spec: tar@1.26
+    - spec: tar@1.30
       prefix: /usr
     buildable: false
   elfutils:
@@ -99,12 +99,12 @@ packages:
     buildable: false
   tcl:
      externals:
-     - spec: tcl@8.6
+     - spec: tcl@8.6.9
        prefix: /usr
      buildable: false
   tk:
      externals:
-     - spec: tk@8.6
+     - spec: tk@8.6.9
        prefix: /usr
      buildable: false
   fontconfig:
@@ -112,8 +112,13 @@ packages:
     - spec: fontconfig@2.13.1
       prefix: /usr
     buildable: false
-  netlib-lapack:
+  # netlib-lapack:
+  #   externals:
+  #   - spec: netlib-lapack@3.9.0
+  #     prefix: /usr
+  #   buildable: false
+  liblapack64-dev:
     externals:
-    - spec: netlib-lapack@3.9.0
+    - spec: liblapack64-dev@3.9.0
       prefix: /usr
     buildable: false

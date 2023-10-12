@@ -44,6 +44,9 @@ def parse_args():
   parser.add_argument('--spack-url', type=str, default="",
       help='URL of spack to use.')
 
+  parser.add_argument('--spack-jobs', type=str, 
+      help='Optionally launch spack builds in parallel with given number of parallel jobs.')
+
   parser.add_argument('--no-clean', action='store_true',
       help='Do not clean spack generated log files.')
 
@@ -131,6 +134,10 @@ def build_deps(args):
   # to have the spack instance take over our environment.
   os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
+
+  # Optionally add a parallel job number for spack builds
+  if args.spack-jobs:
+    spack_cmd += "--jobs " + args.spack-jobs
 
   # Add -d to spack command when requesting debug output
   if args.debug:
