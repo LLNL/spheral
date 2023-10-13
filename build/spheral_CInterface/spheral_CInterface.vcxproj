@@ -77,8 +77,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings"></ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
@@ -156,8 +155,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -173,6 +171,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
+      <Message>Copy $(TargetFileName) to parallel directory</Message>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
@@ -184,8 +183,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -202,6 +200,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
+      <Message>Copy $(TargetFileName) to parallel directory</Message>
       <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
@@ -213,8 +212,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;_NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -231,9 +229,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
@@ -244,8 +239,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -262,9 +256,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
@@ -275,8 +266,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -293,9 +283,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
@@ -306,8 +293,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -325,9 +311,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
@@ -338,8 +321,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader></PrecompiledHeader>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SPHERALDLL_EXPORTS;SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;USE_MPI;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -357,9 +339,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(OutDir)$(TargetFileName)" "$(OutDir)..\$(Configuration)GID64\$(TargetFileName)"</Command>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Outputs>$(ProjectDir)..\Spheral_Version.h</Outputs>
       <Inputs>$(SolutionRootDir)\host-configs\BaseLibraryInfo.cmake</Inputs>
@@ -515,11 +494,13 @@
     <ProjectReference Include="..\spheral_utilities\spheral_utilities.vcxproj">
       <Project>{241b879c-082a-4da4-8464-6d2e3520e05b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\src\Win32\mkDir\mkDir.vcxproj">
+      <Project>{77C1E693-8053-498D-B834-D3BD002DC27A}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="spheral_CInterface.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>
