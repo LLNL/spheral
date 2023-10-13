@@ -78,6 +78,13 @@ if(axom_FOUND)
   endif()
   list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
   blt_patch_target(NAME ${fmt_name} TREAT_INCLUDES_AS_SYSTEM ON)
+  # Potential axom dependencies
+  list(APPEND AXOM_DEPS umpire RAJA conduit::conduit)
+  foreach(lib ${AXOM_DEPS})
+    if(TARGET ${lib})
+      list(APPEND SPHERAL_BLT_DEPENDS ${lib})
+    endif()
+  endforeach()
 endif()
 
 # TPLs that must be imported
