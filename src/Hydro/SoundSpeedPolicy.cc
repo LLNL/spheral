@@ -48,11 +48,12 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::soundSpeed);
-  auto& soundSpeed = state.field(key, Scalar());
+  auto& soundSpeed = state.field(key, 0.0);
 
   // Get the mass density and specific thermal energy fields from the state.
-  const auto& massDensity = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
-  const auto& eps = state.field(HydroFieldNames::specificThermalEnergy, Scalar());
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& massDensity = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
 
   // Get the eos.  This cast is ugly, but is a work-around for now.
   const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(soundSpeed.nodeListPtr());
