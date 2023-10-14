@@ -37,6 +37,7 @@ commandLine(nx = 500,                          # Number of internal free points
             # Porosity
             PorousModel = PalphaPorosity,
             alpha0 = 1.275,
+            fdt = 0.5,                         # Timestep control fractional change in alpha
 
             # Hydro
             hydro = "SPH",                     # SPH, CRKSPH, FSISPH
@@ -253,6 +254,7 @@ if PorousModel is PalphaPorosity:
                                 n2 = 2.0,
                                 cS0 = cS0 * vCGSconv,
                                 c0 = ce * vCGSconv)
+    porosityAl.fdt = fdt
 
 output("porosityAl")
 output("  porosityAl.Pe")
@@ -263,6 +265,7 @@ output("  porosityAl.alphat")
 output("  porosityAl.n1")
 output("  porosityAl.n2")
 output("  porosityAl.cS0")
+output("  porosityAl.fdt")
 
 packages.append(porosityAl)
 
