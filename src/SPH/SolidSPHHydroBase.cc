@@ -248,33 +248,9 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
   dataBase.resizeFluidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
 
-  // Grab the normal Hydro's registered version of the sound speed and pressure.
-  auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  auto P = state.fields(HydroFieldNames::pressure, 0.0);
-  CHECK(cs.numFields() == dataBase.numFluidNodeLists());
-  CHECK(P.numFields() == dataBase.numFluidNodeLists());
-
-  // Build the FieldList versions of our state.
-  FieldList<Dimension, SymTensor> S, D;
-  FieldList<Dimension, Scalar> ps;
-  FieldList<Dimension, int> fragIDs;
-  FieldList<Dimension, int> pTypes;
-  auto nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    S.appendField((*itr)->deviatoricStress());
-    ps.appendField((*itr)->plasticStrain());
-    D.appendField((*itr)->damage());
-    fragIDs.appendField((*itr)->fragmentIDs());
-    pTypes.appendField((*itr)->particleTypes());
-
-    // Make a copy of the beginning plastic strain.
-    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
-    (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
-  }
-
   // Register the deviatoric stress and plastic strain to be evolved.
+  auto S = dataBase.solidDeviatoricStress();
+  auto ps = dataBase.solidPlasticStrain();
   state.enroll(S, make_shared<DeviatoricStressPolicy<Dimension>>());
   state.enroll(ps, make_shared<PlasticStrainPolicy<Dimension>>());
 
@@ -284,20 +260,28 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mYieldStrength, make_shared<YieldStrengthPolicy<Dimension>>());
 
   // Override the policies for the sound speed and pressure.
+  auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  auto P = state.fields(HydroFieldNames::pressure, 0.0);
+  CHECK(cs.numFields() == dataBase.numFluidNodeLists());
+  CHECK(P.numFields() == dataBase.numFluidNodeLists());
   state.enroll(cs, make_shared<StrengthSoundSpeedPolicy<Dimension>>());
   state.enroll(P, make_shared<DamagedPressurePolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.
+  auto D = dataBase.solidDamage();
   state.enroll(D);
 
   // Register the fragment IDs.
+  auto fragIDs = dataBase.solidFragmentIDs();
   state.enroll(fragIDs);
 
   // Register the particle types.
+  auto pTypes = dataBase.solidParticleTypes();
   state.enroll(pTypes);
 
   // And finally the intial plastic strain.
+  mPlasticStrain0.assignFields(ps);
   state.enroll(mPlasticStrain0);
   TIME_END("SolidSPHregister");
 }

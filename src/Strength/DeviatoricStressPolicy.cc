@@ -25,7 +25,7 @@ namespace Spheral {
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
 DeviatoricStressPolicy():
-  UpdatePolicyBase<Dimension>() {
+  FieldUpdatePolicy<Dimension>() {
 }
 
 //------------------------------------------------------------------------------

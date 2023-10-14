@@ -163,22 +163,15 @@ evaluateDerivatives(const Scalar time,
                     StateDerivatives<Dimension>& derivs) const {
 
   // Get the state fields.
-  const auto  rhoKey = State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, mNodeList.name());
-  const auto  PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, mNodeList.name());
-  const auto  dPduKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialEps, mNodeList.name());
-  const auto  dPdrKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialRho, mNodeList.name());
-  const auto  alphaKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, mNodeList.name());
-  const auto  DalphaDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name());
-  const auto  DrhoDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::massDensity, mNodeList.name());
-  const auto  DuDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, mNodeList.name());
-  const auto& rho = state.field(rhoKey, 0.0);
-  const auto& P = state.field(PKey, 0.0);
-  const auto& dPdu = state.field(dPduKey, 0.0);
-  const auto& dPdr = state.field(dPdrKey, 0.0);
-  const auto& alpha = state.field(alphaKey, 0.0);
-  const auto& DrhoDt = derivs.field(DrhoDtKey, 0.0);
-  const auto& DuDt = derivs.field(DuDtKey, 0.0);
-  auto&       DalphaDt = derivs.field(DalphaDtKey, 0.0);
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
+  const auto& rho = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+  const auto& dPdu = state.field(buildKey(HydroFieldNames::partialPpartialEps), 0.0);
+  const auto& dPdr = state.field(buildKey(HydroFieldNames::partialPpartialRho), 0.0);
+  const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+  const auto& DrhoDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
+  const auto& DuDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
+  auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
 
   // Walk the nodes.
   const auto n = mNodeList.numInternalNodes();
@@ -258,24 +251,26 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   // Alias for shorter call building State Field keys
-  auto key = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
 
   // Register the solid mass density
   state.enroll(mSolidMassDensity, std::make_shared<PorositySolidMassDensityPolicy<Dimension>>());
 
   // Override the pressure policy.
-  auto& P = state.field(key(HydroFieldNames::pressure), 0.0);
+  auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
   state.enroll(mdPdU);
   state.enroll(mdPdR);
   state.enroll(P, std::make_shared<PorousPressurePolicy<Dimension>>());
 
   // Register the P-alpha state
   state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
+  state.enroll(mAlpha0);
+  state.enroll(mc0);
 
   // Check what other state is registered which needs to be overridden for
   // porosity
   auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {
-                                  const auto fullkey = key(fkey);
+                                  const auto fullkey = buildKey(fkey);
                                   if (state.registered(fullkey)) {
                                     auto& f = state.field(fullkey, 0.0);
                                     state.enroll(f, policy); //std::make_shared<Policy>());

@@ -108,8 +108,6 @@ eosS = EOSConstructor(material,
                       etamax = 10.0,
                       units = units)
 strengthModelS = NullStrength()
-eos = PorousEquationOfState(eosS)
-strengthModel = PorousStrengthModel(strengthModelS)
 rhoS0 = eosS.referenceDensity
 eps0 = 0.0
 Ps0 = eosS.pressure(rhoS0, eps0)
@@ -130,7 +128,7 @@ output("WT")
 #-------------------------------------------------------------------------------
 # Create the NodeLists.
 #-------------------------------------------------------------------------------
-nodes = makeSolidNodeList("aluminium", eos, strengthModel,
+nodes = makeSolidNodeList("aluminium", eosS, strengthModelS,
                           nPerh = nPerh,
                           xmin = -10.0*Vector.one,
                           xmax =  10.0*Vector.one)
@@ -245,7 +243,7 @@ if PorousModel is PalphaPorosity:
     output("      ce")
     output("  alphae")
     print("Computing cS0 from solid EOS yields ", eosS.soundSpeed(rhoS0, 0.0))
-    porosityAl = PalphaPorosity(eos, strengthModel, nodes,
+    porosityAl = PalphaPorosity(nodes,
                                 phi0 = 1.0 - 1.0/alpha0,
                                 Pe = Pe * PCGSconv,
                                 Pt = Pe * PCGSconv,

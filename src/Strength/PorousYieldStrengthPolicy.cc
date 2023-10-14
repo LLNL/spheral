@@ -61,13 +61,14 @@ update(const KeyType& key,
   const auto& strengthModel = solidNodeListPtr->strengthModel();
 
   // Get the state we need
-  const auto& rhoS = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porositySolidDensity, nodeListKey), Scalar());
-  const auto& eps = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
-  const auto& P = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey), Scalar());
-  const auto& plasticStrain = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::plasticStrain, nodeListKey), Scalar());
-  const auto& plasticStrainRate = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::plasticStrainRate, nodeListKey), Scalar());
-  const auto& D = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, nodeListKey), SymTensor::zero);
-  const auto& alpha = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, nodeListKey), Scalar());
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& rhoS = state.field(buildKey(SolidFieldNames::porositySolidDensity), Scalar());
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), Scalar());
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), Scalar());
+  const auto& plasticStrain = state.field(buildKey(SolidFieldNames::plasticStrain), Scalar());
+  const auto& plasticStrainRate = derivs.field(buildKey(SolidFieldNames::plasticStrainRate), Scalar());
+  const auto& D = state.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
+  const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), Scalar());
 
   // We actually need the solid phase pressure
   const auto PS = P*alpha;

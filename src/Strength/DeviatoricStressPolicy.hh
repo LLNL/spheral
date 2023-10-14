@@ -9,14 +9,14 @@
 #ifndef __Spheral_DeviatoricStress_hh__
 #define __Spheral_DeviatoricStress_hh__
 
-#include "DataBase/UpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
 namespace Spheral {
 
 template<typename Dimension>
-class DeviatoricStressPolicy: public UpdatePolicyBase<Dimension> {
+class DeviatoricStressPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs

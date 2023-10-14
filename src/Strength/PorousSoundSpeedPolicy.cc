@@ -62,12 +62,13 @@ update(const KeyType& key,
   REQUIRE(fieldKey == HydroFieldNames::soundSpeed);
 
   // Grab the state we need.
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
   auto&       cs = state.field(key, 0.0);
-  const auto& alpha = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, nodeListKey), 0.0);
-  const auto& alpha0 = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha0, nodeListKey), 0.0);
-  const auto& cs0 = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porosityc0, nodeListKey), 0.0);
-  const auto& rhoS = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porositySolidDensity, nodeListKey), 0.0);
-  const auto& eps = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), 0.0);
+  const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+  const auto& alpha0 = state.field(buildKey(SolidFieldNames::porosityAlpha0), 0.0);
+  const auto& cs0 = state.field(buildKey(SolidFieldNames::porosityc0), 0.0);
+  const auto& rhoS = state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0);
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
 
   // Extract the solid equation of state and strength model from the NodeList.
   // This involves some ugly casting -- should revisit this design.
