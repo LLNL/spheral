@@ -18,7 +18,9 @@
 //                 4) XSPH -------- nodal velocity = xsph velocity
 //                 5) BackgroundPressure -- nodal acceleration = fluid 
 //                                          acceleration + Background pressure
-//                                          force to drive regularization.
+//                                          force to drive regularization. We'll
+//                                          probably also need some decay time
+//                                          to get back to u = v.
 //
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
@@ -26,14 +28,12 @@
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 // TODO:
-//   1 mass flux should be limited so we don't get issues with neg mass
-//   2 need better timestep constraints
-//   3 maybe seperate flux polies for all conserved variables 
-//     similar to an advect step in ALE schemes. Might give better e-conserve
-//   4 compatible energy for MFV
-//
-//   5 ADD DpDt and DmDt to the finalize bc application.
+//   1 backpressure and fician particle shifting
+//   2 Eulerian model will still crash on the Noh implosion due to void particles
+//   3 Good implementation of Ngb update
+//   4 treatment for material interfaces
 //---------------------------------------------------------------------------//
+
 #include "FileIO/FileIO.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -56,7 +56,6 @@
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
-#include "GSPH/Policies/ALEPositionPolicy.hh"
 #include "GSPH/Policies/MassFluxPolicy.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
@@ -125,14 +124,14 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mDthermalEnergyDt(FieldStorageType::CopyFields),
   mDmomentumDt(FieldStorageType::CopyFields),
   mDvolumeDt(FieldStorageType::CopyFields),
-  mXSPHHfield(FieldStorageType::CopyFields),
+  mHStretchTensor(FieldStorageType::CopyFields),
   mPairMassFlux(){
     mNodalVelocity = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::nodalVelocity);
     mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
     mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
-    mXSPHHfield = dataBase.newFluidFieldList(SymTensor::zero, "XSPHHfield");
+    mHStretchTensor = dataBase.newFluidFieldList(SymTensor::zero, "HStretchTensor");
     mPairMassFlux.clear();
 }
 
@@ -174,7 +173,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto mass = state.fields(HydroFieldNames::mass, 0.0);
   auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
 
- // ensure we're not sure compat energy scheme for pure-lang methods
+ // We use the thermal energy to update the specific thermal energy
   state.removePolicy(specificThermalEnergy);
 
   CHECK(position.numFields() == dataBase.numFluidNodeLists());
@@ -205,58 +204,45 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                               IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum,
                                                                                               HydroFieldNames::specificThermalEnergy);
   
-  // special policies to get velocity update from momentum deriv
-  state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
+  
 
   switch (mNodeMotionType){
-    case NodeMotionType::Eulerian:
+    case NodeMotionType::Eulerian:    // Eulerian
     {
-      //std::cout <<"Eulerian" << std::endl;
-      state.enroll(mNodalVelocity); // Eulerian
+      state.enroll(mNodalVelocity);
     }
       break;
     case NodeMotionType::Lagrangian:  // pure MFV
       {
-        //std::cout <<"Lagrangian" << std::endl;
         auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,
                                                                                                      HydroFieldNames::velocity); // depends on
         state.enroll(mNodalVelocity, nodalVelocityPolicy);
       }
       break;
     case NodeMotionType::XSPH:
-      { // this is currently wrong, its the delta not the full xsph velocity and time step delayed
-        //std::cout <<"XSPH" << std::endl;
+      { 
         auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
         state.enroll(mNodalVelocity, nodalVelocityPolicy);
       }
       break;
     default:
-      //std::cout <<"default" << std::endl;
       break;
   }
 
-    // conditional for energy method
   if (this->compatibleEnergyEvolution()) {
-    //std::cout << "compatible MFV" << std::endl;
     auto thermalEnergyPolicy = std::make_shared<CompatibleMFVSpecificThermalEnergyPolicy<Dimension>>(dataBase);
-    //auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
-    //state.enroll(velocity, velocityPolicy);
 
   }else if (this->evolveTotalEnergy()) {
-    // warning not implemented yet
     std::cout <<"evolve total energy not implemented for MFV" << std::endl;
-    //auto thermalEnergyPolicy = std::make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
-    //auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
-    //state.enroll(specificThermalEnergy, thermalEnergyPolicy);
-    //state.enroll(velocity, velocityPolicy);
-
   } else {
     auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
     auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,true);
     state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }
+
+  state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
 
   // normal state variables
   state.enroll(mass,        massPolicy);
@@ -277,12 +263,12 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
   dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
   dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
-  dataBase.resizeFluidFieldList(mXSPHHfield,SymTensor::zero, "XSPHHfield", false);
+  dataBase.resizeFluidFieldList(mHStretchTensor,SymTensor::zero, "HStretchTensor", false);
   derivs.enroll(mDmassDt);
   derivs.enroll(mDthermalEnergyDt);
   derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
-  derivs.enroll(mXSPHHfield);
+  derivs.enroll(mHStretchTensor);
   derivs.enrollAny(GSPHFieldNames::pairMassFlux, mPairMassFlux);
 }
 

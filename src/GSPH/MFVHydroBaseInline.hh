@@ -70,7 +70,7 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
 MFVHydroBase<Dimension>::
-xsphHfield() const {
-  return mXSPHHfield;
+HStretchTensor() const {
+  return mHStretchTensor;
 }
 }

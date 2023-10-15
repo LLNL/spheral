@@ -277,10 +277,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       //------------------------------------------------------
       const auto deltaDepsDti = 2.0*Pstar*Ai.dot(vi-vstar);
       const auto deltaDepsDtj = 2.0*Pstar*Aj.dot(vstar-vj);
-
       DepsDti += deltaDepsDti/mi;
       DepsDtj += deltaDepsDtj/mj;
-     
+
       if(compatibleEnergy){
         const auto invmij = 1.0/(mi*mj);
         pairAccelerations[kk] = deltaDvDt*invmij; 

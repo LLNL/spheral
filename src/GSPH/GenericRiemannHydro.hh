@@ -25,6 +25,12 @@ enum class GradientType {
   NoGradient = 6
 };
 
+enum class GSPHEvolutionType {
+  IdealH = 0,
+  IntegrateH = 1,
+  constantNeighborCount = 2
+};
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class SmoothingScaleBase;

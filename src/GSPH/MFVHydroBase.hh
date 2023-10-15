@@ -128,12 +128,19 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
   void
-  computeMCorrection(const typename Dimension::Scalar time,
-                     const typename Dimension::Scalar dt,
-                     const DataBase<Dimension>& dataBase,
-                     const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
-
+  firstDerivativesLoop(const typename Dimension::Scalar time,
+                       const typename Dimension::Scalar dt,
+                       const DataBase<Dimension>& dataBase,
+                       const State<Dimension>& state,
+                             StateDerivatives<Dimension>& derivatives) const;
+  
+  void
+  secondDerivativesLoop(const typename Dimension::Scalar time,
+                        const typename Dimension::Scalar dt,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                              StateDerivatives<Dimension>& derivatives) const;
+                              
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -160,7 +167,7 @@ public:
   const FieldList<Dimension,Scalar>& DthermalEnergyDt() const;
   const FieldList<Dimension,Vector>& DmomentumDt() const;
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
-  const FieldList<Dimension,SymTensor>& xsphHfield() const;
+  const FieldList<Dimension,SymTensor>& HStretchTensor() const;
 
   const std::vector<Scalar>& pairMassFlux() const;
   
@@ -179,7 +186,7 @@ private:
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;
   FieldList<Dimension, Scalar> mDvolumeDt;
-  FieldList<Dimension, SymTensor> mXSPHHfield;
+  FieldList<Dimension, SymTensor> mHStretchTensor;
 
   std::vector<Scalar> mPairMassFlux;
   
