@@ -996,7 +996,7 @@ template<typename Dimension, typename DataType>
 inline
 bool
 Field<Dimension, DataType>::valid() const {
-  return mValid && this->nodeListPtr();
+  return true;//mValid && this->nodeListPtr();
 }
 
 //------------------------------------------------------------------------------

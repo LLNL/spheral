@@ -1,5 +1,6 @@
 #include "Utilities/DBC.hh"
 #include <algorithm>
+#include <cstring>
 
 namespace Spheral {
 
@@ -24,7 +25,7 @@ FieldBase(typename FieldBase<Dimension>::FieldName name,
   mNodeListPtr(&nodeList),
   mFieldListBaseList() {
   this->name(name);
-  mNodeListPtr->registerField(*this);
+  if (mNodeListPtr) mNodeListPtr->registerField(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -35,7 +36,7 @@ inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
   mNodeListPtr(fieldBase.nodeListPtr()),
   mFieldListBaseList() {
-  mNodeListPtr->registerField(*this);
+  if (mNodeListPtr) mNodeListPtr->registerField(*this);
 }
 
 //------------------------------------------------------------------------------

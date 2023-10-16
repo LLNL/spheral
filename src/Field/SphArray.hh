@@ -85,7 +85,8 @@ public:
 
   RAJA_HOST void push_back(const DataType& value) {
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
-    MA::data()[m_size] = value;
+    std::cout << "check : " << m_size << ", " << capacity() << std::endl;
+    new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
   RAJA_HOST void push_back(DataType&& value) {

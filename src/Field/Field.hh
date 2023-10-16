@@ -39,7 +39,7 @@ using DataAllocator = std::allocator<DataType>;
 
 template<typename Dimension, typename DataType>
 class Field: 
-    public FieldBase<Dimension>, chai::CHAICopyable{
+    public FieldBase<Dimension>, public chai::CHAICopyable{
    
 public:
   //--------------------------- Public Interface ---------------------------//
