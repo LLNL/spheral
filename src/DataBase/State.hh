@@ -67,7 +67,8 @@ public:
   // Remove a policy.
   void removePolicy(const KeyType& key);
   void removePolicy(FieldBase<Dimension>& field);
-  void removePolicy(FieldListBase<Dimension>& field);
+  void removePolicy(FieldListBase<Dimension>& field,
+                    const bool clonePerField);
 
   // Enroll the given Field and associated update policy
   void enroll(FieldBase<Dimension>& field, PolicyPointer policy);

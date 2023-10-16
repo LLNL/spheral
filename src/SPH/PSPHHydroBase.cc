@@ -133,8 +133,8 @@ registerState(DataBase<Dimension>& dataBase,
   // Override the default policies for pressure and sound speed.  We'll compute those
   // specially in the postStateUpdate.  Same goes for registering the PSPHcorrections.
   state.enroll(mPSPHcorrection);
-  state.removePolicy(this->mPressure);
-  state.removePolicy(this->mSoundSpeed);
+  state.removePolicy(this->mPressure, true);
+  state.removePolicy(this->mSoundSpeed, true);
 }
 
 //------------------------------------------------------------------------------

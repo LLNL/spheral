@@ -375,8 +375,15 @@ removePolicy(FieldBase<Dimension>& field) {
 template<typename Dimension>
 void
 State<Dimension>::
-removePolicy(FieldListBase<Dimension>& fieldList) {
-  this->removePolicy(StateBase<Dimension>::key(fieldList));
+removePolicy(FieldListBase<Dimension>& fieldList,
+             const bool clonePerField) {
+  if (clonePerField) {
+    for (auto fieldPtrItr = fieldList.begin_base();
+         fieldPtrItr < fieldList.end_base();
+         ++fieldPtrItr) this->removePolicy(**fieldPtrItr);
+  } else {
+    this->removePolicy(StateBase<Dimension>::key(fieldList));
+  }
 }
 
 }
