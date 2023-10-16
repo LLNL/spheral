@@ -41,5 +41,5 @@ set(Strength_headers
     PorousYieldStrengthPolicy.hh
     )
 
-spheral_add_obj_library(Strength)
+spheral_add_obj_library(Strength SPHERAL_OBJ_LIBS)
 

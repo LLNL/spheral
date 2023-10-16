@@ -121,13 +121,12 @@ shearModulus(Field<Dimension, Scalar>& shearModulus,
     for (auto i = 0u; i < n; ++i) {
       const auto eta = mEOSPtr->boundedEta(density(i));
       CHECK(distinctlyGreaterThan(eta, 0.0));
+      const auto fmelt = meltAttenuation(density(i), specificThermalEnergy(i));
       shearModulus(i) = min(mGmax, 
                             mG0*max(1.0e-10,
-                                    meltAttenuation(density(i), specificThermalEnergy(i))*(1.0 + 
-                                                                                           mA*pressure(i)/FastMath::CubeRootHalley2(eta) -
-                                                                                           mB*T(i))));
+                                    fmelt*(1.0 + mA*pressure(i)/FastMath::CubeRootHalley2(eta) - mB*T(i))));
       const auto Di = std::max(0.0, std::min(1.0, damage(i).eigenValues().maxElement()));
-      shearModulus(i) = (1.0 - Di)*shearModulus(i) + Di*mG0;
+      shearModulus(i) = (1.0 - Di)*shearModulus(i) + Di*fmelt*mG0;
       CHECK(shearModulus(i) > 0.0);
     }
   }

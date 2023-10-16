@@ -19,6 +19,9 @@ def parse_args():
   parser.add_argument('-i', '--install-dir', type=str, default="",
       help='Location of spheral source directory.')
 
+  parser.add_argument('--build-dir', type=str, default="",
+      help='Name of build directory.')
+
   parser.add_argument('--no-clean', action='store_true',
       help='Do not delete build and install locations.')
 
@@ -63,12 +66,15 @@ def main():
     
 
   # Set up our directory structure paths.
-  build_dir="{0}/build_{1}/build".format(source_dir, hostconfig)
+  if not args.build_dir:
+    build_dir="{0}/build_{1}".format(source_dir, hostconfig)
+  else:
+    build_dir="{0}/{1}".format(source_dir, args.build_dir)
   if not args.install_dir:
-    install_dir="{0}/build_{1}/install".format(source_dir, hostconfig)
+    install_dir="{0}/install".format(build_dir)
   else:
     install_dir=args.install_dir
-
+  build_dir=build_dir+"/build"
   # Pull the cmake command to use out of our host config.
   cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True)[1].split()[-1]
 
