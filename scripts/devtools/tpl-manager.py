@@ -44,7 +44,7 @@ def parse_args():
   parser.add_argument('--spack-url', type=str, default="",
       help='URL of spack to use.')
 
-  parser.add_argument('--spack-jobs', type=str, 
+  parser.add_argument('--spack-jobs', type=str,
       help='Optionally launch spack builds in parallel with given number of parallel jobs.')
 
   parser.add_argument('--no-clean', action='store_true',
@@ -136,8 +136,8 @@ def build_deps(args):
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
 
   # Optionally add a parallel job number for spack builds
-  if args.spack-jobs:
-    spack_cmd += "--jobs " + args.spack-jobs
+  if args.spack_jobs:
+    spack_cmd += " --jobs={0}".format(args.spack_jobs)
 
   # Add -d to spack command when requesting debug output
   if args.debug:
