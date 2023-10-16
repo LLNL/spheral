@@ -1,0 +1,17 @@
+
+@PACKAGE_INIT@
+
+if(NOT axom_DIR)
+  set(axom_DIR "@axom_DIR@" CACHE PATH "")
+endif()
+set(SPHERAL_BLT_DIR "@SPHERAL_BLT_DIR@")
+set(SPHERAL_CXX_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@")
+set(SPHERAL_CXX_INCLUDE_DIRS "${SPHERAL_CXX_INSTALL_PREFIX}/include")
+if(NOT TARGET axom)
+  find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR} ${axom_DIR}/lib ${axom_DIR}/lib/cmake)
+endif()
+include("${SPHERAL_CXX_INSTALL_PREFIX}/lib/cmake/spheral_cxx-targets.cmake")
+
+set_property(TARGET Spheral_CXX
+  APPEND PROPERTY
+  INTERFACE_INCLUDE_DIRECTORIES ${SPHERAL_CXX_INCLUDE_DIRS})

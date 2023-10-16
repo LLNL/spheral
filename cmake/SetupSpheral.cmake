@@ -72,19 +72,19 @@ if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_SHARED OFF)
 endif()
 
-if(ENABLE_MPI)
-  set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-  list(APPEND spheral_blt_depends mpi)
-endif()
-
-if(ENABLE_OPENMP)
-  list(APPEND spheral_blt_depends openmp)
-endif()
-
 if(ENABLE_CUDA)
   set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 14)
-  list(APPEND SPHERAL_CXX_DEPENDS cuda)
+  list(APPEND SPHERAL_BLT_DEPENDS cuda)
+endif()
+
+if(ENABLE_MPI)
+  set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
+  list(APPEND SPHERAL_BLT_DEPENDS mpi)
+endif()
+
+if(ENABLE_OPENMP)
+  list(APPEND SPHERAL_BLT_DEPENDS openmp)
 endif()
 
 option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
@@ -118,15 +118,12 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #-------------------------------------------------------------------------------
-# We need the set of Spheral C++ libraries globally
+# Set global variables used for dependencies
 #-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
-
-#-------------------------------------------------------------------------------
-# Also globally set the variable for the list we accumulate the obj files from
-# each library into
-#-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+# List of external dependencies
+set_property(GLOBAL PROPERTY SPHERAL_BLT_DEPENDS "${SPHERAL_BLT_DEPENDS}")
+# List of compiler dependencies
+set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 
 #-------------------------------------------------------------------------------
 # Prepare to build the src
@@ -159,10 +156,18 @@ if (ENABLE_TESTS)
   endmacro(install_with_directory)
 
   # Find the test files we want to install
-  execute_process(
-    COMMAND git ls-files tests
-    WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-    OUTPUT_VARIABLE test_files1)
+  set(test_files1 "")
+  if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(
+      COMMAND git ls-files tests
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  else()
+    execute_process(
+      COMMAND find tests -type f
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  endif()
   string(REPLACE "\n" " " test_files ${test_files1})
   separate_arguments(test_files)
   list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
@@ -171,3 +176,5 @@ if (ENABLE_TESTS)
     SOURCE      ${SPHERAL_ROOT_DIR}
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
+
+include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

@@ -33,11 +33,11 @@
 #define N_PAIRS 500000000
 #define DATA_SZ 1000000
 
-#elif 1 // Large Problem
+#elif 0 // Large Problem
 #define N_PAIRS  5000000
 #define DATA_SZ  50000
 
-#elif 1 // Medium Problem
+#elif 0 // Medium Problem
 #define N_PAIRS  1000000
 #define DATA_SZ  10000
 
@@ -74,8 +74,8 @@ void SpheralVectorTest()
   //using DATA_TYPE = double;
   using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
-  //using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
-  using FIELD_TYPE = LvField<DATA_TYPE>;
+  using FIELD_TYPE = Spheral::Field<DIM, DATA_TYPE>;
+  //using FIELD_TYPE = LvField<DATA_TYPE>;
 
   using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
   //using VIEW_TYPE = FIELD_TYPE::view_type;
@@ -144,7 +144,6 @@ void SpheralVectorTest()
 
   std::cout << "a : name " << a_field.name() << "\n";
   
-#if 1
   std::cout << "RAJA Teams Implementation Idx.\n";
   launch_timer.start();
   timer_pair.start();
@@ -158,6 +157,8 @@ void SpheralVectorTest()
       x2= DATA_TYPE(1, 1, 1);
     });
 
+  std::cout << "CHECK : " << fieldlist.name() << "\n";
+#if 1
   RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 

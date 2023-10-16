@@ -12,56 +12,56 @@
 template<typename DataType>
 class LvField;
 
-template<typename DataType>
-class SphVector:
-  public chai::ManagedArray<DataType>{
-  using ManagedArray = chai::ManagedArray<DataType>;
-
-  friend LvField<DataType>;
-public:
-
-  RAJA_HOST SphVector() : ManagedArray(2) {}
-
-  RAJA_HOST SphVector(size_t elems) : ManagedArray(elems), m_size(elems) {}
-
-  RAJA_HOST void push_back(const DataType& value) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
-
-    ManagedArray::data()[m_size] = value;
-    m_size++;
-  }
-
-  RAJA_HOST void push_back(DataType&& value) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
-
-    ManagedArray::data()[m_size] = std::move(value);
-    m_size++;
-  }
-
-  template<typename... Args>
-  RAJA_HOST
-  DataType& emplace_back(Args&&... args) {
-    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
-
-    new(&ManagedArray::data()[m_size]) DataType(std::forward<Args>(args)...);
-    return ManagedArray::data()[m_size++];
-  }
-  
-  RAJA_HOST_DEVICE size_t capacity() {return ManagedArray::m_elems;}
-  RAJA_HOST_DEVICE size_t size() {return m_size;}
-
-private:
-  // *******************************************************
-  // Required to Allow SphVector to be properly CHAICopyable
-  RAJA_HOST_DEVICE SphVector<DataType>& operator=(std::nullptr_t) { ManagedArray::operator=(nullptr); return *this; }
-  RAJA_HOST_DEVICE void shallowCopy(const SphVector& other) {
-    m_size=other.m_size;
-    ManagedArray::shallowCopy(other);
-  }
-  // *******************************************************
-
-  size_t m_size = 0;
-};
+//template<typename DataType>
+//class SphVector:
+//  public chai::ManagedArray<DataType>{
+//  using ManagedArray = chai::ManagedArray<DataType>;
+//
+//  friend LvField<DataType>;
+//public:
+//
+//  RAJA_HOST SphVector() : ManagedArray(2) {}
+//
+//  RAJA_HOST SphVector(size_t elems) : ManagedArray(elems), m_size(elems) {}
+//
+//  RAJA_HOST void push_back(const DataType& value) {
+//    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+//
+//    ManagedArray::data()[m_size] = value;
+//    m_size++;
+//  }
+//
+//  RAJA_HOST void push_back(DataType&& value) {
+//    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+//
+//    ManagedArray::data()[m_size] = std::move(value);
+//    m_size++;
+//  }
+//
+//  template<typename... Args>
+//  RAJA_HOST
+//  DataType& emplace_back(Args&&... args) {
+//    if (m_size >= capacity()) ManagedArray::reallocate(capacity() + (capacity() / 2));
+//
+//    new(&ManagedArray::data()[m_size]) DataType(std::forward<Args>(args)...);
+//    return ManagedArray::data()[m_size++];
+//  }
+//  
+//  RAJA_HOST_DEVICE size_t capacity() {return ManagedArray::m_elems;}
+//  RAJA_HOST_DEVICE size_t size() {return m_size;}
+//
+//private:
+//  // *******************************************************
+//  // Required to Allow SphVector to be properly CHAICopyable
+//  RAJA_HOST_DEVICE SphVector<DataType>& operator=(std::nullptr_t) { ManagedArray::operator=(nullptr); return *this; }
+//  RAJA_HOST_DEVICE void shallowCopy(const SphVector& other) {
+//    m_size=other.m_size;
+//    ManagedArray::shallowCopy(other);
+//  }
+//  // *******************************************************
+//
+//  size_t m_size = 0;
+//};
 
 template<typename DATA_TYPE>
 class LvField : public chai::CHAICopyable
@@ -161,8 +161,8 @@ class LvFieldList{
 public:
 
 
-  //using ElementType = Spheral::Field<DIM,DATA_TYPE>;
-  using ElementType = LvField<DATA_TYPE>;
+  using ElementType = Spheral::Field<DIM,DATA_TYPE>;
+  //using ElementType = LvField<DATA_TYPE>;
   using ARRAY_TYPE = Spheral::ManagedVector<ElementType>;
   using ATOMIC_DATA_TYPE = typename DATA_TYPE::atomic_type;
 
@@ -173,6 +173,9 @@ public:
   LvFieldList(std::string name) {
     setName(name);
   }
+
+  RAJA_HOST
+  std::string name() const {return m_name;}
 
   RAJA_HOST
   void appendField(const ElementType& field) { 
