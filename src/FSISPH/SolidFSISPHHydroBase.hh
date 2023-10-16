@@ -222,7 +222,7 @@ public:
   const FieldList<Dimension, Scalar>&    shearModulus() const;
   const FieldList<Dimension, Scalar>&    yieldStrength() const;
   const FieldList<Dimension, Scalar>&    plasticStrain0() const;
-  const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
+  //const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
   const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
@@ -305,7 +305,7 @@ private:
   FieldList<Dimension, Scalar>    mShearModulus;
   FieldList<Dimension, Scalar>    mYieldStrength;
   FieldList<Dimension, Scalar>    mPlasticStrain0;
-  FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
+  //FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
   FieldList<Dimension, Scalar>    mVolume;
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mXSPHDeltaV;

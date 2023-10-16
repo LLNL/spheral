@@ -76,8 +76,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
+  //const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  //const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
   CHECK(interfaceFlags.size() == numNodeLists);
   CHECK(interfaceAreaVectors.size() == numNodeLists);
@@ -98,8 +98,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
-  CHECK(yield.size() == numNodeLists);
-  CHECK(invJ2.size() == numNodeLists);
+  //CHECK(yield.size() == numNodeLists);
+  //CHECK(invJ2.size() == numNodeLists);
 
   // Derivative FieldLists.
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -225,13 +225,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Si = S(nodeListi, i);
       const auto& pTypei = pTypes(nodeListi, i);
       const auto  fragIDi = fragIDs(nodeListi, i);
-      const auto  Yi = yield(nodeListi, i);
-      const auto  invJ2i = invJ2(nodeListi, i);
+      //const auto  Yi = yield(nodeListi, i);
+      //const auto  invJ2i = invJ2(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       const auto  Hdeti = Hi.Determinant();
-      
+      epsLineari = epsi;
+      PLineari = Pi;
+
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -274,12 +276,14 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
       const auto  fragIDj = fragIDs(nodeListj, j);
-      const auto  Yj = yield(nodeListj, j);
-      const auto  invJ2j = invJ2(nodeListj, j);
+      //const auto  Yj = yield(nodeListj, j);
+      //const auto  invJ2j = invJ2(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       const auto  Hdetj = Hj.Determinant();
+      epsLinearj = epsj;
+      PLinearj = Pj;
 
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -386,10 +390,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWj = gradWij;
       }
 
-      if(this->linearCorrectGradients()){
-        gradWiMi = Mi.Transpose()*gradWi;
-        gradWjMj = Mj.Transpose()*gradWj;
-      }
+      gradWiMi = Mi.Transpose()*gradWi;
+      gradWjMj = Mj.Transpose()*gradWj;
 
       // interface normals 
       //-----------------------------------------------------------
@@ -440,23 +442,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
         newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
       }
-      // interface normals 
-      //-----------------------------------------------------------
-      // const auto fSij = ( sameMatij ? 1.0 : -1.0);         // direction parameter
-      // const auto Aij = fSij*voli*volj*(gradWiMi+gradWjMj); // "surface area vector"
-      // newInterfaceNormalsi -= Aij;
-      // newInterfaceNormalsj += Aij;
-      // if(interfaceFractioni > tiny and interfaceFractionj > tiny){
-      //   smoothedInterfaceNormalsi += fSij*volj*interfaceFractionj*interfaceNormalsj*Wi;
-      //   smoothedInterfaceNormalsj += fSij*voli*interfaceFractioni*interfaceNormalsi*Wj;
-      // }
-      // if (differentMatij){
-      //   const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
-      //   newInterfaceSmoothnessi += alignment*volj*Wij;
-      //   newInterfaceSmoothnessj += alignment*voli*Wij;
-      //   newInterfaceFractioni += volj*Wij;
-      //   newInterfaceFractionj += voli*Wij;
-      // }
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -500,11 +485,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // stress tensor
         {
           // apply yield pairwise 
-          const auto Yij = std::max(0.0,std::min(Yi,Yj));
-          const auto fYieldi = std::min(Yij*invJ2i,1.0);
-          const auto fYieldj = std::min(Yij*invJ2j,1.0);
-          const auto Seffi = (damageReduceStress ? fDij : 1.0) * fYieldi * Si;
-          const auto Seffj = (damageReduceStress ? fDij : 1.0) * fYieldj * Sj;
+          //const auto Yij = std::max(0.0,std::min(Yi,Yj));
+          //const auto fYieldi = std::min(Yij*invJ2i,1.0);
+          //const auto fYieldj = std::min(Yij*invJ2j,1.0);
+          //const auto Seffi = (damageReduceStress ? fDij : 1.0) * fYieldi * Si;
+          //const auto Seffj = (damageReduceStress ? fDij : 1.0) * fYieldj * Sj;
+          const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
+          const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
           const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
           const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
           sigmai = Seffi - Peffi * SymTensor::one;
@@ -547,8 +534,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
-        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
 
+        linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
         if (constructInterface){
           
           // components
@@ -573,21 +560,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
           // interface velocity
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
-          const auto wstar = weightWi*wi + weightWj*wj;// + (constructHLLC ? (Seffi - Seffj).dot(rhatij)*CsiCsjInv : Vector::zero); ;
+          const auto wstar = weightWi*wi + weightWj*wj;
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
-
-          
-
-          // const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
-          // const auto weightUj = 1.0 - weightUi;
-          // const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
-          // const auto weightWj = 1.0 - weightWi;
-
-          // // get our eff pressure
-          // const auto ustar = weightUi*ui + weightUj*uj; 
-          // const auto wstar = weightWi*wi + weightWj*wj + fDij*(Si - Sj).dot(rhatij)/;
-          // vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
-  
         }
 
         // local velocity gradient for DSDt
@@ -639,11 +613,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // XSPH -- we use this to handle tensile instability here
         //-----------------------------------------------------------
         if (sameMatij and XSPH) {
-          const auto fxsph  = (min(Pi,Pj) < 0.0 ? 1.0 : 0.0);
-          XSPHWeightSumi += fxsph*volj*Wi;
-          XSPHWeightSumj += fxsph*voli*Wj;
-          XSPHDeltaVi -= volj*Wi*(vi-vstar);
-          XSPHDeltaVj -= voli*Wj*(vj-vstar);
+          const auto fxsph = (std::min(Pi,Pj) < 0 ? 1 : 0);
+          XSPHWeightSumi += fxsph * volj*Wi;
+          XSPHWeightSumj += fxsph * voli*Wj;
+          XSPHDeltaVi -= fDij*volj*Wi*(vi-vj);
+          XSPHDeltaVj -= fDij*voli*Wj*(vj-vi);
         }
 
       } // if damageDecouple 
@@ -746,10 +720,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       DxDti = vi;
       if (XSPH) {
-        XSPHWeightSumi += psi;
-        XSPHWeightSumi /= normi;
-        //CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHDeltaVi/max(normi,tiny);
+        CHECK(normi >= 0.0);
+        const auto invNormi = 1.0/max(normi,tiny);
+        XSPHWeightSumi = (interfaceFlagsi == 0 ? XSPHWeightSumi*invNormi : 0);
+        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi*invNormi;
       }
 
     
@@ -774,7 +748,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      if(this->linearCorrectGradients()) localDvDxi = localDvDxi*localMi;
+      localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -970,15 +944,14 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
         const auto Mdeti = Mi.Determinant();
         const auto goodM = ( Mdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        Mi =  (goodM ? Mi.Inverse() : Tensor::one);
+        Mi =  (goodM and this->linearCorrectGradients() ? Mi.Inverse() : Tensor::one);
         
         const auto localMdeti = localMi.Determinant();
         const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
+        localMi =  (goodLocalM and this->linearCorrectGradients() ? localMi.Inverse() : Tensor::one);
 
         DPDxi = Mi.Transpose()*DPDxi;
         DepsDxi = localMi.Transpose()*DepsDxi;
-
       } // for each node
     }   // for each nodelist
 

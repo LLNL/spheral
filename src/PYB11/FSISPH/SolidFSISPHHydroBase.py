@@ -131,7 +131,7 @@ mass density, velocity, and specific thermal energy."""
     shearModulus =                 PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "shearModulus",        returnpolicy="reference_internal")
     yieldStrength =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "yieldStrength",       returnpolicy="reference_internal")
     plasticStrain0 =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "plasticStrain0",      returnpolicy="reference_internal")
-    inverseEquivalentDeviatoricStress = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "inverseEquivalentDeviatoricStress",returnpolicy="reference_internal")
+    #inverseEquivalentDeviatoricStress = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "inverseEquivalentDeviatoricStress",returnpolicy="reference_internal")
     DxDt =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DxDt",                 returnpolicy="reference_internal")
     XSPHDeltaV =                   PYB11property("const FieldList<%(Dimension)s, Vector>&",   "XSPHDeltaV",           returnpolicy="reference_internal")
     XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")
