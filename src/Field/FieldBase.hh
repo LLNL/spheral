@@ -81,10 +81,10 @@ protected:
 
   // Make the FieldListBase a friend, so that it can use the registration
   // methods.
-  friend class FieldListBase<Dimension>;
-  void registerFieldList(const FieldListBase<Dimension>& fieldList) const;
-  void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
-  bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
+  //friend class FieldListBase<Dimension>;
+  //void registerFieldList(const FieldListBase<Dimension>& fieldList) const;
+  //void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
+  //bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -93,7 +93,7 @@ private:
   const NodeList<Dimension>* mNodeListPtr = nullptr;
 
   // The set of FieldLists currently referencing this Field.
-  mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
+  //mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
 
   // Disallow the default constructor.
   FieldBase();

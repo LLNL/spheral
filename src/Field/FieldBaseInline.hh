@@ -22,8 +22,8 @@ inline
 FieldBase<Dimension>::
 FieldBase(typename FieldBase<Dimension>::FieldName name,
           const NodeList<Dimension>& nodeList):
-  mNodeListPtr(&nodeList),
-  mFieldListBaseList() {
+  mNodeListPtr(&nodeList)/*,
+  mFieldListBaseList()*/ {
   this->name(name);
   if (mNodeListPtr) mNodeListPtr->registerField(*this);
 }
@@ -34,8 +34,8 @@ FieldBase(typename FieldBase<Dimension>::FieldName name,
 template<typename Dimension>
 inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
-  mNodeListPtr(fieldBase.nodeListPtr()),
-  mFieldListBaseList() {
+  mNodeListPtr(fieldBase.nodeListPtr())/*,
+  mFieldListBaseList()*/ {
   if (mNodeListPtr) mNodeListPtr->registerField(*this);
 }
 
@@ -57,7 +57,7 @@ FieldBase<Dimension>&
 FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
   if (this != &rhs) {
     mNodeListPtr = rhs.mNodeListPtr;
-    mFieldListBaseList = std::vector<const FieldListBase<Dimension>*>();
+    //mFieldListBaseList = std::vector<const FieldListBase<Dimension>*>();
   }
   return *this;
 }
@@ -139,42 +139,42 @@ FieldBase<Dimension>::setFieldBaseNodeList(const NodeList<Dimension>& nodeList) 
 //------------------------------------------------------------------------------
 // Register a new FieldList as containing this Field.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-FieldBase<Dimension>::
-registerFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  REQUIRE(!haveFieldList(fieldListBase));
-  mFieldListBaseList.push_back(&fieldListBase);
-}
+//template<typename Dimension>
+//inline
+//void
+//FieldBase<Dimension>::
+//registerFieldList(const FieldListBase<Dimension>& fieldListBase) const {
+//  REQUIRE(!haveFieldList(fieldListBase));
+//  mFieldListBaseList.push_back(&fieldListBase);
+//}
+//
+////------------------------------------------------------------------------------
+//// Unregister a FieldList from this Field.
+////------------------------------------------------------------------------------
+//template<typename Dimension>
+//inline
+//void
+//FieldBase<Dimension>::
+//unregisterFieldList(const FieldListBase<Dimension>& fieldListBase) const {
+//  typename std::vector<const FieldListBase<Dimension>*>::iterator itr = std::find(mFieldListBaseList.begin(),
+//                                                                                  mFieldListBaseList.end(),
+//                                                                                  &fieldListBase);
+//  REQUIRE(itr != mFieldListBaseList.end());
+//  mFieldListBaseList.erase(itr);
+//  ENSURE(!haveFieldList(fieldListBase));
+//}
+//
+////------------------------------------------------------------------------------
+//// Test if a given FieldList is registered with this Field.
+////------------------------------------------------------------------------------
+//template<typename Dimension>
+//inline
+//bool
+//FieldBase<Dimension>::
+//haveFieldList(const FieldListBase<Dimension>& fieldListBase) const {
+//  return std::find(mFieldListBaseList.begin(),
+//                   mFieldListBaseList.end(),
+//                   &fieldListBase) != mFieldListBaseList.end();
+//}
 
-//------------------------------------------------------------------------------
-// Unregister a FieldList from this Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-FieldBase<Dimension>::
-unregisterFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  typename std::vector<const FieldListBase<Dimension>*>::iterator itr = std::find(mFieldListBaseList.begin(),
-                                                                                  mFieldListBaseList.end(),
-                                                                                  &fieldListBase);
-  REQUIRE(itr != mFieldListBaseList.end());
-  mFieldListBaseList.erase(itr);
-  ENSURE(!haveFieldList(fieldListBase));
-}
-
-//------------------------------------------------------------------------------
-// Test if a given FieldList is registered with this Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-FieldBase<Dimension>::
-haveFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  return std::find(mFieldListBaseList.begin(),
-                   mFieldListBaseList.end(),
-                   &fieldListBase) != mFieldListBaseList.end();
-}
-
-}
+} // namespace Spheral

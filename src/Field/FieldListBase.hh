@@ -53,8 +53,8 @@ protected:
   mutable bool mNewRefineNodes;
 
   // Provide methods for the FieldList to register with its member Fields.
-  void registerWithField(const FieldBase<Dimension>& fieldBase) const;
-  void unregisterFromField(const FieldBase<Dimension>& fieldBase) const;
+  //void registerWithField(const FieldBase<Dimension>& fieldBase) const;
+  //void unregisterFromField(const FieldBase<Dimension>& fieldBase) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
