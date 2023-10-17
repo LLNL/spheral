@@ -142,7 +142,6 @@ def _GruneisenEquationOfStateFactory(ndim):
                 # Just pass through the arguments.
                 passargs = args
                 passkwargs = kwargs
-                del passkwargs["GrunConstructor"]
 
             # Invoke the C++ constructor
             CXXGruneisenEquationOfState.__init__(self, *tuple(passargs), **passkwargs)
