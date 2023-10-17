@@ -3,7 +3,7 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 # Configure CMake
 #-------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
@@ -50,6 +50,12 @@ if (NOT EXISTS "${SPHERAL_BLT_DIR}/SetupBLT.cmake")
 endif()
 
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
+
+
+#-------------------------------------------------------------------------------
+# Add Spheral CMake Macros for tests and executables
+#-------------------------------------------------------------------------------
+include(SpheralMacros)
 
 #-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
