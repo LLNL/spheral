@@ -1248,7 +1248,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   if (numGhostNodes > 0) {
     for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
-      CHECK(i >= 0 && i < numGhostNodes);
+      CHECK(i < numGhostNodes);
       CHECK(j >= 0 && j < (int)this->size());
       oldGhostValues[i] = (*this)(j);
     }
@@ -1269,7 +1269,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   if (numGhostNodes > 0) {
     for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = this->nodeList().firstGhostNode() + i;
-      CHECK(i >= 0 && i < oldGhostValues.size());
+      CHECK(i < oldGhostValues.size());
       CHECK(j >= 0 && j < (int)this->size());
       (*this)(j) = oldGhostValues[i];
     }
