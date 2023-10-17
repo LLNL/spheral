@@ -11,40 +11,43 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 list(APPEND _packages 
-  #ArtificialViscosity
-  #ArtificialConduction
-  #Boundary
-  #CRKSPH
   CXXTests
-  #Damage
   DataBase
   DataOutput
-  #DEM
   Distributed
-  #ExternalForce
   Field
-  #FieldOperations
   FileIO
-  #FSISPH
   Geometry
-  #Gravity
   Hydro
-  #Integrator
-  #Kernel
-  #KernelIntegrator
-  #Material
-  #Mesh
-  #Neighbor
-  #NodeGenerators
   NodeList
-  #Physics
-  #RK
-  #GSPH
-  #SolidMaterial
-  #SPH
-  #Strength
-  #SVPH
   Utilities
+  )
+
+list(APPEND _packages 
+  ArtificialViscosity
+  ArtificialConduction
+  Boundary
+  CRKSPH
+  Damage
+  DEM
+  ExternalForce
+  FieldOperations
+  FSISPH
+  Gravity
+  Integrator
+  Kernel
+  KernelIntegrator
+  Material
+  Mesh
+  Neighbor
+  NodeGenerators
+  Physics
+  RK
+  GSPH
+  SolidMaterial
+  SPH
+  Strength
+  SVPH
   )
 
 if(NOT ENABLE_CXXONLY)

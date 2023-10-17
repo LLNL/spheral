@@ -16,6 +16,8 @@ class ManagedVector:
 
 public:
 
+  inline static constexpr size_t initial_capacity = 8;
+
   using MA::setUserCallback;
 
   using iterator = DataType*;
@@ -30,11 +32,20 @@ public:
   // ---------------------
   // Constructors
   // ---------------------
-  RAJA_HOST ManagedVector() : MA(6, chai::CPU) {}
-  RAJA_HOST ManagedVector(size_t elems) : MA(elems, chai::CPU), m_size(elems) {
+  RAJA_HOST ManagedVector() :
+    MA(initial_capacity, chai::CPU) {}
+
+  RAJA_HOST ManagedVector(size_t elems) : 
+    MA(elems < initial_capacity ? initial_capacity: elems, chai::CPU),
+    m_size(elems) 
+  {
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
   }
-  RAJA_HOST ManagedVector(size_t elems, DataType identity) : MA(elems, chai::CPU), m_size(elems) {
+
+  RAJA_HOST ManagedVector(size_t elems, DataType identity) :
+    MA(elems < initial_capacity ? initial_capacity: elems, chai::CPU),
+    m_size(elems) 
+  {
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
   }
   
@@ -72,8 +83,8 @@ public:
   // ---------------------
   // Equivalence
   // ---------------------
-  bool operator==(ManagedVector const& rhs) = delete;
-  RAJA_HOST bool operator==(ManagedVector const& rhs) const {
+#ifdef MV_VALUE_SEMANTICS
+  RAJA_HOST bool operator==(ManagedVector const& rhs) {
     if (m_size != rhs.m_size) return false;
     for (size_t i = 0; i < m_size; i++) {
       if (MA::operator[](i) != rhs[i]) { 
@@ -82,6 +93,12 @@ public:
     }
     return true;
   }
+#else
+  RAJA_HOST bool operator==(ManagedVector const& rhs) const {
+    if (m_size != rhs.m_size) return false;
+    return MA::operator==(rhs);
+  }
+#endif
 
   RAJA_HOST void push_back(const DataType& value) {
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
@@ -109,7 +126,7 @@ public:
     const size_t old_size = m_size;
 
     if (old_size < size) {
-      MA::reallocate(size);
+      if (capacity() < size) MA::reallocate(size);
       for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
     }
     if (old_size > size) {
@@ -263,10 +280,10 @@ using SphArrayView = LvArray::ArrayView<DataType, 1, 0, std::ptrdiff_t, LvArray:
 
 #else
 
-// Forward declare the SphArrayIterator class.
-namespace Spheral {
-  template<typename sph_array_t> class SphArrayIterator ;
-} //  namespace Spheral
+//// Forward declare the SphArrayIterator class.
+//namespace Spheral {
+//  template<typename sph_array_t> class SphArrayIterator ;
+//} //  namespace Spheral
 
 #endif //  __Spheral_lvarray_hh__
 
