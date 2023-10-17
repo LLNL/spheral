@@ -50,8 +50,7 @@ update(const KeyType& key,
        const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE((fieldKey == HydroFieldNames::pressure or 
-           fieldKey == FSIFieldNames::rawPressure));
+  REQUIRE(fieldKey == SolidFieldNames::bulkModulus);
   auto K = state.field(key, Scalar());
 
   // Get the mass density and specific thermal energy fields from the state.

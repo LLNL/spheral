@@ -51,37 +51,34 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey, Dkey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::pressure and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  StateBase<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, nodeListKey);
-  auto pressure = state.fields(fieldKey, 0.0);
-  auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-  const auto numFields = pressure.numFields();
-  REQUIRE(D.numFields() == numFields);
+  REQUIRE(fieldKey == HydroFieldNames::pressure);
+
+  // Get our state
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  auto&       pressure = state.field(key, 0.0);
+  const auto& D = state.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
 
   // Have the base class set the initial pressure.
   PressurePolicy<Dimension>::update(key, state, derivs, multiplier, t, dt);
 
   // Scale by the damage.
-  for (auto il = 0u; il < numFields; ++il) {
-    const auto ni = pressure[il]->numInternalElements();
-    auto Pmin = 0.0;
-    bool enforceDamagedPmin = false;
-    const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(pressure[il]->nodeListPtr());
-    if (solidNodeListPtr != nullptr) {
-      const auto* eosPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&(solidNodeListPtr->equationOfState()));
-      if (eosPtr != nullptr) {
-        Pmin = eosPtr->minimumPressureDamage();
-        enforceDamagedPmin = true;
-      }
+  const auto ni = pressure.numInternalElements();
+  auto Pmin = 0.0;
+  bool enforceDamagedPmin = false;
+  const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(pressure.nodeListPtr());
+  if (solidNodeListPtr != nullptr) {
+    const auto* eosPtr = dynamic_cast<const SolidEquationOfState<Dimension>*>(&(solidNodeListPtr->equationOfState()));
+    if (eosPtr != nullptr) {
+      Pmin = eosPtr->minimumPressureDamage();
+      enforceDamagedPmin = true;
     }
-    if (enforceDamagedPmin) {
+  }
+  if (enforceDamagedPmin) {
 #pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
-        const Scalar Di = std::max(0.0, std::min(1.0, D(il,i).eigenValues().maxElement()));
-        CHECK(Di >= 0.0 and Di <= 1.0);
-        pressure(il,i) = (1.0 - Di)*pressure(il,i) + Di*std::max(pressure(il,i), Pmin);
-      }
+    for (auto i = 0u; i < ni; ++i) {
+      const auto Di = std::max(0.0, std::min(1.0, D(i).eigenValues().maxElement()));
+      CHECK(Di >= 0.0 and Di <= 1.0);
+      pressure(i) = (1.0 - Di)*pressure(i) + Di*std::max(pressure(i), Pmin);
     }
   }
 }
@@ -95,12 +92,8 @@ DamagedPressurePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const DamagedPressurePolicy<Dimension>* rhsPtr = dynamic_cast<const DamagedPressurePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const DamagedPressurePolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

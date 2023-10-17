@@ -8,16 +8,16 @@
 #ifndef __Spheral_PureReplaceState_hh__
 #define __Spheral_PureReplaceState_hh__
 
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class PureReplaceState: public ReplaceState<Dimension, ValueType> {
+class PureReplaceState: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename ReplaceState<Dimension, ValueType>::KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   explicit PureReplaceState(const KeyType& derivFieldListKey);
@@ -29,12 +29,16 @@ public:
   PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
   virtual ~PureReplaceState();
   
+  // Overload the methods describing how to update FieldLists.
+  virtual void update(const KeyType& key,
+                      State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivs,
+                      const double multiplier,
+                      const double t,
+                      const double dt) override;
+
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
-
-  // Override the base method for computing the new field key.
-  // This is the only tweak this policy imposes over the standard ReplaceState.
-  virtual KeyType replaceStateKey(const KeyType& fkey) const override { return mReplaceKey; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
