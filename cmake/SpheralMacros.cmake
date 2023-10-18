@@ -52,8 +52,8 @@ macro(spheral_add_test)
   set(original_src ${arg_SOURCES})
   set(original_deps ${arg_DEPENDS_ON})
 
-  set( TEST_LIB_SOURCE ${CMAKE_BINARY_DIR}/test/empty_test_lib.cc)
-  file(TOUCH ${TEST_LIB_SOURCE})
+  #set( TEST_LIB_SOURCE ${CMAKE_BINARY_DIR}/test/empty_test_lib.cc)
+  #file(TOUCH ${TEST_LIB_SOURCE})
   blt_add_library(
     NAME ${original_test_name}_lib
     SOURCES ${TEST_LIB_SOURCE}

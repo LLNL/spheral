@@ -56,15 +56,15 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('lvarray@develop +umpire +chai ~tests +cuda cuda_arch=70', when='+cuda')
-    depends_on('raja@2022.10.4 +desul ~shared +cuda cuda_arch=70', when='+cuda')
+    depends_on('raja@2022.10.4 +desul +shared +cuda cuda_arch=70', when='+cuda')
     depends_on('camp+openmp+cuda cuda_arch=70', when='+cuda')
-    depends_on('chai@2022.03.0+raja~shared+openmp+cuda cuda_arch=70', when='+cuda')
+    depends_on('chai@2022.03.0+raja+shared+openmp+cuda cuda_arch=70', when='+cuda')
     depends_on('umpire@2022.03.0~shared+cuda cuda_arch=70', when='+cuda')
 
     depends_on('lvarray@develop +umpire +chai ~tests', when='~cuda')
-    depends_on('raja@2022.10.4 +desul ~shared', when='~cuda')
+    depends_on('raja@2022.10.4 +desul +shared', when='~cuda')
     depends_on('camp+openmp~cuda', when='~cuda')
-    depends_on('chai@2022.03.0+raja~shared+openmp', when='~cuda')
+    depends_on('chai@2022.03.0+raja+shared+openmp', when='~cuda')
     depends_on('umpire@2022.03.0~shared', when='~cuda')
 
     depends_on('caliper@2.8.0 ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
