@@ -2,6 +2,7 @@
 
 
 #include "Field/SphArray.hh"
+#include "Geometry/GeomTensor.hh"
 
 using MVDouble = Spheral::ManagedVector<double>;
 

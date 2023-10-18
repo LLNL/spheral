@@ -41,28 +41,43 @@ macro(spheral_add_executable)
 endmacro(spheral_add_executable)
 
 macro(spheral_add_test)
-  set(options )
+  set(options DEBUG_LINKER)
   set(singleValueArgs NAME)
   set(multiValueArgs SOURCES DEPENDS_ON)
 
   cmake_parse_arguments(arg
     "${options}" "${singleValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  list (APPEND arg_DEPENDS_ON gtest Spheral_CXX ${CMAKE_THREAD_LIBS_INIT})
-
   set(original_test_name ${arg_NAME})
+  set(original_src ${arg_SOURCES})
+  set(original_deps ${arg_DEPENDS_ON})
+
+  set( TEST_LIB_SOURCE ${CMAKE_BINARY_DIR}/test/empty_test_lib.cc)
+  file(TOUCH ${TEST_LIB_SOURCE})
+  blt_add_library(
+    NAME ${original_test_name}_lib
+    SOURCES ${TEST_LIB_SOURCE}
+    SOURCES ${CMAKE_SOURCE_DIR}/src/spheralCXX.cc
+    DEPENDS_ON ${original_deps}
+    SHARED False 
+    )
+  target_link_options(${original_test_name}_lib PRIVATE "-Wl,--unresolved-symbols=ignore-in-object-files")
 
   spheral_add_executable(
-    NAME ${arg_NAME}.exe
-    SOURCES ${arg_SOURCES}
-    DEPENDS_ON ${arg_DEPENDS_ON}
+    NAME ${original_test_name}.exe
+    SOURCES ${original_src}
+    DEPENDS_ON gtest ${CMAKE_THREAD_LIBS_INIT} ${original_test_name}_lib
     TEST On)
 
   blt_add_test(
-    NAME ${arg_NAME}
-    #COMMAND ${TEST_DRIVER} $<TARGET_FILE:${arg_NAME}>)
-    COMMAND ${TEST_DRIVER} ${arg_NAME})
+    NAME ${original_test_name}
+    COMMAND ${TEST_DRIVER} ${original_test_name}.exe)
 
-  #spheral_set_failtest(${original_test_name})
+  if (${arg_DEBUG_LINKER})
+    target_link_options(${original_test_name}.exe PUBLIC "-Wl,--warn-unresolved-symbols")
+  else()
+    target_link_options(${original_test_name}.exe PUBLIC "-Wl,--unresolved-symbols=ignore-all")
+  endif()
+
 endmacro(spheral_add_test)
 
