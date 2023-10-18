@@ -53,6 +53,11 @@ option(BUILD_SPHERAL_CXX "create a Spheral_CXX static library" ON)
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)
 
+if(BUILD_SPHERAL_CXX AND ENABLE_STATIC_CXXONLY)
+  message(FATAL_ERROR
+    "Cannot have BUILD_SPHERAL_CXX and ENABLE_STATIC_CXXONLY enabled simultaneously")
+endif()
+
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
   set(ENABLE_SHARED OFF)

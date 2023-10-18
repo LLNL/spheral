@@ -195,16 +195,19 @@ function(spheral_add_pybind11_library package_name)
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
   get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
-  set(SPHERAL_TARGET Spheral_CXX)
-  if(NOT BUILD_SPHERAL_CXX)
-    get_property(SPHERAL_TARGET GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  # If BUILD_SPHERAL_CXX is true, provide the target names
+  if(BUILD_SPHERAL_CXX)
+    set(SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
+  else()
+    # Otherwise, use the SPHERAL_OBJ_LIBS global list
+    get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
   endif()
 
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${spheral_depends} ${SPHERAL_BLT_DEPENDS} ${${package_name}_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} ${SPHERAL_TARGET}
+                            DEPENDS         ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} ${SPHERAL_DEPENDS}
                             PYTHONPATH      ${PYTHON_ENV_STR}
                             INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include 
                             LINKS           ${spheral_tpl_libraries}
