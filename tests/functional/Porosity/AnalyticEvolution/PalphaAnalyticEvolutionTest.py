@@ -80,6 +80,8 @@ assert Pe <= Pt
 phi0 = 1.0 - 1.0/alpha0
 
 outputFileName = os.path.join(dataDir, outputFileName)
+restartDir = os.path.join(dataDir, "restarts")
+restartBaseName = os.path.join(restartDir, "PalphaAnalyticEvolution")
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -90,6 +92,8 @@ if mpi.rank == 0:
         shutil.rmtree(dataDir)
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
+    if not os.path.exists(restartDir):
+        os.makedirs(restartDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -296,7 +300,8 @@ history = NodeHistory(nodes,
 control = SpheralController(integrator, WT,
                             restartStep = None,
                             iterateInitialH = False,
-                            periodicWork = [(history, sampleCycle)])
+                            periodicWork = [(history, sampleCycle)],
+                            restartBaseName = restartBaseName)
 output("control")
 
 #-------------------------------------------------------------------------------
