@@ -7,13 +7,6 @@ set(Strength_inst
     ShearModulusPolicy
     StrengthSoundSpeedPolicy
     YieldStrengthPolicy
-    PorousPressurePolicy
-    PorousSoundSpeedPolicy
-    PorousGammaPolicy
-    PorousBulkModulusPolicy
-    PorousEntropyPolicy
-    PorousShearModulusPolicy
-    PorousYieldStrengthPolicy
    )
 
 set(Strength_sources
@@ -32,13 +25,6 @@ set(Strength_headers
     StrengthSoundSpeedPolicy.hh
     YieldStrengthPolicy.hh
     effectiveKernelVolume.hh
-    PorousPressurePolicy.hh
-    PorousSoundSpeedPolicy.hh
-    PorousGammaPolicy.hh
-    PorousBulkModulusPolicy.hh
-    PorousEntropyPolicy.hh
-    PorousShearModulusPolicy.hh
-    PorousYieldStrengthPolicy.hh
     )
 
 spheral_add_obj_library(Strength SPHERAL_OBJ_LIBS)

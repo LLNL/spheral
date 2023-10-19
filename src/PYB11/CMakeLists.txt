@@ -33,6 +33,7 @@ set (_python_packages
   Damage
   SolidMaterial
   Strength
+  Porosity
   ArtificialConduction
   KernelIntegrator
   polytope

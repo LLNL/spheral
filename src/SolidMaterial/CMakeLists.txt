@@ -14,10 +14,7 @@ set(SolidMaterial_inst
     PorousEquationOfState
     PiecewiseLinearPorousStrengthModel
     PorousStrengthModel
-    StrainPorosity
-    PalphaPorosity
     PhysicsEvolvingMaterialLibrary
-    PorositySolidMassDensityPolicy
     )
 
 set(SolidMaterial_sources )
@@ -48,12 +45,9 @@ set(SolidMaterial_headers
     SolidEquationOfStateInline.hh
     SteinbergGuinanLundStrength.hh
     SteinbergGuinanStrength.hh
-    StrainPorosity.hh
-    StrainPorosityInline.hh
     StrengthModel.hh
     TillotsonEquationOfState.hh
     TillotsonEquationOfStateInline.hh
-    PalphaPorosity.hh
     )
 
 configure_file(
@@ -67,7 +61,6 @@ spheral_install_python_files(
     ShadowTillotsonEquationOfState.py
     ShadowGruneisenEquationOfState.py
     ShadowConstantStrength.py
-    ShadowPalphaPorosity.py
     ${CMAKE_CURRENT_BINARY_DIR}/ShadowANEOS.py
     )
 

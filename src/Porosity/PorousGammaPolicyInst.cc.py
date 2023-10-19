@@ -2,9 +2,9 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Strength/PorousBulkModulusPolicy.cc"
+#include "Porosity/PorousGammaPolicy.cc"
 
 namespace Spheral {
-  template class PorousBulkModulusPolicy<Dim< %(ndim)s > >;
+  template class PorousGammaPolicy<Dim< %(ndim)s > >;
 }
 """

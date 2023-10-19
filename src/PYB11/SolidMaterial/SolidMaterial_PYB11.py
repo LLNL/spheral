@@ -11,8 +11,6 @@ dims = spheralDimensions()
 
 from SolidEquationOfState import *
 
-from StrainPorosity import *
-from PalphaPorosity import *
 from LinearPolynomialEquationOfState import *
 from GruneisenEquationOfState import *
 from OsborneEquationOfState import *
@@ -54,8 +52,6 @@ PYB11includes += ['"SolidMaterial/SolidEquationOfState.hh"',
                   '"SolidMaterial/PorousEquationOfState.hh"',
                   '"SolidMaterial/PorousStrengthModel.hh"',
                   '"SolidMaterial/PiecewiseLinearPorousStrengthModel.hh"',
-                  '"SolidMaterial/StrainPorosity.hh"',
-                  '"SolidMaterial/PalphaPorosity.hh"',
                   '"SolidMaterial/PhysicsEvolvingMaterialLibrary.hh"',
                   '"FileIO/FileIO.hh"']
 
@@ -95,8 +91,6 @@ for ndim in dims:
 SolidEquationOfState%(ndim)id = PYB11TemplateClass(SolidEquationOfState, template_parameters="%(Dimension)s")
 StrengthModel%(ndim)id = PYB11TemplateClass(StrengthModel, template_parameters="%(Dimension)s")
 
-StrainPorosity%(ndim)id = PYB11TemplateClass(StrainPorosity, template_parameters="%(Dimension)s")
-PalphaPorosity%(ndim)id = PYB11TemplateClass(PalphaPorosity, template_parameters="%(Dimension)s")
 LinearPolynomialEquationOfState%(ndim)id = PYB11TemplateClass(LinearPolynomialEquationOfState, template_parameters="%(Dimension)s")
 GruneisenEquationOfState%(ndim)id = PYB11TemplateClass(GruneisenEquationOfState, template_parameters="%(Dimension)s")
 OsborneEquationOfState%(ndim)id = PYB11TemplateClass(OsborneEquationOfState, template_parameters="%(Dimension)s")

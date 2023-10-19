@@ -12,21 +12,22 @@ set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 # These are internal Spheral packages
 list(APPEND _packages
-  ArtificialViscosity
   ArtificialConduction
+  ArtificialViscosity
   Boundary
   CRKSPH
   CXXTests
+  DEM
   Damage
   DataBase
   DataOutput
-  DEM
   Distributed
   ExternalForce
+  FSISPH
   Field
   FieldOperations
   FileIO
-  FSISPH
+  GSPH
   Geometry
   Gravity
   Hydro
@@ -39,12 +40,12 @@ list(APPEND _packages
   NodeGenerators
   NodeList
   Physics
+  Porosity
   RK
-  GSPH
-  SolidMaterial
   SPH
-  Strength
   SVPH
+  SolidMaterial
+  Strength
   Utilities
   )
 

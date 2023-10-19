@@ -31,8 +31,8 @@
 #ifndef __Spheral_StrainPorosity__
 #define __Spheral_StrainPorosity__
 
-#include "PorousEquationOfState.hh"
-#include "PorousStrengthModel.hh"
+#include "SolidMaterial/PorousEquationOfState.hh"
+#include "SolidMaterial/PorousStrengthModel.hh"
 #include "Physics/Physics.hh"
 #include "DataOutput/registerWithRestart.hh"
 
