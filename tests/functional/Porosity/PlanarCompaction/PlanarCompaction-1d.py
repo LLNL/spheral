@@ -213,7 +213,7 @@ output("  hydro.HEvolution")
 output("  hydro.Q")
 output("  hydro.Q.Cl")
 output("  hydro.Q.Cq")
-if hydro != FSISPH:
+if hydro != "FSISPH":
     output("  hydro.densityUpdate")
     output("  hydro.compatibleEnergyEvolution")
 
@@ -355,18 +355,15 @@ if graphics:
                            xlabel = r"$x$",
                            ylabel = r"$c_S$",
                            winTitle = "Sound speed @ %g %i" %  (control.time(), mpi.procs))
-    alpha = porosityAl.alpha
-    alphaPlot = plotField(alpha,
+    alphaPlot = plotField(porosityAl.alpha,
                           plotStyle = "o-",
                           winTitle = r"$\alpha$ @ %g %i" %  (control.time(), mpi.procs))
-    DalphaDt = porosityAl.DalphaDt
-    DalphaDtPlot = plotField(DalphaDt,
+    DalphaDtPlot = plotField(porosityAl.DalphaDt,
                              plotStyle = "o-",
                              xlabel = r"$x$",
                              ylabel = r"$D\alpha/Dt$",
                              winTitle = r"$D\alpha/Dt$ @ %g %i" %  (control.time(), mpi.procs))
-    phi = porosityAl.phi()
-    phiPlot = plotField(phi,
+    phiPlot = plotField(porosityAl.phi(),
                         plotStyle = "o-",
                         winTitle = r"$\phi$ @ %g %i" %  (control.time(), mpi.procs))
 
