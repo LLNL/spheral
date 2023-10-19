@@ -189,29 +189,39 @@ evaluateDerivatives(const Scalar time,
     // Time evolution of the solid pressure
     const auto dPsdti = dPsdri*DrhoDti + dPsdui*DuDti;
 
-    // First compute the derivative with respect to pressure
-    auto DalphaDpi = 0.0;
-    if (Pi < mPe or dPsdti < 0.0) {
+    // If we're above the solid transition pressure we should compress out all porosity
+    if (Pi >= mPs) {
 
-      // Elastic
-      if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
-        const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
-        DalphaDpi = alphai*alphai/(mcS0*mcS0*mRho0)*(1.0 - safeInvVar(halpha*halpha));
-      }
+      DalphaDt(i) = (1.0 - alphai)*safeInvVar(dt);
 
     } else {
 
-      // Plastic
-      DalphaDpi = (Pi < mPt ?
-                   mn1*(mAlphat - mAlphae)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) + mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi) :
-                   mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi));
+      // First compute the derivative with respect to pressure
+      auto DalphaDpi = 0.0;
+      if (alphai > 1.0) {
+        if (Pi < mPe or dPsdti < 0.0) {
 
+          // Elastic
+          if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
+            const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
+            DalphaDpi = alphai*alphai/(mcS0*mcS0*mRho0)*(1.0 - safeInvVar(halpha*halpha));
+          }
+
+        } else {
+
+          // Plastic
+          DalphaDpi = (Pi < mPt ?
+                       mn1*(mAlphat - mAlphae)*pow((mPt - Pi)/(mPt - mPe), mn1)*safeInv(mPt - Pi) + mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi) :
+                       mn2*(1.0 - mAlphat)*pow((mPs - Pi)/(mPs - mPe), mn2)*safeInv(mPs - Pi));
+
+        }
+      }
+
+      // Now we can compute the final time derivative
+      DalphaDpi = min(0.0, DalphaDpi);  // Keep things physical
+      const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
+      DalphaDt(i) = DalphaDpi*dPdti;
     }
-
-    // Now we can compute the final time derivative
-    DalphaDpi = min(0.0, DalphaDpi);  // Keep things physical
-    const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
-    DalphaDt(i) = DalphaDpi*dPdti;
 
 #pragma omp critical
     {
