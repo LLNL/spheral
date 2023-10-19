@@ -27,8 +27,12 @@ units = CGuS()
 # All (cm, gm, usec) units.
 #-------------------------------------------------------------------------------
 commandLine(nx = 500,                          # Number of internal free points
-            v0 = 45.8e-3,                      # Fixed velocity on right-end
+            vpiston = -45.8e-3,                # Fixed velocity on right-end piston
+            nxpiston = 10,                     # How many points should we put in the piston boundary 
             nPerh = 4.01,
+
+            # Select the frame of the fluid so we're either pushing a piston or running into a wall
+            boundary = "wall",                 # (wall, piston) 
 
             # Material models
             material = "aluminum",             # One of valid materials in our MaterialLibrary
@@ -79,10 +83,14 @@ commandLine(nx = 500,                          # Number of internal free points
 
 hydro = hydro.upper()
 
+boundary = boundary.upper()
+assert boundary in ("PISTON", "WALL")
+
 dataDir = os.path.join(dataDirBase,
                        PorousModel.__name__,
                        material + "_" + EOSConstructor.__name__,
                        hydro,
+                       boundary,
                        "nx=%i" % nx)
 
 restartDir = os.path.join(dataDir, "restarts")
@@ -142,10 +150,13 @@ print("Generating node distribution.")
 from DistributeNodes import distributeNodesInRange1d
 xmin = -1.0
 xmax = 1.0
-dx = (xmax - xmin)/nx
-phi0 = 1.0 - 1.0/alpha0
+nxtot = nx
+if boundary == "PISTON":
+    dx = (xmax - xmin)/nx
+    xmax += nxpiston*dx
+    nxtot += nxpiston
 rho0 = rhoS0/alpha0
-distributeNodesInRange1d([(nodes, nx, rho0, (xmin, xmax))])
+distributeNodesInRange1d([(nodes, nxtot, rho0, (xmin, xmax))])
 output("mpi.reduce(nodes.numInternalNodes, mpi.MIN)")
 output("mpi.reduce(nodes.numInternalNodes, mpi.MAX)")
 output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
@@ -154,7 +165,10 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 pos = nodes.positions()
 vel = nodes.velocity()
 for i in range(nodes.numInternalNodes):
-    vel[i].x = v0
+    if boundary == "WALL":
+        vel[i].x = -vpiston
+    elif pos[i].x > 1.0:
+        vel[i].x = vpiston
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -169,12 +183,17 @@ output("db.numFluidNodeLists")
 output("db.numSolidNodeLists")
 
 #-------------------------------------------------------------------------------
-# Construct constant velocity boundary conditions to be applied to the rod ends.
+# Boundary conditions
 #-------------------------------------------------------------------------------
-xbc0 = InflowOutflowBoundary(db, Plane(Vector(xmin), Vector(1.0)))
-xbc1 = ReflectingBoundary(Plane(Vector(xmax), Vector(-1.0)))
-
-bcs = [xbc0, xbc1]
+if boundary == "WALL":
+    xbc0 = InflowOutflowBoundary(db, Plane(Vector(xmin), Vector(1.0)))
+    xbc1 = ReflectingBoundary(Plane(Vector(xmax), Vector(-1.0)))
+    bcs = [xbc1]
+else:
+    indices = [i for i in range(nodes.numInternalNodes) if pos[i].x > 1.0]
+    xbc0 = ReflectingBoundary(Plane(Vector(xmin), Vector(1.0)))
+    xbc1 = ConstantVelocityBoundary(nodes, indices)
+    bcs = [xbc0, xbc1]
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -230,6 +249,7 @@ tCGSconv = cgs.unitTimeSec/units.unitTimeSec
 PCGSconv = mCGSconv/(tCGSconv*tCGSconv*lCGSconv)
 vCGSconv = lCGSconv/tCGSconv
 
+phi0 = 1.0 - 1.0/alpha0
 if PorousModel is PalphaPorosity:
     Pe = 8e8      # dynes/cm^2
     Ps = 7e9      # dynes/cm^2
