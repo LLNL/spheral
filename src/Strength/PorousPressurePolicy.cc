@@ -60,7 +60,7 @@ update(const KeyType& key,
   auto& P = state.field(key, Scalar());
 
   // Get the solid mass density, specific thermal energy, and distention fields from the state.
-  const auto& rhoS = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
+  const auto& rhoS = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porositySolidDensity, nodeListKey), Scalar());
   const auto& eps = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
   const auto& alpha = state.field(StateBase<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, nodeListKey), Scalar());
 

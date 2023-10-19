@@ -55,7 +55,11 @@ update(const KeyType& key,
   const auto& alpha = state.field(State<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, nodeListKey), Scalar());
 
   // Now set the solid density
-  rhoS = alpha*rho;
+  const auto n = rhoS.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    rhoS(i) = alpha(i)*rho(i);
+  }
 }
 
 //------------------------------------------------------------------------------
