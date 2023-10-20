@@ -70,6 +70,40 @@ SpheralMaterialPropertiesLib = {
         },
     },
 
+#-------------------------------------------------------------------------------
+    "gabbroic anorthosite 1pp melosh89" : {
+        "rho0" : 2.940,         # gm/cm^3
+        "atomicWeight" : 60.08, # gm/mol
+        "Tillotson" : {
+            "a"    : 0.5,           # dimensionless
+            "b"    : 1.5,           # dimensionless
+            "A"    : 71.0e10,       # (dyne/cm^2)
+            "B"     : 75.0e10,      # (dyne/cm^2)
+            "alpha" : 5.0,          # dimensionless
+            "beta"  : 5.0,          # dimensionless
+            "eps0"  : 487.0e10,     # erg/gm
+            "epsLiquid" : 4.72e10,  # erg/gm
+            "epsVapor"  : 18.2e10,  # erg/gm
+        },
+    },
+
+#-------------------------------------------------------------------------------
+    "gabbroic anorthosite hpp melosh89" : {
+        "rho0" : 3.970,         # gm/cm^3
+        "atomicWeight" : 60.08, # gm/mol
+        "Tillotson" : {
+            "a"    : 0.5,           # dimensionless
+            "b"    : 1.3,           # dimensionless
+            "A"    : 240.0e10,      # (dyne/cm^2)
+            "B"     : 130.0e10,     # (dyne/cm^2)
+            "alpha" : 5.0,          # dimensionless
+            "beta"  : 5.0,          # dimensionless
+            "eps0"  : 1800.0e10,    # erg/gm
+            "epsLiquid" : 3.19e10,  # erg/gm
+            "epsVapor"  : 16.8e10,  # erg/gm
+        },
+    },
+
 # 1 ----------------------------------------------------------------------------
     "granite" : {
         "rho0" : 2.680,         # gm/cm^3
@@ -159,6 +193,25 @@ SpheralMaterialPropertiesLib = {
         "Y0" : 1.00e10,             # dyne/cm^2
     },
 
+# 3 ----------------------------------------------------------------------------
+    "aluminum melosh89" : {
+        "rho0" : 2.700,         # gm/cm^3
+        "atomicWeight" : 24.032,# gm/mol
+        "Tillotson" : {
+            "a"    : 0.5,           # dimensionless
+            "b"    : 1.63,          # dimensionless
+            "A"    : 7.52e11,       # (dyne/cm^2)
+            "B"     : 6.50e11,      # (dyne/cm^2)
+            "alpha" : 5.0,          # dimensionless
+            "beta"  : 5.0,          # dimensionless
+            "eps0"  : 5.00e10,      # erg/gm
+            "epsLiquid" : 3.00e10,  # erg/gm
+            "epsVapor"  : 1.39e11,  # erg/gm
+        },
+        "mu0": 2.65e11,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
+    },
+
 # 4 ----------------------------------------------------------------------------
     "copper" : {
         "rho0" : 8.900,         # gm/cm^3
@@ -192,6 +245,25 @@ SpheralMaterialPropertiesLib = {
             "eps0"  : 9.50e10,      # erg/gm
             "epsLiquid" : 1.42e10,  # erg/gm
             "epsVapor"  : 8.45e10,  # erg/gm
+        },
+        "mu0": 0.0,                 # dyne/cm^2
+        "Y0" : 6.00e9,              # dyne/cm^2
+    },
+
+# 5 ----------------------------------------------------------------------------
+    "iron melosh89" : {
+        "rho0" : 7.800,         # gm/cm^3
+        "atomicWeight" : 60.08, # gm/mol
+        "Tillotson" : {
+            "a"    : 0.5,           # dimensionless
+            "b"    : 1.5,           # dimensionless
+            "A"    : 1.28e12,       # (dyne/cm^2)
+            "B"     : 1.05e12,      # (dyne/cm^2)
+            "alpha" : 5.0,          # dimensionless
+            "beta"  : 5.0,          # dimensionless
+            "eps0"  : 9.50e10,      # erg/gm
+            "epsLiquid" : 2.40e10,  # erg/gm
+            "epsVapor"  : 8.67e10,  # erg/gm
         },
         "mu0": 0.0,                 # dyne/cm^2
         "Y0" : 6.00e9,              # dyne/cm^2
@@ -319,7 +391,7 @@ SpheralMaterialPropertiesLib = {
 
 #12 ----------------------------------------------------------------------------
     "alluvium" : {
-        "rho0" : 2.700,         # gm/cm^3
+        "rho0" : 2.600,         # gm/cm^3
         "atomicWeight" : 60.08, # gm/mol
         "Tillotson" : {
             "a"    : 0.5,           # dimensionless
@@ -407,7 +479,7 @@ SpheralMaterialPropertiesLib = {
             "a"    : 0.7,           # dimensionless
             "b"    : 0.15,          # dimensionless
             "A"    : 2.18e10,       # (dyne/cm^2)
-            "B"     : 1.33e11,      # (dyne/cm^2)
+            "B"     : 13.25e10,     # (dyne/cm^2)
             "alpha" : 10.0,         # dimensionless
             "beta"  : 5.0,          # dimensionless
             "eps0"  : 7.00e10,      # erg/gm
@@ -472,6 +544,27 @@ SpheralMaterialPropertiesLib = {
             "alpha" : 10.0,         # dimensionless
             "beta"  : 5.0,          # dimensionless
             "eps0"  : 1.00e11,      # erg/gm
+            "epsLiquid" : 7.73e9,   # erg/gm
+            "epsVapor"  : 3.04e10,  # erg/gm
+        },
+        "mu0": 2.80e10,             # dyne/cm^2
+        "Y0" : 1.00e10,             # dyne/cm^2
+        "kWeibull" : 5.60e38,       # cm^-3
+        "mWeibull" : 9.4,           # dimensionless
+    },
+
+#19 ----------------------------------------------------------------------------
+    "ice melosh89"  : {
+        "rho0" : 1.293,         # gm/cm^3
+        "atomicWeight" : 60.08, # gm/mol
+        "Tillotson" : {
+            "a"    : 0.3,           # dimensionless
+            "b"    : 0.1,           # dimensionless
+            "A"    : 10.7e10,       # (dyne/cm^2)
+            "B"     : 65.0e10,      # (dyne/cm^2)
+            "alpha" : 10.0,         # dimensionless
+            "beta"  : 5.0,          # dimensionless
+            "eps0"  : 10.0e10,      # erg/gm
             "epsLiquid" : 7.73e9,   # erg/gm
             "epsVapor"  : 3.04e10,  # erg/gm
         },

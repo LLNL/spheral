@@ -35,7 +35,7 @@ commandLine(nx = 500,                          # Number of internal free points
             boundary = "wall",                 # (wall, piston) 
 
             # Material models
-            material = "aluminum",             # One of valid materials in our MaterialLibrary
+            material = "aluminum melosh89",    # One of valid materials in our MaterialLibrary
             EOSConstructor = TillotsonEquationOfState,
 
             # Porosity
@@ -88,7 +88,7 @@ assert boundary in ("PISTON", "WALL")
 
 dataDir = os.path.join(dataDirBase,
                        PorousModel.__name__,
-                       material + "_" + EOSConstructor.__name__,
+                       material.replace(" ", "_") + "_" + EOSConstructor.__name__,
                        hydro,
                        boundary,
                        "nx=%i" % nx)
