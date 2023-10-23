@@ -29,15 +29,28 @@ function(spheral_add_obj_library package_name obj_list_name)
   # For including files in submodules, currently unused
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
-  blt_add_library(NAME Spheral_${package_name}
-    HEADERS     ${${package_name}_headers}
-    SOURCES     ${${package_name}_sources}
-    DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
-    OBJECT      TRUE)
+  if(BUILD_SPHERAL_CXX)
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      OBJECT      TRUE)
+  else()
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      SHARED      TRUE)
+  endif()
   target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
   # Install the headers
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
+
+  if(NOT BUILD_SPHERAL_CXX)
+    install(TARGETS Spheral_${package_name}
+      DESTINATION lib)
+  endif()
 
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
