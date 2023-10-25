@@ -13,8 +13,8 @@ from scipy.optimize import fsolve
 
 def computeHugoniot(eos, rho0, eps0, upiston, n = 101):
     assert upiston >= 0.0
-    assert n > 1
-    dupiston = upiston/(n - 1)
+    assert n > 0
+    dupiston = upiston/max(1, n - 1)
 
     # How should we query the single pressure response from the EOS?  Some
     # Spheral equations of state support this, but others require the Field
@@ -41,21 +41,22 @@ def computeHugoniot(eos, rho0, eps0, upiston, n = 101):
 
     u0_vals, u1_vals, rho_vals, eps_vals = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
     for i in range(n):
-        up = i*dupiston
-        last_guess = (-1.5*up, -0.5*up, 4.0*rho0, 0.5*up*up)
+        up = i*dupiston if n > 1 else upiston
+        last_guess = (-1.5*up, -0.5*up, 2.0*rho0, 0.5*up*up)
         current_solution = fsolve(RKjumpRelations(up), last_guess)
         u0_vals[i], u1_vals[i], rho_vals[i], eps_vals[i] = current_solution
         #last_guess = current_solution
-        print(up, " --> ", current_solution, " ===> ", RKjumpRelations(up)(current_solution))
+        #print(up, " --> ", current_solution, " ===> ", RKjumpRelations(up)(current_solution))
 
     return u0_vals, u1_vals, rho_vals, eps_vals, np.array([Pfunc(rhoi, epsi) for rhoi, epsi in zip(rho_vals, eps_vals)])
 
 if __name__ == "__main__":
     from Spheral1d import *
     #eos = GammaLawGas(5.0/3.0, 1.0, CGS())
-    #eos = TillotsonEquationOfState("aluminum melosh89", etamin = 0.1, etamax = 10.0, units=CGuS())
-    eos = ANEOS("dunite", constants=CGuS())
-    u0, u1, rho, eps, P = computeHugoniot(eos, 0.5*eos.referenceDensity, 0.0, 4.0)
+    eos = TillotsonEquationOfState("aluminum melosh89", etamin = 0.1, etamax = 10.0, units=CGuS())
+    #eos = ANEOS("dunite", constants=CGuS())
+    u0, u1, rho, eps, P = computeHugoniot(eos, eos.referenceDensity, 0.0, 0.05) #4.0)
     from matplotlib import pyplot as plt
     plt.plot(rho, P)
-    
+    plt.xlabel(r"$\rho$")
+    plt.ylabel(r"$P$")
