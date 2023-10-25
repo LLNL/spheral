@@ -1,6 +1,6 @@
 get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
-#add_subdirectory(DeviceTestLib)
+add_subdirectory(DeviceTestLib)
 
 #if(ENABLE_TESTS)
 #  spheral_add_test( 
