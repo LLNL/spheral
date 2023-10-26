@@ -19,7 +19,7 @@ import scipy.integrate, scipy.optimize
 class PalphaCrushCurve:
 
     def __init__(self,
-                 rho0,
+                 rhoS0,
                  P0,
                  alpha0,
                  alphat,
@@ -30,21 +30,34 @@ class PalphaCrushCurve:
                  c0,
                  n1,
                  n2):
-        self.rho0 = rho0
+        self.rhoS0 = rhoS0
         self.P0 = P0
         self.alpha0 = alpha0
-        self.alphae = 1.0 + ((Ps - Pe)/Ps)**2 * (alpha0 - 1.0)
         self.alphat = alphat
         self.Pe = Pe
         self.Pt = Pt
         self.Ps = Ps
         self.cS0 = cS0
         self.c0 = c0
-        self.K0 = cS0*cS0*rho0
+        self.K0 = cS0*cS0*rhoS0
         self.n1 = n1
         self.n2 = n2
-        assert self.rho0 > 0.0
-        assert 1.0 <= self.alphae <= self.alphat
+
+        # Solve for alphae
+        self.alphae = alpha0   # Starting point
+        last_alphae = 0.0
+        iter = 0
+        while abs(self.alphae - last_alphae) > 1.0e-6 and iter < 1000:
+            iter += 1
+            last_alphae = self.alphae
+            self.alphae = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
+                                                    t_span = [self.P0, self.Pe],
+                                                    y0 = [self.alpha0],
+                                                    t_eval = [self.Pe]).y[0][0]
+        print("alphae: ", self.alphae, last_alphae, iter)
+
+        assert self.rhoS0 > 0.0
+        assert 1.0 <= self.alphat <= self.alphae 
         assert self.Pe <= self.Pt <= self.Ps
         assert self.c0 <= self.cS0
         return
@@ -60,7 +73,7 @@ class PalphaCrushCurve:
         return self.h(alpha)*self.cS0
 
     def __call__(self, P):
-        if P == self.P0:
+        if P <= self.P0:
             return self.alpha0
 
         if (P >= self.Ps):
@@ -68,7 +81,7 @@ class PalphaCrushCurve:
             # Solid limit, all porosity squeezed out
             return 1.0
         
-        elif (P < self.Pe) and (self.alpha0 > self.alphae):
+        elif P < self.Pe:
             assert self.c0 < self.cS0
 
             # Elastic regime -- integrate elastic Dalpha/DP equation
@@ -106,7 +119,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
         return abs(a - b)/(abs(a) + abs(b))
 
     # Extract a few constants from the crush curve
-    alpha0 = crushCurve.alpha0
+    alpha0 = crushCurve.alphae
     Pe = crushCurve.Pe
     alphae = crushCurve.alphae
     ce = crushCurve.ce(alphae)    # Elastic wave speed
@@ -200,8 +213,23 @@ class PlanarCompactionSolution:
 
     def __init__(self,
                  eos,
+                 vpiston,
+                 alpha0,
+                 alphat,
+                 eps0,
                  nPoints = 101,
                  x = None):
+        self.eos = eos
+        self.vpiston = abs(vpiston)
+        self.alpha0 = alpha0
+        self.alphat = alphat
+        self.eps0 = eps0
+        rhoS0 = eos.referenceDensity
+        PS0 = eos.pressure(rhoS0, eps0)
+        self.rho0 = rhoS0/alpha0
+        self.P0 = PS0/alpha0
+        self.crushCurve = PalphaCrushCurve(rhoS0, PS0, alpha0, alphat, Pe, Pe, Ps, cS0, c0, n1, n2)
+
         return
 
     # Return the solution profiles as x, v, eps, rho, P, h
@@ -209,14 +237,37 @@ class PlanarCompactionSolution:
                  x = None):
 
         # The current piston position
-        xpiston = self.xmax + self.vpiston*t
+        xpiston = self.xmax - self.vpiston*t
 
         # Did the user specify the x positions?
         if x is None:
             x = np.linspace(self.xmin, xpiston, self.nPoints)
 
-        # Compute the shock jump conditions (in the shock frame)
-        v0_s, v1_s, rho_s, eps_s, P_s = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), n=1)
+        # Compute the shock jump conditions
+        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), n=1)
+        xs = 1.0 - us*t    # position of the shock
+        xe = 1.0 - ue*t    # position of the elastic wave
+
+        # Conditions behind shock
+        v1 = -self.vpiston
+        h1 = self.h0 * self.rho0/rhos
+
+        # Conditions behind the elastic wave
+        v2 = -ue
+        h2 = self.h0 * self.rho0/rhoe
+
+        # Generate the solution profiles
+        n = len(x)
+        v, eps, rho, P, h = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
+        for i in range(n):
+            if x[i] >= xs:
+                v[i], eps[i], rho[i], P[i], h[i] = v1, epss, rhos, Ps, h1
+            elif x[i] >= xe:
+                v[i], eps[i], rho[i], P[i], h[i] = v2, epse, rhoe, Pe, h2
+            else:
+                v[i], eps[i], rho[i], P[i], h[i] = 0.0, self.eps0, self.rho0, self.P0, self.h0
+
+        return x, v, eps, rho, P, h
 
 #-------------------------------------------------------------------------------
 # Main if run directly
@@ -242,17 +293,17 @@ if __name__ == "__main__":
     Pe = 8e8 * PCGSconv
     Ps = 7e9 * PCGSconv
     cS0 = 5.35e5 * vCGSconv
-    ce = 4.11e5 *vCGSconv
+    c0 = 4.11e5 *vCGSconv
     n1 = 0.0
     n2 = 2.0
     alphat = (alpha0 - 1.0)*((Ps - Pe)/(Ps - PS0))**2 + 1.0
 
-    alpha_curve = PalphaCrushCurve(rhoS0, PS0, alpha0, alphat, Pe, Pe, Ps, cS0, ce, n1, n2)
+    alpha_curve = PalphaCrushCurve(rhoS0, PS0, alpha0, alphat, Pe, Pe, Ps, cS0, c0, n1, n2)
 
-    P = np.linspace(PS0, 1.5*Ps, 100)
+    P = np.linspace(PS0, 1.5*Ps, 1000)
     alpha = np.array([alpha_curve(x) for x in P])
     from matplotlib import pyplot as plt
-    plt.plot(P, alpha)
+    plt.plot(P, alpha, "k-")
     plt.xlabel(r"$P$")
     plt.ylabel(r"$\alpha$")
     plt.title(r"$\alpha(P)$ crush curve")
