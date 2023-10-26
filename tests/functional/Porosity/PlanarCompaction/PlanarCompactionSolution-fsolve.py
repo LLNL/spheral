@@ -268,7 +268,7 @@ class PlanarCompactionSolution:
         h1 = self.h0 * self.rho0/rhos
 
         # Conditions behind the elastic wave
-        v2 = -ue
+        v2 = -ue*(1.0 - alphae/alpha0)
         h2 = self.h0 * self.rho0/rhoe
 
         # Generate the solution profiles
@@ -340,15 +340,18 @@ if __name__ == "__main__":
                                         cS0,
                                         c0)
     x, v, eps, rho, P, h = solution.solution(t=3.5)
-    def plotIt(x, y, label):
+    def plotIt(x, y, label, ylog=False):
         fig = newFigure()
-        fig.plot(x, y, "k-")
+        if ylog:
+            fig.semilogy(x, y, "k-")
+        else:
+            fig.plot(x, y, "k-")
         fig.set_xlabel(r"$x$")
         fig.set_ylabel(label)
         fig.set_title(label)
     plotIt(x, v, r"$v$")
     plotIt(x, eps, r"$\varepsilon$")
     plotIt(x, rho, r"$\rho$")
-    plotIt(x, P, r"$P$")
+    plotIt(x, P, r"$P$", True)
 
     
