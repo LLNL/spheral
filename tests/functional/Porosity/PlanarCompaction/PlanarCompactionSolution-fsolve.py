@@ -55,6 +55,8 @@ class PalphaCrushCurve:
                                                     y0 = [self.alpha0],
                                                     t_eval = [self.Pe]).y[0][0]
         print("alphae: ", self.alphae, last_alphae, iter)
+        if self.alphat is None:
+            self.alphat = self.alphae    # Reduces to Eq 8 in Jutzi 2008
 
         assert self.rhoS0 > 0.0
         assert 1.0 <= self.alphat <= self.alphae 
@@ -63,7 +65,7 @@ class PalphaCrushCurve:
         return
 
     def h(self, alpha):
-        assert self.alphae > 1.0 and self.c0 < self.cS0
+        assert self.alphae > 1.0 and self.c0 < self.cS0, "alphae={}, c0={}, cS0={}".format(self.alphae, self.c0, self.cS0)
         return 1.0 + (alpha - 1.0)*(self.c0 - self.cS0)/(self.cS0*(self.alphae - 1.0))
 
     def Dalpha_elasticDP(self, P, alpha):
@@ -119,7 +121,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
         return abs(a - b)/(abs(a) + abs(b))
 
     # Extract a few constants from the crush curve
-    alpha0 = crushCurve.alphae
+    alpha0 = crushCurve.alpha0
     Pe = crushCurve.Pe
     alphae = crushCurve.alphae
     ce = crushCurve.ce(alphae)    # Elastic wave speed
@@ -214,22 +216,35 @@ class PlanarCompactionSolution:
     def __init__(self,
                  eos,
                  vpiston,
+                 eps0,
                  alpha0,
                  alphat,
-                 eps0,
-                 nPoints = 101,
-                 x = None):
+                 Pe,
+                 Pt,
+                 Ps,
+                 n1,
+                 n2,
+                 cS0 = None,
+                 c0 = None,
+                 h0 = None,
+                 nPoints = 101):
         self.eos = eos
         self.vpiston = abs(vpiston)
-        self.alpha0 = alpha0
-        self.alphat = alphat
         self.eps0 = eps0
         rhoS0 = eos.referenceDensity
-        PS0 = eos.pressure(rhoS0, eps0)
         self.rho0 = rhoS0/alpha0
+        PS0 = eos.pressure(rhoS0, eps0)
         self.P0 = PS0/alpha0
-        self.crushCurve = PalphaCrushCurve(rhoS0, PS0, alpha0, alphat, Pe, Pe, Ps, cS0, c0, n1, n2)
-
+        if cS0 is None:
+            cS0 = eos.soundSpeed(rhosS0, eps0)
+        if c0 is None:
+            c0 = cS0
+        if h0 is None:
+            self.h0 = 2.0/nPoints
+        else:
+            self.h0 = h0
+        self.nPoints = nPoints
+        self.crushCurve = PalphaCrushCurve(rhoS0, self.P0, alpha0, alphat, Pe, Pt, Ps, cS0, c0, n1, n2)
         return
 
     # Return the solution profiles as x, v, eps, rho, P, h
@@ -237,14 +252,14 @@ class PlanarCompactionSolution:
                  x = None):
 
         # The current piston position
-        xpiston = self.xmax - self.vpiston*t
+        xpiston = 1.0 - self.vpiston*t
 
         # Did the user specify the x positions?
         if x is None:
-            x = np.linspace(self.xmin, xpiston, self.nPoints)
+            x = np.linspace(-1.0, xpiston, self.nPoints)
 
         # Compute the shock jump conditions
-        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), n=1)
+        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), self.crushCurve, n=1)
         xs = 1.0 - us*t    # position of the shock
         xe = 1.0 - ue*t    # position of the elastic wave
 
@@ -289,24 +304,51 @@ if __name__ == "__main__":
     rhoS0 = eos.referenceDensity
     eps0 = 0.0
     PS0 = eos.pressure(rhoS0, eps0)
-    cS0 = eos.soundSpeed(rhoS0, eps0)
     Pe = 8e8 * PCGSconv
     Ps = 7e9 * PCGSconv
     cS0 = 5.35e5 * vCGSconv
     c0 = 4.11e5 *vCGSconv
     n1 = 0.0
     n2 = 2.0
-    alphat = (alpha0 - 1.0)*((Ps - Pe)/(Ps - PS0))**2 + 1.0
+    alphat = None # (alpha0 - 1.0)*((Ps - Pe)/(Ps - PS0))**2 + 1.0
 
-    alpha_curve = PalphaCrushCurve(rhoS0, PS0, alpha0, alphat, Pe, Pe, Ps, cS0, c0, n1, n2)
+    alpha_curve = PalphaCrushCurve(rhoS0, PS0/alpha0, alpha0, alphat, Pe, Pe, Ps, cS0, c0, n1, n2)
 
     P = np.linspace(PS0, 1.5*Ps, 1000)
     alpha = np.array([alpha_curve(x) for x in P])
     from matplotlib import pyplot as plt
-    plt.plot(P, alpha, "k-")
-    plt.xlabel(r"$P$")
-    plt.ylabel(r"$\alpha$")
-    plt.title(r"$\alpha(P)$ crush curve")
+    from SpheralMatplotlib import *
+    fig = newFigure()
+    fig.plot(P, alpha, "k-")
+    fig.set_xlabel(r"$P$")
+    fig.set_ylabel(r"$\alpha$")
+    fig.set_title(r"$\alpha(P)$ crush curve")
 
     vpiston = -45.8e-3
     print("Hugoniot solution: ", computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve, n=1))
+
+    solution = PlanarCompactionSolution(eos,
+                                        vpiston,
+                                        eps0,
+                                        alpha0,
+                                        alphat,
+                                        Pe,
+                                        Pe,
+                                        Ps,
+                                        n1,
+                                        n2,
+                                        cS0,
+                                        c0)
+    x, v, eps, rho, P, h = solution.solution(t=3.5)
+    def plotIt(x, y, label):
+        fig = newFigure()
+        fig.plot(x, y, "k-")
+        fig.set_xlabel(r"$x$")
+        fig.set_ylabel(label)
+        fig.set_title(label)
+    plotIt(x, v, r"$v$")
+    plotIt(x, eps, r"$\varepsilon$")
+    plotIt(x, rho, r"$\rho$")
+    plotIt(x, P, r"$P$")
+
+    
