@@ -8,6 +8,8 @@
 #-------------------------------------------------------------------------------
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
+from SpheralMatplotlib import *
+from PlanarCompactionSolution import *
 from math import *
 import os, shutil
 import mpi
@@ -255,21 +257,19 @@ if PorousModel is PalphaPorosity:
     Ps = 7e9      # dynes/cm^2
     cS0 = 5.35e5  # cm/sec
     ce = 4.11e5   # cm/sec
-    alphae = (alpha0 - 1.0)*((Ps - Pe)/(Ps - Ps0))**2 + 1.0
     print("P-alpha porosity model parameters:")
     output("  alpha0")
     output("      Pe")
     output("      Ps")
     output("     cS0")
     output("      ce")
-    output("  alphae")
     print("Computing cS0 from solid EOS yields ", eosS.soundSpeed(rhoS0, 0.0))
     porosityAl = PalphaPorosity(nodes,
                                 phi0 = 1.0 - 1.0/alpha0,
                                 Pe = Pe * PCGSconv,
                                 Pt = Pe * PCGSconv,
                                 Ps = Ps * PCGSconv,
-                                alphat = alphae,
+                                alphat = None,
                                 n1 = 0.0,
                                 n2 = 2.0,
                                 cS0 = cS0 * vCGSconv,
@@ -343,15 +343,32 @@ else:
 # Plot the state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralMatplotlib import *
     state = State(db, integrator.physicsPackages())
     H = state.symTensorFields("H")
     h = db.newFluidScalarFieldList(0.0, "h")
     for i in range(nodes.numInternalNodes):
         h[0][i] = 1.0/H[0][i].xx
+
+    # Build the solution
+    solution = PlanarCompactionSolution(eos = eos,
+                                        vpiston = vpiston,
+                                        eps0 = eps0,
+                                        alpha0 = alpha0,
+                                        alphat = alphat,
+                                        Pe = Pe * PCGSconv,
+                                        Pt = Pe * PCGSconv,
+                                        Ps = Ps * PCGSconv,
+                                        n1 = 0.0,
+                                        n2 = 2.0,
+                                        cS0 = cS0 * vCGSconv,
+                                        c0 = ce * vCGSconv,
+                                        h0 = nPerh * dx,
+                                        n = 1000)
+
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle = "o-",
                             winTitle = "rho @ %g %i" % (control.time(), mpi.procs))
+
     velPlot = plotFieldList(state.vectorFields("velocity"),
                             yFunction = "%s.x",
                             plotStyle = "o-",
@@ -393,6 +410,14 @@ if graphics:
     dPdUplot = plotField(porosityAl.partialPpartialEps,
                          plotStyle = "o-",
                          winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
+
+    # Add the solution
+    plotAnswer(solution, control.time(),
+               rhoPlot = rhoPlot,
+               velPlot = velPlot,
+               epsPlot = uPlot,
+               PPlot = PPlot,
+               HPlot = hPlot)
 
     plots = [(rhoPlot, "rho.png"),
              (velPlot, "vel.png"),

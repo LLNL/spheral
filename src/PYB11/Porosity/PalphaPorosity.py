@@ -45,6 +45,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                Pe = "const double",
                Pt = "const double",
                Ps = "const double",
+               alphae = "const double",
                alphat = "const double",
                n1 = "const double",
                n2 = "const double",
@@ -57,6 +58,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
         Ps:              Solid transition pressure (from fit, Pt <= Ps)
+        alphae:          alpha at P=Pe
         alphat:          Transition distension
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
@@ -70,6 +72,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 Pe = "const double",
                 Pt = "const double",
                 Ps = "const double",
+                alphae = "const double",
                 alphat = "const double",
                 n1 = "const double",
                 n2 = "const double",
@@ -82,6 +85,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         Pe:              Elastic pressure threshold
         Pt:              Transition pressure (Pe <= Pt)
         Ps:              Solid transition pressure (from fit, Pt <= Ps)
+        alphae:          alpha at P=Pe
         alphat:          Transition distension
         n1:              Fitted exponent for plastic distention evolution
         n2:              Fitted exponent for plastic distention evolution
@@ -114,6 +118,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     n1 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     n2 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     cS0 = PYB11property(doc="Reference sound speed at full density")
+    K0 = PYB11property()
     rho0 = PYB11property(doc="Reference solid density")
     fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
     maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")

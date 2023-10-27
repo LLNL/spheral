@@ -12,14 +12,19 @@ from SpheralCompiledPackages import *
 dims = spheralDimensions()
 
 #-------------------------------------------------------------------------------
-# The generic factory function
+# Factory function to generate our Python enhanced PalphaPorosity model,
+# including using scipy's fsolve to find alphae as needed.
 #-------------------------------------------------------------------------------
 def _PalphaPorosityFactory(ndim):
     CXXPalphaPorosity = eval(f"PalphaPorosity{ndim}d")
+    ScalarField = eval(f"ScalarField{ndim}d")
 
     # The class we will return in place of the plain C++ one
     class PalphaPorosity(CXXPalphaPorosity):
 
+        #-----------------------------------------------------------------------
+        # Constructor
+        #-----------------------------------------------------------------------
         def __init__(self,
                      nodeList,
                      phi0,
@@ -52,12 +57,48 @@ def _PalphaPorosityFactory(ndim):
                     rho0 = nodeList.equationOfState().referenceDensity
                 except:
                     raise RuntimeError("Unable to extract reference density for PalphaPorosity")
+
+            # Find the starting maximum porosity (maximum distension) and corresponding minimum initial sound speed
+            if isinstance(phi0, ScalarField):
+                alpha0 = 1.0/(1.0 - phi0.max())
+                c0min = c0.min()
+            else:
+                alpha0 = 1.0/(1.0 - phi0)
+                c0min = c0
+
+            # Now find alphae = alpha(Pe)
+            if Pe == Pt:
+                alphae = alphat
+            else:
+                assert Pe > 0.0
+                K0 = rhoS0*cS0*cS0
+                alphae = alpha0   # Starting point
+                last_alphae = 0.0
+                iter = 0
+                def DalphaDP_elastic(alpha):
+                    h = 1.0 + (alpha - 1.0)*(c0min - cS0)/(cS0*(alphae - 1.0))
+                    return alpha*alpha/K0*(1.0 - 1.0/(h*h))
+                while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
+                    iter += 1
+                    last_alphae = alphae
+                    alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
+                                                       t_span = [0.0, Pe],
+                                                       y0 = [alpha0],
+                                                       t_eval = [Pe]).y[0][0]
+                print("alphae: ", alphae, last_alphae, iter)
+
+            # Remember the alpha0 max and c0min for use in the convenience crushCurve method
+            self._alpha0max = alpha0
+            self._c0min = c0min
+
+            # Now build the actual C++ object
             CXXPalphaPorosity.__init__(self,
                                        nodeList = nodeList,
                                        phi0 = phi0,
                                        Pe = Pe,
                                        Pt = Pt,
                                        Ps = Ps,
+                                       alphae = alphae,
                                        alphat = alphat,
                                        n1 = n1,
                                        n2 = n2,
@@ -66,6 +107,34 @@ def _PalphaPorosityFactory(ndim):
                                        rho0 = rho0)
             return
     
+        #-----------------------------------------------------------------------
+        # Compute the crush-curve on demand as a function of pressure
+        #-----------------------------------------------------------------------
+        def crushCurve(self, P):
+            if (P >= self.Ps):
+
+                # Solid limit, all porosity squeezed out
+                return 1.0
+
+            elif P < self.Pe:
+                assert self._c0min < self.cS0
+
+                # Elastic regime -- integrate elastic Dalpha/DP equation
+                stuff = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
+                                                  args = (self._c0min,),
+                                                  t_span = [0.0, P],
+                                                  y0 = [self.alpha0],
+                                                  t_eval = [P])
+                return stuff.y[0][0]
+
+            else:
+
+                # Plastic limit
+                if P < self.Pt:
+                    return (self.alphae - self.alphat) * ((self.Pt - P)/(self.Pt - self.Pe))**self.n1 + (self.alphat - 1.0) * ((self.Ps - P)/(self.Ps - self.Pe))**self.n2 + 1.0
+                else:
+                    return (self.alphat - 1.0) * ((self.Ps - P)/(self.Ps - self.Pe))**self.n2 + 1.0
+
     return PalphaPorosity
 
 #-------------------------------------------------------------------------------

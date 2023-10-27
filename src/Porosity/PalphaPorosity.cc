@@ -47,6 +47,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double Pe,
                const double Pt,
                const double Ps,
+               const double alphae,
                const double alphat,
                const double n1,
                const double n2,
@@ -57,12 +58,13 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mPe(Pe),
   mPt(Pt),
   mPs(Ps),
-  mAlphae(0.0),      // alphae is specified by the other parameters
+  mAlphae(alphae),
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
   mRho0(rho0),
   mcS0(cS0),
+  mK0(rho0*cS0*cS0),
   mMaxAbsDalphaDt(0.0),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList, c0),
@@ -76,7 +78,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   VERIFY2((mPe <= mPt) and (mPt <= mPs),
           "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
   const auto alpha0_max = mAlpha0.max();
-  mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
+  // mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
   VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
           "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
@@ -93,6 +95,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double Pe,
                const double Pt,
                const double Ps,
+               const double alphae,
                const double alphat,
                const double n1,
                const double n2,
@@ -103,12 +106,13 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mPe(Pe),
   mPt(Pt),
   mPs(Ps),
-  mAlphae(0.0),      // alphae is specified by the other parameters
+  mAlphae(alphae),
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
   mRho0(rho0),
   mcS0(cS0),
+  mK0(rho0*cS0*cS0),
   mMaxAbsDalphaDt(0.0),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList),
@@ -122,7 +126,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   VERIFY2((mPe <= mPt) and (mPt <= mPs),
           "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
   const auto alpha0_max = mAlpha0.max();
-  mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
+  // mAlphae = 1.0 + FastMath::square((mPs - mPe)/mPs)*(alpha0_max - 1.0);         // Assuming a starting pressure P0=0.0, may have to revisit this
   VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
           "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
   const auto phi0_min = phi0.min();

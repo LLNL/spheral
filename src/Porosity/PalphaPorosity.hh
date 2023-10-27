@@ -39,11 +39,11 @@ class PalphaPorosity:
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
   // Constructors, destructors.
   PalphaPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
@@ -51,6 +51,7 @@ public:
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
                  const double Ps,                                 // Solid transition pressure (from fit, Pt <= Ps)
+                 const double alphae,                             // distension at Pe
                  const double alphat,                             // Transition distension
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
@@ -63,6 +64,7 @@ public:
                  const double Pe,                                 // Elastic pressure threshold
                  const double Pt,                                 // Transition pressure (Pe <= Pt)
                  const double Ps,                                 // Solid transition pressure (from fit, Pt <= Ps)
+                 const double alphae,                             // distension at Pe
                  const double alphat,                             // Transition distension
                  const double n1,                                 // Fitted exponent for plastic distention evolution
                  const double n2,                                 // Fitted exponent for plastic distention evolution
@@ -117,6 +119,7 @@ public:
   double n2() const;
   double rho0() const;
   double cS0() const;
+  double K0() const;
   double fdt() const;
   double maxAbsDalphaDt() const;
   const SolidNodeList<Dimension>& nodeList() const;
@@ -135,7 +138,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRho0, mcS0, mfdt;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRho0, mcS0, mK0, mfdt;
   mutable double mMaxAbsDalphaDt;
   const SolidNodeList<Dimension>& mNodeList;
   Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mdPdU, mdPdR;
