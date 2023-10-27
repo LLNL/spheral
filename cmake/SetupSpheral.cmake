@@ -78,7 +78,8 @@ if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_SHARED OFF)
 endif()
 
-if(ENABLE_CUDA)
+cmake_dependent_option(SPHERAL_ENABLE_CUDA "Build with CUDA support" On "ENABLE_CUDA" Off)
+if(SPHERAL_ENABLE_CUDA)
   set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_BLT_DEPENDS cuda)
@@ -134,6 +135,9 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
+configure_file(src/config.hh.in
+  ${PROJECT_BINARY_DIR}/src/config.hh)
+
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 
 #-------------------------------------------------------------------------------

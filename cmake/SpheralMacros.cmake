@@ -38,6 +38,7 @@ macro(spheral_add_executable)
 
   target_include_directories(${arg_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
   target_include_directories(${arg_NAME} SYSTEM PRIVATE ${SPHERAL_ROOT_DIR}/src)
+  target_include_directories(${arg_NAME} SYSTEM PRIVATE ${PROJECT_BINARY_DIR}/src)
 
 endmacro(spheral_add_executable)
 
@@ -74,6 +75,8 @@ macro(spheral_add_test)
   blt_add_test(
     NAME ${original_test_name}
     COMMAND ${TEST_DRIVER} ${original_test_name}.exe)
+
+  target_include_directories(${original_test_name}.exe SYSTEM PRIVATE ${SPHERAL_ROOT_DIR}/tests/cpp/include)
 
   if (${arg_DEBUG_LINKER})
     target_link_options(${original_test_name}.exe PUBLIC "-Wl,--warn-unresolved-symbols")
