@@ -741,11 +741,14 @@ def getUniqueTestPath():
         for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
             filesystems[name] = ['/p/lustre2', '/p/lustre1']
 
+        for name in ['rzgenie']:
+            filesystems[name] = ['/p/lustre1']
+
         for name in ['sierra', 'tron']:
             filesystems[name] = [ '/p/gpfs1' ]
 
         # RZ LLNL machines
-        for name in ['rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rzgenie', 'rztopaz']:
+        for name in ['rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rztopaz']:
             filesystems[name] = [ '/p/lscratchrza' ]
 
         for name in ['rzansel', 'lassen']:

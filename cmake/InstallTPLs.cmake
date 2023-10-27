@@ -44,7 +44,7 @@ set_property(GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES "${SPHERAL_SUBMOD_INCLUDES}
 # PolyClipper
 if (NOT polyclipper_DIR)
   # If no PolyClipper is specified, build it as an internal target
-  set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper" CACHE PATH "")
+  set(polyclipper_DIR "${SPHERAL_ROOT_DIR}/extern/PolyClipper")
   # Must set this so PolyClipper doesn't include unnecessary python scripts
   set(POLYCLIPPER_MODULE_GEN OFF)
   set(POLYCLIPPER_ENABLE_DOCS OFF)
@@ -79,6 +79,13 @@ if(axom_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
   blt_patch_target(NAME ${fmt_name} TREAT_INCLUDES_AS_SYSTEM ON)
 endif()
+# Potential axom dependencies
+list(APPEND AXOM_DEPS umpire RAJA conduit::conduit)
+foreach(lib ${AXOM_DEPS})
+  if(TARGET ${lib})
+    list(APPEND SPHERAL_BLT_DEPENDS ${lib})
+  endif()
+endforeach()
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
