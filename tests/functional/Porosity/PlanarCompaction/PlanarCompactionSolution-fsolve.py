@@ -21,7 +21,7 @@ class PalphaCrushCurve:
     def __init__(self,
                  rhoS0,
                  P0,
-                 alpha0,
+                 alpha0,   # alpha(P0)
                  alphat,
                  Pe,
                  Pt,
@@ -43,11 +43,11 @@ class PalphaCrushCurve:
         self.n1 = n1
         self.n2 = n2
 
-        # Solve for alphae
+        # Find alphae = alpha(Pe)
         self.alphae = alpha0   # Starting point
         last_alphae = 0.0
         iter = 0
-        while abs(self.alphae - last_alphae) > 1.0e-6 and iter < 1000:
+        while abs(self.alphae - last_alphae) > 1.0e-10 and iter < 1000:
             iter += 1
             last_alphae = self.alphae
             self.alphae = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
@@ -55,6 +55,7 @@ class PalphaCrushCurve:
                                                     y0 = [self.alpha0],
                                                     t_eval = [self.Pe]).y[0][0]
         print("alphae: ", self.alphae, last_alphae, iter)
+
         if self.alphat is None:
             self.alphat = self.alphae    # Reduces to Eq 8 in Jutzi 2008
 
@@ -187,9 +188,9 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
         ALPHAS[i] = alpha1
         if US[i] < ce:
             UE[i] = ce
-            RHOE[i] = alpha0*rho0/alphae
+            RHOE[i] = alpha0/alphae*rho0
             EPSE[i] = eps0
-            PE[i] = Pfunc(alpha0*rho0, eps0)/alphae
+            PE[i] = Pfunc(alpha0*alpha0/alphae*rho0, eps0)/alphae
             ALPHAE[i] = alphae
         else:
             UE[i] = 0.0
