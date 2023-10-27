@@ -37,6 +37,7 @@ macro(spheral_add_executable)
     )
 
   target_include_directories(${arg_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
+  target_include_directories(${arg_NAME} SYSTEM PRIVATE ${SPHERAL_ROOT_DIR}/src)
 
 endmacro(spheral_add_executable)
 
@@ -52,13 +53,14 @@ macro(spheral_add_test)
   set(original_src ${arg_SOURCES})
   set(original_deps ${arg_DEPENDS_ON})
 
+  get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   #set( TEST_LIB_SOURCE ${CMAKE_BINARY_DIR}/test/empty_test_lib.cc)
   #file(TOUCH ${TEST_LIB_SOURCE})
   blt_add_library(
     NAME ${original_test_name}_lib
     SOURCES ${TEST_LIB_SOURCE}
     SOURCES ${CMAKE_SOURCE_DIR}/src/spheralCXX.cc
-    DEPENDS_ON ${original_deps}
+    DEPENDS_ON ${SPHERAL_BLT_DEPENDS} ${original_deps}
     SHARED False 
     )
   target_link_options(${original_test_name}_lib PRIVATE "-Wl,--unresolved-symbols=ignore-in-object-files")

@@ -196,6 +196,8 @@ function(spheral_add_pybind11_library package_name)
   get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
   get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
 
+  list(REMOVE_ITEM SPHERAL_BLT_DEPENDS cuda)
+
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}

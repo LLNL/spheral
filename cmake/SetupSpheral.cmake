@@ -80,7 +80,7 @@ endif()
 
 if(ENABLE_CUDA)
   set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
-  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_BLT_DEPENDS cuda)
 endif()
 
@@ -147,6 +147,7 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
 
   # A macro to preserve directory structure when installing files

@@ -47,6 +47,5 @@ set(Field_headers
     )
 
 spheral_add_obj_library(Field SPHERAL_OBJ_LIBS)
-add_subdirectory(tests)
 
 

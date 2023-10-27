@@ -32,30 +32,47 @@ public:
   // ---------------------
   // Constructors
   // ---------------------
-  RAJA_HOST ManagedVector() :
-    MA(initial_capacity, chai::CPU) {}
+  RAJA_HOST_DEVICE ManagedVector() :
+    MA() {}
 
   RAJA_HOST ManagedVector(size_t elems) : 
-    MA(elems < initial_capacity ? initial_capacity: elems, chai::CPU),
+    MA(elems < initial_capacity ? initial_capacity: elems),
     m_size(elems) 
   {
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
+    MA::registerTouch(chai::CPU);
   }
 
   RAJA_HOST ManagedVector(size_t elems, DataType identity) :
-    MA(elems < initial_capacity ? initial_capacity: elems, chai::CPU),
+    MA(elems < initial_capacity ? initial_capacity: elems),
     m_size(elems) 
   {
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
+    MA::registerTouch(chai::CPU);
   }
+
+#ifdef MV_VALUE_SEMANTICS
+  // ---------------------
+  // Destructor
+  // ---------------------
+  //RAJA_HOST ~ManagedVector() 
+  //{
+  //  MA::free();
+  //}
+#endif
+  using MA::move;
+  using MA::free;
   
   // ---------------------
   // Copy Constructor
   // ---------------------
 #ifdef MV_VALUE_SEMANTICS
   RAJA_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : 
-    MA(rhs.capacity()), m_size(rhs.m_size)
+    m_size(rhs.m_size)
   {
+  //#if !defined(CHAI_DEVICE_COMPILE)
+    *this = ManagedVector(rhs.m_size);
+  //#endif
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
@@ -94,27 +111,31 @@ public:
     return true;
   }
 #else
-  RAJA_HOST bool operator==(ManagedVector const& rhs) const {
+  RAJA_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
     if (m_size != rhs.m_size) return false;
     return MA::operator==(rhs);
+  }
+  RAJA_HOST_DEVICE bool operator!=(ManagedVector const& rhs) const {
+    return !(*this == rhs);
   }
 #endif
 
   RAJA_HOST void push_back(const DataType& value) {
+    if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
-    std::cout << "check : " << m_size << ", " << capacity() << std::endl;
     new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
   RAJA_HOST void push_back(DataType&& value) {
+    if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
-
     MA::data()[m_size] = std::move(value);
     m_size++;
   }
   template<typename... Args>
   RAJA_HOST
   DataType& emplace_back(Args&&... args) {
+    if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
 
     new(&MA::data()[m_size]) DataType(std::forward<Args>(args)...);
