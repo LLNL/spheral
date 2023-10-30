@@ -37,9 +37,9 @@ distance(const Vector& position) const {
   const double signX = (q.x() > 0.0 ? 1. : -1.);
   const double signY = (q.y() > 0.0 ? 1. : -1.);
   const double signZ = (q.z() > 0.0 ? 1. : -1.);
-  const auto signedExtent = Vector((q.x() > mExtent.x() ? 1 : 0)*signX*mExtent.x(),
-                                   (q.y() > mExtent.y() ? 1 : 0)*signY*mExtent.y(),
-                                   (q.z() > mExtent.z() ? 1 : 0)*signZ*mExtent.z());
+  const auto signedExtent = Vector(signX*std::min(signX*q.x(),mExtent.x()),
+                                   signY*std::min(signY*q.y(),mExtent.y()),
+                                   signZ*std::min(signZ*q.z(),mExtent.z()));
   return mBasis.Transpose()*(q-signedExtent);
 }
 
