@@ -69,7 +69,7 @@ class PalphaCrushCurve:
         assert self.alphae > 1.0 and self.c0 < self.cS0, "alphae={}, c0={}, cS0={}".format(self.alphae, self.c0, self.cS0)
         return 1.0 + (alpha - 1.0)*(self.c0 - self.cS0)/(self.cS0*(self.alphae - 1.0))
 
-    def Dalpha_elasticDP(self, alpha):
+    def Dalpha_elasticDP(self, P, alpha):
         return alpha*alpha/self.K0*(1.0 - 1.0/self.h(alpha)**2)
 
     def ce(self, alpha):
@@ -232,6 +232,7 @@ class PlanarCompactionSolution:
         self.eos = eos
         self.vpiston = abs(vpiston)
         self.eps0 = eps0
+        self.alpha0 = alpha0
         rhoS0 = eos.referenceDensity
         self.rho0 = rhoS0/alpha0
         PS0 = eos.pressure(rhoS0, eps0)
@@ -269,7 +270,7 @@ class PlanarCompactionSolution:
         h1 = self.h0 * self.rho0/rhos
 
         # Conditions behind the elastic wave
-        v2 = -ue*(1.0 - alphae/alpha0)
+        v2 = -ue*(1.0 - alphae/self.alpha0)
         h2 = self.h0 * self.rho0/rhoe
 
         # Generate the solution profiles

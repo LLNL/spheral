@@ -153,8 +153,8 @@ from DistributeNodes import distributeNodesInRange1d
 xmin = -1.0
 xmax = 1.0
 nxtot = nx
+dx = (xmax - xmin)/nx
 if boundary == "PISTON":
-    dx = (xmax - xmin)/nx
     xmax += nxpiston*dx
     nxtot += nxpiston
 rho0 = rhoS0/alpha0
@@ -350,11 +350,11 @@ if graphics:
         h[0][i] = 1.0/H[0][i].xx
 
     # Build the solution
-    solution = PlanarCompactionSolution(eos = eos,
+    solution = PlanarCompactionSolution(eos = eosS,
                                         vpiston = vpiston,
                                         eps0 = eps0,
                                         alpha0 = alpha0,
-                                        alphat = alphat,
+                                        alphat = None,
                                         Pe = Pe * PCGSconv,
                                         Pt = Pe * PCGSconv,
                                         Ps = Ps * PCGSconv,
@@ -363,7 +363,7 @@ if graphics:
                                         cS0 = cS0 * vCGSconv,
                                         c0 = ce * vCGSconv,
                                         h0 = nPerh * dx,
-                                        n = 1000)
+                                        nPoints = 1000)
 
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle = "o-",

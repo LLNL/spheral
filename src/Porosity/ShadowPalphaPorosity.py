@@ -4,6 +4,7 @@
 # Provides convenient constructors for the P-alpha porosity model
 #-------------------------------------------------------------------------------
 import types
+import scipy.integrate
 from spheralDimensions import spheralDimensions
 from CaptureStdout import helpString
 from MaterialPropertiesLib import SpheralMaterialPropertiesLib
@@ -67,15 +68,13 @@ def _PalphaPorosityFactory(ndim):
                 c0min = c0
 
             # Now find alphae = alpha(Pe)
-            if Pe == Pt:
-                alphae = alphat
-            else:
-                assert Pe > 0.0
+            if Pe > 0.0:
+                rhoS0 = rho0/alpha0
                 K0 = rhoS0*cS0*cS0
                 alphae = alpha0   # Starting point
                 last_alphae = 0.0
                 iter = 0
-                def DalphaDP_elastic(alpha):
+                def DalphaDP_elastic(P, alpha):
                     h = 1.0 + (alpha - 1.0)*(c0min - cS0)/(cS0*(alphae - 1.0))
                     return alpha*alpha/K0*(1.0 - 1.0/(h*h))
                 while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
@@ -86,6 +85,11 @@ def _PalphaPorosityFactory(ndim):
                                                        y0 = [alpha0],
                                                        t_eval = [Pe]).y[0][0]
                 print("alphae: ", alphae, last_alphae, iter)
+            else:
+                alphae = alpha0
+
+            if alphat is None:
+                alphat = alphae
 
             # Remember the alpha0 max and c0min for use in the convenience crushCurve method
             self._alpha0max = alpha0
