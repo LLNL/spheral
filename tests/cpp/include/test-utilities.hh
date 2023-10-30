@@ -77,5 +77,12 @@ void SPHERAL_ASSERT_FALSE(bool result) {
   template<typename TypeParam> \
   static void gpu_test_##X##Y()
 
+#define GPU_TYPED_TEST_P(X, Y)              \
+  template<typename TypeParam, typename TestFixture> \
+  static void gpu_test_##X##Y(TestFixture* gpu_this);    \
+  TYPED_TEST_P(X, Y) { gpu_test_##X##Y<TypeParam>(this); } \
+  template<typename TypeParam, typename TestFixture> \
+  static void gpu_test_##X##Y(TestFixture* gpu_this)
+
 
 #endif // SPHERAL_TEST_UTIILITIES_HH
