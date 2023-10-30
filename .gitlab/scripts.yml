@@ -5,7 +5,7 @@
 .build:
   stage: build_and_install
   script:
-    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
+    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
     - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
     - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
     - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
