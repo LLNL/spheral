@@ -50,6 +50,7 @@ class PalphaCrushCurve:
         while abs(self.alphae - last_alphae) > 1.0e-10 and iter < 1000:
             iter += 1
             last_alphae = self.alphae
+            print(" --> ", iter, self.alphae, self.c0, self.cS0, self.K0)
             self.alphae = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
                                                     t_span = [self.P0, self.Pe],
                                                     y0 = [self.alpha0],
@@ -228,7 +229,8 @@ class PlanarCompactionSolution:
                  cS0 = None,
                  c0 = None,
                  h0 = None,
-                 nPoints = 101):
+                 nPoints = 101,
+                 pistonFrame = False):
         self.eos = eos
         self.vpiston = abs(vpiston)
         self.eps0 = eps0
@@ -246,19 +248,12 @@ class PlanarCompactionSolution:
         else:
             self.h0 = h0
         self.nPoints = nPoints
+        self.pistonFrame = pistonFrame
         self.crushCurve = PalphaCrushCurve(rhoS0, self.P0, alpha0, alphat, Pe, Pt, Ps, cS0, c0, n1, n2)
         return
 
-    # Return the solution profiles as x, v, eps, rho, P, h
-    def solution(self, t,
-                 x = None):
-
-        # The current piston position
-        xpiston = 1.0 - self.vpiston*t
-
-        # Did the user specify the x positions?
-        if x is None:
-            x = np.linspace(-1.0, xpiston, self.nPoints)
+    # Find the shock and elastic wave properties as a function of time
+    def waveProperties(self, t):
 
         # Compute the shock jump conditions
         us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), self.crushCurve, n=1)
@@ -272,6 +267,20 @@ class PlanarCompactionSolution:
         # Conditions behind the elastic wave
         v2 = -ue*(1.0 - alphae/self.alpha0)
         h2 = self.h0 * self.rho0/rhoe
+        
+        return us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2
+
+    # Return the solution profiles as x, v, eps, rho, P, h
+    def solution(self, t,
+                 x = None):
+
+        # Get the current regional properties
+        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2 = self.waveProperties(t)
+
+        # Did the user specify the x positions?
+        xpiston = 1.0 - self.vpiston*t
+        if x is None:
+            x = np.linspace(-1.0, xpiston, self.nPoints)
 
         # Generate the solution profiles
         n = len(x)
@@ -284,7 +293,41 @@ class PlanarCompactionSolution:
             else:
                 v[i], eps[i], rho[i], P[i], h[i] = 0.0, self.eps0, self.rho0, self.P0, self.h0
 
+        # In the piston frame we actually look like the fluid is flowing into a stationary wall
+        if self.pistonFrame:
+            x += self.vpiston*t
+            v += self.vpiston
+
         return x, v, eps, rho, P, h
+
+    # Return the alpha solution
+    def alpha_solution(self, t,
+                       x = None):
+        
+        # Get the current regional properties
+        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2 = self.waveProperties(t)
+
+        # Did the user specify the x positions?
+        if x is None:
+            xpiston = 1.0 - self.vpiston*t
+            x = np.linspace(-1.0, xpiston, self.nPoints)
+
+        # Generate the solution profiles
+        n = len(x)
+        alpha = np.zeros(n)
+        for i in range(n):
+            if x[i] >= xs:
+                alpha[i] = alphas
+            elif x[i] >= xe:
+                alpha[i] = alphae
+            else:
+                alpha[i] = self.alpha0
+
+        # In the piston frame we actually look like the fluid is flowing into a stationary wall
+        if self.pistonFrame:
+            x += self.vpiston*t
+
+        return x, alpha
 
 #-------------------------------------------------------------------------------
 # Main if run directly

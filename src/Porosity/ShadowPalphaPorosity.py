@@ -80,7 +80,9 @@ def _PalphaPorosityFactory(ndim):
                 while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
                     iter += 1
                     last_alphae = alphae
-                    alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
+                    print(" --> ", iter, alphae, c0min, cS0, K0)
+                    alphae = scipy.integrate.solve_ivp(self.DalphaDP_elastic,
+                                                       args = (c0min, cS0, K0, alphae),
                                                        t_span = [0.0, Pe],
                                                        y0 = [alpha0],
                                                        t_eval = [Pe]).y[0][0]
@@ -89,7 +91,7 @@ def _PalphaPorosityFactory(ndim):
                 alphae = alpha0
 
             if alphat is None:
-                alphat = alphae
+                alphat = alphae    # Reduces the plastic crush curve to Eq. 8 from Jutzi 2008
 
             # Remember the alpha0 max and c0min for use in the convenience crushCurve method
             self._alpha0max = alpha0
@@ -125,9 +127,9 @@ def _PalphaPorosityFactory(ndim):
 
                 # Elastic regime -- integrate elastic Dalpha/DP equation
                 stuff = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
-                                                  args = (self._c0min,),
+                                                  args = (self._c0min, self.cS0, self.K0, self.alphae),
                                                   t_span = [0.0, P],
-                                                  y0 = [self.alpha0],
+                                                  y0 = [self._alpha0max],
                                                   t_eval = [P])
                 return stuff.y[0][0]
 
@@ -138,6 +140,14 @@ def _PalphaPorosityFactory(ndim):
                     return (self.alphae - self.alphat) * ((self.Pt - P)/(self.Pt - self.Pe))**self.n1 + (self.alphat - 1.0) * ((self.Ps - P)/(self.Ps - self.Pe))**self.n2 + 1.0
                 else:
                     return (self.alphat - 1.0) * ((self.Ps - P)/(self.Ps - self.Pe))**self.n2 + 1.0
+
+        #-----------------------------------------------------------------------
+        # Reproduce the Dalpha/DP relationship in the elastic regime
+        #-----------------------------------------------------------------------
+        def DalphaDP_elastic(self, P, alpha,
+                             c0min, cS0, K0, alphae):
+            h = 1.0 + (alpha - 1.0)*(c0min - cS0)/(cS0*(alphae - 1.0))
+            return alpha*alpha/K0*(1.0 - 1.0/(h*h))
 
     return PalphaPorosity
 

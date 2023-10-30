@@ -363,52 +363,83 @@ if graphics:
                                         cS0 = cS0 * vCGSconv,
                                         c0 = ce * vCGSconv,
                                         h0 = nPerh * dx,
-                                        nPoints = 1000)
+                                        nPoints = 1000,
+                                        pistonFrame = (boundary == "WALL"))
 
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle = "o-",
-                            winTitle = "rho @ %g %i" % (control.time(), mpi.procs))
-
+                            lineTitle = "Simulation",
+                            xlabel = r"$x$",
+                            ylabel = r"$\rho$ (gm/cm$^3$)",
+                            winTitle = r"$\rho$ @ %g %i" % (control.time(), mpi.procs))
     velPlot = plotFieldList(state.vectorFields("velocity"),
                             yFunction = "%s.x",
                             plotStyle = "o-",
+                            lineTitle = "Simulation",
+                            xlabel = r"$x$",
+                            ylabel = r"$vel$ cm/$\mu$sec",
                             winTitle = "vel @ %g %i" % (control.time(), mpi.procs))
     PPlot = plotFieldList(state.scalarFields("pressure"),
                           plotStyle = "o-",
+                          lineTitle = "Simulation",
+                          xlabel = r"$x$",
+                          ylabel = r"$P$ (Mbar)",
                           winTitle = "pressure @ %g %i" % (control.time(), mpi.procs),
                           semilogy = True)
     uPlot = plotFieldList(state.scalarFields("specific thermal energy"),
                           plotStyle = "o-",
+                          lineTitle = "Simulation",
+                          xlabel = r"$x$",
+                          ylabel = r"$\varepsilon$ (Mbar cm$^3$/gm)",
                           winTitle = "specific thermal energy @ %g %i" % (control.time(), mpi.procs))
     SPlot = plotFieldList(state.symTensorFields("deviatoric stress"),
                           yFunction = "%s.xx",
                           plotStyle = "o-",
+                          lineTitle = "Simulation",
+                          xlabel = r"$x$",
+                          ylabel = r"$S_{xx}$ (Mbar)",
                           winTitle = "$S_{xx}$ @ %g %i" % (control.time(), mpi.procs))
     hPlot = plotFieldList(h,
                           plotStyle = "o-",
+                          lineTitle = "Simulation",
+                          xlabel = r"$x$",
+                          ylabel = r"$h$ (cm)",
                           winTitle = "h @ %g %i" % (control.time(), mpi.procs))
     csPlot = plotFieldList(state.scalarFields(HydroFieldNames.soundSpeed),
                            plotStyle = "o-",
+                           lineTitle = "Simulation",
                            xlabel = r"$x$",
                            ylabel = r"$c_S$",
                            winTitle = "Sound speed @ %g %i" %  (control.time(), mpi.procs))
     alphaPlot = plotField(porosityAl.alpha,
                           plotStyle = "o-",
+                          lineTitle = "Simulation",
+                          xlabel = r"$x$",
+                          ylabel = r"$\alpha$",
                           winTitle = r"$\alpha$ @ %g %i" %  (control.time(), mpi.procs))
     DalphaDtPlot = plotField(porosityAl.DalphaDt,
                              plotStyle = "o-",
+                             lineTitle = "Simulation",
                              xlabel = r"$x$",
                              ylabel = r"$D\alpha/Dt$",
                              winTitle = r"$D\alpha/Dt$ @ %g %i" %  (control.time(), mpi.procs))
     phiPlot = plotField(porosityAl.phi(),
                         plotStyle = "o-",
+                        lineTitle = "Simulation",
+                        xlabel = r"$x$",
+                        ylabel = r"$\phi$",
                         winTitle = r"$\phi$ @ %g %i" %  (control.time(), mpi.procs))
-
     dPdRplot = plotField(porosityAl.partialPpartialRho,
                          plotStyle = "o-",
+                         lineTitle = "Simulation",
+                         xlabel = r"$x$",
+                         ylabel = r"$\partial P/\partial \rho$",
                          winTitle = r"$\partial P/\partial \rho$ @ %g %i" %  (control.time(), mpi.procs))
     dPdUplot = plotField(porosityAl.partialPpartialEps,
                          plotStyle = "o-",
+                         lineTitle = "Simulation",
+                         xlabel = r"$x$",
+                         ylabel = r"$\partial P/\partial \varepsilon$",
                          winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
 
     # Add the solution
@@ -418,6 +449,15 @@ if graphics:
                epsPlot = uPlot,
                PPlot = PPlot,
                HPlot = hPlot)
+    x, alpha_solution = solution.alpha_solution(control.time())
+    alphaPlot.plot(x, alpha_solution,
+                   "k-",
+                   label = "Solution")
+    alphaPlot.axes.legend()
+    phiPlot.plot(x, 1.0 - 1.0/alpha_solution,
+                   "k-",
+                   label = "Solution")
+    phiPlot.axes.legend()
 
     plots = [(rhoPlot, "rho.png"),
              (velPlot, "vel.png"),
