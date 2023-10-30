@@ -56,9 +56,6 @@ if(NOT ENABLE_CXXONLY)
     PYB11)
 endif()
 
-configure_file(config.hh.in
-  ${PROJECT_BINARY_DIR}/src/config.hh)
-
 foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()

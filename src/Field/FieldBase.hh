@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "config.hh"
 
 namespace Spheral {
 
@@ -29,13 +30,13 @@ public:
   FieldBase(FieldName name,
             const NodeList<Dimension>& nodeList);
   FieldBase(const FieldBase& fieldBase);
-  virtual std::shared_ptr<FieldBase> clone() const = 0;
+  //virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
   virtual ~FieldBase();
 
   // Assignment operator.
-  virtual FieldBase& operator=(const FieldBase& rhs);
+  SPHERAL_HOST_DEVICE virtual FieldBase& operator=(const FieldBase& rhs);
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
@@ -51,7 +52,7 @@ public:
   void unregisterNodeList();
 
   // Methods every field must provide.
-  virtual unsigned size() const = 0;
+  SPHERAL_HOST_DEVICE virtual unsigned size() const = 0;
   virtual void Zero() = 0;
   virtual void setNodeList(const NodeList<Dimension>& nodeList) = 0;
   virtual void resizeField(unsigned size) = 0;
@@ -96,7 +97,7 @@ private:
   //mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
 
   // Disallow the default constructor.
-  FieldBase();
+  SPHERAL_HOST_DEVICE FieldBase();
 };
 
 }

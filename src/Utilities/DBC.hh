@@ -11,6 +11,7 @@
 #include <exception>
 #include <cmath>
 #include "Process.hh"
+#include "config.hh"
 
 #ifndef DBC_FUNCTIONS_HH
 #define DBC_FUNCTIONS_HH
@@ -107,6 +108,7 @@ inline bool nearlyEqual(const T& x,
 //----------------------------------------------------------------------------
 
 #ifdef DBC_USE_REQUIRE
+#if !defined(SPHERAL_GPU_ACTIVE)
 #define DBC_ASSERTION(x, msg, kind)                     \
    if (::Spheral::dbc::assertionLock()) {               \
       if (!(x)) {                                       \
@@ -118,6 +120,9 @@ inline bool nearlyEqual(const T& x,
    }                                                    \
    ::Spheral::dbc::assertionUnLock();                   \
 }
+#else // SPHERAL_GPU_ACTIVE
+#define DBC_ASSERTION(x, msg, kind)
+#endif // SPHERAL_GPU_ACTIVE 
 #define REQUIRE2(x, msg) DBC_ASSERTION(x, msg, "Precondition violated")
 #define ASSERT2(x, msg) DBC_ASSERTION(x, msg, "Assertion violated")
 #else

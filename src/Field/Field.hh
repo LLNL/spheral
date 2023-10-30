@@ -14,6 +14,7 @@
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
 #include "SphArray.hh"
+#include "config.hh"
 
 #include <vector>
 
@@ -61,47 +62,48 @@ public:
   //typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
-  explicit Field(FieldName name);
-  Field(FieldName name, const Field& field);
-  Field(FieldName name,
-        const NodeList<Dimension>& nodeList);
-  Field(FieldName name,
-        const NodeList<Dimension>& nodeList,
-        DataType value);
-  Field(FieldName name,
-        const NodeList<Dimension>& nodeList, 
-        const ContainerType& array);
-  Field(const NodeList<Dimension>& nodeList, const Field& field);
-  Field(const Field& field);
-  virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
+  SPHERAL_HOST explicit Field(FieldName name);
+  SPHERAL_HOST Field(FieldName name, const Field& field);
+  SPHERAL_HOST Field(FieldName name,
+                     const NodeList<Dimension>& nodeList);
+  SPHERAL_HOST Field(FieldName name,
+                     const NodeList<Dimension>& nodeList,
+                     DataType value);
+  SPHERAL_HOST Field(FieldName name,
+                     const NodeList<Dimension>& nodeList, 
+                     const ContainerType& array);
+  SPHERAL_HOST Field(const NodeList<Dimension>& nodeList, const Field& field);
+  
+  SPHERAL_HOST_DEVICE Field(const Field& field);
+  //SPHERAL_HOST virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  virtual ~Field();
+  SPHERAL_HOST virtual ~Field();
 
   // Assignment operator.
-  virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
-  Field& operator=(const Field& rhs);
-  Field& operator=(const ContainerType& rhs);
-  Field& operator=(const DataType& rhs);
+  SPHERAL_HOST_DEVICE virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
+  SPHERAL_HOST_DEVICE Field& operator=(const Field& rhs);
+  SPHERAL_HOST_DEVICE Field& operator=(const ContainerType& rhs);
+  SPHERAL_HOST Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
   virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
   // Element access.
-  DataType& operator()(int index);
-  const DataType& operator()(int index) const;
+  SPHERAL_HOST_DEVICE DataType& operator()(int index);
+  SPHERAL_HOST_DEVICE const DataType& operator()(int index) const;
 
-  DataType& operator()(const NodeIteratorBase<Dimension>& itr);
-  const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
+  SPHERAL_HOST DataType& operator()(const NodeIteratorBase<Dimension>& itr);
+  SPHERAL_HOST const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
 
-  DataType& at(int index);
-  const DataType& at(int index) const;
+  SPHERAL_HOST_DEVICE DataType& at(int index);
+  SPHERAL_HOST_DEVICE const DataType& at(int index) const;
 
   // The number of elements in the field.
-  unsigned numElements() const;
-  unsigned numInternalElements() const;
-  unsigned numGhostElements() const;
-  virtual unsigned size() const override;
+  SPHERAL_HOST_DEVICE unsigned numElements() const;
+  SPHERAL_HOST unsigned numInternalElements() const;
+  SPHERAL_HOST unsigned numGhostElements() const;
+  SPHERAL_HOST_DEVICE virtual unsigned size() const override;
 
   // Zero out the field elements.
   virtual void Zero() override;
@@ -193,7 +195,7 @@ public:
 //                    const TableKernel<Dimension>& W) const;
 
   // Test if this Field is in a valid, internally consistent state.
-  bool valid() const;
+  SPHERAL_HOST_DEVICE bool valid() const;
 
   // Provide the standard iterator methods over the field.
   iterator begin();
@@ -250,8 +252,8 @@ public:
 
   // No default constructor.
   Field();
-  RAJA_HOST_DEVICE Field& operator=(std::nullptr_t) { mDataArray=nullptr; return *this; }
-  RAJA_HOST_DEVICE void shallowCopy(const Field& field) {
+  SPHERAL_HOST_DEVICE Field& operator=(std::nullptr_t) { mDataArray=nullptr; return *this; }
+  SPHERAL_HOST_DEVICE void shallowCopy(const Field& field) {
     Field result(field);
     result.mDataArray.shallowCopy(field.mDataArray);
     *this = result;

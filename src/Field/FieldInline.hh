@@ -155,12 +155,12 @@ Field<Dimension, DataType>::Field(const Field& field):
 // The virtual clone method, allowing us to duplicate fields with just 
 // FieldBase*.
 //------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-std::shared_ptr<FieldBase<Dimension> >
-Field<Dimension, DataType>::clone() const {
-  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
-}
+//template<typename Dimension, typename DataType>
+//inline
+//std::shared_ptr<FieldBase<Dimension> >
+//Field<Dimension, DataType>::clone() const {
+//  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
+//}
 
 //------------------------------------------------------------------------------
 // Destructor.
@@ -178,6 +178,8 @@ inline
 FieldBase<Dimension>&
 Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
   if (this != &rhs) {
+    //TODO: Figure out a way to handle this on the device later...
+#if !defined(SPHERAL_GPU_ACTIVE)
     try {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
@@ -187,6 +189,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
     }
+#endif // SPHERAL_GPU_ACTIVE
   }
   return *this;
 }
