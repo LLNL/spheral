@@ -34,12 +34,20 @@ public:
   // Constructors
   // ---------------------
   SPHERAL_HOST_DEVICE ManagedVector() :
-    MA() {}
+    MA()
+  {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    setCallback();
+#endif // SPHERAL_GPU_ACTIVE
+  }
 
   SPHERAL_HOST ManagedVector(size_t elems) : 
     MA(elems < initial_capacity ? initial_capacity: elems),
     m_size(elems) 
   {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    setCallback();
+#endif // SPHERAL_GPU_ACTIVE
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
     MA::registerTouch(chai::CPU);
   }
@@ -48,6 +56,9 @@ public:
     MA(elems < initial_capacity ? initial_capacity: elems),
     m_size(elems) 
   {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    setCallback();
+#endif // SPHERAL_GPU_ACTIVE
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
   }
@@ -77,7 +88,11 @@ public:
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
-  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
+  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    setCallback();
+#endif // SPHERAL_GPU_ACTIVE
+  }
 #endif
 
   // ---------------------
@@ -183,6 +198,27 @@ public:
   // *******************************************************
   
   //SPHERAL_HOST operator std::vector<DataType>() const { return std::vector<DataType>(begin(), end()); }
+
+  template< typename U=ManagedVector< DataType > >
+  SPHERAL_HOST
+  void setCallback() {
+    std::string const typeString = LvArray::system::demangleType< U >();
+    MA::setUserCallback(
+      [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+        if (action == chai::Action::ACTION_MOVE){
+          std::string const size = LvArray::system::calculateSize(record->m_size);
+          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+          char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
+          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << std::endl;
+        }
+        if (action == chai::Action::ACTION_ALLOC){
+          std::string const size = LvArray::system::calculateSize(record->m_size);
+          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+          std::cout << "Allocated " << paddedSize << " : " << typeString << " " << std::endl;
+        }
+      }
+    );
+  }
 
 private:
   size_t m_size = 0;
