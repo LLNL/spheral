@@ -51,7 +51,7 @@ if (NOT polyclipper_DIR)
   set(POLYCLIPPER_INSTALL_DIR "PolyClipper/include")
   add_subdirectory(${polyclipper_DIR} ${CMAKE_CURRENT_BINARY_DIR}/PolyClipper)
   # Treat includes as system to prevent warnings
-  blt_patch_target(NAME PolyClipperAPI TREAT_INCLUDES_AS_SYSTEM ON)
+  blt_convert_to_system_includes(TARGET PolyClipperAPI)
   list(APPEND SPHERAL_BLT_DEPENDS PolyClipperAPI)
   install(TARGETS PolyClipperAPI
     EXPORT spheral_cxx-targets
@@ -77,14 +77,15 @@ if(axom_FOUND)
     set(fmt_name axom::fmt)
   endif()
   list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
-  blt_patch_target(NAME ${fmt_name} TREAT_INCLUDES_AS_SYSTEM ON)
+  # BLT Macro for doing this
+  blt_convert_to_system_includes(TARGET ${fmt_name})
 endif()
-# Potential axom dependencies
-list(APPEND AXOM_DEPS umpire RAJA conduit::conduit)
-foreach(lib ${AXOM_DEPS})
-  if(TARGET ${lib})
-    list(APPEND SPHERAL_BLT_DEPENDS ${lib})
-  endif()
+# This is a hack to handle transitive issues that come
+# from using object libraries with newer version of axom
+foreach(_comp ${AXOM_COMPONENTS_ENABLED})
+  list(APPEND SPHERAL_BLT_DEPENDS axom::${_comp})
+  get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
+  list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
 
 # TPLs that must be imported
