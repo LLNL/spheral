@@ -176,7 +176,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_path('silo_DIR', spec['silo'].prefix))
 
         entries.append(cmake_cache_path('eigen_DIR', spec['eigen'].prefix))
-        entries.append(cmake_cache_path('eigen_INCLUDES','$<BUILD_INTERFACE:' + spec['eigen'].prefix.include.eigen3 + '>'))
+        entries.append(cmake_cache_path('eigen_INCLUDES',spec['eigen'].prefix.include.eigen3))
 
         entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
 

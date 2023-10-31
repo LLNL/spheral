@@ -46,5 +46,5 @@ spheral_install_python_files(
   DEMNodeLists.py
   )
 
-spheral_add_obj_library(NodeList)
+spheral_add_obj_library(NodeList SPHERAL_OBJ_LIBS)
 

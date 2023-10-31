@@ -40,4 +40,4 @@ int launchCaller(int a, int b)
 
 #endif
 
-} // namespace Spehral
+} // namespace Spheral
