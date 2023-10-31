@@ -45,8 +45,9 @@ GPU_TYPED_TEST_P(FieldTypedTest, size)
   using WORK_EXEC_POLICY = TypeParam;
 
   FieldDouble field("MyTestField", gpu_this->test_node_list);
-  
-
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
+    SPHERAL_ASSERT_EQ(field.size(), 10);
+  EXEC_IN_SPACE_END()
 }
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest, size);
 

@@ -7,6 +7,7 @@
 #include "RAJA/RAJA.hpp"
 #include "config.hh"
 
+using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 using LOOP_EXEC_POLICY = RAJA::loop_exec;
 
 #define EXEC_IN_SPACE_BEGIN(POL) \

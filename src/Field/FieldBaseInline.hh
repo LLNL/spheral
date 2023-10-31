@@ -36,7 +36,9 @@ inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
   mNodeListPtr(fieldBase.nodeListPtr())/*,
   mFieldListBaseList()*/ {
+#if !defined(SPHERAL_GPU_ACTIVE)
   if (mNodeListPtr) mNodeListPtr->registerField(*this);
+#endif // SPHERAL_GPU_ACTIVE
 }
 
 //------------------------------------------------------------------------------
@@ -45,7 +47,9 @@ FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
 template<typename Dimension>
 inline
 FieldBase<Dimension>::~FieldBase() {
+#if !defined(SPHERAL_GPU_ACTIVE)
   if (mNodeListPtr) mNodeListPtr->unregisterField(*this);
+#endif // SPHERAL_GPU_ACTIVE
 }
 
 //------------------------------------------------------------------------------

@@ -29,11 +29,11 @@ public:
   FieldBase(FieldName name);
   FieldBase(FieldName name,
             const NodeList<Dimension>& nodeList);
-  FieldBase(const FieldBase& fieldBase);
+  SPHERAL_HOST_DEVICE FieldBase(const FieldBase& fieldBase);
   //virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
-  virtual ~FieldBase();
+  SPHERAL_HOST_DEVICE virtual ~FieldBase();
 
   // Assignment operator.
   SPHERAL_HOST_DEVICE virtual FieldBase& operator=(const FieldBase& rhs);
@@ -42,13 +42,13 @@ public:
   virtual bool operator==(const FieldBase& rhs) const = 0;
   bool operator!=(const FieldBase& rhs) const;
 
-  // Access the name.
+  // Access the name
   FieldName name() const;
   void name(FieldName name);
 
   // Provide methods to access and set the NodeList.
   const NodeList<Dimension>& nodeList() const;
-  const NodeList<Dimension>* nodeListPtr() const;
+  SPHERAL_HOST_DEVICE const NodeList<Dimension>* nodeListPtr() const;
   void unregisterNodeList();
 
   // Methods every field must provide.

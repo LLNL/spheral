@@ -78,7 +78,7 @@ public:
   //SPHERAL_HOST virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  SPHERAL_HOST virtual ~Field();
+  SPHERAL_HOST_DEVICE virtual ~Field();
 
   // Assignment operator.
   SPHERAL_HOST_DEVICE virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;

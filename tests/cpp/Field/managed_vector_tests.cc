@@ -4,7 +4,6 @@
 #include "Field/SphArray.hh"
 
 using MVDouble = Spheral::ManagedVector<double>;
-using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
 
 #define assert_empty_map(IGNORED) ASSERT_EQ(chai::ArrayManager::getInstance()->getPointerMap().size(),0)
 
