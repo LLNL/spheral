@@ -49,8 +49,14 @@ set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
 set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
+option(BUILD_SPHERAL_CXX "create a Spheral_CXX static library" ON)
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)
+
+if(BUILD_SPHERAL_CXX AND ENABLE_STATIC_CXXONLY)
+  message(FATAL_ERROR
+    "Cannot have BUILD_SPHERAL_CXX and ENABLE_STATIC_CXXONLY enabled simultaneously")
+endif()
 
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
@@ -176,4 +182,6 @@ if (ENABLE_TESTS)
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
-include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
+if(BUILD_SPHERAL_CXX)
+  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
+endif()

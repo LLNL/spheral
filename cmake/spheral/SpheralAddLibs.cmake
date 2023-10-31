@@ -29,15 +29,28 @@ function(spheral_add_obj_library package_name obj_list_name)
   # For including files in submodules, currently unused
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
-  blt_add_library(NAME Spheral_${package_name}
-    HEADERS     ${${package_name}_headers}
-    SOURCES     ${${package_name}_sources}
-    DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
-    OBJECT      TRUE)
+  if(BUILD_SPHERAL_CXX)
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      OBJECT      TRUE)
+  else()
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      SHARED      TRUE)
+  endif()
   target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
   # Install the headers
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
+
+  if(NOT BUILD_SPHERAL_CXX)
+    install(TARGETS Spheral_${package_name}
+      DESTINATION lib)
+  endif()
 
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
@@ -195,12 +208,19 @@ function(spheral_add_pybind11_library package_name)
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
   get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
+  # If BUILD_SPHERAL_CXX is true, provide the target names
+  if(BUILD_SPHERAL_CXX)
+    set(SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
+  else()
+    # Otherwise, use the SPHERAL_OBJ_LIBS global list
+    get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  endif()
 
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${spheral_depends} ${SPHERAL_BLT_DEPENDS} ${${package_name}_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} Spheral_CXX
+                            DEPENDS         ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} ${SPHERAL_DEPENDS}
                             PYTHONPATH      ${PYTHON_ENV_STR}
                             INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include 
                             LINKS           ${spheral_tpl_libraries}
