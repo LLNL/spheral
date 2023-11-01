@@ -80,7 +80,7 @@ if(axom_FOUND)
   blt_patch_target(NAME ${fmt_name} TREAT_INCLUDES_AS_SYSTEM ON)
 endif()
 # Potential axom dependencies
-list(APPEND AXOM_DEPS umpire RAJA conduit::conduit)
+list(APPEND AXOM_DEPS mfem umpire RAJA conduit::conduit)
 foreach(lib ${AXOM_DEPS})
   if(TARGET ${lib})
     list(APPEND SPHERAL_BLT_DEPENDS ${lib})
