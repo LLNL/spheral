@@ -91,15 +91,9 @@ endforeach()
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
 
-if(ENABLE_ANEOS)
-  list(APPEND SPHERAL_EXTERN_LIBS aneos)
-endif()
-if(ENABLE_OPENSUBDIV)
-  list(APPEND SPHERAL_EXTERN_LIBS opensubdiv)
-endif()
-if(ENABLE_TIMER)
-  list(APPEND SPHERAL_EXTERN_LIBS caliper)
-endif()
+blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
+blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)
+blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS caliper IF ENABLE_TIMER)
 
 # Create and install target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})

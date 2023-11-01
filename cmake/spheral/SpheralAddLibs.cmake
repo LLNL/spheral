@@ -29,25 +29,25 @@ function(spheral_add_obj_library package_name obj_list_name)
   # For including files in submodules, currently unused
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
-  if(BUILD_SPHERAL_CXX)
-    blt_add_library(NAME Spheral_${package_name}
-      HEADERS     ${${package_name}_headers}
-      SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
-      OBJECT      TRUE)
-  else()
+  if(ENABLE_SHARED)
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
       DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
       SHARED      TRUE)
+  else()
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      OBJECT      TRUE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
   # Install the headers
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
 
-  if(NOT BUILD_SPHERAL_CXX)
+  if(ENABLE_SHARED)
     install(TARGETS Spheral_${package_name}
       DESTINATION lib)
   endif()
@@ -90,20 +90,20 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   # For including files in submodules, currently unused
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
-  if(NOT ENABLE_SHARED)
+  if(ENABLE_SHARED)
+    # Build shared spheral C++ library, currently unavailable
+    blt_add_library(NAME Spheral_${package_name}
+      HEADERS     ${${package_name}_headers}
+      SOURCES     ${${package_name}_sources}
+      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      SHARED      TRUE)
+  else()
     # Build static spheral C++ library
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
       DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
       SHARED      FALSE)
-  else()
-    # Build shared spheral C++ library
-    blt_add_library(NAME Spheral_${package_name}
-      HEADERS     ${${package_name}_headers}
-      SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
-      SHARED      TRUE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
   if(ENABLE_CUDA)
@@ -208,12 +208,13 @@ function(spheral_add_pybind11_library package_name)
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
   get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
-  # If BUILD_SPHERAL_CXX is true, provide the target names
-  if(BUILD_SPHERAL_CXX)
-    set(SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
-  else()
-    # Otherwise, use the SPHERAL_OBJ_LIBS global list
+  # If building shared libraries, use the SPHERAL_OBJ_LIBS global list
+  # Note, LLNLSpheral has appended any local targets to this list as well
+  if(ENABLE_SHARED)
     get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+  else()
+    # Otherwise, provide target names
+    set(SPHERAL_DEPENDS ${${package_name}_DEPENDS})
   endif()
 
   set(MODULE_NAME Spheral${package_name})

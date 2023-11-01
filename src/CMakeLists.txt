@@ -61,7 +61,7 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
-if(BUILD_SPHERAL_CXX)
+if(NOT ENABLE_SHARED)
   # Retrieve the global list populated in spheral_obj_add_library
   get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
