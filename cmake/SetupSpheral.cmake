@@ -56,9 +56,6 @@ option(ENABLE_SHARED "Building C++ libs shared" ON)
 if(ENABLE_STATIC_CXXONLY)
   set(ENABLE_CXXONLY ON)
   set(ENABLE_SHARED OFF)
-# Clang compiler fails with ENABLE_DEV_BUILD and shared libraries
-elseif(ENABLE_DEV_BUILD)
-  set(ENABLE_SHARED OFF)
 endif()
 
 if(ENABLE_MPI)
