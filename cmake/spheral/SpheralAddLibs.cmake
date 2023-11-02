@@ -206,7 +206,7 @@ function(spheral_add_pybind11_library package_name)
     get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
   else()
     # Otherwise, provide target names
-    set(SPHERAL_DEPENDS ${${package_name}_DEPENDS})
+    list(APPEND SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
   endif()
 
   set(MODULE_NAME Spheral${package_name})
