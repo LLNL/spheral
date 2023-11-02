@@ -124,47 +124,45 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
 
     # Extract a few constants from the crush curve
     alpha0 = crushCurve.alpha0
+    P0 = Pfunc(alpha0*rho0, eps0)/alpha0
     Pe = crushCurve.Pe
     alphae = crushCurve.alphae
-    ce = crushCurve.ce(alphae)    # Elastic wave speed
+    ce = crushCurve.ce(alpha0)    # Elastic wave speed
 
-    # The Ranking-Hugoniot conservation relations across a shock front (in the frame of the shock)
+    # The Ranking-Hugoniot conservation relations across a shock front in the lab frame.
     class RKjumpRelations:
         def __init__(self, upiston):
             self.upiston = upiston
-        def __call__(self, args):
-            u0, u1, rho1, eps1, alpha1 = args
 
-            # Look up the current pressure and distension
+        def __call__(self, args):
+            us, rho1, eps1, alpha1, ue, rhoe = args
+
+            # Post-shock (region 1) conditions
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = crushCurve(P1)
 
-            # The exact Hugoniot jump conditions depend on what regime of crushing porosity we're in
-            if P1 <= Pe:
-
-                # Elastic regime
-                P0 = Pfunc(alpha0*rho0, eps0)/alpha0
-                rho00 = rho0
-
-            elif abs(u0) < ce:
-
-                # Plastic regime with an elastic wave moving in front of the shock (shock speed slower than elastic wave speed).
-                # In this case the shock is encountering the elastically compressed state rather than virgin state.
-                P0 = Pfunc(alpha0*rho0, eps0)/alphae
-                rho00 = alpha0*rho0/alphae
+            # Is there an elastic region?
+            if us > ce:
+                # Nope, the shock overtakes the elastic region.  This reduces to the standard two region Hugoniot relations.
+                # In this limit rhoe = rho0, ue = u0
+                return np.array([rho0*us - rho1*(us - self.upiston),                             # Conservation of mass across shock
+                                 rho0*us*self.upiston - (P1 - P0),                               # Conservation of momentum across shock
+                                 rho0*us*(eps1 - eps0 + 0.5*self.upiston**2) - P1*self.upiston,  # Conservation of energy across shock
+                                 0.0,                                                            # Conservation of mass across elastic front
+                                 0.0,                                                            # Conservation of momentum across elastic front
+#                                 0.0 +                                                           # Conservation of energy across elastic front
+                                 alpha1 - alpha1_new])                                           # Gotta converge on a post-shock distension
 
             else:
-
-                # The shock speed exceeds the elastic wave speed, so there is no elastic region and we're back to
-                # the shock encountering virgin initial state material
-                P0 = Pfunc(alpha0*rho0, eps0)/alpha0
-                rho00 = rho0
-
-            return np.array([u1 - u0 - self.upiston,
-                             rho1*u1 - rho00*u0,
-                             P1 + rho1*u1*u1 - P0 - rho00*u0*u0,
-                             eps1 + P1/np.maximum(1e-10, rho1) + 0.5*np.square(u1) - eps0 - P0/np.maximum(1.0e-10, rho00) - 0.5*u0*u0,
-                             alpha1 - alpha1_new])
+                # Yep, so we need to solve for the elastic and shock states simultaneously
+                epse = eos.specificThermalEnergyForPressure(alphae*Pe, alphae*rhoe, 0.0, max(eps1, self.upiston**2), 1.0e-10, 1.0e-10, 1000, False)
+                return np.array([rhoe*us - rho1*(us - self.upiston),                             # Conservation of mass across shock
+                                 rhoe*us*self.upiston - (P1 - Pe),                               # Conservation of momentum across shock
+                                 rhoe*us*(eps1 - epse + 0.5*self.upiston**2) - P1*self.upiston,  # Conservation of energy across shock
+                                 rho0*ce - rhoe*(ce - us) - rho1*(us - self.upiston),            # Conservation of mass across elastic front
+                                 rhoe*(ce - us)*ue - (Pe - P0),                                  # Conservation of momentum across elastic front
+#                                 rhoe*(ce - us)*(epse - eps0 + 0.5*ue*ue) - Pe*us +              # Conservation of energy across elastic front
+                                 alpha1 - alpha1_new])                                           # Gotta converge on a post-shock distension
 
     # Prepare to return the arrays of values.  We return these in the same frame as the piston velocity was given, so presumably lab
     # e => elastic region
@@ -173,25 +171,24 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
     UE, RHOE, EPSE, PE, ALPHAE = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
     for i in range(n):
         up = i*dupiston if n > 1 else upiston
-        last_guess = (-1.5*up, -0.5*up, 2.0*rho0, 0.5*up*up, alpha0)
+        last_guess = (1.5*up, 2.0*rho0, 0.5*up*up, 1.0, 0.5*up, alpha0/alphae*rho0)
+        #last_guess = (-1.5*up, -0.5*up, 2.0*rho0, 0.5*up*up, alpha0)
         current_solution = scipy.optimize.fsolve(RKjumpRelations(up), last_guess, full_output = True)
         #print("current_solution: ", current_solution)
 
         # The shock speed vs. the elastic wave speed tells us if we have an elastic compaction region
         # ahead of the shock or not.
-        u0, u1, rho1, eps1, alpha1 = current_solution[0]
-        print("              up: ", up, u1 - u0)
-        assert relativeDiff(u1 - u0, up) < 1.0e-5, current_solution
-        US[i] = -u0
+        us, rho1, eps1, alpha1, ue, rhoe = current_solution[0]
+        US[i] = us
         RHOS[i] = rho1
         EPSS[i] = eps1
         PS[i] = Pfunc(alpha1*rho1, eps1)/alpha1
         ALPHAS[i] = alpha1
         if US[i] < ce:
-            UE[i] = ce
-            RHOE[i] = alpha0/alphae*rho0
-            EPSE[i] = eps0
-            PE[i] = Pfunc(alpha0*alpha0/alphae*rho0, eps0)/alphae
+            UE[i] = ue
+            RHOE[i] = rhoe
+            EPSE[i] = eos.specificThermalEnergyForPressure(alphae*Pe, alphae*rhoe, 0.0, eps1, 1.0e-10, 1.0e-10, 1000, False)
+            PE[i] = Pe
             ALPHAE[i] = alphae
         else:
             UE[i] = 0.0
@@ -257,15 +254,16 @@ class PlanarCompactionSolution:
 
         # Compute the shock jump conditions
         us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), self.crushCurve, n=1)
+        ce = self.crushCurve.ce(self.alpha0)
         xs = 1.0 - us*t    # position of the shock
-        xe = 1.0 - ue*t    # position of the elastic wave
+        xe = 1.0 - ce*t    # position of the elastic wave
 
         # Conditions behind shock
         v1 = -self.vpiston
         h1 = self.h0 * self.rho0/rhos
 
         # Conditions behind the elastic wave
-        v2 = -ue*(1.0 - alphae/self.alpha0)
+        v2 = -ue
         h2 = self.h0 * self.rho0/rhoe
         
         return us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2
@@ -385,6 +383,7 @@ if __name__ == "__main__":
                                         cS0,
                                         c0)
     x, v, eps, rho, P, h = solution.solution(t=3.5)
+    xx, alpha = solution.alpha_solution(t=3.5)
     def plotIt(x, y, label, ylog=False):
         fig = newFigure()
         if ylog:
@@ -398,5 +397,6 @@ if __name__ == "__main__":
     plotIt(x, eps, r"$\varepsilon$")
     plotIt(x, rho, r"$\rho$")
     plotIt(x, P, r"$P$", True)
+    plotIt(x, alpha, r"$\alpha$")
 
     
