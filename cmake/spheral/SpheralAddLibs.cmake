@@ -47,7 +47,7 @@ function(spheral_add_obj_library package_name obj_list_name)
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
 
-  if(ENABLE_SHARED)
+  if(ENABLE_DEV_BUILD)
     install(TARGETS Spheral_${package_name}
       DESTINATION lib)
   endif()
@@ -210,7 +210,7 @@ function(spheral_add_pybind11_library package_name)
   get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
   # If building shared libraries, use the SPHERAL_OBJ_LIBS global list
   # Note, LLNLSpheral has appended any local targets to this list as well
-  if(ENABLE_SHARED)
+  if(ENABLE_DEV_BUILD)
     get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
   else()
     # Otherwise, provide target names
