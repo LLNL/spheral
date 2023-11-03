@@ -135,11 +135,14 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             self.upiston = upiston
 
         def __call__(self, args):
-            us, rho1, eps1, alpha1, ue, rhoe = args
+            us, rho1, eps1, alpha1, ue, rhoe, epse = args
 
             # Post-shock (region 1) conditions
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = crushCurve(P1)
+
+            # Elastic (region 2) pressure
+            Pe_new = Pfunc(alphae*rhoe, epse)/alphae
 
             # Is there an elastic region?
             if us > ce:
@@ -150,18 +153,20 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
                                  rho0*us*(eps1 - eps0 + 0.5*self.upiston**2) - P1*self.upiston,  # Conservation of energy across shock
                                  0.0,                                                            # Conservation of mass across elastic front
                                  0.0,                                                            # Conservation of momentum across elastic front
-#                                 0.0 +                                                           # Conservation of energy across elastic front
+                                 0.0,                                                            # Elastic region pressure
                                  alpha1 - alpha1_new])                                           # Gotta converge on a post-shock distension
 
             else:
                 # Yep, so we need to solve for the elastic and shock states simultaneously
                 epse = eos.specificThermalEnergyForPressure(alphae*Pe, alphae*rhoe, 0.0, max(eps1, self.upiston**2), 1.0e-10, 1.0e-10, 1000, False)
+                Pe_new
                 return np.array([rhoe*us - rho1*(us - self.upiston),                             # Conservation of mass across shock
                                  rhoe*us*self.upiston - (P1 - Pe),                               # Conservation of momentum across shock
-                                 rhoe*us*(eps1 - epse + 0.5*self.upiston**2) - P1*self.upiston,  # Conservation of energy across shock
+                                 rhoe*us*(eps1 - epse + 0.5*self.upiston**2) +                   # Conservation of energy
+                                 rhoe*(ce - us)*(epse - eps0 + 0.5*ue*ue) - P1*self.upiston,
                                  rho0*ce - rhoe*(ce - us) - rho1*(us - self.upiston),            # Conservation of mass across elastic front
                                  rhoe*(ce - us)*ue - (Pe - P0),                                  # Conservation of momentum across elastic front
-#                                 rhoe*(ce - us)*(epse - eps0 + 0.5*ue*ue) - Pe*us +              # Conservation of energy across elastic front
+                                 Pe - Pe_new,                                                    # Elastic region pressure
                                  alpha1 - alpha1_new])                                           # Gotta converge on a post-shock distension
 
     # Prepare to return the arrays of values.  We return these in the same frame as the piston velocity was given, so presumably lab
@@ -171,14 +176,13 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
     UE, RHOE, EPSE, PE, ALPHAE = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
     for i in range(n):
         up = i*dupiston if n > 1 else upiston
-        last_guess = (1.5*up, 2.0*rho0, 0.5*up*up, 1.0, 0.5*up, alpha0/alphae*rho0)
-        #last_guess = (-1.5*up, -0.5*up, 2.0*rho0, 0.5*up*up, alpha0)
+        last_guess = (1.5*up, 2.0*rho0, 0.5*up*up, 1.0, 0.5*up, alpha0/alphae*rho0, eps0)
         current_solution = scipy.optimize.fsolve(RKjumpRelations(up), last_guess, full_output = True)
         #print("current_solution: ", current_solution)
 
         # The shock speed vs. the elastic wave speed tells us if we have an elastic compaction region
         # ahead of the shock or not.
-        us, rho1, eps1, alpha1, ue, rhoe = current_solution[0]
+        us, rho1, eps1, alpha1, ue, rhoe, epse = current_solution[0]
         US[i] = us
         RHOS[i] = rho1
         EPSS[i] = eps1
@@ -187,7 +191,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
         if US[i] < ce:
             UE[i] = ue
             RHOE[i] = rhoe
-            EPSE[i] = eos.specificThermalEnergyForPressure(alphae*Pe, alphae*rhoe, 0.0, eps1, 1.0e-10, 1.0e-10, 1000, False)
+            EPSE[i] = epse  # eos.specificThermalEnergyForPressure(alphae*Pe, alphae*rhoe, 0.0, eps1, 1.0e-10, 1.0e-10, 1000, False)
             PE[i] = Pe
             ALPHAE[i] = alphae
         else:
