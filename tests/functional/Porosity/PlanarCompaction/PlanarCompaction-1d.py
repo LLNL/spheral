@@ -449,6 +449,11 @@ if graphics:
                epsPlot = uPlot,
                PPlot = PPlot,
                HPlot = hPlot)
+    x, cs_solution = solution.soundSpeed_solution(control.time())
+    csPlot.plot(x, cs_solution,
+                "k-",
+                label = "Solution")
+    csPlot.axes.legend()
     x, alpha_solution = solution.alpha_solution(control.time())
     alphaPlot.plot(x, alpha_solution,
                    "k-",

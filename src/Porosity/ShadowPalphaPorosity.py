@@ -69,8 +69,7 @@ def _PalphaPorosityFactory(ndim):
 
             # Now find alphae = alpha(Pe)
             if Pe > 0.0:
-                rhoS0 = rho0/alpha0
-                K0 = rhoS0*cS0*cS0
+                K0 = rho0*cS0*cS0
                 alphae = alpha0   # Starting point
                 last_alphae = 0.0
                 iter = 0
@@ -81,8 +80,8 @@ def _PalphaPorosityFactory(ndim):
                     iter += 1
                     last_alphae = alphae
                     print(" --> ", iter, alphae, c0min, cS0, K0)
-                    alphae = scipy.integrate.solve_ivp(self.DalphaDP_elastic,
-                                                       args = (c0min, cS0, K0, alphae),
+                    alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
+                                                       #args = (c0min, cS0, K0, alphae),
                                                        t_span = [0.0, Pe],
                                                        y0 = [alpha0],
                                                        t_eval = [Pe]).y[0][0]
