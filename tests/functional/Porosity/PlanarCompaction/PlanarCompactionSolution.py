@@ -156,7 +156,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
 
                 return np.array([rho2*us - m1,                                                   # Conservation of mass across shock
                                  rho0*ce - m2 - m1,                                              # Conservation of mass total
-                                 m1*self.upiston - (P1 - P2),                                    # Conservation of momentum across shock
+                                 m1*(self.upiston - u2) - (P1 - P2),                             # Conservation of momentum across shock
                                  m1*self.upiston + m2*u2 - (P1 - P0),                            # Conservation of momentum total
                                  m1*(eps1 - eps2 + 0.5*self.upiston**2) +                        # Conservation of energy total
                                  m2*(eps2 - eps0 + 0.5*u2*u2) - P1*self.upiston,
@@ -166,15 +166,14 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             else:
                 # Nope, the shock overtakes the elastic region.  This reduces to the standard two region Hugoniot relations.
                 # Post-shock (region 1) conditions
-                #raise RuntimeError("Stop me!")
                 P1 = Pfunc(alpha1*rho1, eps1)/alpha1
                 alpha1_new = crushCurve(P1)
                 m1 = rho1*(us - self.upiston)    # Actually mass/time
 
                 return np.array([rho0*us - m1,                                                   # Conservation of mass across shock
-                                 0.0,                                                            # Conservation of mass total
+                                 rho0*us - m1,                                                   # Conservation of mass total
                                  m1*self.upiston - (P1 - P0),                                    # Conservation of momentum across shock
-                                 0.0,                                                            # Conservation of momentum total
+                                 m1*self.upiston - (P1 - P0),                                    # Conservation of momentum total
                                  m1*(eps1 - eps0 + 0.5*self.upiston**2) - P1*self.upiston,       # Conservation of energy total
                                  0.0,                                                            # Elastic pressure
                                  alpha1 - alpha1_new])                                           # Gotta converge on a post-shock distension
@@ -215,7 +214,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
                                                       (eps0, np.inf)]) # epse
                                                       
         print("opt_guess: ", opt_guess)
-        solution = scipy.optimize.fsolve(hugoniot, opt_guess.x, full_output = True)
+        solution = scipy.optimize.fsolve(hugoniot, opt_guess.x, xtol = 1.0e-10, full_output = True)
 
         print("--------------------------------------------------------------------------------")
         print("wild_guess: ", wild_guess)
@@ -391,6 +390,12 @@ class PlanarCompactionSolution:
         
         # Get the current regional properties
         us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2 = self.waveProperties(t)
+        def _soundSpeed(rhoi, epsi, alphai):
+            cS0 = self.eos.soundSpeed(rhoi/alphai, epsi)
+            return cS0 + (alphai - 1.0)/(self.alpha0 - 1.0)*(self.crushCurve.c0 - cS0)
+        c_s = _soundSpeed(rhos, epss, alphas)
+        c_e = _soundSpeed(rhoe, epse, alphae)
+        c_0 = self.crushCurve.c0
 
         # Did the user specify the x positions?
         if x is None:
@@ -402,11 +407,11 @@ class PlanarCompactionSolution:
         cs = np.zeros(n)
         for i in range(n):
             if x[i] >= xs:
-                cs[i] = self.crushCurve.h(alphas) * self.eos.soundSpeed(rhos/alphas, epss)
+                cs[i] = c_s
             elif x[i] >= xe:
-                cs[i] = self.crushCurve.h(alphae) * self.eos.soundSpeed(rhoe/alphae, epse)
+                cs[i] = c_e
             else:
-                cs[i] = self.crushCurve.ce(self.alpha0)
+                cs[i] = c_0
 
         # In the piston frame we actually look like the fluid is flowing into a stationary wall
         if self.pistonFrame:
