@@ -79,13 +79,13 @@ def _PalphaPorosityFactory(ndim):
                 while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
                     iter += 1
                     last_alphae = alphae
-                    print(" --> ", iter, alphae, c0min, cS0, K0)
+                    #print(" --> ", iter, alphae, c0min, cS0, K0)
                     alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
                                                        #args = (c0min, cS0, K0, alphae),
                                                        t_span = [0.0, Pe],
                                                        y0 = [alpha0],
                                                        t_eval = [Pe]).y[0][0]
-                print("alphae: ", alphae, last_alphae, iter)
+                #print("alphae: ", alphae, last_alphae, iter)
             else:
                 alphae = alpha0
 
