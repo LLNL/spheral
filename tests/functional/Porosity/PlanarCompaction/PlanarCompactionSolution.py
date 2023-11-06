@@ -51,12 +51,10 @@ class PalphaCrushCurve:
         while abs(self.alphae - last_alphae) > 1.0e-15 and iter < 1000:
             iter += 1
             last_alphae = self.alphae
-            print(" --> ", iter, self.alphae, self.c0, self.cS0, self.K0)
             self.alphae = scipy.integrate.solve_ivp(self.Dalpha_elasticDP,
                                                     t_span = [self.P0, self.Pe],
                                                     y0 = [self.alpha0],
                                                     t_eval = [self.Pe]).y[0][0]
-        print("alphae: ", self.alphae, last_alphae, iter)
 
         if self.alphat is None:
             self.alphat = self.alphae    # Reduces to Eq 8 in Jutzi 2008
@@ -260,46 +258,46 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             #       "                   epss = ", epss, "\n",
             #       "                 alphas = ", alphas)
 
-    # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
-    # elastic region
-    if us >= ce:
-        RKfunc = RankineHugoniotJumpRelations(upiston, 0.0, rho0, eps0, P0, alpha0, crushCurve)
-        wild_guess = (1.5*upiston, 2.0*rhoe, 0.5*upiston**2, 1.0)
-        opt_guess = scipy.optimize.minimize(RKfunc.norm,
-                                            x0 = wild_guess,
-                                            bounds = [(0.0, np.inf),      # us
-                                                      (rho0, np.inf),     # rhos
-                                                      (eps0, np.inf),     # epss
-                                                      (1.0, alpha0)])     # alphas
-        solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = 1.0e-10, full_output = True)
-        us, rhos, epss, alphas = solution[0]
-        # print("  Shock conditions:  us = ", us, "\n",
-        #       "                   rhos = ", rhos, "\n",
-        #       "                   epss = ", epss, "\n",
-        #       "                 alphas = ", alphas)
-        
-        US[i] = us
-        RHOS[i] = rhos
-        EPSS[i] = epss
-        PS[i] = Pfunc(alphas*rhos, epss)/alphas
-        ALPHAS[i] = alphas
+            # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
+            # elastic region
+            if us >= ce:
+                RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve)
+                wild_guess = (1.5*up, 2.0*rhoe, 0.5*up**2, 1.0)
+                opt_guess = scipy.optimize.minimize(RKfunc.norm,
+                                                    x0 = wild_guess,
+                                                    bounds = [(0.0, np.inf),      # us
+                                                              (rho0, np.inf),     # rhos
+                                                              (eps0, np.inf),     # epss
+                                                              (1.0, alpha0)])     # alphas
+                solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = 1.0e-10, full_output = True)
+                us, rhos, epss, alphas = solution[0]
+                # print("  Shock conditions:  us = ", us, "\n",
+                #       "                   rhos = ", rhos, "\n",
+                #       "                   epss = ", epss, "\n",
+                #       "                 alphas = ", alphas)
 
-    else:
+                US[i] = us
+                RHOS[i] = rhos
+                EPSS[i] = epss
+                PS[i] = Pfunc(alphas*rhos, epss)/alphas
+                ALPHAS[i] = alphas
 
-        # There is both an elastic wave and shocked region
-        US[i] = us
-        RHOS[i] = rhos
-        EPSS[i] = epss
-        PS[i] = Pfunc(alphas*rhos, epss)/alphas
-        ALPHAS[i] = alphas
-        UE[i] = upe
-        RHOE[i] = rhoe
-        EPSE[i] = epse
-        PE[i] = Pe
-        ALPHAE[i] = alphae
+            else:
+
+                # There is both an elastic wave and shocked region
+                US[i] = us
+                RHOS[i] = rhos
+                EPSS[i] = epss
+                PS[i] = Pfunc(alphas*rhos, epss)/alphas
+                ALPHAS[i] = alphas
+                UE[i] = upe
+                RHOE[i] = rhoe
+                EPSE[i] = epse
+                PE[i] = Pe
+                ALPHAE[i] = alphae
 
     result = US, RHOS, EPSS, PS, ALPHAS, UE, RHOE, EPSE, PE, ALPHAE
-    if len(result[0] == 1):
+    if n == 1:
         return [x[0] for x in result]
     else:
         return result
@@ -516,19 +514,25 @@ if __name__ == "__main__":
                                         c0)
     x, v, eps, rho, P, h = solution.solution(t=3.5)
     xx, alpha = solution.alpha_solution(t=3.5)
-    def plotIt(x, y, label, ylog=False):
+    def plotIt(x, y, ylabel, xlabel=r"$x$", ylog=False, title=None, style="k-"):
         fig = newFigure()
         if ylog:
-            fig.semilogy(x, y, "k-")
+            fig.semilogy(x, y, style)
         else:
-            fig.plot(x, y, "k-")
-        fig.set_xlabel(r"$x$")
-        fig.set_ylabel(label)
-        fig.set_title(label)
+            fig.plot(x, y, style)
+        fig.set_xlabel(xlabel)
+        fig.set_ylabel(ylabel)
+        if title:
+            fig.set_title(title)
+        else:
+            fig.set_title(ylabel)
+        return
     plotIt(x, v, r"$v$")
     plotIt(x, eps, r"$\varepsilon$")
     plotIt(x, rho, r"$\rho$")
     plotIt(x, P, r"$P$", True)
     plotIt(x, alpha, r"$\alpha$")
 
-    
+    # Plot the actual Hugoniot curves
+    us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve)
+    plotIt(np.maximum(rhos, rhoe), np.maximum(Ps, Pe), xlabel=r"$\rho$ (g/cc)", ylabel="$P$ (Mbar)", title=r"$\rho$-$P$ shock Hugoniot", style="ro-")
