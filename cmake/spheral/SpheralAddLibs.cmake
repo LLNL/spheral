@@ -90,7 +90,7 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   get_property(SPHERAL_SUBMOD_INCLUDES GLOBAL PROPERTY SPHERAL_SUBMOD_INCLUDES)
 
   if(ENABLE_SHARED)
-    # Build shared spheral C++ library, currently unavailable
+    # Build shared spheral C++ library
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
