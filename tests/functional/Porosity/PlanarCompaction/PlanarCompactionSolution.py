@@ -161,7 +161,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = self.alphaPfunc(P1)
             m1 = rho1*(us - self.upiston)       # mass/time
-            return np.array([self.rho0*us - m1,                                                                          # Conservation of mass
+            return np.array([self.rho0*(us - self.u0) - m1,                                                              # Conservation of mass
                              m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
                              m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
                              alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
