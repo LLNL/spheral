@@ -155,12 +155,12 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             return
 
         def __call__(self, args):
-            us, rho1, eps1, alpha1 = args
+            us, eps1, alpha1 = args
+            m1 = self.rho0*(us - self.u0)            # mass/time
+            rho1 = m1/max(1e-100, us - self.upiston)
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = self.alphaPfunc(P1)
-            m1 = rho1*(us - self.upiston)       # mass/time
-            return np.array([self.rho0*(us - self.u0) - m1,                                                              # Conservation of mass
-                             m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
+            return np.array([m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
                              m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
                              alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
 
@@ -172,47 +172,29 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
     # but does not create a shock. This is denoted upe.
     #   Known: Pe, ce, alphae
     # Unknown: ue, rhoe, epse, upe
-
-    xtol = 1.0e-15
-
     # Solve for upe
+    xtol = 1.0e-15
     def elasticLimitConditions(upi):
+        m1 = rho0*ce
+        rho1 = m1/max(1.0e-100, ce - upi)
+        eps1 = eps0 - 0.5*upi*upi + (Pe - P0)*upi/m1
+        P1 = Pfunc(alphae*rho1, eps1)/alphae
+        return P1 - Pe
 
-        # Solve for the jump conditions at this piston speed
-        RKfunc = RankineHugoniotJumpRelations(upi, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic)
-        wild_guess = (1.5*upi, 2.0*rho0, 0.5*upi**2, alpha0)
-        # opt_guess = scipy.optimize.minimize(RKfunc.norm,
-        #                                     x0 = wild_guess,
-        #                                     bounds = [(0.5*ce, 1.5*ce),       # us (ce)
-        #                                               (rho0, 2.0*rho0),       # rho1
-        #                                               (eps0, 4.0*upi**2),     # eps1
-        #                                               (1.0, alpha0)])         # alpha1
-        solution = scipy.optimize.fsolve(RKfunc, wild_guess, xtol = xtol, full_output = True)
-        us, rho1, eps1, alpha1 = solution[0]
-        P1 = Pfunc(alpha1*rho1, eps1)/alpha1
-        return (us/ce - 1.0)**2 + (P1/Pe - 1.0)**2 + (alpha1/alphae - 1.0)**2
-
-    stuff = scipy.optimize.minimize_scalar(elasticLimitConditions, bracket = (0.0, upiston), tol = 1e-20)
-    upe = stuff.x
+    # Find the critical piston velocity that just gives us the elastic wave conditions
+    stuff = scipy.optimize.root_scalar(elasticLimitConditions, bracket = (0.0, ce))
+    upe = stuff.root
     # print("Found elastic limit piston velocity upe: ", upe, "\n", stuff)
 
-    # With upe recover the full elastic limit conditions
-    RKfunc = RankineHugoniotJumpRelations(upe, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic)
-    wild_guess = (ce, 2.0*rho0, 0.5*upe**2, alphae)
-    opt_guess = scipy.optimize.minimize(RKfunc.norm,
-                                        x0 = wild_guess,
-                                        bounds = [(0.99*ce, 1.01*ce),           # ce
-                                                  (rho0, 2.0*rho0),             # rhoe
-                                                  (eps0, 2.0*upiston**2),       # epse
-                                                  (0.99*alphae, 1.01*alphae)])  # alphae
-    solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-    u1, rhoe, epse, alpha1 = solution[0]
-    # print("Elastic conditions:  ce = ", ce, u1, abs(u1 - ce)/ce, "\n",
+    # With upe, recover the full elastic limit conditions
+    rhoe = rho0*ce/(ce - upe)
+    epse = eps0 - 0.5*upe*upe + (Pe - P0)*upe/(rho0*ce)
+    # print("Elastic conditions:  ce = ", ce, "\n",
     #       "                   rhoe = ", rhoe, "\n",
     #       "                   epse = ", epse, "\n",
     #       "                     Pe = ", Pe, Pfunc(alphae*rhoe, epse)/alphae, abs(Pfunc(alphae*rhoe, epse)/alphae - Pe)/Pe, "\n",
-    #       "                 alphae = ", alphae, alpha1, abs(alpha1 - alphae)/alphae)
-    # print("Elastic opt_guess was ", opt_guess)
+    #       "                 alphae = ", alphae, "\n",
+    #       "                    upe = ", upe)
 
     # Prepare to return the arrays of values.  We return these in the same frame as the piston velocity was given, so presumably lab
     # e => elastic region
@@ -225,16 +207,17 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
         if up <= upe:
 
             # There is no shock, just the elastic wave
+            # print("NO SHOCK -- ELASTIC WAVE ONLY")
             RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve)
-            wild_guess = (1.5*up, 2.0*rho0, 0.5*up**2, 1.0 + 0.5*(alpha0 - 1.0))
+            wild_guess = (1.5*up, 0.5*up**2, 1.0 + 0.5*(alpha0 - 1.0))
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
                                                 bounds = [(0.0, ce),        # u
-                                                          (rho0, rhoe),     # rho
                                                           (eps0, epse),     # eps
                                                           (1.0, alphae)])   # alpha
             solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-            u1, rho1, eps1, alpha1 = solution[0]
+            u1, eps1, alpha1 = solution[0]
+            rho1 = rho0*u1/(u1 - up)
             UE[i] = u1
             RHOE[i] = rho1
             EPSE[i] = eps1
@@ -252,15 +235,15 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             # Now we have the full elastic wave properties, so solve for the shock jump conditions encountering the
             # post-elastic wave initial conditions.
             RKfunc = RankineHugoniotJumpRelations(up, upe, rhoe, epse, Pe, alphae, crushCurve)
-            wild_guess = (1.5*up, 2.0*rhoe, 0.5*up**2, 1.0)
+            wild_guess = (1.5*up, 0.5*up**2, 1.0)
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
                                                 bounds = [(0.0, 2.0*up),      # us
-                                                          (rho0, 10.0*rhoe),  # rhos
                                                           (0.0, 2.0*up*up),   # epss
                                                           (1.0, alphae)])     # alphas
             solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-            us, rhos, epss, alphas = solution[0]
+            us, epss, alphas = solution[0]
+            rhos = rhoe*(us - upe)/(us - up)
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
             #       "                   epss = ", epss, "\n",
@@ -269,16 +252,17 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
             # elastic region
             if us >= ce:
+                # print("NO ELASTIC WAVE -- SHOCK SOLUTION ONLY")
                 RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve)
-                wild_guess = (1.5*up, 2.0*rhoe, 0.5*up**2, 1.0)
+                wild_guess = (1.5*up, 0.5*up**2, 1.0)
                 opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                     x0 = wild_guess,
                                                     bounds = [(0.0, 2.0*up),      # us
-                                                              (rho0, 10.0*rhoe),  # rhos
                                                               (0.0, 2.0*up*up),   # epss
                                                               (1.0, alpha0)])     # alphas
                 solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-                us, rhos, epss, alphas = solution[0]
+                us, epss, alphas = solution[0]
+                rhos = rho0*us/(us - up)
                 # print("  Shock conditions:  us = ", us, "\n",
                 #       "                   rhos = ", rhos, "\n",
                 #       "                   epss = ", epss, "\n",
@@ -293,6 +277,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             else:
 
                 # There is both an elastic wave and shocked region
+                # print("SHOCK AND ELASTIC REGION")
                 US[i] = us
                 RHOS[i] = rhos
                 EPSS[i] = epss
