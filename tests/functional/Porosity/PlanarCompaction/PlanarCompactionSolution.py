@@ -208,15 +208,15 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
 
             # There is no shock, just the elastic wave
             # print("NO SHOCK -- ELASTIC WAVE ONLY")
-            RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve)
-            wild_guess = (1.5*up, 0.5*up**2, 1.0 + 0.5*(alpha0 - 1.0))
+            RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic)
+            wild_guess = (1.5*up, 0.5*up**2, 1.0 + 0.5*(alphae - 1.0))
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
                                                 bounds = [(0.0, ce),        # u
                                                           (eps0, epse),     # eps
                                                           (1.0, alphae)])   # alpha
-            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-            u1, eps1, alpha1 = solution[0]
+            #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+            u1, eps1, alpha1 = opt_guess.x  #solution[0]
             rho1 = rho0*u1/(u1 - up)
             UE[i] = u1
             RHOE[i] = rho1
@@ -241,8 +241,8 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
                                                 bounds = [(0.0, 2.0*up),      # us
                                                           (0.0, 2.0*up*up),   # epss
                                                           (1.0, alphae)])     # alphas
-            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-            us, epss, alphas = solution[0]
+            #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+            us, epss, alphas = opt_guess.x # solution[0]
             rhos = rhoe*(us - upe)/(us - up)
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
@@ -260,8 +260,8 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
                                                     bounds = [(0.0, 2.0*up),      # us
                                                               (0.0, 2.0*up*up),   # epss
                                                               (1.0, alpha0)])     # alphas
-                solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, xtol = xtol, full_output = True)
-                us, epss, alphas = solution[0]
+                #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+                us, epss, alphas = opt_guess.x # solution[0]
                 rhos = rho0*us/(us - up)
                 # print("  Shock conditions:  us = ", us, "\n",
                 #       "                   rhos = ", rhos, "\n",
