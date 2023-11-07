@@ -57,7 +57,7 @@ public:
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
                  const double c0,                                 // Reference sound speed at initial porosity
-                 const double rho0);                              // Reference solid density
+                 const double rhoS0);                             // Reference solid density
 
   PalphaPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                  const Field<Dimension, Scalar>& phi0,            // Initial porosity
@@ -70,7 +70,7 @@ public:
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
                  const Field<Dimension, Scalar>& c0,              // Reference sound speed at initial porosity
-                 const double rho0);                              // Reference solid density
+                 const double rhoS0);                             // Reference solid density
 
   virtual ~PalphaPorosity();
 
@@ -117,7 +117,7 @@ public:
   double alphat() const;
   double n1() const;
   double n2() const;
-  double rho0() const;
+  double rhoS0() const;
   double cS0() const;
   double K0() const;
   double fdt() const;
@@ -138,7 +138,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRho0, mcS0, mK0, mfdt;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRhoS0, mcS0, mK0, mfdt;
   mutable double mMaxAbsDalphaDt;
   const SolidNodeList<Dimension>& mNodeList;
   Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mdPdU, mdPdR;

@@ -37,7 +37,8 @@ def _PalphaPorosityFactory(ndim):
                      n2,
                      cS0,
                      c0,
-                     rho0 = None):
+                     rhoS0 = None,
+                     alphae = None):
             """Construct a P-alpha porosity model.  Valid arguments are
 
   * nodeList: the solid NodeList whose nodes this porosity model will apply to
@@ -50,12 +51,13 @@ def _PalphaPorosityFactory(ndim):
   *       n2: (scalar) Fitted exponent for plastic distention evolution
   *      cS0: (scalar) Reference sound speed at full density
   *       c0: (scalar or Field) Reference sound speed at initial porosity
-  *     rho0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
+  *    rhoS0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
+  *   alphae: (scalar or None) Elastic transition distension. If None, then iteratively solved for.
 """
 
-            if rho0 is None:
+            if rhoS0 is None:
                 try:
-                    rho0 = nodeList.equationOfState().referenceDensity
+                    rhoS0 = nodeList.equationOfState().referenceDensity
                 except:
                     raise RuntimeError("Unable to extract reference density for PalphaPorosity")
 
@@ -68,26 +70,27 @@ def _PalphaPorosityFactory(ndim):
                 c0min = c0
 
             # Now find alphae = alpha(Pe)
-            if Pe > 0.0:
-                K0 = rho0*cS0*cS0
-                alphae = alpha0   # Starting point
-                last_alphae = 0.0
-                iter = 0
-                def DalphaDP_elastic(P, alpha):
-                    h = 1.0 + (alpha - 1.0)*(c0min - cS0)/(cS0*(alphae - 1.0))
-                    return alpha*alpha/K0*(1.0 - 1.0/(h*h))
-                while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
-                    iter += 1
-                    last_alphae = alphae
-                    #print(" --> ", iter, alphae, c0min, cS0, K0)
-                    alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
-                                                       #args = (c0min, cS0, K0, alphae),
-                                                       t_span = [0.0, Pe],
-                                                       y0 = [alpha0],
-                                                       t_eval = [Pe]).y[0][0]
-                #print("alphae: ", alphae, last_alphae, iter)
-            else:
-                alphae = alpha0
+            if alphae is None:
+                if Pe > 0.0:
+                    K0 = rhoS0*cS0*cS0
+                    alphae = alpha0   # Starting point
+                    last_alphae = 0.0
+                    iter = 0
+                    def DalphaDP_elastic(P, alpha):
+                        h = 1.0 + (alpha - 1.0)*(c0min - cS0)/(cS0*(alphae - 1.0))
+                        return alpha*alpha/K0*(1.0 - 1.0/(h*h))
+                    while abs(alphae - last_alphae) > 1.0e-10 and iter < 1000:
+                        iter += 1
+                        last_alphae = alphae
+                        #print(" --> ", iter, alphae, c0min, cS0, K0)
+                        alphae = scipy.integrate.solve_ivp(DalphaDP_elastic,
+                                                           #args = (c0min, cS0, K0, alphae),
+                                                           t_span = [0.0, Pe],
+                                                           y0 = [alpha0],
+                                                           t_eval = [Pe]).y[0][0]
+                    #print("alphae: ", alphae, last_alphae, iter)
+                else:
+                    alphae = alpha0
 
             if alphat is None:
                 alphat = alphae    # Reduces the plastic crush curve to Eq. 8 from Jutzi 2008
@@ -109,7 +112,7 @@ def _PalphaPorosityFactory(ndim):
                                        n2 = n2,
                                        cS0 = cS0,
                                        c0 = c0,
-                                       rho0 = rho0)
+                                       rhoS0 = rhoS0)
             return
     
         #-----------------------------------------------------------------------

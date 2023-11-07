@@ -51,7 +51,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                n2 = "const double",
                cS0 = "const double",
                c0 = "const double",
-               rho0 = "const double"):
+               rhoS0 = "const double"):
         """Constructor parameters:
         nodeList:        The SolidNodeList we're going apply to
         phi0:            Initial porosity (single value)
@@ -64,7 +64,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         n2:              Fitted exponent for plastic distention evolution
         cS0:             Reference sound speed at full density
         c0:              Reference sound speed at initial porosity
-        rho0:            Reference solid density"""
+        rhoS0:           Reference solid density"""
 
     def pyinit1(self,
                 nodeList = "const SolidNodeList<%(Dimension)s>&",
@@ -78,7 +78,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 n2 = "const double",
                 cS0 = "const double",
                 c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
-                rho0 = "const double"):
+                rhoS0 = "const double"):
         """Constructor parameters:
         nodeList:        The SolidNodeList we're going apply to
         phi0:            Initial porosity (field of values)
@@ -91,7 +91,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         n2:              Fitted exponent for plastic distention evolution
         cS0:             Reference sound speed at full density
         c0:              Reference sound speed at initial porosity
-        rho0:            Reference solid density"""
+        rhoS0:           Reference solid density"""
 
     #...........................................................................
     # Virtual methods
@@ -119,7 +119,7 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     n2 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     cS0 = PYB11property(doc="Reference sound speed at full density")
     K0 = PYB11property()
-    rho0 = PYB11property(doc="Reference solid density")
+    rhoS0 = PYB11property(doc="Reference solid density")
     fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
     maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
     nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal")

@@ -53,7 +53,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double n2,
                const double cS0,
                const double c0,
-               const double rho0):
+               const double rhoS0):
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
@@ -62,9 +62,9 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
-  mRho0(rho0),
+  mRhoS0(rhoS0),
   mcS0(cS0),
-  mK0(rho0*cS0*cS0),
+  mK0(rhoS0*cS0*cS0),
   mMaxAbsDalphaDt(0.0),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList, c0),
@@ -101,7 +101,7 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double n2,
                const double cS0,
                const Field<Dimension, Scalar>& c0,
-               const double rho0):
+               const double rhoS0):
   Physics<Dimension>(),
   mPe(Pe),
   mPt(Pt),
@@ -110,9 +110,9 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
-  mRho0(rho0),
+  mRhoS0(rhoS0),
   mcS0(cS0),
-  mK0(rho0*cS0*cS0),
+  mK0(rhoS0*cS0*cS0),
   mMaxAbsDalphaDt(0.0),
   mNodeList(nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList),
@@ -208,7 +208,7 @@ evaluateDerivatives(const Scalar time,
           // Elastic
           if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
             const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
-            DalphaDpi = alphai*alphai/(mcS0*mcS0*mRho0)*(1.0 - safeInvVar(halpha*halpha));
+            DalphaDpi = alphai*alphai/(mcS0*mcS0*mRhoS0)*(1.0 - safeInvVar(halpha*halpha));
           }
 
         } else {
