@@ -75,7 +75,7 @@ public:
   SPHERAL_HOST Field(const NodeList<Dimension>& nodeList, const Field& field);
   
   SPHERAL_HOST_DEVICE Field(const Field& field);
-  //SPHERAL_HOST virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
+  SPHERAL_HOST virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
   SPHERAL_HOST_DEVICE virtual ~Field();
@@ -87,7 +87,7 @@ public:
   SPHERAL_HOST Field& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldBase.
-  virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
+  SPHERAL_HOST virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
   // Element access.
   SPHERAL_HOST_DEVICE DataType& operator()(int index);
@@ -214,7 +214,7 @@ public:
 
   // Index operator.
   DataType& operator[](const unsigned int index);
-  const DataType& operator[](const unsigned int index) const;
+  DataType& operator[](const unsigned int index) const;
 
   // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList) override;

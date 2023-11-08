@@ -30,7 +30,7 @@ public:
   FieldBase(FieldName name,
             const NodeList<Dimension>& nodeList);
   SPHERAL_HOST_DEVICE FieldBase(const FieldBase& fieldBase);
-  //virtual std::shared_ptr<FieldBase> clone() const = 0;
+  virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
   SPHERAL_HOST_DEVICE virtual ~FieldBase();
@@ -91,7 +91,7 @@ private:
   //--------------------------- Private Interface ---------------------------//
   //FieldName mName;
   char mName[256] = "\0";
-  const NodeList<Dimension>* mNodeListPtr = nullptr;
+  const NodeList<Dimension>* mNodeListPtr;
 
   // The set of FieldLists currently referencing this Field.
   //mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;

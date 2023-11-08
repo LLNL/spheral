@@ -34,16 +34,16 @@ Field(typename FieldBase<Dimension>::FieldName name):
   mDataArray(),
   mValid(false) {}
 
-//------------------------------------------------------------------------------
-// Construct with name and field values.
-//------------------------------------------------------------------------------
+////------------------------------------------------------------------------------
+//// Construct with name and field values.
+////------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(field.mValid) {}
 
 //------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
-  mDataArray = array;
+  mDataArray = deepCopy(array);
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(true) {
   ENSURE(numElements() == nodeList.numNodes());
 }
@@ -147,7 +147,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(field.valid()) {
 }
 
@@ -155,12 +155,12 @@ Field<Dimension, DataType>::Field(const Field& field):
 // The virtual clone method, allowing us to duplicate fields with just 
 // FieldBase*.
 //------------------------------------------------------------------------------
-//template<typename Dimension, typename DataType>
-//inline
-//std::shared_ptr<FieldBase<Dimension> >
-//Field<Dimension, DataType>::clone() const {
-//  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
-//}
+template<typename Dimension, typename DataType>
+inline
+std::shared_ptr<FieldBase<Dimension> >
+Field<Dimension, DataType>::clone() const {
+  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
+}
 
 //------------------------------------------------------------------------------
 // Destructor.
@@ -168,6 +168,7 @@ Field<Dimension, DataType>::Field(const Field& field):
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::~Field() {
+  mDataArray.free();
 }
 
 //------------------------------------------------------------------------------
@@ -184,7 +185,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      mDataArray = rhsPtr->mDataArray;
+      mDataArray = deepCopy(rhsPtr->mDataArray);
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -204,7 +205,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    mDataArray = rhs.mDataArray;
+    mDataArray = deepCopy(rhs.mDataArray);
     mValid = rhs.mValid;
   }
   return *this;
@@ -219,7 +220,7 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const ContainerType& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
-  mDataArray = rhs;
+  mDataArray = deepCopy(rhs);
   return *this;
 }
 
@@ -242,7 +243,11 @@ template<typename Value>
 struct CrappyFieldCompareMethod {
   static bool compare(const ManagedVector<Value>& lhs, 
                       const ManagedVector<Value>& rhs) {
-    return lhs == rhs;
+    if (&lhs == &rhs) return true;
+    if (lhs.size() != rhs.size()) return false;
+    for (size_t i = 0; i < lhs.size(); i++) if (lhs[i] != rhs[i]) return false; 
+    return true;
+    //return lhs == rhs;
   }
 };
 
@@ -999,7 +1004,8 @@ template<typename Dimension, typename DataType>
 inline
 bool
 Field<Dimension, DataType>::valid() const {
-  return true;//mValid && this->nodeListPtr();
+  //return true;
+  return mValid && this->nodeListPtr();
 }
 
 //------------------------------------------------------------------------------
@@ -1139,7 +1145,7 @@ operator[](const unsigned int index) {
 
 template<typename Dimension, typename DataType>
 inline
-const DataType&
+DataType&
 Field<Dimension, DataType>::
 operator[](const unsigned int index) const {
   return mDataArray[index];

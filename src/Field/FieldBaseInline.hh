@@ -10,7 +10,8 @@ namespace Spheral {
 template<typename Dimension>
 inline
 FieldBase<Dimension>::
-FieldBase(typename FieldBase<Dimension>::FieldName name) {
+FieldBase(typename FieldBase<Dimension>::FieldName name) :
+  mNodeListPtr(0) {
   this->name(name); 
 }
 
@@ -25,7 +26,7 @@ FieldBase(typename FieldBase<Dimension>::FieldName name,
   mNodeListPtr(&nodeList)/*,
   mFieldListBaseList()*/ {
   this->name(name);
-  if (mNodeListPtr) mNodeListPtr->registerField(*this);
+  mNodeListPtr->registerField(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -36,8 +37,9 @@ inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
   mNodeListPtr(fieldBase.nodeListPtr())/*,
   mFieldListBaseList()*/ {
+  this->name(fieldBase.name());
 #if !defined(SPHERAL_GPU_ACTIVE)
-  if (mNodeListPtr) mNodeListPtr->registerField(*this);
+  mNodeListPtr->registerField(*this);
 #endif // SPHERAL_GPU_ACTIVE
 }
 
