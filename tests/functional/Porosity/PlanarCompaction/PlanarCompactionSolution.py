@@ -119,6 +119,12 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
     assert np.min(upiston) >= 0.0
     n = len(upiston)
 
+    def sgn(x):
+        return -1.0 if x < 0.0 else 1.0
+    
+    def safeInv(x, fuzz = 1e-50):
+        return x/max(abs(x), fuzz) * sgn(x)
+
     # How should we query the single pressure response from the EOS?  Some
     # Spheral equations of state support this, but others require the Field
     # interface
@@ -162,8 +168,12 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = self.alphaPfunc(P1)
             return np.array([m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
-                             m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
+                             m1*(eps1 - self.eps0 + 0.5*(self.upiston - self.u0)**2) - P1*(self.upiston - self.u0),   # Conservation of energy
+                             #m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
                              alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
+            # return np.array([m1*(self.upiston - self.u0)*safeInv(P1 - self.P0) - 1.0,                                    # Conservation of momentum
+            #                  m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2))*safeInv((P1 - self.P0)*self.upiston) - 1.0,   # Conservation of energy
+            #                  alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
 
         def norm(self, args):
             return LA.norm(self(args))
@@ -244,11 +254,11 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
             us, epss, alphas = solution[0]
             rhos = rhoe*(us - upe)/(us - up)
-            print("  Shock conditions:  us = ", us, "\n",
-                  "                   rhos = ", rhos, "\n",
-                  "                   epss = ", epss, "\n",
-                  "                 alphas = ", alphas)
-            print("      Conservation check: ", RKfunc(solution[0]))
+            # print("  Shock conditions:  us = ", us, "\n",
+            #       "                   rhos = ", rhos, "\n",
+            #       "                   epss = ", epss, "\n",
+            #       "                 alphas = ", alphas)
+            # print("      Conservation check: ", RKfunc(solution[0]))
 
             # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
             # elastic region
