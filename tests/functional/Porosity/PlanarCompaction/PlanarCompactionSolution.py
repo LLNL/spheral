@@ -113,10 +113,11 @@ class PalphaCrushCurve:
 #-------------------------------------------------------------------------------
 # Hugoniot solution with porosity
 #-------------------------------------------------------------------------------
-def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
-    assert upiston >= 0.0
-    assert n > 0
-    dupiston = upiston/max(1, n - 1)
+def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
+    if type(upiston) is float:
+        upiston = np.array([upiston])
+    assert np.min(upiston) >= 0.0
+    n = len(upiston)
 
     # How should we query the single pressure response from the EOS?  Some
     # Spheral equations of state support this, but others require the Field
@@ -189,34 +190,33 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
     # With upe, recover the full elastic limit conditions
     rhoe = rho0*ce/(ce - upe)
     epse = eps0 - 0.5*upe*upe + (Pe - P0)*upe/(rho0*ce)
-    # print("Elastic conditions:  ce = ", ce, "\n",
-    #       "                   rhoe = ", rhoe, "\n",
-    #       "                   epse = ", epse, "\n",
-    #       "                     Pe = ", Pe, Pfunc(alphae*rhoe, epse)/alphae, abs(Pfunc(alphae*rhoe, epse)/alphae - Pe)/Pe, "\n",
-    #       "                 alphae = ", alphae, "\n",
-    #       "                    upe = ", upe)
+    print("Elastic conditions:  ce = ", ce, "\n",
+          "                   rhoe = ", rhoe, "\n",
+          "                   epse = ", epse, "\n",
+          "                     Pe = ", Pe, Pfunc(alphae*rhoe, epse)/alphae, abs(Pfunc(alphae*rhoe, epse)/alphae - Pe)/Pe, "\n",
+          "                 alphae = ", alphae, "\n",
+          "                    upe = ", upe)
 
     # Prepare to return the arrays of values.  We return these in the same frame as the piston velocity was given, so presumably lab
     # e => elastic region
     # s => post shock region
     US, RHOS, EPSS, PS, ALPHAS = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
     UE, RHOE, EPSE, PE, ALPHAE = np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)
-    for i in range(n):
-        up = i*dupiston if n > 1 else upiston
+    for i, up in enumerate(upiston):
 
         if up <= upe:
 
             # There is no shock, just the elastic wave
             # print("NO SHOCK -- ELASTIC WAVE ONLY")
             RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic)
-            wild_guess = (1.5*up, 0.5*up**2, 1.0 + 0.5*(alphae - 1.0))
+            wild_guess = (1.5*up, 0.5*up**2, alpha0)
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
                                                 bounds = [(0.0, ce),        # u
                                                           (eps0, epse),     # eps
                                                           (1.0, alphae)])   # alpha
-            #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-            u1, eps1, alpha1 = opt_guess.x  #solution[0]
+            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+            u1, eps1, alpha1 = solution[0]
             rho1 = rho0*u1/(u1 - up)
             UE[i] = u1
             RHOE[i] = rho1
@@ -224,11 +224,11 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             PE[i] = Pfunc(alpha1*rho1, eps1)/alpha1
             ALPHAE[i] = alpha1
 
-            US[i] = UE[i]
-            RHOS[i] = RHOE[i]
-            EPSS[i] = EPSE[i]
-            PS[i] = PE[i]
-            ALPHAS[i] = ALPHAE[i]
+            # US[i] = UE[i]
+            # RHOS[i] = RHOE[i]
+            # EPSS[i] = EPSE[i]
+            # PS[i] = PE[i]
+            # ALPHAS[i] = ALPHAE[i]
 
         else:
 
@@ -238,11 +238,11 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
             wild_guess = (1.5*up, 0.5*up**2, 1.0)
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
-                                                bounds = [(0.0, 2.0*up),      # us
+                                                bounds = [(0.0, np.inf),      # us
                                                           (0.0, 2.0*up*up),   # epss
                                                           (1.0, alphae)])     # alphas
-            #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-            us, epss, alphas = opt_guess.x # solution[0]
+            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+            us, epss, alphas = solution[0]
             rhos = rhoe*(us - upe)/(us - up)
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
@@ -257,11 +257,11 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve, n = 101):
                 wild_guess = (1.5*up, 0.5*up**2, 1.0)
                 opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                     x0 = wild_guess,
-                                                    bounds = [(0.0, 2.0*up),      # us
+                                                    bounds = [(0.0, np.inf),      # us
                                                               (0.0, 2.0*up*up),   # epss
                                                               (1.0, alpha0)])     # alphas
-                #solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-                us, epss, alphas = opt_guess.x # solution[0]
+                solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
+                us, epss, alphas = solution[0]
                 rhos = rho0*us/(us - up)
                 # print("  Shock conditions:  us = ", us, "\n",
                 #       "                   rhos = ", rhos, "\n",
@@ -341,7 +341,7 @@ class PlanarCompactionSolution:
     def waveProperties(self, t):
 
         # Compute the shock jump conditions
-        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), self.crushCurve, n=1)
+        us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(self.eos, self.rho0, self.eps0, abs(self.vpiston), self.crushCurve)
         ce = self.crushCurve.ce(self.alpha0)
         xs = 1.0 - us*t    # position of the shock
         xe = 1.0 - ce*t    # position of the elastic wave
@@ -491,7 +491,7 @@ if __name__ == "__main__":
     fig.set_title(r"$\alpha(P)$ crush curve")
 
     vpiston = -45.8e-3
-    #print("Hugoniot solution: ", computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve, n=1))
+    #print("Hugoniot solution: ", computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve))
 
     solution = PlanarCompactionSolution(eos,
                                         vpiston,
@@ -527,6 +527,8 @@ if __name__ == "__main__":
     plotIt(x, alpha, r"$\alpha$")
 
     # Plot the actual Hugoniot curves
-    us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve)
-    plotIt(rhos, Ps, xlabel=r"$\rho$ (g/cc)", ylabel="$P$ (Mbar)", title=r"$\rho$-$P$ shock Hugoniot", style="ro-")
-    plotIt(us, Ps, xlabel=r"$v$ (cm/$\mu$sec)", ylabel="$P$ (Mbar)", title=r"$v$-$P$ shock Hugoniot", style="ro-")
+    up = np.geomspace(1e-6, abs(vpiston))
+    us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, up, alpha_curve)
+    plotIt(rhos, Ps, xlabel=r"$\rho_s$ (g/cc)", ylabel=r"$P_s$ (Mbar)", title=r"$\rho$-$P$ shock Hugoniot", style="ro-")
+    plotIt(us, Ps, xlabel=r"$v_s$ (cm/$\mu$sec)", ylabel=r"$P_s$ (Mbar)", title=r"$v_s$-$P$ shock Hugoniot", style="ro-")
+    plotIt(up, us, xlabel=r"$v_p$ (cm/$\mu$sec)", ylabel=r"$v_s$ (cm/$\mu$sec)", title=r"$v_p$-$v_s$ shock Hugoniot", style="ro-")
