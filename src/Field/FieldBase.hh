@@ -22,7 +22,8 @@ class FieldBase {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename std::string FieldName;
+  //typedef typename std::string FieldName;
+  using FieldName = std::string;
   typedef typename Dimension::Scalar Scalar;
 
   // Constructors.
@@ -86,6 +87,9 @@ protected:
   //void registerFieldList(const FieldListBase<Dimension>& fieldList) const;
   //void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
   //bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
+  
+  // Disallow the default constructor.
+  SPHERAL_HOST_DEVICE FieldBase();
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -96,8 +100,6 @@ private:
   // The set of FieldLists currently referencing this Field.
   //mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
 
-  // Disallow the default constructor.
-  SPHERAL_HOST_DEVICE FieldBase();
 };
 
 }

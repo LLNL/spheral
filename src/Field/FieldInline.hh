@@ -30,7 +30,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
-  FieldBase<Dimension>(name),
+  FieldView<Dimension, DataType>(name),
   mDataArray(),
   mValid(false) {}
 
@@ -42,7 +42,7 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
-  FieldBase<Dimension>(name, *field.nodeListPtr()),
+  FieldView<Dimension, DataType>(name, *field.nodeListPtr()),
   mDataArray(deepCopy(field.mDataArray)),
   mValid(field.mValid) {}
 
@@ -54,7 +54,7 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
-  FieldBase<Dimension>(name, nodeList),
+  FieldView<Dimension, DataType>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), DataType()),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -65,7 +65,7 @@ inline
 Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
-  FieldBase<Dim<1> >(name, nodeList),
+  FieldView<Dim<1>, Dim<1>::Scalar>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -76,7 +76,7 @@ inline
 Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
-  FieldBase<Dim<2> >(name, nodeList),
+  FieldView<Dim<2>, Dim<2>::Scalar>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -87,7 +87,7 @@ inline
 Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
-  FieldBase<Dim<3> >(name, nodeList),
+  FieldView<Dim<3>, Dim<3>::Scalar>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -102,7 +102,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
-  FieldBase<Dimension>(name, nodeList),
+  FieldView<Dimension, DataType>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes(), value),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -118,7 +118,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name, 
       const NodeList<Dimension>& nodeList,
       const ContainerType& array):
-  FieldBase<Dimension>(name, nodeList),
+  FieldView<Dimension, DataType>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
@@ -134,7 +134,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
-  FieldBase<Dimension>(field.name(), nodeList),
+  FieldView<Dimension, DataType>(field.name(), nodeList),
   mDataArray(deepCopy(field.mDataArray)),
   mValid(true) {
   ENSURE(numElements() == nodeList.numNodes());
@@ -146,7 +146,7 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
-  FieldBase<Dimension>(field),
+  FieldView<Dimension, DataType>(field),
   mDataArray(deepCopy(field.mDataArray)),
   mValid(field.valid()) {
 }

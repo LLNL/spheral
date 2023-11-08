@@ -39,8 +39,37 @@ using DataAllocator = std::allocator<DataType>;
 #endif
 
 template<typename Dimension, typename DataType>
+class Field; 
+
+template<typename Dimension, typename DataType>
+class FieldView: 
+    public FieldBase<Dimension>, public chai::CHAICopyable {
+
+  using Base = FieldBase<Dimension>;
+  using typename Base::FieldName;
+
+public:
+  using ContainerType = ManagedVector<DataType>;
+  SPHERAL_HOST_DEVICE FieldView() : Base() {};
+  SPHERAL_HOST_DEVICE FieldView(Field<Dimension, DataType>& f) : Base() {};
+
+  //We need forwarding Ctor interfaces from Field to FieldBase 
+  SPHERAL_HOST FieldView(FieldName name) : Base(name) {};
+  SPHERAL_HOST FieldView(FieldName name, NodeList<Dimension> const& nodeList) : Base(name, nodeList) {};
+private:
+
+
+
+
+
+};
+
+template<typename Dimension, typename DataType>
 class Field: 
-    public FieldBase<Dimension>, public chai::CHAICopyable{
+    public FieldView<Dimension, DataType> {
+//    public FieldBase<Dimension>, public FieldView<Dimension, DataType> {
+//    public FieldBase<Dimension>, public chai::CHAICopyable{
+
    
 public:
   //--------------------------- Public Interface ---------------------------//
