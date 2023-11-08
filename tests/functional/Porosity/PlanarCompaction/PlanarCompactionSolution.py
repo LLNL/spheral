@@ -190,12 +190,12 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
     # With upe, recover the full elastic limit conditions
     rhoe = rho0*ce/(ce - upe)
     epse = eps0 - 0.5*upe*upe + (Pe - P0)*upe/(rho0*ce)
-    print("Elastic conditions:  ce = ", ce, "\n",
-          "                   rhoe = ", rhoe, "\n",
-          "                   epse = ", epse, "\n",
-          "                     Pe = ", Pe, Pfunc(alphae*rhoe, epse)/alphae, abs(Pfunc(alphae*rhoe, epse)/alphae - Pe)/Pe, "\n",
-          "                 alphae = ", alphae, "\n",
-          "                    upe = ", upe)
+    # print("Elastic conditions:  ce = ", ce, "\n",
+    #       "                   rhoe = ", rhoe, "\n",
+    #       "                   epse = ", epse, "\n",
+    #       "                     Pe = ", Pe, Pfunc(alphae*rhoe, epse)/alphae, abs(Pfunc(alphae*rhoe, epse)/alphae - Pe)/Pe, "\n",
+    #       "                 alphae = ", alphae, "\n",
+    #       "                    upe = ", upe)
 
     # Prepare to return the arrays of values.  We return these in the same frame as the piston velocity was given, so presumably lab
     # e => elastic region
@@ -239,15 +239,16 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                 x0 = wild_guess,
                                                 bounds = [(0.0, np.inf),      # us
-                                                          (0.0, 2.0*up*up),   # epss
+                                                          (0.0, np.inf),      # epss
                                                           (1.0, alphae)])     # alphas
             solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
             us, epss, alphas = solution[0]
             rhos = rhoe*(us - upe)/(us - up)
-            # print("  Shock conditions:  us = ", us, "\n",
-            #       "                   rhos = ", rhos, "\n",
-            #       "                   epss = ", epss, "\n",
-            #       "                 alphas = ", alphas)
+            print("  Shock conditions:  us = ", us, "\n",
+                  "                   rhos = ", rhos, "\n",
+                  "                   epss = ", epss, "\n",
+                  "                 alphas = ", alphas)
+            print("      Conservation check: ", RKfunc(solution[0]))
 
             # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
             # elastic region
@@ -258,7 +259,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                 opt_guess = scipy.optimize.minimize(RKfunc.norm,
                                                     x0 = wild_guess,
                                                     bounds = [(0.0, np.inf),      # us
-                                                              (0.0, 2.0*up*up),   # epss
+                                                              (0.0, np.inf),      # epss
                                                               (1.0, alpha0)])     # alphas
                 solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
                 us, epss, alphas = solution[0]

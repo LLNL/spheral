@@ -339,6 +339,9 @@ else:
     control.advance(goalTime)
     control.dropRestartFile()
 
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print("Total energy change: %g" % Eerror)
+
 #-------------------------------------------------------------------------------
 # Plot the state.
 #-------------------------------------------------------------------------------
