@@ -10,9 +10,10 @@
 # Herrmann, W. (1969). Constitutive Equation for the Dynamic Compaction of 
 # Ductile Porous Materials. Journal of Applied Physics, 40(6), 2490–2499.
 #-------------------------------------------------------------------------------
+import mpi
 import numpy as np
 from numpy import linalg as LA
-import scipy.integrate, scipy.optimize
+import scipy.integrate, scipy.optimize, scipy.stats
 
 #-------------------------------------------------------------------------------
 # The P-alpha crush curve from Jutzi 2008
@@ -119,12 +120,6 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
     assert np.min(upiston) >= 0.0
     n = len(upiston)
 
-    def sgn(x):
-        return -1.0 if x < 0.0 else 1.0
-    
-    def safeInv(x, fuzz = 1e-50):
-        return x/max(abs(x), fuzz) * sgn(x)
-
     # How should we query the single pressure response from the EOS?  Some
     # Spheral equations of state support this, but others require the Field
     # interface
@@ -171,13 +166,41 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                              m1*(eps1 - self.eps0 + 0.5*(self.upiston - self.u0)**2) - P1*(self.upiston - self.u0),   # Conservation of energy
                              #m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
                              alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
-            # return np.array([m1*(self.upiston - self.u0)*safeInv(P1 - self.P0) - 1.0,                                    # Conservation of momentum
-            #                  m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2))*safeInv((P1 - self.P0)*self.upiston) - 1.0,   # Conservation of energy
-            #                  alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
 
         def norm(self, args):
             return LA.norm(self(args))
         
+    # Provide a wrapper for iterating the solution of a system combining scipy minimize and fsolve
+    def solve(func, initial_guess, bounds,
+              acceptance_tol = 1.0e-8,
+              maxiter = 100,
+              verbose = False):
+        solution = None
+        if mpi.rank == 0:
+            nparams = len(initial_guess)
+            iter = 0
+            lasterr = 2.0*acceptance_tol
+            next_guess = initial_guess
+            while iter < maxiter and lasterr > acceptance_tol:
+                iter += 1
+                opt_guess = scipy.optimize.minimize(func.norm,
+                                                    x0 = next_guess,
+                                                    bounds = bounds)
+                solution = scipy.optimize.fsolve(func, opt_guess.x, full_output = True)
+                lasterr = np.max(np.abs(func(solution[0])))
+                if verbose:
+                    print("--> solve (iteration, err) ", iter, lasterr, func(solution[0]))
+                if lasterr > acceptance_tol:
+                    next_guess = solution[0] + 0.1*scipy.stats.gennorm.rvs(0.1, size=nparams)
+                    if bounds:
+                        for i, bd in enumerate(bounds):
+                            if bd[0]:
+                                next_guess[i] = max(next_guess[i], bd[0])
+                            if bd[1]:
+                                next_guess[i] = min(next_guess[i], bd[1])
+        solution = mpi.bcast(solution, 0)
+        return solution[0]
+
     # Solve for elastic wave properties (wave moves at speed ce).
     # We need to know what is the maximum piston speed that just generates an elastic wave,
     # but does not create a shock. This is denoted upe.
@@ -217,16 +240,12 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
         if up <= upe:
 
             # There is no shock, just the elastic wave
-            # print("NO SHOCK -- ELASTIC WAVE ONLY")
-            RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic)
-            wild_guess = (1.5*up, 0.5*up**2, alpha0)
-            opt_guess = scipy.optimize.minimize(RKfunc.norm,
-                                                x0 = wild_guess,
-                                                bounds = [(0.0, ce),        # u
-                                                          (eps0, epse),     # eps
-                                                          (1.0, alphae)])   # alpha
-            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-            u1, eps1, alpha1 = solution[0]
+            # print("NO SHOCK -- ELASTIC WAVE ONLY: ", up, upe)
+            u1, eps1, alpha1 = solve(func = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic),
+                                     initial_guess = (1.5*up, 0.5*up**2, alpha0),
+                                     bounds = [(0.0, ce),        # u
+                                               (eps0, epse),     # eps
+                                               (1.0, alphae)])   # alpha
             rho1 = rho0*u1/(u1 - up)
             UE[i] = u1
             RHOE[i] = rho1
@@ -244,35 +263,29 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
 
             # Now we have the full elastic wave properties, so solve for the shock jump conditions encountering the
             # post-elastic wave initial conditions.
-            RKfunc = RankineHugoniotJumpRelations(up, upe, rhoe, epse, Pe, alphae, crushCurve)
-            wild_guess = (1.5*up, 0.5*up**2, 1.0)
-            opt_guess = scipy.optimize.minimize(RKfunc.norm,
-                                                x0 = wild_guess,
-                                                bounds = [(0.0, np.inf),      # us
-                                                          (0.0, np.inf),      # epss
-                                                          (1.0, alphae)])     # alphas
-            solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-            us, epss, alphas = solution[0]
+            us, epss, alphas = solve(func = RankineHugoniotJumpRelations(up, upe, rhoe, epse, Pe, alphae, crushCurve),
+                                     initial_guess = (1.5*up,                     # us
+                                                      0.5*up**2,                  # epss
+                                                      1.0 + 0.5*(alphae - 1.0)),  # alphas
+                                     bounds = [(0.0, 2.0*ce),      # us
+                                               (0.0, np.inf),      # epss
+                                               (1.0, alpha0)],     # alphas
+                                     verbose = False)
             rhos = rhoe*(us - upe)/(us - up)
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
             #       "                   epss = ", epss, "\n",
             #       "                 alphas = ", alphas)
-            # print("      Conservation check: ", RKfunc(solution[0]))
 
             # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
             # elastic region
             if us >= ce:
-                # print("NO ELASTIC WAVE -- SHOCK SOLUTION ONLY")
-                RKfunc = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve)
-                wild_guess = (1.5*up, 0.5*up**2, 1.0)
-                opt_guess = scipy.optimize.minimize(RKfunc.norm,
-                                                    x0 = wild_guess,
-                                                    bounds = [(0.0, np.inf),      # us
-                                                              (0.0, np.inf),      # epss
-                                                              (1.0, alpha0)])     # alphas
-                solution = scipy.optimize.fsolve(RKfunc, opt_guess.x, full_output = True)
-                us, epss, alphas = solution[0]
+                # print("NO ELASTIC WAVE -- SHOCK SOLUTION ONLY: ", up, upe, us, ce)
+                us, epss, alphas = solve(func = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve),
+                                         initial_guess = (1.5*up, 0.5*up**2, 1.0),
+                                         bounds = [(0.0, 2.0*ce),      # us
+                                                   (0.0, np.inf),      # epss
+                                                   (1.0, alpha0)])     # alphas
                 rhos = rho0*us/(us - up)
                 # print("  Shock conditions:  us = ", us, "\n",
                 #       "                   rhos = ", rhos, "\n",
@@ -288,7 +301,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             else:
 
                 # There is both an elastic wave and shocked region
-                # print("SHOCK AND ELASTIC REGION")
+                # print("SHOCK AND ELASTIC REGION: ", up, upe, us, ce)
                 US[i] = us
                 RHOS[i] = rhos
                 EPSS[i] = epss
@@ -356,6 +369,7 @@ class PlanarCompactionSolution:
         ce = self.crushCurve.ce(self.alpha0)
         xs = 1.0 - us*t    # position of the shock
         xe = 1.0 - ce*t    # position of the elastic wave
+        # print("Elastic front at ", xe, ", shock front at ", xs)
 
         # Conditions behind shock
         v1 = -self.vpiston
