@@ -176,8 +176,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = self.alphaPfunc(P1)
             return np.array([m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
-                             m1*(eps1 - self.eps0 + 0.5*(self.upiston - self.u0)**2) - P1*(self.upiston - self.u0),   # Conservation of energy
-                             #m1*(eps1 - self.eps0 + 0.5*(self.upiston**2 - self.u0**2)) - (P1 - self.P0)*self.upiston,   # Conservation of energy
+                             m1*(eps1 - self.eps0 + 0.5*(self.upiston - self.u0)**2) - P1*(self.upiston - self.u0),      # Conservation of energy
                              alpha1_new - alpha1])                                                                       # Convergence of alpha(P)
 
         def norm(self, args):
@@ -189,9 +188,11 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
         #     us, eps1, alpha1 = args
         #     m1 = self.rho0*(us - self.u0)            # mass/time
         #     rho1 = m1*safeInv(us - self.upiston)
+        #     PS1, dPSdE1, dPSdR1 = PDfunc(alpha1*rho1, eps1)
         #     P1, dPdE1, dPdR1 = Pfunc(alpha1*rho1, eps1)/alpha1
         #     dUSdR = -self.upiston*self.rho0/max(rho1 - self.rho0)**2
-        #     return np.array([m1*self.upiston + self.rho0*(self.upiston - self.u0) - 
+        #     return np.array([self.rho0*(self.upiston - self.u0) - dPdR1*safeInv(dUSdR),    # d(momentum)/dUS
+        #                      -dPdE1,                                                       # d(momentum)/dEPS
 
     # Provide a wrapper for iterating the solution of a system combining scipy minimize and fsolve
     def solve(func, initial_guess, bounds,
@@ -266,7 +267,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             # print("NO SHOCK -- ELASTIC WAVE ONLY: ", up, upe)
             u1, eps1, alpha1 = solve(func = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve.alphaElastic),
                                      initial_guess = (1.5*up, 0.5*up**2, alpha0),
-                                     bounds = [(0.0, ce),        # u
+                                     bounds = [(up, ce),         # u
                                                (eps0, epse),     # eps
                                                (1.0, alphae)])   # alpha
             rho1 = rho0*u1*safeInv(u1 - up)
@@ -290,7 +291,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                                      initial_guess = (1.5*up,                     # us
                                                       0.5*up**2,                  # epss
                                                       1.0 + 0.5*(alphae - 1.0)),  # alphas
-                                     bounds = [(0.0, 2.0*ce),      # us
+                                     bounds = [(up, 2.0*ce),       # us
                                                (0.0, np.inf),      # epss
                                                (1.0, alpha0)],     # alphas
                                      verbose = False)
@@ -298,7 +299,8 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
             #       "                   epss = ", epss, "\n",
-            #       "                 alphas = ", alphas)
+            #       "                 alphas = ", alphas, "\n",
+            #       "                     up = ", up)
 
             # If the shock speed exceeds ce, then the shock front overtakes the elastic wave and there is no
             # elastic region
@@ -306,7 +308,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                 # print("NO ELASTIC WAVE -- SHOCK SOLUTION ONLY: ", up, upe, us, ce)
                 us, epss, alphas = solve(func = RankineHugoniotJumpRelations(up, 0.0, rho0, eps0, P0, alpha0, crushCurve),
                                          initial_guess = (1.5*up, 0.5*up**2, 1.0),
-                                         bounds = [(0.0, 2.0*ce),      # us
+                                         bounds = [(up, 2.0*ce),       # us
                                                    (0.0, np.inf),      # epss
                                                    (1.0, alpha0)])     # alphas
                 rhos = rho0*us*safeInv(us - up)
@@ -503,6 +505,20 @@ class PlanarCompactionSolution:
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
     from Spheral1d import *
+    def plotIt(x, y, ylabel, xlabel=r"$x$", ylog=False, title=None, style="k-"):
+        fig = newFigure()
+        if ylog:
+            fig.semilogy(x, y, style)
+        else:
+            fig.plot(x, y, style)
+        fig.set_xlabel(xlabel)
+        fig.set_ylabel(ylabel)
+        if title:
+            fig.set_title(title)
+        else:
+            fig.set_title(ylabel)
+        return
+
     units = CGuS()
     cgs = CGS()
     mCGSconv = cgs.unitMassKg/units.unitMassKg
@@ -532,50 +548,33 @@ if __name__ == "__main__":
     alpha = np.array([alpha_curve(x) for x in P])
     from matplotlib import pyplot as plt
     from SpheralMatplotlib import *
-    fig = newFigure()
-    fig.plot(P, alpha, "k-")
-    fig.set_xlabel(r"$P$")
-    fig.set_ylabel(r"$\alpha$")
-    fig.set_title(r"$\alpha(P)$ crush curve")
+    plotIt(P, alpha, xlabel=r"$P$", ylabel=r"$\alpha$", title=r"$\alpha(P)$ crush curve")
 
     vpiston = -45.8e-3
-    #print("Hugoniot solution: ", computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve))
+    # #print("Hugoniot solution: ", computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, abs(vpiston), alpha_curve))
 
-    solution = PlanarCompactionSolution(eos,
-                                        vpiston,
-                                        eps0,
-                                        alpha0,
-                                        alphat,
-                                        Pe,
-                                        Pe,
-                                        Ps,
-                                        n1,
-                                        n2,
-                                        cS0,
-                                        c0)
-    x, v, eps, rho, P, h = solution.solution(t=3.5)
-    xx, alpha = solution.alpha_solution(t=3.5)
-    def plotIt(x, y, ylabel, xlabel=r"$x$", ylog=False, title=None, style="k-"):
-        fig = newFigure()
-        if ylog:
-            fig.semilogy(x, y, style)
-        else:
-            fig.plot(x, y, style)
-        fig.set_xlabel(xlabel)
-        fig.set_ylabel(ylabel)
-        if title:
-            fig.set_title(title)
-        else:
-            fig.set_title(ylabel)
-        return
-    plotIt(x, v, r"$v$")
-    plotIt(x, eps, r"$\varepsilon$")
-    plotIt(x, rho, r"$\rho$")
-    plotIt(x, P, r"$P$", True)
-    plotIt(x, alpha, r"$\alpha$")
+    # solution = PlanarCompactionSolution(eos,
+    #                                     vpiston,
+    #                                     eps0,
+    #                                     alpha0,
+    #                                     alphat,
+    #                                     Pe,
+    #                                     Pe,
+    #                                     Ps,
+    #                                     n1,
+    #                                     n2,
+    #                                     cS0,
+    #                                     c0)
+    # x, v, eps, rho, P, h = solution.solution(t=3.5)
+    # xx, alpha = solution.alpha_solution(t=3.5)
+    # plotIt(x, v, r"$v$")
+    # plotIt(x, eps, r"$\varepsilon$")
+    # plotIt(x, rho, r"$\rho$")
+    # plotIt(x, P, r"$P$", True)
+    # plotIt(x, alpha, r"$\alpha$")
 
     # Plot the actual Hugoniot curves
-    up = np.geomspace(1e-6, abs(vpiston))
+    up = np.geomspace(1e-6, abs(vpiston), 100)
     us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae = computeHugoniotWithPorosity(eos, rhoS0/alpha0, eps0, up, alpha_curve)
     plotIt(rhos, Ps, xlabel=r"$\rho_s$ (g/cc)", ylabel=r"$P_s$ (Mbar)", title=r"$\rho$-$P$ shock Hugoniot", style="ro-")
     plotIt(us, Ps, xlabel=r"$v_s$ (cm/$\mu$sec)", ylabel=r"$P_s$ (Mbar)", title=r"$v_s$-$P$ shock Hugoniot", style="ro-")
