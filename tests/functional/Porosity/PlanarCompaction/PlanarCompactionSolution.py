@@ -16,6 +16,15 @@ from numpy import linalg as LA
 import scipy.integrate, scipy.optimize, scipy.stats
 
 #-------------------------------------------------------------------------------
+# Couple of useful functions
+#-------------------------------------------------------------------------------
+def sgn(x):
+    return -1.0 if x < 0.0 else 1.0
+
+def safeInv(x, fuzz = 1e-50):
+    return sgn(x)/max(fuzz, abs(x))
+
+#-------------------------------------------------------------------------------
 # The P-alpha crush curve from Jutzi 2008
 #-------------------------------------------------------------------------------
 class PalphaCrushCurve:
@@ -127,6 +136,10 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
         Pfunc = eos.pressure
     else:
         raise RuntimeError("computeHugoniotWithPorosity does not work yet with EOS's that can't compute a single pressure")
+    if hasattr(eos, "pressureAndDerivs"):
+        PDfunc = eos.pressureAndDerivs
+    else:
+        PDfunc = None
 
     def relativeDiff(a, b):
         return abs(a - b)/(abs(a) + abs(b))
@@ -159,7 +172,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
         def __call__(self, args):
             us, eps1, alpha1 = args
             m1 = self.rho0*(us - self.u0)            # mass/time
-            rho1 = m1/max(1e-100, us - self.upiston)
+            rho1 = m1*safeInv(us - self.upiston)
             P1 = Pfunc(alpha1*rho1, eps1)/alpha1
             alpha1_new = self.alphaPfunc(P1)
             return np.array([m1*(self.upiston - self.u0) - (P1 - self.P0),                                               # Conservation of momentum
@@ -170,6 +183,16 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
         def norm(self, args):
             return LA.norm(self(args))
         
+        # def jacobian(self, args):
+        #     if PDfunc is None:
+        #         return None
+        #     us, eps1, alpha1 = args
+        #     m1 = self.rho0*(us - self.u0)            # mass/time
+        #     rho1 = m1*safeInv(us - self.upiston)
+        #     P1, dPdE1, dPdR1 = Pfunc(alpha1*rho1, eps1)/alpha1
+        #     dUSdR = -self.upiston*self.rho0/max(rho1 - self.rho0)**2
+        #     return np.array([m1*self.upiston + self.rho0*(self.upiston - self.u0) - 
+
     # Provide a wrapper for iterating the solution of a system combining scipy minimize and fsolve
     def solve(func, initial_guess, bounds,
               acceptance_tol = 1.0e-8,
@@ -210,8 +233,8 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
     xtol = 1.0e-15
     def elasticLimitConditions(upi):
         m1 = rho0*ce
-        rho1 = m1/max(1.0e-100, ce - upi)
-        eps1 = eps0 - 0.5*upi*upi + (Pe - P0)*upi/m1
+        rho1 = m1*safeInv(ce - upi)
+        eps1 = eps0 - 0.5*upi*upi + (Pe - P0)*upi*safeInv(m1)
         P1 = Pfunc(alphae*rho1, eps1)/alphae
         return P1 - Pe
 
@@ -221,7 +244,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
     # print("Found elastic limit piston velocity upe: ", upe, "\n", stuff)
 
     # With upe, recover the full elastic limit conditions
-    rhoe = rho0*ce/(ce - upe)
+    rhoe = rho0*ce*safeInv(ce - upe)
     epse = eps0 - 0.5*upe*upe + (Pe - P0)*upe/(rho0*ce)
     # print("Elastic conditions:  ce = ", ce, "\n",
     #       "                   rhoe = ", rhoe, "\n",
@@ -246,8 +269,8 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                                      bounds = [(0.0, ce),        # u
                                                (eps0, epse),     # eps
                                                (1.0, alphae)])   # alpha
-            rho1 = rho0*u1/(u1 - up)
-            UE[i] = u1
+            rho1 = rho0*u1*safeInv(u1 - up)
+            UE[i] = up
             RHOE[i] = rho1
             EPSE[i] = eps1
             PE[i] = Pfunc(alpha1*rho1, eps1)/alpha1
@@ -271,7 +294,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                                                (0.0, np.inf),      # epss
                                                (1.0, alpha0)],     # alphas
                                      verbose = False)
-            rhos = rhoe*(us - upe)/(us - up)
+            rhos = rhoe*(us - upe)*safeInv(us - up)
             # print("  Shock conditions:  us = ", us, "\n",
             #       "                   rhos = ", rhos, "\n",
             #       "                   epss = ", epss, "\n",
@@ -286,7 +309,7 @@ def computeHugoniotWithPorosity(eos, rho0, eps0, upiston, crushCurve):
                                          bounds = [(0.0, 2.0*ce),      # us
                                                    (0.0, np.inf),      # epss
                                                    (1.0, alpha0)])     # alphas
-                rhos = rho0*us/(us - up)
+                rhos = rho0*us*safeInv(us - up)
                 # print("  Shock conditions:  us = ", us, "\n",
                 #       "                   rhos = ", rhos, "\n",
                 #       "                   epss = ", epss, "\n",
@@ -373,11 +396,11 @@ class PlanarCompactionSolution:
 
         # Conditions behind shock
         v1 = -self.vpiston
-        h1 = self.h0 * self.rho0/rhos
+        h1 = self.h0 * self.rho0*safeInv(rhos)
 
         # Conditions behind the elastic wave
         v2 = -ue
-        h2 = self.h0 * self.rho0/rhoe
+        h2 = self.h0 * self.rho0*safeInv(rhoe)
         
         return us, rhos, epss, Ps, alphas, ue, rhoe, epse, Pe, alphae, xs, xe, v1, h1, v2, h2
 
