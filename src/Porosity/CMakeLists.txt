@@ -32,6 +32,7 @@ set(Porosity_headers
 
 spheral_install_python_files(
     ShadowPalphaPorosity.py
-     )
+    computeHugoniotWithPorosity.py
+    )
 
 spheral_add_obj_library(Porosity SPHERAL_OBJ_LIBS)
