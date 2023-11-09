@@ -96,7 +96,6 @@ def _GruneisenEquationOfStateFactory(ndim):
                 dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
                 dargs.update(optionalKwArgs)
                 dargs.update(kwargs)
-                print(dargs)
                 ARGS = types.SimpleNamespace(**dargs)
 
                 # Check that the caller specified a valid material label.
@@ -104,7 +103,7 @@ def _GruneisenEquationOfStateFactory(ndim):
                 if mat not in SpheralMaterialPropertiesLib:
                     raise ValueError("You must specify one of %s" % str(list(SpheralMaterialPropertiesLib.keys())))
                 if "Gruneisen" not in SpheralMaterialPropertiesLib[mat]:
-                    raise ValueError("The material %s does not provide Gruneisen paramters." % materialName)
+                    raise ValueError("The material %s does not provide Gruneisen paramters." % mat)
 
                 # Extract the parameters for this material.
                 params = types.SimpleNamespace(**dict(SpheralMaterialPropertiesLib[mat]["Gruneisen"]))
