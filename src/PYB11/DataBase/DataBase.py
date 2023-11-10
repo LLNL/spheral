@@ -280,6 +280,14 @@ class DataBase:
 
     @PYB11template("DataType")
     @PYB11const
+    def newDEMFieldList(self,
+                        value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                        name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"')):
+        "Construct a new FieldList<%(DataType)s> for all DEMNodeLists in DataBase"
+        return "FieldList<%(Dimension)s, %(DataType)s>"
+
+    @PYB11template("DataType")
+    @PYB11const
     def resizeGlobalFieldList(self,
                               fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
                               value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
@@ -312,6 +320,19 @@ will get the new value regardless of resetValues."""
                              name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
                              resetValues = ("const bool", "true")):
         """Resize a FieldList to the number of SolidNodeLists.
+Optionally we can also set all elements in the FieldList to the specified value.
+Note that if the FieldList is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeDEMFieldList(self,
+                             fieldList = "FieldList<%(Dimension)s, %(DataType)s>&",
+                             value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                             name = ("const Field<%(Dimension)s, %(DataType)s>::FieldName", '"Unnamed Field"'),
+                             resetValues = ("const bool", "true")):
+        """Resize a FieldList to the number of DEMNodeLists.
 Optionally we can also set all elements in the FieldList to the specified value.
 Note that if the FieldList is resized it is reconstructed from scratch, so all elements
 will get the new value regardless of resetValues."""
@@ -362,6 +383,21 @@ will get the new value regardless of resetValues."""
     newSolidvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newSolidFieldList, template_parameters="std::vector<CellFaceFlag>")
     newSolidDomainNodeFieldList       = PYB11TemplateMethod(newSolidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
+    newDEMIntFieldList              = PYB11TemplateMethod(newDEMFieldList, template_parameters="int")
+    newDEMScalarFieldList           = PYB11TemplateMethod(newDEMFieldList, template_parameters="double")
+    newDEMVectorFieldList           = PYB11TemplateMethod(newDEMFieldList, template_parameters="Vector")
+    newDEMTensorFieldList           = PYB11TemplateMethod(newDEMFieldList, template_parameters="Tensor")
+    newDEMSymTensorFieldList        = PYB11TemplateMethod(newDEMFieldList, template_parameters="SymTensor")
+    newDEMThirdRankTensorFieldList  = PYB11TemplateMethod(newDEMFieldList, template_parameters="ThirdRankTensor")
+    newDEMFourthRankTensorFieldList = PYB11TemplateMethod(newDEMFieldList, template_parameters="FourthRankTensor")
+    newDEMFifthRankTensorFieldList  = PYB11TemplateMethod(newDEMFieldList, template_parameters="FifthRankTensor")
+    newDEMFacetedVolumeFieldList    = PYB11TemplateMethod(newDEMFieldList, template_parameters="FacetedVolume")
+    newDEMvector_of_intFieldList    = PYB11TemplateMethod(newDEMFieldList, template_parameters="std::vector<int>")
+    newDEMvector_of_doubleFieldList = PYB11TemplateMethod(newDEMFieldList, template_parameters="std::vector<double>")
+    newDEMvector_of_VectorFieldList = PYB11TemplateMethod(newDEMFieldList, template_parameters="std::vector<Vector>")
+    newDEMvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newDEMFieldList, template_parameters="std::vector<CellFaceFlag>")
+    newDEMvector_of_CellFaceFlagFieldList = PYB11TemplateMethod(newDEMFieldList, template_parameters="std::vector<int>")
+
     resizeGlobalIntFieldList              = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="int")
     resizeGlobalScalarFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="double")
     resizeGlobalVectorFieldList           = PYB11TemplateMethod(resizeGlobalFieldList, template_parameters="Vector")
@@ -403,6 +439,18 @@ will get the new value regardless of resetValues."""
     resizeSolidvector_of_doubleFieldList = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="std::vector<double>")
     resizeSolidDomainNodeFieldList       = PYB11TemplateMethod(resizeSolidFieldList, template_parameters="DomainNode<%(Dimension)s>")
 
+    resizeDEMIntFieldList              = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="int")
+    resizeDEMScalarFieldList           = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="double")
+    resizeDEMVectorFieldList           = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="Vector")
+    resizeDEMTensorFieldList           = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="Tensor")
+    resizeDEMSymTensorFieldList        = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="SymTensor")
+    resizeDEMThirdRankTensorFieldList  = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="ThirdRankTensor")
+    resizeDEMFourthRankTensorFieldList = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="FourthRankTensor")
+    resizeDEMFifthRankTensorFieldList  = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="FifthRankTensor")
+    resizeDEMFacetedVolumeFieldList    = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="FacetedVolume")
+    resizeDEMvector_of_intFieldList    = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="std::vector<int>")
+    resizeDEMvector_of_doubleFieldList = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="std::vector<double>")
+    resizeDEMvector_of_VectorFieldList = PYB11TemplateMethod(resizeDEMFieldList, template_parameters="std::vector<Vector>")
     #...........................................................................
     # Array generation methods
     @PYB11template("DataType")
@@ -424,6 +472,13 @@ will get the new value regardless of resetValues."""
     def newSolidArray(self,
                       value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
         "Construct a new array<%(DataType)s> for all SolidNodeLists in DataBase"
+        return "std::vector<std::vector<%(DataType)s>>"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def newDEMArray(self,
+                      value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()")):
+        "Construct a new array<%(DataType)s> for all DEMNodeLists in DataBase"
         return "std::vector<std::vector<%(DataType)s>>"
 
     @PYB11template("DataType")
@@ -457,6 +512,18 @@ will get the new value regardless of resetValues."""
                          value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
                          resetValues = ("const bool", "true")):
         """Resize an array to the number of SolidNodeLists.
+Optionally we can also set all elements in the Array to the specified value.
+Note that if the Array is resized it is reconstructed from scratch, so all elements
+will get the new value regardless of resetValues."""
+        return "void"
+
+    @PYB11template("DataType")
+    @PYB11const
+    def resizeDEMArray(self,
+                         array = "std::vector<std::vector<%(DataType)s>>&",
+                         value = ("const %(DataType)s", "DataTypeTraits<%(DataType)s>::zero()"),
+                         resetValues = ("const bool", "true")):
+        """Resize an array to the number of DEMNodeLists.
 Optionally we can also set all elements in the Array to the specified value.
 Note that if the Array is resized it is reconstructed from scratch, so all elements
 will get the new value regardless of resetValues."""
@@ -507,6 +574,21 @@ will get the new value regardless of resetValues."""
     newSolidvector_of_CellFaceFlagArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<CellFaceFlag>")
     newSolidvector_of_CellFaceFlagArray = PYB11TemplateMethod(newSolidArray, template_parameters="std::vector<int>")
 
+    newDEMIntArray              = PYB11TemplateMethod(newDEMArray, template_parameters="int")
+    newDEMScalarArray           = PYB11TemplateMethod(newDEMArray, template_parameters="double")
+    newDEMVectorArray           = PYB11TemplateMethod(newDEMArray, template_parameters="Vector")
+    newDEMTensorArray           = PYB11TemplateMethod(newDEMArray, template_parameters="Tensor")
+    newDEMSymTensorArray        = PYB11TemplateMethod(newDEMArray, template_parameters="SymTensor")
+    newDEMThirdRankTensorArray  = PYB11TemplateMethod(newDEMArray, template_parameters="ThirdRankTensor")
+    newDEMFourthRankTensorArray = PYB11TemplateMethod(newDEMArray, template_parameters="FourthRankTensor")
+    newDEMFifthRankTensorArray  = PYB11TemplateMethod(newDEMArray, template_parameters="FifthRankTensor")
+    newDEMFacetedVolumeArray    = PYB11TemplateMethod(newDEMArray, template_parameters="FacetedVolume")
+    newDEMvector_of_intArray    = PYB11TemplateMethod(newDEMArray, template_parameters="std::vector<int>")
+    newDEMvector_of_doubleArray = PYB11TemplateMethod(newDEMArray, template_parameters="std::vector<double>")
+    newDEMvector_of_VectorArray = PYB11TemplateMethod(newDEMArray, template_parameters="std::vector<Vector>")
+    newDEMvector_of_CellFaceFlagArray = PYB11TemplateMethod(newDEMArray, template_parameters="std::vector<CellFaceFlag>")
+    newDEMvector_of_CellFaceFlagArray = PYB11TemplateMethod(newDEMArray, template_parameters="std::vector<int>")
+
     resizeGlobalIntArray              = PYB11TemplateMethod(resizeGlobalArray, template_parameters="int")
     resizeGlobalScalarArray           = PYB11TemplateMethod(resizeGlobalArray, template_parameters="double")
     resizeGlobalVectorArray           = PYB11TemplateMethod(resizeGlobalArray, template_parameters="Vector")
@@ -548,6 +630,19 @@ will get the new value regardless of resetValues."""
     resizeSolidvector_of_doubleArray = PYB11TemplateMethod(resizeSolidArray, template_parameters="std::vector<double>")
     resizeSolidvector_of_VectorArray = PYB11TemplateMethod(resizeSolidArray, template_parameters="std::vector<Vector>")
 
+    resizeDEMIntArray              = PYB11TemplateMethod(resizeDEMArray, template_parameters="int")
+    resizeDEMScalarArray           = PYB11TemplateMethod(resizeDEMArray, template_parameters="double")
+    resizeDEMVectorArray           = PYB11TemplateMethod(resizeDEMArray, template_parameters="Vector")
+    resizeDEMTensorArray           = PYB11TemplateMethod(resizeDEMArray, template_parameters="Tensor")
+    resizeDEMSymTensorArray        = PYB11TemplateMethod(resizeDEMArray, template_parameters="SymTensor")
+    resizeDEMThirdRankTensorArray  = PYB11TemplateMethod(resizeDEMArray, template_parameters="ThirdRankTensor")
+    resizeDEMFourthRankTensorArray = PYB11TemplateMethod(resizeDEMArray, template_parameters="FourthRankTensor")
+    resizeDEMFifthRankTensorArray  = PYB11TemplateMethod(resizeDEMArray, template_parameters="FifthRankTensor")
+    resizeDEMFacetedVolumeArray    = PYB11TemplateMethod(resizeDEMArray, template_parameters="FacetedVolume")
+    resizeDEMvector_of_intArray    = PYB11TemplateMethod(resizeDEMArray, template_parameters="std::vector<int>")
+    resizeDEMvector_of_doubleArray = PYB11TemplateMethod(resizeDEMArray, template_parameters="std::vector<double>")
+    resizeDEMvector_of_VectorArray = PYB11TemplateMethod(resizeDEMArray, template_parameters="std::vector<Vector>")
+
     #...........................................................................
     @PYB11cppname("nodeListPtrs")
     @PYB11returnpolicy("reference_internal")
@@ -581,7 +676,6 @@ will get the new value regardless of resetValues."""
     solidNodeListPtrs = PYB11property("const std::vector<SolidNodeList<%(Dimension)s>*>&", "solidNodeListPtrs", doc="The set of SolidNodeLists in the DataBase")
     DEMNodeListPtrs = PYB11property("const std::vector<DEMNodeList<%(Dimension)s>*>&", "DEMNodeListPtrs", doc="The set of NodeLists in the DataBase")
     
-
     #...........................................................................
     # Attributes
     nDim = PYB11readonly(static=True, returnpolicy="copy")
