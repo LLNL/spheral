@@ -6,6 +6,25 @@
 # involving porous bodies.I. Implementing sub-resolution porosity in a 3D SPH
 # hydrocode. Icarus, 198(1), 242–255.
 #-------------------------------------------------------------------------------
+#
+# Ordinary SPH
+#
+#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True", np=4, label="Planar porous aluminum compaction problem -- 1-D (4 proc)")
+#ATS:t1 = test(      SELF, "--graphics None --clearDirectories True  --checkError False --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 1)")
+#ATS:t2 = testif(t1, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 2)")
+#
+# FSISPH
+#
+#ATS:t10 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --hydroType FSISPH", np=4, label="Planar porous aluminum compaction problem -- 1-D (FSISPH, 4 proc)")
+#ATS:t11 = test(       SELF, "--graphics None --clearDirectories True  --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 1)")
+#ATS:t12 = testif(t11, SELF, "--graphics None --clearDirectories False --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 2)")
+#
+# CRKSPH
+#
+#ATS:t20 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --hydroType CRKSPH", np=4, label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, 4 proc)")
+#ATS:t21 = test(       SELF, "--graphics None --clearDirectories True  --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 1)")
+#ATS:t22 = testif(t21, SELF, "--graphics None --clearDirectories False --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 2)")
+
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
 from SpheralMatplotlib import *
@@ -13,6 +32,7 @@ from PlanarCompactionSolution import *
 from math import *
 import os, shutil
 import mpi
+import Pnorm
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
@@ -46,7 +66,7 @@ commandLine(nx = 500,                          # Number of internal free points
             fdt = 0.5,                         # Timestep control fractional change in alpha
 
             # Hydro
-            hydro = "SPH",                     # SPH, CRKSPH, FSISPH
+            hydroType = "SPH",                 # SPH, CRKSPH, FSISPH
             cfl = 0.25,
             useVelocityMagnitudeForDt = True,
             XSPH = False,
@@ -79,11 +99,36 @@ commandLine(nx = 500,                          # Number of internal free points
             graphics = True,
             clearDirectories = False,
             dataDirBase = "dumps-PlanarCompaction-1d",
+            checkError = False,
+            checkRestart = False,
             outputFile = "None",
             comparisonFile = "None",
+
+            # Parameters for the test acceptance.,
+            L1rho =   0.0537214,   
+            L2rho =   0.0147186,   
+            Linfrho = 1.65537,     
+                                   
+            L1P =     0.018076,    
+            L2P =     0.005431,    
+            LinfP =   0.628838,    
+                                   
+            L1v =     0.0244616,   
+            L2v =     0.00841887,  
+            Linfv =   0.856119,    
+                                   
+            L1eps =   0.0105579,   
+            L2eps =   0.00336606,  
+            Linfeps = 0.355227,    
+                                   
+            L1h =     0.000436001, 
+            L2h =     0.00011995,  
+            Linfh =   0.0084786,   
+
+            tol = 1.0e-5,
             )
 
-hydro = hydro.upper()
+hydroType = hydroType.upper()
 
 boundary = boundary.upper()
 assert boundary in ("PISTON", "WALL")
@@ -91,12 +136,73 @@ assert boundary in ("PISTON", "WALL")
 dataDir = os.path.join(dataDirBase,
                        PorousModel.__name__,
                        material.replace(" ", "_") + "_" + EOSConstructor.__name__,
-                       hydro,
+                       hydroType,
                        boundary,
                        "nx=%i" % nx)
 
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "PlanarCompaction-%i" % nx)
+
+#-------------------------------------------------------------------------------
+# The reference values for error norms checking for pass/fail
+#-------------------------------------------------------------------------------
+LnormRef = {"SPH": {"Mass density" : {"L1"   : 0.06784180265642285,
+                                      "L2"   : 0.012774364770014977,
+                                      "Linf" : 0.6245702324344271},
+                    "Spec Therm E" : {"L1"   : 0.00012007391504066691,
+                                      "L2"   : 2.261609663038565e-05,
+                                      "Linf" : 0.0010923444962228084},
+                    "velocity    " : {"L1"   : 0.004921923787030611,
+                                      "L2"   : 0.0009173607205679919,
+                                      "Linf" : 0.04487262217428524},
+                    "pressure    " : {"L1"   : 0.002221731517760333,
+                                      "L2"   : 0.0003947907419776353,
+                                      "Linf" : 0.01879389871148168},
+                    "alpha       " : {"L1"   : 0.05903923806842537,
+                                      "L2"   : 0.00796359114646651,
+                                      "Linf" : 0.27381776172196415},
+                    "h           " : {"L1"   : 0.00043261748175064686,
+                                      "L2"   : 8.062942020753838e-05,
+                                      "Linf" : 0.014201309070927277}},
+
+            "FSISPH": {"Mass density" : {"L1"   : 0.06781315254834663,
+                                         "L2"   : 0.012767609038544868,
+                                         "Linf" : 0.6245684397582596},
+                       "Spec Therm E" : {"L1"   : 0.00011965392554003714,
+                                         "L2"   : 2.25486772335465e-05,
+                                         "Linf" : 0.0010923438847692674},
+                       "velocity    " : {"L1"   : 0.004913224682374082,
+                                         "L2"   : 0.0009163176584516352,
+                                         "Linf" : 0.04487259898516933},
+                       "pressure    " : {"L1"   : 0.0022102090858561363,
+                                         "L2"   : 0.00039387993461421304,
+                                         "Linf" : 0.018793840672183936},
+                       "alpha       " : {"L1"   : 0.05903526311365288,
+                                         "L2"   : 0.007960852770249537,
+                                         "Linf" : 0.27381756478020636},
+                       "h           " : {"L1"   : 0.00043196821429511287,
+                                         "L2"   : 8.055374289444652e-05,
+                                         "Linf" : 0.01420130907128625}},
+
+            "CRKSPH": {"Mass density" : {"L1"   : 0.06797072207729002,
+                                         "L2"   : 0.01278362132227105,
+                                         "Linf" : 0.6245687018636898},
+                       "Spec Therm E" : {"L1"   : 0.0001201303520771081,
+                                         "L2"   : 2.2622550331356652e-05,
+                                         "Linf" : 0.0010923444474855853},
+                       "velocity    " : {"L1"   : 0.004926121368233787,
+                                         "L2"   : 0.000917362910634474,
+                                         "Linf" : 0.04487262320139263},
+                       "pressure    " : {"L1"   : 0.0022258225868073108,
+                                         "L2"   : 0.0003949681885607131,
+                                         "Linf" : 0.018793890216908},
+                       "alpha       " : {"L1"   : 0.059090307100352644,
+                                         "L2"   : 0.007965976598239258,
+                                         "Linf" : 0.2738173870953384},
+                       "h           " : {"L1"   : 0.0004327482706525742,
+                                         "L2"   : 8.062817025126228e-05,
+                                         "Linf" : 0.014201309070452854}}
+}
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -200,14 +306,14 @@ else:
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if hydro == "CRKSPH":
+if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt)
-elif hydro == "SPH":
+elif hydroType == "SPH":
     hydro = SPH(dataBase = db,
                 W = WT,
                 cfl = cfl,
@@ -217,7 +323,7 @@ elif hydro == "SPH":
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt)
-elif hydro == "FSISPH":
+elif hydroType == "FSISPH":
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
@@ -334,7 +440,24 @@ output("control")
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 if not steps is None:
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
+    if checkRestart:
+        control.setRestartBaseName(restartBaseName)
+
+    # Optionally check restart state
+    if checkRestart:
+        state0 = State(db, integrator.physicsPackages())
+        state0.copyState()
+        print(control.totalSteps)
+        control.loadRestartFile(control.totalSteps)
+        state1 = State(db, integrator.physicsPackages())
+        if not state1 == state0:
+            raise ValueError("The restarted state does not match!")
+        else:
+            print("Restart check PASSED.")
+
 else:
     control.advance(goalTime)
     control.dropRestartFile()
@@ -343,32 +466,86 @@ Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.
 print("Total energy change: %g" % Eerror)
 
 #-------------------------------------------------------------------------------
+# Compute the analytic solution
+#-------------------------------------------------------------------------------
+# Need the smoothing scale for the solution if we want to plot and compare it
+state = State(db, integrator.physicsPackages())
+H = state.symTensorFields(HydroFieldNames.H)
+h = db.newFluidScalarFieldList(0.0, "h")
+for i in range(nodes.numInternalNodes):
+    h[0][i] = 1.0/H[0][i].xx
+
+solution = PlanarCompactionSolution(eos = eosS,
+                                    vpiston = vpiston,
+                                    eps0 = eps0,
+                                    alpha0 = alpha0,
+                                    alphat = None,
+                                    Pe = Pe * PCGSconv,
+                                    Pt = Pe * PCGSconv,
+                                    Ps = Ps * PCGSconv,
+                                    n1 = 0.0,
+                                    n2 = 2.0,
+                                    cS0 = cS0 * vCGSconv,
+                                    c0 = ce * vCGSconv,
+                                    h0 = nPerh * dx,
+                                    nPoints = 1000,
+                                    pistonFrame = (boundary == "WALL"))
+
+#-------------------------------------------------------------------------------
+# Compute the error norms
+# We clip off the ends of the simulation to avoid wall heating effects in the
+# model.
+#-------------------------------------------------------------------------------
+up = abs(vpiston)
+t = control.time()
+if boundary == "WALL":
+    xmin, xmax = -1.0 + up*t, 1.0
+else:
+    xmin, xmax = -1.0, 1.0 - up*t
+dxbound = 10*dx
+xmin += dxbound
+xmax -= dxbound
+xprof = np.array(mpi.reduce([x.x for x in pos.internalValues()], mpi.SUM))
+rhoprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.massDensity)[0].internalValues(), mpi.SUM))
+epsprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.specificThermalEnergy)[0].internalValues(), mpi.SUM))
+vprof = np.array(mpi.reduce([x.x for x in state.vectorFields(HydroFieldNames.velocity)[0].internalValues()], mpi.SUM))
+Pprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.pressure)[0].internalValues(), mpi.SUM))
+hprof = np.array(mpi.reduce(h[0].internalValues(), mpi.SUM))
+alphaprof = np.array(mpi.reduce(state.scalarFields(SolidFieldNames.porosityAlpha)[0].internalValues(), mpi.SUM))
+failure = False
+if mpi.rank == 0:
+    multiSort(xprof, rhoprof, epsprof, vprof, Pprof, hprof, alphaprof)
+    xans, vans, epsans, rhoans, Pans, hans = solution.solution(t, xprof)
+    xans, alphaans = solution.alpha_solution(t, xprof)
+    print("Quantity \t\tL1 \t\t\t\tL2 \t\t\t\tLinf")
+    for (name, data, ans) in [("Mass density", rhoprof, rhoans),
+                              ("Spec Therm E", epsprof, epsans),
+                              ("velocity    ", vprof, vans),
+                              ("pressure    ", Pprof, Pans),
+                              ("alpha       ", alphaprof, alphaans),
+                              ("h           ", hprof, hans)]:
+        assert len(data) == len(ans)
+        error = data - ans
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, xmin, xmax)
+        L2 = Pn.gridpnorm(2, xmin, xmax)
+        Linf = Pn.gridpnorm("inf", xmin, xmax)
+        print("{}\t\t{} \t\t{} \t\t{}".format(name, L1, L2, Linf))
+
+        if checkError and not (np.allclose(L1, LnormRef[hydroType][name]["L1"], tol, tol) and
+                               np.allclose(L2, LnormRef[hydroType][name]["L2"], tol, tol) and
+                               np.allclose(Linf, LnormRef[hydroType][name]["Linf"], tol, tol)):
+            print("Failing Lnorm tolerance for ", name, (L1, L2, Linf), LnormRef[hydroType][name])
+            failure = True
+
+failure = mpi.allreduce(failure, mpi.MAX)
+if checkError and failure:
+    raise ValueError("Error bounds violated")
+
+#-------------------------------------------------------------------------------
 # Plot the state.
 #-------------------------------------------------------------------------------
 if graphics:
-    state = State(db, integrator.physicsPackages())
-    H = state.symTensorFields("H")
-    h = db.newFluidScalarFieldList(0.0, "h")
-    for i in range(nodes.numInternalNodes):
-        h[0][i] = 1.0/H[0][i].xx
-
-    # Build the solution
-    solution = PlanarCompactionSolution(eos = eosS,
-                                        vpiston = vpiston,
-                                        eps0 = eps0,
-                                        alpha0 = alpha0,
-                                        alphat = None,
-                                        Pe = Pe * PCGSconv,
-                                        Pt = Pe * PCGSconv,
-                                        Ps = Ps * PCGSconv,
-                                        n1 = 0.0,
-                                        n2 = 2.0,
-                                        cS0 = cS0 * vCGSconv,
-                                        c0 = ce * vCGSconv,
-                                        h0 = nPerh * dx,
-                                        nPoints = 1000,
-                                        pistonFrame = (boundary == "WALL"))
-
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
                             plotStyle = "o-",
                             lineTitle = "Simulation",
@@ -481,54 +658,3 @@ if graphics:
     # Save the figures.
     for p, fname in plots:
         savefig(p, os.path.join(dataDir, fname))
-
-#-------------------------------------------------------------------------------
-# If requested, write out the state in a global ordering to a file.
-#-------------------------------------------------------------------------------
-if outputFile != "None":
-    from SpheralTestUtilities import multiSort
-    state = State(db, integrator.physicsPackages())
-    outputFile = os.path.join(dataDir, outputFile)
-    pos = state.vectorFields(HydroFieldNames.position)
-    rho = state.scalarFields(HydroFieldNames.massDensity)
-    P = state.scalarFields(HydroFieldNames.pressure)
-    vel = state.vectorFields(HydroFieldNames.velocity)
-    eps = state.scalarFields(HydroFieldNames.specificThermalEnergy)
-    Hfield = state.symTensorFields(HydroFieldNames.H)
-    S = state.symTensorFields(SolidFieldNames.deviatoricStress)
-    xprof = mpi.reduce([x.x for x in internalValues(pos)], mpi.SUM)
-    rhoprof = mpi.reduce(internalValues(rho), mpi.SUM)
-    Pprof = mpi.reduce(internalValues(P), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in internalValues(vel)], mpi.SUM)
-    epsprof = mpi.reduce(internalValues(eps), mpi.SUM)
-    hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in internalValues(Hfield)], mpi.SUM)
-    sprof = mpi.reduce([x.xx for x in internalValues(S)], mpi.SUM)
-    phiprof = mpi.reduce(phi.internalValues(), mpi.SUM)
-    mof = mortonOrderIndices(db)
-    mo = mpi.reduce(internalValues(mof), mpi.SUM)
-    if mpi.rank == 0:
-        multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, phiprof)
-        with open(outputFile, "w") as f:
-            f.write(("#" + 8*" %16s" + "\n") % ("x", "rho", "P", "v", "eps", "h", "S", "phi"))
-            for (xi, rhoi, Pi, vi, epsi, hi, si, phii) in zip(xprof, rhoprof, Pprof, vprof, epsprof, hprof, sprof, phiprof):
-                f.write((8*"%16.12e " + "\n") %
-                        (xi, rhoi, Pi, vi, epsi, hi, si, phii))
-
-        #---------------------------------------------------------------------------
-        # Check the floating values for the state against reference data.
-        #---------------------------------------------------------------------------
-        import filearraycmp as fcomp
-        assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
-        print("Floating point comparison test passed.")
-
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file for
-        # bit level consistency.
-        #---------------------------------------------------------------------------
-        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
-            comparisonFile = os.path.join(dataDir, comparisonFile)
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)
-
-if graphics:
-    plt.show()
