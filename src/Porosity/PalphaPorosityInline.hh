@@ -61,86 +61,6 @@ n2() const {
 
 template<typename Dimension>
 inline
-double
-PalphaPorosity<Dimension>::
-rhoS0() const {
-  return mRhoS0;
-}
-
-template<typename Dimension>
-inline
-double
-PalphaPorosity<Dimension>::
-cS0() const {
-  return mcS0;
-}
-
-template<typename Dimension>
-inline
-double
-PalphaPorosity<Dimension>::
-K0() const {
-  return mK0;
-}
-
-template<typename Dimension>
-inline
-double
-PalphaPorosity<Dimension>::
-fdt() const {
-  return mfdt;
-}
-
-template<typename Dimension>
-inline
-double
-PalphaPorosity<Dimension>::
-maxAbsDalphaDt() const {
-  return mMaxAbsDalphaDt;
-}
-
-template<typename Dimension>
-inline
-const SolidNodeList<Dimension>&
-PalphaPorosity<Dimension>::
-nodeList() const {
-  return mNodeList;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-PalphaPorosity<Dimension>::
-c0() const {
-  return mc0;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-PalphaPorosity<Dimension>::
-alpha0() const {
-  return mAlpha0;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-PalphaPorosity<Dimension>::
-alpha() const {
-  return mAlpha;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, typename Dimension::Scalar>&
-PalphaPorosity<Dimension>::
-DalphaDt() const {
-  return mDalphaDt;
-}
-
-template<typename Dimension>
-inline
 const Field<Dimension, typename Dimension::Scalar>&
 PalphaPorosity<Dimension>::
 partialPpartialEps() const {
@@ -153,17 +73,6 @@ const Field<Dimension, typename Dimension::Scalar>&
 PalphaPorosity<Dimension>::
 partialPpartialRho() const {
   return mdPdR;
-}
-
-//------------------------------------------------------------------------------
-// setters
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-PalphaPorosity<Dimension>::
-fdt(const double x) {
-  mfdt = x;
 }
 
 }

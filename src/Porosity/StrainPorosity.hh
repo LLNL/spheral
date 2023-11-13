@@ -46,11 +46,11 @@ class StrainPorosity:
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
   // Constructors, destructors.
   StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,     // Porous EOS we're going to modify

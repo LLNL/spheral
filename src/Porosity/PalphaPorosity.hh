@@ -25,17 +25,14 @@
 #ifndef __Spheral_PalphaPorosity__
 #define __Spheral_PalphaPorosity__
 
-#include "Physics/Physics.hh"
-#include "NodeList/SolidNodeList.hh"
+#include "Porosity/PorosityModel.hh"
 #include "DataOutput/registerWithRestart.hh"
-
-#include <limits>
 
 namespace Spheral {
 
 template<typename Dimension>
 class PalphaPorosity: 
-    public Physics<Dimension> {
+    public PorosityModel<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -82,31 +79,21 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
-
-  // Vote on a time step.
-  virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
-                          const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Register our state.
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
-
-  // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs);
+                             State<Dimension>& state) override;
 
   // Do any required one-time initializations on problem start up.
-  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   //............................................................................
 
   //............................................................................
   // Methods required for restarting.
-  virtual std::string label() const { return "PalphaPorosity " + mNodeList.name(); }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const;
-  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  virtual std::string label() const override { return "PalphaPorosity " + mNodeList.name(); }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //............................................................................
 
   // Access the material parameters.
@@ -117,34 +104,22 @@ public:
   double alphat() const;
   double n1() const;
   double n2() const;
-  double rhoS0() const;
-  double cS0() const;
-  double K0() const;
-  double fdt() const;
-  double maxAbsDalphaDt() const;
-  const SolidNodeList<Dimension>& nodeList() const;
-  const Field<Dimension, Scalar>& c0() const;
-  const Field<Dimension, Scalar>& alpha0() const;
-  const Field<Dimension, Scalar>& alpha() const;
-  const Field<Dimension, Scalar>& DalphaDt() const;
-  const Field<Dimension, Scalar>& solidMassDensity() const;
   const Field<Dimension, Scalar>& partialPpartialEps() const;
   const Field<Dimension, Scalar>& partialPpartialRho() const;
 
-  void fdt(const double x);
-
-  // Provide the porosity (phi) computed from the internally stored distention alpha
-  Field<Dimension, Scalar> phi() const;
-
 private:
   //--------------------------- Private Interface ---------------------------//
-  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2, mRhoS0, mcS0, mK0, mfdt;
-  mutable double mMaxAbsDalphaDt;
-  const SolidNodeList<Dimension>& mNodeList;
-  Field<Dimension, Scalar> mc0, mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mdPdU, mdPdR;
+  double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2;
+  Field<Dimension, Scalar> mdPdU, mdPdR;
 
-  // The restart registration.
-  RestartRegistrationType mRestart;
+  using PorosityModel<Dimension>::mRhoS0;
+  using PorosityModel<Dimension>::mcS0;
+  using PorosityModel<Dimension>::mKS0;
+  using PorosityModel<Dimension>::mc0;
+  using PorosityModel<Dimension>::mMaxAbsDalphaDt;
+  using PorosityModel<Dimension>::mNodeList;
+  using PorosityModel<Dimension>::mAlpha;
+  using PorosityModel<Dimension>::mAlpha0;
 
   // Disallow default constructor
   PalphaPorosity();

@@ -2,13 +2,13 @@
 # PalphaPorosity
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from Physics import *
+from PorosityModel import *
 from PhysicsAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralPorosity")
-class PalphaPorosity(Physics):
+class PalphaPorosity(PorosityModel):
     """An implementation of the P-alpha porosity model described in
 
 Jutzi, M., Benz, W., & Michel, P. (2008). Numerical simulations of impacts
@@ -117,16 +117,6 @@ parameter (alpha) and gives it to the PorousEquationOfState.
     alphat = PYB11property(doc="Elastic distension threshold")
     n1 = PYB11property(doc="Fitted exponent for plastic distention evolution")
     n2 = PYB11property(doc="Fitted exponent for plastic distention evolution")
-    cS0 = PYB11property(doc="Reference sound speed at full density")
-    K0 = PYB11property()
-    rhoS0 = PYB11property(doc="Reference solid density")
-    fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
-    maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
-    nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal")
-    c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    DalphaDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     partialPpartialEps = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     partialPpartialRho = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
 

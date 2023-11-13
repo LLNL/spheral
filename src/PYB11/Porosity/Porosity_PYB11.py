@@ -11,13 +11,15 @@ dims = spheralDimensions()
 
 from SolidEquationOfState import *
 
+from PorosityModel import *
 from StrainPorosity import *
 from PalphaPorosity import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"Porosity/StrainPorosity.hh"',
+PYB11includes += ['"Porosity/PorosityModel.hh"',
+                  '"Porosity/StrainPorosity.hh"',
                   '"Porosity/PalphaPorosity.hh"',
                   '"SolidMaterial/PorousEquationOfState.hh"',
                   '"SolidMaterial/PorousStrengthModel.hh"',
@@ -34,6 +36,7 @@ PYB11namespaces = ["Spheral"]
 for ndim in dims:
     Dimension = "Dim<" + str(ndim) + ">"
     exec(f'''
+PorosityModel{ndim}d = PYB11TemplateClass(PorosityModel, template_parameters="{Dimension}")
 StrainPorosity{ndim}d = PYB11TemplateClass(StrainPorosity, template_parameters="{Dimension}")
 PalphaPorosity{ndim}d = PYB11TemplateClass(PalphaPorosity, template_parameters="{Dimension}")
 ''')
