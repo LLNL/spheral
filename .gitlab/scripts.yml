@@ -13,7 +13,7 @@
     - echo $SPEC
 
     - ml load python/3
-    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS" --lc-modules="$LC_MODULES"
 
 .build_and_test:
   extends: [.build]
