@@ -62,7 +62,6 @@ public:
 
   //............................................................................
   // Methods required for restarting.
-  virtual std::string label() const { return "PorosityModel " + mNodeList.name(); }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //............................................................................

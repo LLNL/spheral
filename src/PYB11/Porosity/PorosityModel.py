@@ -103,8 +103,3 @@ Base class for PorosityModels for common functionality.
     alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     DalphaDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-
-#-------------------------------------------------------------------------------
-# Inject methods
-#-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, PorosityModel, virtual=True, pure_virtual=False)

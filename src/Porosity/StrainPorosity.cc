@@ -10,7 +10,7 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "StrainPorosity.hh"
+#include "Porosity/StrainPorosity.hh"
 
 using std::vector;
 using std::string;
@@ -30,45 +30,28 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 StrainPorosity<Dimension>::
-StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
-               PorousStrengthModel<Dimension>& porousStrength,
-               const NodeList<Dimension>& nodeList,
+StrainPorosity(const SolidNodeList<Dimension>& nodeList,
                const double phi0,
                const double epsE,
                const double epsX,
                const double kappa,
                const double gammaS0,
                const double cS0,
-               const double c0):
-  Physics<Dimension>(),
+               const double c0,
+               const double rhoS0):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0),
   mEpsE(epsE),
   mEpsX(epsX),
   mKappa(kappa),
   mGammaS0(gammaS0),
-  mcS0(cS0),
-  mPorousEOS(porousEOS),
-  mPorousStrength(porousStrength),
-  mNodeList(nodeList),
-  mc0(SolidFieldNames::porosityc0, nodeList, c0),
-  mAlpha0(SolidFieldNames::porosityAlpha0, nodeList, 1.0/(1.0 - phi0)),
-  mAlpha(SolidFieldNames::porosityAlpha, nodeList, 1.0/(1.0 - phi0)),
-  mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mStrain(SolidFieldNames::porosityStrain, nodeList),
-  mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList),
-  mRestart(registerWithRestart(*this)) {
+  mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList) {
   VERIFY2(mEpsE <= 0.0,
           "ERROR : epsE required to be epsE <= 0.0.");
   VERIFY2(mEpsX <= mEpsE,
           "StrainPorosity ERROR : epsX required to be epsX <= epsE.");
-  VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
-          "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0)");
   VERIFY2(kappa >= 0.0 and kappa <= 1.0,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
-  mPorousEOS.alpha(mAlpha);
-  mPorousEOS.alpha0(mAlpha0);
-  mPorousEOS.c0(mc0);
-  mPorousStrength.alpha(mAlpha);
-  ENSURE(mPorousEOS.valid());
 }
 
 //------------------------------------------------------------------------------
@@ -76,52 +59,28 @@ StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 StrainPorosity<Dimension>::
-StrainPorosity(PorousEquationOfState<Dimension>& porousEOS,
-               PorousStrengthModel<Dimension>& porousStrength,
-               const NodeList<Dimension>& nodeList,
+StrainPorosity(const SolidNodeList<Dimension>& nodeList,
                const Field<Dimension, Scalar>& phi0,
                const double epsE,
                const double epsX,
                const double kappa,
                const double gammaS0,
                const double cS0,
-               const Field<Dimension, Scalar>& c0):
-  Physics<Dimension>(),
+               const Field<Dimension, Scalar>& c0,
+               const double rhoS0):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0),
   mEpsE(epsE),
   mEpsX(epsX),
   mKappa(kappa),
   mGammaS0(gammaS0),
-  mcS0(cS0),
-  mPorousEOS(porousEOS),
-  mPorousStrength(porousStrength),
-  mNodeList(nodeList),
-  mc0(SolidFieldNames::porosityc0, nodeList),
-  mAlpha0(SolidFieldNames::porosityAlpha0, nodeList),
-  mAlpha(SolidFieldNames::porosityAlpha, nodeList),
-  mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mStrain(SolidFieldNames::porosityStrain, nodeList),
-  mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList),
-  mRestart(registerWithRestart(*this)) {
+  mDstrainDt(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, nodeList) {
   VERIFY2(mEpsE <= 0.0,
           "ERROR : epsE required to be epsE <= 0.0.");
   VERIFY2(mEpsX <= mEpsE,
           "StrainPorosity ERROR : epsX required to be epsX <= epsE.");
-  VERIFY2(phi0.localMin() >= 0.0 and phi0.localMax() < 1.0,
-          "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0)");
   VERIFY2(kappa >= 0.0 and kappa <= 1.0,
           "ERROR : kappa required to be in range kappa = [0.0, 1.0]");
-  const auto n = nodeList.numInternalNodes();
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    mc0[i] = c0[i];
-    mAlpha0[i] = 1.0/(1.0 - phi0[i]);
-    mAlpha[i] = 1.0/(1.0 - phi0[i]);
-  }
-  mPorousEOS.alpha(mAlpha);
-  mPorousEOS.alpha0(mAlpha0);
-  mPorousEOS.c0(mc0);
-  mPorousStrength.alpha(mAlpha);
-  ENSURE(mPorousEOS.valid());
 }
 
 //------------------------------------------------------------------------------
@@ -160,7 +119,9 @@ evaluateDerivatives(const Scalar /*time*/,
   auto&       DalphaDt = derivs.field(DalphaDtKey, 0.0);
 
   // Walk the nodes.
-  for (unsigned i = 0; i != mNodeList.numInternalNodes(); ++i) {
+  const auto n = mNodeList.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     DstrainDt(i) = DvDx(i).Trace();
     const auto alphai = alpha(i);
     const auto epsi = strain(i);
@@ -191,28 +152,15 @@ evaluateDerivatives(const Scalar /*time*/,
 }
 
 //------------------------------------------------------------------------------
-// Vote on a time step.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename StrainPorosity<Dimension>::TimeStepType
-StrainPorosity<Dimension>::
-dt(const DataBase<Dimension>& /*dataBase*/, 
-   const State<Dimension>& /*state*/,
-   const StateDerivatives<Dimension>& /*derivs*/,
-   const Scalar /*currentTime*/) const {
-  return TimeStepType(1.0e100, "Rate of porosity change -- NO VOTE.");
-}
-
-//------------------------------------------------------------------------------
 // Register our state.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-registerState(DataBase<Dimension>& /*dataBase*/,
+registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  PorosityModel<Dimension>::registerState(dataBase, state);
   state.enroll(mStrain, std::make_shared<IncrementState<Dimension, Scalar>>());
-  state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
 }
 
 //------------------------------------------------------------------------------
@@ -221,21 +169,10 @@ registerState(DataBase<Dimension>& /*dataBase*/,
 template<typename Dimension>
 void
 StrainPorosity<Dimension>::
-registerDerivatives(DataBase<Dimension>& /*dataBase*/,
+registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  PorosityModel<Dimension>::registerDerivatives(dataBase, derivs);
   derivs.enroll(mDstrainDt);
-  derivs.enroll(mDalphaDt);
-}
-
-//------------------------------------------------------------------------------
-// One time initializations at problem set up.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-StrainPorosity<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
-  // Initialize the distention field.
-  mAlpha = mAlpha0;
 }
 
 //------------------------------------------------------------------------------
@@ -245,10 +182,7 @@ template<typename Dimension>
 void
 StrainPorosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-  file.write(mc0, pathName + "/c0");
-  file.write(mAlpha0, pathName + "/alpha0");
-  file.write(mAlpha, pathName + "/alpha");
-  file.write(mDalphaDt, pathName + "/DalphaDt");
+  PorosityModel<Dimension>::dumpState(file, pathName);
   file.write(mStrain, pathName + "/strain");
   file.write(mDstrainDt, pathName + "/DstrainDt");
 }
@@ -260,29 +194,9 @@ template<typename Dimension>
 void
 StrainPorosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-  file.read(mc0, pathName + "/c0");
-  file.read(mAlpha0, pathName + "/alpha0");
-  file.read(mAlpha, pathName + "/alpha");
-  file.read(mDalphaDt, pathName + "/DalphaDt");
+  PorosityModel<Dimension>::restoreState(file, pathName);
   file.read(mStrain, pathName + "/strain");
   file.read(mDstrainDt, pathName + "/DstrainDt");
-}
-
-//------------------------------------------------------------------------------
-// Compute the current porosity
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Field<Dimension, typename Dimension::Scalar>
-StrainPorosity<Dimension>::
-phi() const {
-  Field<Dimension, Scalar> phi("porosity", mNodeList, 0.0);
-  const auto n = mNodeList.numInternalNodes();
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    CHECK(mAlpha(i) > 0.0);
-    phi(i) = 1.0 - 1.0*safeInvVar(mAlpha(i));
-  }
-  return phi;
 }
 
 }

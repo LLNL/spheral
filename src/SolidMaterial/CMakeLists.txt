@@ -11,9 +11,6 @@ set(SolidMaterial_inst
     JohnsonCookStrength
     CollinsStrength
     iSALEROCKStrength
-    PorousEquationOfState
-    PiecewiseLinearPorousStrengthModel
-    PorousStrengthModel
     PhysicsEvolvingMaterialLibrary
     )
 
@@ -38,9 +35,6 @@ set(SolidMaterial_headers
     PhysicsEvolvingMaterialLibrary.hh
     PolynomialFit.hh
     PolynomialFitInline.hh
-    PorousEquationOfState.hh
-    PiecewiseLinearPorousStrengthModel.hh
-    PorousStrengthModel.hh
     SolidEquationOfState.hh
     SolidEquationOfStateInline.hh
     SteinbergGuinanLundStrength.hh

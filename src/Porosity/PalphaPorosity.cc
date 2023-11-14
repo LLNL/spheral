@@ -168,7 +168,7 @@ evaluateDerivatives(const Scalar time,
           // Elastic
           if (c0i != mcS0) {  // If initial porous sound speed is the same as solid phase, no elastic evolution
             const auto halpha = 1.0 + (alphai - 1.0)*(c0i - mcS0)*safeInvVar(mcS0*(mAlphae - 1.0));
-            DalphaDpi = alphai*alphai/(mcS0*mcS0*mRhoS0)*(1.0 - safeInvVar(halpha*halpha));
+            DalphaDpi = alphai*alphai/mKS0*(1.0 - safeInvVar(halpha*halpha));
           }
 
         } else {
