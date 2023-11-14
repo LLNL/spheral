@@ -73,7 +73,7 @@ update(const KeyType& key,
   // Extract the solid equation of state and strength model from the NodeList.
   // This involves some ugly casting -- should revisit this design.
   const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(cs.nodeListPtr());
-  CHECK(solidNodeListPtr != 0);
+  CHECK(solidNodeListPtr != nullptr);
   const auto& eosS = solidNodeListPtr->equationOfState();
   const auto& strengthModelS = solidNodeListPtr->strengthModel();
 

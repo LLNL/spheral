@@ -154,8 +154,7 @@ def _PalphaPorosityFactory(ndim):
     return PalphaPorosity
 
 #-------------------------------------------------------------------------------
-# Create the dimension specific Tillotson factories.  These are the ones
-# you actually use.
+# Create the dimension specific factories.  These are the ones you actually use.
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec(f"PalphaPorosity{ndim}d = _PalphaPorosityFactory({ndim})")

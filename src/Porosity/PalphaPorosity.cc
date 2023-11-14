@@ -209,9 +209,6 @@ registerState(DataBase<Dimension>& dataBase,
   // We need the pressure derivatives
   state.enroll(mdPdU);
   state.enroll(mdPdR);
-
-  // Register the P-alpha state
-  state.enroll(mc0);
 }
 
 //------------------------------------------------------------------------------

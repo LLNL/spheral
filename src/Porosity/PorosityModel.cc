@@ -152,6 +152,9 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mAlpha, std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0));
   state.enroll(mAlpha0);
 
+  // Initial sound speed
+  state.enroll(mc0);
+
   // Check what other state is registered which needs to be overridden for
   // porosity
   auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {

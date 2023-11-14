@@ -34,8 +34,11 @@ set(Porosity_headers
     )
 
 spheral_install_python_files(
+    ShadowStrainPorosity.py
     ShadowPalphaPorosity.py
     computeHugoniotWithPorosity.py
+    PorousEquationOfState.py
+    PorousStrengthModel.py
     )
 
 spheral_add_obj_library(Porosity SPHERAL_OBJ_LIBS)
