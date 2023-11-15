@@ -15,6 +15,21 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Construct from explicit table of values
+//------------------------------------------------------------------------------
+CubicHermiteInterpolator::
+CubicHermiteInterpolator(const double xmin,
+                         const double xmax,
+                         const std::vector<double>& yvals):
+  mN(),
+  mXmin(),
+  mXmax(),
+  mXstep(),
+  mVals() {
+  this->initialize(xmin, xmax, yvals);
+}
+
+//------------------------------------------------------------------------------
 // Default constructor
 //------------------------------------------------------------------------------
 CubicHermiteInterpolator::CubicHermiteInterpolator():

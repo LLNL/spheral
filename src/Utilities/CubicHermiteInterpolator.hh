@@ -19,15 +19,18 @@ public:
   // Constructors, destructors
   template<typename Func>
   CubicHermiteInterpolator(const double xmin,
-                             const double xmax,
-                             const size_t n,
-                             const Func& F);
+                           const double xmax,
+                           const size_t n,
+                           const Func& F);
   template<typename Func, typename GradFunc>
   CubicHermiteInterpolator(const double xmin,
-                             const double xmax,
-                             const size_t n,
-                             const Func& F,
-                             const GradFunc& Fgrad);
+                           const double xmax,
+                           const size_t n,
+                           const Func& F,
+                           const GradFunc& Fgrad);
+  CubicHermiteInterpolator(const double xmin,
+                           const double xmax,
+                           const std::vector<double>& values);
   CubicHermiteInterpolator();
   ~CubicHermiteInterpolator();
 
@@ -43,9 +46,13 @@ public:
 
   // Interpolate for the y value
   double operator()(const double x) const;
+  double prime(const double x) const;    // First derivative
+  double prime2(const double x) const;   // Second derivative
 
   // Same as above, but use a pre-computed table position (from lowerBound)
   double operator()(const double x, const size_t i0) const;
+  double prime(const double x, const size_t i0) const;    // First derivative
+  double prime2(const double x, const size_t i0) const;   // Second derivative
 
   // Return the lower bound index in the table for the given x coordinate
   size_t lowerBound(const double x) const;
