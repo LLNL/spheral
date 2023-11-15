@@ -78,7 +78,6 @@ class Field(FieldBase):
 
     #...........................................................................
     # FieldBase virtual methods
-    @PYB11virtual
     @PYB11const
     def size(self):
         "Number of elements"

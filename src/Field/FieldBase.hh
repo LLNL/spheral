@@ -30,14 +30,14 @@ public:
   FieldBase(FieldName name);
   FieldBase(FieldName name,
             const NodeList<Dimension>& nodeList);
-  SPHERAL_HOST_DEVICE FieldBase(const FieldBase& fieldBase);
+  SPHERAL_HOST FieldBase(const FieldBase& fieldBase);
   virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
-  SPHERAL_HOST_DEVICE virtual ~FieldBase();
+  SPHERAL_HOST ~FieldBase();
 
   // Assignment operator.
-  SPHERAL_HOST_DEVICE virtual FieldBase& operator=(const FieldBase& rhs);
+  SPHERAL_HOST virtual FieldBase& operator=(const FieldBase& rhs);
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
@@ -49,11 +49,11 @@ public:
 
   // Provide methods to access and set the NodeList.
   const NodeList<Dimension>& nodeList() const;
-  SPHERAL_HOST_DEVICE const NodeList<Dimension>* nodeListPtr() const;
+  SPHERAL_HOST const NodeList<Dimension>* nodeListPtr() const;
   void unregisterNodeList();
 
   // Methods every field must provide.
-  SPHERAL_HOST_DEVICE virtual unsigned size() const = 0;
+  //SPHERAL_HOST virtual unsigned size() const = 0;
   virtual void Zero() = 0;
   virtual void setNodeList(const NodeList<Dimension>& nodeList) = 0;
   virtual void resizeField(unsigned size) = 0;
@@ -89,7 +89,7 @@ protected:
   //bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
   
   // Disallow the default constructor.
-  SPHERAL_HOST_DEVICE FieldBase();
+  SPHERAL_HOST FieldBase();
 
 private:
   //--------------------------- Private Interface ---------------------------//

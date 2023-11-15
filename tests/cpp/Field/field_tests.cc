@@ -4,8 +4,12 @@
 #include "Field/Field.hh"
 #include "NodeList/NodeList.hh"
 
+#include "Field/SphArray.hh"
+
 using DIM3 = Spheral::Dim<3>;
+using FieldBase = Spheral::FieldBase<DIM3>;
 using FieldDouble = Spheral::Field<DIM3, double>;
+using FieldViewDouble = Spheral::FieldView<DIM3, double>;
 using NodeList_t = Spheral::NodeList<DIM3>;
 
 class FieldTest : public::testing::Test{
@@ -23,10 +27,6 @@ class FieldTest : public::testing::Test{
 TYPED_TEST_SUITE_P(FieldTypedTest);
 template<typename T>
 class FieldTypedTest : public FieldTest {};
-
-// All ManagedVectorTets cases will run over each type in EXEC_TYPES.
-//TYPED_TEST_CASE(FieldTypedTest, EXEC_TYPES);
-
 
 TEST_F(FieldTest, NameCtor)
 {
@@ -64,9 +64,11 @@ GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor)
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
+    auto field_v = field.toView();
+
     RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        SPHERAL_ASSERT_EQ(field[i], 4);
+        SPHERAL_ASSERT_EQ(field_v[i], 4);
       });
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
@@ -84,63 +86,104 @@ GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor)
 
     FieldDouble copy_field(field);
 
-    SPHERAL_ASSERT_EQ(copy_field.name(), "");
+    SPHERAL_ASSERT_EQ(copy_field.name(), field_name);
     SPHERAL_ASSERT_EQ(copy_field.size(), 10);
+
+    auto field_v = field.toView();
+    auto copy_field_v = copy_field.toView();
 
     RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        copy_field[i] == 4;
+        SPHERAL_ASSERT_EQ(copy_field_v[i], 4);
+        copy_field_v[i] = 5;
       });
 
     RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        SPHERAL_ASSERT_EQ(field[i], 4);
+        SPHERAL_ASSERT_EQ(field_v[i], 4);
+        SPHERAL_ASSERT_EQ(copy_field_v[i], 5);
       });
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 7);
-    SPHERAL_ASSERT_EQ(&field[0], &copy_field[0]);
+    SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
   }
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
 
-// TODO: ...
-//TEST_F(FieldTest, AssignmentFieldBase)
-//{
-//  {
-//    std::string field_name = "Field::AssignmentFieldBase";
-//    FieldDouble field(field_name);
-//    SPHERAL_ASSERT_EQ(field.name(), field_name);
-//    SPHERAL_ASSERT_EQ(field.size(), 0);
-//    SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
-//  }
-//  SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
-//}
+GPU_TYPED_TEST_P(FieldTypedTest, FieldView)
+{
+  using WORK_EXEC_POLICY = TypeParam;
+
+  {
+    std::string field_name = "Field::FieldView";
+    FieldDouble field(field_name, gpu_this->test_node_list, 4);
+
+    FieldViewDouble field_v(field);
+
+    SPHERAL_ASSERT_EQ(field_v.size(), 10);
+
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
+      [=] SPHERAL_HOST_DEVICE (int i) {
+        field_v[i] = 5;
+      });
+
+    RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
+      [=] SPHERAL_HOST_DEVICE (int i) {
+        SPHERAL_ASSERT_EQ(field_v[i], 5);
+      });
+
+    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
+    SPHERAL_ASSERT_EQ(&field[0], &field_v[0]);
+  }
+  SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
+}
+
+
+TEST_F(FieldTest, AssignmentFieldBase)
+{
+  {
+    std::string field_name = "Field::AssignmentFieldBase";
+    FieldDouble field(field_name, this->test_node_list, 4);
+   
+    FieldBase* base = &field;
+
+    SPHERAL_ASSERT_EQ(base->name(), field_name);
+    //SPHERAL_ASSERT_EQ(field.size(), 0);
+    SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 6);
+  }
+  SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
+}
 
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
   {
-    std::string field_name = "Field::CopyCtor";
+    std::string field_name = "Field::AssignmentField";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
 
     FieldDouble copy_field = field;
 
-    SPHERAL_ASSERT_EQ(copy_field.name(), "");
+    SPHERAL_ASSERT_EQ(copy_field.name(), field_name);
     SPHERAL_ASSERT_EQ(copy_field.size(), 10);
+
+    auto field_v = field.toView();
+    auto copy_field_v = copy_field.toView();
 
     RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        copy_field[i] == 4;
+        SPHERAL_ASSERT_EQ(copy_field_v[i], 4);
+        copy_field_v[i] = 5;
       });
 
     RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        SPHERAL_ASSERT_EQ(field[i], 4);
+        SPHERAL_ASSERT_EQ(field_v[i], 4);
+        SPHERAL_ASSERT_EQ(copy_field_v[i], 5);
       });
 
-    SPHERAL_ASSERT_EQ(&field[0], &copy_field[0]);
+    SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 7);
   }
@@ -152,7 +195,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType)
   using WORK_EXEC_POLICY = TypeParam;
 
   {
-    std::string field_name = "Field::CopyCtor";
+    std::string field_name = "Field::AssignmentContainer";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
 
     using ContainerType = FieldDouble::ContainerType;
@@ -164,18 +207,20 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType)
       });
 
     field = data;
+    auto field_v = field.toView();
 
     RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        field[i] *= 2;
+        field_v[i] *= 2;
       });
 
     RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
-        SPHERAL_ASSERT_EQ(field[i], i*2);
+        //SPHERAL_ASSERT_EQ(field[i], i); // Should not change we deep copy in lambdas...
+        SPHERAL_ASSERT_EQ(field_v[i], i*2);
       });
 
-    SPHERAL_ASSERT_EQ(&field[0], &data[0]);
+    SPHERAL_ASSERT_NE(&field[0], &data[0]);
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
@@ -184,26 +229,26 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType)
 
 TEST_F(FieldTest, AssignmentDataType)
 {
+  SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
   {
-    std::string field_name = "Field::NameCtor";
+    std::string field_name = "Field::AssignmentDataType";
     FieldDouble field(field_name, this->test_node_list, 4);
 
     SPHERAL_ASSERT_EQ(field.size(), 10);
-    SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
+
+    auto field_v = field.toView();
 
     RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST (int i) {
-        SPHERAL_ASSERT_EQ(field[i], 4);
+        SPHERAL_ASSERT_EQ(field_v[i], 4);
       });
 
     field = double(3);
 
-    SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 6);
     RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST (int i) {
-        SPHERAL_ASSERT_EQ(field[i], 3);
+        SPHERAL_ASSERT_EQ(field_v[i], 3);
       });
-
 
   }
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
@@ -216,8 +261,11 @@ GPU_TYPED_TEST_P(FieldTypedTest, size)
   {
     std::string field_name = "Field::size";
     FieldDouble field(field_name, gpu_this->test_node_list);
+    auto field_v = field.toView();
+    SPHERAL_ASSERT_EQ(field.size(), 10);
+
     EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-      SPHERAL_ASSERT_EQ(field.size(), 10);
+      SPHERAL_ASSERT_EQ(field_v.size(), 10);
     EXEC_IN_SPACE_END()
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
@@ -227,10 +275,12 @@ GPU_TYPED_TEST_P(FieldTypedTest, size)
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest,
     NameNodeListValCtor,
     CopyCtor,
+    FieldView,
     //AssignmentFieldBase,
     AssignmentField,
     AssignmentContainerType,
-    size);
+    size
+    );
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, EXEC_TYPES);
 
