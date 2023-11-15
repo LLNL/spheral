@@ -56,51 +56,48 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  //using ContainerType = ManagedVector<DataType>;
   using FieldViewType = FieldView<Dimension, DataType>;
   using ContainerType = typename FieldViewType::ContainerType;
 
   using iterator = typename ContainerType::iterator;
   using const_iterator = typename ContainerType::const_iterator;
-  //typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  //typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
   // Constructors.
-  SPHERAL_HOST explicit Field(FieldName name);
-  SPHERAL_HOST Field(FieldName name, const Field& field);
-  SPHERAL_HOST Field(FieldName name,
+  explicit Field(FieldName name);
+  Field(FieldName name, const Field& field);
+  Field(FieldName name,
                      const NodeList<Dimension>& nodeList);
-  SPHERAL_HOST Field(FieldName name,
+  Field(FieldName name,
                      const NodeList<Dimension>& nodeList,
                      DataType value);
-  SPHERAL_HOST Field(FieldName name,
+  Field(FieldName name,
                      const NodeList<Dimension>& nodeList, 
                      const ContainerType& array);
-  SPHERAL_HOST Field(const NodeList<Dimension>& nodeList, const Field& field);
+  Field(const NodeList<Dimension>& nodeList, const Field& field);
   
-  SPHERAL_HOST Field(const Field& field);
-  SPHERAL_HOST virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
+  Field(const Field& field);
+  virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  SPHERAL_HOST ~Field();
+  ~Field();
 
   // Assignment operator.
-  SPHERAL_HOST virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
-  SPHERAL_HOST Field& operator=(const Field& rhs);
-  SPHERAL_HOST Field& operator=(const ContainerType& rhs);
-  SPHERAL_HOST Field& operator=(const DataType& rhs);
+  virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
+  Field& operator=(const Field& rhs);
+  Field& operator=(const ContainerType& rhs);
+  Field& operator=(const DataType& rhs);
 
-  SPHERAL_HOST inline FieldViewType toView() const { return FieldViewType(*this); } 
+  inline FieldViewType toView() const { return FieldViewType(*this); } 
 
   // Required method to test equivalence with a FieldBase.
-  SPHERAL_HOST virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
+  virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
-  SPHERAL_HOST DataType& operator()(const NodeIteratorBase<Dimension>& itr);
-  SPHERAL_HOST const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
+  DataType& operator()(const NodeIteratorBase<Dimension>& itr);
+  const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
 
   // The number of elements in the field.
-  SPHERAL_HOST unsigned numInternalElements() const;
-  SPHERAL_HOST unsigned numGhostElements() const;
+  unsigned numInternalElements() const;
+  unsigned numGhostElements() const;
 
   // Standard field additive operators.
   Field operator+(const Field& rhs) const;
@@ -143,7 +140,7 @@ public:
   const_iterator ghostEnd() const;
 
   // Test if this Field is in a valid, internally consistent state.
-  SPHERAL_HOST bool valid() const;
+  bool valid() const;
 
   // Required functions from FieldBase
   virtual void Zero() override;
@@ -178,79 +175,18 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
-  // **************************************************************************
-  // *** Explicit Forward Interface From FieldView ***
-  // **************************************************************************
-
+  // Explicit Forward Interface From FieldView for overloaded methods. 
   using FieldViewType::operator();
   using FieldViewType::operator==;
   using FieldViewType::operator!=;
   
-  //// Element access.
-  //DataType& operator[](const unsigned int index) { return FieldViewType::operator[](index); }
-  //DataType& operator[](const unsigned int index) const { return FieldViewType::operator[](index); }
-
-  //SPHERAL_HOST inline DataType& operator()(int index) { return FieldViewType::operator()(index); }
-  //SPHERAL_HOST inline const DataType& operator()(int index) const { return FieldViewType::operator()(index); }
-  ////using FieldViewType::operator();
-  //SPHERAL_HOST inline DataType& at(int index) { return FieldViewType::at(index); }
-  //SPHERAL_HOST inline const DataType& at(int index) const { return FieldViewType::at(index); }
-  ////using FieldViewType::at;
-  //SPHERAL_HOST inline unsigned numElements() const { return FieldViewType::numElements(); }
-  ////using FieldViewType::numElements;
-
-  //// Methods to apply limits to Field data members.
-  //inline void applyMin(const DataType& dataMin) { FieldViewType::applyMin(dataMin); }
-  //inline void applyMax(const DataType& dataMax) { FieldViewType::applyMax(dataMax); }
-
-  //inline void applyScalarMin(const double dataMin) { FieldViewType::applyScalarMin(dataMin); }
-  //inline void applyScalarMax(const double dataMax) { FieldViewType::applyScalarMax(dataMax); }
-
-  //// Some useful reduction operations.
-  //inline DataType sumElements() const { return FieldViewType::sumElements(); }
-  //inline DataType min() const { return FieldViewType::min(); }
-  //inline DataType max() const { return FieldViewType::max(); }
-
-  //// Some useful reduction operations (local versions -- no MPI reductions)
-  //inline DataType localSumElements() const { return FieldViewType::localSumElements(); }
-  //inline DataType localMin() const { return FieldViewType::localMin(); }
-  //inline DataType localMax() const { return FieldViewType::localMax(); }
-
-  //bool operator>(const Field& rhs) const { return FieldViewType::operator>(rhs); }
-  //bool operator<(const Field& rhs) const { return FieldViewType::operator<(rhs); }
-  //bool operator>=(const Field& rhs) const { return FieldViewType::operator>=(rhs); }
-  //bool operator<=(const Field& rhs) const { return FieldViewType::operator<=(rhs); }
-
-  //// Comparison operators (Field-value element wise).
-  //bool operator==(const DataType& rhs) const { return FieldViewType::operator==(rhs); }
-  //bool operator!=(const DataType& rhs) const { return FieldViewType::operator!=(rhs); }
-  //bool operator>(const DataType& rhs) const { return FieldViewType::operator>(rhs); }
-  //bool operator<(const DataType& rhs) const { return FieldViewType::operator<(rhs); }
-  //bool operator>=(const DataType& rhs) const { return FieldViewType::operator>=(rhs); }
-  //bool operator<=(const DataType& rhs) const { return FieldViewType::operator<=(rhs); }
-
-  //// Provide the standard iterator methods over the field.
-  //iterator begin() { return FieldViewType::begin(); }
-  //iterator end() { return FieldViewType::end(); }
-
-  //const_iterator begin() const { return FieldViewType::begin(); }
-  //const_iterator end() const { return FieldViewType::end(); }
-
-  //SPHERAL_HOST virtual unsigned size() const override { return FieldViewType::size(); }
-
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor.
   Field();
   // Private Data
   bool mValid;
-
-  //using FieldViewType::operatorField();
-  //operator Field<Dimension, DataType>() {return Field<Dimension, DataType>(*this); }
 };
-
-//template<typename Dimension, typename DataType>
-//Field<Dimension, DataType> deepCopy(Field<Dimension, DataType> const& rhs)
 
 } // namespace Spheral
 

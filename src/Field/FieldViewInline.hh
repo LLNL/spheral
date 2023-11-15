@@ -81,17 +81,6 @@ FieldView<Dimension, DataType>::operator=(const DataType& rhs) {
 }
 
 //------------------------------------------------------------------------------
-// Test equivalence with a FieldView.
-//------------------------------------------------------------------------------
-//template<typename Dimension, typename DataType>
-//inline
-//bool
-//FieldView<Dimension, DataType>::operator==(const FieldView& rhs) const {
-//  if (&rhs == this) return true;
-//  return mDataArray == rhs.mDataArray;
-//}
-
-//------------------------------------------------------------------------------
 // Element access by integer index.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
