@@ -29,7 +29,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::FieldList():
   FieldListBase<Dimension>(),
-  mFieldPtrs(0),
+  FieldListViewType(),//mFieldPtrs(0),
   mFieldBasePtrs(0),
   mFieldCache(0),
   mStorageType(FieldStorageType::ReferenceFields),
@@ -46,7 +46,7 @@ template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::FieldList(FieldStorageType aStorageType):
   FieldListBase<Dimension>(),
-  mFieldPtrs(0),
+  FieldListViewType(),//mFieldPtrs(0),
   mFieldBasePtrs(0),
   mFieldCache(0),
   mStorageType(aStorageType),
@@ -65,7 +65,7 @@ inline
 FieldList<Dimension, DataType>::
 FieldList(const FieldList<Dimension, DataType>& rhs):
   FieldListBase<Dimension>(rhs),
-  mFieldPtrs(rhs.mFieldPtrs),
+  FieldListViewType(rhs),//mFieldPtrs(rhs.mFieldPtrs),
   mFieldBasePtrs(rhs.mFieldBasePtrs),
   mFieldCache(),
   mStorageType(rhs.storageType()),
@@ -101,10 +101,10 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
             fieldCacheItr == mFieldCache.end());
     }
 
-    NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+    NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
     mFieldBasePtrs.clear();
     mNodeListPtrs.clear();
-    for (auto fptr: mFieldPtrs) {
+    for (auto fptr: FieldListViewType::mFieldPtrs) {
       mFieldBasePtrs.push_back(fptr);
       mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
     }
@@ -146,9 +146,9 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
       mNodeListPtrs = rhs.mNodeListPtrs;
       mFieldCache = FieldCacheType();
       mNodeListIndexMap = rhs.mNodeListIndexMap;
-      mFieldPtrs = std::vector<ElementType>();
+      FieldListViewType::mFieldPtrs = std::vector<ElementType>();
       mFieldBasePtrs = std::vector<BaseElementType>();
-      mFieldPtrs.reserve(rhs.size());
+      FieldListViewType::mFieldPtrs.reserve(rhs.size());
       mFieldBasePtrs.reserve(rhs.size());
       reductionType = rhs.reductionType;
       threadMasterPtr = rhs.threadMasterPtr;
@@ -163,7 +163,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
         for (auto fieldPtrItr = rhs.begin(); 
              fieldPtrItr != rhs.end();
              ++fieldPtrItr) {
-          mFieldPtrs.push_back(*fieldPtrItr);
+          FieldListViewType::mFieldPtrs.push_back(*fieldPtrItr);
           mFieldBasePtrs.push_back(*fieldPtrItr);
         }
         break;
@@ -174,10 +174,10 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
              ++itr) {
           auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
           mFieldCache.push_back(newField);
-          mFieldPtrs.push_back(newField.get());
+          FieldListViewType::mFieldPtrs.push_back(newField.get());
         }
-        NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
-        for (auto fptr: mFieldPtrs) mFieldBasePtrs.push_back(fptr);
+        NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
+        for (auto fptr: FieldListViewType::mFieldPtrs) mFieldBasePtrs.push_back(fptr);
         CHECK(this->size() == mFieldCache.size());
         CHECK(mFieldBasePtrs.size() == mFieldCache.size());
         break;
@@ -243,10 +243,10 @@ FieldList<Dimension, DataType>::copyFields() {
     }
 
     // Make sure the FieldPtrs are in the correct order.
-    NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+    NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
     mFieldBasePtrs.clear();
     mNodeListPtrs.clear();
-    for (auto fptr: mFieldPtrs) {
+    for (auto fptr: FieldListViewType::mFieldPtrs) {
       mFieldBasePtrs.push_back(fptr);
       mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
     }
@@ -265,7 +265,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 FieldList<Dimension, DataType>::copyFields(const FieldList<Dimension, DataType>& fieldList) {
-  mFieldPtrs.clear();
+  FieldListViewType::mFieldPtrs.clear();
   mFieldBasePtrs.clear();
   mFieldCache.clear();
   mStorageType = FieldStorageType::CopyFields;
@@ -278,7 +278,7 @@ FieldList<Dimension, DataType>::copyFields(const FieldList<Dimension, DataType>&
   for (const auto& fieldPtr: fieldList.mFieldPtrs) {
     auto newFieldPtr = std::make_shared<Field<Dimension, DataType>>(*fieldPtr);
     mFieldCache.push_back(newFieldPtr);
-    mFieldPtrs.push_back(newFieldPtr.get());
+    FieldListViewType::mFieldPtrs.push_back(newFieldPtr.get());
     mFieldBasePtrs.push_back(newFieldPtr.get());
   }
 }
@@ -334,7 +334,7 @@ inline
 void
 FieldList<Dimension, DataType>::
 referenceFields(const FieldList<Dimension, DataType>& fieldList) {
-  mFieldPtrs = fieldList.mFieldPtrs;
+  FieldListViewType::mFieldPtrs = fieldList.mFieldPtrs;
   mFieldBasePtrs = fieldList.mFieldBasePtrs;
   mFieldCache.clear();
   mStorageType = FieldStorageType::ReferenceFields;
@@ -366,24 +366,24 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   // Insert the field.
   switch(storageType()) {
   case FieldStorageType::ReferenceFields:
-    mFieldPtrs.insert(orderItr, const_cast<Field<Dimension, DataType>*>(&field));
+    FieldListViewType::mFieldPtrs.insert(orderItr, const_cast<Field<Dimension, DataType>*>(&field));
     mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, const_cast<FieldBase<Dimension>*>(dynamic_cast<const FieldBase<Dimension>*>(&field)));
     break;
 
   case FieldStorageType::CopyFields:
     auto newField = std::make_shared<Field<Dimension, DataType>>(field);
     mFieldCache.push_back(newField);
-    mFieldPtrs.insert(orderItr, newField.get());
+    FieldListViewType::mFieldPtrs.insert(orderItr, newField.get());
     mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
   }
 
-//   registerWithField(*mFieldPtrs.back());
+//   registerWithField(*FieldListViewType::mFieldPtrs.back());
 
   // We also update the set of NodeListPtrs in proper order.
-  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+  NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
   mFieldBasePtrs.clear();
   mNodeListPtrs.clear();
-  for (auto fptr: mFieldPtrs) {
+  for (auto fptr: FieldListViewType::mFieldPtrs) {
     mFieldBasePtrs.push_back(fptr);
     mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
   }
@@ -392,7 +392,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  ENSURE(mFieldPtrs[mNodeListIndexMap[field.nodeListPtr()]] == *(fieldForNodeList(*field.nodeListPtr())));
+  ENSURE(FieldListViewType::mFieldPtrs[mNodeListIndexMap[field.nodeListPtr()]] == *(fieldForNodeList(*field.nodeListPtr())));
   ENSURE(this->size() == mNodeListPtrs.size());
   END_CONTRACT_SCOPE
 
@@ -425,7 +425,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     mFieldCache.erase(fieldItr);
     [[fallthrough]]; // C++17 for deliberate case fallthrough
   case FieldStorageType::ReferenceFields:
-    mFieldPtrs.erase(fieldPtrItr);
+    FieldListViewType::mFieldPtrs.erase(fieldPtrItr);
     mFieldBasePtrs.erase(mFieldBasePtrs.begin() + delta);
     break;
   }
@@ -453,11 +453,11 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
   mFieldCache.push_back(std::make_shared<Field<Dimension, DataType>>(name, nodeList, value));
   Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
 
-  mFieldPtrs.push_back(fieldPtr);
-  NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
+  FieldListViewType::mFieldPtrs.push_back(fieldPtr);
+  NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
   mFieldBasePtrs.clear();
   mNodeListPtrs.clear();
-  for (auto fptr: mFieldPtrs) {
+  for (auto fptr: FieldListViewType::mFieldPtrs) {
     mFieldBasePtrs.push_back(fptr);
     mNodeListPtrs.push_back(const_cast<NodeList<Dimension>*>(fptr->nodeListPtr()));
   }
@@ -470,7 +470,7 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
   // const int delta = std::distance(begin(), orderItr);
 
   // // Insert the field.
-  // mFieldPtrs.insert(orderItr, fieldPtr);
+  // FieldListViewType::mFieldPtrs.insert(orderItr, fieldPtr);
   // mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, fieldPtr);
 
   // // We also update the set of NodeListPtrs in proper order.
@@ -480,9 +480,9 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  ENSURE(mFieldPtrs[mNodeListIndexMap[fieldPtr->nodeListPtr()]] == *(fieldForNodeList(*(fieldPtr->nodeListPtr()))));
+  ENSURE(FieldListViewType::mFieldPtrs[mNodeListIndexMap[fieldPtr->nodeListPtr()]] == *(fieldForNodeList(*(fieldPtr->nodeListPtr()))));
   ENSURE(this->size() == mNodeListPtrs.size());
-  ENSURE(mFieldBasePtrs.size() == mFieldPtrs.size());
+  ENSURE(mFieldBasePtrs.size() == FieldListViewType::mFieldPtrs.size());
   END_CONTRACT_SCOPE
 
 }
@@ -495,7 +495,7 @@ inline
 typename FieldList<Dimension, DataType>::iterator
 FieldList<Dimension, DataType>::
 begin() {
-  return mFieldPtrs.begin();
+  return FieldListViewType::mFieldPtrs.begin();
 }
 
 template<typename Dimension, typename DataType>
@@ -503,7 +503,7 @@ inline
 typename FieldList<Dimension, DataType>::iterator
 FieldList<Dimension, DataType>::
 end() {
-  return mFieldPtrs.end();
+  return FieldListViewType::mFieldPtrs.end();
 }
 
 template<typename Dimension, typename DataType>
@@ -511,7 +511,7 @@ inline
 typename FieldList<Dimension, DataType>::reverse_iterator
 FieldList<Dimension, DataType>::
 rbegin() {
-  return mFieldPtrs.rbegin();
+  return FieldListViewType::mFieldPtrs.rbegin();
 }
 
 template<typename Dimension, typename DataType>
@@ -519,7 +519,7 @@ inline
 typename FieldList<Dimension, DataType>::reverse_iterator
 FieldList<Dimension, DataType>::
 rend() {
-  return mFieldPtrs.rend();
+  return FieldListViewType::mFieldPtrs.rend();
 }
 
 template<typename Dimension, typename DataType>
@@ -527,7 +527,7 @@ inline
 typename FieldList<Dimension, DataType>::const_iterator
 FieldList<Dimension, DataType>::
 begin() const {
-  return mFieldPtrs.begin();
+  return FieldListViewType::mFieldPtrs.begin();
 }
 
 template<typename Dimension, typename DataType>
@@ -535,7 +535,7 @@ inline
 typename FieldList<Dimension, DataType>::const_iterator
 FieldList<Dimension, DataType>::
 end() const {
-  return mFieldPtrs.end();
+  return FieldListViewType::mFieldPtrs.end();
 }
 
 template<typename Dimension, typename DataType>
@@ -543,7 +543,7 @@ inline
 typename FieldList<Dimension, DataType>::const_reverse_iterator
 FieldList<Dimension, DataType>::
 rbegin() const {
-  return mFieldPtrs.rbegin();
+  return FieldListViewType::mFieldPtrs.rbegin();
 }
 
 template<typename Dimension, typename DataType>
@@ -551,7 +551,7 @@ inline
 typename FieldList<Dimension, DataType>::const_reverse_iterator
 FieldList<Dimension, DataType>::
 rend() const {
-  return mFieldPtrs.rend();
+  return FieldListViewType::mFieldPtrs.rend();
 }
 
 //------------------------------------------------------------------------------
@@ -629,8 +629,8 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) const {
-  REQUIRE2(index < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
-  return mFieldPtrs[index];
+  REQUIRE2(index < FieldListViewType::mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << FieldListViewType::mFieldPtrs.size());
+  return FieldListViewType::mFieldPtrs[index];
 }
 
 template<typename Dimension, typename DataType>
@@ -638,8 +638,8 @@ inline
 typename FieldList<Dimension, DataType>::ElementType
 FieldList<Dimension, DataType>::
 operator[](const unsigned int index) {
-  REQUIRE2(index < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
-  return mFieldPtrs[index];
+  REQUIRE2(index < FieldListViewType::mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << index << " !< " << FieldListViewType::mFieldPtrs.size());
+  return FieldListViewType::mFieldPtrs[index];
 }
 
 //------------------------------------------------------------------------------
@@ -718,9 +718,9 @@ DataType&
 FieldList<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) {
-  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
-  REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
-  return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
+  REQUIRE2(fieldIndex < FieldListViewType::mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << FieldListViewType::mFieldPtrs.size());
+  REQUIRE2(nodeIndex < FieldListViewType::mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << FieldListViewType::mFieldPtrs[fieldIndex]->size());
+  return FieldListViewType::mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
 
 template<typename Dimension, typename DataType>
@@ -729,9 +729,9 @@ const DataType&
 FieldList<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) const {
-  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
-  REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
-  return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
+  REQUIRE2(fieldIndex < FieldListViewType::mFieldPtrs.size(), "FieldList index ERROR: out of bounds " << fieldIndex << " !< " << FieldListViewType::mFieldPtrs.size());
+  REQUIRE2(nodeIndex < FieldListViewType::mFieldPtrs[fieldIndex]->size(), "FieldList node index ERROR: out of bounds " << nodeIndex << " !< " << FieldListViewType::mFieldPtrs[fieldIndex]->size());
+  return FieldListViewType::mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -1127,7 +1127,7 @@ FieldList<Dimension, DataType>::operator+(const FieldList<Dimension, DataType>& 
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != (int)numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   FieldList<Dimension, DataType> result(*this);
@@ -1148,7 +1148,7 @@ FieldList<Dimension, DataType>::operator-(const FieldList<Dimension, DataType>& 
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != (int)numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   FieldList<Dimension, DataType> result(*this);
@@ -1169,7 +1169,7 @@ FieldList<Dimension, DataType>::operator+=(const FieldList<Dimension, DataType>&
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (auto i = 0u; i != numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   for (auto i = 0u; i < numFields(); ++i) {
@@ -1191,7 +1191,7 @@ FieldList<Dimension, DataType>::operator-=(const FieldList<Dimension, DataType>&
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != (int)numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   for (auto i = 0u; i < numFields(); ++i) {
@@ -1429,13 +1429,13 @@ operator==(const FieldList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != (int)numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
   while (result && i != (int)numFields()) {
-    result = result && (*(mFieldPtrs[i]) == *(rhs[i]));
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) == *(rhs[i]));
     ++i;
   }
   return result;
@@ -1465,13 +1465,13 @@ operator>(const FieldList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
   while (result && i != numFields()) {
-    result = result && (*(mFieldPtrs[i]) > *(rhs[i]));
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) > *(rhs[i]));
     ++i;
   }
   return result;
@@ -1490,13 +1490,13 @@ operator<(const FieldList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   REQUIRE(numFields() == rhs.numFields());
   for (int i = 0; i != numFields(); ++i) 
-    REQUIRE(mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
+    REQUIRE(FieldListViewType::mFieldPtrs[i]->nodeListPtr() == rhs[i]->nodeListPtr());
   END_CONTRACT_SCOPE
 
   bool result = true;
   int i = 0;
   while (result && i != numFields()) {
-    result = result && (*(mFieldPtrs[i]) < *(rhs[i]));
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) < *(rhs[i]));
     ++i;
   }
   return result;
@@ -1536,7 +1536,7 @@ operator==(const DataType& rhs) const {
   bool result = true;
   int i = 0;
   while (result && i != (int)numFields()) {
-    result = result && (*(mFieldPtrs[i]) == rhs);
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) == rhs);
     ++i;
   }
   return result;
@@ -1565,7 +1565,7 @@ operator>(const DataType& rhs) const {
   bool result = true;
   int i = 0;
   while (result && i != (int)numFields()) {
-    result = result && (*(mFieldPtrs[i]) > rhs);
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) > rhs);
     ++i;
   }
   return result;
@@ -1583,7 +1583,7 @@ operator<(const DataType& rhs) const {
   bool result = true;
   int i = 0;
   while (result && i != (int)numFields()) {
-    result = result && (*(mFieldPtrs[i]) < rhs);
+    result = result && (*(FieldListViewType::mFieldPtrs[i]) < rhs);
     ++i;
   }
   return result;
@@ -1618,7 +1618,7 @@ template<typename Dimension, typename DataType>
 inline
 unsigned 
 FieldList<Dimension, DataType>::numFields() const {
-  return mFieldPtrs.size();
+  return FieldListViewType::mFieldPtrs.size();
 }
 
 template<typename Dimension, typename DataType>
@@ -1812,7 +1812,7 @@ threadReduce() const {
   if (omp_get_num_threads() > 1) {
     const auto numNL = this->size();
     for (auto k = 0u; k < numNL; ++k) {
-      const auto n = mFieldPtrs[k]->numInternalElements();
+      const auto n = FieldListViewType::mFieldPtrs[k]->numInternalElements();
       for (auto i = 0u; i < n; ++i) {
 
         switch (reductionType) {

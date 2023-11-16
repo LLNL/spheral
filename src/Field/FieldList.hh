@@ -13,6 +13,9 @@
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
 
+#include "SphArray.hh"
+#include "config.hh"
+
 #include <vector>
 #include <list>
 #include <map>
@@ -39,7 +42,22 @@ enum class FieldStorageType {
 };
 
 template<typename Dimension, typename DataType>
-class FieldList: public FieldListBase<Dimension> {
+class FieldListView :
+    public chai::CHAICopyable{
+
+public:
+  typedef Field<Dimension, DataType>* ElementType;
+    FieldListView() : mFieldPtrs(0) {}
+    FieldListView(FieldListView const& rhs) : mFieldPtrs(rhs.mFieldPtrs) {}
+
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  std::vector<ElementType> mFieldPtrs;
+};
+
+
+template<typename Dimension, typename DataType>
+class FieldList: public FieldListBase<Dimension>, public FieldListView<Dimension, DataType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
@@ -54,6 +72,7 @@ public:
   typedef Field<Dimension, DataType>* ElementType;
   typedef Field<Dimension, DataType>* value_type;    // STL compatibility
   typedef std::vector<ElementType> StorageType;
+  using FieldListViewType = FieldListView<Dimension, DataType>;
 
   typedef typename StorageType::iterator iterator;
   typedef typename StorageType::const_iterator const_iterator;
@@ -284,7 +303,7 @@ private:
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
-  std::vector<ElementType> mFieldPtrs;
+  //std::vector<ElementType> mFieldPtrs;
   std::vector<BaseElementType> mFieldBasePtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
