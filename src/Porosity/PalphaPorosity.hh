@@ -7,10 +7,6 @@
 // involving porous bodies.I. Implementing sub-resolution porosity in a 3D SPH
 // hydrocode. Icarus, 198(1), 242–255.
 //
-// This model assumes you will provide a solid EOS which will be modified.
-// The underlying actualy solid EOS should provide the reference density, which
-// will be treated here as the compacted true solid reference density.
-//
 // Note this model introduces a new state variable, the distention (alpha), which
 // the pressure now depends on.  This implies our usual definition of P(rho, eps)
 // now becomes P(rho, eps, alpha).  Our EOS interface does not recognize this

@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// PalphaPorosity -- Strain porosity EOS modifier.
+// PalphaPorosity
 // 
 // See header for references and such.
 //----------------------------------------------------------------------------//
