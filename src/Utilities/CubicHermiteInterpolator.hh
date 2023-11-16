@@ -34,7 +34,11 @@ public:
   CubicHermiteInterpolator();
   ~CubicHermiteInterpolator();
 
-  // Alternatively initialize from tabulated values
+  // Copy and assignment
+  CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs);
+  CubicHermiteInterpolator& operator=(const CubicHermiteInterpolator& rhs);
+
+  // Initialize from tabulated values
   void initialize(const double xmin, const double xmax,
                   const std::vector<double>& yvals);
 

@@ -41,6 +41,32 @@ CubicHermiteInterpolator::CubicHermiteInterpolator():
 }
 
 //------------------------------------------------------------------------------
+// Copy constructor
+//------------------------------------------------------------------------------
+CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs):
+  mN(rhs.mN),
+  mXmin(rhs.mXmin),
+  mXmax(rhs.mXmax),
+  mXstep(rhs.mXstep),
+  mVals(rhs.mVals) {
+}
+
+//------------------------------------------------------------------------------
+// Assignment
+//------------------------------------------------------------------------------
+CubicHermiteInterpolator&
+CubicHermiteInterpolator::operator=(const CubicHermiteInterpolator& rhs) {
+  if (this != &rhs) {
+    mN = rhs.mN;
+    mXmin = rhs.mXmin;
+    mXmax = rhs.mXmax;
+    mXstep = rhs.mXstep;
+    mVals = rhs.mVals;
+  }
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given tabluated data
 //------------------------------------------------------------------------------
 void
