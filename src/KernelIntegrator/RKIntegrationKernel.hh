@@ -44,9 +44,7 @@ public:
   
   RKIntegrationKernel(const TableKernel<Dimension>& kernel);
   
-  virtual double extent(const Scalar Hmult) const override {
-    return mKernel.kernelExtent() / Hmult;
-  }
+  virtual double extent(const Scalar Hmult) const override { return mKernel.kernelExtent() / Hmult; }
   
   // Evaluate the all the functions at the point xp
   virtual void evaluate(const Vector& xp,

@@ -22,9 +22,7 @@ public:
   
   SPHIntegrationKernel(const TableKernel<Dimension>& kernel);
 
-  virtual double extent(const Scalar Hmult) const override {
-    return mKernel.kernelExtent() / Hmult;
-  }
+  virtual double extent(const Scalar Hmult) const override { return mKernel.kernelExtent() / Hmult; }
   
   virtual void evaluate(const Vector& xp,
                         const std::vector<std::pair<int, int>>& indices,
