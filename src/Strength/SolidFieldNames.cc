@@ -32,6 +32,7 @@ const std::string Spheral::SolidFieldNames::porosityAlpha = "porosity alpha";
 const std::string Spheral::SolidFieldNames::porosityStrain = "porosity strain";
 const std::string Spheral::SolidFieldNames::porosityAlpha0 = "initial porosity alpha";
 const std::string Spheral::SolidFieldNames::porosityc0 = "initial porosity sound speed";
+const std::string Spheral::SolidFieldNames::fDSjutzi = "f deviatoric stress factor";
 const std::string Spheral::SolidFieldNames::fragmentIDs = "fragment index";
 const std::string Spheral::SolidFieldNames::particleTypes = "particle type";
 const std::string Spheral::SolidFieldNames::meltSpecificEnergy = "melt specific energy";

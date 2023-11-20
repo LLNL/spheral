@@ -52,6 +52,7 @@ class SolidFieldNames:
     porosityStrain = PYB11readonly(static=True, returnpolicy="copy")
     porosityAlpha0 = PYB11readonly(static=True, returnpolicy="copy")
     porosityc0 = PYB11readonly(static=True, returnpolicy="copy")
+    fDSjutzi = PYB11readonly(static=True, returnpolicy="copy")
     fragmentIDs = PYB11readonly(static=True, returnpolicy="copy")
     particleTypes = PYB11readonly(static=True, returnpolicy="copy")
     meltSpecificEnergy = PYB11readonly(static=True, returnpolicy="copy")

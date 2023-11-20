@@ -11,6 +11,8 @@
 #include "NodeList/SolidNodeList.hh"
 #include "DataOutput/registerWithRestart.hh"
 
+#include <memory>
+
 namespace Spheral {
 
 template<typename Dimension>
@@ -30,13 +32,15 @@ public:
                 const double phi0,                               // Initial porosity
                 const double cS0,                                // Reference sound speed at full density
                 const double c0,                                 // Reference sound speed at initial porosity
-                const double rhoS0);                             // Reference solid density
+                const double rhoS0,                              // Reference solid density
+                const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   PorosityModel(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                 const Field<Dimension, Scalar>& phi0,            // Initial porosity
                 const double cS0,                                // Reference sound speed at full density
                 const Field<Dimension, Scalar>& c0,              // Reference sound speed at initial porosity
-                const double rhoS0);                             // Reference solid density
+                const double rhoS0,                              // Reference solid density
+                const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   virtual ~PorosityModel();
 
@@ -67,6 +71,7 @@ public:
   //............................................................................
 
   // Access the material parameters.
+  bool jutziStateUpdate() const;
   double rhoS0() const;
   double cS0() const;
   double KS0() const;
@@ -79,6 +84,12 @@ public:
   const Field<Dimension, Scalar>& solidMassDensity() const;
   const Field<Dimension, Scalar>& c0() const;
 
+  // The optional scaling term for deviatoric stress update from Jutzi 2008.
+  // Note: if jutziStateUpdate is false, these fields are not allocated.
+  const Field<Dimension, Scalar>& fDS() const;
+  const Field<Dimension, Scalar>& fDS_new() const;
+
+  // Timestep multiplier
   void fdt(const double x);
 
   // Provide the porosity (phi) computed from the internally stored distention alpha
@@ -86,10 +97,14 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
+  bool mJutziStateUpdate;
   double mRhoS0, mcS0, mKS0, mfdt;
   mutable double mMaxAbsDalphaDt;
   const SolidNodeList<Dimension>& mNodeList;
   Field<Dimension, Scalar> mAlpha0, mAlpha, mDalphaDt, mSolidMassDensity, mc0;
+
+  // Optional fields
+  std::shared_ptr<Field<Dimension, Scalar>> mfDSptr, mfDSnewPtr;   // Jutzi deviatoric stress modifier
 
   // The restart registration.
   RestartRegistrationType mRestart;

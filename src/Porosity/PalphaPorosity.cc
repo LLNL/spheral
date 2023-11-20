@@ -12,6 +12,7 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 
 #include <string>
 
@@ -45,8 +46,9 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double n2,
                const double cS0,
                const double c0,
-               const double rhoS0):
-  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0),
+               const double rhoS0,
+               const bool jutziStateUpdate):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, jutziStateUpdate),
   mPe(Pe),
   mPt(Pt),
   mPs(Ps),
@@ -79,8 +81,9 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
                const double n2,
                const double cS0,
                const Field<Dimension, Scalar>& c0,
-               const double rhoS0):
-  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0),
+               const double rhoS0,
+               const bool jutziStateUpdate):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, jutziStateUpdate),
   mPe(Pe),
   mPt(Pt),
   mPs(Ps),
@@ -137,6 +140,11 @@ evaluateDerivatives(const Scalar time,
   const auto& DuDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
   auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
 
+  Field<Dimension, Scalar>* fDSnewPtr = nullptr;
+  if (mJutziStateUpdate) {
+    fDSnewPtr = &derivs.field(buildKey(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi), 0.0);
+  }
+
   // Walk the nodes.
   const auto n = mNodeList.numInternalNodes();
 #pragma omp parallel for
@@ -157,6 +165,7 @@ evaluateDerivatives(const Scalar time,
     if (Pi >= mPs) {
 
       DalphaDt(i) = (1.0 - alphai)*safeInvVar(dt);
+      if (mJutziStateUpdate) (*fDSnewPtr)(i) = 1.0;
 
     } else {
 
@@ -183,8 +192,15 @@ evaluateDerivatives(const Scalar time,
 
       // Now we can compute the final time derivative
       DalphaDpi = min(0.0, DalphaDpi);  // Keep things physical
-      const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
+      const auto Ainv = safeInvVar(alphai + DalphaDpi*(Pi - rhoi*dPsdri));
+      const auto dPdti = (alphai*dPsdri*DrhoDti + dPsdui*DuDti)*Ainv;
       DalphaDt(i) = DalphaDpi*dPdti;
+
+      // Optionally update the deviatoric stress scaling term
+      if (mJutziStateUpdate) {
+        auto DalphaDrhoi = (Pi/(rhoi*rhoi)*dPsdui + alphai*dPsdri)*Ainv * DalphaDpi;
+        (*fDSnewPtr)(i) = 1.0 + DalphaDrhoi*rhoi/alphai;
+      }
     }
 
 #pragma omp critical

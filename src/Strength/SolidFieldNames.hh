@@ -37,6 +37,7 @@ struct SolidFieldNames {
   static const std::string porosityStrain;
   static const std::string porosityAlpha0;
   static const std::string porosityc0;
+  static const std::string fDSjutzi;
   static const std::string fragmentIDs;
   static const std::string particleTypes;
   static const std::string meltSpecificEnergy;

@@ -27,26 +27,30 @@ Base class for PorosityModels for common functionality.
                phi0 = "const double",
                cS0 = "const double",
                c0 = "const double",
-               rhoS0 = "const double"):
+               rhoS0 = "const double",
+               jutziStateUpdate = "bool"):
         """Constructor parameters:
-        nodeList:        The SolidNodeList we're going apply to
-        phi0:            Initial porosity (single value)
-        cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        nodeList:         The SolidNodeList we're going apply to
+        phi0:             Initial porosity (single value)
+        cS0:              Reference sound speed at full density
+        c0:               Reference sound speed at initial porosity
+        rhoS0:            Reference solid density
+        jutziStateUpdate: update state as describd in Jutzi 2008"""
 
     def pyinit1(self,
                 nodeList = "const SolidNodeList<%(Dimension)s>&",
                 phi0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
                 cS0 = "const double",
                 c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
-                rhoS0 = "const double"):
+                rhoS0 = "const double",
+                jutziStateUpdate = "bool"):
         """Constructor parameters:
-        nodeList:        The SolidNodeList we're going apply to
-        phi0:            Initial porosity (field of values)
-        cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        nodeList:         The SolidNodeList we're going apply to
+        phi0:             Initial porosity (field of values)
+        cS0:              Reference sound speed at full density
+        c0:               Reference sound speed at initial porosity (field)
+        rhoS0:            Reference solid density
+        jutziStateUpdate: update state as describd in Jutzi 2008"""
 
     #...........................................................................
     # Virtual methods
@@ -89,17 +93,17 @@ Base class for PorosityModels for common functionality.
 
     #...........................................................................
     # Properties
+    jutziStateUpdate = PYB11property(doc="Switch to update state as described in Jutzi 2008")
+    rhoS0 = PYB11property(doc="Reference solid density")
     cS0 = PYB11property(doc="Reference sound speed at full density")
-    rhoS0 = PYB11property(doc="Reference solid density")
     KS0 = PYB11property()
-    rhoS0 = PYB11property(doc="Reference solid density")
     fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
     maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
     nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal")
-    fdt = PYB11property("double", getter="fdt", setter="fdt", doc="The timestep fractional multiplier (0 => no timestep control on alpha)")
-    maxAbsDalphaDt = PYB11property(doc="maximum of the last abs(DalphaDt) calculated")
-    nodeList = PYB11property("const SolidNodeList<%(Dimension)s>&", returnpolicy="reference_internal")
-    c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     alpha = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     DalphaDt = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    solidMassDensity = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    fDS = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    fDS_new = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")

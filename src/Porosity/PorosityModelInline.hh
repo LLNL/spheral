@@ -5,6 +5,14 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
+bool
+PorosityModel<Dimension>::
+jutziStateUpdate() const {
+  return mJutziStateUpdate;
+}
+
+template<typename Dimension>
+inline
 double
 PorosityModel<Dimension>::
 rhoS0() const {
@@ -89,6 +97,24 @@ const Field<Dimension, typename Dimension::Scalar>&
 PorosityModel<Dimension>::
 c0() const {
   return mc0;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+PorosityModel<Dimension>::
+fDS() const {
+  VERIFY2(mJutziStateUpdate and mfDSptr, "PorosityModel: fDS is not available since jutziStateUpdate is not set");
+  return *mfDSptr;
+}
+
+template<typename Dimension>
+inline
+const Field<Dimension, typename Dimension::Scalar>&
+PorosityModel<Dimension>::
+fDS_new() const {
+  VERIFY2(mJutziStateUpdate and mfDSnewPtr, "PorosityModel: fDS_new is not available since jutziStateUpdate is not set");
+  return *mfDSnewPtr;
 }
 
 //------------------------------------------------------------------------------

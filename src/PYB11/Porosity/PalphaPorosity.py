@@ -51,20 +51,22 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                n2 = "const double",
                cS0 = "const double",
                c0 = "const double",
-               rhoS0 = "const double"):
+               rhoS0 = "const double",
+               jutziStateUpdate = "const bool"):
         """Constructor parameters:
-        nodeList:        The SolidNodeList we're going apply to
-        phi0:            Initial porosity (single value)
-        Pe:              Elastic pressure threshold
-        Pt:              Transition pressure (Pe <= Pt)
-        Ps:              Solid transition pressure (from fit, Pt <= Ps)
-        alphae:          alpha at P=Pe
-        alphat:          Transition distension
-        n1:              Fitted exponent for plastic distention evolution
-        n2:              Fitted exponent for plastic distention evolution
-        cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        nodeList:         The SolidNodeList we're going apply to
+        phi0:             Initial porosity (single value)
+        Pe:               Elastic pressure threshold
+        Pt:               Transition pressure (Pe <= Pt)
+        Ps:               Solid transition pressure (from fit, Pt <= Ps)
+        alphae:           alpha at P=Pe
+        alphat:           Transition distension
+        n1:               Fitted exponent for plastic distention evolution
+        n2:               Fitted exponent for plastic distention evolution
+        cS0:              Reference sound speed at full density
+        c0:               Reference sound speed at initial porosity
+        rhoS0:            Reference solid density
+        jutziStateUpdate: Optionally update the deviatoric stress and damage as described in Jutzi 2008"""
 
     def pyinit1(self,
                 nodeList = "const SolidNodeList<%(Dimension)s>&",
@@ -78,20 +80,22 @@ parameter (alpha) and gives it to the PorousEquationOfState.
                 n2 = "const double",
                 cS0 = "const double",
                 c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
-                rhoS0 = "const double"):
+                rhoS0 = "const double",
+                jutziStateUpdate = "const bool"):
         """Constructor parameters:
-        nodeList:        The SolidNodeList we're going apply to
-        phi0:            Initial porosity (field of values)
-        Pe:              Elastic pressure threshold
-        Pt:              Transition pressure (Pe <= Pt)
-        Ps:              Solid transition pressure (from fit, Pt <= Ps)
-        alphae:          alpha at P=Pe
-        alphat:          Transition distension
-        n1:              Fitted exponent for plastic distention evolution
-        n2:              Fitted exponent for plastic distention evolution
-        cS0:             Reference sound speed at full density
-        c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        nodeList:         The SolidNodeList we're going apply to
+        phi0:             Initial porosity (field of values)
+        Pe:               Elastic pressure threshold
+        Pt:               Transition pressure (Pe <= Pt)
+        Ps:               Solid transition pressure (from fit, Pt <= Ps)
+        alphae:           alpha at P=Pe
+        alphat:           Transition distension
+        n1:               Fitted exponent for plastic distention evolution
+        n2:               Fitted exponent for plastic distention evolution
+        cS0:              Reference sound speed at full density
+        c0:               Reference sound speed at initial porosity (field)
+        rhoS0:            Reference solid density
+        jutziStateUpdate: Optionally update the deviatoric stress and damage as described in Jutzi 2008"""
 
     #...........................................................................
     # Virtual methods

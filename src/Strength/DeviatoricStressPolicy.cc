@@ -8,6 +8,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementBoundedState.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Kernel/TableKernel.hh"
@@ -16,6 +17,8 @@
 #include "Field/FieldList.hh"
 #include "Geometry/GeometryRegistrar.hh"
 #include "Utilities/DBC.hh"
+
+#include <algorithm>
 
 namespace Spheral {
 
@@ -53,9 +56,25 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::deviatoricStress);
 
+  // Alias for shorter call building State Field keys
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+
   // Get the state we're advancing.
   auto&       S = state.field(key, SymTensor::zero);
   const auto& DSDt = derivs.field(IncrementState<Dimension, SymTensor>::prefix() + key, SymTensor::zero);
+
+  // Check if a porosity model has registered a modifier for the deviatoric stress.
+  // They should have added it as a dependency of this policy if so.
+  const auto depends = this->dependencies();
+  const auto porosityScaling = (std::find(depends.begin(), depends.end(), SolidFieldNames::fDSjutzi) != depends.end());
+  const Field<Dimension, Scalar>* fDSptr = nullptr;
+  const Field<Dimension, Scalar>* alphaPtr = nullptr;
+  const Field<Dimension, Scalar>* DalphaDtPtr = nullptr;
+  if (porosityScaling) {
+    fDSptr = &state.field(buildKey(SolidFieldNames::fDSjutzi), 0.0);
+    alphaPtr = &state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+    DalphaDtPtr = &derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
+  }
 
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
@@ -65,6 +84,18 @@ update(const KeyType& key,
   const auto n = S.numInternalElements();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
+
+    // Get the deviatoric time derivative, and if necessary scale by the porosity factor
+    auto DSDti = DSDt(i);
+    if (porosityScaling) {
+      const auto fDSi = (*fDSptr)(i);
+      const auto alphai = (*alphaPtr)(i);
+      const auto DalphaDti = (*DalphaDtPtr)(i);
+      CHECK(alphai >= 1.0);
+      DSDti = (fDSi*DSDti - S(i)*DalphaDti/alphai)/alphai;
+    }
+
+    // Update S
     auto S0 = S(i) + multiplier*(DSDt(i));               // Elastic prediction for the new deviatoric stress
     if (zeroTrace) {
       S0 -= SymTensor::one * S0.Trace()/Dimension::nDim; // Ensure the deviatoric stress is traceless (all but RZ and spherical)

@@ -38,21 +38,23 @@ def _PalphaPorosityFactory(ndim):
                      cS0,
                      c0,
                      rhoS0 = None,
-                     alphae = None):
+                     alphae = None,
+                     jutziStateUpdate = True):
             """Construct a P-alpha porosity model.  Valid arguments are
 
-  * nodeList: the solid NodeList whose nodes this porosity model will apply to
-  *     phi0: (scalar or Field) initial porosity
-  *       Pe: (scalar) Elastic pressure threshold
-  *       Pt: (scalar) Transition pressure (Pe <= Pt)
-  *       Ps: (scalar) Solid transition pressure (from fit, Pt <= Ps)
-  *   alphat: (scalar) Transition distension
-  *       n1: (scalar) Fitted exponent for plastic distention evolution
-  *       n2: (scalar) Fitted exponent for plastic distention evolution
-  *      cS0: (scalar) Reference sound speed at full density
-  *       c0: (scalar or Field) Reference sound speed at initial porosity
-  *    rhoS0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
-  *   alphae: (scalar or None) Elastic transition distension. If None, then iteratively solved for.
+  *         nodeList: the solid NodeList whose nodes this porosity model will apply to                                           
+  *             phi0: (scalar or Field) initial porosity                                                                         
+  *               Pe: (scalar) Elastic pressure threshold                                                                        
+  *               Pt: (scalar) Transition pressure (Pe <= Pt)                                                                    
+  *               Ps: (scalar) Solid transition pressure (from fit, Pt <= Ps)                                                    
+  *           alphat: (scalar) Transition distension                                                                             
+  *               n1: (scalar) Fitted exponent for plastic distention evolution                                                  
+  *               n2: (scalar) Fitted exponent for plastic distention evolution                                                  
+  *              cS0: (scalar) Reference sound speed at full density                                                             
+  *               c0: (scalar or Field) Reference sound speed at initial porosity                                                
+  *            rhoS0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
+  *           alphae: (scalar or None) Elastic transition distension. If None, then iteratively solved for.
+  * jutziStateUpdate: (bool, default True) Update state (deviatoric stress and damage) as described in Jutzi 2008
 """
 
             if rhoS0 is None:
@@ -112,7 +114,8 @@ def _PalphaPorosityFactory(ndim):
                                        n2 = n2,
                                        cS0 = cS0,
                                        c0 = c0,
-                                       rhoS0 = rhoS0)
+                                       rhoS0 = rhoS0,
+                                       jutziStateUpdate = jutziStateUpdate)
             return
     
         #-----------------------------------------------------------------------

@@ -50,7 +50,8 @@ public:
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
                  const double c0,                                 // Reference sound speed at initial porosity
-                 const double rhoS0);                             // Reference solid density
+                 const double rhoS0,                              // Reference solid density
+                 const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   PalphaPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                  const Field<Dimension, Scalar>& phi0,            // Initial porosity
@@ -63,7 +64,8 @@ public:
                  const double n2,                                 // Fitted exponent for plastic distention evolution
                  const double cS0,                                // Reference sound speed at full density
                  const Field<Dimension, Scalar>& c0,              // Reference sound speed at initial porosity
-                 const double rhoS0);                             // Reference solid density
+                 const double rhoS0,                              // Reference solid density
+                 const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   virtual ~PalphaPorosity();
 
@@ -108,6 +110,7 @@ private:
   double mPe, mPt, mPs, mAlphae, mAlphat, mn1, mn2;
   Field<Dimension, Scalar> mdPdU, mdPdR;
 
+  using PorosityModel<Dimension>::mJutziStateUpdate;
   using PorosityModel<Dimension>::mRhoS0;
   using PorosityModel<Dimension>::mcS0;
   using PorosityModel<Dimension>::mKS0;
@@ -116,6 +119,7 @@ private:
   using PorosityModel<Dimension>::mNodeList;
   using PorosityModel<Dimension>::mAlpha;
   using PorosityModel<Dimension>::mAlpha0;
+  using PorosityModel<Dimension>::mfDSptr;
 
   // Disallow default constructor
   PalphaPorosity();
