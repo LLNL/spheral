@@ -24,8 +24,8 @@ class PorousPressurePolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldUpdatePolicy<Dimension>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   PorousPressurePolicy();
