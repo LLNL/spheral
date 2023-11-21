@@ -8,13 +8,13 @@
 #include <algorithm>
 #ifdef USE_MPI
 #include "mpi.h"
+#include "Distributed/Communicator.hh"
 #endif
 
 #include "Boundary/ConstantBoundary.hh"
 #include "Boundary/InflowOutflowBoundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
-#include "Distributed/Communicator.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/DBC.hh"

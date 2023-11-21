@@ -119,8 +119,12 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         ntot += n;
         for (auto i = 0U; i != n; ++i) avgneighbors += cm.numNeighborsForNode(nodeListi, i);
       }
+#ifdef USE_MPI
       ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
       avgneighbors = allReduce(avgneighbors, MPI_SUM, Communicator::communicator())/ntot;
+#else
+      avgneighbors = avgneighbors/ntot;
+#endif
       if (Process::getRank() == 0) cerr << "Avergage number of neighbors per node: " << avgneighbors << " " << ntot << endl;
     } // BLAGO
 
@@ -185,9 +189,13 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         if (vol(nodeListi, i) > 0.0) mass(nodeListi, i) = rhof(nodeListi,i)*vol(nodeListi,i);
       }
     }
+#ifdef USE_MPI
     avgdelta = (allReduce(avgdelta, MPI_SUM, Communicator::communicator())/
                 allReduce(db.numInternalNodes(), MPI_SUM, Communicator::communicator()));
     maxdelta = allReduce(maxdelta, MPI_MAX, Communicator::communicator());
+#else
+    avgdelta = avgdelta/db.numInternalNodes();
+#endif
     if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter
                                       << ", avg delta frac " << avgdelta 
                                       << ", max delta frac " << maxdelta 

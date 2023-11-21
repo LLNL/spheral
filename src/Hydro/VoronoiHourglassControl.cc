@@ -13,7 +13,9 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 #include "Utilities/allReduce.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
@@ -247,8 +249,10 @@ finalize(const typename Dimension::Scalar time,
     }
   }
   CHECK(rhoZones.size() == mesh.numZones());
+#ifdef USE_MPI
   rhoMin = allReduce(rhoMin, MPI_MIN, Communicator::communicator());
   rhoMax = allReduce(rhoMax, MPI_MAX, Communicator::communicator());
+#endif
 
   // Compute the CRKSPH limited gradient of the density if we're doing first order.
   if (mOrder > 0) {

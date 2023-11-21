@@ -4,12 +4,13 @@
 //------------------------------------------------------------------------------
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 #endif
 
 #include "Boundary/CylindricalBoundary.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
-#include "Distributed/Communicator.hh"
+
 
 #include <vector>
 #include <algorithm>

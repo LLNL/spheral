@@ -9,10 +9,10 @@
 #include "Utilities/lineSegmentIntersections.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/packElement.hh"
-#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 #endif
 
 #include <stdint.h>

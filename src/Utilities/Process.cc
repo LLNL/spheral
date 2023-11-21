@@ -8,10 +8,10 @@
 #include <iostream>
 
 #include "Process.hh"
-#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 
 // Static member data initialization.
 int Spheral::Process::sRank = -1;
