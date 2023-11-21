@@ -57,6 +57,27 @@ class SolidNodeList(FluidNodeList):
         "Compute the current yield strength, storing the result in the argument ScalarField."
         return "void"
 
+    @PYB11virtual
+    @PYB11const
+    def YoungsModulus(self,
+                      result="ScalarField&",
+                      K = "const ScalarField&",
+                      mu = "const ScalarField&"):
+        "Compute the current Youngs modulus, storing the result in the argument result, given the bulk modulus (K) and shear modulus (mu)."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def longitudinalSoundSpeed(self,
+                               result="ScalarField&",
+                               rho = "const ScalarField&",
+                               E = "const ScalarField&",
+                               K = "const ScalarField&",
+                               mu = "const ScalarField&"):
+        """Compute the current longitudinal sound speed, storing the result in the argument result,
+given the mass density, Youngs modulus, bulk modulus, and shear modulus (rho, E, K, mu)"""
+        return "void"
+
     @PYB11const
     @PYB11returnpolicy("reference_internal")
     def deviatoricStress(self):

@@ -28,6 +28,8 @@
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
+#include "Material/EquationOfState.hh"
+#include "SolidMaterial/StrengthModel.hh"
 
 #include <string>
 #include <vector>
@@ -140,37 +142,27 @@ TensorDamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::KeyType Key;
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Register Youngs modulus and the longitudinal sound speed.
-  PolicyPointer EPolicy(new YoungsModulusPolicy<Dimension>());
-  PolicyPointer clPolicy(new LongitudinalSoundSpeedPolicy<Dimension>());
-  state.enroll(mYoungsModulus, EPolicy);
-  state.enroll(mLongitudinalSoundSpeed, clPolicy);
-
-  // Set the initial values for the Youngs modulus, sound speed, and pressure.
-  typename StateDerivatives<Dimension>::PackageList dummyPackages;
-  StateDerivatives<Dimension> derivs(dataBase, dummyPackages);
-  EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
-  clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
+  auto& nodes = this->nodeList();
+  state.enroll(mYoungsModulus, std::make_shared<YoungsModulusPolicy<Dimension>>(nodes));
+  state.enroll(mLongitudinalSoundSpeed, std::make_shared<LongitudinalSoundSpeedPolicy<Dimension>>(nodes));
 
   // Register the strain and effective strain.
-  PolicyPointer effectiveStrainPolicy(new TensorStrainPolicy<Dimension>(mStrainAlgorithm));
   state.enroll(mStrain);
-  state.enroll(mEffectiveStrain, effectiveStrainPolicy);
+  state.enroll(mEffectiveStrain, std::make_shared<TensorStrainPolicy<Dimension>>(mStrainAlgorithm));
 
   // Register the damage.
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
-  PolicyPointer damagePolicy(new TensorDamagePolicy<Dimension>(*this));
-  state.enroll(this->nodeList().damage(), damagePolicy);
+  auto& damage = nodes.damage();
+  state.enroll(damage, std::make_shared<TensorDamagePolicy<Dimension>>(*this));
 
   // Mask out nodes beyond the critical damage threshold from setting the timestep.
-  Key maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
-  Field<Dimension, int>& mask = state.field(maskKey, 0);
-  const Field<Dimension, SymTensor>& damage = this->nodeList().damage();
-  for (auto i = 0u; i < this->nodeList().numInternalNodes(); ++i) {
+  auto maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, nodes.name());
+  auto& mask = state.field(maskKey, 0);
+  const auto n = nodes.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     if (damage(i).Trace() > mCriticalDamageThreshold) mask(i) = 0;
   }
 }
@@ -196,14 +188,13 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
-  typedef typename State<Dimension>::KeyType Key;
-  const Key nodeListName = this->nodeList().name();
-  const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
+  const auto nodeListName = this->nodeList().name();
+  const auto DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
   CHECK(state.registered(DKey));
-  Field<Dimension, SymTensor>& D = state.field(DKey, SymTensor::zero);
+  auto& D = state.field(DKey, SymTensor::zero);
 
   // Apply ghost boundaries to the damage.
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
+  for (auto boundaryItr = this->boundaryBegin();
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->applyGhostBoundary(D);
@@ -220,18 +211,45 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
 
   // Grab this models damage field from the state.
-  typedef typename State<Dimension>::KeyType Key;
-  const Key nodeListName = this->nodeList().name();
-  const Key DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
+  const auto nodeListName = this->nodeList().name();
+  const auto DKey = state.buildFieldKey(SolidFieldNames::tensorDamage, nodeListName);
   CHECK(state.registered(DKey));
-  Field<Dimension, SymTensor>& D = state.field(DKey, SymTensor::zero);
+  auto& D = state.field(DKey, SymTensor::zero);
 
   // Enforce!
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
+  for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
     (*boundaryItr)->enforceBoundary(D);
   }
+}
+
+//------------------------------------------------------------------------------
+// Stuff to do on problem startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TensorDamageModel<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
+  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
+  const auto& nodes = this->nodeList();
+  const auto& rho = nodes.massDensity();
+  const auto& eps = nodes.specificThermalEnergy();
+  const auto& D = nodes.damage();
+  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes), E("E", nodes);
+  nodes.equationOfState().setPressure(P, rho, eps);
+  if (nodes.strengthModel().providesBulkModulus()) {
+    nodes.strengthModel().bulkModulus(K, rho, eps);
+  } else {
+    nodes.equationOfState().setBulkModulus(K, rho, eps);
+  }
+  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
+  nodes.YoungsModulus(E, K, mu);
+
+  // Set the initial values for Youngs modulus and the longitudinal sound speed
+  nodes.YoungsModulus(mYoungsModulus, K, mu);
+  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, E, K, mu);
 }
 
 //------------------------------------------------------------------------------
@@ -298,6 +316,8 @@ TensorDamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   DamageModel<Dimension>::dumpState(file, pathName);
   file.write(mFlaws, pathName + "/flaws");
+  file.write(mYoungsModulus, pathName + "/YoungsModulus");
+  file.write(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
@@ -312,6 +332,8 @@ TensorDamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   DamageModel<Dimension>::restoreState(file, pathName);
   file.read(mFlaws, pathName + "/flaws");
+  file.read(mYoungsModulus, pathName + "/YoungsModulus");
+  file.read(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");

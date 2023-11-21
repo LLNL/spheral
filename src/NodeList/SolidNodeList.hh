@@ -17,10 +17,10 @@ template<typename Dimension>
 class SolidNodeList: public FluidNodeList<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
   SolidNodeList(std::string name,
@@ -42,10 +42,18 @@ public:
   // Override the base method for calculating the sound speed.
   virtual void soundSpeed(Field<Dimension, Scalar>& field) const;
 
-  // Compute the bulk modulus, shear modulus, and yield strength.
+  // Convenience methods to compute derived moduli and such.
   virtual void bulkModulus(Field<Dimension, Scalar>& field) const;
   virtual void shearModulus(Field<Dimension, Scalar>& field) const;
   virtual void yieldStrength(Field<Dimension, Scalar>& field) const;
+  virtual void YoungsModulus(Field<Dimension, Scalar>& field,
+                             const Field<Dimension, Scalar>& K,          // bulk modulus
+                             const Field<Dimension, Scalar>& mu) const;  // shear modulus
+  virtual void longitudinalSoundSpeed(Field<Dimension, Scalar>& field,
+                                      const Field<Dimension, Scalar>& rho,        // mass density
+                                      const Field<Dimension, Scalar>& E,          // Youngs modulus
+                                      const Field<Dimension, Scalar>& K,          // bulk modulus
+                                      const Field<Dimension, Scalar>& mu) const;  // shear modulus
 
   // Access the stored deviatoric stress and plastic strain.
   Field<Dimension, SymTensor>& deviatoricStress();
