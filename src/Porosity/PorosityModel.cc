@@ -7,7 +7,6 @@
 #include "Porosity/PorosityModel.hh"
 #include "Porosity/PorositySolidMassDensityPolicy.hh"
 #include "Porosity/PorousBulkModulusPolicy.hh"
-#include "Porosity/PorousPressurePolicy.hh"
 #include "Porosity/PorousSoundSpeedPolicy.hh"
 #include "Porosity/PorousGammaPolicy.hh"
 #include "Porosity/PorousEntropyPolicy.hh"
@@ -169,10 +168,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Initial sound speed
   state.enroll(mc0);
-
-  // Override the pressure policy
-  auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
-  state.enroll(P, std::make_shared<PorousPressurePolicy<Dimension>>());
 
   // Check what other state is registered which needs to be overridden for porosity
   auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {

@@ -16,7 +16,6 @@
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
 #include "Strength/StrengthSoundSpeedPolicy.hh"
-#include "Damage/DamagedPressurePolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
@@ -261,11 +260,8 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Override the policies for the sound speed and pressure.
   auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  auto P = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
-  CHECK(P.numFields() == dataBase.numFluidNodeLists());
   state.enroll(cs, make_shared<StrengthSoundSpeedPolicy<Dimension>>());
-  state.enroll(P, make_shared<DamagedPressurePolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.

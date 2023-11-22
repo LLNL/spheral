@@ -26,7 +26,6 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
-#include "Damage/DamagedPressurePolicy.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -203,9 +202,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Grab the normal Hydro's registered version of the sound speed and pressure.
   auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  auto P = state.fields(HydroFieldNames::pressure, 0.0);
   CHECK(cs.numFields() == dataBase.numFluidNodeLists());
-  CHECK(P.numFields() == dataBase.numFluidNodeLists());
 
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
@@ -220,7 +217,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Override the policies for the sound speed and pressure.
   state.enroll(cs, std::make_shared<StrengthSoundSpeedPolicy<Dimension>>());
-  state.enroll(P, std::make_shared<DamagedPressurePolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.
