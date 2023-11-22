@@ -177,8 +177,8 @@ registerState(DataBase<Dimension>& dataBase,
                                     state.enroll(f, policy); //std::make_shared<Policy>());
                                   }
                                 };
-  optionalOverridePolicy(SolidFieldNames::bulkModulus, std::make_shared<PorousBulkModulusPolicy<Dimension>>());
-  optionalOverridePolicy(HydroFieldNames::soundSpeed, std::make_shared<PorousSoundSpeedPolicy<Dimension>>());
+  // optionalOverridePolicy(SolidFieldNames::bulkModulus, std::make_shared<PorousBulkModulusPolicy<Dimension>>());
+  // optionalOverridePolicy(HydroFieldNames::soundSpeed, std::make_shared<PorousSoundSpeedPolicy<Dimension>>());
   optionalOverridePolicy(HydroFieldNames::gamma, std::make_shared<PorousGammaPolicy<Dimension>>());
   optionalOverridePolicy(HydroFieldNames::entropy, std::make_shared<PorousEntropyPolicy<Dimension>>());
   optionalOverridePolicy(SolidFieldNames::shearModulus, std::make_shared<PorousShearModulusPolicy<Dimension>>());

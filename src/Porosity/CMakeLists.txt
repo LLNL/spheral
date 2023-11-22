@@ -4,9 +4,7 @@ set(Porosity_inst
     StrainPorosity
     PalphaPorosity
     PorositySolidMassDensityPolicy
-    PorousSoundSpeedPolicy
     PorousGammaPolicy
-    PorousBulkModulusPolicy
     PorousEntropyPolicy
     PorousShearModulusPolicy
     PorousYieldStrengthPolicy
@@ -23,9 +21,7 @@ set(Porosity_headers
     StrainPorosity.hh
     StrainPorosityInline.hh
     PalphaPorosity.hh
-    PorousSoundSpeedPolicy.hh
     PorousGammaPolicy.hh
-    PorousBulkModulusPolicy.hh
     PorousEntropyPolicy.hh
     PorousShearModulusPolicy.hh
     PorousYieldStrengthPolicy.hh
