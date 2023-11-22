@@ -66,11 +66,11 @@ update(const KeyType& key,
   const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
 
   // Check if this material has porosity.
-  if (state.registered(buildKey(SolidFieldNames::porosityAlpha))) {
+  const auto usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
+  if (usePorosity) {
 
     // Yep, there's porosity
     const auto& rhoS = state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0);
-    const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
       
     // Check if we need to update the pressure derivatives by seeing if they're registered for this NodeList
     const auto dPduKey = State<Dimension>::buildFieldKey(HydroFieldNames::partialPpartialEps, nodeListKey);
@@ -84,9 +84,8 @@ update(const KeyType& key,
       eos.setPressure(P, rhoS, eps);
     }
 
-    // Scale the pressure to the bulk value.
-    P /= alpha;
-
+    // Note we don't scale back to the bulk pressure until we check for any damage effects,
+    // which only affect the solid material (not void).
   } else {
       
     // No porosity, so just set the pressure using the straight density
@@ -116,6 +115,11 @@ update(const KeyType& key,
     }
   }
 
+  // Scale the solid pressure to the bulk value in the case of porosity
+  if (usePorosity) {
+    const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+    P /= alpha;
+  }
 }
 
 //------------------------------------------------------------------------------
