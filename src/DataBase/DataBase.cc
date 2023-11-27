@@ -50,8 +50,10 @@ DataBase<Dimension>::DataBase():
   mFluidNodeListAsNodeListPtrs(0),
   mSolidNodeListPtrs(0),
   mSolidNodeListAsNodeListPtrs(0),
+#if defined(SPHERAL_ENABLE_DEM)
   mDEMNodeListPtrs(0),
   mDEMNodeListAsNodeListPtrs(0),
+#endif
   mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
 }
 
@@ -76,8 +78,10 @@ operator=(const DataBase<Dimension>& rhs) {
     mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
     mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
     mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
+#if defined(SPHERAL_ENABLE_DEM)
     mDEMNodeListPtrs = rhs.mDEMNodeListPtrs;
     mDEMNodeListAsNodeListPtrs = rhs.mDEMNodeListAsNodeListPtrs;
+#endif
     mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
   }
   ENSURE(valid());
@@ -580,6 +584,7 @@ patchConnectivityMap(const FieldList<Dimension, int>& flags,
   mConnectivityMapPtr->patchConnectivity(flags, old2new);
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Add a NodeList to this DataBase.
 //------------------------------------------------------------------------------
@@ -610,6 +615,7 @@ appendNodeList(DEMNodeList<Dimension>& nodeList) {
   }
   ENSURE(valid());
 }
+#endif
 
 // SolidNodeList
 template<typename Dimension>
@@ -697,6 +703,7 @@ appendNodeList(NodeList<Dimension>& nodeList) {
   ENSURE(valid());
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Delete a NodeList from this DataBase.
 //------------------------------------------------------------------------------
@@ -731,6 +738,7 @@ deleteNodeList(DEMNodeList<Dimension>& nodeList) {
   }
   ENSURE(valid());
 }
+#endif
 
 // SolidNodeList
 template<typename Dimension>
@@ -868,6 +876,7 @@ DataBase<Dimension>::solidNodeListPtrs() const {
   return mSolidNodeListPtrs;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Return the const list of DEMNodeList pointers.
 //------------------------------------------------------------------------------
@@ -876,6 +885,7 @@ const vector<DEMNodeList<Dimension>*>&
 DataBase<Dimension>::DEMNodeListPtrs() const {
   return mDEMNodeListPtrs;
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Set the master neighbor information for the NodeLists.
@@ -1336,6 +1346,7 @@ DataBase<Dimension>::solidParticleTypes() const {
   return result;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Return the DEM mass field.
 //------------------------------------------------------------------------------
@@ -1468,6 +1479,7 @@ DataBase<Dimension>::setDEMUniqueIndices() {
     auto uniqueIndices = this->DEMUniqueIndex();
     uniqueIndices += globalNodeIDs<Dimension>(this->nodeListBegin(),this->nodeListEnd());
 }
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -1515,6 +1527,7 @@ DataBase<Dimension>::solidNodeExtent() const {
   return result;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Return the node extent for each DEMNodeList.
 //------------------------------------------------------------------------------
@@ -1529,6 +1542,7 @@ DataBase<Dimension>::DEMNodeExtent() const {
   }
   return result;
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Return the global Hinverse field.
@@ -1772,6 +1786,7 @@ maxKernelExtent() const {
   return result;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // The maximum kernel extent being used.
 //------------------------------------------------------------------------------
@@ -1785,6 +1800,7 @@ maxNeighborSearchBuffer() const {
        ++DEMNodeListItr) result = std::max(result, (**DEMNodeListItr).neighborSearchBuffer());
   return result;
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Compute coordinates bounding all nodes in the DataBase.

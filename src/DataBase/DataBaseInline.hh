@@ -32,6 +32,7 @@ DataBase<Dimension>::numSolidNodeLists() const {
   return mSolidNodeListPtrs.size();
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Number of DEMNodeLists registered with the DataBase.
 //------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ int
 DataBase<Dimension>::numDEMNodeLists() const {
   return mDEMNodeListPtrs.size();
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Numbers of nodes in the DataBase.
@@ -271,6 +273,7 @@ DataBase<Dimension>::solidNodeListAsNodeListEnd() const {
   return mSolidNodeListAsNodeListPtrs.end();
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Standard STL like iterators for DEMNodeLists.
 //------------------------------------------------------------------------------
@@ -333,6 +336,7 @@ typename DataBase<Dimension>::ConstNodeListIterator
 DataBase<Dimension>::DEMNodeListAsNodeListEnd() const {
   return mDEMNodeListAsNodeListPtrs.end();
 }
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -436,6 +440,7 @@ newSolidFieldList(const DataType value,
   return result;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Convenience method to construct a new FieldList with a Field for every
 // DEMNodeList in the DataBase.
@@ -457,6 +462,7 @@ newDEMFieldList(const DataType value,
   ENSURE((int)result.numFields() == numDEMNodeLists());
   return result;
 }
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -538,6 +544,7 @@ resizeFluidFieldList(FieldList<Dimension, DataType>& fieldList,
 }
 
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Convenience method to resize a FieldList such that it has a Field for every
 // DEMNodeList in the DataBase.
@@ -576,6 +583,7 @@ resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
 
   ENSURE((int)fieldList.numFields() == numDEMNodeLists());
 }
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -677,6 +685,7 @@ newSolidArray(const DataType value) const {
   return result;
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Construct a new array<array> with an array for every DEMNodeList in the DataBase.
 //------------------------------------------------------------------------------
@@ -696,6 +705,7 @@ newDEMArray(const DataType value) const {
   ENSURE(result.size() == numNodeLists());
   return result;
 }
+#endif
 
 //------------------------------------------------------------------------------
 // Resize an array<array> for every NodeList in the DataBase.
@@ -775,6 +785,7 @@ resizeSolidArray(std::vector<std::vector<DataType>>& array,
   ENSURE(array.size() == numNodeLists());
 }
 
+#if defined(SPHERAL_ENABLE_DEM)
 //------------------------------------------------------------------------------
 // Resize an array<array> for every DEMNodeList in the DataBase.
 //------------------------------------------------------------------------------
@@ -800,6 +811,6 @@ resizeDEMArray(std::vector<std::vector<DataType>>& array,
 
   ENSURE(array.size() == numNodeLists());
 }
-
+#endif
 
 }

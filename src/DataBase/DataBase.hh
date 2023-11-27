@@ -11,7 +11,11 @@
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "NodeList/SolidNodeList.hh"
+
+#if defined(SPHERAL_ENABLE_DEM)
 #include "NodeList/DEMNodeList.hh"
+#endif
+
 #include "Field/NodeIterators.hh"
 #include "Neighbor/ConnectivityMap.hh"
 
@@ -43,8 +47,10 @@ public:
   typedef typename std::vector<SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
   typedef typename std::vector<SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
 
+#if defined(SPHERAL_ENABLE_DEM)
   typedef typename std::vector<DEMNodeList<Dimension>*>::iterator DEMNodeListIterator;
   typedef typename std::vector<DEMNodeList<Dimension>*>::const_iterator ConstDEMNodeListIterator;
+#endif
 
   typedef ConnectivityMap<Dimension> ConnectivityMapType;
   typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
@@ -66,7 +72,10 @@ public:
   unsigned int numNodeLists() const;
   unsigned int numFluidNodeLists() const;
   int numSolidNodeLists() const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   int numDEMNodeLists() const;
+#endif
 
   // Numbers of nodes.
   int numInternalNodes() const;
@@ -117,6 +126,7 @@ public:
   ConstNodeListIterator solidNodeListAsNodeListBegin() const;
   ConstNodeListIterator solidNodeListAsNodeListEnd() const;
   
+#if defined(SPHERAL_ENABLE_DEM)
   DEMNodeListIterator DEMNodeListBegin();
   DEMNodeListIterator DEMNodeListEnd();
 
@@ -128,6 +138,7 @@ public:
 
   ConstNodeListIterator DEMNodeListAsNodeListBegin() const;
   ConstNodeListIterator DEMNodeListAsNodeListEnd() const;
+#endif
 
   // Provide NodeIterators to go over the elements of NodeLists/FieldLists.
   AllNodeIterator<Dimension> nodeBegin() const;
@@ -187,12 +198,18 @@ public:
                                         const bool computeIntersectionConnectivity) const;
 
   // Methods to add, remove, and verify NodeLists.
+#if defined(SPHERAL_ENABLE_DEM)
   void appendNodeList(DEMNodeList<Dimension>& nodeList);
+#endif
+
   void appendNodeList(SolidNodeList<Dimension>& nodeList);
   void appendNodeList(FluidNodeList<Dimension>& nodeList);
   void appendNodeList(NodeList<Dimension>& nodeList);
 
+#if defined(SPHERAL_ENABLE_DEM)
   void deleteNodeList(DEMNodeList<Dimension>& nodeList);
+#endif
+
   void deleteNodeList(SolidNodeList<Dimension>& nodeList);
   void deleteNodeList(FluidNodeList<Dimension>& nodeList);
   void deleteNodeList(NodeList<Dimension>& nodeList);
@@ -203,7 +220,10 @@ public:
   const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
   const std::vector<FluidNodeList<Dimension>*>& fluidNodeListPtrs() const;
   const std::vector<SolidNodeList<Dimension>*>& solidNodeListPtrs() const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   const std::vector<DEMNodeList<Dimension>*>& DEMNodeListPtrs() const;
+#endif
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
@@ -258,6 +278,7 @@ public:
   FieldList<Dimension, int> solidFragmentIDs() const;
   FieldList<Dimension, int> solidParticleTypes() const;
 
+#if defined(SPHERAL_ENABLE_DEM)
   FieldList<Dimension, Scalar> DEMMass() const;
   FieldList<Dimension, Vector> DEMPosition() const;
   FieldList<Dimension, Vector> DEMVelocity() const;
@@ -268,13 +289,18 @@ public:
 
   void setDEMHfieldFromParticleRadius(const int startUniqueIndex);
   void setDEMUniqueIndices();
+#endif
+
   Scalar maxNeighborSearchBuffer() const;
 
   // We can also return the node extent Fields stored in the Neighbor objects.
   FieldList<Dimension, Vector> globalNodeExtent() const;
   FieldList<Dimension, Vector> fluidNodeExtent() const;
   FieldList<Dimension, Vector> solidNodeExtent() const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   FieldList<Dimension, Vector> DEMNodeExtent() const;
+#endif
 
   // These functions return FieldLists with Fields that have to be calculated and
   // stored, so they are more expensive.
@@ -306,9 +332,12 @@ public:
   template<typename DataType>
   FieldList<Dimension, DataType> newSolidFieldList(const DataType value,
                                                    const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   template<typename DataType>
   FieldList<Dimension, DataType> newDEMFieldList(const DataType value,
                                                    const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field") const;
+#endif
 
   // Resize a FieldList to the number of NodeLists or FluidNodeLists.
   // Optionally we can also set all elements in the FieldList to the specified value.
@@ -329,18 +358,24 @@ public:
                             const DataType value,
                             const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                             const bool resetValues = true) const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   template<typename DataType>
   void resizeDEMFieldList(FieldList<Dimension, DataType>& fieldList,
                             const DataType value,
                             const typename Field<Dimension, DataType>::FieldName name = "Unnamed Field",
                             const bool resetValues = true) const;
+#endif
 
   //............................................................................
   // Create vector<vector<>> versions of the FieldLists.
   template<typename DataType> std::vector<std::vector<DataType>> newGlobalArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newFluidArray(const DataType value) const;
   template<typename DataType> std::vector<std::vector<DataType>> newSolidArray(const DataType value) const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   template<typename DataType> std::vector<std::vector<DataType>> newDEMArray(const DataType value) const;
+#endif
 
   // Resize vector<vector<>> versions of the FieldLists.
   template<typename DataType> void resizeGlobalArray(std::vector<std::vector<DataType>>& array,
@@ -352,9 +387,13 @@ public:
   template<typename DataType> void resizeSolidArray(std::vector<std::vector<DataType>>& array,
                                                     const DataType value,
                                                     const bool resetValues = true) const;
+
+#if defined(SPHERAL_ENABLE_DEM)
   template<typename DataType> void resizeDEMArray(std::vector<std::vector<DataType>>& array,
                                                     const DataType value,
                                                     const bool resetValues = true) const;
+#endif
+
   //............................................................................
 
   // Get the maximum kernel extent for all NodeLists.
@@ -395,9 +434,10 @@ private:
   std::vector<SolidNodeList<Dimension>*> mSolidNodeListPtrs;
   std::vector<NodeList<Dimension>*> mSolidNodeListAsNodeListPtrs;
 
+#if defined(SPHERAL_ENABLE_DEM)
   std::vector<DEMNodeList<Dimension>*> mDEMNodeListPtrs;
   std::vector<NodeList<Dimension>*> mDEMNodeListAsNodeListPtrs;
-
+#endif
 
   mutable ConnectivityMapPtr mConnectivityMapPtr;
 

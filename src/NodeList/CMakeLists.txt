@@ -10,8 +10,11 @@ set(NodeList_inst
     generateVoidNodes
     FixedSmoothingScale
     nthNodalMoment
-    DEMNodeList
    )
+
+if(SPHERAL_ENABLE_DEM)
+  list(APPEND NodeList_inst DEMNodeList)
+endif()
 
 set(NodeList_sources )
 
@@ -35,16 +38,21 @@ set(NodeList_headers
     generateVoidNodes.hh
     nthNodalMoment.hh
     secondMomentUtilities.hh
-    DEMNodeList.hh
-    DEMNodeListInline.hh
     )
+
+if(SPHERAL_ENABLE_DEM)
+  list(APPEND NodeList_headers DEMNodeList.hh DEMNodeListInline.hh)
+endif()
 
 spheral_install_python_files(
   FluidNodeLists.py
   SolidNodeLists.py
   VoidNodeLists.py
-  DEMNodeLists.py
   )
+
+if(SPHERAL_ENABLE_DEM)
+  spheral_install_python_files(DEMNodeLists.py)
+endif()
 
 spheral_add_obj_library(NodeList SPHERAL_OBJ_LIBS)
 

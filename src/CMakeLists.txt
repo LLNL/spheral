@@ -20,7 +20,6 @@ list(APPEND _packages
   Damage
   DataBase
   DataOutput
-  DEM
   Distributed
   ExternalForce
   Field
@@ -47,6 +46,10 @@ list(APPEND _packages
   SVPH
   Utilities
   )
+
+if (SPHERAL_ENABLE_DEM)
+  list(APPEND _packages DEM)
+endif()
 
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages

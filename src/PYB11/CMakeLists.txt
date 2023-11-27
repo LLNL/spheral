@@ -25,7 +25,6 @@ set (_python_packages
   SPH
   CRKSPH
   SVPH
-  DEM
   GSPH
   FSISPH
   ArtificialViscosity
@@ -47,6 +46,10 @@ if (ENABLE_ANEOS)
 endif()
 if (ENABLE_HELMHOLTZ)
   list(APPEND _python_packages Helmholtz)
+endif()
+
+if (SPHERAL_ENABLE_DEM)
+  list(APPEND _python_packages DEM)
 endif()
 
 foreach(_python_package ${_python_packages})

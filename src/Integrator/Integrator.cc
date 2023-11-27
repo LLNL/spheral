@@ -503,10 +503,12 @@ Integrator<Dimension>::setGhostNodes() {
   for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
   }
+
+#if defined(SPHERAL_ENABLE_DEM)
   for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd(); ++nodeListItr) {
     (*nodeListItr)->numGhostNodes(0);
   }
-
+#endif
 
   // If we're need overlap connectivity, we need to double the kernel extent before setting ghost nodes.
   if (mRequireOverlapConnectivity) {
@@ -515,11 +517,14 @@ Integrator<Dimension>::setGhostNodes() {
       auto maxeta = 2.0*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
     }
+
+#if defined(SPHERAL_ENABLE_DEM)
     for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 2.0*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
     }
+#endif
   }
 
   // Update neighboring
@@ -527,10 +532,13 @@ Integrator<Dimension>::setGhostNodes() {
     auto& neighbor = (*nodeListItr)->neighbor();
     neighbor.updateNodes();
   }
+
+#if defined(SPHERAL_ENABLE_DEM)
   for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
     auto& neighbor = (*nodeListItr)->neighbor();
     neighbor.updateNodes();
   }
+#endif
 
   // Iterate over the boundaries and set their ghost node info.
   for (auto boundaryItr = boundaries.begin(); boundaryItr != boundaries.end(); ++boundaryItr) {
@@ -539,9 +547,12 @@ Integrator<Dimension>::setGhostNodes() {
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr < db.fluidNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+
+#if defined(SPHERAL_ENABLE_DEM)
     for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+#endif
   }
 
   // If we doubled the kernel extents for overlap connectivity, put 'em back.
@@ -552,12 +563,15 @@ Integrator<Dimension>::setGhostNodes() {
       neighbor.kernelExtent(maxeta);
       neighbor.updateNodes();
     }
+
+#if defined(SPHERAL_ENABLE_DEM)
     for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr < db.DEMNodeListEnd();  ++nodeListItr) {
       auto& neighbor = (*nodeListItr)->neighbor();
       auto maxeta = 0.5*neighbor.kernelExtent();
       neighbor.kernelExtent(maxeta);
       neighbor.updateNodes();
     }
+#endif
   }
 
   if (mRequireConnectivity) {
@@ -696,9 +710,12 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
     for (auto nodeListItr = db.fluidNodeListBegin(); nodeListItr != db.fluidNodeListEnd(); ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+
+#if defined(SPHERAL_ENABLE_DEM)
     for (auto nodeListItr = db.DEMNodeListBegin(); nodeListItr != db.DEMNodeListEnd(); ++nodeListItr) {
       (*nodeListItr)->neighbor().updateNodes();
     }
+#endif
   }
 
   // Iterate over the physics packages, and have them apply ghost boundaries
@@ -780,11 +797,14 @@ Integrator<Dimension>::setViolationNodes() {
        ++nodeListItr) {
     (*nodeListItr)->neighbor().updateNodes();
   }
+
+#if defined(SPHERAL_ENABLE_DEM)
   for (typename DataBase<Dimension>::DEMNodeListIterator nodeListItr = db.DEMNodeListBegin();
        nodeListItr != db.DEMNodeListEnd(); 
        ++nodeListItr) {
     (*nodeListItr)->neighbor().updateNodes();
   }
+#endif
 }
 
 //------------------------------------------------------------------------------
