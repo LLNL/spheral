@@ -50,11 +50,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class ContinuityVolumePolicyRZ;
-}
-
 #endif

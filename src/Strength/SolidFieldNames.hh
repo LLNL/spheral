@@ -43,10 +43,4 @@ struct SolidFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  struct SolidFieldNames;
-}
-
 #endif

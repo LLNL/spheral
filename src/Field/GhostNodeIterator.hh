@@ -49,11 +49,4 @@ protected:
 
 #include "GhostNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class GhostNodeIterator;
-}
-
 #endif

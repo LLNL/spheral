@@ -124,11 +124,4 @@ private:
 
 #include "EquationOfStateInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class EquationOfState;
-}
-
 #endif

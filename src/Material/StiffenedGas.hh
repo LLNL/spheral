@@ -120,11 +120,4 @@ private:
 
 #include "StiffenedGasInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class StiffenedGas;
-}
-
 #endif

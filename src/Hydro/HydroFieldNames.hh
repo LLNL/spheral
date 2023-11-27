@@ -69,10 +69,4 @@ struct HydroFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  struct HydroFieldNames;
-}
-
 #endif

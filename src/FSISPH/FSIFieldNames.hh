@@ -21,10 +21,4 @@ struct FSIFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  struct FSIFieldNames;
-}
-
 #endif

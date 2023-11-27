@@ -47,11 +47,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SphericalPositionPolicy;
-}
-
 #endif

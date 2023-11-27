@@ -37,11 +37,4 @@ namespace Spheral{
   };
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  struct ContactIndex;
-}
-
 #endif

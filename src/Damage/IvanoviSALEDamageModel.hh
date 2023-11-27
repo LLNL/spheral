@@ -126,12 +126,5 @@ private:
 
 #include "IvanoviSALEDamageModelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class IvanoviSALEDamageModel;
-}
-
 #endif
 

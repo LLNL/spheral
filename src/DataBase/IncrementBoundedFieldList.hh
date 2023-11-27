@@ -79,11 +79,4 @@ private:
 #include "IncrementBoundedFieldListInline.hh"
 #endif
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename DataType, typename BoundValueType> class IncrementBoundedFieldList;
-}
-
 #endif

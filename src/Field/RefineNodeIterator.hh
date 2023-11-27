@@ -66,11 +66,4 @@ private:
 
 #include "RefineNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class RefineNodeIterator;
-}
-
 #endif

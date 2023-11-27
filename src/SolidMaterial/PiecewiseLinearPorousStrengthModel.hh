@@ -71,12 +71,5 @@ private:
 
 #include "PiecewiseLinearPorousStrengthModelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PiecewiseLinearPorousStrengthModel;
-}
-
 #endif
 

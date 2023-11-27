@@ -62,11 +62,4 @@ private:
 #include "FieldUpdatePolicyBaseInline.hh"
 #endif
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename DataType> class FieldUpdatePolicyBase;
-}
-
 #endif

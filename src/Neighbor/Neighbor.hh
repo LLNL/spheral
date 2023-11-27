@@ -178,11 +178,4 @@ template<> Dim<3>::Vector Neighbor< Dim<3> >::HExtent(const Dim<3>::SymTensor&, 
 
 #include "NeighborInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class Neighbor;
-}
-
 #endif

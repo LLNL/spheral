@@ -141,12 +141,5 @@ private:
 
 #include "DamageModelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class DamageModel;
-}
-
 #endif
 

@@ -32,10 +32,4 @@ public:
 
 #include "FieldListSetInline.hh"
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> class FieldListSet;
-}
-
 #endif

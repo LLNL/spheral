@@ -158,10 +158,4 @@ private:
 
 #include "GruneisenEquationOfStateInline.hh"
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> class GruneisenEquationOfState;
-}
-
 #endif

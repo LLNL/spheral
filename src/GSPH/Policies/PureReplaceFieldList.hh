@@ -52,11 +52,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename ValueType> class PureReplaceFieldList;
-}
-
 #endif

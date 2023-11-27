@@ -79,11 +79,4 @@ private:
 #include "IncrementBoundedStateInline.hh"
 #endif
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename DataType, typename BoundValueType> class IncrementBoundedState;
-}
-
 #endif

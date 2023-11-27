@@ -79,11 +79,4 @@ namespace Spheral {
     };
 }
 
-#else
-
-// Fwd Declaration
-namespace Spheral{
-    template<typename Dimension> class ArtificialConduction;
-}
-
 #endif

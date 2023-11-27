@@ -68,11 +68,4 @@ namespace Spheral {
     
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-    template<typename Dimension> class ArtificialConductionPolicy;
-}
-
 #endif
