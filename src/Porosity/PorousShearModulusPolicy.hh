@@ -28,7 +28,7 @@ public:
 
   // Constructors, destructor.
   PorousShearModulusPolicy();
-  virtual ~PorousShearModulusPolicy();
+  virtual ~PorousShearModulusPolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

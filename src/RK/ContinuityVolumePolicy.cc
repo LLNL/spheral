@@ -40,16 +40,8 @@ static inline double Hvolume(const Dim<3>::SymTensor& H) {
 template<typename Dimension>
 ContinuityVolumePolicy<Dimension>::
 ContinuityVolumePolicy():
-  IncrementState<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
-                                                        HydroFieldNames::massDensity) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ContinuityVolumePolicy<Dimension>::
-~ContinuityVolumePolicy() {
+  IncrementState<Dimension, typename Dimension::Scalar>({HydroFieldNames::mass,
+                                                         HydroFieldNames::massDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -95,10 +87,7 @@ template<typename Dimension>
 bool
 ContinuityVolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const auto* rhsPtr = dynamic_cast<const ContinuityVolumePolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return dynamic_cast<const ContinuityVolumePolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

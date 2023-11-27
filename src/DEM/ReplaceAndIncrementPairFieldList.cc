@@ -24,67 +24,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList():
-  UpdatePolicyBase<Dimension>() {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0):
-  UpdatePolicyBase<Dimension>(depend0 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0,
-                                 const std::string& depend1):
-  UpdatePolicyBase<Dimension>(depend0, depend1 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0,
-                                 const std::string& depend1,
-                                 const std::string& depend2):
-  UpdatePolicyBase<Dimension>(depend0, depend1, depend2 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0,
-                                 const std::string& depend1,
-                                 const std::string& depend2,
-                                 const std::string& depend3):
-  UpdatePolicyBase<Dimension>(depend0, depend1, depend2, depend3 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0,
-                                 const std::string& depend1,
-                                 const std::string& depend2,
-                                 const std::string& depend3,
-                                 const std::string& depend4):
-  UpdatePolicyBase<Dimension>(depend0, depend1, depend2, depend3, depend4 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-ReplaceAndIncrementPairFieldList(const std::string& depend0,
-                                 const std::string& depend1,
-                                 const std::string& depend2,
-                                 const std::string& depend3,
-                                 const std::string& depend4,
-                                 const std::string& depend5):
-  UpdatePolicyBase<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5 ) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
-ReplaceAndIncrementPairFieldList<Dimension, Value>::
-~ReplaceAndIncrementPairFieldList() {
+ReplaceAndIncrementPairFieldList(std::initializer_list<std::string> depends):
+  UpdatePolicyBase<Dimension>(depends) {
 }
 
 //------------------------------------------------------------------------------

@@ -35,11 +35,11 @@ namespace Spheral {
 template<typename Dimension>
 StrainPolicy<Dimension>::
 StrainPolicy():
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position,
-                              HydroFieldNames::H,
-                              SolidFieldNames::YoungsModulus,
-                              HydroFieldNames::pressure,
-                              SolidFieldNames::deviatoricStress) {
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position,
+                               HydroFieldNames::H,
+                               SolidFieldNames::YoungsModulus,
+                               HydroFieldNames::pressure,
+                               SolidFieldNames::deviatoricStress}) {
 }
 
 //------------------------------------------------------------------------------

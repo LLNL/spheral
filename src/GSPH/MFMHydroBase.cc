@@ -127,14 +127,14 @@ registerState(DataBase<Dimension>& dataBase,
     auto& massi = (*itr)->mass();
     auto  minVolume = massi.min()/(*itr)->rhoMax();
     auto  maxVolume = massi.max()/(*itr)->rhoMin();
-    state.enroll(*volume[nodeListi], std::make_shared<IncrementBoundedState<Dimension, Scalar>>(minVolume,
-                                                                                                maxVolume));
+    state.enroll(*volume[nodeListi], make_policy<IncrementBoundedState<Dimension, Scalar>>(minVolume,
+                                                                                           maxVolume));
   }
 
   auto massDensity = dataBase.fluidMassDensity();
-  state.enroll(massDensity, std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
-                                                                                       HydroFieldNames::volume,
-                                                                                       HydroFieldNames::volume));
+  state.enroll(massDensity, make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>({HydroFieldNames::volume},
+                                                                                  HydroFieldNames::mass,
+                                                                                  HydroFieldNames::volume));
 }
 
 //------------------------------------------------------------------------------

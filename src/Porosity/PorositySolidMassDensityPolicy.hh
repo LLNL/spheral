@@ -30,7 +30,7 @@ public:
 
   // Constructors, destructor.
   PorositySolidMassDensityPolicy();
-  virtual ~PorositySolidMassDensityPolicy();
+  virtual ~PorositySolidMassDensityPolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

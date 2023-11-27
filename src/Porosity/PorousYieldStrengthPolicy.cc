@@ -24,17 +24,9 @@ namespace Spheral {
 template<typename Dimension>
 PorousYieldStrengthPolicy<Dimension>::
 PorousYieldStrengthPolicy():
-  FieldUpdatePolicy<Dimension>(SolidFieldNames::porositySolidDensity,
-                               HydroFieldNames::specificThermalEnergy,
-                               SolidFieldNames::porosityAlpha) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-PorousYieldStrengthPolicy<Dimension>::
-~PorousYieldStrengthPolicy() {
+  FieldUpdatePolicy<Dimension>({SolidFieldNames::porositySolidDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porosityAlpha}) {
 }
 
 //------------------------------------------------------------------------------
@@ -87,8 +79,7 @@ template<typename Dimension>
 bool
 PorousYieldStrengthPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-  const auto* rhsPtr = dynamic_cast<const PorousYieldStrengthPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return dynamic_cast<const PorousYieldStrengthPolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

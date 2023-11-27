@@ -39,13 +39,13 @@ namespace Spheral {
 template<typename Dimension>
 TensorStrainPolicy<Dimension>::
 TensorStrainPolicy(const TensorStrainAlgorithm strainType):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position,
-                              HydroFieldNames::H,
-                              SolidFieldNames::YoungsModulus,
-                              SolidFieldNames::bulkModulus,
-                              SolidFieldNames::shearModulus,
-                              HydroFieldNames::pressure,
-                              SolidFieldNames::deviatoricStress),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position,
+                               HydroFieldNames::H,
+                               SolidFieldNames::YoungsModulus,
+                               SolidFieldNames::bulkModulus,
+                               SolidFieldNames::shearModulus,
+                               HydroFieldNames::pressure,
+                               SolidFieldNames::deviatoricStress}),
   mStrainType(strainType) {
 }
 

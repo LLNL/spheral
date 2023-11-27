@@ -32,15 +32,8 @@ double Hvolume(const Dim<2>::SymTensor& H) {
 //------------------------------------------------------------------------------
 ContinuityVolumePolicyRZ::
 ContinuityVolumePolicyRZ():
-  IncrementState<Dim<2>, Dim<2>::Scalar>(HydroFieldNames::mass,
-                                         HydroFieldNames::massDensity) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-ContinuityVolumePolicyRZ::
-~ContinuityVolumePolicyRZ() {
+  IncrementState<Dim<2>, Dim<2>::Scalar>({HydroFieldNames::mass,
+                                          HydroFieldNames::massDensity}) {
 }
 
 //------------------------------------------------------------------------------

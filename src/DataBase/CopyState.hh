@@ -25,7 +25,7 @@ public:
 
   // Constructors, destructor.
   CopyState(const std::string& masterState, const std::string& copyState);
-  virtual ~CopyState();
+  virtual ~CopyState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

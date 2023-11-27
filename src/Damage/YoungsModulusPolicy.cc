@@ -25,8 +25,8 @@ using std::abs;
 template<typename Dimension>
 YoungsModulusPolicy<Dimension>::
 YoungsModulusPolicy(const SolidNodeList<Dimension>& nodes):
-  UpdatePolicyBase<Dimension>(SolidFieldNames::bulkModulus,
-                              SolidFieldNames::shearModulus),
+  UpdatePolicyBase<Dimension>({SolidFieldNames::bulkModulus,
+                               SolidFieldNames::shearModulus}),
   mSolidNodeList(nodes) {
 }
 

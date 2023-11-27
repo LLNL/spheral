@@ -23,10 +23,10 @@ namespace Spheral {
 template<typename Dimension>
 ShearModulusPolicy<Dimension>::
 ShearModulusPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy,
-                               HydroFieldNames::pressure,
-                               SolidFieldNames::tensorDamage) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                HydroFieldNames::pressure,
+                                SolidFieldNames::tensorDamage}) {
 }
 
 //------------------------------------------------------------------------------

@@ -40,8 +40,8 @@ SumVoronoiMassDensityPolicy<Dimension>::
 SumVoronoiMassDensityPolicy(const TableKernel<Dimension>& W, 
                             const Physics<Dimension>& package,
                             const double rhoMin, const double rhoMax):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::mass,
-                              HydroFieldNames::volume),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mass,
+                               HydroFieldNames::volume}),
   mW(W),
   mPackage(package),
   mRhoMin(rhoMin),

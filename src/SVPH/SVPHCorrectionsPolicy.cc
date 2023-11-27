@@ -23,9 +23,9 @@ template<typename Dimension>
 SVPHCorrectionsPolicy<Dimension>::
 SVPHCorrectionsPolicy(const DataBase<Dimension>& dataBase,
                       const TableKernel<Dimension>& kernel):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position + UpdatePolicyBase<Dimension>::wildcard(),
-                              HydroFieldNames::H,
-                              HydroFieldNames::volume),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position + UpdatePolicyBase<Dimension>::wildcard(),
+                               HydroFieldNames::H,
+                               HydroFieldNames::volume}),
   mDataBase(dataBase),
   mKernel(kernel) {
 }

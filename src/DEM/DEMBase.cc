@@ -66,7 +66,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using std::make_shared;
 
 namespace Spheral {
 
@@ -309,14 +308,14 @@ registerState(DataBase<Dimension>& dataBase,
   auto compositeParticleIndex = dataBase.DEMCompositeParticleIndex();
   auto uniqueIndex = dataBase.DEMUniqueIndex();
 
-  auto positionPolicy = make_shared<IncrementState<Dimension,Vector>>();
-  auto velocityPolicy = make_shared<IncrementState<Dimension,Vector>>(HydroFieldNames::position,true);
-  auto angularVelocityPolicy = make_shared<IncrementState<Dimension,RotationType>>();
-  auto shearDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
-  auto rollingDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
-  auto torsionalDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
+  auto positionPolicy = make_policy<IncrementState<Dimension,Vector>>();
+  auto velocityPolicy = make_policy<IncrementState<Dimension,Vector>>({HydroFieldNames::position},true);
+  auto angularVelocityPolicy = make_policy<IncrementState<Dimension,RotationType>>();
+  auto shearDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto rollingDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto torsionalDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
 
-  auto boundaryPolicy = make_shared<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
+  auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
 
   state.enroll(DEMFieldNames::solidBoundaries,boundaryPolicy);
 

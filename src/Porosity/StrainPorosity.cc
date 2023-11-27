@@ -160,7 +160,7 @@ StrainPorosity<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   PorosityModel<Dimension>::registerState(dataBase, state);
-  state.enroll(mStrain, std::make_shared<IncrementState<Dimension, Scalar>>());
+  state.enroll(mStrain, make_policy<IncrementState<Dimension, Scalar>>());
 }
 
 //------------------------------------------------------------------------------

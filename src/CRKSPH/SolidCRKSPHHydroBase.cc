@@ -207,16 +207,16 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
   auto S = dataBase.solidDeviatoricStress();
-  state.enroll(S, std::make_shared<DeviatoricStressPolicy<Dimension>>());
-  state.enroll(ps, std::make_shared<PlasticStrainPolicy<Dimension>>());
+  state.enroll(S, make_policy<DeviatoricStressPolicy<Dimension>>());
+  state.enroll(ps, make_policy<PlasticStrainPolicy<Dimension>>());
 
   // Register the bulk modulus, shear modulus, and yield strength.
-  state.enroll(mBulkModulus, std::make_shared<BulkModulusPolicy<Dimension>>());
-  state.enroll(mShearModulus, std::make_shared<ShearModulusPolicy<Dimension>>());
-  state.enroll(mYieldStrength, std::make_shared<YieldStrengthPolicy<Dimension>>());
+  state.enroll(mBulkModulus, make_policy<BulkModulusPolicy<Dimension>>());
+  state.enroll(mShearModulus, make_policy<ShearModulusPolicy<Dimension>>());
+  state.enroll(mYieldStrength, make_policy<YieldStrengthPolicy<Dimension>>());
 
   // Override the policies for the sound speed and pressure.
-  state.enroll(cs, std::make_shared<StrengthSoundSpeedPolicy<Dimension>>());
+  state.enroll(cs, make_policy<StrengthSoundSpeedPolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.

@@ -18,74 +18,8 @@ namespace Spheral {
 template<typename Dimension, typename ValueType>
 inline
 ReplaceState<Dimension, ValueType>::
-ReplaceState():
-  FieldUpdatePolicy<Dimension>() {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0):
-  FieldUpdatePolicy<Dimension>(depend0) {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0,
-             const std::string& depend1):
-  FieldUpdatePolicy<Dimension>(depend0, depend1) {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0,
-             const std::string& depend1,
-             const std::string& depend2):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2) {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0,
-             const std::string& depend1,
-             const std::string& depend2,
-             const std::string& depend3):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3) {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0,
-             const std::string& depend1,
-             const std::string& depend2,
-             const std::string& depend3,
-             const std::string& depend4):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4) {
-}
-
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-ReplaceState(const std::string& depend0,
-             const std::string& depend1,
-             const std::string& depend2,
-             const std::string& depend3,
-             const std::string& depend4,
-             const std::string& depend5):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType>
-inline
-ReplaceState<Dimension, ValueType>::
-~ReplaceState() {
+ReplaceState(std::initializer_list<std::string> depends):
+  FieldUpdatePolicy<Dimension>(depends) {
 }
 
 //------------------------------------------------------------------------------

@@ -24,8 +24,8 @@ namespace Spheral {
 template<typename Dimension>
 SoundSpeedPolicy<Dimension>::
 SoundSpeedPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy}) {
 }
 
 //------------------------------------------------------------------------------

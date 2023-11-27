@@ -14,65 +14,17 @@ class IncrementBoundedState(FieldUpdatePolicy):
     # Constructors
     def pyinit0(self,
                 minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
+                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())"),
+                wildCardDerivs = ("const bool", "false")):
         "Build with no dependencies"
         return
 
+    @PYB11implementation("[](py::list depends, const %(ValueType)s minValue, const %(ValueType)s maxValue, const bool wildCardDerivs) { auto result = make_policy<IncrementBoundedState<%(Dimension)s, %(ValueType)s>>(minValue, maxValue, wildCardDerivs); for (auto x: depends) result->addDependency(x.cast<std::string>()); return result; }")
     def pyinit1(self,
-                depend0 = "const std::string&",
+                depends = ("py::list", "py::list()"),
                 minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
                 maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with one dependencies"
-        return
-
-    def pyinit2(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with two dependencies"
-        return
-
-    def pyinit3(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with three dependencies"
-        return
-
-    def pyinit4(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&",
-                minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with four dependencies"
-        return
-
-    def pyinit5(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&",
-                depend4 = "const std::string&",
-                minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with five dependencies"
-        return
-
-    def pyinit6(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&",
-                depend4 = "const std::string&",
-                depend5 = "const std::string&",
-                minValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::lowest())"),
-                maxValue = ("const %(ValueType)s", "%(ValueType)s(std::numeric_limits<double>::max())")):
-        "Build with six dependencies"
+        "Build with dependencies"
         return
 
     #...........................................................................
@@ -97,3 +49,4 @@ class IncrementBoundedState(FieldUpdatePolicy):
     # Properties
     minValue = PYB11property(doc="Minimum bound for Field values")
     maxValue = PYB11property(doc="Maximum bound for Field values")
+    wildCardDerivs = PYB11property("bool", getter="wildCardDerivs", setter="wildCardDerivs")

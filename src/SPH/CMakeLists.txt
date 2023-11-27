@@ -37,7 +37,6 @@ endif()
 instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
-    OmegaGradhPolicy.hh
     PSPHHydroBase.hh
     PSPHHydroBaseInline.hh
     SPHHydroBase.hh

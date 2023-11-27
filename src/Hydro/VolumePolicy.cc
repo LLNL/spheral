@@ -22,7 +22,7 @@ namespace Spheral {
 template<typename Dimension>
 VolumePolicy<Dimension>::
 VolumePolicy():
-  UpdatePolicyBase<Dimension>(HydroFieldNames::mesh) {
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mesh}) {
 }
 
 //------------------------------------------------------------------------------

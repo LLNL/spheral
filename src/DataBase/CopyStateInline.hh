@@ -27,15 +27,6 @@ CopyState(const std::string& masterState,
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType>
-inline
-CopyState<Dimension, ValueType>::
-~CopyState() {
-}
-
-//------------------------------------------------------------------------------
 // Update the state
 //------------------------------------------------------------------------------
 template<typename Dimension, typename ValueType>

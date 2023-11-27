@@ -19,14 +19,8 @@ public:
   using KeyType = typename  UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  ReplacePairFieldList();
-  explicit ReplacePairFieldList(const std::string& depend0);
-  ReplacePairFieldList(const std::string& depend0, const std::string& depend1);
-  ReplacePairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplacePairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplacePairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplacePairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~ReplacePairFieldList();
+  ReplacePairFieldList(std::initializer_list<std::string> depends = {});
+  virtual ~ReplacePairFieldList() {}
   
   static const std::string prefix() { return "new "; }
   

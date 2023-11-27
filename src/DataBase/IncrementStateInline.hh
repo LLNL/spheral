@@ -18,87 +18,18 @@ namespace Spheral {
 template<typename Dimension, typename Value>
 inline
 IncrementState<Dimension, Value>::
+IncrementState(std::initializer_list<std::string> depends,
+               const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depends),
+  mWildCardDerivs(wildCardDerivs) {
+}
+
+template<typename Dimension, typename Value>
+inline
+IncrementState<Dimension, Value>::
 IncrementState(const bool wildCardDerivs):
   FieldUpdatePolicy<Dimension>(),
   mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const std::string& depend1,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0, depend1),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3,
-               const std::string& depend4,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-IncrementState(const std::string& depend0,
-               const std::string& depend1,
-               const std::string& depend2,
-               const std::string& depend3,
-               const std::string& depend4,
-               const std::string& depend5,
-               const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
-  mWildCardDerivs(wildCardDerivs) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
-inline
-IncrementState<Dimension, Value>::
-~IncrementState() {
 }
 
 //------------------------------------------------------------------------------

@@ -186,8 +186,6 @@ SolidCRKSPHHydroBaseRZ::
 registerState(DataBase<Dim<2>>& dataBase,
               State<Dim<2>>& state) {
 
-  typedef State<Dimension>::PolicyPointer PolicyPointer;
-
   // Call the ancestor.
   SolidCRKSPHHydroBase<Dimension>::registerState(dataBase, state);
 
@@ -198,19 +196,17 @@ registerState(DataBase<Dim<2>>& dataBase,
   // state.enroll(ps, plasticStrainPolicy);
 
   // Reregister the volume update
-  PolicyPointer volumePolicy(new ContinuityVolumePolicyRZ());
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  state.enroll(vol, volumePolicy);
+  state.enroll(vol, make_policy<ContinuityVolumePolicyRZ>());
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
-    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+    state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
     // Get the policy for the position, and add the specific energy as a dependency.
-    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
+    auto positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
     positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
   }
 }

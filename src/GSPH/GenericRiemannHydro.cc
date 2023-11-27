@@ -238,21 +238,21 @@ registerState(DataBase<Dimension>& dataBase,
   if (mCompatibleEnergyEvolution) {
     
     state.enroll(specificThermalEnergy, std::make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase));
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::position,
-                                                                               HydroFieldNames::specificThermalEnergy,
-                                                                               true));
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
+                                                                           HydroFieldNames::specificThermalEnergy},
+                                                                          true));
   } else if (mEvolveTotalEnergy) {
 
     state.enroll(specificThermalEnergy, std::make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::position,
-                                                                               HydroFieldNames::specificThermalEnergy,
-                                                                               true));
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
+                                                                           HydroFieldNames::specificThermalEnergy},
+                                                                           true));
 
   } else {
 
     state.enroll(specificThermalEnergy, std::make_shared<IncrementState<Dimension, Scalar>>());
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::position,
-                                                                               true));
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position},
+                                                                          true));
 
   }
   

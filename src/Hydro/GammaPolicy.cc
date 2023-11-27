@@ -23,8 +23,8 @@ namespace Spheral {
 template<typename Dimension>
 GammaPolicy<Dimension>::
 GammaPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy}) {
 }
 
 //------------------------------------------------------------------------------

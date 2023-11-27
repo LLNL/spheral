@@ -24,7 +24,7 @@ public:
 
   // Constructors, destructor.
   HVolumePolicy(const Scalar kernelExtent);
-  virtual ~HVolumePolicy();
+  virtual ~HVolumePolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

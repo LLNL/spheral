@@ -21,16 +21,8 @@ namespace Spheral {
 template<typename Dimension>
 PorositySolidMassDensityPolicy<Dimension>::
 PorositySolidMassDensityPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               SolidFieldNames::porosityAlpha) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-PorositySolidMassDensityPolicy<Dimension>::
-~PorositySolidMassDensityPolicy() {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                SolidFieldNames::porosityAlpha}) {
 }
 
 //------------------------------------------------------------------------------
@@ -69,10 +61,7 @@ template<typename Dimension>
 bool
 PorositySolidMassDensityPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const auto rhsPtr = dynamic_cast<const PorositySolidMassDensityPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return dynamic_cast<const PorositySolidMassDensityPolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

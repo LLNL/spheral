@@ -24,8 +24,8 @@ namespace Spheral {
 template<typename Dimension>
 BulkModulusPolicy<Dimension>::
 BulkModulusPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy}) {
 }
 
 //------------------------------------------------------------------------------

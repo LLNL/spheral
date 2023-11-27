@@ -17,101 +17,26 @@ namespace Spheral {
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 IncrementBoundedState<Dimension, ValueType, BoundValueType>::
+IncrementBoundedState(std::initializer_list<std::string> depends,
+                      const BoundValueType minValue,
+                      const BoundValueType maxValue,
+                      const bool wildCardDerivs):
+  FieldUpdatePolicy<Dimension>(depends),
+  mMinValue(minValue),
+  mMaxValue(maxValue),
+  mWildCardDerivs(wildCardDerivs) {
+}
+
+template<typename Dimension, typename ValueType, typename BoundValueType>
+inline
+IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 IncrementBoundedState(const BoundValueType minValue,
-                      const BoundValueType maxValue):
+                      const BoundValueType maxValue,
+                      const bool wildCardDerivs):
   FieldUpdatePolicy<Dimension>(),
   mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const std::string& depend1,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const std::string& depend1,
-                      const std::string& depend2,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const std::string& depend1,
-                      const std::string& depend2,
-                      const std::string& depend3,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const std::string& depend1,
-                      const std::string& depend2,
-                      const std::string& depend3,
-                      const std::string& depend4,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-IncrementBoundedState(const std::string& depend0,
-                      const std::string& depend1,
-                      const std::string& depend2,
-                      const std::string& depend3,
-                      const std::string& depend4,
-                      const std::string& depend5,
-                      const BoundValueType minValue,
-                      const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-IncrementBoundedState<Dimension, ValueType, BoundValueType>::
-~IncrementBoundedState() {
+  mMaxValue(maxValue),
+  mWildCardDerivs(wildCardDerivs) {
 }
 
 //------------------------------------------------------------------------------
@@ -128,17 +53,37 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
-  // Find the matching derivative field from the StateDerivatives.
-  const auto  incrementKey = prefix() + key;
-  auto&       f = state.field(key, ValueType());
-  const auto& df = derivs.field(incrementKey, ValueType());
+  // Get the field name portion of the key.
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
 
-  // Loop over the internal values of the field.
-  const auto n = f.nodeList().numInternalNodes();
+  // Get the state we're updating.
+  auto& f = state.field(key, ValueType());
+
+  // Find all the available matching derivative Field keys.
+  const auto incrementKey = prefix() + fieldKey;
+  const auto allkeys = derivs.keys();
+  KeyType dfKey, dfNodeListKey;
+  auto numDeltaFields = 0u;
+  for (const auto& key: allkeys) {
+    StateBase<Dimension>::splitFieldKey(key, dfKey, dfNodeListKey);
+    if (dfNodeListKey == nodeListKey and
+        dfKey.compare(0, incrementKey.size(), incrementKey) == 0) {
+      ++numDeltaFields;
+
+      // This delta field matches the base of increment key, so apply it.
+      const auto& df = derivs.field(key, ValueType());
+      const auto  n = f.numInternalElements();
 #pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    f(i) = std::min(mMaxValue, std::max(mMinValue, f(i) + multiplier*(df(i))));
+      for (auto i = 0u; i < n; ++i) {
+        f(i) = std::min(mMaxValue, std::max(mMinValue, f(i) + multiplier*(df(i))));
+      }
+    }
   }
+
+  // If we're not allowing wildcard update, there should have only be one match.
+  VERIFY2(mWildCardDerivs or numDeltaFields == 1,
+          "IncrementBoundedState ERROR: unable to find unique match for derivative field key " << incrementKey);
 }
 
 //------------------------------------------------------------------------------
@@ -178,6 +123,25 @@ BoundValueType
 IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 maxValue() const {
   return mMaxValue;
+}
+
+//------------------------------------------------------------------------------
+// Wildcard derivs attribute.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename ValueType, typename BoundValueType>
+inline
+bool
+IncrementBoundedState<Dimension, ValueType, BoundValueType>::
+wildCardDerivs() const {
+  return mWildCardDerivs;
+}
+
+template<typename Dimension, typename ValueType, typename BoundValueType>
+inline
+void
+IncrementBoundedState<Dimension, ValueType, BoundValueType>::
+wildCardDerivs(const bool val) {
+  mWildCardDerivs = val;
 }
 
 }

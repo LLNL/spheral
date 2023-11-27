@@ -156,7 +156,7 @@ effectiveRotation(const Dim<3>::Tensor& DvDx) {
 template<typename Dimension>
 TensorDamagePolicy<Dimension>::
 TensorDamagePolicy(const TensorDamageModel<Dimension>& damageModel):
-  UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
+  UpdatePolicyBase<Dimension>({SolidFieldNames::strain}),
   mDamageModelPtr(&damageModel) {
 }
 

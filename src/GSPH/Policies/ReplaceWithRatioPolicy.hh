@@ -19,14 +19,9 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-
   ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0, const std::string& depend1);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
+  ReplaceWithRatioPolicy(std::initializer_list<std::string> depends,
+                         const KeyType& numerator, const KeyType& denomator);
   virtual ~ReplaceWithRatioPolicy();
   
   // Overload the methods describing how to update FieldLists.

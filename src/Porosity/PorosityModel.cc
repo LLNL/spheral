@@ -158,12 +158,12 @@ registerState(DataBase<Dimension>& dataBase,
   auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
 
   // Register the solid mass density
-  state.enroll(mSolidMassDensity, std::make_shared<PorositySolidMassDensityPolicy<Dimension>>());
+  state.enroll(mSolidMassDensity, make_policy<PorositySolidMassDensityPolicy<Dimension>>());
 
   // Register the distension
   state.enroll(mAlpha, (mJutziStateUpdate ?
-                        std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(SolidFieldNames::deviatoricStress, 1.0) :
-                        std::make_shared<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0)));
+                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>({SolidFieldNames::deviatoricStress}, 1.0) :
+                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0)));
   state.enroll(mAlpha0);
 
   // Initial sound speed
@@ -174,20 +174,20 @@ registerState(DataBase<Dimension>& dataBase,
                                   const auto fullkey = buildKey(fkey);
                                   if (state.registered(fullkey)) {
                                     auto& f = state.field(fullkey, 0.0);
-                                    state.enroll(f, policy); //std::make_shared<Policy>());
+                                    state.enroll(f, policy);
                                   }
                                 };
   // optionalOverridePolicy(SolidFieldNames::bulkModulus, std::make_shared<PorousBulkModulusPolicy<Dimension>>());
   // optionalOverridePolicy(HydroFieldNames::soundSpeed, std::make_shared<PorousSoundSpeedPolicy<Dimension>>());
-  optionalOverridePolicy(HydroFieldNames::gamma, std::make_shared<PorousGammaPolicy<Dimension>>());
-  optionalOverridePolicy(HydroFieldNames::entropy, std::make_shared<PorousEntropyPolicy<Dimension>>());
-  optionalOverridePolicy(SolidFieldNames::shearModulus, std::make_shared<PorousShearModulusPolicy<Dimension>>());
+  optionalOverridePolicy(HydroFieldNames::gamma, make_policy<PorousGammaPolicy<Dimension>>());
+  optionalOverridePolicy(HydroFieldNames::entropy, make_policy<PorousEntropyPolicy<Dimension>>());
+  optionalOverridePolicy(SolidFieldNames::shearModulus, make_policy<PorousShearModulusPolicy<Dimension>>());
 
   // The state update descibed in Jutzi et al. 2008
   if (mJutziStateUpdate) {
-    state.enroll(*mfDSptr, std::make_shared<ReplaceBoundedState<Dimension, Scalar>>(1.0));
+    state.enroll(*mfDSptr, make_policy<ReplaceBoundedState<Dimension, Scalar>>(1.0));
   } else {
-    optionalOverridePolicy(SolidFieldNames::yieldStrength, std::make_shared<PorousYieldStrengthPolicy<Dimension>>());
+    optionalOverridePolicy(SolidFieldNames::yieldStrength, make_policy<PorousYieldStrengthPolicy<Dimension>>());
   }
 }
 

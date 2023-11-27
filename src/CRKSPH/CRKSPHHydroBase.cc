@@ -199,7 +199,7 @@ registerState(DataBase<Dimension>& dataBase,
   // without an update policy.
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   CHECK(vol.size() == dataBase.numFluidNodeLists());
-  state.enroll(vol, std::make_shared<ContinuityVolumePolicy<Dimension>>());
+  state.enroll(vol, make_policy<ContinuityVolumePolicy<Dimension>>());
 
   // We need to build up CompositeFieldListPolicies for the mass density and H fields
   // in order to enforce NodeList dependent limits.
@@ -209,17 +209,17 @@ registerState(DataBase<Dimension>& dataBase,
   for (auto itr = dataBase.fluidNodeListBegin();
        itr < dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
-    state.enroll(*massDensity[nodeListi], std::make_shared<IncrementBoundedState<Dimension, Scalar>>((*itr)->rhoMin(),
-                                                                                                     (*itr)->rhoMax()));
+    state.enroll(*massDensity[nodeListi], make_policy<IncrementBoundedState<Dimension, Scalar>>((*itr)->rhoMin(),
+                                                                                                (*itr)->rhoMax()));
     const auto hmaxInv = 1.0/(*itr)->hmax();
     const auto hminInv = 1.0/(*itr)->hmin();
     switch (this->HEvolution()) {
       case HEvolutionType::IntegrateH:
-        state.enroll(*Hfield[nodeListi], std::make_shared<IncrementBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
+        state.enroll(*Hfield[nodeListi], make_policy<IncrementBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
         break;
 
       case HEvolutionType::IdealH:
-        state.enroll(*Hfield[nodeListi], std::make_shared<ReplaceBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
+        state.enroll(*Hfield[nodeListi], make_policy<ReplaceBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
         break;
 
        default:
@@ -229,32 +229,32 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the position update, which depends on whether we're using XSPH or not.
   auto position = dataBase.fluidPosition();
-  state.enroll(position, std::make_shared<IncrementState<Dimension, Vector>>());
+  state.enroll(position, make_policy<IncrementState<Dimension, Vector>>());
 
   // Register the entropy.
-  state.enroll(mEntropy, std::make_shared<EntropyPolicy<Dimension>>());
+  state.enroll(mEntropy, make_policy<EntropyPolicy<Dimension>>());
 
   // Are we using the compatible energy evolution scheme?
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   auto velocity = dataBase.fluidVelocity();
   if (compatibleEnergyEvolution()) {
     // The compatible energy update.
-    state.enroll(specificThermalEnergy, std::make_shared<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::specificThermalEnergy,
-                                                                               true));
+    state.enroll(specificThermalEnergy, make_policy<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy},
+                                                                          true));
     state.enroll(mSpecificThermalEnergy0);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
     // total energy policy.
-    state.enroll(specificThermalEnergy, std::make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::specificThermalEnergy,
-                                                                               true));
+    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy},
+                                                                          true));
 
   } else {
     // Otherwise we're just time-evolving the specific energy.
-    state.enroll(specificThermalEnergy, std::make_shared<IncrementState<Dimension, Scalar>>());
-    state.enroll(velocity, std::make_shared<IncrementState<Dimension, Vector>>(true));
+    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
+    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>(true));
   }
 
   // Register the time step mask, initialized to 1 so that everything defaults to being
@@ -262,8 +262,8 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mTimeStepMask);
 
   // Compute and register the pressure and sound speed.
-  state.enroll(mPressure, std::make_shared<PressurePolicy<Dimension>>());
-  state.enroll(mSoundSpeed, std::make_shared<SoundSpeedPolicy<Dimension>>());
+  state.enroll(mPressure, make_policy<PressurePolicy<Dimension>>());
+  state.enroll(mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>());
 }
 
 //------------------------------------------------------------------------------

@@ -26,27 +26,14 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
+  IncrementBoundedState(std::initializer_list<std::string> depends = {},
+                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()),
+                        const bool wildCardDerivs = false);
   IncrementBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0, const std::string& depend1,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  IncrementBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                        const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
-                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
-  virtual ~IncrementBoundedState();
+                        const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()),
+                        const bool wildCardDerivs = false);
+  virtual ~IncrementBoundedState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -65,10 +52,15 @@ public:
 
   static const std::string prefix() { return "delta "; }
 
+  // Flip whether we try to find multiple registered increment fields.
+  bool wildCardDerivs() const;
+  void wildCardDerivs(const bool val);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   BoundValueType mMinValue;
   BoundValueType mMaxValue;
+  bool mWildCardDerivs;
 
   IncrementBoundedState(const IncrementBoundedState& rhs);
   IncrementBoundedState& operator=(const IncrementBoundedState& rhs);
@@ -76,9 +68,7 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "IncrementBoundedStateInline.hh"
-#endif
 
 #else
 

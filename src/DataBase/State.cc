@@ -187,30 +187,32 @@ update(StateDerivatives<Dimension>& derivs,
   for (const auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_fullkey.first);
   CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
 
+  // Keep a copy of all the Field keys we are evolving
+  const std::set<KeyType> allFieldKeys(fieldsToBeCompleted.begin(), fieldsToBeCompleted.end());
+
   // Iterate until all state has been updated.
   while (not stateToBeCompleted.empty()) {
 
     // Walk the remaining state to be completed.
     vector<KeyType> stateToRemove;
-    for (typename map<KeyType, set<KeyType> >::iterator itr = stateToBeCompleted.begin();
-         itr != stateToBeCompleted.end();
-         ++itr) {
-      const KeyType fieldKey = itr->first;
+    for (auto& fieldKey_KeysAndPolicies: stateToBeCompleted) {
+      const KeyType& fieldKey = fieldKey_KeysAndPolicies.first;
       const set<KeyType>& remainingKeys = stateToBeCompleted[fieldKey];
 
       // Walk the remaining individual keys for this fieldKey.
-      for (typename set<KeyType>::const_iterator itr = remainingKeys.begin();
-           itr != remainingKeys.end();
-           ++itr) {
-        const KeyType key = *itr;
+      for (auto& key: remainingKeys) {
         const PolicyPointer policyPtr = mPolicyMap[fieldKey][key];
 
-        // Check if all the dependencies for this state have been satisfied yet.
-        vector<KeyType> unmetDependencies;
-        set_intersection(fieldsToBeCompleted.begin(), fieldsToBeCompleted.end(),
-                         policyPtr->dependencies().begin(), policyPtr->dependencies().end(),
-                         back_inserter(unmetDependencies));
-        if (unmetDependencies.empty()) {
+        // Check if any of the dependencies for this state have not been completed yet.
+        bool allDependenciesMet = true;
+        {
+          const auto& dependencies = policyPtr->dependencies();
+          auto itr = dependencies.begin();
+          while (itr < dependencies.end() and
+                 find(fieldsToBeCompleted.begin(), fieldsToBeCompleted.end(), *itr) == fieldsToBeCompleted.end()) itr++;
+          allDependenciesMet = (itr == dependencies.end());
+        }
+        if (allDependenciesMet) {
 
           // We also require that any FieldList policies fire before NodeList specific 
           // versions of the same Field names.
@@ -243,24 +245,16 @@ update(StateDerivatives<Dimension>& derivs,
       std::stringstream message;
       message << "State::update ERROR: someone has specified a circular state dependency.\n"
               << "Remaining State:\n";
-      for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
-           itr != stateToBeCompleted.end();
-           ++itr) message << "   " << itr->first << "\n";
+      for (const auto& itr: stateToBeCompleted) message << "   " << itr.first << "\n";
       message << "State dependencies:\n";
-      for (typename PolicyMapType::iterator itr = mPolicyMap.begin();
-           itr != mPolicyMap.end();
-           ++itr) {
-        const KeyType fieldKey = itr->first;
-        const map<KeyType, PolicyPointer>& keysAndPolicies = itr->second;
-        for (typename map<KeyType, PolicyPointer>::const_iterator pitr = keysAndPolicies.begin();
-             pitr != keysAndPolicies.end();
-             ++pitr) {
-          const KeyType key = pitr->first;
-          const PolicyPointer policyPtr = pitr->second;
+      for (const auto& itr: mPolicyMap) {
+        const KeyType fieldKey = itr.first;
+        const map<KeyType, PolicyPointer>& keysAndPolicies = itr.second;
+        for (const auto& pitr: keysAndPolicies) {
+          const KeyType key = pitr.first;
+          const PolicyPointer policyPtr = pitr.second;
           message << key << " : ";
-          for (typename vector<KeyType>::const_iterator depItr = policyPtr->dependencies().begin();
-               depItr != policyPtr->dependencies().end();
-               ++depItr) message << *depItr << " ";
+          for (const auto& dep: policyPtr->dependencies()) message << dep << " ";
           message << "\n";
         }
       }
@@ -268,19 +262,15 @@ update(StateDerivatives<Dimension>& derivs,
     }
     
     // Remove the completed state.
-    for (typename vector<KeyType>::const_iterator keyItr = stateToRemove.begin();
-         keyItr != stateToRemove.end();
-         ++keyItr) {
+    for (const auto& key: stateToRemove) {
       KeyType fieldKey, nodeListKey;
-      this->splitFieldKey(*keyItr, fieldKey, nodeListKey);
+      this->splitFieldKey(key, fieldKey, nodeListKey);
       CHECK(stateToBeCompleted.find(fieldKey) != stateToBeCompleted.end());
-      stateToBeCompleted[fieldKey].erase(*keyItr);
+      stateToBeCompleted[fieldKey].erase(key);
       if (stateToBeCompleted[fieldKey].empty()) stateToBeCompleted.erase(fieldKey);
     }
     fieldsToBeCompleted = vector<KeyType>();
-    for (typename map<KeyType, set<KeyType> >::const_iterator itr = stateToBeCompleted.begin();
-         itr != stateToBeCompleted.end();
-         ++itr) fieldsToBeCompleted.push_back(itr->first);
+    for (const auto& itr: stateToBeCompleted) fieldsToBeCompleted.push_back(itr.first);
     CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
   }
 }
@@ -293,9 +283,7 @@ vector<typename State<Dimension>::KeyType>
 State<Dimension>::
 policyKeys() const {
   vector<KeyType> result;
-  for (typename PolicyMapType::const_iterator itr = mPolicyMap.begin();
-       itr != mPolicyMap.end();
-       ++itr) result.push_back(itr->first);
+  for (const auto itr: mPolicyMap) result.push_back(itr.first);
   ENSURE(result.size() == mPolicyMap.size());
   return result;
 }

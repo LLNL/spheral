@@ -24,12 +24,12 @@ namespace Spheral {
 template<typename Dimension>
 YieldStrengthPolicy<Dimension>::
 YieldStrengthPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy,
-                               HydroFieldNames::pressure,
-                               SolidFieldNames::plasticStrain,
-                               SolidFieldNames::tensorDamage,
-                               IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                HydroFieldNames::pressure,
+                                SolidFieldNames::plasticStrain,
+                                SolidFieldNames::tensorDamage,
+                                IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain}) {
 }
 
 //------------------------------------------------------------------------------

@@ -12,53 +12,10 @@ class ReplaceState(FieldUpdatePolicy):
 
     #...........................................................................
     # Constructors
-    def pyinit0(self):
-        "Build with no dependencies"
-        return
-
-    def pyinit1(self,
-                depend0 = "const std::string&"):
-        "Build with one dependencies"
-        return
-
-    def pyinit2(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&"):
-        "Build with two dependencies"
-        return
-
-    def pyinit3(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&"):
-        "Build with three dependencies"
-        return
-
-    def pyinit4(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&"):
-        "Build with four dependencies"
-        return
-
-    def pyinit5(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&",
-                depend4 = "const std::string&"):
-        "Build with five dependencies"
-        return
-
-    def pyinit6(self,
-                depend0 = "const std::string&",
-                depend1 = "const std::string&",
-                depend2 = "const std::string&",
-                depend3 = "const std::string&",
-                depend4 = "const std::string&",
-                depend5 = "const std::string&"):
-        "Build with six dependencies"
+    @PYB11implementation("[](py::list depends) { auto result = make_policy<ReplaceState<%(Dimension)s, %(ValueType)s>>(); for (auto x: depends) result->addDependency(x.cast<std::string>()); return result; }")
+    def pyinit(self,
+               depends = ("py::list", "py::list()")):
+        "Build with some set of dependencies"
         return
 
     #...........................................................................

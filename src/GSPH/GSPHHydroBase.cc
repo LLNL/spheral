@@ -126,14 +126,15 @@ registerState(DataBase<Dimension>& dataBase,
   for (auto itr = dataBase.fluidNodeListBegin();
        itr < dataBase.fluidNodeListEnd();
        ++itr, ++nodeListi) {
-    state.enroll(*massDensity[nodeListi], std::make_shared<IncrementBoundedState<Dimension, Scalar>>((*itr)->rhoMin(),
-                                                                                                     (*itr)->rhoMax()));
+    state.enroll(*massDensity[nodeListi], make_policy<IncrementBoundedState<Dimension, Scalar>>((*itr)->rhoMin(),
+                                                                                                (*itr)->rhoMax()));
   }
 
   auto volume = state.fields(HydroFieldNames::volume, 0.0);
-  state.enroll(volume, std::make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
-                                                                                  HydroFieldNames::massDensity,
-                                                                                  HydroFieldNames::massDensity));
+  state.enroll(volume, make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>({HydroFieldNames::massDensity},
+                                                                             HydroFieldNames::mass,
+                                                                             HydroFieldNames::massDensity));
+                                                                             
 
   TIME_END("GSPHregister");
 }

@@ -23,14 +23,8 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  ReplaceState();
-  explicit ReplaceState(const std::string& depend0);
-  ReplaceState(const std::string& depend0, const std::string& depend1);
-  ReplaceState(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplaceState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplaceState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplaceState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~ReplaceState();
+  ReplaceState(std::initializer_list<std::string> depends = {});
+  virtual ~ReplaceState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

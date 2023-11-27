@@ -28,7 +28,7 @@ public:
 
   // Constructors, destructor.
   PorousYieldStrengthPolicy();
-  virtual ~PorousYieldStrengthPolicy();
+  virtual ~PorousYieldStrengthPolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

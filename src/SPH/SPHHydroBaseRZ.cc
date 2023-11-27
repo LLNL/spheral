@@ -136,7 +136,7 @@ registerState(DataBase<Dim<2> >& dataBase,
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    state.enroll(specificThermalEnergy, std::make_shared<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
+    state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
     // Get the policy for the position, and add the specific energy as a dependency.
     const auto posPolicies = state.policies(HydroFieldNames::position);      // map<Key, Policy>

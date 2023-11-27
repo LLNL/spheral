@@ -29,91 +29,12 @@ ReplaceBoundedState(const BoundValueType minValue,
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
+ReplaceBoundedState(std::initializer_list<std::string> depends,
                     const BoundValueType minValue,
                     const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0),
+  FieldUpdatePolicy<Dimension>(depends),
   mMinValue(minValue),
   mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
-                    const std::string& depend1,
-                    const BoundValueType minValue,
-                    const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
-                    const std::string& depend1,
-                    const std::string& depend2,
-                    const BoundValueType minValue,
-                    const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
-                    const std::string& depend1,
-                    const std::string& depend2,
-                    const std::string& depend3,
-                    const BoundValueType minValue,
-                    const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
-                    const std::string& depend1,
-                    const std::string& depend2,
-                    const std::string& depend3,
-                    const std::string& depend4,
-                    const BoundValueType minValue,
-                    const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-ReplaceBoundedState(const std::string& depend0,
-                    const std::string& depend1,
-                    const std::string& depend2,
-                    const std::string& depend3,
-                    const std::string& depend4,
-                    const std::string& depend5,
-                    const BoundValueType minValue,
-                    const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-~ReplaceBoundedState() {
 }
 
 //------------------------------------------------------------------------------

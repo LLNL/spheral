@@ -22,16 +22,8 @@ namespace Spheral {
 template<typename Dimension>
 HVolumePolicy<Dimension>::
 HVolumePolicy(const Scalar kernelExtent):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::H),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::H}),
   mKernelExtent(kernelExtent) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-HVolumePolicy<Dimension>::
-~HVolumePolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -65,10 +57,7 @@ template<typename Dimension>
 bool
 HVolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const auto* rhsPtr = dynamic_cast<const HVolumePolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return dynamic_cast<const HVolumePolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

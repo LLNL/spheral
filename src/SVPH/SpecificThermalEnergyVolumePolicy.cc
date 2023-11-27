@@ -19,7 +19,7 @@ namespace Spheral {
 template<typename Dimension>
 SpecificThermalEnergyVolumePolicy<Dimension>::
 SpecificThermalEnergyVolumePolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::volume) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::volume}) {
 }
 
 //------------------------------------------------------------------------------

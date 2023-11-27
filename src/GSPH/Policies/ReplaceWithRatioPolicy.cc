@@ -30,75 +30,10 @@ ReplaceWithRatioPolicy(const KeyType& numerator,
 
 template<typename Dimension, typename Value>
 ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0):
-  FieldUpdatePolicy<Dimension>(depend0),
-  mNumerator(numerator),
-  mDenomenator(denomenator) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0,
-                       const std::string& depend1):
-  FieldUpdatePolicy<Dimension>(depend0, depend1),
-  mNumerator(numerator),
-  mDenomenator(denomenator) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0,
-                       const std::string& depend1,
-                       const std::string& depend2):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
-  mNumerator(numerator),
-  mDenomenator(denomenator){
-}
-
-template<typename Dimension, typename Value>
-ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0,
-                       const std::string& depend1,
-                       const std::string& depend2,
-                       const std::string& depend3):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
-  mNumerator(numerator),
-  mDenomenator(denomenator) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0,
-                       const std::string& depend1,
-                       const std::string& depend2,
-                       const std::string& depend3,
-                       const std::string& depend4):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
-  mNumerator(numerator),
-  mDenomenator(denomenator) {
-}
-
-template<typename Dimension, typename Value>
-ReplaceWithRatioPolicy<Dimension, Value>::
-ReplaceWithRatioPolicy(const KeyType& numerator,
-                       const KeyType& denomenator,
-                       const std::string& depend0,
-                       const std::string& depend1,
-                       const std::string& depend2,
-                       const std::string& depend3,
-                       const std::string& depend4,
-                       const std::string& depend5):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
+ReplaceWithRatioPolicy(std::initializer_list<std::string> depends,
+                       const KeyType& numerator,
+                       const KeyType& denomenator):
+  FieldUpdatePolicy<Dimension>(depends),
   mNumerator(numerator),
   mDenomenator(denomenator) {
 }

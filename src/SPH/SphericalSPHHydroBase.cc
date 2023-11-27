@@ -54,7 +54,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using std::make_shared;
 
 namespace Spheral {
 
@@ -127,13 +126,13 @@ registerState(DataBase<Dim<1>>& dataBase,
 
   // Re-regsiter the position update to prevent things going through the origin
   auto position = dataBase.fluidPosition();
-  state.enroll(position, make_shared<SphericalPositionPolicy>());
+  state.enroll(position, make_policy<SphericalPositionPolicy>());
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
     auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    state.enroll(specificThermalEnergy, make_shared<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase));
+    state.enroll(specificThermalEnergy, make_policy<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase));
   }
 }
 

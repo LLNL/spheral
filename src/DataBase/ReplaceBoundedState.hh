@@ -9,9 +9,10 @@
 #ifndef __Spheral_ReplaceBoundedState_hh__
 #define __Spheral_ReplaceBoundedState_hh__
 
-#include <float.h>
 #include "FieldUpdatePolicy.hh"
 #include "Utilities/DBC.hh"
+
+#include <limits>
 
 namespace Spheral {
 
@@ -26,27 +27,12 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  ReplaceBoundedState(const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  virtual ~ReplaceBoundedState();
+  ReplaceBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                      const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedState(std::initializer_list<std::string> depends = {},
+                      const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                      const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  virtual ~ReplaceBoundedState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

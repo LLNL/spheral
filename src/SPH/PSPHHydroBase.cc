@@ -128,7 +128,7 @@ registerState(DataBase<Dimension>& dataBase,
   SPHHydroBase<Dimension>::registerState(dataBase, state);
 
   // We also require the fluid gamma.
-  state.enroll(mGamma, std::make_shared<GammaPolicy<Dimension>>());
+  state.enroll(mGamma, make_policy<GammaPolicy<Dimension>>());
 
   // Override the default policies for pressure and sound speed.  We'll compute those
   // specially in the postStateUpdate.  Same goes for registering the PSPHcorrections.

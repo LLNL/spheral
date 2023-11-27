@@ -17,71 +17,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey):
-  FieldUpdatePolicy<Dimension>(),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
 PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0):
-  FieldUpdatePolicy<Dimension>(depend0),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0,
-                 const std::string& depend1):
-  FieldUpdatePolicy<Dimension>(depend0, depend1),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2,
-                 const std::string& depend3):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2,
-                 const std::string& depend3,
-                 const std::string& depend4):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4),
-  mReplaceKey(derivFieldListKey) {
-}
-
-template<typename Dimension, typename Value>
-PureReplaceState<Dimension, Value>::
-PureReplaceState(const KeyType& derivFieldListKey,
-                 const std::string& depend0,
-                 const std::string& depend1,
-                 const std::string& depend2,
-                 const std::string& depend3,
-                 const std::string& depend4,
-                 const std::string& depend5):
-  FieldUpdatePolicy<Dimension>(depend0, depend1, depend2, depend3, depend4, depend5),
+                 std::initializer_list<std::string> depends):
+  FieldUpdatePolicy<Dimension>(depends),
   mReplaceKey(derivFieldListKey) {
 }
 

@@ -33,7 +33,7 @@ MeshIdealHPolicy(const SmoothingScaleBase<Dimension>& smoothingScaleBase,
                  const Scalar hmax,
                  const Scalar hminratio,
                  const Scalar nPerh):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::mesh),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mesh}),
   mSmoothingScaleBase(smoothingScaleBase),
   mhmin(hmin),
   mhmax(hmax),

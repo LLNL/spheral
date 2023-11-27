@@ -19,14 +19,8 @@ public:
   using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  IncrementPairFieldList();
-  explicit IncrementPairFieldList(const std::string& depend0);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~IncrementPairFieldList();
+  IncrementPairFieldList(std::initializer_list<std::string> depends = {});
+  virtual ~IncrementPairFieldList() {}
   
   static const std::string prefix() { return "delta "; }
   

@@ -25,8 +25,8 @@ namespace Spheral {
 template<typename Dimension>
 EntropyPolicy<Dimension>::
 EntropyPolicy():
-  FieldUpdatePolicy<Dimension>(HydroFieldNames::massDensity,
-                               HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy}) {
 }
 
 //------------------------------------------------------------------------------

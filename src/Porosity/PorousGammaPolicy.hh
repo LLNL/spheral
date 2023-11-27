@@ -27,7 +27,7 @@ public:
 
   // Constructors, destructor.
   PorousGammaPolicy();
-  virtual ~PorousGammaPolicy();
+  virtual ~PorousGammaPolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

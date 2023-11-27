@@ -20,13 +20,8 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  explicit PureReplaceState(const KeyType& derivFieldListKey);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  PureReplaceState(const KeyType& derivFieldListKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
+  PureReplaceState(const KeyType& derivFieldListKey,
+                   std::initializer_list<std::string> depends = {});
   virtual ~PureReplaceState();
   
   // Overload the methods describing how to update FieldLists.

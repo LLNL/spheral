@@ -158,7 +158,7 @@ ProbabilisticDamagePolicy<Dimension>::
 ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
                           const double kWeibull,           // coefficient in Weibull power-law
                           const double mWeibull):          // exponenent in Weibull power-law
-  UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
+  UpdatePolicyBase<Dimension>({SolidFieldNames::strain}),
   mDamageInCompression(damageInCompression),
   mkWeibull(kWeibull),
   mmWeibull(mWeibull) {

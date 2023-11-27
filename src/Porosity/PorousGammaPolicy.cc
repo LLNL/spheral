@@ -23,17 +23,9 @@ namespace Spheral {
 template<typename Dimension>
 PorousGammaPolicy<Dimension>::
 PorousGammaPolicy():
-  FieldUpdatePolicy<Dimension>(SolidFieldNames::porositySolidDensity,
-                               HydroFieldNames::specificThermalEnergy,
-                               SolidFieldNames::porosityAlpha) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-PorousGammaPolicy<Dimension>::
-~PorousGammaPolicy() {
+  FieldUpdatePolicy<Dimension>({SolidFieldNames::porositySolidDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porosityAlpha}) {
 }
 
 //------------------------------------------------------------------------------
@@ -74,8 +66,7 @@ template<typename Dimension>
 bool
 PorousGammaPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-  const auto* rhsPtr = dynamic_cast<const PorousGammaPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return dynamic_cast<const PorousGammaPolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

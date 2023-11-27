@@ -29,7 +29,7 @@ public:
 
   // Constructors, destructor.
   PorousEntropyPolicy();
-  virtual ~PorousEntropyPolicy();
+  virtual ~PorousEntropyPolicy() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

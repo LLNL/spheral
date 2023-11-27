@@ -19,20 +19,10 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  IncrementState(const bool wildCardDerivs = false);
-  explicit IncrementState(const std::string& depend0,
-                          const bool wildCardDerivs = false);
-  IncrementState(const std::string& depend0, const std::string& depend1,
+  IncrementState(std::initializer_list<std::string> depends = {},
                  const bool wildCardDerivs = false);
-  IncrementState(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                 const bool wildCardDerivs = false);
-  IncrementState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                 const bool wildCardDerivs = false);
-  IncrementState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                 const bool wildCardDerivs = false);
-  IncrementState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                 const bool wildCardDerivs = false);
-  virtual ~IncrementState();
+  IncrementState(const bool wildCardDerivs);
+  virtual ~IncrementState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

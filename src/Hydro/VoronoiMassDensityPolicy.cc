@@ -32,8 +32,8 @@ namespace Spheral {
 template<typename Dimension>
 VoronoiMassDensityPolicy<Dimension>::
 VoronoiMassDensityPolicy(const double rhoMin, const double rhoMax):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::mass,
-                              HydroFieldNames::volume),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mass,
+                               HydroFieldNames::volume}),
   mRhoMin(rhoMin),
   mRhoMax(rhoMax) {
   REQUIRE(rhoMin <= rhoMax);

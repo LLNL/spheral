@@ -29,7 +29,7 @@ public:
 
   // Constructors, destructor.
   ContinuityVolumePolicyRZ();
-  virtual ~ContinuityVolumePolicyRZ();
+  virtual ~ContinuityVolumePolicyRZ() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,

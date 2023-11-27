@@ -9,8 +9,6 @@
 
 #include "UpdatePolicyBase.hh"
 
-#include <string>
-#include <map>
 #include <memory> // unique_ptr/shared_ptr
 
 namespace Spheral {
@@ -20,38 +18,10 @@ class FieldUpdatePolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using typename UpdatePolicyBase<Dimension>::KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  FieldUpdatePolicy();
-  explicit FieldUpdatePolicy(const std::string& depend0);
-  FieldUpdatePolicy(const std::string& depend0, 
-                        const std::string& depend1);
-  FieldUpdatePolicy(const std::string& depend0, 
-                        const std::string& depend1,
-                        const std::string& depend2);
-  FieldUpdatePolicy(const std::string& depend0, 
-                        const std::string& depend1, 
-                        const std::string& depend2, 
-                        const std::string& depend3);
-  FieldUpdatePolicy(const std::string& depend0, 
-                        const std::string& depend1,
-                        const std::string& depend2,
-                        const std::string& depend3, 
-                        const std::string& depend4);
-  FieldUpdatePolicy(const std::string& depend0, 
-                        const std::string& depend1,
-                        const std::string& depend2,
-                        const std::string& depend3,
-                        const std::string& depend4, 
-                        const std::string& depend5);
-  FieldUpdatePolicy(const std::string& depend0,
-                        const std::string& depend1,
-                        const std::string& depend2, 
-                        const std::string& depend3, 
-                        const std::string& depend4,
-                        const std::string& depend5,
-                        const std::string& depend6);
+  FieldUpdatePolicy(std::initializer_list<std::string> depends = {});
   virtual ~FieldUpdatePolicy() {};
   
   // Should this policy be cloned per Field when registering for a FieldList?

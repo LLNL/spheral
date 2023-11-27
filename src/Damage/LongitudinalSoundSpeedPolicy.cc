@@ -36,10 +36,10 @@ namespace Spheral {
 template<typename Dimension>
 LongitudinalSoundSpeedPolicy<Dimension>::
 LongitudinalSoundSpeedPolicy(const SolidNodeList<Dimension>& nodes):
-  UpdatePolicyBase<Dimension>(SolidFieldNames::YoungsModulus,
-                              SolidFieldNames::bulkModulus,
-                              SolidFieldNames::shearModulus,
-                              HydroFieldNames::massDensity),
+  UpdatePolicyBase<Dimension>({SolidFieldNames::YoungsModulus,
+                               SolidFieldNames::bulkModulus,
+                               SolidFieldNames::shearModulus,
+                               HydroFieldNames::massDensity}),
   mSolidNodeList(nodes) {
 }
 
