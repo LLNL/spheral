@@ -6,11 +6,6 @@
 //----------------------------------------------------------------------------//
 #include "Porosity/PorosityModel.hh"
 #include "Porosity/PorositySolidMassDensityPolicy.hh"
-#include "Porosity/PorousBulkModulusPolicy.hh"
-#include "Porosity/PorousSoundSpeedPolicy.hh"
-#include "Porosity/PorousGammaPolicy.hh"
-#include "Porosity/PorousEntropyPolicy.hh"
-#include "Porosity/PorousShearModulusPolicy.hh"
 #include "Porosity/PorousYieldStrengthPolicy.hh"
 #include "Material/EquationOfState.hh"
 #include "FileIO/FileIO.hh"
@@ -177,11 +172,6 @@ registerState(DataBase<Dimension>& dataBase,
                                     state.enroll(f, policy);
                                   }
                                 };
-  // optionalOverridePolicy(SolidFieldNames::bulkModulus, std::make_shared<PorousBulkModulusPolicy<Dimension>>());
-  // optionalOverridePolicy(HydroFieldNames::soundSpeed, std::make_shared<PorousSoundSpeedPolicy<Dimension>>());
-  optionalOverridePolicy(HydroFieldNames::gamma, make_policy<PorousGammaPolicy<Dimension>>());
-  optionalOverridePolicy(HydroFieldNames::entropy, make_policy<PorousEntropyPolicy<Dimension>>());
-  optionalOverridePolicy(SolidFieldNames::shearModulus, make_policy<PorousShearModulusPolicy<Dimension>>());
 
   // The state update descibed in Jutzi et al. 2008
   if (mJutziStateUpdate) {

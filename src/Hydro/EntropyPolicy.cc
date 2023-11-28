@@ -6,7 +6,8 @@
 //----------------------------------------------------------------------------//
 
 #include "EntropyPolicy.hh"
-#include "HydroFieldNames.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
@@ -26,7 +27,8 @@ template<typename Dimension>
 EntropyPolicy<Dimension>::
 EntropyPolicy():
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
-                                HydroFieldNames::specificThermalEnergy}) {
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porositySolidDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -52,19 +54,25 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::entropy);
-  auto& entropy = state.field(key, Scalar());
-
-  // Get the mass density and specific thermal energy fields from the state.
-  const auto& massDensity = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
-  const auto& eps = state.field(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
+  auto& entropy = state.field(key, 0.0);
 
   // Get the eos.  This cast is ugly, but is a work-around for now.
   const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(entropy.nodeListPtr());
-  CHECK(fluidNodeListPtr != nullptr);
+  VERIFY(fluidNodeListPtr != nullptr);
   const auto& eos = fluidNodeListPtr->equationOfState();
 
+  // Check if we're using porosity
+  const auto buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
+
+  // Grab the state we need.
+  const auto& rhoS = (usePorosity ?
+                      state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                      state.field(buildKey(HydroFieldNames::massDensity), 0.0));
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
+
   // Now set the entropy for this field.
-  eos.setEntropy(entropy, massDensity, eps);
+  eos.setEntropy(entropy, rhoS, eps);
 }
 
 //------------------------------------------------------------------------------

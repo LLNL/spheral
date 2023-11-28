@@ -25,7 +25,8 @@ template<typename Dimension>
 BulkModulusPolicy<Dimension>::
 BulkModulusPolicy():
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
-                                HydroFieldNames::specificThermalEnergy}) {
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porositySolidDensity}) {
 }
 
 //------------------------------------------------------------------------------

@@ -6,7 +6,8 @@
 //----------------------------------------------------------------------------//
 
 #include "GammaPolicy.hh"
-#include "HydroFieldNames.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -24,7 +25,8 @@ template<typename Dimension>
 GammaPolicy<Dimension>::
 GammaPolicy():
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
-                                HydroFieldNames::specificThermalEnergy}) {
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porositySolidDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -52,9 +54,13 @@ update(const KeyType& key,
   REQUIRE(fieldKey == HydroFieldNames::gamma);
   auto& gamma = state.field(key, Scalar());
 
-  // Get the mass density and specific thermal energy fields from the state.
-  const auto& massDensity = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey), Scalar());
-  const auto& eps = state.field(StateBase<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey), Scalar());
+  // Check if this material has porosity and get the state we need
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto  usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
+  const auto& rhoS = (usePorosity ?
+                      state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                      state.field(buildKey(HydroFieldNames::massDensity), 0.0));
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
 
   // Get the eos.  This cast is ugly, but is a work-around for now.
   const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(gamma.nodeListPtr());
@@ -62,7 +68,7 @@ update(const KeyType& key,
   const auto& eos = fluidNodeListPtr->equationOfState();
 
   // Now set the gamma for this field.
-  eos.setGammaField(gamma, massDensity, eps);
+  eos.setGammaField(gamma, rhoS, eps);
 }
 
 //------------------------------------------------------------------------------

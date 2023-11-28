@@ -16,6 +16,7 @@ Notable changes include:
     * EquationOfState now requires instances to provide \partial P/\partial \rho and \partial P/\partial \epsilon.  All current equations of state have been updated accordingly.
     * Tillotson and Gruneisen EOSs implementations updated a bit in the revamping.
     * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book)
+    * Update policies for use in the physics update cycle have been extensively reworked, particularly for use with FieldLists.
 
   * Build changes / improvements:
     * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use
@@ -23,6 +24,7 @@ Notable changes include:
       find_package(Spheral_CXX <path_to_spheral_installation>)
       ```
     * CMake variables have a more consistent naming convention. Unused variables are removed.
+    * Upped our required C++ standard to 17
 
   * Bug Fixes / improvements:
     * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.

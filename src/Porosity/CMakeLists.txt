@@ -4,9 +4,6 @@ set(Porosity_inst
     StrainPorosity
     PalphaPorosity
     PorositySolidMassDensityPolicy
-    PorousGammaPolicy
-    PorousEntropyPolicy
-    PorousShearModulusPolicy
     PorousYieldStrengthPolicy
    )
 
@@ -21,9 +18,6 @@ set(Porosity_headers
     StrainPorosity.hh
     StrainPorosityInline.hh
     PalphaPorosity.hh
-    PorousGammaPolicy.hh
-    PorousEntropyPolicy.hh
-    PorousShearModulusPolicy.hh
     PorousYieldStrengthPolicy.hh
     )
 
