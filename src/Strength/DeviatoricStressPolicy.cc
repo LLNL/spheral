@@ -65,8 +65,7 @@ update(const KeyType& key,
 
   // Check if a porosity model has registered a modifier for the deviatoric stress.
   // They should have added it as a dependency of this policy if so.
-  const auto depends = this->dependencies();
-  const auto porosityScaling = (std::find(depends.begin(), depends.end(), SolidFieldNames::fDSjutzi) != depends.end());
+  const auto porosityScaling = state.registered(buildKey(SolidFieldNames::fDSjutzi));
   const Field<Dimension, Scalar>* fDSptr = nullptr;
   const Field<Dimension, Scalar>* alphaPtr = nullptr;
   const Field<Dimension, Scalar>* DalphaDtPtr = nullptr;

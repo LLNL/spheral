@@ -25,7 +25,13 @@ template<typename Dimension>
 SoundSpeedPolicy<Dimension>::
 SoundSpeedPolicy():
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
-                                HydroFieldNames::specificThermalEnergy}) {
+                                HydroFieldNames::specificThermalEnergy,
+                                HydroFieldNames::pressure,
+                                SolidFieldNames::tensorDamage,
+                                SolidFieldNames::porositySolidDensity,
+                                SolidFieldNames::porosityAlpha,
+                                SolidFieldNames::porosityAlpha0,
+                                SolidFieldNames::porosityc0}) {
 }
 
 //------------------------------------------------------------------------------

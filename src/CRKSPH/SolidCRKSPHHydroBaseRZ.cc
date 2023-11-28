@@ -20,7 +20,6 @@
 #include "Strength/BulkModulusPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"

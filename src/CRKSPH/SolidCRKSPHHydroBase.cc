@@ -19,7 +19,6 @@
 #include "Strength/PlasticStrainPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
@@ -200,10 +199,6 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
   dataBase.resizeFluidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
 
-  // Grab the normal Hydro's registered version of the sound speed and pressure.
-  auto cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  CHECK(cs.numFields() == dataBase.numFluidNodeLists());
-
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
   auto S = dataBase.solidDeviatoricStress();
@@ -214,9 +209,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mBulkModulus, make_policy<BulkModulusPolicy<Dimension>>());
   state.enroll(mShearModulus, make_policy<ShearModulusPolicy<Dimension>>());
   state.enroll(mYieldStrength, make_policy<YieldStrengthPolicy<Dimension>>());
-
-  // Override the policies for the sound speed and pressure.
-  state.enroll(cs, make_policy<StrengthSoundSpeedPolicy<Dimension>>());
 
   // Register the damage with a default no-op update.
   // If there are any damage models running they can override this choice.

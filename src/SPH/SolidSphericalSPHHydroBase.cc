@@ -25,7 +25,6 @@
 #include "Strength/PlasticStrainPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
 #include "Hydro/SphericalPositionPolicy.hh"
 #include "Hydro/NonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "DataBase/State.hh"

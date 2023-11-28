@@ -162,7 +162,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Register the distension
   state.enroll(mAlpha, (mJutziStateUpdate ?
-                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>({SolidFieldNames::deviatoricStress}, 1.0) :
+                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>({SolidFieldNames::deviatoricStress, SolidFieldNames::fDSjutzi}, 1.0) :
                         make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0)));
   state.enroll(mAlpha0);
 

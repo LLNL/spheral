@@ -23,7 +23,8 @@ template<typename Dimension>
 MeltEnergyPolicy<Dimension>::
 MeltEnergyPolicy():
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
-                                HydroFieldNames::specificThermalEnergy}) {
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porositySolidDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -54,10 +55,11 @@ update(const KeyType& key,
 
   // Get the mass density and specific thermal energy fields from the state.
   // Note we take the possible presence of porosity into account here and check if the solid density is registered.
-  const auto rhoSKey = State<Dimension>::buildFieldKey(SolidFieldNames::porositySolidDensity, nodeListKey);
+  const auto buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto rhoSKey = buildKey(SolidFieldNames::porositySolidDensity);
   const auto rhoKey = (state.registered(rhoSKey) ?
                        rhoSKey :
-                       State<Dimension>::buildFieldKey(HydroFieldNames::massDensity, nodeListKey));
+                       buildKey(HydroFieldNames::massDensity));
   const auto epsKey = State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey);
   CHECK(state.registered(rhoKey));
   CHECK(state.registered(epsKey));

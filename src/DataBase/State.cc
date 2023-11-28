@@ -254,7 +254,7 @@ update(StateDerivatives<Dimension>& derivs,
           const KeyType key = pitr.first;
           const PolicyPointer policyPtr = pitr.second;
           message << key << " : ";
-          for (const auto& dep: policyPtr->dependencies()) message << dep << " ";
+          for (const auto& dep: policyPtr->dependencies()) message << dep << "  ++  ";
           message << "\n";
         }
       }
