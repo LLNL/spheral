@@ -10,7 +10,8 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
-list(APPEND _packages 
+# These are internal Spheral packages
+list(APPEND _packages
   ArtificialViscosity
   ArtificialConduction
   Boundary
@@ -48,10 +49,9 @@ list(APPEND _packages
   )
 
 if(NOT ENABLE_CXXONLY)
-  list(APPEND _packages 
+  list(APPEND _packages
     SimulationControl
-    PYB11
-    )
+    PYB11)
 endif()
 
 configure_file(config.hh.in
@@ -61,13 +61,14 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
-include_directories(${extra_packages_DIR})
-foreach(e_package ${extra_packages})
-  add_subdirectory(${extra_packages_DIR}/${e_package} ${CMAKE_CURRENT_BINARY_DIR}/${e_package})
-endforeach()
+# Retrieve the global list populated in spheral_obj_add_library
+get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
 set(CXX_sources spheralCXX.cc)
+# Must use quotes when passing lists as inputs for functions
+spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 
-spheral_add_cxx_library(CXX)
-
-install(EXPORT ${PROJECT_NAME}-targets DESTINATION Spheral/lib/cmake)
+# This calls LLNLSpheralInstallObjs.cmake
+if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
+  include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
+endif()

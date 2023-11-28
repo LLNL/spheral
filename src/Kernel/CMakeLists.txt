@@ -68,5 +68,5 @@ set(Kernel_headers
     WendlandC6KernelInline.hh
     )
 
-spheral_add_obj_library(Kernel)
+spheral_add_obj_library(Kernel SPHERAL_OBJ_LIBS)
 

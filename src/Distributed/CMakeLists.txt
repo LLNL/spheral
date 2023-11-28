@@ -70,7 +70,7 @@ if (ENABLE_MPI)
           RENAME      mpi.py
           )
 
-  spheral_add_obj_library(Distributed)
+  spheral_add_obj_library(Distributed SPHERAL_OBJ_LIBS)
 
 else()
   #----------------------------------------------------------------------------

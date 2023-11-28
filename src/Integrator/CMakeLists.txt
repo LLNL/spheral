@@ -24,5 +24,5 @@ set(Integrator_headers
     Verlet.hh
     )
 
-spheral_add_obj_library(Integrator)
+spheral_add_obj_library(Integrator SPHERAL_OBJ_LIBS)
 
