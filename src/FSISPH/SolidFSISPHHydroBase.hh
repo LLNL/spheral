@@ -116,6 +116,16 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivatives) const override;
+  void firstDerivativesLoop(const Scalar time,
+                           const Scalar dt,
+                           const DataBase<Dimension>& dataBase,
+                           const State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivatives) const;
+  void secondDerivativesLoop(const Scalar time,
+                           const Scalar dt,
+                           const DataBase<Dimension>& dataBase,
+                           const State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivatives) const;
 
   virtual 
   void finalizeDerivatives(const Scalar time, 
@@ -124,11 +134,11 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) const override;
 
-  void computeMCorrection(const typename Dimension::Scalar time,
-                          const typename Dimension::Scalar dt,
-                          const DataBase<Dimension>& dataBase,
-                          const State<Dimension>& state,
-                                StateDerivatives<Dimension>& derivatives) const;
+  // void computeMCorrection(const typename Dimension::Scalar time,
+  //                         const typename Dimension::Scalar dt,
+  //                         const DataBase<Dimension>& dataBase,
+  //                         const State<Dimension>& state,
+  //                               StateDerivatives<Dimension>& derivatives) const;
 
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
@@ -222,7 +232,7 @@ public:
   const FieldList<Dimension, Scalar>&    shearModulus() const;
   const FieldList<Dimension, Scalar>&    yieldStrength() const;
   const FieldList<Dimension, Scalar>&    plasticStrain0() const;
-  //const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
+  const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
   const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
@@ -305,7 +315,7 @@ private:
   FieldList<Dimension, Scalar>    mShearModulus;
   FieldList<Dimension, Scalar>    mYieldStrength;
   FieldList<Dimension, Scalar>    mPlasticStrain0;
-  //FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
+  FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
   FieldList<Dimension, Scalar>    mVolume;
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mXSPHDeltaV;

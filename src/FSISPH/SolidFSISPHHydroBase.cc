@@ -189,7 +189,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mShearModulus(FieldStorageType::CopyFields),
   mYieldStrength(FieldStorageType::CopyFields),
   mPlasticStrain0(FieldStorageType::CopyFields),
-  //mInverseEquivalentDeviatoricStress(FieldStorageType::CopyFields),
+  mInverseEquivalentDeviatoricStress(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
@@ -242,7 +242,7 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
     mYieldStrength = dataBase.newSolidFieldList(0.0, SolidFieldNames::yieldStrength);
     mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
-    //mInverseEquivalentDeviatoricStress = dataBase.newFluidFieldList(0.0, FSIFieldNames::inverseEquivalentDeviatoricStress);
+    mInverseEquivalentDeviatoricStress = dataBase.newFluidFieldList(0.0, FSIFieldNames::inverseEquivalentDeviatoricStress);
     mVolume = dataBase.newFluidFieldList(0.0,HydroFieldNames::volume);
     mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
     mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
@@ -357,7 +357,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeSolidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals, false);
   dataBase.resizeSolidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction, false); 
   dataBase.resizeSolidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness, false);
-  //dataBase.resizeSolidFieldList(mInverseEquivalentDeviatoricStress, 0.0, FSIFieldNames::inverseEquivalentDeviatoricStress, false);
+  dataBase.resizeSolidFieldList(mInverseEquivalentDeviatoricStress, 0.0, FSIFieldNames::inverseEquivalentDeviatoricStress, false);
   dataBase.resizeFluidFieldList(mInterfaceFlags, int(0), FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mInterfaceAreaVectors, Vector::zero, FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals,false);
@@ -367,10 +367,10 @@ registerState(DataBase<Dimension>& dataBase,
   auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
   auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
   auto Ppolicy = make_shared<PressurePolicy<Dimension>>();
-  auto rawPressurePolicy = make_shared<PressurePolicy<Dimension>>();
+  auto rawPressurePolicy = make_shared<DamagedPressurePolicy<Dimension>>();
   auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
-  auto plasticStrainPolicy = make_shared<PlasticStrainPolicy<Dimension>>();
-  //auto plasticStrainPolicy = make_shared<PairwisePlasticStrainPolicy<Dimension>>();
+  //auto plasticStrainPolicy = make_shared<PlasticStrainPolicy<Dimension>>();
+  auto plasticStrainPolicy = make_shared<PairwisePlasticStrainPolicy<Dimension>>();
   auto bulkModulusPolicy = make_shared<BulkModulusPolicy<Dimension>>();
   auto shearModulusPolicy = make_shared<ShearModulusPolicy<Dimension>>();
   auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>();
@@ -436,7 +436,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
-  //state.enroll(mInverseEquivalentDeviatoricStress);
+  state.enroll(mInverseEquivalentDeviatoricStress);
   state.enroll(damage);
   state.enroll(fragIDs);
   state.enroll(pTypes);
@@ -671,7 +671,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  //FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
+  FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
@@ -693,7 +693,7 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
-    //(*boundaryItr)->applyFieldListGhostBoundary(invSqrtJ2);
+    (*boundaryItr)->applyFieldListGhostBoundary(invSqrtJ2);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceFlags);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceAreaVectors);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceNormals);
@@ -723,7 +723,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  //FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
+  FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
   FieldList<Dimension, Vector> interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
@@ -745,7 +745,7 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
-    //(*boundaryItr)->enforceFieldListBoundary(invSqrtJ2);
+    (*boundaryItr)->enforceFieldListBoundary(invSqrtJ2);
     (*boundaryItr)->enforceFieldListBoundary(interfaceFlags);
     (*boundaryItr)->enforceFieldListBoundary(interfaceAreaVectors);
     (*boundaryItr)->enforceFieldListBoundary(interfaceNormals);
@@ -769,7 +769,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mShearModulus, pathName + "/shearModulus");
   file.write(mYieldStrength, pathName + "/yieldStrength");
   file.write(mPlasticStrain0, pathName + "/plasticStrain0");
-  //file.write(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
+  file.write(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
   file.write(mDvDt, pathName + "/DvDt");
@@ -820,7 +820,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mShearModulus, pathName + "/shearModulus");
   file.read(mYieldStrength, pathName + "/yieldStrength");
   file.read(mPlasticStrain0, pathName + "/plasticStrain0");
-  //file.read(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
+  file.read(mInverseEquivalentDeviatoricStress, pathName + "/inverseEquivalentDeviatoricStress");
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
   file.read(mDvDt, pathName + "/DvDt");

@@ -138,13 +138,14 @@ update(const KeyType& key,
       // Plastic yield limit.
       const auto yieldLimit = max(0.0, Y(k,i));
 
-      invEquivStressDev(k,i) = safeInvVar(equivalentStressDeviator);
-
       // von Mises yield scaling constant.
-      const auto f = min(1.0, yieldLimit*invEquivStressDev(k,i));
+      const auto f = min(1.0, yieldLimit*safeInvVar(equivalentStressDeviator));
 
       // Scale the stress deviator.
       deviatoricStress(k,i) *= f;
+
+      // new 1/equivalentStressDeviator after plastic straining (used in derivs loop)
+      invEquivStressDev(k,i) = safeInvVar(f*equivalentStressDeviator);
 
       // Update the plastic strain and strain rate.
       if (distinctlyGreaterThan(G(k,i), 0.0)) {
