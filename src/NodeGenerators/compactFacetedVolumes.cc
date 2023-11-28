@@ -40,7 +40,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
   // Only proceed if there's work to do!
   int flagmax = *max_element(flags.begin(), flags.end());
+#ifdef USE_MPI
   if (allReduce(flagmax, MPI_MAX, Communicator::communicator()) != 2) return 0;
+#endif
 
   // Carve up the shapes range in parallel.
   // const size_t ndomain0 = nshapes/nprocs;
@@ -291,7 +293,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
     } // end of iteration
   }
+#ifdef USE_MPI
   iter = allReduce(iter, MPI_MAX, Communicator::communicator());
+#endif
 
   // Any shapes we were unable to disentangle turn back to inactive, otherwise set the successful
   // survivors to flag=1.

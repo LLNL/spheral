@@ -6,7 +6,9 @@
 #include "Field/FieldList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "Utilities/allReduce.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 #include "Geometry/GeometryRegistrar.hh"
 
 #include <ctime>
@@ -275,7 +277,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H.assignFields(H1);
 
     // Globally reduce the max H change.
+#ifdef USE_MPI
     maxDeltaH = allReduce(maxDeltaH, MPI_MAX, Communicator::communicator());
+#endif
 
     // Output the statitics.
     if (Process::getRank() == 0 && maxIterations > 1)

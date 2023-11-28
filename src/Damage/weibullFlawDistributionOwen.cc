@@ -9,7 +9,9 @@
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "DataBase/DataBase.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 #include "Utilities/allReduce.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
@@ -103,8 +105,10 @@ weibullFlawDistributionOwen(const unsigned seed,
         Vmax = max(Vmax, Vi);
       }
     }
+#ifdef USE_MPI
     Vmin = allReduce(Vmin*volumeMultiplier, MPI_MIN, Communicator::communicator());
     Vmax = allReduce(Vmax*volumeMultiplier, MPI_MAX, Communicator::communicator());
+#endif
     CHECK(Vmin > 0.0);
     CHECK(Vmax >= Vmin);
 
@@ -151,6 +155,7 @@ weibullFlawDistributionOwen(const unsigned seed,
 
     // Some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
+#ifdef USE_MPI
     if (nglobal > 0) {
       minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
       maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
@@ -159,6 +164,7 @@ weibullFlawDistributionOwen(const unsigned seed,
       epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
       sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
     }
+#endif
     if (procID == 0) {
       cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
            << "                             Max num flaws per node: " << maxNumFlaws << endl

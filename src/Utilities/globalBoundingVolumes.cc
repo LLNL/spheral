@@ -12,10 +12,10 @@
 #include "DataBase/DataBase.hh"
 #include "Utilities/allReduce.hh"
 #include "Geometry/Dimension.hh"
-#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 #endif
 
 #include <vector>
@@ -107,10 +107,12 @@ globalBoundingBox(const Field<Dimension, typename Dimension::Vector>& positions,
   }
 
   // Now find the global bounds across all processors.
+#ifdef USE_MPI
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
     xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
   }
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -138,10 +140,12 @@ globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positi
   }
 
   // Now find the global bounds across all processors.
+#ifdef USE_MPI
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
     xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
   }
+#endif
 }
 
 //------------------------------------------------------------------------------

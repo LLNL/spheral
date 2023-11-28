@@ -78,6 +78,12 @@
     <ClCompile Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Hydro\entropyWeightingFunction.hh">
@@ -158,6 +164,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Hydro\CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

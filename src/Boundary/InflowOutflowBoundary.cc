@@ -133,7 +133,9 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
       const auto xd = mPlane.signedDistance(pos[i]);
       xmin = std::min(xmin, xd);
     }
+#ifdef USE_MPI
     xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
+#endif
     // CHECK(xmin >= 0.0);
 
     // Offset the current ghost points appropriately.
@@ -309,8 +311,12 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
     for (const auto i: nodeIDs) {
       vinflow += vel[i].dot(nhat);
     }
+#ifdef USE_MPI
     vinflow = (allReduce(vinflow, MPI_SUM, Communicator::communicator())/
                std::max(1.0e-30, allReduce(double(nodeIDs.size()), MPI_SUM, Communicator::communicator())));  // Negative implies outflow
+#else
+    vinflow = vinflow/std::max(1.0e-30, double(nodeIDs.size()));
+#endif
 
     // Figure out a timestep limit such that we don't move more than the ghost
     // node thickness.
@@ -320,8 +326,10 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
       xmin = std::min(xmin, xd);
       xmax = std::max(xmax, xd);
     }
+#ifdef USE_MPI
     xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
     xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
+#endif
     mXmin[nodeList.name()] = xmin;
     mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
     // cerr << "Timestep constraint: " << mDT << endl;
@@ -458,7 +466,11 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
       nodeList.neighbor().updateNodes();
     }
   }
+#ifdef USE_MPI
   altered = (allReduce((altered ? 1 : 0), MPI_MAX, Communicator::communicator()) == 1);
+#else
+  altered = (altered ? 1 : 0);
+#endif
 
   // If any NodeLists were altered, recompute the boundary conditions.
   if (altered) {
