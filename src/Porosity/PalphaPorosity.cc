@@ -136,9 +136,9 @@ evaluateDerivatives(const Scalar time,
   const auto& dPdu = state.field(buildKey(HydroFieldNames::partialPpartialEps), 0.0);
   const auto& dPdr = state.field(buildKey(HydroFieldNames::partialPpartialRho), 0.0);
   const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
-  const auto& DrhoDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
-  const auto& DuDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
-  auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
+  const auto& DrhoDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
+  const auto& DuDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
+  auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
 
   Field<Dimension, Scalar>* fDSnewPtr = nullptr;
   if (mJutziStateUpdate) {
