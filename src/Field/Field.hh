@@ -179,6 +179,7 @@ public:
   using FieldViewType::operator();
   using FieldViewType::operator==;
   using FieldViewType::operator!=;
+  using FieldViewType::numElements;
   
 private:
   //--------------------------- Private Interface ---------------------------//

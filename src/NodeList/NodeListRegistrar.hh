@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "Field/FieldView.hh"
+
 namespace Spheral {
 
 // Forward decalarations.
@@ -44,6 +46,11 @@ public:
     int operator()(const FieldBase<Dimension>* fieldPtr1,
                    const FieldBase<Dimension>* fieldPtr2) const {
       return fieldPtr1->nodeListPtr()->name() < fieldPtr2->nodeListPtr()->name();
+    }
+    template<typename DataType>
+    int operator()(const FieldView<Dimension, DataType>& fieldView1,
+                   const FieldView<Dimension, DataType>& fieldView2) const {
+      return fieldView1->nodeListPtr()->name() < fieldView2->nodeListPtr()->name();
     }
   };
 
@@ -127,6 +134,20 @@ public:
   static
   NodeList<Dimension>* 
   getNodeListPtr(const FieldBase<Dimension>* thingy) {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
+  }
+
+  template<typename DataType>
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(FieldView<Dimension, DataType>& thingy) {
+    return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
+  }
+
+  template<typename DataType>
+  static
+  NodeList<Dimension>* 
+  getNodeListPtr(FieldView<Dimension, DataType> const& thingy) {
     return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
   }
 

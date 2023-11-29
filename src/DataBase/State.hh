@@ -68,20 +68,23 @@ public:
   // Remove a policy.
   void removePolicy(const KeyType& key);
   void removePolicy(FieldBase<Dimension>& field);
-  void removePolicy(FieldListBase<Dimension>& field);
+  template<typename DataType>
+  void removePolicy(FieldList<Dimension, DataType>& field);
 
   // Enroll the given Field and associated update policy
   void enroll(FieldBase<Dimension>& field, PolicyPointer policy);
 
   // Enroll the given FieldList and associated update policy
-  void enroll(FieldListBase<Dimension>& fieldList, PolicyPointer policy);
+  template<typename DataType>
+  void enroll(FieldList<Dimension, DataType>& fieldList, PolicyPointer policy);
 
   // The base class method for just registering a field.
-  virtual void enroll(FieldBase<Dimension>& field) override;
-  virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override;
+  void enroll(FieldBase<Dimension>& field);
+  void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
 
   // The base class method for just registering a field list.
-  virtual void enroll(FieldListBase<Dimension>& fieldList) override;
+  template<typename DataType>
+  void enroll(FieldList<Dimension, DataType>& fieldList);
 
   // The full set of keys for all policies.
   std::vector<KeyType> policyKeys() const;

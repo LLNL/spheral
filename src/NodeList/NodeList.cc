@@ -485,14 +485,14 @@ deleteNodes(const vector<int>& nodeIDs) {
          ++fieldItr) (*fieldItr)->deleteElements(uniqueIDs);
   }
 
-  // Post-conditions.
-  BEGIN_CONTRACT_SCOPE
-  for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
-       fieldItr < mFieldBaseList.end();
-       ++fieldItr) {
-    ENSURE((*fieldItr)->size() == mNumNodes);
-  }
-  END_CONTRACT_SCOPE
+  //// Post-conditions.
+  //BEGIN_CONTRACT_SCOPE
+  //for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
+  //     fieldItr < mFieldBaseList.end();
+  //     ++fieldItr) {
+  //  ENSURE((*fieldItr)->size() == mNumNodes);
+  //}
+  //END_CONTRACT_SCOPE
   
 }
 

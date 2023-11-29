@@ -36,16 +36,16 @@ public:
   // Assignment operator.
   FieldListBase& operator=(const FieldListBase& rhs);
 
-  // Require descendent types to fill in our iterators.
-  virtual iterator begin_base() = 0;
-  virtual iterator end_base() = 0;
-  virtual reverse_iterator rbegin_base() = 0;
-  virtual reverse_iterator rend_base() = 0;
+  //// Require descendent types to fill in our iterators.
+  //virtual iterator begin_base() = 0;
+  //virtual iterator end_base() = 0;
+  //virtual reverse_iterator rbegin_base() = 0;
+  //virtual reverse_iterator rend_base() = 0;
 
-  virtual const_iterator begin_base() const = 0;
-  virtual const_iterator end_base() const = 0;
-  virtual const_reverse_iterator rbegin_base() const = 0;
-  virtual const_reverse_iterator rend_base() const = 0;
+  //virtual const_iterator begin_base() const = 0;
+  //virtual const_iterator end_base() const = 0;
+  //virtual const_reverse_iterator rbegin_base() const = 0;
+  //virtual const_reverse_iterator rend_base() const = 0;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

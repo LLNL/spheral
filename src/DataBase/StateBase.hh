@@ -17,6 +17,7 @@
 #define __Spheral_StateBase_hh__
 
 #include "Field/FieldBase.hh"
+#include "Field/FieldList.hh"
 
 #include "boost/any.hpp"
 
@@ -28,13 +29,11 @@
 #include <list>
 #include <set>
 
-#include "Field/FieldBase.hh"
 
 namespace Spheral {
 
 // Forward declaration.
 template<typename Dimension> class NodeList;
-template<typename Dimension> class FieldListBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class ConnectivityMap;
@@ -78,13 +77,14 @@ public:
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldBase<Dimension>& field) const;
-  bool registered(const FieldListBase<Dimension>& fieldList) const;
+  template<typename DataType>
+  bool registered(const FieldList<Dimension, DataType>& fieldList) const;
   bool fieldNameRegistered(const FieldName& fieldName) const;
 
   //............................................................................
   // Enroll a Field.
-  virtual void enroll(FieldBase<Dimension>& field);
-  virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
+  void enroll(FieldBase<Dimension>& field);
+  void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
 
   // Return the field for the given key.
   template<typename Value>
@@ -97,12 +97,20 @@ public:
 
   //............................................................................
   // Enroll a FieldList.
-  virtual void enroll(FieldListBase<Dimension>& fieldList);
+  template<typename DataType>
+  void enroll(FieldList<Dimension, DataType>& fieldList);
 
   // Return FieldLists constructed from all registered Fields with the given name.
   template<typename Value>
   FieldList<Dimension, Value> fields(const std::string& name, 
                                      const Value& dummy) const;
+
+  ////// Return FieldListsView constructed from all registered Fields with the given name.
+  ////// Allocate Temporary pools to fields.
+  //template<typename Value>
+  //FieldListView<Dimension, Value> pooledFieldViews(const std::string& name, 
+  //                                                 const Value& dummy 
+  //                                                 ) const;
 
   //............................................................................
   // Enroll an arbitrary type
@@ -153,7 +161,8 @@ public:
   static KeyType key(const FieldBase<Dimension>& field);
 
   // Construct the lookup key for the given FieldList.
-  static KeyType key(const FieldListBase<Dimension>& fieldList);
+  template<typename DataType>
+  static KeyType key(const FieldList<Dimension, DataType>& fieldList);
 
   // Encode our underlying convention for combining Field and NodeList names into a 
   // single Key.

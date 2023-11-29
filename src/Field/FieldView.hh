@@ -33,6 +33,9 @@ class FieldView:
 
 public:
   //--------------------------- Public Interface ---------------------------//
+  
+  using FieldType = Field<Dimension, DataType>;
+
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
   typedef typename Dimension::Tensor Tensor;
@@ -53,6 +56,9 @@ public:
 
   // Destructor.
   SPHERAL_HOST_DEVICE ~FieldView();
+
+  SPHERAL_HOST FieldType& operator*() const;
+  SPHERAL_HOST FieldType* operator->() const;
 
   // Assignment operator.
   SPHERAL_HOST_DEVICE FieldView& operator=(const FieldView& rhs);
@@ -153,8 +159,10 @@ public:
   }
 
 protected:
+  SPHERAL_HOST_DEVICE FieldView(FieldType* fieldPtr);
   //--------------------------- Protected Interface ---------------------------//
   ContainerType mDataArray;
+  FieldType* mFieldPtr = nullptr;
 
 };
 
