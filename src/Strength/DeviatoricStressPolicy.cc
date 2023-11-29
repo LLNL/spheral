@@ -95,14 +95,12 @@ update(const KeyType& key,
     }
 
     // Update S
-    auto S0 = S(i) + multiplier*(DSDt(i));               // Elastic prediction for the new deviatoric stress
+    // Note -- purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
+    S(i) += multiplier*DSDti;                                // Elastic prediction for the new deviatoric stress
     if (zeroTrace) {
-      S0 -= SymTensor::one * S0.Trace()/Dimension::nDim; // Ensure the deviatoric stress is traceless (all but RZ and spherical)
-      CHECK(fuzzyEqual(S0.Trace(), 0.0));
+      S(i) -= SymTensor::one * S(i).Trace()/Dimension::nDim; // Ensure the deviatoric stress is traceless (all but RZ and spherical)
+      CHECK(fuzzyEqual(S(i).Trace(), 0.0));
     }
-
-    // Purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
-    S(i) = S0;
   }
 
 //     // Finally apply the pressure limits to the allowed deviatoric stress.

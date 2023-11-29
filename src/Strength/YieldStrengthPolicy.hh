@@ -26,7 +26,7 @@ public:
   using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  YieldStrengthPolicy();
+  YieldStrengthPolicy(const bool scaleWithPorosity = false);
   virtual ~YieldStrengthPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -40,8 +40,14 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
+  // Should the yield strength be scaled with porosity?
+  bool scaleWithPorosity() const       { return mScaleWithPorosity; }
+  void scaleWithPorosity(const bool x) { mScaleWithPorosity = x; }
+
 private:
   //--------------------------- Private Interface ---------------------------//
+  bool mScaleWithPorosity;
+
   YieldStrengthPolicy(const YieldStrengthPolicy& rhs);
   YieldStrengthPolicy& operator=(const YieldStrengthPolicy& rhs);
 };

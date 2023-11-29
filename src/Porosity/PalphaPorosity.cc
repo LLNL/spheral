@@ -199,7 +199,7 @@ evaluateDerivatives(const Scalar time,
       // Optionally update the deviatoric stress scaling term
       if (mJutziStateUpdate) {
         auto DalphaDrhoi = (Pi/(rhoi*rhoi)*dPsdui + alphai*dPsdri)*Ainv * DalphaDpi;
-        (*fDSnewPtr)(i) = 1.0 + DalphaDrhoi*rhoi/alphai;
+        (*fDSnewPtr)(i) = std::max(0.0, std::min(1.0, 1.0 + DalphaDrhoi*rhoi/alphai));
       }
     }
 

@@ -23,13 +23,16 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 YieldStrengthPolicy<Dimension>::
-YieldStrengthPolicy():
+YieldStrengthPolicy(const bool scaleWithPorosity):
   FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
                                 HydroFieldNames::specificThermalEnergy,
                                 HydroFieldNames::pressure,
                                 SolidFieldNames::plasticStrain,
                                 SolidFieldNames::tensorDamage,
-                                IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain}) {
+                                IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::plasticStrain,
+                                SolidFieldNames::porositySolidDensity,
+                                SolidFieldNames::porosityAlpha}),
+  mScaleWithPorosity(scaleWithPorosity) {
 }
 
 //------------------------------------------------------------------------------
@@ -58,23 +61,42 @@ update(const KeyType& key,
   REQUIRE(fieldKey == SolidFieldNames::yieldStrength);
   auto& Y = state.field(key, 0.0);
 
-  // Get the mass density, specific thermal energy, pressure,
-  // plastic strain, and plastic strain rate from the state.
-  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
-  const auto& massDensity = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
-  const auto& energy = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
-  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
-  const auto& PS = state.field(buildKey(SolidFieldNames::plasticStrain), 0.0);
-  const auto& PSR = derivs.field(buildKey(SolidFieldNames::plasticStrainRate), 0.0);
-  const auto& D = state.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
-
   // Get the strength model.  This cast is ugly, but is a work-around for now.
   const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(Y.nodeListPtr());
   CHECK(solidNodeListPtr != nullptr);
   const auto& strengthModel = solidNodeListPtr->strengthModel();
 
-  // Now set the yield strength.
-  strengthModel.yieldStrength(Y, massDensity, energy, P, PS, PSR, D);
+  // Is there a porosity running around?
+  const auto buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
+
+  // Get (most of) the state we need
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+  const auto& plasticStrain = state.field(buildKey(SolidFieldNames::plasticStrain), 0.0);
+  const auto& plasticStrainRate = derivs.field(buildKey(SolidFieldNames::plasticStrainRate), 0.0);
+  const auto& D = state.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
+
+  // Things change depending on porosity...
+  if (usePorosity) {
+
+    // Set the solid phase yield strength
+    const auto& rhoS = state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0);
+    const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+    const auto PS = P*alpha;
+    strengthModel.yieldStrength(Y, rhoS, eps, PS, plasticStrain, plasticStrainRate, D);
+
+    // Optionally scale the result by the distention for backwards compatibility
+    if (mScaleWithPorosity) Y /= alpha;
+
+  } else {
+
+    // Set the yield strength.
+    const auto& rho = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
+    const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+    strengthModel.yieldStrength(Y, rho, eps, P, plasticStrain, plasticStrainRate, D);
+
+  }
 }
 
 //------------------------------------------------------------------------------

@@ -4,7 +4,6 @@ set(Porosity_inst
     StrainPorosity
     PalphaPorosity
     PorositySolidMassDensityPolicy
-    PorousYieldStrengthPolicy
    )
 
 set(Porosity_sources
@@ -18,7 +17,6 @@ set(Porosity_headers
     StrainPorosity.hh
     StrainPorosityInline.hh
     PalphaPorosity.hh
-    PorousYieldStrengthPolicy.hh
     )
 
 spheral_install_python_files(

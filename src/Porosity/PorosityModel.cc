@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------------//
 #include "Porosity/PorosityModel.hh"
 #include "Porosity/PorositySolidMassDensityPolicy.hh"
-#include "Porosity/PorousYieldStrengthPolicy.hh"
 #include "Material/EquationOfState.hh"
 #include "FileIO/FileIO.hh"
 #include "Field/Field.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
+#include "Strength/YieldStrengthPolicy.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
@@ -164,20 +164,21 @@ registerState(DataBase<Dimension>& dataBase,
   // Initial sound speed
   state.enroll(mc0);
 
-  // Check what other state is registered which needs to be overridden for porosity
-  auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {
-                                  const auto fullkey = buildKey(fkey);
-                                  if (state.registered(fullkey)) {
-                                    auto& f = state.field(fullkey, 0.0);
-                                    state.enroll(f, policy);
-                                  }
-                                };
+  // // Check what other state is registered which needs to be overridden for porosity
+  // auto optionalOverridePolicy = [&](const std::string& fkey, std::shared_ptr<UpdatePolicyBase<Dimension>> policy) -> void {
+  //                                 const auto fullkey = buildKey(fkey);
+  //                                 if (state.registered(fullkey)) {
+  //                                   auto& f = state.field(fullkey, 0.0);
+  //                                   state.enroll(f, policy);
+  //                                 }
+  //                               };
 
   // The state update descibed in Jutzi et al. 2008
   if (mJutziStateUpdate) {
-    state.enroll(*mfDSptr, make_policy<ReplaceBoundedState<Dimension, Scalar>>(1.0));
+    state.enroll(*mfDSptr, make_policy<ReplaceBoundedState<Dimension, Scalar>>(0.0, 1.0));
   } else {
-    optionalOverridePolicy(SolidFieldNames::yieldStrength, make_policy<PorousYieldStrengthPolicy<Dimension>>());
+    const auto Ypolicy = std::dynamic_pointer_cast<YieldStrengthPolicy<Dimension>>(state.policy(buildKey(SolidFieldNames::yieldStrength)));
+    Ypolicy->scaleWithPorosity(true);
   }
 }
 
