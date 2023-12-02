@@ -7,7 +7,6 @@
 
 #include "PressurePolicy.hh"
 #include "HydroFieldNames.hh"
-#include "FSISPH/FSIFieldNames.hh"
 #include "DataBase/FieldUpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
@@ -53,8 +52,7 @@ update(const KeyType& key,
        const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE((fieldKey == HydroFieldNames::pressure or 
-           fieldKey == FSIFieldNames::rawPressure) and
+  REQUIRE(fieldKey == HydroFieldNames::pressure and
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   FieldList<Dimension, Scalar> pressure = state.fields(fieldKey, Scalar());
   const unsigned numFields = pressure.numFields();

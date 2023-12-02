@@ -9,7 +9,7 @@
 namespace Spheral {
 
 struct FSIFieldNames {
-  static const std::string rawPressure;
+  static const std::string damagedPressure;
   static const std::string pressureGradient;
   static const std::string specificThermalEnergyGradient;
   static const std::string interfaceFlags;
@@ -20,7 +20,7 @@ struct FSIFieldNames {
   static const std::string interfaceSmoothness;
   static const std::string smoothedInterfaceNormals;
   static const std::string interfaceSmoothnessNormalization;
-  static const std::string inverseEquivalentDeviatoricStress;
+  //static const std::string inverseEquivalentDeviatoricStress;
 };
 
 }

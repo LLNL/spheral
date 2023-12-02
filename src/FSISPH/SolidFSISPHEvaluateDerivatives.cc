@@ -38,7 +38,17 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   // huge amount of tinies
   const auto tiny = std::numeric_limits<double>::epsilon();
   const auto tinyScalarDamage = 1.0e-2;
-  const auto tinyNonDimensional = 1.0e-6;
+  const auto tinyNonDimensional = 1.0e-9;
+
+  // map to get the new interface flag from the neighbor details
+  std::vector<std::vector<int>> interfaceFlagMap(2, vector<int>(6,0));
+  interfaceFlagMap[0][2] = 1;
+  interfaceFlagMap[0][4] = 1;
+  interfaceFlagMap[1][0] = 3;
+  interfaceFlagMap[1][1] = 3;
+  interfaceFlagMap[1][2] = 3;
+  interfaceFlagMap[1][3] = 3;
+  interfaceFlagMap[1][4] = 3;
 
   // constants
   const auto W0 = W(0.0, 1.0);
@@ -80,8 +90,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto rawPressure = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto pressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+  const auto damagedPressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto pressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
@@ -89,8 +99,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
-  const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
+  //const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  //const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
   CHECK(interfaceFlags.size() == numNodeLists);
   CHECK(interfaceAreaVectors.size() == numNodeLists);
@@ -103,7 +113,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(specificThermalEnergy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
-  CHECK(rawPressure.size() == numNodeLists);
+  CHECK(damagedPressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(S.size() == numNodeLists);
   CHECK(K.size() == numNodeLists);
@@ -111,8 +121,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
-  CHECK(yield.size() == numNodeLists);
-  CHECK(invJ2.size() == numNodeLists);
+  //CHECK(yield.size() == numNodeLists);
+  //CHECK(invJ2.size() == numNodeLists);
 
   // Derivative FieldLists.
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
@@ -233,19 +243,19 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi,i);
       const auto& Pi = pressure(nodeListi, i);
-      const auto& rPi = rawPressure(nodeListi, i);
+      const auto& Pdi = damagedPressure(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& pTypei = pTypes(nodeListi, i);
       const auto  fragIDi = fragIDs(nodeListi, i);
-      const auto  Yi = yield(nodeListi, i);
-      const auto  invJ2i = invJ2(nodeListi, i);
+      //const auto  Yi = yield(nodeListi, i);
+      //const auto  invJ2i = invJ2(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       const auto  Hdeti = Hi.Determinant();
       epsLineari = epsi;
-      PLineari = Pi;
+      PLineari = Pdi;
 
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -284,19 +294,19 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj,j);
       const auto& Pj = pressure(nodeListj, j);
-      const auto& rPj = rawPressure(nodeListj, j);
+      const auto& Pdj = damagedPressure(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
       const auto  fragIDj = fragIDs(nodeListj, j);
-      const auto  Yj = yield(nodeListj, j);
-      const auto  invJ2j = invJ2(nodeListj, j);
+      //const auto  Yj = yield(nodeListj, j);
+      //const auto  invJ2j = invJ2(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       const auto  Hdetj = Hj.Determinant();
       epsLinearj = epsj;
-      PLinearj = Pj;
+      PLinearj = Pdj;
 
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
@@ -343,12 +353,13 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const auto fDi =  (sameMatij ? (1.0-Di)*(1.0-Di) : 0.0 );
       const auto fDj =  (sameMatij ? (1.0-Dj)*(1.0-Dj) : 0.0 );
       const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
+      //const auto maxfDij = (sameMatij ? (1.0-Di)*(1.0-Dj) : 0.0);
 
       // is Pmin being activated (Pmin->zero for material interfaces)
-      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*tinyNonDimensional) : interfacePmin);
-      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*tinyNonDimensional) : interfacePmin);
-      const auto pminActivei = (rPi < pLimiti);
-      const auto pminActivej = (rPj < pLimitj);
+      const auto pLimiti = (sameMatij ? (Pdi-rhoi*ci*ci*tinyNonDimensional) : interfacePmin);
+      const auto pLimitj = (sameMatij ? (Pdj-rhoj*cj*cj*tinyNonDimensional) : interfacePmin);
+      const auto pminActivei = (Pi < pLimiti);
+      const auto pminActivej = (Pj < pLimitj);
       
       // decoupling criteria 
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
@@ -361,9 +372,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const auto negligableShearWave = max(mui,muj) < tinyNonDimensional*min(Ki,Kj);
 
       // do we reduce our deviatoric stress
-      const auto isTensile = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
+      const auto isTensile = (((Si+Sj)-(Pdi+Pdj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
       const auto damageReduceStress = isTensile or differentMatij;
-
+      //const auto decouple = isExpanding and isFullyDamaged and isTensile;
       // Kernels
       //--------------------------------------
       const auto Hij = 0.5*(Hi+Hj);
@@ -404,9 +415,15 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       gradWiMi = Mi.Transpose()*gradWi;
       gradWjMj = Mj.Transpose()*gradWj;
 
-      // interface normals 
-      //-----------------------------------------------------------
-      const auto fSij = ( sameMatij ? 1.0 : -1.0);              // direction parameter
+      // interface fields
+      //----------------------------------------------------------------------------------
+      const auto fSij = ( sameMatij ? 1.0 : -1.0);
+      const auto interfaceSwitch = std::min(std::min(interfaceFlagsj,interfaceFlagsi),1);
+      const int sameMatMask = (sameMatij ? 1 : 0);
+      const int diffMatMask = 1-sameMatMask;
+      const int controlNodeMaski = interfaceFlagMap[0][interfaceFlagsi];
+      const int controlNodeMaskj = interfaceFlagMap[0][interfaceFlagsj];
+
       const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
 
       const auto alignment = (interfaceFlagsi == 5 or interfaceFlagsj == 5 ? 
@@ -416,43 +433,28 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       newInterfaceAreaVectorsi -= AijMij;
       newInterfaceAreaVectorsj += AijMij;
 
-      if (sameMatij){
+      interfaceFractioni += sameMatMask * volj * Wi;
+      interfaceFractionj += sameMatMask * voli * Wj;
 
-        interfaceFractioni += volj * Wij;
-        interfaceFractionj += voli * Wij;
+      // we use the angle between normal and neighbors to check for interface control particles (type 2 or 4)
+      const auto minNeighborMaski = (interfaceFlagsj != 5 and sameMatij ? 1.0 : -1.0); // turns following into no-op
+      const auto minNeighborMaskj = (interfaceFlagsi != 5 and sameMatij ? 1.0 : -1.0);
+      minNeighborAnglei = std::max(std::min(minNeighborMaski,-interfaceAreaVectorsi.unitVector().dot(rhatij)),minNeighborAnglei);
+      minNeighborAnglej = std::max(std::min(minNeighborMaskj, interfaceAreaVectorsj.unitVector().dot(rhatij)),minNeighborAnglej);
 
-        // we use the angle between normal and neighbors to check for interface control particles (type 2 or 4)
-        if (interfaceFlagsj != 5) minNeighborAnglei = std::max(-interfaceAreaVectorsi.unitVector().dot(rhatij),minNeighborAnglei);
-        if (interfaceFlagsi != 5) minNeighborAnglej = std::max( interfaceAreaVectorsj.unitVector().dot(rhatij),minNeighborAnglej);
-        
-        // 1 is a neighbor of 2
-        if (interfaceFlagsj == 2) newInterfaceFlagsi = std::max(newInterfaceFlagsi,1);
-        if (interfaceFlagsi == 2) newInterfaceFlagsj = std::max(newInterfaceFlagsj,1);
+      // if the node neighbors a control node, set its value to 1 if initially 0
+      newInterfaceFlagsi = std::max(newInterfaceFlagsi, interfaceFlagMap[diffMatMask][interfaceFlagsj]);
+      newInterfaceFlagsj = std::max(newInterfaceFlagsj, interfaceFlagMap[diffMatMask][interfaceFlagsi]);
 
-      }
+      // only flagged nodes get normals and they're based on their control node neighbors
+      newInterfaceNormalsi += interfaceSwitch*controlNodeMaskj*fSij*volj*interfaceAreaVectorsj*Wij;
+      newInterfaceNormalsj += interfaceSwitch*controlNodeMaski*fSij*voli*interfaceAreaVectorsi*Wij;
 
-      // 3 is a neighbor of 4
-      if (interfaceFlagsj == 4) newInterfaceFlagsi = std::max(newInterfaceFlagsi,1);
-      if (interfaceFlagsi == 4) newInterfaceFlagsj = std::max(newInterfaceFlagsj,1);
-
-      // 3/4 is for material interfaces
-      if(differentMatij and (interfaceFlagsi!=5 and interfaceFlagsj!=5)){
-        newInterfaceFlagsi=3;
-        newInterfaceFlagsj=3;
-      }
-
-      if (interfaceFlagsi > 0 and interfaceFlagsj > 0){
-        const double proxWeighti = 1.0 - (interfaceFlagsi % 2);
-        const double proxWeightj = 1.0 - (interfaceFlagsj % 2);
-        newInterfaceNormalsi += proxWeightj*fSij*volj*interfaceAreaVectorsj*Wij;
-        newInterfaceNormalsj += proxWeighti*fSij*voli*interfaceAreaVectorsi*Wij;
-
-        const auto interfaceSwitch = std::min(std::min(interfaceFlagsj,interfaceFlagsi),1);
-        interfaceSmoothnessNormalizationi += interfaceSwitch*volj*Wij;
-        interfaceSmoothnessNormalizationj += interfaceSwitch*voli*Wij;
-        newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
-        newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
-      }
+      // smoothness is calculated for all flagged interface/surface nodes
+      interfaceSmoothnessNormalizationi += interfaceSwitch*volj*Wij;
+      interfaceSmoothnessNormalizationj += interfaceSwitch*voli*Wij;
+      newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
+      newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -494,18 +496,26 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        {
+        //{
           // apply yield pairwise 
-          const auto Yij = std::max(0.0,std::min(Yi,Yj));
-          const auto fYieldi = std::min(Yij*invJ2i,1.0);
-          const auto fYieldj = std::min(Yij*invJ2j,1.0);
-          const auto Seffi = (damageReduceStress ? fDij : 1.0) * fYieldi * Si;
-          const auto Seffj = (damageReduceStress ? fDij : 1.0) * fYieldj * Sj;
-          const auto Peffi = (differentMatij ? max(Pi,interfacePmin) : Pi);
-          const auto Peffj = (differentMatij ? max(Pj,interfacePmin) : Pj);
+          //const auto Yij = std::max(0.0,std::min(Yi,Yj));
+          //const auto fYieldi = std::min(Yij*invJ2i,1.0);
+          //const auto fYieldj = std::min(Yij*invJ2j,1.0);
+          //const auto Seffi = (sameMatij ? 1.0 : 0.0 ) * Si;
+          //const auto Seffj = (sameMatij ? 1.0 : 0.0 ) * Sj;
+          //const auto Seffi = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Si;
+          //const auto Seffj = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Sj;
+          //const auto Peffi = maxfDij*min(Pi,0.0) + max(Pi,0.0);
+          //const auto Peffj = maxfDij*min(Pj,0.0) + max(Pj,0.0);
+          //const auto Seffi = maxfDij * Si; //(damageReduceStress ? fDij : 1.0) * Si;
+          //const auto Seffj = maxfDij * Sj; //(damageReduceStress ? fDij : 1.0) * Sj;
+          const auto Peffi = (differentMatij ? max(Pdi,interfacePmin) : Pdi);
+          const auto Peffj = (differentMatij ? max(Pdj,interfacePmin) : Pdj);
+          const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
+          const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
           sigmai = Seffi - Peffi * SymTensor::one;
           sigmaj = Seffj - Peffj * SymTensor::one;
-        }
+        //}
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
@@ -543,7 +553,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
 
-        linearReconstruction(ri,rj,rPi,rPj,DPDxi,DPDxj,PLineari,PLinearj);
+        linearReconstruction(ri,rj,Pdi,Pdj,DPDxi,DPDxj,PLineari,PLinearj);
         if (constructInterface){
           // components
           const auto ui = vi.dot(rhatij);
@@ -567,9 +577,15 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
           // interface velocity
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
-          const auto wstar = weightWi*wi + weightWj*wj;
+          const auto wstar = weightWi*wi + weightWj*wj;// - (constructHLLC ? (Seffj - Seffi).dot(rhatij)*CsiCsjInv : Vector::zero);
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
         }
+
+        // TODO:
+        //------------------------------------------------------------
+        // fix pressure/rawPressure convert to damagePressure/pressure
+        // get wave speeds in there in a good manner
+        //------------------------------------------------------------
 
         // local velocity gradient for DSDt
         if (sameMatij) {
@@ -620,7 +636,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         // XSPH -- we use this to handle tensile instability here
         //-----------------------------------------------------------
         if (sameMatij and XSPH) {
-          const auto fxsph = (std::min(Pi,Pj) < 0 ? 1 : 0);
+          const auto fxsph = (std::min(Pdi,Pdj) < 0 ? 1 : 0);
           XSPHWeightSumi += fxsph * volj*Wi;
           XSPHWeightSumj += fxsph * voli*Wj;
           XSPHDeltaVi -= fDij*volj*Wi*(vi-vj);
@@ -785,7 +801,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
   CHECK(mass.size() == numNodeLists);
@@ -793,7 +809,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
-  CHECK(pressure.size() == numNodeLists);
+  CHECK(damagedPressure.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
@@ -830,7 +846,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
+      const auto& Pi = damagedPressure(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
@@ -843,7 +859,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
+      const auto& Pj = damagedPressure(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();

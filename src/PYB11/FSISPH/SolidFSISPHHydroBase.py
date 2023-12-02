@@ -124,7 +124,7 @@ mass density, velocity, and specific thermal energy."""
 
     timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
     pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
-    rawPressure =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "rawPressure",          returnpolicy="reference_internal")
+    damagedPressure =              PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "damagedPressure",      returnpolicy="reference_internal")
     soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
     volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
     bulkModulus =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "bulkModulus",         returnpolicy="reference_internal")

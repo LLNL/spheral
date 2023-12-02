@@ -413,8 +413,8 @@ template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
-rawPressure() const {
-  return mRawPressure;
+damagedPressure() const {
+  return mDamagedPressure;
 }
 
 template<typename Dimension>

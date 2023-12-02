@@ -6,7 +6,6 @@ set(FSISPH_inst
     computeHWeightedFSISPHSumMassDensity
     computeInterfacePressureCorrectedSumMassDensity
     SlideSurface
-    Policies/PairwisePlasticStrainPolicy
     )
 
 
@@ -25,10 +24,7 @@ set(FSISPH_headers
     FSIFieldNames.hh
     SlideSurface.hh
     SlideSurfaceInline.hh
-    Policies/PairwisePlasticStrainPolicy.hh
     )
-
-add_subdirectory(Policies)
 
 spheral_install_python_files(
   FSISPHHydros.py

@@ -134,12 +134,6 @@ public:
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) const override;
 
-  // void computeMCorrection(const typename Dimension::Scalar time,
-  //                         const typename Dimension::Scalar dt,
-  //                         const DataBase<Dimension>& dataBase,
-  //                         const State<Dimension>& state,
-  //                               StateDerivatives<Dimension>& derivatives) const;
-
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
                             StateDerivatives<Dimension>& derivs) override;
@@ -226,13 +220,13 @@ public:
 
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
-  const FieldList<Dimension, Scalar>&    rawPressure() const;
+  const FieldList<Dimension, Scalar>&    damagedPressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, Scalar>&    bulkModulus() const;
   const FieldList<Dimension, Scalar>&    shearModulus() const;
   const FieldList<Dimension, Scalar>&    yieldStrength() const;
   const FieldList<Dimension, Scalar>&    plasticStrain0() const;
-  const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
+  //const FieldList<Dimension, Scalar>&    inverseEquivalentDeviatoricStress() const;
   const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
@@ -309,13 +303,13 @@ private:
 
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
-  FieldList<Dimension, Scalar>    mRawPressure;
+  FieldList<Dimension, Scalar>    mDamagedPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldList<Dimension, Scalar>    mBulkModulus;
   FieldList<Dimension, Scalar>    mShearModulus;
   FieldList<Dimension, Scalar>    mYieldStrength;
   FieldList<Dimension, Scalar>    mPlasticStrain0;
-  FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
+  //FieldList<Dimension, Scalar>    mInverseEquivalentDeviatoricStress;
   FieldList<Dimension, Scalar>    mVolume;
   FieldList<Dimension, Vector>    mDxDt;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
