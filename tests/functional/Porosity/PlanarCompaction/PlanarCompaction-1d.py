@@ -621,6 +621,12 @@ if graphics:
                          xlabel = r"$x$",
                          ylabel = r"$\partial P/\partial \varepsilon$",
                          winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
+    fDSplot = plotField(porosityAl.fDS,
+                         plotStyle = "o-",
+                         lineTitle = "Simulation",
+                         xlabel = r"$x$",
+                         ylabel = r"$f_{DS}$",
+                         winTitle = r"$f_{DS}$ @ %g %i" %  (control.time(), mpi.procs))
 
     # Add the solution
     plotAnswer(solution, control.time(),
@@ -653,7 +659,8 @@ if graphics:
              (alphaPlot, "alpha.png"),
              (phiPlot, "phi.png"),
              (dPdRplot, "dPdR.png"),
-             (dPdUplot, "dPdU.png")]
+             (dPdUplot, "dPdU.png"),
+             (fDSplot, "fDS.png")]
 
     # Save the figures.
     for p, fname in plots:

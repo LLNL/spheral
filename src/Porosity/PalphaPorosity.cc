@@ -139,11 +139,7 @@ evaluateDerivatives(const Scalar time,
   const auto& DrhoDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
   const auto& DuDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
   auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
-
-  Field<Dimension, Scalar>* fDSnewPtr = nullptr;
-  if (mJutziStateUpdate) {
-    fDSnewPtr = &derivs.field(buildKey(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi), 0.0);
-  }
+  auto&       fDSnew = derivs.field(buildKey(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi), 0.0);
 
   // Walk the nodes.
   const auto n = mNodeList.numInternalNodes();
@@ -165,7 +161,7 @@ evaluateDerivatives(const Scalar time,
     if (Pi >= mPs) {
 
       DalphaDt(i) = (1.0 - alphai)*safeInvVar(dt);
-      if (mJutziStateUpdate) (*fDSnewPtr)(i) = 1.0;
+      if (mJutziStateUpdate) fDSnew(i) = 1.0;
 
     } else {
 
@@ -199,7 +195,7 @@ evaluateDerivatives(const Scalar time,
       // Optionally update the deviatoric stress scaling term
       if (mJutziStateUpdate) {
         auto DalphaDrhoi = (Pi/(rhoi*rhoi)*dPsdui + alphai*dPsdri)*Ainv * DalphaDpi;
-        (*fDSnewPtr)(i) = std::max(0.0, std::min(1.0, 1.0 + DalphaDrhoi*rhoi/alphai));
+        fDSnew(i) = std::max(0.0, std::min(1.0, 1.0 + DalphaDrhoi*rhoi/alphai));
       }
     }
 

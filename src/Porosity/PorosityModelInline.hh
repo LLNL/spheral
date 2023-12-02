@@ -104,17 +104,15 @@ inline
 const Field<Dimension, typename Dimension::Scalar>&
 PorosityModel<Dimension>::
 fDS() const {
-  VERIFY2(mJutziStateUpdate and mfDSptr, "PorosityModel: fDS is not available since jutziStateUpdate is not set");
-  return *mfDSptr;
+  return mfDS;
 }
 
 template<typename Dimension>
 inline
 const Field<Dimension, typename Dimension::Scalar>&
 PorosityModel<Dimension>::
-fDS_new() const {
-  VERIFY2(mJutziStateUpdate and mfDSnewPtr, "PorosityModel: fDS_new is not available since jutziStateUpdate is not set");
-  return *mfDSnewPtr;
+fDSnew() const {
+  return mfDSnew;
 }
 
 //------------------------------------------------------------------------------

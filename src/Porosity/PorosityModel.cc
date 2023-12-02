@@ -57,15 +57,11 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList, c0),
-  mfDSptr(),
-  mfDSnewPtr(),
+  mfDS(SolidFieldNames::fDSjutzi, nodeList, 1.0),
+  mfDSnew(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mRestart(registerWithRestart(*this)) {
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
           "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0) : phi0 = " << phi0);
-  if (mJutziStateUpdate) {
-    mfDSptr = std::make_shared<Field<Dimension, Scalar>>(SolidFieldNames::fDSjutzi, nodeList, 1.0);
-    mfDSnewPtr = std::make_shared<Field<Dimension, Scalar>>(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -92,8 +88,8 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mc0(c0),
-  mfDSptr(),
-  mfDSnewPtr(),
+  mfDS(SolidFieldNames::fDSjutzi, nodeList, 1.0),
+  mfDSnew(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mRestart(registerWithRestart(*this)) {
   const auto phi0_min = phi0.min();
   const auto phi0_max = phi0.max();
@@ -104,10 +100,6 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   for (auto i = 0u; i < n; ++i) {
     mAlpha0[i] = 1.0/(1.0 - phi0[i]);
     mAlpha[i] = 1.0/(1.0 - phi0[i]);
-  }
-  if (mJutziStateUpdate) {
-    mfDSptr = std::make_shared<Field<Dimension, Scalar>>(SolidFieldNames::fDSjutzi, nodeList, 1.0);
-    mfDSnewPtr = std::make_shared<Field<Dimension, Scalar>>(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0);
   }
 }
 
@@ -156,9 +148,12 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mSolidMassDensity, make_policy<PorositySolidMassDensityPolicy<Dimension>>());
 
   // Register the distension
-  state.enroll(mAlpha, (mJutziStateUpdate ?
-                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>({SolidFieldNames::deviatoricStress, SolidFieldNames::fDSjutzi}, 1.0) :
-                        make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>(1.0)));
+  state.enroll(mAlpha, make_policy<IncrementBoundedState<Dimension, Scalar, Scalar>>({SolidFieldNames::deviatoricStress,
+                                                                                      SolidFieldNames::scalarDamage,
+                                                                                      SolidFieldNames::tensorDamage,
+                                                                                      SolidFieldNames::strain,
+                                                                                      SolidFieldNames::strainTensor,
+                                                                                      SolidFieldNames::fDSjutzi}, 1.0));
   state.enroll(mAlpha0);
 
   // Initial sound speed
@@ -173,10 +168,9 @@ registerState(DataBase<Dimension>& dataBase,
   //                                 }
   //                               };
 
-  // The state update descibed in Jutzi et al. 2008
-  if (mJutziStateUpdate) {
-    state.enroll(*mfDSptr, make_policy<ReplaceBoundedState<Dimension, Scalar>>(0.0, 1.0));
-  } else {
+  // The solid/porous velocity gradient ratio, and diddle the yield strength relation if scaling with porosity
+  state.enroll(mfDS, make_policy<ReplaceBoundedState<Dimension, Scalar>>(0.0, 1.0));
+  if (not mJutziStateUpdate) {
     const auto Ypolicy = std::dynamic_pointer_cast<YieldStrengthPolicy<Dimension>>(state.policy(buildKey(SolidFieldNames::yieldStrength)));
     Ypolicy->scaleWithPorosity(true);
   }
@@ -191,11 +185,7 @@ PorosityModel<Dimension>::
 registerDerivatives(DataBase<Dimension>& /*dataBase*/,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mDalphaDt);
-
-  // Optional Jutzi deviatoric stress modifier
-  if (mJutziStateUpdate) {
-    derivs.enroll(*mfDSnewPtr);
-  }
+  derivs.enroll(mfDSnew);
 }
 
 //------------------------------------------------------------------------------
@@ -216,6 +206,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Solid density
   mSolidMassDensity = mAlpha0*rho;
   mSolidMassDensity.name(SolidFieldNames::porositySolidDensity);
+
+  // Ratio of solid to porous velocity gradient
+  mfDS = 1.0;
+  mfDSnew = 1.0;
 }
 
 //------------------------------------------------------------------------------
@@ -230,10 +224,8 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mAlpha, pathName + "/alpha");
   file.write(mDalphaDt, pathName + "/DalphaDt");
   file.write(mSolidMassDensity, pathName + "/solidMassDensity");
-  if (mJutziStateUpdate) {
-    file.write(*mfDSptr, pathName + "/fDS");
-    file.write(*mfDSnewPtr, pathName + "/fDSnew");
-  }
+  file.write(mfDS, pathName + "/fDS");
+  file.write(mfDSnew, pathName + "/fDSnew");
 }
 
 //------------------------------------------------------------------------------
@@ -248,10 +240,8 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mAlpha, pathName + "/alpha");
   file.read(mDalphaDt, pathName + "/DalphaDt");
   file.read(mSolidMassDensity, pathName + "/solidMassDensity");
-  if (mJutziStateUpdate) {
-    file.read(*mfDSptr, pathName + "/fDS");
-    file.read(*mfDSnewPtr, pathName + "/fDSnew");
-  }
+  file.read(mfDS, pathName + "/fDS");
+  file.read(mfDSnew, pathName + "/fDSnew");
 }
 
 //------------------------------------------------------------------------------

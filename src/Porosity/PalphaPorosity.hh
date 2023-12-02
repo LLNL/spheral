@@ -119,7 +119,7 @@ private:
   using PorosityModel<Dimension>::mNodeList;
   using PorosityModel<Dimension>::mAlpha;
   using PorosityModel<Dimension>::mAlpha0;
-  using PorosityModel<Dimension>::mfDSptr;
+  using PorosityModel<Dimension>::mfDS;
 
   // Disallow default constructor
   PalphaPorosity();

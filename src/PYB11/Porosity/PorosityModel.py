@@ -106,4 +106,4 @@ Base class for PorosityModels for common functionality.
     solidMassDensity = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     c0 = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     fDS = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    fDS_new = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
+    fDSnew = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
