@@ -103,7 +103,7 @@ commandLine(
     # smoothing scale parameters
     kernelOrder = None,       # for b spline kernels, None defaults to WendlandC2 
     nPerh = 3.01,             # number of neighbors / smoothing length     
-    HEvolution =  IntegrateH, # (IdealH , IntegrateH) update method for smoothing kernel
+    HEvolution =  IdealH, # (IdealH , IntegrateH) update method for smoothing kernel
     iterateInitialH = False,  # to calc initial ideal H in controller constructor
      
     # Times, and simulation control.
@@ -463,8 +463,7 @@ elif fsisph:
                    ASPH = asph,
                    HUpdate=HEvolution,
                    epsTensile = epsilonTensile,
-                   nTensile = nTensile,
-                   strengthInDamage=False,)
+                   nTensile = nTensile)
 
 else:
     hydro = SPH(dataBase = db,
@@ -943,8 +942,8 @@ if mpi.rank==0:
 
         avgSxxanalytic = sum(Sxxanalytic)/len(Sxxanalytic)
         avgSxxreduced = sum(Sxxreduced)/len(Sxxreduced)
-        print avgSxxanalytic
-        print avgSxxreduced
+        print(avgSxxanalytic)
+        print(avgSxxreduced)
         error = 100.0*abs(avgSxxanalytic - avgSxxreduced)/max(abs(avgSxxanalytic),1e-30)
         
         if error > tol:
