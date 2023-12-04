@@ -421,7 +421,7 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(Hfield,               Hpolicy);
   state.enroll(mSoundSpeed,          csPolicy);
   state.enroll(mPressure,            Ppolicy);
-  state.enroll(mDamagedPressure,         damagedPressurePolicy);
+  state.enroll(mDamagedPressure,     damagedPressurePolicy);
   state.enroll(mBulkModulus,         bulkModulusPolicy);
   state.enroll(mShearModulus,        shearModulusPolicy);
   state.enroll(mYieldStrength,       yieldStrengthPolicy);
