@@ -76,6 +76,9 @@ commandLine(nx = 500,                          # Number of internal free points
             Cl = None,                         # Artificial viscosity linear coefficient
             Cq = None,                         # Artificial viscosity quadratic coefficient
 
+            # Optionally allow damage
+            useDamage = False,
+
             # Time integration
             IntegratorConstructor = VerletIntegrator,
             goalTime = 3.5,
@@ -396,6 +399,16 @@ output("  porosityAl.fdt")
 packages.append(porosityAl)
 
 #-------------------------------------------------------------------------------
+# Optionally test damage as well
+#-------------------------------------------------------------------------------
+if useDamage:
+    damage = ProbabilisticDamageModel(materialName = "aluminum",
+                                      nodeList = nodes,
+                                      units = units,
+                                      kernel = WT)
+    packages.append(damage)
+
+#-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
 integrator = IntegratorConstructor(db)
@@ -627,6 +640,13 @@ if graphics:
                          xlabel = r"$x$",
                          ylabel = r"$f_{DS}$",
                          winTitle = r"$f_{DS}$ @ %g %i" %  (control.time(), mpi.procs))
+    Dplot = plotField(nodes.damage(),
+                      yFunction = "%s.xx",
+                      plotStyle = "o-",
+                      lineTitle = "Simulation",
+                      xlabel = r"$x$",
+                      ylabel = r"$D_{xx}$",
+                      winTitle = "Damage @ %g %i" %  (control.time(), mpi.procs))
 
     # Add the solution
     plotAnswer(solution, control.time(),
@@ -660,7 +680,8 @@ if graphics:
              (phiPlot, "phi.png"),
              (dPdRplot, "dPdR.png"),
              (dPdUplot, "dPdU.png"),
-             (fDSplot, "fDS.png")]
+             (fDSplot, "fDS.png"),
+             (Dplot, "damage.png")]
 
     # Save the figures.
     for p, fname in plots:

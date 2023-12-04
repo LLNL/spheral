@@ -191,6 +191,10 @@ SpheralMaterialPropertiesLib = {
         },
         "mu0": 2.65e11,             # dyne/cm^2
         "Y0" : 1.00e10,             # dyne/cm^2
+
+        # Weibull parameters lifted from plots in DOI: 10.1007/s11661-010-0364-6
+        "kWeibull" : 7e11/2.63**2.55, # cm^-3
+        "mWeibull" : 2.55,            # dimensionless
     },
 
 # 3 ----------------------------------------------------------------------------
@@ -210,6 +214,10 @@ SpheralMaterialPropertiesLib = {
         },
         "mu0": 2.65e11,             # dyne/cm^2
         "Y0" : 1.00e10,             # dyne/cm^2
+
+        # Weibull parameters lifted from plots in DOI: 10.1007/s11661-010-0364-6
+        "kWeibull" : 7e11/2.63**2.55, # cm^-3
+        "mWeibull" : 2.55,            # dimensionless
     },
 
 # 4 ----------------------------------------------------------------------------
