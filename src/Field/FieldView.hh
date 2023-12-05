@@ -52,6 +52,7 @@ public:
 
   // Constructors.
   SPHERAL_HOST_DEVICE FieldView();
+  SPHERAL_HOST FieldView(FieldType const& field);
   SPHERAL_HOST_DEVICE FieldView(const FieldView& field);
 
   // Destructor.
@@ -159,7 +160,6 @@ public:
   }
 
 protected:
-  SPHERAL_HOST_DEVICE FieldView(FieldType* fieldPtr);
   //--------------------------- Protected Interface ---------------------------//
   ContainerType mDataArray;
   FieldType* mFieldPtr = nullptr;

@@ -74,7 +74,7 @@ class FieldList(FieldListBase):
         return "void"
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return *self.fieldForNodeList(nodeList); }")
+    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return &*self.fieldForNodeList(nodeList); }")
     def fieldForNodeList(self, nodeList="const NodeListType&"):
         "Return the Field associated with the given NodeList"
         return "FieldType*"
@@ -172,13 +172,15 @@ class FieldList(FieldListBase):
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference")
     @PYB11keepalive(0,1)
+    @PYB11implementation('[](const FieldListType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &*self[(i %% n + n) %% n]; }')
     def __getitem__(self, index="const unsigned"):
         return "FieldType*"
 
-    @PYB11returnpolicy("reference")
-    @PYB11implementation("[](const FieldListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
-    def __iter__(self):
-        "Python iteration through a FieldList."
+    #@PYB11returnpolicy("reference")
+    #@PYB11implementation("[](const FieldListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
+    #def __iter__(self):
+    #    "Python iteration through a FieldList."
+    #    return "FieldType*"
 
     def __call__(self,
                  fieldIndex = "const unsigned",

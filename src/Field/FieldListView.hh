@@ -31,10 +31,10 @@ public:
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
 
-  typedef Field<Dimension, DataType>* ElementType;
-  typedef Field<Dimension, DataType>* value_type;    // STL compatibility
-  //typedef FieldView<Dimension, DataType> ElementType;
-  //typedef FieldView<Dimension, DataType> value_type;    // STL compatibility
+  //typedef Field<Dimension, DataType>* ElementType;
+  //typedef Field<Dimension, DataType>* value_type;    // STL compatibility
+  typedef FieldView<Dimension, DataType> ElementType;
+  typedef FieldView<Dimension, DataType> value_type;    // STL compatibility
   typedef std::vector<ElementType> StorageType;
 
   typedef typename StorageType::iterator iterator;

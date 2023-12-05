@@ -92,7 +92,7 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
       auto fieldCacheItr = mFieldCache.begin();
       for(; fieldPtrItr != this->end(); ++fieldPtrItr/*, ++fieldBasePtrItr*/, ++fieldCacheItr) {
         CHECK(fieldCacheItr != mFieldCache.end());
-        (*fieldPtrItr) = fieldCacheItr->get();
+        (*fieldPtrItr) = fieldCacheItr->get()->toView();
         //(*fieldBasePtrItr) = fieldCacheItr->get();
       }
 
@@ -174,7 +174,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
              ++itr) {
           auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
           mFieldCache.push_back(newField);
-          FieldListViewType::mFieldPtrs.push_back(newField.get());
+          FieldListViewType::mFieldPtrs.push_back(newField.get()->toView());
         }
         NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
         //for (auto fptr: FieldListViewType::mFieldPtrs) mFieldBasePtrs.push_back(fptr);
@@ -238,7 +238,7 @@ FieldList<Dimension, DataType>::copyFields() {
     for (; itr != end(); ++itr/*, ++baseItr*/) {
       auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
       mFieldCache.push_back(newField);
-      *itr = mFieldCache.back().get();
+      *itr = mFieldCache.back().get()->toView();
       //*baseItr = mFieldCache.back().get();
     }
 
@@ -278,7 +278,7 @@ FieldList<Dimension, DataType>::copyFields(const FieldList<Dimension, DataType>&
   for (const auto& fieldPtr: fieldList.mFieldPtrs) {
     auto newFieldPtr = std::make_shared<Field<Dimension, DataType>>(*fieldPtr);
     mFieldCache.push_back(newFieldPtr);
-    FieldListViewType::mFieldPtrs.push_back(newFieldPtr.get());
+    FieldListViewType::mFieldPtrs.push_back(newFieldPtr.get()->toView());
     //mFieldBasePtrs.push_back(newFieldPtr.get());
   }
 }
@@ -291,7 +291,7 @@ inline
 bool
 FieldList<Dimension, DataType>::
 haveField(const Field<Dimension, DataType>& field) const {
-  auto fieldListItr = std::find(this->begin(), this->end(), &field);
+  auto fieldListItr = std::find(this->begin(), this->end(), ElementType(field));
   return fieldListItr != this->end();
 }
 
@@ -366,14 +366,14 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   // Insert the field.
   switch(storageType()) {
   case FieldStorageType::ReferenceFields:
-    FieldListViewType::mFieldPtrs.insert(orderItr, const_cast<Field<Dimension, DataType>*>(&field));
+    FieldListViewType::mFieldPtrs.insert(orderItr, ElementType(field));
     //mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, const_cast<FieldBase<Dimension>*>(dynamic_cast<const FieldBase<Dimension>*>(&field)));
     break;
 
   case FieldStorageType::CopyFields:
     auto newField = std::make_shared<Field<Dimension, DataType>>(field);
     mFieldCache.push_back(newField);
-    FieldListViewType::mFieldPtrs.insert(orderItr, newField.get());
+    FieldListViewType::mFieldPtrs.insert(orderItr, newField.get()->toView());
     //mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
   }
 
@@ -412,7 +412,7 @@ FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& fi
     return;
   }
 
-  const auto fieldPtrItr = std::find(this->begin(), this->end(), &field);
+  const auto fieldPtrItr = std::find(this->begin(), this->end(), ElementType(field));
   CHECK(fieldPtrItr != this->end());
   //const size_t delta = std::distance(this->begin(), fieldPtrItr);
   auto fieldItr = mFieldCache.begin();
@@ -451,7 +451,7 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
 
   // Create the field in our cache.
   mFieldCache.push_back(std::make_shared<Field<Dimension, DataType>>(name, nodeList, value));
-  Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
+  ElementType fieldPtr = mFieldCache.back().get()->toView();
 
   FieldListViewType::mFieldPtrs.push_back(fieldPtr);
   NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());

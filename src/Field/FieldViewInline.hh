@@ -30,6 +30,15 @@ FieldView<Dimension, DataType>::FieldView():
   mDataArray() {}
 
 //------------------------------------------------------------------------------
+// Field Constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+FieldView<Dimension, DataType>::FieldView(FieldType const& field):
+  mDataArray(field.mDataArray),
+  mFieldPtr(const_cast<FieldType*>(&field)) {}
+
+//------------------------------------------------------------------------------
 // Copy Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -70,6 +79,7 @@ FieldView<Dimension, DataType>&
 FieldView<Dimension, DataType>::operator=(const FieldView<Dimension, DataType>& rhs) {
   if (this != &rhs) {
     mDataArray = rhs.mDataArray;
+    mFieldPtr = rhs.mFieldPtr;
   }
   return *this;
 }
@@ -511,7 +521,8 @@ bool
 FieldView<Dimension, DataType>::
 operator==(const FieldView<Dimension, DataType>& rhs) const {
   if (&rhs == this) return true;
-  return mDataArray == rhs.mDataArray;
+  //return mDataArray == rhs.mDataArray;
+  return mFieldPtr == rhs.mFieldPtr;
 }
 
 //------------------------------------------------------------------------------
@@ -768,15 +779,6 @@ FieldView<Dimension, DataType>::
 move (chai::ExecutionSpace space, bool touch) const {
   mDataArray.move(space, touch);
 }
-
-//------------------------------------------------------------------------------
-// Protected Constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-FieldView<Dimension, DataType>::FieldView(FieldView::FieldType* fieldPtr):
-  mDataArray(), 
-  mFieldPtr(fieldPtr) {}
 
 //****************************** Global Functions ******************************
 //------------------------------------------------------------------------------

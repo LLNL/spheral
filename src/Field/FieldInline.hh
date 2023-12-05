@@ -31,7 +31,6 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
-  FieldViewType(this),
   mValid(false) {
   }
 
@@ -44,7 +43,6 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  FieldViewType(this),
   mValid(field.mValid) {
   FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
   }
@@ -58,7 +56,6 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), DataType());
   REQUIRE(numElements() == nodeList.numNodes());
@@ -70,7 +67,6 @@ Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
@@ -82,7 +78,6 @@ Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
@@ -94,7 +89,6 @@ Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
@@ -110,7 +104,6 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), value);
   REQUIRE(numElements() == nodeList.numNodes());
@@ -127,7 +120,6 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       const ContainerType& array):
   FieldBase<Dimension>(name, nodeList),
-  FieldViewType(this),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
@@ -143,7 +135,6 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  FieldViewType(this),
   mValid(true) {
   FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
   ENSURE(numElements() == nodeList.numNodes());
