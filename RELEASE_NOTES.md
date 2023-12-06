@@ -1,7 +1,7 @@
 Version vYYYY.MM.p -- Release date YYYY-MM-DD
 ==============================================
   * Important Notes:
-    * The PolyClipper and PYB11Generator submodules have been modified. Be sure to recursively update the submodules.  
+    * The PolyClipper, BLT, and PYB11Generator submodules have been modified. Be sure to recursively update the submodules.  
 
 Notable changes include:
 
@@ -24,6 +24,7 @@ Notable changes include:
       find_package(Spheral_CXX <path_to_spheral_installation>)
       ```
     * CMake variables have a more consistent naming convention. Unused variables are removed.
+    * Added ENABLE_DEV_BUILD option to improve build times during code development
     * Upped our required C++ standard to 17
 
   * Bug Fixes / improvements:
