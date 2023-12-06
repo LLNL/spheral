@@ -1,9 +1,13 @@
-get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
 add_subdirectory(DeviceTestLib)
 
 if(ENABLE_TESTS)
+  if(ENABLE_DEV_BUILD)
+    set(SPHERAL_DEPEND Spheral_DeviceTestLib)
+  else()
+    set(SPHERAL_DEPEND Spheral_CXX)
+  endif()
   blt_add_executable( NAME spheral_cuda_test
                       SOURCES Spheral_CUDA_Test.cc
-                      DEPENDS_ON Spheral_CXX ${spheral_blt_cxx_depends})
+                      DEPENDS_ON ${SPHERAL_DEPEND} ${spheral_blt_cxx_depends})
 endif()
