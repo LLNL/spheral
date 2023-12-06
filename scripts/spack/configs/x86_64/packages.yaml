@@ -10,11 +10,11 @@ packages:
   #    prefix: /usr/
   #  buildable: false
 
-  cmake:
-    externals:
-    - spec: cmake@3.16.3
-      prefix: /usr
-    buildable: false
+  #cmake:
+  #  externals:
+  #  - spec: cmake@3.16.3
+  #    prefix: /usr
+  #  buildable: false
 
 # ------ SYSTEM LIBS -------
   ncurses:
