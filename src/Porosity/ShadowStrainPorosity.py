@@ -33,14 +33,15 @@ def _StrainPorosityFactory(ndim):
             """Construct a strain-alpha porosity model.  Valid arguments are
 
   * nodeList: the solid NodeList whose nodes this porosity model will apply to
-  *     phi0: (scalar or Field) initial porosity
-  *     epsE: (scalar) Elastic-plastic transition strain
-  *     epsX: (scalar) Threshold strain between compaction regimes
-  *     kappa: (scalar) Compaction rate
-  *     gammaS0: (scalar) Reference gamma at full density
-  *      cS0: (scalar) Reference sound speed at full density
-  *       c0: (scalar or Field) Reference sound speed at initial porosity
-  *    rhoS0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
+  *             phi0: (scalar or Field) initial porosity
+  *             epsE: (scalar) Elastic-plastic transition strain
+  *             epsX: (scalar) Threshold strain between compaction regimes
+  *            kappa: (scalar) Compaction rate
+  *          gammaS0: (scalar) Reference gamma at full density
+  *              cS0: (scalar) Reference sound speed at full density
+  *               c0: (scalar or Field) Reference sound speed at initial porosity
+  *            rhoS0: (scalar or None) Reference (solid) density.  If None, then reference value looked up from equation of state
+  * jutziStateUpdate: (bool, default True) Update state (deviatoric stress and damage) as described in Jutzi 2008
 """
 
             # Check for the deprecated porous EOS and strength models
@@ -60,7 +61,8 @@ def _StrainPorosityFactory(ndim):
                          "gammaS0",
                          "cS0",
                          "c0",
-                         "rhoS0"]
+                         "rhoS0",
+                         "jutziStateUpdate"]
             
             # Add any args to our kwargs dictionary
             assert len(args) <= len(validArgs)
@@ -84,6 +86,9 @@ def _StrainPorosityFactory(ndim):
                     kwargs["rhoS0"] = nodeList.equationOfState().referenceDensity
                 except:
                     raise RuntimeError("Unable to extract reference density for StrainPorosity")
+
+            if not "jutziStateUpdate" in kwargs:
+                kwargs["jutziStateUpdate"] = False
 
             # Now build the actual C++ object
             CXXStrainPorosity.__init__(self, **kwargs)

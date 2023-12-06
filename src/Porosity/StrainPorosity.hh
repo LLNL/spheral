@@ -46,7 +46,8 @@ public:
                  const double gammaS0,                            // Reference gamma at full density
                  const double cS0,                                // Reference sound speed at full density
                  const double c0,                                 // Reference sound speed at initial porosity
-                 const double rhoS0);                             // Reference solid density
+                 const double rhoS0,                              // Reference solid density
+                 const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   StrainPorosity(const SolidNodeList<Dimension>& nodeList,        // The NodeList we're going apply to
                  const Field<Dimension, Scalar>& phi0,            // Initial porosity
@@ -56,7 +57,8 @@ public:
                  const double gammaS0,                            // Reference gamma at full density
                  const double cS0,                                // Reference sound speed at full density
                  const Field<Dimension, Scalar>& c0,              // Reference sound speed at initial porosity
-                 const double rhoS0);                             // Reference solid density
+                 const double rhoS0,                              // Reference solid density
+                 const bool jutziStateUpdate);                    // Apply state update rules from Jutzi 2008
 
   virtual ~StrainPorosity();
 
@@ -99,6 +101,7 @@ private:
   double mEpsE, mEpsX, mKappa, mGammaS0;
   Field<Dimension, Scalar> mStrain, mDstrainDt;
 
+  using PorosityModel<Dimension>::mJutziStateUpdate;
   using PorosityModel<Dimension>::mRhoS0;
   using PorosityModel<Dimension>::mcS0;
   using PorosityModel<Dimension>::mKS0;
@@ -107,6 +110,7 @@ private:
   using PorosityModel<Dimension>::mNodeList;
   using PorosityModel<Dimension>::mAlpha;
   using PorosityModel<Dimension>::mAlpha0;
+  using PorosityModel<Dimension>::mfDS;
 
   // Disallow default constructor
   StrainPorosity();

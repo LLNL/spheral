@@ -360,12 +360,33 @@ tCGSconv = cgs.unitTimeSec/units.unitTimeSec
 PCGSconv = mCGSconv/(tCGSconv*tCGSconv*lCGSconv)
 vCGSconv = lCGSconv/tCGSconv
 
+# Parameters for P-alpha
+Pe = 8e8      # dynes/cm^2
+Ps = 7e9      # dynes/cm^2
+cS0 = 5.35e5  # cm/sec
+ce = 4.11e5   # cm/sec
 phi0 = 1.0 - 1.0/alpha0
+
+# Parameters for Strain-alpha
+def epsX_from_alphaX(alphaX,
+                     phi0,
+                     epsE,
+                     kappa):
+    if alphaX < 1.001:
+        epsX = -1e10
+    else:
+        alpha0 = 1.0/(1.0 - phi0)
+        epsX = log(alphaX/alpha0)/kappa + epsE
+    return epsX
+epsE = -1.88e-4                 # Elastic compaction limit (porosity)
+kappa = 0.999                   # Exponential factor for distention (porosity)
+alphaX = 1.0                    # transition distension exponential compation -> powerlaw
+cS0 = 5.35e5                    # cm/sec
+ce = 4.11e5   # cm/sec
+epsX = epsX_from_alphaX(1.0, phi0, epsE, kappa)   # Transition from exponential to power-law distention (porosity)
+gammaS0 = eosS.gamma(rhoS0, eps0)
+
 if PorousModel is PalphaPorosity:
-    Pe = 8e8      # dynes/cm^2
-    Ps = 7e9      # dynes/cm^2
-    cS0 = 5.35e5  # cm/sec
-    ce = 4.11e5   # cm/sec
     print("P-alpha porosity model parameters:")
     output("  alpha0")
     output("      Pe")
@@ -374,7 +395,7 @@ if PorousModel is PalphaPorosity:
     output("      ce")
     print("Computing cS0 from solid EOS yields ", eosS.soundSpeed(rhoS0, 0.0))
     porosityAl = PalphaPorosity(nodes,
-                                phi0 = 1.0 - 1.0/alpha0,
+                                phi0 = phi0,
                                 Pe = Pe * PCGSconv,
                                 Pt = Pe * PCGSconv,
                                 Ps = Ps * PCGSconv,
@@ -384,17 +405,45 @@ if PorousModel is PalphaPorosity:
                                 cS0 = cS0 * vCGSconv,
                                 c0 = ce * vCGSconv)
     porosityAl.fdt = fdt
+    output("porosityAl")
+    output("  porosityAl.Pe")
+    output("  porosityAl.Pt")
+    output("  porosityAl.Ps")
+    output("  porosityAl.alphae")
+    output("  porosityAl.alphat")
+    output("  porosityAl.n1")
+    output("  porosityAl.n2")
+    output("  porosityAl.cS0")
+    output("  porosityAl.fdt")
 
-output("porosityAl")
-output("  porosityAl.Pe")
-output("  porosityAl.Pt")
-output("  porosityAl.Ps")
-output("  porosityAl.alphae")
-output("  porosityAl.alphat")
-output("  porosityAl.n1")
-output("  porosityAl.n2")
-output("  porosityAl.cS0")
-output("  porosityAl.fdt")
+elif PorousModel is StrainPorosity:
+    print("Strain-alpha porosity model parameters:")
+    output("  alpha0")
+    output("    epsE")
+    output("    epsX")
+    output("   kappa")
+    output("  alphaX")
+    output("     cS0")
+    output("      ce")
+    porosityAl = StrainPorosity(nodes,           # Nodes we will make porous
+                                phi0,            # Initial porosity
+                                epsE,            # Elastic compaction limit
+                                epsX,            # Exponetial->power-law transition
+                                kappa,           # Compaction rate
+                                gammaS0,         # Reference gamma at full density
+                                cS0 * vCGSconv,  # Reference sound speed at full density
+                                ce * vCGSconv,   # Reference sound speed at initial porosity
+                                jutziStateUpdate = True)
+    porosityAl.fdt = fdt
+    output("porosityAl")
+    output("  porosityAl.epsE")
+    output("  porosityAl.epsX")
+    output("  porosityAl.kappa")
+    output("  porosityAl.gammaS0")
+    output("  porosityAl.fdt")
+
+else:
+    raise(RuntimeError, "Unknown porosity model")
 
 packages.append(porosityAl)
 
@@ -622,18 +671,6 @@ if graphics:
                         xlabel = r"$x$",
                         ylabel = r"$\phi$",
                         winTitle = r"$\phi$ @ %g %i" %  (control.time(), mpi.procs))
-    dPdRplot = plotField(porosityAl.partialPpartialRho,
-                         plotStyle = "o-",
-                         lineTitle = "Simulation",
-                         xlabel = r"$x$",
-                         ylabel = r"$\partial P/\partial \rho$",
-                         winTitle = r"$\partial P/\partial \rho$ @ %g %i" %  (control.time(), mpi.procs))
-    dPdUplot = plotField(porosityAl.partialPpartialEps,
-                         plotStyle = "o-",
-                         lineTitle = "Simulation",
-                         xlabel = r"$x$",
-                         ylabel = r"$\partial P/\partial \varepsilon$",
-                         winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
     fDSplot = plotField(porosityAl.fDS,
                          plotStyle = "o-",
                          lineTitle = "Simulation",
@@ -647,6 +684,20 @@ if graphics:
                       xlabel = r"$x$",
                       ylabel = r"$D_{xx}$",
                       winTitle = "Damage @ %g %i" %  (control.time(), mpi.procs))
+
+    if PorousModel is PalphaPorosity:
+        dPdRplot = plotField(porosityAl.partialPpartialRho,
+                             plotStyle = "o-",
+                             lineTitle = "Simulation",
+                             xlabel = r"$x$",
+                             ylabel = r"$\partial P/\partial \rho$",
+                             winTitle = r"$\partial P/\partial \rho$ @ %g %i" %  (control.time(), mpi.procs))
+        dPdUplot = plotField(porosityAl.partialPpartialEps,
+                             plotStyle = "o-",
+                             lineTitle = "Simulation",
+                             xlabel = r"$x$",
+                             ylabel = r"$\partial P/\partial \varepsilon$",
+                             winTitle = r"$\partial P/\partial \varepsilon$ @ %g %i" %  (control.time(), mpi.procs))
 
     # Add the solution
     plotAnswer(solution, control.time(),
@@ -678,8 +729,8 @@ if graphics:
              (hPlot, "h.png"),
              (alphaPlot, "alpha.png"),
              (phiPlot, "phi.png"),
-             (dPdRplot, "dPdR.png"),
-             (dPdUplot, "dPdU.png"),
+             #(dPdRplot, "dPdR.png"),
+             #(dPdUplot, "dPdU.png"),
              (fDSplot, "fDS.png"),
              (Dplot, "damage.png")]
 

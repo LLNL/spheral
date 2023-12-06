@@ -196,6 +196,8 @@ evaluateDerivatives(const Scalar time,
       if (mJutziStateUpdate) {
         auto DalphaDrhoi = (Pi/(rhoi*rhoi)*dPsdui + alphai*dPsdri)*Ainv * DalphaDpi;
         fDSnew(i) = std::max(0.0, std::min(1.0, 1.0 + DalphaDrhoi*rhoi/alphai));
+      } else {
+        fDSnew(i) = 1.0;
       }
     }
 

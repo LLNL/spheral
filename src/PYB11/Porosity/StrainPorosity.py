@@ -40,7 +40,8 @@ http://doi.org/10.1016/j.ijimpeng.2010.10.013
                gammaS0 = "const double",
                cS0 = "const double",
                c0 = "const double",
-               rhoS0 = "const double"):
+               rhoS0 = "const double",
+               jutziStateUpdate = "const bool"):
         """Constructor parameters:
         nodeList:        The NodeList we're going apply to
         phi0:            Initial porosity (single value)
@@ -50,7 +51,8 @@ http://doi.org/10.1016/j.ijimpeng.2010.10.013
         gammaS0:         Reference gamma at full density
         cS0:             Reference sound speed at full density
         c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        rhoS0:           Reference solid density
+        jutziStateUpdate Apply state update rules from Jutzi 2008"""
 
     def pyinit1(self,
                 nodeList = "const SolidNodeList<%(Dimension)s>&",
@@ -61,7 +63,8 @@ http://doi.org/10.1016/j.ijimpeng.2010.10.013
                 gammaS0 = "const double",
                 cS0 = "const double",
                 c0 = "const Field<%(Dimension)s, %(Dimension)s::Scalar>&",
-                rhoS0 = "const double"):
+                rhoS0 = "const double",
+                jutziStateUpdate = "const bool"):
         """Constructor parameters:
         nodeList:        The NodeList we're going apply to
         phi0:            Initial porosity (field of values)
@@ -71,7 +74,8 @@ http://doi.org/10.1016/j.ijimpeng.2010.10.013
         gammaS0:         Reference gamma at full density
         cS0:             Reference sound speed at full density
         c0:              Reference sound speed at initial porosity
-        rhoS0:           Reference solid density"""
+        rhoS0:           Reference solid density
+        jutziStateUpdate Apply state update rules from Jutzi 2008"""
 
     #...........................................................................
     # Properties

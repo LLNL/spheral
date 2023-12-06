@@ -10,6 +10,7 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 #include "Porosity/StrainPorosity.hh"
 
 using std::vector;
@@ -38,8 +39,9 @@ StrainPorosity(const SolidNodeList<Dimension>& nodeList,
                const double gammaS0,
                const double cS0,
                const double c0,
-               const double rhoS0):
-  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, false),
+               const double rhoS0,
+               const bool jutziStateUpdate):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, jutziStateUpdate),
   mEpsE(epsE),
   mEpsX(epsX),
   mKappa(kappa),
@@ -67,8 +69,9 @@ StrainPorosity(const SolidNodeList<Dimension>& nodeList,
                const double gammaS0,
                const double cS0,
                const Field<Dimension, Scalar>& c0,
-               const double rhoS0):
-  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, false),
+               const double rhoS0,
+               const bool jutziStateUpdate):
+  PorosityModel<Dimension>(nodeList, phi0, cS0, c0, rhoS0, jutziStateUpdate),
   mEpsE(epsE),
   mEpsX(epsX),
   mKappa(kappa),
@@ -105,18 +108,17 @@ evaluateDerivatives(const Scalar /*time*/,
                     StateDerivatives<Dimension>& derivs) const {
 
   // Get the state fields.
-  const auto  gradvKey = State<Dimension>::buildFieldKey(HydroFieldNames::velocityGradient, mNodeList.name());
-  const auto  strainKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityStrain, mNodeList.name());
-  const auto  alphaKey = State<Dimension>::buildFieldKey(SolidFieldNames::porosityAlpha, mNodeList.name());
-  const auto  DalphaDtKey = State<Dimension>::buildFieldKey(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, mNodeList.name());
-  const auto  DstrainDtKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain, mNodeList.name());
-  const auto  DuDtKey = State<Dimension>::buildFieldKey(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, mNodeList.name());
-  const auto& DvDx = derivs.field(gradvKey, Tensor::zero);
-  const auto& strain = state.field(strainKey, 0.0);
-  const auto& alpha = state.field(alphaKey, 0.0);
-  const auto& DuDt = derivs.field(DuDtKey, 0.0);
-  auto&       DstrainDt = derivs.field(DstrainDtKey, 0.0);
-  auto&       DalphaDt = derivs.field(DalphaDtKey, 0.0);
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
+  const auto& rhoS = state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0);
+  const auto& DvDx = derivs.field(buildKey(HydroFieldNames::velocityGradient), Tensor::zero);
+  const auto& strain = state.field(buildKey(SolidFieldNames::porosityStrain), 0.0);
+  const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+  const auto& DuDt = derivs.field(buildKey(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy), 0.0);
+  // const auto& DrhoDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
+  // const auto& H = state.field(buildKey(HydroFieldNames::H), SymTensor::zero);
+  auto&       DstrainDt = derivs.field(buildKey(IncrementState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityStrain), 0.0);
+  auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
+  auto&       fDSnew = derivs.field(buildKey(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi), 0.0);
 
   // Walk the nodes.
   const auto n = mNodeList.numInternalNodes();
@@ -129,24 +131,43 @@ evaluateDerivatives(const Scalar /*time*/,
     const auto strainRate = min(0.0, DstrainDt(i) - mGammaS0*safeInv(mcS0*mcS0)*DuDti);
     const auto alpha0i = mAlpha0(i);
     const auto c0i = mc0(i);
+    const auto csi = mcS0 + (alphai - 1.0)*safeInv(alpha0i - 1.0)*(c0i - mcS0);
 
     // The time rate of change for alpha depends on if we're in the elastic, exponential, or
     // power-law regime of compaction.
+    auto DalphaDepsi = 0.0;
     if (epsi < 0.0) {
       if (epsi >= mEpsE) {
         // Elastic regime
         // We assume compaction is reversible in this regime.
-        const auto cs = mcS0 + (alphai - 1.0)*safeInv(alpha0i - 1.0)*(c0i - mcS0);
-        DalphaDt(i) = alphai*(1.0 - FastMath::square(cs*safeInv(mcS0)))*strainRate;
+        DalphaDepsi = alphai*(1.0 - FastMath::square(csi*safeInv(mcS0)));
+        DalphaDt(i) = DalphaDepsi*strainRate;
       } else if (epsi >= mEpsX) {
         // Exponential regime
-        DalphaDt(i) = min(0.0, mKappa*alphai*strainRate);
+        DalphaDepsi = mKappa*alphai;
+        DalphaDt(i) = min(0.0, DalphaDepsi*strainRate);
       } else {
         // Power-law -- irreversible compaction.
         const auto epsCi = 2.0*(1.0 - alpha0i*exp(mKappa*(mEpsX - mEpsE)))/(mKappa*alpha0i*exp(mKappa*(mEpsX - mEpsE))) + mEpsX;
         const auto PLcoefi = 2.0*(1.0 - alpha0i*exp(mKappa*(mEpsX - mEpsE)))/FastMath::square(epsCi - mEpsX);
-        DalphaDt(i) = min(0.0, PLcoefi*(mEpsE - epsi)*strainRate);
+        DalphaDepsi = PLcoefi*(mEpsE - epsi);
+        DalphaDt(i) = min(0.0, DalphaDepsi*strainRate);
       }
+    }
+
+    // Optionally update the deviatoric stress scaling term
+    if (mJutziStateUpdate) {
+      fDSnew(i) = (alphai == 1.0 ?
+                   1.0 :
+                   1.0 - DalphaDepsi/rhoS(i));
+                   // 1.0 + DalphaDt(i)/alphai * safeInv(DrhoDt(i)/rho(i), 0.01*csi*Dimension::nDim/H(i).Trace()));
+    } else {
+      fDSnew(i) = 1.0;
+    }
+
+#pragma omp critical
+    {
+      mMaxAbsDalphaDt = max(mMaxAbsDalphaDt, abs(DalphaDt(i)));    // For use in the timestep calculation
     }
   }
 }
