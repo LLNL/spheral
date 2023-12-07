@@ -88,7 +88,7 @@ def _StrainPorosityFactory(ndim):
                     raise RuntimeError("Unable to extract reference density for StrainPorosity")
 
             if not "jutziStateUpdate" in kwargs:
-                kwargs["jutziStateUpdate"] = False
+                kwargs["jutziStateUpdate"] = True
 
             # Now build the actual C++ object
             CXXStrainPorosity.__init__(self, **kwargs)

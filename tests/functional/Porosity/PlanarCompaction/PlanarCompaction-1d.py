@@ -63,6 +63,7 @@ commandLine(nx = 500,                          # Number of internal free points
             # Porosity
             PorousModel = PalphaPorosity,
             alpha0 = 1.275,
+            jutziStateUpdate = True,
             fdt = 0.5,                         # Timestep control fractional change in alpha
 
             # Hydro
@@ -403,7 +404,8 @@ if PorousModel is PalphaPorosity:
                                 n1 = 0.0,
                                 n2 = 2.0,
                                 cS0 = cS0 * vCGSconv,
-                                c0 = ce * vCGSconv)
+                                c0 = ce * vCGSconv,
+                                jutziStateUpdate = jutziStateUpdate)
     porosityAl.fdt = fdt
     output("porosityAl")
     output("  porosityAl.Pe")
@@ -415,6 +417,7 @@ if PorousModel is PalphaPorosity:
     output("  porosityAl.n2")
     output("  porosityAl.cS0")
     output("  porosityAl.fdt")
+    output("  porosityAl.jutziStateUpdate")
 
 elif PorousModel is StrainPorosity:
     print("Strain-alpha porosity model parameters:")
@@ -433,7 +436,7 @@ elif PorousModel is StrainPorosity:
                                 gammaS0,         # Reference gamma at full density
                                 cS0 * vCGSconv,  # Reference sound speed at full density
                                 ce * vCGSconv,   # Reference sound speed at initial porosity
-                                jutziStateUpdate = True)
+                                jutziStateUpdate = jutziStateUpdate)
     porosityAl.fdt = fdt
     output("porosityAl")
     output("  porosityAl.epsE")
@@ -441,6 +444,7 @@ elif PorousModel is StrainPorosity:
     output("  porosityAl.kappa")
     output("  porosityAl.gammaS0")
     output("  porosityAl.fdt")
+    output("  porosityAl.jutziStateUpdate")
 
 else:
     raise(RuntimeError, "Unknown porosity model")

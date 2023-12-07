@@ -136,13 +136,13 @@ evaluateDerivatives(const Scalar /*time*/,
     // The time rate of change for alpha depends on if we're in the elastic, exponential, or
     // power-law regime of compaction.
     auto DalphaDepsi = 0.0;
-    if (epsi < 0.0) {
-      if (epsi >= mEpsE) {
-        // Elastic regime
-        // We assume compaction is reversible in this regime.
-        DalphaDepsi = alphai*(1.0 - FastMath::square(csi*safeInv(mcS0)));
-        DalphaDt(i) = DalphaDepsi*strainRate;
-      } else if (epsi >= mEpsX) {
+    if (-std::abs(epsi) >= mEpsE) {
+      // Elastic regime
+      // We assume compaction is reversible in this regime.
+      DalphaDepsi = alphai*(1.0 - FastMath::square(csi*safeInv(mcS0)));
+      DalphaDt(i) = DalphaDepsi*strainRate;
+    } else if (epsi < 0.0) { // The plastic regimes only apply for negative strains (compaction)
+      if (epsi >= mEpsX) {
         // Exponential regime
         DalphaDepsi = mKappa*alphai;
         DalphaDt(i) = min(0.0, DalphaDepsi*strainRate);

@@ -161,7 +161,7 @@ evaluateDerivatives(const Scalar time,
     if (Pi >= mPs) {
 
       DalphaDt(i) = (1.0 - alphai)*safeInvVar(dt);
-      if (mJutziStateUpdate) fDSnew(i) = 1.0;
+      fDSnew(i) = 1.0;
 
     } else {
 
