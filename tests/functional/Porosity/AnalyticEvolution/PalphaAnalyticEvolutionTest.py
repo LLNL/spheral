@@ -28,6 +28,7 @@ commandLine(
 
     # Porosity
     alpha0 = 1.5,                      # Initial distention
+    alphae = 1.4,                      # Elastic limiting distention
     alphat = 1.2,                      # Plastic limiting distention
     c0frac = 0.5,                      # Fraction of initial solid sound speed for initial porous sound speed
     Pe = 0.1,                          # Elastic limiting pressure
@@ -238,6 +239,7 @@ porosityAl = PalphaPorosity(nodes,
                             Pe = Pe,
                             Pt = Pt,
                             Ps = Ps,
+                            alphae = alphae,
                             alphat = alphat,
                             n1 = n1,
                             n2 = n2,

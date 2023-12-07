@@ -12,6 +12,10 @@ class ReplaceState(FieldUpdatePolicy):
 
     #...........................................................................
     # Constructors
+    def pyinit0(self):
+        "Default constructor"
+        return
+
     @PYB11implementation("[](py::list depends) { auto result = make_policy<ReplaceState<%(Dimension)s, %(ValueType)s>>(); for (auto x: depends) result->addDependency(x.cast<std::string>()); return result; }")
     def pyinit(self,
                depends = ("py::list", "py::list()")):

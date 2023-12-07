@@ -12,6 +12,10 @@ class IncrementState(FieldUpdatePolicy):
 
     #...........................................................................
     # Constructors
+    def pyinit0(self):
+        "Default constructor"
+        return
+
     @PYB11implementation("[](py::list depends, const bool wildCardDerivs) { auto result = make_policy<IncrementState<%(Dimension)s, %(ValueType)s>>(wildCardDerivs); for (auto x: depends) result->addDependency(x.cast<std::string>()); return result; }")
     def pyinit(self,
                depends = ("py::list", "py::list()"),
