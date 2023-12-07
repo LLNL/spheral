@@ -52,7 +52,7 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::bulkModulus);
-  auto K = state.field(key, Scalar());
+  auto& K = state.field(key, Scalar());
 
   // Check if we have a FluidNodeList or SolidNodeList.  Has to be at least fluid!
   const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(K.nodeListPtr());
