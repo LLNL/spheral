@@ -55,7 +55,7 @@ public:
   // We require any equation of state to define the following properties.
   virtual void setPressure(Field<Dimension, Scalar>& Pressure,
                            const Field<Dimension, Scalar>& massDensity,
-                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
+                           const Field<Dimension, Scalar>& specificThermalEnergy) const override;
 
   virtual void setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,           // set pressure
                                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
