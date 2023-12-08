@@ -74,7 +74,7 @@ update(const KeyType& key,
   REQUIRE(fieldKey == SolidFieldNames::effectiveStrainTensor);
   auto& stateField = state.field(key, SymTensor::zero);
 
-  const double tiny = 1.0e-15;
+  const auto tiny = 1.0e-15;
 
   // Alias for shorter call building State Field keys
   auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
