@@ -78,6 +78,8 @@ public:
   explicit FieldList(FieldStorageType aStorageType);
   FieldList(const FieldList& rhs);
 
+  inline FieldListViewType toView() const { return FieldListViewType(*this); } 
+
   // Destructor.
   ~FieldList();
 

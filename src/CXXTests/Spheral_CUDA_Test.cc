@@ -9,6 +9,7 @@ int main() {
   //SpheralEvalDerivTest();
   //QuadInterpolatorTest();
   SpheralVectorTest();
+
   //rankNTensorTest();
     
   return EXIT_SUCCESS;

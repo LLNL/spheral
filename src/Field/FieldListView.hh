@@ -29,6 +29,9 @@ class FieldListView :
     public chai::CHAICopyable{
 public:
   //--------------------------- Public Interface ---------------------------//
+  
+  using FieldListType = FieldList<Dimension, DataType>;
+
   typedef typename Dimension::Scalar Scalar;
 
   //typedef Field<Dimension, DataType>* ElementType;
@@ -42,6 +45,7 @@ public:
 
   // Constructors.
   SPHERAL_HOST_DEVICE FieldListView();
+  SPHERAL_HOST FieldListView(FieldListType const& rhs);
   SPHERAL_HOST_DEVICE FieldListView(FieldListView const& rhs);
 
   // Destructor.
@@ -69,7 +73,7 @@ public:
   // and the node index within that field.
   DataType& operator()(const unsigned int fieldIndex,
                        const unsigned int nodeIndex);
-  const DataType& operator()(const unsigned int fieldIndex,
+  DataType& operator()(const unsigned int fieldIndex,
                              const unsigned int nodeIndex) const;
 
   // Reproduce the standard Field operators for FieldListViews.

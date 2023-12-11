@@ -119,7 +119,7 @@ FieldView<Dimension, DataType>::operator()(int index) {
 
 template<typename Dimension, typename DataType>
 inline
-const DataType&
+DataType&
 FieldView<Dimension, DataType>::operator()(int index) const {
   CHECK(index >= 0 && index < (int)numElements());
   return mDataArray[index];

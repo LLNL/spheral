@@ -31,6 +31,16 @@ FieldListView<Dimension, DataType>::FieldListView():
   mFieldPtrs(0) {}
 
 //------------------------------------------------------------------------------
+// FieldList constructor.
+// Note that the copy constructor copies the data by reference by default.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+FieldListView<Dimension, DataType>::
+FieldListView(const FieldList<Dimension, DataType>& rhs):
+  mFieldPtrs(rhs.mFieldPtrs) {}
+
+//------------------------------------------------------------------------------
 // Copy constructor.
 // Note that the copy constructor copies the data by reference by default.
 //------------------------------------------------------------------------------
@@ -162,18 +172,18 @@ operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) {
   REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
   REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldListView node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
-  return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
+  return mFieldPtrs[fieldIndex].operator()(nodeIndex);
 }
 
 template<typename Dimension, typename DataType>
 inline
-const DataType&
+DataType&
 FieldListView<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) const {
   REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
   REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldListView node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
-  return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
+  return mFieldPtrs[fieldIndex].operator()(nodeIndex);
 }
 
 //------------------------------------------------------------------------------

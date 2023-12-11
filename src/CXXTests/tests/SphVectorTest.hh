@@ -7,13 +7,14 @@
 #include "umpire/ResourceManager.hpp"
 #include "umpire/strategy/QuickPool.hpp"
 
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
 #include <omp.h>
 
-#include "NodeList/FluidNodeList.hh"
-#include "Utilities/QuadraticInterpolator.hh"
+//#include "NodeList/FluidNodeList.hh"
+//#include "Utilities/QuadraticInterpolator.hh"
 
 //*****************************************************************************
 // Initialize execution platform
@@ -78,6 +79,8 @@ void SpheralVectorTest()
   //using FIELD_TYPE = LvField<DATA_TYPE>;
 
   using FIELDLIST_TYPE = Spheral::FieldList<DIM, DATA_TYPE>;
+  using FIELDLISTVIEW_TYPE = Spheral::FieldListView<DIM, DATA_TYPE>;
+
   //using VIEW_TYPE = FIELD_TYPE::view_type;
 
   //---------------------------------------------------------------------------
@@ -97,8 +100,10 @@ void SpheralVectorTest()
   using DATA_EXEC_POL = RAJA::loop_exec;
 #else
   ExecutionStrategy strat(n_pairs, data_sz, RAJA::Platform::host);
-  using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
-  using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
+  using PAIR_EXEC_POL = RAJA::loop_exec;
+  using DATA_EXEC_POL = RAJA::loop_exec;
+  //using PAIR_EXEC_POL = RAJA::omp_parallel_for_exec;
+  //using DATA_EXEC_POL = RAJA::omp_parallel_for_exec;
 #endif
   strat.print();
   
@@ -125,24 +130,34 @@ void SpheralVectorTest()
   //test_field.emplace_back(4,4,4);
   //test_field.push_back(DATA_TYPE(6,6,6));
 
-  Spheral::NodeList<DIM> data_node_list("DataNodeList", data_sz, 0);
+  Spheral::NodeList<DIM> data_node_list_a("DataNodeListA", data_sz, 0);
+  //Spheral::NodeList<DIM> data_node_list_b("DataNodeListB", data_sz, 0);
+  //Spheral::NodeList<DIM> data_node_list_c("DataNodeListC", data_sz, 0);
+  Spheral::NodeList<DIM> data_node_list_bc("DataNodeListBC", data_sz, 0);
   
-  FIELD_TYPE a_field("MyFieldA", data_node_list);
-  FIELD_TYPE b_field("MyFieldB", data_node_list);
-  //FIELD_TYPE c_field("MyFieldC", data_node_list);
-  FIELD_TYPE c_field(a_field);
+  FIELD_TYPE a_field("MyFieldA", data_node_list_a);
+  //FIELD_TYPE b_field("MyFieldB", data_node_list_b);
+  //FIELD_TYPE c_field("MyFieldC", data_node_list_c);
+  FIELD_TYPE b_field("MyFieldB", data_node_list_bc);
+  FIELD_TYPE c_field("MyFieldC", data_node_list_bc);
 
-  LvFieldList<DIM, DATA_TYPE> fieldlist("FIELDLIST");
+  FIELDLIST_TYPE fieldlist;
+
   fieldlist.appendField(a_field);
   fieldlist.appendField(b_field);
-  fieldlist.appendField(c_field);
+  //fieldlist.appendField(c_field);
 
-  LvFieldList<DIM, DATA_TYPE> fieldlist2("FIELDLIST-2");
-  fieldlist2.appendField(deepCopy(a_field));
-  fieldlist2.appendField(b_field);
-  fieldlist2.appendField(deepCopy(c_field));
+  FIELDLIST_TYPE fieldlist2;
 
-  std::cout << "a : name " << a_field.name() << "\n";
+  fieldlist2.appendField(c_field);
+  fieldlist2.appendField(a_field);
+  //fieldlist2.appendField(b_field);
+
+  FIELDLISTVIEW_TYPE fieldlist2_v = fieldlist2.toView();
+  FIELDLISTVIEW_TYPE fieldlist_v = fieldlist.toView();
+
+  for(auto& elem : fieldlist_v) std::cout << elem->name() << std::endl;
+  for(auto& elem : fieldlist2_v) std::cout << elem->name() << std::endl;
   
   std::cout << "RAJA Teams Implementation Idx.\n";
   launch_timer.start();
@@ -151,25 +166,27 @@ void SpheralVectorTest()
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST (unsigned t_idx) {
       //a_field[t_idx] = DATA_TYPE(1, 1, 1);
-      auto& x = fieldlist(0, t_idx);
-      auto& x2= fieldlist2(0, t_idx);
+      auto& x = fieldlist_v(0, t_idx);
+      auto& x2= fieldlist2_v(1, t_idx);
       x = DATA_TYPE(1, 1, 1);
       x2= DATA_TYPE(1, 1, 1);
     });
 
-  std::cout << "CHECK : " << fieldlist.name() << "\n";
+  std::cout << "check2\n";
+  //std::cout << "CHECK : " << fieldlist.name() << "\n";
 #if 1
   RAJA::forall<PAIR_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST_DEVICE (unsigned t_idx) {
 
       //a_field[t_idx] += DATA_TYPE(2, 2, 1);
-      auto& x = fieldlist(0, t_idx);
-      auto& x2= fieldlist2(0, t_idx);
+      auto& x = fieldlist_v(0, t_idx);
+      auto& x2= fieldlist2_v(1, t_idx);
       x += DATA_TYPE(t_idx, 2, 1);
       x2+= DATA_TYPE(t_idx, 2, 1);
 
     });
   timer_pair.stop();
+  std::cout << "check3\n";
 
   timer_red.start();
   // We need to perform an array reduction accross the memory pools. This is also performed on the 
@@ -177,8 +194,8 @@ void SpheralVectorTest()
   RAJA::forall<DATA_EXEC_POL>(TRS_UINT(0, data_sz),
     [=] RAJA_HOST (unsigned t_idx) {
       //a_field[t_idx] += DATA_TYPE(1, 1, 1);
-      auto& x = fieldlist(0, t_idx);
-      auto& x2= fieldlist2(0, t_idx);
+      auto& x = fieldlist_v(0, t_idx);
+      auto& x2= fieldlist2_v(1, t_idx);
       x += DATA_TYPE(1, 1, 1);
       x2+= DATA_TYPE(1, 1, 1);
       //b[t_idx] += DATA_TYPE(1, 1, 1);

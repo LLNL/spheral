@@ -68,7 +68,7 @@ public:
 
   // Element access.
   SPHERAL_HOST_DEVICE DataType& operator()(int index);
-  SPHERAL_HOST_DEVICE const DataType& operator()(int index) const;
+  SPHERAL_HOST_DEVICE DataType& operator()(int index) const;
 
   SPHERAL_HOST_DEVICE DataType& at(int index);
   SPHERAL_HOST_DEVICE const DataType& at(int index) const;
