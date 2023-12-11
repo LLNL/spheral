@@ -71,11 +71,10 @@ class SolidNodeList(FluidNodeList):
     def longitudinalSoundSpeed(self,
                                result="ScalarField&",
                                rho = "const ScalarField&",
-                               E = "const ScalarField&",
                                K = "const ScalarField&",
                                mu = "const ScalarField&"):
         """Compute the current longitudinal sound speed, storing the result in the argument result,
-given the mass density, Youngs modulus, bulk modulus, and shear modulus (rho, E, K, mu)"""
+given the mass density, bulk modulus, and shear modulus (rho, K, mu)"""
         return "void"
 
     @PYB11const

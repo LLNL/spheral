@@ -51,7 +51,6 @@ public:
                              const Field<Dimension, Scalar>& mu) const;  // shear modulus
   virtual void longitudinalSoundSpeed(Field<Dimension, Scalar>& field,
                                       const Field<Dimension, Scalar>& rho,        // mass density
-                                      const Field<Dimension, Scalar>& E,          // Youngs modulus
                                       const Field<Dimension, Scalar>& K,          // bulk modulus
                                       const Field<Dimension, Scalar>& mu) const;  // shear modulus
 

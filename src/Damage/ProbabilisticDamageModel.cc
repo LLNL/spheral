@@ -216,7 +216,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
   const auto& eps = nodes.specificThermalEnergy();
   const auto& D = nodes.damage();
-  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes), E("E", nodes);
+  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
   nodes.equationOfState().setPressure(P, rho, eps);
   if (nodes.strengthModel().providesBulkModulus()) {
     nodes.strengthModel().bulkModulus(K, rho, eps);
@@ -224,11 +224,10 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     nodes.equationOfState().setBulkModulus(K, rho, eps);
   }
   nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
-  nodes.YoungsModulus(E, K, mu);
 
   // Set the initial values for Youngs modulus and the longitudinal sound speed
   nodes.YoungsModulus(mYoungsModulus, K, mu);
-  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, E, K, mu);
+  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
 }
 
 //------------------------------------------------------------------------------

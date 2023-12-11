@@ -7,7 +7,6 @@
 #include "BulkModulusPolicy.hh"
 #include "SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "FSISPH/FSIFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"

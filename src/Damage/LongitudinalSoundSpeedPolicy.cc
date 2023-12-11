@@ -72,12 +72,11 @@ update(const KeyType& key,
   // from the state.
   const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
   const auto& rho = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
-  const auto& E = state.field(buildKey(SolidFieldNames::YoungsModulus), 0.0);
   const auto& K = state.field(buildKey(SolidFieldNames::bulkModulus), 0.0);
   const auto& mu = state.field(buildKey(SolidFieldNames::shearModulus), 0.0);
 
   // Now set the longitudinal sound speed.
-  mSolidNodeList.longitudinalSoundSpeed(stateField, rho, E, K, mu);
+  mSolidNodeList.longitudinalSoundSpeed(stateField, rho, K, mu);
 }
 
 //------------------------------------------------------------------------------
