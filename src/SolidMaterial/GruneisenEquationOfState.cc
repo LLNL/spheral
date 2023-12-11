@@ -256,7 +256,7 @@ pressureAndDerivs(const Scalar massDensity,
     const double dDdrho = (1.0 - mS1 - mS2*ack*(2.0 - ack) - mS3*ack*ack*(3.0 - 2.0*ack))/rho0;
     return std::make_tuple(this->applyPressureLimits(A*Dinv*Dinv + (mgamma0 + mb*mu)*rho0*eps), // P
                            (mgamma0 + mb*mu)*rho0,                                              // \partial P/\partial eps
-                           (D*dAdrho - A*dDdrho)*FastMath::pow4(Dinv) + mb*eps);                // \partial P/\partial rho
+                           (D*dAdrho - 2.0*A*dDdrho)*FastMath::pow3(Dinv) + mb*eps);            // \partial P/\partial rho
     // return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
     //                                   (mgamma0 + mb*mu)*rho0*eps));
   }
