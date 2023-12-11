@@ -74,7 +74,7 @@ setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
   for (size_t i = 0; i != massDensity.numElements(); ++i) {
     Pressure(i) = pressure(massDensity(i), specificThermalEnergy(i));
     dPdu(i) = mGamma1*massDensity(i);
-    dPdrho = mGamma1*specificThermalEnergy(i);
+    dPdrho(i) = mGamma1*specificThermalEnergy(i);
   }
 }
 

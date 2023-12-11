@@ -252,7 +252,7 @@ IsothermalEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
-  return pressure(massDensity, specificThermalEnergy) + this->externalPressure();
+  return pressure(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------

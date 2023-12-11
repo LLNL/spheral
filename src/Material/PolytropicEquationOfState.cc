@@ -272,7 +272,7 @@ PolytropicEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return mGamma*(pressure(massDensity, specificThermalEnergy) + this->externalPressure());
+  return mGamma*(pressure(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------
