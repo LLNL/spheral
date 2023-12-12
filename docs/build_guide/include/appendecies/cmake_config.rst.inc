@@ -78,7 +78,13 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
   Do not build python wrappers for Spheral.
 
 ``ENABLE_STATIC_CXXONLY`` (On, *Off*)
-  Do not build python wrappers for Spheral. Build static library files for Spheral.
+  Do not build python wrappers for Spheral. Build and export static library files for Spheral.
+
+``ENABLE_SHARED`` (*On*, Off)
+  Build Spheral C++ libraries as shared libraries.
+
+``ENABLE_DEV_BUILD`` (On, *Off*)
+  Builds separate internal C++ libraries for faster code development.
 
 ``<TPL-Name-Here>_DIR``
   Directory of previously built TPL.
