@@ -17,7 +17,6 @@ include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 
 if (NOT ENABLE_CXXONLY)
   # Find the appropriate Python
-  set(Python3_ROOT_DIR ${python_DIR})
   find_package(Python3 COMPONENTS Interpreter Development)
   set(PYTHON_EXE ${Python3_EXECUTABLE})
   list(APPEND SPHERAL_BLT_DEPENDS Python3::Python)

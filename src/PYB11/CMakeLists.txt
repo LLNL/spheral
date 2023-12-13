@@ -17,8 +17,6 @@ set (_python_packages
   Boundary
   Physics
   Hydro
-  ExternalForce
-  Gravity
   Integrator
   NodeGenerators
   FieldOperations
@@ -34,7 +32,6 @@ set (_python_packages
   SolidMaterial
   Strength
   Porosity
-  ArtificialConduction
   KernelIntegrator
   polytope
   OpenMP
@@ -43,11 +40,25 @@ set (_python_packages
 if(ENABLE_MPI)
   list(APPEND _python_packages Distributed)
 endif()
+
 if (ENABLE_ANEOS)
   list(APPEND _python_packages ANEOS)
 endif()
+
 if (ENABLE_HELMHOLTZ)
   list(APPEND _python_packages Helmholtz)
+endif()
+
+if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)
+  list(APPEND _python_packages ArtificialConduction)
+endif()
+
+if (SPHERAL_ENABLE_EXTERNAL_FORCE)
+  list(APPEND _python_packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_GRAVITY)
+  list(APPEND _python_packages Gravity)
 endif()
 
 foreach(_python_package ${_python_packages})

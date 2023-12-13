@@ -16,7 +16,6 @@
 #include <stdint.h>
 #include <bitset>
 #include "boost/unordered_map.hpp"
-#include "boost/unordered_set.hpp"
 
 #include "NullCellValue.hh"
 #include "UniqueNodeLeaf.hh"

@@ -12,7 +12,6 @@ set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
 # These are internal Spheral packages
 list(APPEND _packages
-  ArtificialConduction
   ArtificialViscosity
   Boundary
   CRKSPH
@@ -22,14 +21,12 @@ list(APPEND _packages
   DataBase
   DataOutput
   Distributed
-  ExternalForce
   FSISPH
   Field
   FieldOperations
   FileIO
   GSPH
   Geometry
-  Gravity
   Hydro
   Integrator
   Kernel
@@ -48,6 +45,18 @@ list(APPEND _packages
   Strength
   Utilities
   )
+
+if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)
+  list(APPEND _packages ArtificialConduction)
+endif()
+
+if (SPHERAL_ENABLE_EXTERNAL_FORCE)
+  list(APPEND _packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_GRAVITY)
+   list(APPEND _packages Gravity)
+endif()
 
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages
