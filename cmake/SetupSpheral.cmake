@@ -20,6 +20,11 @@ include(Compilers)
 #-------------------------------------------------------------------------------
 # Configure and Include blt
 #-------------------------------------------------------------------------------
+
+# Need to define Python paths here as BLT finds it's own Python package.
+set(Python_EXECUTABLE ${python_DIR}/bin/python3)
+set(Python3_EXECUTABLE ${python_DIR}/bin/python3)
+
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
