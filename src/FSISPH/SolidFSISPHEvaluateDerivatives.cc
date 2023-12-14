@@ -1,17 +1,29 @@
 namespace Spheral {
 
+template<typename Dimension>
+void
+SolidFSISPHHydroBase<Dimension>::
+evaluateDerivatives(const typename Dimension::Scalar time,
+                      const typename Dimension::Scalar dt,
+                      const DataBase<Dimension>& dataBase,
+                      const State<Dimension>& state,
+                            StateDerivatives<Dimension>& derivatives) const {
+  this->firstDerivativesLoop(time,dt,dataBase,state,derivatives);
+  this->secondDerivativesLoop(time,dt,dataBase,state,derivatives);
+  //this->setH(time,dt,dataBase,state,derivatves)
+}
+
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar time,
+secondDerivativesLoop(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivatives) const {
-
+                          StateDerivatives<Dimension>& derivatives) const { 
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -23,10 +35,25 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& W = this->kernel();
   const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
-  // A few useful constants we'll use in the following loop.
-  const auto fullyDamagedThreshold=1.0e-2;
+  // huge amount of tinies
   const auto tiny = std::numeric_limits<double>::epsilon();
+  const auto tinyScalarDamage = 1.0e-2;
+  const auto tinyNonDimensional = 1.0e-9;
+
+  // map to get the new interface flag from the neighbor details
+  std::vector<std::vector<int>> interfaceFlagMap(2, vector<int>(6,0));
+  interfaceFlagMap[0][2] = 1;
+  interfaceFlagMap[0][4] = 1;
+  interfaceFlagMap[1][0] = 3;
+  interfaceFlagMap[1][1] = 3;
+  interfaceFlagMap[1][2] = 3;
+  interfaceFlagMap[1][3] = 3;
+  interfaceFlagMap[1][4] = 3;
+
+  // constants
   const auto W0 = W(0.0, 1.0);
+  const auto interfaceNeighborAngleThreshold = this->interfaceNeighborAngleThreshold();
+  const auto interfacePmin = this-> interfacePmin();
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   const auto totalEnergy = this->evolveTotalEnergy();
@@ -41,7 +68,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
   const auto constructHLLC = (mInterfaceMethod == InterfaceMethod::HLLCInterface);
   const auto activateConstruction = !(mInterfaceMethod == InterfaceMethod::NoInterface);
-  const auto oneOverDimension = 1.0/Dimension::nDim;
+  const auto oneOverDimension = (this->planeStrain() ? 1.0/3.0 : 1.0/Dimension::nDim);
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -53,8 +80,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto  WnPerh = W(1.0/nPerh, 1.0);
 
   // Get the state and derivative FieldLists.
-  const auto interfaceFraction = state.fields(FSIFieldNames::interfaceFraction, 0.0);
   const auto interfaceNormals = state.fields(FSIFieldNames::interfaceNormals, Vector::zero);
+  const auto interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
+  const auto interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
   const auto interfaceSmoothness = state.fields(FSIFieldNames::interfaceSmoothness, 0.0);
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
@@ -62,8 +90,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto rawPressure = state.fields(FSIFieldNames::rawPressure, 0.0);
+  const auto damagedPressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto pressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
@@ -71,9 +99,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  //const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
+  //const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
-  CHECK(fragIDs.size()==numNodeLists);
-  CHECK(interfaceFraction.size() == numNodeLists);
+  CHECK(interfaceFlags.size() == numNodeLists);
+  CHECK(interfaceAreaVectors.size() == numNodeLists);
   CHECK(interfaceNormals.size() == numNodeLists);
   CHECK(interfaceSmoothness.size() == numNodeLists);
   CHECK(mass.size() == numNodeLists);
@@ -83,24 +113,29 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(specificThermalEnergy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
   CHECK(pressure.size() == numNodeLists);
-  CHECK(rawPressure.size() == numNodeLists);
+  CHECK(damagedPressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(S.size() == numNodeLists);
   CHECK(K.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
-  //CHECK(fragIDs.size() == numNodeLists);
+  CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  //CHECK(yield.size() == numNodeLists);
+  //CHECK(invJ2.size() == numNodeLists);
 
   // Derivative FieldLists.
   const auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   const auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   const auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
   const auto  DPDx = derivatives.fields(FSIFieldNames::pressureGradient, Vector::zero);
-  auto  smoothedInterfaceNormals = derivatives.fields(FSIFieldNames::smoothedInterfaceNormals,Vector::zero);
-  auto  newInterfaceFraction = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceFraction, 0.0);
-  auto  newInterfaceSmoothness = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
-  auto  newInterfaceNormals = derivatives.fields(ReplaceBoundedFieldList<Dimension, SymTensor>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
+  auto  newInterfaceNormals = derivatives.fields(PureReplaceFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceNormals, Vector::zero);
+  auto  newInterfaceFlags = derivatives.fields(PureReplaceFieldList<Dimension, int>::prefix() + FSIFieldNames::interfaceFlags, int(0));
+  auto  newInterfaceAreaVectors = derivatives.fields(PureReplaceFieldList<Dimension, Vector>::prefix() + FSIFieldNames::interfaceAreaVectors, Vector::zero);
+  auto  interfaceSmoothnessNormalization = derivatives.fields(FSIFieldNames::interfaceSmoothnessNormalization, 0.0);
+  auto  interfaceFraction = derivatives.fields(FSIFieldNames::interfaceFraction, 0.0);
+  auto  newInterfaceSmoothness = derivatives.fields(PureReplaceFieldList<Dimension, Scalar>::prefix() + FSIFieldNames::interfaceSmoothness, 0.0);
+  auto  interfaceAngles = derivatives.fields(FSIFieldNames::interfaceAngles, 0.0);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -119,10 +154,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   
-  CHECK(smoothedInterfaceNormals.size() == numNodeLists);
-  CHECK(newInterfaceFraction.size() == numNodeLists);
-  CHECK(newInterfaceSmoothness.size() == numNodeLists);
+  CHECK(M.size() == numNodeLists);
+  CHECK(localM.size() == numNodeLists);
+  CHECK(DepsDx.size() == numNodeLists);
+  CHECK(DPDx.size() == numNodeLists);
+  CHECK(newInterfaceFlags.size() == numNodeLists);
+  CHECK(newInterfaceAreaVectors.size() == numNodeLists);
   CHECK(newInterfaceNormals.size() == numNodeLists);
+  CHECK(interfaceSmoothnessNormalization.size() == numNodeLists);
+  CHECK(interfaceFraction.size() == numNodeLists);
+  CHECK(newInterfaceSmoothness.size() == numNodeLists);
+  CHECK(interfaceAngles.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -147,7 +189,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     pairDepsDt.resize(2*numPairs);
   }
 
-  this->computeMCorrection(time,dt,dataBase,state,derivatives);
+  //this->computeMCorrection(time,dt,dataBase,state,derivatives);
 
 // Now we calculate  the hydro deriviatives
 // Walk all the interacting pairs.
@@ -161,10 +203,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     Vector sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto newInterfaceSmoothness_thread = newInterfaceSmoothness.threadCopy(threadStack);
-    auto newInterfaceFraction_thread = newInterfaceFraction.threadCopy(threadStack);
+    auto newInterfaceFlags_thread = newInterfaceFlags.threadCopy(threadStack, ThreadReduction::MAX);
+    auto newInterfaceAreaVectors_thread = newInterfaceAreaVectors.threadCopy(threadStack);
     auto newInterfaceNormals_thread = newInterfaceNormals.threadCopy(threadStack);
-    auto smoothedInterfaceNormals_thread = smoothedInterfaceNormals.threadCopy(threadStack);
+    auto newInterfaceSmoothness_thread = newInterfaceSmoothness.threadCopy(threadStack);
+    auto interfaceSmoothnessNormalization_thread = interfaceSmoothnessNormalization.threadCopy(threadStack);
+    auto interfaceFraction_thread = interfaceFraction.threadCopy(threadStack);
+    auto interfaceAngles_thread = interfaceAngles.threadCopy(threadStack, ThreadReduction::MAX);
     auto normalization_thread = normalization.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
@@ -187,9 +232,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       nodeListj = pairs[kk].j_list;
 
       // Get the state for node i.
+      const auto& interfaceFlagsi = interfaceFlags(nodeListi,i);
+      const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
       const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
       const auto& interfaceSmoothnessi = interfaceSmoothness(nodeListi,i);
-      const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
       const auto& ri = position(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
@@ -197,15 +243,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi,i);
       const auto& Pi = pressure(nodeListi, i);
-      const auto& rPi = rawPressure(nodeListi, i);
+      const auto& Pdi = damagedPressure(nodeListi, i);
       const auto& ci = soundSpeed(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& pTypei = pTypes(nodeListi, i);
+      const auto  fragIDi = fragIDs(nodeListi, i);
+      //const auto  Yi = yield(nodeListi, i);
+      //const auto  invJ2i = invJ2(nodeListi, i);
       const auto  voli = mi/rhoi;
       const auto  mui = max(mu(nodeListi,i),tiny);
       const auto  Ki = max(tiny,K(nodeListi,i))+4.0/3.0*mui;
       const auto  Hdeti = Hi.Determinant();
-      const auto fragIDi = fragIDs(nodeListi, i);
+      epsLineari = epsi;
+      PLineari = Pdi;
+
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -223,15 +274,19 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
-      auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals_thread(nodeListi,i);
+      auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
+      auto& newInterfaceAreaVectorsi = newInterfaceAreaVectors_thread(nodeListi,i);
       auto& newInterfaceNormalsi = newInterfaceNormals_thread(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness_thread(nodeListi,i);
-      auto& newInterfaceFractioni = newInterfaceFraction_thread(nodeListi,i);
-
+      auto& interfaceFractioni = interfaceFraction_thread(nodeListi,i);
+      auto& interfaceSmoothnessNormalizationi = interfaceSmoothnessNormalization_thread(nodeListi,i);
+      auto& minNeighborAnglei = interfaceAngles_thread(nodeListi,i);
+      
       // Get the state for node j
+      const auto& interfaceFlagsj = interfaceFlags(nodeListj,j);
+      const auto& interfaceAreaVectorsj = interfaceAreaVectors(nodeListj,j);
       const auto& interfaceNormalsj = interfaceNormals(nodeListj,j);
       const auto& interfaceSmoothnessj = interfaceSmoothness(nodeListj,j);
-      const auto& interfaceFractionj = interfaceFraction(nodeListj,j);
       const auto& rj = position(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
@@ -239,15 +294,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj,j);
       const auto& Pj = pressure(nodeListj, j);
-      const auto& rPj = rawPressure(nodeListj, j);
+      const auto& Pdj = damagedPressure(nodeListj, j);
       const auto& cj = soundSpeed(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
       const auto& pTypej = pTypes(nodeListj, j);
+      const auto  fragIDj = fragIDs(nodeListj, j);
+      //const auto  Yj = yield(nodeListj, j);
+      //const auto  invJ2j = invJ2(nodeListj, j);
       const auto  volj = mj/rhoj;
       const auto  muj = max(mu(nodeListj,j),tiny);
       const auto  Kj = max(tiny,K(nodeListj,j))+4.0/3.0*muj;
       const auto  Hdetj = Hj.Determinant();
-      const auto fragIDj = fragIDs(nodeListj, j);
+      epsLinearj = epsj;
+      PLinearj = Pdj;
+
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -265,10 +325,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
-      auto& smoothedInterfaceNormalsj = smoothedInterfaceNormals_thread(nodeListj,j);
+      auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
+      auto& newInterfaceAreaVectorsj = newInterfaceAreaVectors_thread(nodeListj,j);
       auto& newInterfaceNormalsj = newInterfaceNormals_thread(nodeListj,j);
       auto& newInterfaceSmoothnessj = newInterfaceSmoothness_thread(nodeListj,j);
-      auto& newInterfaceFractionj = newInterfaceFraction_thread(nodeListj,j);
+      auto& interfaceFractionj = interfaceFraction_thread(nodeListj,j);
+      auto& interfaceSmoothnessNormalizationj = interfaceSmoothnessNormalization_thread(nodeListj,j);
+      auto& minNeighborAnglej = interfaceAngles_thread(nodeListj,j);
 
       // line of action
       const auto rij = ri - rj;
@@ -285,32 +348,33 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
       
       // pairwise damage and nodal damage
-      const auto fDij = (sameMatij ? pairs[kk].f_couple : 0.0);
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).dot(rhatij).magnitude()));
       const auto Dj = max(0.0, min(1.0, damage(nodeListj, j).dot(rhatij).magnitude()));
-      const auto fDi =  (sameMatij ? max((1.0-Di)*(1.0-Di),tiny) : 0.0 );
-      const auto fDj =  (sameMatij ? max((1.0-Dj)*(1.0-Dj),tiny) : 0.0 );
+      const auto fDi =  (sameMatij ? (1.0-Di)*(1.0-Di) : 0.0 );
+      const auto fDj =  (sameMatij ? (1.0-Dj)*(1.0-Dj) : 0.0 );
+      const auto fDij = (sameMatij ? pow(1.0-std::abs(Di-Dj),2.0) : 0.0 );
+      //const auto maxfDij = (sameMatij ? (1.0-Di)*(1.0-Dj) : 0.0);
 
       // is Pmin being activated (Pmin->zero for material interfaces)
-      const auto pLimiti = (sameMatij ? (Pi-rhoi*ci*ci*1e-5) : 0.0);
-      const auto pLimitj = (sameMatij ? (Pj-rhoj*cj*cj*1e-5) : 0.0);
-      const auto pminActivei = (rPi < pLimiti);
-      const auto pminActivej = (rPj < pLimitj);
+      const auto pLimiti = (sameMatij ? (Pdi-rhoi*ci*ci*tinyNonDimensional) : interfacePmin);
+      const auto pLimitj = (sameMatij ? (Pdj-rhoj*cj*cj*tinyNonDimensional) : interfacePmin);
+      const auto pminActivei = (Pi < pLimiti);
+      const auto pminActivej = (Pj < pLimitj);
       
       // decoupling criteria 
       const auto isExpanding = (ri-rj).dot(vi-vj) > 0.0;
-      const auto isFullyDamaged = (fDi<fullyDamagedThreshold) or (fDj<fullyDamagedThreshold);
+      const auto isFullyDamaged = (fDi<tinyScalarDamage) or (fDj<tinyScalarDamage);
       const auto isPastAdhesionThreshold = pminActivei or pminActivej;
-      const auto decouple = isExpanding and (isFullyDamaged and isPastAdhesionThreshold);
+      const auto decouple = isExpanding and isFullyDamaged and isPastAdhesionThreshold;
 
       // do we need to construct our interface velocity?
-      const auto constructInterface = (fDij < 1.0-fullyDamagedThreshold) and activateConstruction;
-      const auto negligableShearWave = max(mui,muj) < 1.0e-5*min(Ki,Kj);
+      const auto constructInterface = (fDij < 1.0-tinyScalarDamage) and activateConstruction;
+      const auto negligableShearWave = max(mui,muj) < tinyNonDimensional*min(Ki,Kj);
 
       // do we reduce our deviatoric stress
-      const auto isTensile = (((Si+Sj)-(Pi+Pj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
+      const auto isTensile = (((Si+Sj)-(Pdi+Pdj)*SymTensor::one).dot(rhatij)).dot(rhatij) > 0;
       const auto damageReduceStress = isTensile or differentMatij;
-
+      //const auto decouple = isExpanding and isFullyDamaged and isTensile;
       // Kernels
       //--------------------------------------
       const auto Hij = 0.5*(Hi+Hj);
@@ -337,6 +401,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // average our kernels
       const auto gradWij = 0.5*(gradWi+gradWj);
       const auto Wij = 0.5*(Wi+Wj);
+
       if(averageKernelij){
         const auto gWij = 0.5*(gWi+gWj);
         Wi = Wij;
@@ -347,28 +412,49 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWj = gradWij;
       }
 
-      if(this->correctVelocityGradient()){
-        gradWiMi = Mi.Transpose()*gradWi;
-        gradWjMj = Mj.Transpose()*gradWj;
-      }
+      gradWiMi = Mi.Transpose()*gradWi;
+      gradWjMj = Mj.Transpose()*gradWj;
 
-      // interface normals 
-      //-----------------------------------------------------------
-      const auto fSij = ( sameMatij ? 1.0 : -1.0);         // direction parameter
-      const auto Aij = fSij*voli*volj*(gradWiMi+gradWjMj); // "surface area vector"
-      newInterfaceNormalsi -= Aij;
-      newInterfaceNormalsj += Aij;
-      if(interfaceFractioni > tiny and interfaceFractionj > tiny){
-        smoothedInterfaceNormalsi += fSij*volj*interfaceFractionj*interfaceNormalsj*Wi;
-        smoothedInterfaceNormalsj += fSij*voli*interfaceFractioni*interfaceNormalsi*Wj;
-      }
-      if (differentMatij){
-        const auto alignment = max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0);
-        newInterfaceSmoothnessi += alignment*volj*Wij;
-        newInterfaceSmoothnessj += alignment*voli*Wij;
-        newInterfaceFractioni += volj*Wij;
-        newInterfaceFractionj += voli*Wij;
-      }
+      // interface fields
+      //----------------------------------------------------------------------------------
+      const auto fSij = ( sameMatij ? 1.0 : -1.0);
+      const auto interfaceSwitch = std::min(std::min(interfaceFlagsj,interfaceFlagsi),1);
+      const int sameMatMask = (sameMatij ? 1 : 0);
+      const int diffMatMask = 1-sameMatMask;
+      const int controlNodeMaski = interfaceFlagMap[0][interfaceFlagsi];
+      const int controlNodeMaskj = interfaceFlagMap[0][interfaceFlagsj];
+
+      const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
+
+      const auto alignment = (interfaceFlagsi == 5 or interfaceFlagsj == 5 ? 
+                              0.0:
+                              std::max(fSij*interfaceNormalsi.dot(interfaceNormalsj),0.0));
+
+      newInterfaceAreaVectorsi -= AijMij;
+      newInterfaceAreaVectorsj += AijMij;
+
+      interfaceFractioni += sameMatMask * volj * Wi;
+      interfaceFractionj += sameMatMask * voli * Wj;
+
+      // we use the angle between normal and neighbors to check for interface control particles (type 2 or 4)
+      const auto minNeighborMaski = (interfaceFlagsj != 5 and sameMatij ? 1.0 : -1.0); // turns following into no-op
+      const auto minNeighborMaskj = (interfaceFlagsi != 5 and sameMatij ? 1.0 : -1.0);
+      minNeighborAnglei = std::max(std::min(minNeighborMaski,-interfaceAreaVectorsi.unitVector().dot(rhatij)),minNeighborAnglei);
+      minNeighborAnglej = std::max(std::min(minNeighborMaskj, interfaceAreaVectorsj.unitVector().dot(rhatij)),minNeighborAnglej);
+
+      // if the node neighbors a control node, set its value to 1 if initially 0
+      newInterfaceFlagsi = std::max(newInterfaceFlagsi, interfaceFlagMap[diffMatMask][interfaceFlagsj]);
+      newInterfaceFlagsj = std::max(newInterfaceFlagsj, interfaceFlagMap[diffMatMask][interfaceFlagsi]);
+
+      // only flagged nodes get normals and they're based on their control node neighbors
+      newInterfaceNormalsi += interfaceSwitch*controlNodeMaskj*fSij*volj*interfaceAreaVectorsj*Wij;
+      newInterfaceNormalsj += interfaceSwitch*controlNodeMaski*fSij*voli*interfaceAreaVectorsi*Wij;
+
+      // smoothness is calculated for all flagged interface/surface nodes
+      interfaceSmoothnessNormalizationi += interfaceSwitch*volj*Wij;
+      interfaceSmoothnessNormalizationj += interfaceSwitch*voli*Wij;
+      newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
+      newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
 
       // Zero'th and second moment of the node distribution -- used for the
       // ideal H calculation.
@@ -410,23 +496,37 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         maxViscousPressurej = max(maxViscousPressurej, rhoi*rhoj * QPiji.diagonalElements().maxAbsElement());
 
         // stress tensor
-        {
+        //{
+          // apply yield pairwise 
+          //const auto Yij = std::max(0.0,std::min(Yi,Yj));
+          //const auto fYieldi = std::min(Yij*invJ2i,1.0);
+          //const auto fYieldj = std::min(Yij*invJ2j,1.0);
+          //const auto Seffi = (sameMatij ? 1.0 : 0.0 ) * Si;
+          //const auto Seffj = (sameMatij ? 1.0 : 0.0 ) * Sj;
+          //const auto Seffi = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Si;
+          //const auto Seffj = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Sj;
+          //const auto Peffi = maxfDij*min(Pi,0.0) + max(Pi,0.0);
+          //const auto Peffj = maxfDij*min(Pj,0.0) + max(Pj,0.0);
+          //const auto Seffi = maxfDij * Si; //(damageReduceStress ? fDij : 1.0) * Si;
+          //const auto Seffj = maxfDij * Sj; //(damageReduceStress ? fDij : 1.0) * Sj;
+          const auto Peffi = (differentMatij ? max(Pdi,interfacePmin) : Pdi);
+          const auto Peffj = (differentMatij ? max(Pdj,interfacePmin) : Pdj);
           const auto Seffi = (damageReduceStress ? fDij : 1.0) * Si;
           const auto Seffj = (damageReduceStress ? fDij : 1.0) * Sj;
-          const auto Peffi = (differentMatij ? max(Pi,0.0) : Pi);
-          const auto Peffj = (differentMatij ? max(Pj,0.0) : Pj);
           sigmai = Seffi - Peffi * SymTensor::one;
           sigmaj = Seffj - Peffj * SymTensor::one;
-        }
+        //}
 
         // Compute the tensile correction to add to the stress as described in 
         // Gray, Monaghan, & Swift (Comput. Methods Appl. Mech. Eng., 190, 2001)
-        const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
-        const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
-        const auto Ri = fi*tensileStressCorrection(sigmai);
-        const auto Rj = fj*tensileStressCorrection(sigmaj);
-        sigmai += Ri;
-        sigmaj += Rj;
+        {
+          const auto fi = epsTensile*FastMath::pow4(Wi/(Hdeti*WnPerh));
+          const auto fj = epsTensile*FastMath::pow4(Wj/(Hdetj*WnPerh));
+          const auto Ri = fi*tensileStressCorrection(sigmai);
+          const auto Rj = fj*tensileStressCorrection(sigmaj);
+          sigmai += Ri;
+          sigmaj += Rj;
+        }
 
         // accelerations
         //---------------------------------------------------------------
@@ -450,11 +550,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       
         // Velocity Gradient
         //-----------------------------------------------------------
-
         // construct our interface velocity 
         auto vstar = 0.5*(vi+vj);
+
+        linearReconstruction(ri,rj,Pdi,Pdj,DPDxi,DPDxj,PLineari,PLinearj);
         if (constructInterface){
-          
           // components
           const auto ui = vi.dot(rhatij);
           const auto uj = vj.dot(rhatij);
@@ -466,18 +566,26 @@ evaluateDerivatives(const typename Dimension::Scalar time,
           const auto Cj =  (constructHLLC ? std::sqrt(rhoj*Kj)  : Kj  ) + tiny;
           const auto Csi = (constructHLLC ? std::sqrt(rhoi*mui) : mui ) + tiny;
           const auto Csj = (constructHLLC ? std::sqrt(rhoj*muj) : muj ) + tiny;
+          const auto CiCjInv = safeInv(Ci+Cj,tiny);
+          const auto CsiCsjInv = safeInv(Csi+Csj,tiny);
 
-          const auto weightUi = max(0.0, min(1.0, Ci/(Ci+Cj)));
+          // weights
+          const auto weightUi = max(0.0, min(1.0, Ci*CiCjInv));
           const auto weightUj = 1.0 - weightUi;
-          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi/(Csi+Csj) )) );
+          const auto weightWi = (negligableShearWave ? weightUi : max(0.0, min(1.0, Csi*CsiCsjInv )) );
           const auto weightWj = 1.0 - weightWi;
 
-          // get our eff pressure
-          const auto ustar = weightUi*ui + weightUj*uj; 
-          const auto wstar = weightWi*wi + weightWj*wj;
+          // interface velocity
+          const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv : 0.0); 
+          const auto wstar = weightWi*wi + weightWj*wj;// - (constructHLLC ? (Seffj - Seffi).dot(rhatij)*CsiCsjInv : Vector::zero);
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
-  
         }
+
+        // TODO:
+        //------------------------------------------------------------
+        // fix pressure/rawPressure convert to damagePressure/pressure
+        // get wave speeds in there in a good manner
+        //------------------------------------------------------------
 
         // local velocity gradient for DSDt
         if (sameMatij) {
@@ -487,10 +595,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
-          linearReconstruction(ri,rj,Pi,Pj,DPDxi,DPDxj,PLineari,PLinearj);
           const auto cFactor = 1.0 + max(min( (vi-vj).dot(rhatij)/max(cij,tiny), 0.0), -1.0);
           const auto effCoeff = (differentMatij ? 1.0 : rhoStabilizeCoeff*cFactor);
-          vstar += effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
+          vstar += (constructHLLC ? fDij : 1.0) * effCoeff * rhatij * cij * min(max((PLinearj-PLineari)/(Ki + Kj),-0.25),0.25);
         }
 
         // global velocity gradient
@@ -529,11 +636,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         // XSPH -- we use this to handle tensile instability here
         //-----------------------------------------------------------
         if (sameMatij and XSPH) {
-          const auto fxsph  = (min(Pi,Pj) < 0.0 ? 1.0 : 0.0);
-          XSPHWeightSumi += fxsph*volj*Wi;
-          XSPHWeightSumj += fxsph*voli*Wj;
-          XSPHDeltaVi -= volj*Wi*(vi-vstar);
-          XSPHDeltaVj -= voli*Wj*(vj-vstar);
+          const auto fxsph = (std::min(Pdi,Pdj) < 0 ? 1 : 0);
+          XSPHWeightSumi += fxsph * volj*Wi;
+          XSPHWeightSumj += fxsph * voli*Wj;
+          XSPHDeltaVi -= fDij*volj*Wi*(vi-vj);
+          XSPHDeltaVj -= fDij*voli*Wj*(vj-vi);
         }
 
       } // if damageDecouple 
@@ -562,10 +669,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto& Si = S(nodeListi, i);
       const auto& mui = mu(nodeListi, i);
-      const auto& interfaceFractioni = interfaceFraction(nodeListi,i);
-      const auto& interfaceNormalsi = interfaceNormals(nodeListi,i);
+      const auto& interfaceFlagsi = interfaceFlags(nodeListi,i);
+      const auto& interfaceAreaVectorsi = interfaceAreaVectors(nodeListi,i);
       const auto  Hdeti = Hi.Determinant();
-      
+      const auto psi = Hdeti*mi/rhoi*W0;
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -585,22 +692,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
-      auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
-      auto& newInterfaceFractioni = newInterfaceFraction(nodeListi,i);
       auto& newInterfaceNormalsi = newInterfaceNormals(nodeListi,i);
-      auto& smoothedInterfaceNormalsi = smoothedInterfaceNormals(nodeListi,i);
+      auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
+      auto& interfaceSmoothnessNormalizationi = interfaceSmoothnessNormalization(nodeListi,i);
+      auto& interfaceFractioni = interfaceFraction(nodeListi,i);
+      auto& newInterfaceFlagsi = newInterfaceFlags(nodeListi,i);
+      auto& minNeighborAnglei = interfaceAngles(nodeListi,i);
 
       // finish our normalization
-      normi += Hdeti*mi/rhoi*W0;
+      normi += psi;
 
       // finish our interface fields.
-      newInterfaceSmoothnessi = min(1.0,max(0.0,newInterfaceSmoothnessi/max(newInterfaceFractioni,tiny)));
-      smoothedInterfaceNormalsi +=  interfaceFractioni * Hdeti*mi/rhoi*W0 * interfaceNormalsi;
-      if (newInterfaceFractioni > tiny){
-        const auto normalSmoothFraction = min(0.9,max(0.1, 20.0*min(interfaceFractioni,0.05)));
-        newInterfaceNormalsi = (normalSmoothFraction * newInterfaceNormalsi.unitVector()+
-                                (1.0-normalSmoothFraction) * smoothedInterfaceNormalsi.unitVector()).unitVector();
-      }else{
+      if(minNeighborAnglei < interfaceNeighborAngleThreshold)  newInterfaceFlagsi = std::max(2,newInterfaceFlagsi+1);
+      if(interfaceFractioni/(1.0-psi)<0.1) newInterfaceFlagsi = 5.0;
+
+      interfaceFractioni += psi;
+
+      if ( interfaceFlagsi > 0 ){
+        const double proxWeighti = 100*(1.0 - interfaceFlagsi % 2);
+        newInterfaceNormalsi = (newInterfaceNormalsi + proxWeighti * psi * interfaceAreaVectorsi).unitVector();
+        newInterfaceSmoothnessi = newInterfaceSmoothnessi/max(interfaceSmoothnessNormalizationi,tiny);
+      } else {
         newInterfaceNormalsi = Vector::zero;
       }
 
@@ -615,10 +727,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       DxDti = vi;
       if (XSPH) {
-        XSPHWeightSumi += Hdeti*mi/rhoi*W0;
-        XSPHWeightSumi /= normi;
-        //CHECK(XSPHWeightSumi >= 0.0);
-        DxDti += xsphCoeff*XSPHDeltaVi/max(normi,tiny);
+        CHECK(normi >= 0.0);
+        const auto invNormi = 1.0/max(normi,tiny);
+        XSPHWeightSumi = (interfaceFlagsi == 0 ? XSPHWeightSumi*invNormi : 0);
+        DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi*invNormi;
       }
 
     
@@ -643,7 +755,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                        nodeListi,
                                                        i);
 
-      if(this->correctVelocityGradient()) localDvDxi = localDvDxi*localMi;
+      localDvDxi = localDvDxi*localMi;
 
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
@@ -663,7 +775,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
-computeMCorrection(const typename Dimension::Scalar /*time*/,
+firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
                    const typename Dimension::Scalar /*dt*/,
                    const DataBase<Dimension>& dataBase,
                    const State<Dimension>& state,
@@ -689,7 +801,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
+  const auto damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
   CHECK(mass.size() == numNodeLists);
@@ -697,7 +809,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
   CHECK(massDensity.size() == numNodeLists);
   CHECK(specificThermalEnergy.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
-  CHECK(pressure.size() == numNodeLists);
+  CHECK(damagedPressure.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  DepsDx = derivatives.fields(FSIFieldNames::specificThermalEnergyGradient, Vector::zero);
@@ -734,7 +846,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& epsi = specificThermalEnergy(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
+      const auto& Pi = damagedPressure(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
       const auto  Hdeti = Hi.Determinant();
@@ -747,7 +859,7 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
       const auto& rj = position(nodeListj, j);
       const auto& mj = mass(nodeListj, j);
       const auto& epsj = specificThermalEnergy(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
+      const auto& Pj = damagedPressure(nodeListj, j);
       const auto& rhoj = massDensity(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
       const auto  Hdetj = Hj.Determinant();
@@ -839,15 +951,14 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
 
         const auto Mdeti = Mi.Determinant();
         const auto goodM = ( Mdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        Mi =  (goodM ? Mi.Inverse() : Tensor::one);
+        Mi =  (goodM and this->linearCorrectGradients() ? Mi.Inverse() : Tensor::one);
         
         const auto localMdeti = localMi.Determinant();
         const auto goodLocalM = ( localMdeti > 1.0e-2 and numNeighborsi > Dimension::pownu(2));
-        localMi =  (goodLocalM ? localMi.Inverse() : Tensor::one);
+        localMi =  (goodLocalM and this->linearCorrectGradients() ? localMi.Inverse() : Tensor::one);
 
         DPDxi = Mi.Transpose()*DPDxi;
         DepsDxi = localMi.Transpose()*DepsDxi;
-
       } // for each node
     }   // for each nodelist
 
@@ -862,6 +973,6 @@ computeMCorrection(const typename Dimension::Scalar /*time*/,
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-} // method 
+ } // method 
 
 } // spheral namespace

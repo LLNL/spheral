@@ -405,7 +405,7 @@ elif fsisph:
                 interfaceMethod = fsiInterfaceMethod,  
                 kernelAveragingMethod = fsiKernelMethod,
                 sumDensityNodeLists = sumDensityNodeLists,
-                correctVelocityGradient = correctVelocityGradient,
+                linearCorrectGradients = correctVelocityGradient,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
                 HUpdate = HUpdate,
