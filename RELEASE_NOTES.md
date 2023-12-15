@@ -29,6 +29,11 @@ Notable changes include:
   * Bug Fixes / improvements:
     * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.
     * Fixed range of dimensionless melt temperature for Johnson-Cook strength.
+    * FSISPH new features and modifications to method 
+      * NOTE constructor inputs have changed
+      * strength implementation modified
+      * new features added including plane strain option and settable minP for interfaces
+      * new, more rigorous, interface and free surface tracking
     * Fixed initialization of longitudinal sound speed and Youngs modulus for damage models.
     * Corrected some minor bugs/inconsistencies in the Tillotson EOS.
 

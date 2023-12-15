@@ -6,6 +6,7 @@ text = """
 #include "GSPH/Policies/PureReplaceState.cc"
 
 namespace Spheral {
+  template class PureReplaceState<Dim< %(ndim)s >, int>;
   template class PureReplaceState<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
   template class PureReplaceState<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>;
   template class PureReplaceState<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector3d>;

@@ -50,9 +50,10 @@ commandLine(
     halfDomain = False,       # for 2d are we using symmetry?
 
     # Kernel 
-    nPerh = 3.01,             # neighbors per smoothing length       
-    kernelOrder = None,       # defaults to WendlandC4, tabulated bspline if kernel order specificed
-    HEvolution =  IdealH,     # (IdealH, IntegrateH)
+    KernelConstructor = WendlandC2Kernel, # WendlandC2Kernel, WendlandC4Kernel, WendlandC6Kernel, NBSplineKernel,
+    nPerh = 2.75,                         # neighbors per smoothing length       
+    kernelOrder = None,                   # 3,5,7 order for NBSpline
+    HEvolution =  IdealH,                 # (IdealH, IntegrateH)
 
     # Hydro type
     crksph = False,
@@ -77,9 +78,9 @@ commandLine(
     fsiXSPHCoeff=0.00,                           # xsph coeff
     fsiEpsDiffuseCoeff=0.1,                      # coeff second order artificial conduction
     fsiInterfaceMethod = HLLCInterface,          # how do we handle multimat? (HLLCInterface,ModulusInterface,NoInterface)
-    fsiKernelMethod = AverageInterfaceKernels,   # should we avg the kernels? (AlwaysAverageKernels,NeverAverageKernels,AverageInterfaceKernels)
+    fsiKernelMethod = NeverAverageKernels,       # should we avg the kernels? (AlwaysAverageKernels,NeverAverageKernels,AverageInterfaceKernels)
     fsiSumDensity = True,                        # apply sum density to air nodes
-    fsiSlides = True,                            # apply slide condition to interface
+    fsiSlides = True,                             # apply slide condition to interface
 
     # gsph-specific parameters
     gsphEpsDiffuseCoeff = 0.0,                # 1st order artificial conduction coeff
@@ -99,9 +100,14 @@ commandLine(
     quadraticInExpansion = None,        # turn on quadratic coeff when particles are separating
     etaCritFrac = None,
     
+    boolReduceViscosity =True,
+    nh = 1.00,
+    aMin = 0.05,
+    aMax = 2.0,
+
     # Times, and simulation control.
-    cfl = 0.30,
-    goalTime = 20.0,          # tstar units
+    cfl = 0.2,
+    goalTime = 13.6,          # tstar units
     dt = 1e-9,                # sec - mixed units i know lock me up
     dtMin = 1e-12,            # sec
     dtMax = 1000.0,           # sec
@@ -173,10 +179,12 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Our Kernel 
 #-------------------------------------------------------------------------------
-if kernelOrder is not None:
-    WT = TableKernel(NBSplineKernel(kernelOrder), 1000)
+if KernelConstructor==NBSplineKernel:
+    assert kernelOrder in (3,5,7)
+    WT = TableKernel(KernelConstructor(kernelOrder), 1000)
 else:
-    WT = TableKernel(WendlandC2Kernel(), 1000)
+    WT = TableKernel(KernelConstructor(), 1000) 
+kernelExtent = WT.kernelExtent
 output("WT")
 
 #--------------------------------------------------------------------------------
@@ -432,7 +440,7 @@ elif fsisph:
                 interfaceMethod = fsiInterfaceMethod,  
                 kernelAveragingMethod = fsiKernelMethod,
                 sumDensityNodeLists = sumDensityNodeLists,
-                correctVelocityGradient = correctVelocityGradient,
+                linearCorrectGradients = correctVelocityGradient,
                 compatibleEnergyEvolution = compatibleEnergyEvolution,
                 evolveTotalEnergy = totalEnergyEvolution,
                 HUpdate = HEvolution,
@@ -496,9 +504,15 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro.HEvolution")
-output("hydro.XSPH")
 
 packages += [hydro]
+
+#-------------------------------------------------------------------------------
+# Physics Package : AV limiters
+#-------------------------------------------------------------------------------
+if boolReduceViscosity:
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(hydro.Q,nh,nh,aMin,aMax)
+    packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -587,11 +601,10 @@ class TrackDropletShape:
 
         self.restart = RestartableObject(self)
         self.dataDir = dataDir
-        self.fracThresh = 0.005
         self.sampleWidth = 5.0 * rDroplet/float(nrDroplet) 
         self.tstar = tstar
 
-        self.interfaceFraction = interfaceFraction
+        self.interfaceFlag = interfaceFraction
         self.dropletNodeList = dropletNodeList
         self.rDroplet = rDroplet
 
@@ -703,42 +716,42 @@ class TrackDropletShape:
 #-------------------------------------------------------------------------------
 class trackInterface:
     def __init__(self,
-                 interfaceFraction,
+                 interfaceFlag,
                  dropletNodeList,
                  tstar,
                  dataDir):
         self.tstar = tstar
-        self.interfaceFraction = interfaceFraction
+        self.interfaceFlag = interfaceFlag
         self.dropletNodeList = dropletNodeList
         self.dataDir = os.path.join(dataDir,"interface")
         if not os.path.exists(self.dataDir) and mpi.rank==0:
             os.makedirs(self.dataDir)
 
-    def setInterfaceFrac(self):
-        self.frac = self.interfaceFraction.fieldForNodeList(self.dropletNodeList)
+    def setInterfaceFlag(self):
+        self.flag = self.interfaceFlag.fieldForNodeList(self.dropletNodeList)
 
     def write(self,cycle,time,dt):
  
-        self.setInterfaceFrac()
+        self.setInterfaceFlag()
 
         ni = self.dropletNodeList.numInternalNodes
         pos = self.dropletNodeList.positions()
 
-        frac = []
+        flag = []
         x = []
         y = []
         z = []
 
         for i in range(ni):
-            fraci = self.frac[i]
-            if fraci > 0.01 and fraci < 0.3:
-                frac.append(fraci)
+            flagi = self.flag[i]
+            if flagi==4:
+                flag.append(flagi)
                 x.append(pos[i].x)
                 y.append(pos[i].y)
                 z.append(pos[i].z)
 
         # share info
-        frac = mpi.allreduce(frac,mpi.SUM)
+        flag = mpi.allreduce(flag,mpi.SUM)
         x = mpi.allreduce(x,mpi.SUM)
         y = mpi.allreduce(y,mpi.SUM)
         z = mpi.allreduce(z,mpi.SUM)
@@ -747,7 +760,7 @@ class trackInterface:
         if mpi.rank == 0:
             filename = os.path.join(self.dataDir,'interface_'+str(cycle))
             f=open(filename+'.pkl','w')
-            pickle.dump([cycle, time, time/self.tstar, x, y, z, frac], f)    
+            pickle.dump([cycle, time, time/self.tstar, x, y, z, flag], f)    
             f.close()
 
 #-------------------------------------------------------------------------------
@@ -817,10 +830,10 @@ class trackCenterlinePressure:
 
 # create the periodic work functions. These are time-based work functions so we append them
 # after the control is constructe (these require fields from fsi's slide package)
-if fsisph:
-    interfaceFraction=hydro.slides.surfaceFraction
-    interfaceWriter = trackInterface(interfaceFraction,nodesWater,tstar,dataDir)
-    shapeTracker = TrackDropletShape(interfaceFraction,nodesWater,rColumn,nrColumn,tstar,dataDir)   
+if False: #fsisph:
+    interfaceFlags=hydro.interfaceFlags
+    interfaceWriter = trackInterface(interfaceFlags,nodesWater,tstar,dataDir)
+    #shapeTracker = TrackDropletShape(interfaceFlag,nodesWater,rColumn,nrColumn,tstar,dataDir)   
     centerlineWriter = trackCenterlinePressure(hydro.pressure,db,rColumn,nrColumn,tstar,dataDir)
 
 #-------------------------------------------------------------------------------
@@ -841,10 +854,10 @@ control = SpheralController(integrator, WT,
 
 control.redistribute = PeanoHilbertOrderRedistributeNodes(db.maxKernelExtent,workBalance=False)
 
-if fsisph:
+if False: #fsisph:
     control.appendPeriodicTimeWork(interfaceWriter.write, outputTime)
     control.appendPeriodicTimeWork(centerlineWriter.write, outputTime)
-    control.appendPeriodicTimeWork(shapeTracker.storeHistory, outputTime)
+    #control.appendPeriodicTimeWork(shapeTracker.storeHistory, outputTime)
 
 output("control")
 
@@ -857,5 +870,5 @@ else:
     control.advance(goalTime, maxSteps)
 
 # shape tracker dumps width/height at end
-if fsisph:
-    shapeTracker.write()
+#if fsisph:
+#    shapeTracker.write()
