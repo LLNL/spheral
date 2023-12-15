@@ -45,12 +45,13 @@ def _StrainPorosityFactory(ndim):
 """
 
             # Check for the deprecated porous EOS and strength models
-            if isinstance(args[0], EquationOfState):
-                print("DEPRECATION WARNING: StrainPorosity no longer requires a PorousEquationOfState -- ignoring")
-                args = args[1:]
-            if isinstance(args[0], StrengthModel):
-                print("DEPRECATION WARNING: StrainPorosity no longer requires a PorousStrengthModel -- ignoring")
-                args = args[1:]
+            if len(args) > 2:
+                if isinstance(args[0], EquationOfState):
+                    print("DEPRECATION WARNING: StrainPorosity no longer requires a PorousEquationOfState -- ignoring")
+                    args = args[1:]
+                if isinstance(args[0], StrengthModel):
+                    print("DEPRECATION WARNING: StrainPorosity no longer requires a PorousStrengthModel -- ignoring")
+                    args = args[1:]
 
             # The valid arguments
             validArgs = ["nodeList",
