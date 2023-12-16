@@ -24,8 +24,12 @@ set(DataBase_headers
     IncrementStateInline.hh
     IncrementBoundedState.hh
     IncrementBoundedStateInline.hh
+    PureReplaceState.hh
+    PureReplaceStateInline.hh
     ReplaceState.hh
     ReplaceStateInline.hh
+    PureReplaceBoundedState.hh
+    PureReplaceBoundedStateInline.hh
     ReplaceBoundedState.hh
     ReplaceBoundedStateInline.hh
     State.hh

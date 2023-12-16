@@ -21,9 +21,7 @@ inline
 ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
 ReplaceBoundedState(const BoundValueType minValue,
                     const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  PureReplaceBoundedState<Dimension, ValueType, BoundValueType>(minValue, maxValue) {
 }
 
 template<typename Dimension, typename ValueType, typename BoundValueType>
@@ -32,38 +30,12 @@ ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
 ReplaceBoundedState(std::initializer_list<std::string> depends,
                     const BoundValueType minValue,
                     const BoundValueType maxValue):
-  FieldUpdatePolicy<Dimension>(depends),
-  mMinValue(minValue),
-  mMaxValue(maxValue) {
+  PureReplaceBoundedState<Dimension, ValueType, BoundValueType>(depends, minValue, maxValue) {
 }
 
 //------------------------------------------------------------------------------
-// Update the field.
+// Update the field as an increment
 //------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-void
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-update(const KeyType& key,
-       State<Dimension>& state,
-       StateDerivatives<Dimension>& derivs,
-       const double /*multiplier*/,
-       const double /*t*/,
-       const double /*dt*/) {
-
-  // Find the matching replacement field from the StateDerivatives.
-  const auto  replaceKey = prefix() + key;
-  auto&       f = state.field(key, ValueType());
-  const auto& df = derivs.field(replaceKey, ValueType());
-
-  // Loop over the internal values of the field.
-  const auto n = f.nodeList().numInternalNodes();
-#pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    f(i) = std::min(mMaxValue, std::max(mMinValue, df(i)));
-  }
-}
-
 template<typename Dimension, typename ValueType, typename BoundValueType>
 inline
 void
@@ -86,32 +58,7 @@ inline
 bool
 ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const auto rhsPtr = dynamic_cast<const ReplaceBoundedState<Dimension, ValueType, BoundValueType>*>(&rhs);
-  return rhsPtr != nullptr;
-}
-
-//------------------------------------------------------------------------------
-// Min value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-minValue() const {
-  return mMinValue;
-}
-
-//------------------------------------------------------------------------------
-// Max value.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename ValueType, typename BoundValueType>
-inline
-BoundValueType
-ReplaceBoundedState<Dimension, ValueType, BoundValueType>::
-maxValue() const {
-  return mMaxValue;
+  return dynamic_cast<const ReplaceBoundedState<Dimension, ValueType, BoundValueType>*>(&rhs) != nullptr;
 }
 
 }

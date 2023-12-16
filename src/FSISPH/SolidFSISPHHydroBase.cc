@@ -13,7 +13,6 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
-#include "GSPH/Policies/PureReplaceState.hh"
 #include "GSPH/computeSPHVolume.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 
@@ -38,6 +37,7 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/PureReplaceState.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"
@@ -364,10 +364,10 @@ registerState(DataBase<Dimension>& dataBase,
   auto yieldStrengthPolicy = make_policy<YieldStrengthPolicy<Dimension>>();
   auto volumePolicy = make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>({HydroFieldNames::massDensity},
                                                                             HydroFieldNames::mass, HydroFieldNames::massDensity);
-  auto interfaceFlagsPolicy = make_policy<PureReplaceState<Dimension,int>>(PureReplaceState<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
-  auto interfaceAreaVectorsPolicy = make_policy<PureReplaceState<Dimension,Vector>>(PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
-  auto interfaceNormalsPolicy = make_policy<PureReplaceState<Dimension,Vector>>(PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
-  auto interfaceSmoothnessPolicy = make_policy<PureReplaceState<Dimension,Scalar>>(PureReplaceState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+  auto interfaceFlagsPolicy = make_policy<PureReplaceState<Dimension,int>>();
+  auto interfaceAreaVectorsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
+  auto interfaceNormalsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
+  auto interfaceSmoothnessPolicy = make_policy<PureReplaceState<Dimension,Scalar>>();
   
   if(this->planeStrain()){
     auto deviatoricStressPolicy = make_policy<IncrementState<Dimension, SymTensor>>();

@@ -15,7 +15,7 @@
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
-#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/PureReplaceBoundedState.hh"
 
 #include <string>
 
@@ -58,7 +58,7 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mc0(SolidFieldNames::porosityc0, nodeList, c0),
   mfDS(SolidFieldNames::fDSjutzi, nodeList, 1.0),
-  mfDSnew(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
+  mfDSnew(PureReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mRestart(registerWithRestart(*this)) {
   VERIFY2(phi0 >= 0.0 and phi0 < 1.0,
           "ERROR : Initial porosity required to be in the range phi0 = [0.0, 1.0) : phi0 = " << phi0);
@@ -89,7 +89,7 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
   mc0(c0),
   mfDS(SolidFieldNames::fDSjutzi, nodeList, 1.0),
-  mfDSnew(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
+  mfDSnew(PureReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mRestart(registerWithRestart(*this)) {
   const auto phi0_min = phi0.min();
   const auto phi0_max = phi0.max();
@@ -169,7 +169,7 @@ registerState(DataBase<Dimension>& dataBase,
   //                               };
 
   // The solid/porous velocity gradient ratio, and diddle the yield strength relation if scaling with porosity
-  state.enroll(mfDS, make_policy<ReplaceBoundedState<Dimension, Scalar>>(0.0, 1.0));
+  state.enroll(mfDS, make_policy<PureReplaceBoundedState<Dimension, Scalar>>(0.0, 1.0));
   if (not mJutziStateUpdate) {
     const auto Ypolicy = std::dynamic_pointer_cast<YieldStrengthPolicy<Dimension>>(state.policy(buildKey(SolidFieldNames::yieldStrength)));
     Ypolicy->scaleWithPorosity(true);

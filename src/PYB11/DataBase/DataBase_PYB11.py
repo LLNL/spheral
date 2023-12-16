@@ -126,6 +126,8 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"DataBase/IncrementBoundedState.hh"',
                   '"DataBase/ReplaceState.hh"',
                   '"DataBase/ReplaceBoundedState.hh"',
+                  '"DataBase/PureReplaceState.hh"',
+                  '"DataBase/PureReplaceBoundedState.hh"',
                   '"Field/Field.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"Physics/Physics.hh"',
@@ -149,6 +151,8 @@ from UpdatePolicyBase import *
 from FieldUpdatePolicy import *
 from IncrementState import *
 from IncrementBoundedState import *
+from PureReplaceState import *
+from PureReplaceBoundedState import *
 from ReplaceState import *
 from ReplaceBoundedState import *
 
@@ -174,6 +178,8 @@ FieldUpdatePolicy{ndim}d = PYB11TemplateClass(FieldUpdatePolicy, template_parame
         exec(f'''
 {label}IncrementState{suffix} = PYB11TemplateClass(IncrementState, template_parameters = ("{Dimension}", "{value}"))
 {label}IncrementBoundedState{suffix} = PYB11TemplateClass(IncrementBoundedState, template_parameters = ("{Dimension}", "{value}"))
+{label}PureReplaceState{suffix} = PYB11TemplateClass(PureReplaceState, template_parameters = ("{Dimension}", "{value}"))
+{label}PureReplaceBoundedState{suffix} = PYB11TemplateClass(PureReplaceBoundedState, template_parameters = ("{Dimension}", "{value}"))
 {label}ReplaceState{suffix} = PYB11TemplateClass(ReplaceState, template_parameters = ("{Dimension}", "{value}"))
 {label}ReplaceBoundedState{suffix} = PYB11TemplateClass(ReplaceBoundedState, template_parameters = ("{Dimension}", "{value}"))
 ''')

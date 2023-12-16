@@ -65,14 +65,14 @@ update(const KeyType& key,
   const auto allkeys = derivs.keys();
   KeyType dfKey, dfNodeListKey;
   auto numDeltaFields = 0u;
-  for (const auto& key: allkeys) {
-    StateBase<Dimension>::splitFieldKey(key, dfKey, dfNodeListKey);
+  for (const auto& dkey: allkeys) {
+    StateBase<Dimension>::splitFieldKey(dkey, dfKey, dfNodeListKey);
     if (dfNodeListKey == nodeListKey and
         dfKey.compare(0, incrementKey.size(), incrementKey) == 0) {
       ++numDeltaFields;
 
       // This delta field matches the base of increment key, so apply it.
-      const auto& df = derivs.field(key, ValueType());
+      const auto& df = derivs.field(dkey, ValueType());
       const auto  n = f.numInternalElements();
 #pragma omp parallel for
       for (auto i = 0u; i < n; ++i) {
@@ -83,7 +83,7 @@ update(const KeyType& key,
 
   // If we're not allowing wildcard update, there should have only be one match.
   VERIFY2(mWildCardDerivs or numDeltaFields == 1,
-          "IncrementBoundedState ERROR: unable to find unique match for derivative field key " << incrementKey);
+          "IncrementBoundedState ERROR: unable to find unique match for derivative field key " << incrementKey << " on NodeList " << nodeListKey << " : " << numDeltaFields << " matches");
 }
 
 //------------------------------------------------------------------------------

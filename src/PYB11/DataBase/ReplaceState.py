@@ -1,10 +1,10 @@
 from PYB11Generator import *
-from FieldUpdatePolicy import *
+from PureReplaceState import *
 
 @PYB11module("SpheralDataBase")
 @PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
-class ReplaceState(FieldUpdatePolicy):
+class ReplaceState(PureReplaceState):
 
     PYB11typedefs = """
     using KeyType = typename ReplaceState<%(Dimension)s, %(ValueType)s>::KeyType;
@@ -25,17 +25,12 @@ class ReplaceState(FieldUpdatePolicy):
     #...........................................................................
     # Methods
     @PYB11virtual
-    def update(self,
-               key = "const KeyType&",
-               state = "State<%(Dimension)s>&",
-               derivs = "StateDerivatives<%(Dimension)s>&",
-               multiplier = "const double",
-               t = "const double",
-               dt = "const double"):
+    def updateAsIncrement(self,
+                          key = "const KeyType&",
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&",
+                          multiplier = "const double",
+                          t = "const double",
+                          dt = "const double"):
         "Update a Field assoicated with the given key"
         return "void"
-
-    @PYB11static
-    def prefix(self):
-        "Prefix for key for new values"
-        return "const std::string"

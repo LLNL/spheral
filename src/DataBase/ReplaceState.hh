@@ -2,12 +2,14 @@
 // ReplaceState -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to replace the state value with the new.
 //
+// This version assumes there is a derivative based update available.
+//
 // Created by JMO, Thu Aug 26 16:30:02 2004
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ReplaceState_hh__
 #define __Spheral_ReplaceState_hh__
 
-#include "FieldUpdatePolicy.hh"
+#include "PureReplaceState.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -16,7 +18,7 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType>
-class ReplaceState: public FieldUpdatePolicy<Dimension> {
+class ReplaceState: public PureReplaceState<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
@@ -26,14 +28,6 @@ public:
   ReplaceState(std::initializer_list<std::string> depends = {});
   virtual ~ReplaceState() {}
   
-  // Overload the methods describing how to update Fields.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt) override;
-
   // An alternate method to be called when you want to specify that the "Replace" information
   // in the derivatives is invalid, and instead the value should be treated as a time advancement
   // algorithm instead.
@@ -47,8 +41,6 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
-  static const std::string prefix() { return "new "; }
-
 private:
   //--------------------------- Private Interface ---------------------------//
   ReplaceState(const ReplaceState& rhs);
@@ -58,12 +50,5 @@ private:
 }
 
 #include "ReplaceStateInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename ValueType> class ReplaceState;
-}
 
 #endif

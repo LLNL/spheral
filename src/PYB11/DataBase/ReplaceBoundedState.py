@@ -1,10 +1,10 @@
 from PYB11Generator import *
-from FieldUpdatePolicy import *
+from PureReplaceBoundedState import *
 
 @PYB11module("SpheralDataBase")
 @PYB11holder("std::shared_ptr")
 @PYB11template("Dimension", "ValueType")
-class ReplaceBoundedState(FieldUpdatePolicy):
+class ReplaceBoundedState(PureReplaceBoundedState):
 
     PYB11typedefs = """
     using KeyType = typename ReplaceBoundedState<%(Dimension)s, %(ValueType)s>::KeyType;
@@ -29,22 +29,12 @@ class ReplaceBoundedState(FieldUpdatePolicy):
     #...........................................................................
     # Methods
     @PYB11virtual
-    def update(self,
-               key = "const KeyType&",
-               state = "State<%(Dimension)s>&",
-               derivs = "StateDerivatives<%(Dimension)s>&",
-               multiplier = "const double",
-               t = "const double",
-               dt = "const double"):
+    def updateAsIncrement(self,
+                          key = "const KeyType&",
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&",
+                          multiplier = "const double",
+                          t = "const double",
+                          dt = "const double"):
         "Update a Field assoicated with the given key"
         return "void"
-
-    @PYB11static
-    def prefix(self):
-        "Prefix for key of new values"
-        return "const std::string"
-
-    #...........................................................................
-    # Properties
-    minValue = PYB11property(doc="Minimum bound for Field values")
-    maxValue = PYB11property(doc="Maximum bound for Field values")
