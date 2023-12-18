@@ -87,7 +87,7 @@ PorosityModel(const SolidNodeList<Dimension>& nodeList,
   mAlpha(SolidFieldNames::porosityAlpha, nodeList),
   mDalphaDt(IncrementBoundedState<Dimension, Scalar, Scalar>::prefix() + SolidFieldNames::porosityAlpha, nodeList),
   mSolidMassDensity(SolidFieldNames::porositySolidDensity, nodeList),
-  mc0(c0),
+  mc0(SolidFieldNames::porosityc0, c0),
   mfDS(SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mfDSnew(PureReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi, nodeList, 1.0),
   mRestart(registerWithRestart(*this)) {
