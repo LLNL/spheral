@@ -13,6 +13,7 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "Utilities/globalNodeIDs.hh"
 
 #include <string>
 
@@ -60,9 +61,12 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mdPdR(HydroFieldNames::partialPpartialRho, nodeList) {
   VERIFY2((mPe <= mPt) and (mPt <= mPs),
           "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
-  const auto alpha0_max = mAlpha0.max();
-  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
-          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
+  const auto nglobal = numGlobalNodes(nodeList);
+  if (nglobal > 0) {
+    const auto alpha0_max = mAlpha0.max();
+    VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
+            "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -91,21 +95,24 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
   mAlphat(alphat),
   mn1(n1),
   mn2(n2),
-  mdPdU(HydroFieldNames::partialPpartialEps),
-  mdPdR(HydroFieldNames::partialPpartialRho) {
+  mdPdU(HydroFieldNames::partialPpartialEps, nodeList),
+  mdPdR(HydroFieldNames::partialPpartialRho, nodeList) {
   VERIFY2((mPe <= mPt) and (mPt <= mPs),
           "PalphaPorosity input ERROR : require Pe <= Pt <= Ps: (Pe, Pt, Ps) = " << mPe << ", Pt = " << mPt << ", " << mPs);
-  const auto alpha0_max = mAlpha0.max();
-  VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
-          "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
-  const auto n = nodeList.numInternalNodes();
+  const auto nglobal = numGlobalNodes(nodeList);
+  if (nglobal > 0) {
+    const auto alpha0_max = mAlpha0.max();
+    VERIFY2((1.0 <= mAlphae) and (mAlphat <= mAlphae) and (mAlphae <= alpha0_max),
+            "PalphaPorosity input ERROR : require 1.0 <= alphat <= alphae <= alpha0, (alphat, alphae, alpha0) = " << mAlphat << ", " << mAlphae << ", " << alpha0_max);
+    const auto n = nodeList.numInternalNodes();
 #pragma omp parallel for
-  for (auto i = 0u; i < n; ++i) {
-    mc0[i] = c0[i];
+    for (auto i = 0u; i < n; ++i) {
+      mc0[i] = c0[i];
+    }
+    const auto alpha0_min = mAlpha0.min();
+    VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
+            "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
   }
-  const auto alpha0_min = mAlpha0.min();
-  VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
-          "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
 }
 
 //------------------------------------------------------------------------------
