@@ -48,7 +48,7 @@ commandLine(initialRotation = 0.0,     # Degrees, optionally rotate and clip the
             yplotbuf = 0.0,
 
             # Kernel Things
-            nPerh = 4.01,
+            nPerh = 3.01,
             KernelConstructor = WendlandC2Kernel,
             order = 5,
             HUpdate = IdealH,
@@ -60,8 +60,8 @@ commandLine(initialRotation = 0.0,     # Degrees, optionally rotate and clip the
             fsisph = False,
 
             # FSI parameters
-            fsiRhoStabilizeCoeff = 0.00,         # diffusion operating through the vel-gradient
-            fsiEpsDiffuseCoeff = 0.00,           # diffusion coeff for specific thermal energy
+            fsiRhoStabilizeCoeff = 0.1,          # diffusion operating through the vel-gradient
+            fsiEpsDiffuseCoeff = 0.1,            # diffusion coeff for specific thermal energy
             fsiXSPHCoeff = 0.0,                  # ramps xsph up
             fsiInterfaceMethod = HLLCInterface,  # (HLLCInterface, ModulusInterface, NoInterface)
 
@@ -328,7 +328,6 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=[],                       
                    densityStabilizationCoefficient = fsiRhoStabilizeCoeff,
@@ -337,7 +336,7 @@ elif fsisph:
                    interfaceMethod = fsiInterfaceMethod,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    HUpdate = HUpdate)
 else:
     hydro = SPH(dataBase = db,

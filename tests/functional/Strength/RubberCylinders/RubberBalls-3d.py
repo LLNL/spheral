@@ -339,7 +339,7 @@ elif fsisph:
                 cfl = cfl,
                 densityStabilizationCoefficient = fsiRhoStabCoeff, 
                 specificThermalEnergyDiffusionCoefficient = fsiEpsDiffuseCoeff,  
-                correctVelocityGradient = correctVelocityGradient,
+                linearCorrectGradients = correctVelocityGradient,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
                 HUpdate = HUpdate,

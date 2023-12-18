@@ -4,6 +4,7 @@
 //----------------------------------------------------------------------------//
 #include "DamagedPressurePolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "FSISPH/FSIFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
@@ -51,7 +52,8 @@ update(const KeyType& key,
        const double dt) {
   KeyType fieldKey, nodeListKey, Dkey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::pressure and 
+  REQUIRE((fieldKey == HydroFieldNames::pressure or
+           fieldKey == FSIFieldNames::damagedPressure) and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
   StateBase<Dimension>::buildFieldKey(SolidFieldNames::tensorDamage, nodeListKey);
   auto pressure = state.fields(fieldKey, 0.0);
