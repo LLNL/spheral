@@ -58,6 +58,8 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   // Is there anything to do?
 #ifdef USE_MPI
   if (allReduce(unsigned(localGenerators.size()), MPI_SUM, Communicator::communicator()) == 0) return;
+#else
+  if (localGenerators.size() == 0) return;
 #endif
 
   // Pre-conditions.
