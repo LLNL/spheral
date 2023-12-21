@@ -10,9 +10,6 @@
 #include "SolidFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -26,10 +23,12 @@ namespace Spheral {
 template<typename Dimension>
 ShearModulusPolicy<Dimension>::
 ShearModulusPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy,
-                                                                   HydroFieldNames::pressure,
-                                                                   SolidFieldNames::tensorDamage) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                HydroFieldNames::pressure,
+                                SolidFieldNames::tensorDamage,
+                                SolidFieldNames::porositySolidDensity,
+                                SolidFieldNames::porosityAlpha}) {
 }
 
 //------------------------------------------------------------------------------
@@ -54,55 +53,44 @@ update(const KeyType& key,
        const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == SolidFieldNames::shearModulus and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> stateFields = state.fields(fieldKey, Scalar());
-  const unsigned numFields = stateFields.numFields();
+  REQUIRE(fieldKey == SolidFieldNames::shearModulus);
+  auto& mu = state.field(key, 0.0);
 
-  // Get the mass density, specific thermal energy, and pressure fields
-  // from the state.
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto energy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
-  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-    
-  // Walk the individual fields.
-  for (auto k = 0u; k != numFields; ++k) {
+  // Get the strength model.  This cast is ugly, but is a work-around for now.
+  const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(mu.nodeListPtr());
+  VERIFY(solidNodeListPtr != nullptr);
+  const auto& strengthModel = solidNodeListPtr->strengthModel();
 
-    // Get the strength model.  This cast is ugly, but is a work-around for now.
-    const auto* solidNodeListPtr = dynamic_cast<const SolidNodeList<Dimension>*>(stateFields[k]->nodeListPtr());
-    CHECK(solidNodeListPtr != 0);
-    const auto& strengthModel = solidNodeListPtr->strengthModel();
+  // Check if we're using porosity
+  const auto buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
 
-    // Now set the shear modulus.
-    strengthModel.shearModulus(*stateFields[k], *massDensity[k], *energy[k], *P[k], *D[k]);
+  // Get the state fields we need
+  const auto& rhoS = (usePorosity ?
+                      state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                      state.field(buildKey(HydroFieldNames::massDensity), 0.0));
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+  const auto& D = state.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
+
+  // Setting the shear modulus differs based on the presence of porosity
+  if (usePorosity) {
+
+    // We actually need the solid phase pressure
+    const auto& alpha = state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+    const auto  PS = P*alpha;
+
+    // Set the solid phase shear modulus
+    strengthModel.shearModulus(mu, rhoS, eps, PS, D);
+
+    // Scale the result by the distention
+    mu /= alpha;
+
+  } else {
+
+    strengthModel.shearModulus(mu, rhoS, eps, P, D);
+
   }
-
-//     // Is there a scalar damage field for this NodeList?
-//     {
-//       const KeyType DKey(nodeListPtr, SolidFieldNames::scalarDamage);
-//       if (state.scalarFieldRegistered(DKey)) {
-//         const Field<Dimension, Scalar>& D = state.scalarField(DKey);
-//         for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-//           CHECK(D(i) >= 0.0 && D(i) <= 1.0);
-//           stateField(i) *= 1.0 - D(i);
-//         }
-//       }
-//     }
-
-//     // Is there a tensor damage field for this NodeList?
-//     {
-//       typedef typename Dimension::SymTensor SymTensor;
-//       const KeyType DKey(nodeListPtr, SolidFieldNames::tensorDamage);
-//       if (state.symTensorFieldRegistered(DKey)) {
-//         const Field<Dimension, SymTensor>& D = state.symTensorField(DKey);
-//         for (int i = 0; i != nodeListPtr->numInternalNodes(); ++i) {
-//           const Scalar Di = std::max(0.0, std::min(1.0, D(i).eigenValues().maxElement() + 1.0e-5));
-//           CHECK(Di >= 0.0 && Di <= 1.0);
-//           stateField(i) *= 1.0 - Di;
-//         }
-//       }
-//     }
 }
 
 //------------------------------------------------------------------------------
@@ -112,14 +100,7 @@ template<typename Dimension>
 bool
 ShearModulusPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const ShearModulusPolicy<Dimension>* rhsPtr = dynamic_cast<const ShearModulusPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  return dynamic_cast<const ShearModulusPolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

@@ -13,9 +13,6 @@
 #include "Material/EquationOfState.hh"
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
 
 #include "CullenDehnenViscosity.hh"
 
@@ -107,7 +104,6 @@ void
 CullenDehnenViscosity<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
   dataBase.resizeFluidFieldList(mPrevDvDt, Vector::zero, "mPrevDvDt", false);
   dataBase.resizeFluidFieldList(mPrevDivV, 0.0, "mPrevDivV", false);
   dataBase.resizeFluidFieldList(mCullAlpha, 1.0, "mCullAlpha", false);
@@ -117,8 +113,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   FieldList<Dimension, Scalar>& rvAlphaQ = myq.CqMultiplier();
   FieldList<Dimension, Scalar>& rvAlphaL = myq.ClMultiplier();
-  PolicyPointer alphaPolicy(new IncrementCullenMultipliers<Dimension>(malphMin, malphMax, mboolHopkins));
-  state.enroll(rvAlphaQ, alphaPolicy);
+  state.enroll(rvAlphaQ, std::make_shared<IncrementCullenMultipliers<Dimension>>(malphMin, malphMax, mboolHopkins));
   state.enroll(rvAlphaL);
 }
     

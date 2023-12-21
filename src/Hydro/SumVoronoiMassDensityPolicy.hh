@@ -11,21 +11,21 @@
 
 #include <string>
 
-#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 #include "Kernel/TableKernel.hh"
 #include "Physics/Physics.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class SumVoronoiMassDensityPolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
+class SumVoronoiMassDensityPolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename ReplaceFieldList<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   SumVoronoiMassDensityPolicy(const TableKernel<Dimension>& W,
@@ -40,17 +40,17 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   virtual void updateAsIncrement(const KeyType& key,
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt);
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

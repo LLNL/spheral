@@ -9,13 +9,11 @@
 
 #include "Physics/GenericHydro.hh"
 
-#include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
 #include "GSPH/computeSPHVolume.hh"
-#include "GSPH/Policies/PureReplaceFieldList.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 
 #include "Hydro/HydroFieldNames.hh"
@@ -24,7 +22,6 @@
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
 
 #include "Strength/SolidFieldNames.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
@@ -32,19 +29,15 @@
 #include "Strength/PlasticStrainPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/StrengthSoundSpeedPolicy.hh"
-#include "Damage/DamagedPressurePolicy.hh"
 
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
-#include "DataBase/CompositeFieldListPolicy.hh"
+#include "DataBase/PureReplaceState.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"
@@ -55,6 +48,7 @@
 #include "Utilities/safeInv.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/globalBoundingVolumes.hh"
+#include "Utilities/range.hh"
 
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
@@ -243,14 +237,14 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mPlasticStrain0 = dataBase.newSolidFieldList(0.0, SolidFieldNames::plasticStrain + "0");
     //mInverseEquivalentDeviatoricStress = dataBase.newFluidFieldList(0.0, FSIFieldNames::inverseEquivalentDeviatoricStress);
     mVolume = dataBase.newFluidFieldList(0.0,HydroFieldNames::volume);
-    mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
+    mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
     mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
     mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
     mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
-    mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
-    mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
-    mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
-    mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H);
+    mDmassDensityDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity);
+    mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
+    mDdeviatoricStressDt = dataBase.newSolidFieldList(SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress);
+    mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::H);
     mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
     mDPDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::pressureGradient);
     mDepsDx = dataBase.newFluidFieldList(Vector::zero, FSIFieldNames::specificThermalEnergyGradient);
@@ -266,12 +260,12 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
     mInterfaceSmoothness = dataBase.newFluidFieldList(0.0,  FSIFieldNames::interfaceSmoothness);
-    mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
-    mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
-    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
+    mNewInterfaceFlags = dataBase.newFluidFieldList(int(0), PureReplaceState<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
+    mNewInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one, PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
+    mNewInterfaceNormals = dataBase.newFluidFieldList(Vector::one, PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
     mInterfaceSmoothnessNormalization = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceSmoothnessNormalization);
     mInterfaceFraction = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceFraction);
-    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+    mNewInterfaceSmoothness = dataBase.newFluidFieldList(0.0, PureReplaceState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
     mInterfaceAngles = dataBase.newFluidFieldList(0.0, FSIFieldNames::interfaceAngles);
   }
 
@@ -335,11 +329,8 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, int> fragIDs = dataBase.solidFragmentIDs();
   FieldList<Dimension, int> pTypes = dataBase.solidParticleTypes();
   
-  auto nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    *mPlasticStrain0[nodeListi] = (*itr)->plasticStrain();
+  for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.solidNodeListBegin(), dataBase.solidNodeListEnd())) {
+    *mPlasticStrain0[nodeListi] = nodeListPtr->plasticStrain();
     (*mPlasticStrain0[nodeListi]).name(SolidFieldNames::plasticStrain + "0");
   }
 
@@ -363,65 +354,59 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness,false);
 
   // Register the deviatoric stress and plastic strain to be evolved.
-  auto positionPolicy = make_shared<IncrementFieldList<Dimension, Vector>>();
-  auto velocityPolicy = make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,HydroFieldNames::specificThermalEnergy,true);
-  auto Ppolicy = make_shared<PressurePolicy<Dimension>>();
-  auto damagedPressurePolicy = make_shared<DamagedPressurePolicy<Dimension>>();
-  auto csPolicy = make_shared<StrengthSoundSpeedPolicy<Dimension>>();
-  auto plasticStrainPolicy = make_shared<PlasticStrainPolicy<Dimension>>();
-  auto bulkModulusPolicy = make_shared<BulkModulusPolicy<Dimension>>();
-  auto shearModulusPolicy = make_shared<ShearModulusPolicy<Dimension>>();
-  auto yieldStrengthPolicy = make_shared<YieldStrengthPolicy<Dimension>>();
-  auto volumePolicy = make_shared<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,HydroFieldNames::massDensity,HydroFieldNames::massDensity);
-  auto interfaceFlagsPolicy = make_shared<PureReplaceFieldList<Dimension,int>>(PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags);
-  auto interfaceAreaVectorsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors);
-  auto interfaceNormalsPolicy = make_shared<PureReplaceFieldList<Dimension,Vector>>(PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals);
-  auto interfaceSmoothnessPolicy = make_shared<PureReplaceFieldList<Dimension,Scalar>>(PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness);
+  auto positionPolicy = make_policy<IncrementState<Dimension, Vector>>();
+  auto velocityPolicy = make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,HydroFieldNames::specificThermalEnergy},true);
+  auto Ppolicy = make_policy<PressurePolicy<Dimension>>();
+  auto csPolicy = make_policy<SoundSpeedPolicy<Dimension>>();
+  auto plasticStrainPolicy = make_policy<PlasticStrainPolicy<Dimension>>();
+  auto bulkModulusPolicy = make_policy<BulkModulusPolicy<Dimension>>();
+  auto shearModulusPolicy = make_policy<ShearModulusPolicy<Dimension>>();
+  auto yieldStrengthPolicy = make_policy<YieldStrengthPolicy<Dimension>>();
+  auto volumePolicy = make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>({HydroFieldNames::massDensity},
+                                                                            HydroFieldNames::mass, HydroFieldNames::massDensity);
+  auto interfaceFlagsPolicy = make_policy<PureReplaceState<Dimension,int>>();
+  auto interfaceAreaVectorsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
+  auto interfaceNormalsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
+  auto interfaceSmoothnessPolicy = make_policy<PureReplaceState<Dimension,Scalar>>();
   
   if(this->planeStrain()){
-    auto deviatoricStressPolicy = make_shared<IncrementFieldList<Dimension, SymTensor>>();
+    auto deviatoricStressPolicy = make_policy<IncrementState<Dimension, SymTensor>>();
     state.enroll(deviatoricStress, deviatoricStressPolicy);
   }else{
-    auto deviatoricStressPolicy = make_shared<DeviatoricStressPolicy<Dimension>>();
+    auto deviatoricStressPolicy = make_policy<DeviatoricStressPolicy<Dimension>>();
     state.enroll(deviatoricStress, deviatoricStressPolicy);
   }
 
   if(this->compatibleEnergyEvolution()){
-    auto  thermalEnergyPolicy = make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
+    auto  thermalEnergyPolicy = make_policy<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }else if (mEvolveTotalEnergy) {
-    auto  thermalEnergyPolicy = make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
+    auto  thermalEnergyPolicy = make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   } else {
-    auto  thermalEnergyPolicy = make_shared<IncrementFieldList<Dimension, Scalar>>();
+    auto  thermalEnergyPolicy = make_policy<IncrementState<Dimension, Scalar>>();
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }
 
-  std::shared_ptr<CompositeFieldListPolicy<Dimension, Scalar> > rhoPolicy(new CompositeFieldListPolicy<Dimension, Scalar>());
-  std::shared_ptr<CompositeFieldListPolicy<Dimension, SymTensor> > Hpolicy(new CompositeFieldListPolicy<Dimension, SymTensor>());
-  for (typename DataBase<Dimension>::SolidNodeListIterator itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr) {
-    rhoPolicy->push_back(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
-                                                                      (*itr)->rhoMax()));
-    const Scalar hmaxInv = 1.0/(*itr)->hmax();
-    const Scalar hminInv = 1.0/(*itr)->hmin();
+  for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.solidNodeListBegin(), dataBase.solidNodeListEnd())) {
+    state.enroll(*massDensity[nodeListi], make_policy<IncrementBoundedState<Dimension, Scalar>>(nodeListPtr->rhoMin(),
+                                                                                                nodeListPtr->rhoMax()));
+    const auto hmaxInv = 1.0/nodeListPtr->hmax();
+    const auto hminInv = 1.0/nodeListPtr->hmin();
     if (HEvolution() == HEvolutionType::IntegrateH) {
-      Hpolicy->push_back(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
+      state.enroll(*Hfield[nodeListi], make_policy<IncrementBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
     } else {
       CHECK(HEvolution() == HEvolutionType::IdealH);
-      Hpolicy->push_back(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
+      state.enroll(*Hfield[nodeListi], make_policy<ReplaceBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
     }
   }
 
   state.enroll(position,             positionPolicy);
   state.enroll(velocity,             velocityPolicy);
   state.enroll(mVolume,              volumePolicy);
-  state.enroll(massDensity,          rhoPolicy);
-  state.enroll(Hfield,               Hpolicy);
   state.enroll(mSoundSpeed,          csPolicy);
   state.enroll(mPressure,            Ppolicy);
-  state.enroll(mDamagedPressure,     damagedPressurePolicy);
+  state.enroll(mDamagedPressure);                              // Updated by PressurePolicy
   state.enroll(mBulkModulus,         bulkModulusPolicy);
   state.enroll(mShearModulus,        shearModulusPolicy);
   state.enroll(mYieldStrength,       yieldStrengthPolicy);
@@ -458,10 +443,10 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mXSPHWeightSum, 0.0, HydroFieldNames::XSPHWeightSum, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
-  dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, false);
-  dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
-  dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress, false);
-  dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
+  dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, false);
+  dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
+  dataBase.resizeFluidFieldList(mDdeviatoricStressDt, SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + SolidFieldNames::deviatoricStress, false);
+  dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDPDx, Vector::zero, FSIFieldNames::pressureGradient, false);
   dataBase.resizeFluidFieldList(mDepsDx, Vector::zero, FSIFieldNames::specificThermalEnergyGradient, false);
@@ -473,16 +458,16 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
-  dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceFieldList<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
-  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceFieldList<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceState<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
   dataBase.resizeFluidFieldList(mInterfaceSmoothnessNormalization, 0.0, FSIFieldNames::interfaceSmoothnessNormalization,false); 
   dataBase.resizeFluidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction,false); 
-  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  PureReplaceFieldList<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
+  dataBase.resizeFluidFieldList(mNewInterfaceSmoothness, 0.0,  PureReplaceState<Dimension,Scalar>::prefix() + FSIFieldNames::interfaceSmoothness,false);
   dataBase.resizeFluidFieldList(mInterfaceAngles, 0.0,  FSIFieldNames::interfaceAngles,false);
 
   if (not derivs.registered(mDxDt)) {
-    dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
+    dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
     derivs.enroll(mDxDt);
   }
 

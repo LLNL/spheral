@@ -39,8 +39,8 @@ MeshPolicy(const Physics<Dimension>& package,
            const bool meshGhostNodes,
            const bool generateVoid,
            const bool removeBoundaryZones):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
-                              UpdatePolicyBase<Dimension>::wildcard()),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position + 
+                               UpdatePolicyBase<Dimension>::wildcard()}),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(true),
@@ -63,8 +63,8 @@ MeshPolicy(const Physics<Dimension>& package,
            const bool meshGhostNodes,
            const bool generateVoid,
            const bool removeBoundaryZones):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position + 
-                              UpdatePolicyBase<Dimension>::wildcard()),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position + 
+                               UpdatePolicyBase<Dimension>::wildcard()}),
   mPackage(package),
   mVoidThreshold(voidThreshold),
   mComputeBounds(false),

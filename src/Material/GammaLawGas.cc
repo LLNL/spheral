@@ -60,6 +60,25 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 }
 
 //------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GammaLawGas<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  for (size_t i = 0; i != massDensity.numElements(); ++i) {
+    Pressure(i) = pressure(massDensity(i), specificThermalEnergy(i));
+    dPdu(i) = mGamma1*massDensity(i);
+    dPdrho(i) = mGamma1*specificThermalEnergy(i);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>

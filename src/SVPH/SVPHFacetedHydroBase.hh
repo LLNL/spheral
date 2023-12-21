@@ -57,23 +57,23 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase);
+  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
   // Vote on a time step.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
-                     State<Dimension>& state);
+                     State<Dimension>& state) override;
 
   // Register the derivatives/change fields for updating state.
   virtual
   void registerDerivatives(DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs);
+                           StateDerivatives<Dimension>& derivs) override;
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
@@ -81,7 +81,7 @@ public:
                   const Scalar dt,
                   const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs);
+                  StateDerivatives<Dimension>& derivs) override;
                        
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
@@ -90,7 +90,7 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const;
+                           StateDerivatives<Dimension>& derivatives) const override;
 
   // Finalize the derivatives.
   virtual
@@ -98,7 +98,7 @@ public:
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+                           StateDerivatives<Dimension>& derivs) const override;
 
   // Finalize the hydro at the completion of an integration step.
   virtual
@@ -106,20 +106,20 @@ public:
                 const Scalar dt,
                 DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
+                StateDerivatives<Dimension>& derivs) override;
                
   // This algorithm does not use node->node connectivity.
-  virtual bool requireConnectivity() const { return false; }
+  virtual bool requireConnectivity() const override { return false; }
 
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) override;
 
   // Enforce boundary conditions for the physics specific fields.
   virtual
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) override;
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.

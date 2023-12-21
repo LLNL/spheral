@@ -54,6 +54,28 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 }
 
 //------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+IsothermalEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  REQUIRE(valid());
+  REQUIRE(Pressure.nodeListPtr() == massDensity.nodeListPtr());
+  REQUIRE(Pressure.nodeListPtr() == specificThermalEnergy.nodeListPtr());
+  const auto n = Pressure.nodeListPtr()->numInternalNodes();
+  for (auto i = 0u; i < n; ++i) {
+    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    dPdu(i) = 0.0;
+    dPdrho(i) = mK;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -230,7 +252,7 @@ IsothermalEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
-  return pressure(massDensity, specificThermalEnergy) + this->externalPressure();
+  return pressure(massDensity, specificThermalEnergy);
 }
 
 //------------------------------------------------------------------------------

@@ -12,8 +12,7 @@
 #include "Material/EquationOfState.hh"
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
+#include "DataBase/IncrementBoundedState.hh"
 
 #include "MorrisMonaghanReducingViscosity.hh"
 
@@ -134,8 +133,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
   rvQ = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousCqMultiplier);  // This will override the Q initializer intializing these to unity.
   rvL = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousClMultiplier);
-  mDrvAlphaDtQ = dataBase.newFluidFieldList(0.0, IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::ArtificialViscousCqMultiplier);
-  mDrvAlphaDtL = dataBase.newFluidFieldList(0.0, IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::ArtificialViscousClMultiplier);
+  mDrvAlphaDtQ = dataBase.newFluidFieldList(0.0, IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::ArtificialViscousCqMultiplier);
+  mDrvAlphaDtL = dataBase.newFluidFieldList(0.0, IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::ArtificialViscousClMultiplier);
 }
 
 //------------------------------------------------------------------------------
@@ -146,12 +145,10 @@ void
 MorrisMonaghanReducingViscosity<Dimension>::
 registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-  PolicyPointer reducingViscosityMultiplierPolicy(new IncrementBoundedFieldList<Dimension, Scalar>(maMin,maMax));
   FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
   FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
-  state.enroll(rvQ, reducingViscosityMultiplierPolicy);
-  state.enroll(rvL, reducingViscosityMultiplierPolicy);
+  state.enroll(rvQ, std::make_shared<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
+  state.enroll(rvL, std::make_shared<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
 }
     
 //------------------------------------------------------------------------------
@@ -187,8 +184,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     
   // Derivative FieldLists
   const FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  FieldList<Dimension, Scalar> DrvAlphaDtQ = derivs.fields(IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
-  FieldList<Dimension, Scalar> DrvAlphaDtL = derivs.fields(IncrementBoundedFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  FieldList<Dimension, Scalar> DrvAlphaDtQ = derivs.fields(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  FieldList<Dimension, Scalar> DrvAlphaDtL = derivs.fields(IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
     
   unsigned int numNodeLists = pressure.numFields();
   CHECK(soundSpeed.size() == numNodeLists);

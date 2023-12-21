@@ -11,10 +11,6 @@ from CaptureStdout import helpString
 from spheralDimensions import spheralDimensions
 
 dims = spheralDimensions()
-for dim in dims:
-    exec("""
-from SpheralCompiledPackages import ConstantStrength%(dim)sd as RealConstantStrength%(dim)sd
-""" % {"dim" : dim})
 
 #-------------------------------------------------------------------------------
 # Define a string providing the help for building a ConstantStrength.
@@ -121,4 +117,4 @@ def _ConstantStrengthFactory(ndim):
 # you actually use.
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec("ConstantStrength{ndim}d = _ConstantStrengthFactory({ndim})".format(ndim = ndim))
+    exec(f"ConstantStrength{ndim}d = _ConstantStrengthFactory({ndim})")

@@ -317,7 +317,6 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       if (removeItr != globalNodesRemaining.end())
         globalNodesRemaining.erase(removeItr);
     }
-    CHECK(globalNodesRemaining.size() >= 0);
     numGlobalNodesRemaining = globalNodesRemaining.size();
 #ifdef USE_MPI
     {
