@@ -1,18 +1,52 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+#from __future__ import print_function
+#from future import standard_library
+#standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import os, string, time, sys
 import getopt
 import time
 import platform
 import sys
 import optparse, re, copy
-from multiprocessing import cpu_count
+import subprocess
 
 d_debug= 1
 
 SYS_TYPE = os.environ.get('SYS_TYPE','')
 # This is better than platform.node() some of the time, because it differentiates between jade, jadeita, and jadedev.
 LCSCHEDCLUSTER = os.environ.get('LCSCHEDCLUSTER',platform.node())
+
+def cpu_count():
+    """Reliably return the number of physical cores.
+       multiprocessing.cpu_count() and psutil.cpu_count() do not do this correctly.
+       Instead parse the output of 'lscpu'.
+    """
+    if ('rzwhippet' in platform.node() or
+        'rzgenie' in platform.node()):
+        return (36)
+    else:
+        try:
+            p = subprocess.run(["lscpu",], stdout=subprocess.PIPE, text=True)
+        except Exception as e:
+            print ("Error running lscpu to get cpu count\n")
+            sys.exit(1)
+           
+        out = p.stdout
+        lines = out.split('\n')
+
+        for line in lines:
+            key, value = line.split(":")
+            if key == "Core(s) per socket":
+                cores_per_socket = int(value)
+            if key == "Socket(s)":
+                sockets = int(value)
+                break
+
+        return (cores_per_socket * sockets)
+
 
 #---------------------------------------------------------------------------
 def createBsubFile(inCommand, inAllOptions):
@@ -65,11 +99,7 @@ def createMsubFile(inCommand, inAllOptions):
     FILE.write("#MSUB -N " + inFilename + '\n')
     FILE.write("#MSUB -j oe "+ '\n')                       # directs all err output to stdout ")
     FILE.write("#MSUB -o " + msubOutputFilename + '\n')
-    if 'toss' in SYS_TYPE:
-        # cpu_count() returns 72, only 36 available
-        FILE.write("#MSUB -l nodes=" +  str(machineSettings.options.numNodes)+ ":ppn=36\n")
-    else:
-        FILE.write("#MSUB -l nodes=" +  str(machineSettings.options.numNodes)+ ":ppn=" + str(cpu_count()) + '\n')
+    FILE.write("#MSUB -l nodes=" +  str(machineSettings.options.numNodes)+ ":ppn=" + str(cpu_count()) + '\n')
     FILE.write("#MSUB -l walltime=%d:00\n" % machineSettings.options.allocTime )
 #    FILE.write("#MSUB -V                         # exports all environment var "+ '\n')
 
@@ -125,13 +155,8 @@ def createSbatchFile(inCommand, inAllOptions):
     FILE.write("#SBATCH --job-name=" + inFilename + '\n')
     FILE.write("#SBATCH --error="+ sbatchErrorFilename + '\n')                       # directs all err output to stdout ")
     FILE.write("#SBATCH --output="+ sbatchOutputFilename + '\n')                       # directs all other output to stdout ")
-    if 'toss' in SYS_TYPE:
-        # cpu_count() returns 72, only 36 available
-        FILE.write("#SBATCH --nodes=" +  str(machineSettings.options.numNodes)+ "\n")
-        FILE.write("#SBATCH --ntasks=36" + "\n") # Is this OKay?  Not sure if we want to default ntasks.
-    else:
-        FILE.write("#SBATCH --nodes=" +  str(machineSettings.options.numNodes)+ "\n")
-        FILE.write("#SBATCH --ntasks=" + str(cpu_count()) +"\n") # Is this OKay?  Not sure if we want to default ntasks.
+    FILE.write("#SBATCH --nodes=" +  str(machineSettings.options.numNodes)+ "\n")
+    FILE.write("#SBATCH --ntasks=" + str(cpu_count()) +"\n") # Is this OKay?  Not sure if we want to default ntasks.
     FILE.write("#SBATCH --time=%d\n" % machineSettings.options.allocTime )
 
     if machineSettings.options.name != 'cray':
@@ -260,12 +285,6 @@ parser= NoErrOptionParser(add_help_option=False)
 
 #---------------------------------------------------------------------------
 useCpu= cpu_count()
-if 'toss' in os.environ['SYS_TYPE']:
-    useCpu = 36                             # max cpu_count on rzgenie and jade is 36 even though 72 is returned by cpu_count().
-    if 'rzalastor' in platform.node() or 'zin' in platform.node():
-        useCpu = 16
-
-
 #---------------------------------------------------------------------------
 
 blueosSettings= MachineInfo(
@@ -284,29 +303,6 @@ blueosSettings= MachineInfo(
               "--npMax=40",
               "--continueFreq=15",
               "--timelimit=120",
-              "--glue='noDraco=True'",
-              "--glue='noVisit=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noCxxUnitTesting=True'",
-            ],
-)
-
-rzmantaSettings= MachineInfo(
-    name='blueos',
-    machineType='rzmanta',
-    batch= True,
-    allocTime = 240,
-    group = "guests",
-    partition='pdebug',
-    numProcs = 128,
-    #numNodes=,
-    #bank='science',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=8",
-              "--continueFreq=15",
-              "--timelimit=480",
               "--glue='noDraco=True'",
               "--glue='noVisit=True'",
               "--glue='noOpacityServer=True'",
@@ -423,7 +419,7 @@ glorySettings= MachineInfo(
 
 )
 
-tossSettings= MachineInfo(
+toss3Settings= MachineInfo(
     name='rzgenie',
     machineType='SlurmProcessorScheduled',
     batch= False,
@@ -443,7 +439,7 @@ tossSettings= MachineInfo(
 
 )
 
-tossBatch= MachineInfo(
+toss3Batch= MachineInfo(
     name='rztopaz',
     machineType='SlurmProcessorScheduled',
     batch= True,
@@ -478,6 +474,57 @@ rztopazSettings= MachineInfo(
             ],
 )
 
+toss4Settings= MachineInfo(
+    name='toss4machine',
+    machineType='slurm36',
+    batch= False,
+    allocTime = 180,
+    partition='pdebug',
+    numNodes=2,
+    bank='wbronze',
+    atsArgs=[
+              "--glue='independent=True'",
+              '--allInteractive',
+              "--npMax=36",
+              "--continueFreq=15",
+              "--timelimit 120m",
+            ],
+)
+
+toss4BatchSettings= MachineInfo(
+    name='toss4BatchMachine',
+    machineType='slurm36',
+    batch= True,
+    allocTime = 180,
+    partition='pdebug',
+    numNodes=2,
+    bank='wbronze',
+    atsArgs=[
+              "--glue='independent=True'",
+              '--allInteractive',
+              "--npMax=36",
+              "--continueFreq=15",
+              "--timelimit 120m",
+            ],
+)
+
+#  settings when rzwhippet is running flux natively
+rzwhippetSettings= MachineInfo(
+    name='rzwhippet',
+    machineType='flux00',
+    batch= False,
+    allocTime = 180,
+    numNodes=2,
+    bank='wbronze',
+    atsArgs=[
+              "--glue='independent=True'",
+              '--allInteractive',
+              "--npMax=%s"%(useCpu),
+              "--continueFreq=15",
+              "--timelimit=120",
+            ],
+)
+
 # Determine machine settings to use
 #-----------------------------------------------------------------------
 # Determine machine settings to use
@@ -486,12 +533,8 @@ rztopazSettings= MachineInfo(
 # options are used later to figure what to do....  machine settings are used for non-init options
 #
 #-----------------------------------------------------------------------
-if 'chaos_5' in SYS_TYPE:
-    if 'rzalastor' in platform.node():
-        machineSettings = chaos5NotBatchCapable
-    else:
-        machineSettings = chaos5BatchCapable
-elif platform.processor() == 'ppc64':
+
+if platform.processor() == 'ppc64':
     machineSettings = bgqSettings
 
 elif 'PRGENVMODULES' in os.environ:   # cray machine
@@ -506,16 +549,22 @@ elif 'glory' in SYS_TYPE:
 elif 'blue' in SYS_TYPE:
     machineSettings = blueosSettings
 
-elif 'toss' in SYS_TYPE:
-    if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
+elif 'toss_3' in SYS_TYPE:
+    if 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
         # Developer machines are interactive
-        machineSettings = tossSettings
+        machineSettings = toss3Settings
     elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
         # Need short queue settings
         machineSettings = rztopazSettings
     else:
         # Put it in batch.
-        machineSettings = tossBatch
+        machineSettings = toss3Batch
+elif 'toss_4' in SYS_TYPE:
+    if 'rzwhippet' in platform.node():
+        #machineSettings = rzwhippetSettings  # when running flux
+        machineSettings = toss4Settings  # when running slurm 
+    else:
+        machineSettings = toss4Settings
 else:
     print("Could not determine machine settings to use.")
     sys.exit(1)
@@ -596,8 +645,9 @@ parser.add_option( '--timelimit', dest='timelimit', default=30,
                    help='Set the default time limit on each test. The value may be given as a digit followed by an s, m, or h to give the time in seconds, minutes (the default), or hours.')
 
 # The P2 version is a sym-link to the latest python 2 version of ATS.  There's a P3 when we're ready for Python3
-parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P2/bin/ats",
-                  help="Sets which ats to use.")
+#parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P2/bin/ats", help="Sets which ats to use.")
+parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
+#parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.111/bin/ats", help="Sets which ats to use.")
 
 parser.add_option( "--addOp", action="store", type="string", dest="extraEzatsArgs", default='',
                   help="Adds extra job scheduler option to ezats.")
@@ -670,7 +720,20 @@ if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
 
     sys.exit(0)
 
-atsArgs= " ".join(atsArgs) # note: lose user-intended grouping here
+#atsArgs= string.join(atsArgs) # note: lose user-intended grouping here
+tmpstring=" "   # moving to python3 I had to work around the oneliner above. 
+print(type(tmpstring))  # normally you don't need a tmp for things like this...
+print("type of atsArgs var")
+print(type(atsArgs))
+atsArgsStr= tmpstring.join(atsArgs) # note: lose user-intended grouping here
+print(atsArgsStr) #Should be the joined list of args (space with args)
+print("value of atsArgs var before assignment of atsArgsStr")
+print(atsArgs)  # should be the unmodified list
+atsArgs=atsArgsStr
+print("type of atsArgs var before assignment of atsArgsStr")
+print(type(atsArgs))
+print("value of atsArgs var after assignment of atsArgsStr")
+print(atsArgs)  # should be the unmodified list as string
 
 #---------------------------------------------------------------------------
 # Added this section to allow ezats to determine an appropriate filesystem
@@ -682,7 +745,11 @@ atsArgs= " ".join(atsArgs) # note: lose user-intended grouping here
 # https://computing.llnl.gov/?set=resources&page=lc_lustre
 #---------------------------------------------------------------------------
 
-def checkFileSystem(path, timeout=4):
+#def checkFileSystem(path, timeout=4):
+# 04/25/23: SD: Increasing the timeout as they're having lustre problems and we 
+# suspect this is causing failures. Revisit and change back to 4 when lustre issues
+# are resolved 
+def checkFileSystem(path, timeout=30):
 
     def timeoutFunction( timeout, timeoutReturn, func, *args):
 
@@ -738,25 +805,26 @@ def getUniqueTestPath():
         for name in ['zin', 'max']:
             filesystems[name] = ['/p/lscratch2', '/p/lustre1', '/p/lscratch1']
 
-        for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
+        for name in ['jade', 'agate', 'mica', 'magma']:
             filesystems[name] = ['/p/lustre2', '/p/lustre1']
-
-        for name in ['rzgenie']:
-            filesystems[name] = ['/p/lustre1']
 
         for name in ['sierra', 'tron']:
             filesystems[name] = [ '/p/gpfs1' ]
 
         # RZ LLNL machines
-        for name in ['rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rztopaz']:
-            filesystems[name] = [ '/p/lscratchrza' ]
+        for name in ['rzgenie']:
+            filesystems[name] = [ '/p/lustre1' ]
 
-        for name in ['rzansel', 'lassen']:
+        for name in ['rztopaz']:
+            filesystems[name] = [ '/p/lustre1' ]
+
+        for name in ['rzansel']:
             filesystems[name] = [ '/p/gpfs1' ]
 
+        for name in ['rzwhippet']:
+            filesystems[name] = [ '/p/lustre1' ]
+
         # Don't use NFS filesystems with BG/Q, terrible latency issues.
-        filesystems['rzuseq'] = ['/p/lscratchrza']
-        filesystems['rzmanta'] = ['/p/gscratchrzm']
 
         # Sandia machines
         filesystems['chama'] = ['/fscratch','/gscratch']
@@ -916,7 +984,7 @@ if len(listCommandsToRemove) > 0:
             if d_debug:
                 print("DEBUG: ", unwantedCommand, "-----> ", finalCommandToRun)
 
-#finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
+finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
 realFinalCommandToRun= None
 
 #----------------------------------------------------------
@@ -934,6 +1002,11 @@ if machineSettings.options.batch:
         batchtype = 'sbatch'
         print("\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename))
         cmd = batchtype + ' ' + sbatchFilename
+    elif 'mica' in LCSCHEDCLUSTER:
+        sbatchFilename= createSbatchFile(finalCommandToRun, options)
+        batchtype = 'sbatch'
+        print("\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename))
+        cmd = batchtype + ' ' + sbatchFilename
     else:
         msubFilename= createMsubFile(finalCommandToRun, options)
         batchtype = 'msub'
@@ -942,7 +1015,7 @@ if machineSettings.options.batch:
 
     if not options.skip:
         from subprocess import check_call
-        print("Running0: ", cmd)
+        print("Running: ", cmd)
         #check_call( cmd.split() )
         os.system( cmd )
     else:
@@ -962,6 +1035,8 @@ if machineSettings.options.batch:
 else:
 
     os.environ["MACHINE_TYPE"] = machineSettings.options.machineType
+    if machineSettings.options.name in ['rzwhippet_flux']:
+       os.environ["MACHINE_TYPE"] = "flux00"
     os.environ["BATCH_TYPE"] = "None"
     os.environ["UNIQUE_KULL_TEST_SUBDIR"] = uniqueKullSubdir
 
@@ -969,16 +1044,14 @@ else:
         numProcsLine = ""
         # informs srun-wrapper.sh to not use kull's forkserver as ATS will run it
         os.environ["KULLINATS"] = "yes"
-    elif 'toss' in os.environ['SYS_TYPE']:
-        numProcsLine = " -n %d" % ( machineSettings.options.numNodes* ( useCpu ) )   
     else:
         numProcsLine = " -n %d" % ( machineSettings.options.numNodes* cpu_count() )
-#        if 'rzalastor' in platform.node():
-#            numProcsLine = " -n %d" % ( machineSettings.options.numNodes* ( 16 ) )   # for the time being, max cpu_count on alastor is 16 even though 20 are really available.  This will change sometime next month...
-
 
     if machineSettings.options.allocTime:
-        allocTime = "--time=%d:00" % machineSettings.options.allocTime
+        if machineSettings.options.name in ['rzwhippet_flux']:
+            allocTime = "-t %dm" % machineSettings.options.allocTime
+        else:
+            allocTime = "--time=%d:00" % machineSettings.options.allocTime
     else:
         allocTime = ""
 
@@ -988,8 +1061,18 @@ else:
 
     print(finalCommandToRun)
 
+    if machineSettings.options.name in ['rzwhippet_flux']:
+        finalCommandToRun= "flux alloc --exclusive "  \
+                               + " " + allocTime \
+                               + HERT_WC_ID \
+                               + options.extraEzatsArgs \
+                               + " -N " + str(machineSettings.options.numNodes) \
+                               + numProcsLine + " " \
+                               + finalCommandToRun
+                               # +  " -p " + machineSettings.options.partition  + " " 
+        print (finalCommandToRun)
     # Threaded tests under ats should NOT use salloc
-    if not options.threaded and 'blue' not in os.environ['SYS_TYPE']:
+    elif not options.threaded and 'blue' not in os.environ['SYS_TYPE']:
         finalCommandToRun= "salloc  --exclusive "  \
                                + " " + allocTime \
                                + HERT_WC_ID \
@@ -1045,9 +1128,13 @@ if (d_debug==1):
 
 #os.system(finalCommandToRun) # [SD] Problem was execv & the way it took the args split up was breaking the filter, and cmd failed.
 # Tested on rzgenie (pdebug), rztopaz (pbatch), and bgq (pdebug)
-from subprocess import run
+from subprocess import check_call
 print("Running: ", finalCommandToRun)
-run( finalCommandToRun,shell=True )
+try:
+    check_call( finalCommandToRun,shell=True )
+except Exception as e:
+    print("Caught - non-zero exit status 3 - thrown by final command", e)
+    print("Tests appear to execute correctly...but this output is here to keep an eye on this.")
 
 #  [SD] This was the former call before adding threaded option
 #import os
