@@ -24,9 +24,10 @@ def cpu_count():
        multiprocessing.cpu_count() and psutil.cpu_count() do not do this correctly.
        Instead parse the output of 'lscpu'.
     """
-    if ('rzwhippet' in platform.node() or
-        'rzgenie' in platform.node()):
-        return (36)
+    if 'rzalastor' in platform.node() or 'zin' in platform.node():
+        return 16
+    elif 'toss' in os.environ['SYS_TYPE']:
+        return 36
     else:
         try:
             p = subprocess.run(["lscpu",], stdout=subprocess.PIPE, text=True)
@@ -303,6 +304,29 @@ blueosSettings= MachineInfo(
               "--npMax=40",
               "--continueFreq=15",
               "--timelimit=120",
+              "--glue='noDraco=True'",
+              "--glue='noVisit=True'",
+              "--glue='noOpacityServer=True'",
+              "--glue='noCxxUnitTesting=True'",
+            ],
+)
+
+rzmantaSettings= MachineInfo(
+    name='blueos',
+    machineType='rzmanta',
+    batch= True,
+    allocTime = 240,
+    group = "guests",
+    partition='pdebug',
+    numProcs = 128,
+    #numNodes=,
+    #bank='science',
+    atsArgs=[
+              "--glue='independent=True'",
+              '--allInteractive',
+              "--npMax=8",
+              "--continueFreq=15",
+              "--timelimit=480",
               "--glue='noDraco=True'",
               "--glue='noVisit=True'",
               "--glue='noOpacityServer=True'",
@@ -805,7 +829,7 @@ def getUniqueTestPath():
         for name in ['zin', 'max']:
             filesystems[name] = ['/p/lscratch2', '/p/lustre1', '/p/lscratch1']
 
-        for name in ['jade', 'agate', 'mica', 'magma']:
+        for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
             filesystems[name] = ['/p/lustre2', '/p/lustre1']
 
         for name in ['sierra', 'tron']:
@@ -818,7 +842,7 @@ def getUniqueTestPath():
         for name in ['rztopaz']:
             filesystems[name] = [ '/p/lustre1' ]
 
-        for name in ['rzansel']:
+        for name in ['rzansel', 'lassen']:
             filesystems[name] = [ '/p/gpfs1' ]
 
         for name in ['rzwhippet']:
