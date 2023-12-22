@@ -24,9 +24,9 @@ def cpu_count():
        multiprocessing.cpu_count() and psutil.cpu_count() do not do this correctly.
        Instead parse the output of 'lscpu'.
     """
-    if 'rzalastor' in platform.node() or 'zin' in platform.node():
+    if max([x in platform.node() for x in ['zin', 'rzalastor']]):
         return 16
-    elif 'toss' in os.environ['SYS_TYPE']:
+    elif max([x in platform.node() for x in ['rzwhippet', 'rzgenie', 'jade']]):
         return 36
     else:
         try:
@@ -574,7 +574,7 @@ elif 'blue' in SYS_TYPE:
     machineSettings = blueosSettings
 
 elif 'toss_3' in SYS_TYPE:
-    if 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
+    if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
         # Developer machines are interactive
         machineSettings = toss3Settings
     elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
@@ -584,7 +584,7 @@ elif 'toss_3' in SYS_TYPE:
         # Put it in batch.
         machineSettings = toss3Batch
 elif 'toss_4' in SYS_TYPE:
-    if 'rzwhippet' in platform.node():
+    if 'ruby' in LCSCHEDCLUSTER or 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER or 'rzwhippet' == LCSCHEDCLUSTER:
         #machineSettings = rzwhippetSettings  # when running flux
         machineSettings = toss4Settings  # when running slurm 
     else:
@@ -836,17 +836,11 @@ def getUniqueTestPath():
             filesystems[name] = [ '/p/gpfs1' ]
 
         # RZ LLNL machines
-        for name in ['rzgenie']:
-            filesystems[name] = [ '/p/lustre1' ]
-
-        for name in ['rztopaz']:
-            filesystems[name] = [ '/p/lustre1' ]
+        for name in ['rzgenie', 'rzwhippet', 'rzalastor', 'rzcereal', 'rzzeus', 'rzmerl', 'rztopaz']:
+            filesystems[name] = ['/p/lustre1']
 
         for name in ['rzansel', 'lassen']:
             filesystems[name] = [ '/p/gpfs1' ]
-
-        for name in ['rzwhippet']:
-            filesystems[name] = [ '/p/lustre1' ]
 
         # Don't use NFS filesystems with BG/Q, terrible latency issues.
 
