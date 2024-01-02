@@ -9,21 +9,21 @@
 #
 # Ordinary SPH
 #
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase dumps-PlanarCompaction-1d-sph", np=4, label="Planar porous aluminum compaction problem -- 1-D (4 proc)")
-#ATS:t1 = test(      SELF, "--graphics None --clearDirectories True  --checkError False --dataDirBase dumps-PlanarCompaction-1d-sph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 1)")
-#ATS:t2 = testif(t1, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase dumps-PlanarCompaction-1d-sph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 2)")
+#ATS:t0 = test(      SELF, "--graphics False --clearDirectories True  --checkError True  --dataDirBase dumps-PlanarCompaction-1d-sph", np=4, label="Planar porous aluminum compaction problem -- 1-D (4 proc)")
+#ATS:t1 = testif(t0  SELF, "--graphics False --clearDirectories True  --checkError False --dataDirBase dumps-PlanarCompaction-1d-sph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 1)")
+#ATS:t2 = testif(t1, SELF, "--graphics False --clearDirectories False --checkError False --dataDirBase dumps-PlanarCompaction-1d-sph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (serial, restart test step 2)")
 #
 # FSISPH
 #
-#ATS:t10 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph", np=4, label="Planar porous aluminum compaction problem -- 1-D (FSISPH, 4 proc)")
-#ATS:t11 = test(       SELF, "--graphics None --clearDirectories True  --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 1)")
-#ATS:t12 = testif(t11, SELF, "--graphics None --clearDirectories False --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 2)")
+#ATS:t10 = testif(t0   SELF, "--graphics False --clearDirectories True  --checkError True  --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph", np=4, label="Planar porous aluminum compaction problem -- 1-D (FSISPH, 4 proc)")
+#ATS:t11 = testif(t10, SELF, "--graphics False --clearDirectories True  --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 1)")
+#ATS:t12 = testif(t11, SELF, "--graphics False --clearDirectories False --checkError False --hydroType FSISPH --dataDirBase dumps-PlanarCompaction-1d-fsisph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (FSISPH, serial, restart test step 2)")
 #
 # CRKSPH
 #
-#ATS:t20 = test(       SELF, "--graphics None --clearDirectories True  --checkError True  --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph", np=4, label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, 4 proc)")
-#ATS:t21 = test(       SELF, "--graphics None --clearDirectories True  --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 1)")
-#ATS:t22 = testif(t21, SELF, "--graphics None --clearDirectories False --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 2)")
+#ATS:t20 = testif(t10, SELF, "--graphics False --clearDirectories True  --checkError True  --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph", np=4, label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, 4 proc)")
+#ATS:t21 = testif(t20, SELF, "--graphics False --clearDirectories True  --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph-restart --restartStep 100 --steps 200", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 1)")
+#ATS:t22 = testif(t21, SELF, "--graphics False --clearDirectories False --checkError False --hydroType CRKSPH --dataDirBase dumps-PlanarCompaction-1d-crksph-restart --restartStep 100 --steps 100 --checkRestart True --restoreCycle 100 ", label="Planar porous aluminum compaction problem -- 1-D (CRKSPH, serial, restart test step 2)")
 
 from SolidSpheral1d import *
 from SpheralTestUtilities import *
