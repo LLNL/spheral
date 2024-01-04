@@ -31,6 +31,7 @@ set (_python_packages
   Damage
   SolidMaterial
   Strength
+  Porosity
   KernelIntegrator
   polytope
   OpenMP

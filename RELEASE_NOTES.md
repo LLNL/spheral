@@ -6,7 +6,16 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features/ API changes:
-
+    * Adding P-alpha porosity model
+    * Updating treatment of various state variables in the presence of porosity.
+    * Introduced a new common base class for porosity physics (PorosityModel), which PalphaPorosity and StrainPorosity share.
+    * Revamped interaction UpdatePolicies with FieldLists:
+      - UpdatePolicies have a new virtual method: clonePerField: True means when registering a FieldList copy the Policy for each Field in the FieldList; False means register the FieldList for update itself with the single instance of the Policy.
+      - This change removes most of our redundant Field/FieldList update policies, and allows us to be more granular in applying different policies to single Field values in a FieldList.
+    * Adding more Shadow Python interfaces wrapping our C++ classes, in particular PalphaPorosity and StrainPorosity.
+    * EquationOfState now requires instances to provide \partial P/\partial \rho and \partial P/\partial \epsilon.  All current equations of state have been updated accordingly.
+    * Tillotson and Gruneisen EOSs implementations updated a bit in the revamping.
+    * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book)
 
   * Build changes / improvements:
     * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use
@@ -15,6 +24,7 @@ Notable changes include:
       ```
     * CMake variables have a more consistent naming convention. Unused variables are removed.
     * Added ENABLE_DEV_BUILD option to improve build times during code development
+    * Upped our required C++ standard to 17
 
   * Bug Fixes / improvements:
     * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.
@@ -24,7 +34,9 @@ Notable changes include:
       * strength implementation modified
       * new features added including plane strain option and settable minP for interfaces
       * new, more rigorous, interface and free surface tracking
-      
+    * Fixed initialization of longitudinal sound speed and Youngs modulus for damage models.
+    * Corrected some minor bugs/inconsistencies in the Tillotson EOS.
+
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
 

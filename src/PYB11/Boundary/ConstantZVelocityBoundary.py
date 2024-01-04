@@ -32,6 +32,12 @@ NodeList.
                nodeIndices = "const std::vector<int>&"):
         "Construct a constant Z velocity for the given nodes"
 
+    @PYB11implementation("[](const NodeList<%(Dimension)s>& nodeList, py::list nodeIndices) { return std::make_unique<ConstantZVelocityBoundary<%(Dimension)s>>(nodeList, Spheral::PYB11utils::from_list<int>(nodeIndices)); }")
+    def pyinit1(self,
+                nodeList = "const NodeList<%(Dimension)s>&",
+                nodeIndices = "py::list"):
+        "Construct a constant Z velocity boundary for the specified nodes"
+
     #...........................................................................
     # Methods
     @PYB11virtual

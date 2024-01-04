@@ -7,7 +7,6 @@ set(GSPH_inst
     GenericRiemannHydro
     GSPHHydroBase
     MFMHydroBase
-    Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
@@ -34,7 +33,6 @@ set(GSPH_headers
     GenericRiemannHydro.hh
     GSPHHydroBase.hh
     MFMHydroBase.hh
-    Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh

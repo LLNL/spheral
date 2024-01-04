@@ -15,6 +15,15 @@ class EOSAbstractMethods:
         return "void"
 
     @PYB11const
+    def setPressureAndDerivs(self,
+                             Pressure = "ScalarField&",
+                             dPdu = "ScalarField&",
+                             dPdrho = "ScalarField&",
+                             massDensity = "const ScalarField&",
+                             specificThermalEnergy = "const ScalarField&"):
+        return "void"
+
+    @PYB11const
     def setTemperature(self,
                        temperature = "ScalarField&",
                        massDensity = "const ScalarField&",

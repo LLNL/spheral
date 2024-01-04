@@ -101,6 +101,37 @@ setPressure(Field<Dimension, Scalar>& pressure,
 }
 
 //------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+OsborneEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+
+  CHECK(valid());
+  const double rho0 = this->referenceDensity();
+  const auto n = Pressure.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const double eta = this->boundedEta(massDensity(i));
+    const double mu = eta - 1.0;
+    const double E = rho0*specificThermalEnergy(i);
+    const double a2 = mu > 0.0 ? mA2pos : mA2neg;
+    const double b2 = mu > 0.0 ? mB2pos : mB2neg;
+    const double c2 = mu > 0.0 ? mC2pos : mC2neg;
+    Pressure(i) = this->applyPressureLimits((mA1*mu + a2*mu*mu +
+                                             (mB0 + mB1*mu + b2*mu*mu)*E +
+                                             (mC0 + mC1*mu + c2*mu*mu)*E*E)*safeInvVar(E + mE0));
+    dPdu(i) = rho0*(E + mE0)*(mB0 + mB1*mu + b2*mu*mu + 2.0*E*(mC0 + mC1*mu + c2*mu*mu) - Pressure(i))*safeInvVar(FastMath::pow2(E + mE0));
+    dPdrho(i) = (mA1 + 2.0*a2*mu + (mB1 + 2.0*b2*mu)*E + (mC1 + 2.0*c2*mu)*E*E)*safeInvVar(rho0*(E + mE0));
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>

@@ -86,7 +86,29 @@ setPressure(Field<Dimension, Scalar>& pressure,
   const auto n = massDensity.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    pressure(i) = std::get<0>(this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i)));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearPolynomialEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  REQUIRE(valid());
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const auto stuff = this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i));
+    pressure(i) = std::get<0>(stuff);
+    dPdu(i) = std::get<1>(stuff);
+    dPdrho(i) = std::get<2>(stuff);
   }
 }
 
@@ -198,7 +220,7 @@ setEntropy(Field<Dimension, Scalar>& entropy,
   const auto n = massDensity.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), mGamma));
+    entropy(i) = std::get<0>(pressureAndDerivs(massDensity(i), specificThermalEnergy(i)))*safeInvVar(pow(massDensity(i), mGamma));
   }
 }
 
@@ -206,16 +228,19 @@ setEntropy(Field<Dimension, Scalar>& entropy,
 // Calculate an individual pressure.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
+std::tuple<typename Dimension::Scalar, typename Dimension::Scalar, typename Dimension::Scalar>
 LinearPolynomialEquationOfState<Dimension>::
-pressure(const Scalar massDensity,
-         const Scalar specificThermalEnergy) const {
+pressureAndDerivs(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const {
   REQUIRE(valid());
   const double eta = this->boundedEta(massDensity);
-  if (fuzzyEqual(eta, this->etamin())) return 0.0;
+  if (fuzzyEqual(eta, this->etamin())) return std::make_tuple(0.0, 0.0, 0.0);
   const double mu = eta - 1.0;
-  return this->applyPressureLimits(mA0 + mA1*mu + mA2*mu*mu + mA3*mu*mu*mu +
-                                   (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy);
+  const double rho0 = this->referenceDensity();
+  return std::make_tuple(this->applyPressureLimits(mA0 + mA1*mu + mA2*mu*mu + mA3*mu*mu*mu +                   // P
+                                                   (mB0 + mB1*mu + mB2*mu*mu)*specificThermalEnergy),
+                         mB0 + mB1*mu + mB2*mu*mu,                                                             // \partial P/\partial u
+                         (mA1 + 2.0*mA2*mu + 3.0*mA3*mu*mu + (mB1 + 2.0*mB2*mu)*specificThermalEnergy)/rho0);  // \partial P/\partial rho
 }
 
 //------------------------------------------------------------------------------
@@ -302,11 +327,12 @@ LinearPolynomialEquationOfState<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return this->pressure(massDensity, specificThermalEnergy)*safeInvVar(pow(massDensity, mGamma));
+  return std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))*safeInvVar(pow(massDensity, mGamma));
 }
 
 //------------------------------------------------------------------------------
-// Compute (\partial P)/(\partial rho).
+// Compute (\partial P)/(\partial rho) at constant entropy.  This is the form
+// used for the sound speed.
 // 
 // This turns out to be 
 // \partial P       \partial P   |          P     \partial P   |
@@ -323,9 +349,9 @@ computeDPDrho(const Scalar massDensity,
   const double mu = eta - 1.0;
   const double rho0 = this->referenceDensity();
   const double rho = rho0*eta;
-  const double dPdrho_eps = std::abs(mA1 + mA2*mu + mA3*mu*mu +
-                                     (mB1 + mB2*mu)*specificThermalEnergy)/rho0;
-  const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
+  const double dPdrho_eps = std::abs(mA1 + 2.0*mA2*mu + 3.0*mA3*mu*mu +
+                                     (mB1 + 2.0*mB2*mu)*specificThermalEnergy)/rho0;
+  const double Prho2 = std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))/(rho*rho);
   const double dPdeps_rho = mB0 + mB1*mu + mB2*mu*mu;
   const double result = std::max(0.0, dPdrho_eps + Prho2*dPdeps_rho);
 

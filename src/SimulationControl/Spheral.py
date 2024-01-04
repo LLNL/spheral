@@ -73,6 +73,10 @@ from JohnsonCookDamageFactories import (JohnsonCookDamageConstant,
                                         JohnsonCookDamageGaussian,
                                         JohnsonCookDamageWeibull)
 
+# These are for backwards compatibility and should be deprecated
+from PorousEquationOfState import *
+from PorousStrengthModel import *
+
 # ------------------------------------------------------------------------------
 # Helpful things with strings.
 # ------------------------------------------------------------------------------
@@ -122,10 +126,11 @@ for shadowedthing in ("TillotsonEquationOfState",
                       "ConstantStrength",
                       "ProbabilisticDamageModel",
                       "IvanoviSALEDamageModel",
+                      "StrainPorosity",
+                      "PalphaPorosity",
                       "ANEOS"):
     for dim in dims:
-        exec("from Shadow%(thing)s import %(thing)s%(dim)sd" % {"thing" : shadowedthing,
-                                                                "dim"   : dim})
+        exec(f"from Shadow{shadowedthing} import {shadowedthing}{dim}d")
 
 # ------------------------------------------------------------------------------
 # Prepare for timing

@@ -7,7 +7,7 @@
 #ifndef __Spheral_GammaPolicy_hh__
 #define __Spheral_GammaPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
@@ -16,16 +16,14 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class FluidNodeList;
-template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class GammaPolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class GammaPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   GammaPolicy();
@@ -37,10 +35,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

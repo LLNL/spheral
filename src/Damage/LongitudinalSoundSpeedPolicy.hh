@@ -10,6 +10,7 @@
 #include <string>
 
 #include "DataBase/UpdatePolicyBase.hh"
+#include "NodeList/SolidNodeList.hh"
 
 namespace Spheral {
 
@@ -25,14 +26,14 @@ class LongitudinalSoundSpeedPolicy:
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  LongitudinalSoundSpeedPolicy();
+  LongitudinalSoundSpeedPolicy(const SolidNodeList<Dimension>& nodes);
   virtual ~LongitudinalSoundSpeedPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -48,6 +49,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  const SolidNodeList<Dimension>& mSolidNodeList;
+
   LongitudinalSoundSpeedPolicy(const LongitudinalSoundSpeedPolicy& rhs);
   LongitudinalSoundSpeedPolicy& operator=(const LongitudinalSoundSpeedPolicy& rhs);
 };

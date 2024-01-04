@@ -19,67 +19,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename Value>
 ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList():
-  FieldListUpdatePolicyBase<Dimension, Value>() {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0,
-                   const std::string& depend1):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0,
-                   const std::string& depend1,
-                   const std::string& depend2):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0,
-                   const std::string& depend1,
-                   const std::string& depend2,
-                   const std::string& depend3):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0,
-                   const std::string& depend1,
-                   const std::string& depend2,
-                   const std::string& depend3,
-                   const std::string& depend4):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4 ) {
-}
-
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-ReplacePairFieldList(const std::string& depend0,
-                   const std::string& depend1,
-                   const std::string& depend2,
-                   const std::string& depend3,
-                   const std::string& depend4,
-                   const std::string& depend5):
-  FieldListUpdatePolicyBase<Dimension, Value>(depend0, depend1, depend2, depend3, depend4, depend5 ) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
-ReplacePairFieldList<Dimension, Value>::
-~ReplacePairFieldList() {
+ReplacePairFieldList(std::initializer_list<std::string> depends):
+  UpdatePolicyBase<Dimension>(depends) {
 }
 
 //------------------------------------------------------------------------------
@@ -129,8 +70,8 @@ ReplacePairFieldList<Dimension, Value>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an Replace operator.
-  const ReplacePairFieldList<Dimension, Value>* rhsPtr = dynamic_cast<const ReplacePairFieldList<Dimension, Value>*>(&rhs);
-  return rhsPtr != 0;
+  const auto* rhsPtr = dynamic_cast<const ReplacePairFieldList<Dimension, Value>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 

@@ -20,6 +20,7 @@
     HOSTNAME: 'lassen'
     BUILD_ALLOC: lalloc 1 -W 60
     TEST_ALLOC: $BUILD_ALLOC
+    LC_MODULES: "cuda/11.1.0"
   extends: [.on_blueos_3_ppc64]
 
 # ------------------------------------------------------------------------------

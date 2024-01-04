@@ -10,26 +10,20 @@
 #ifndef __Spheral_ReplaceAndIncrementPairFieldList_hh__
 #define __Spheral_ReplaceAndIncrementPairFieldList_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename Value>
-class ReplaceAndIncrementPairFieldList: public FieldListUpdatePolicyBase<Dimension, Value> {
+class ReplaceAndIncrementPairFieldList: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // pull up from the parent
-  typedef typename  FieldListUpdatePolicyBase<Dimension, Value>::KeyType KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  ReplaceAndIncrementPairFieldList();
-  explicit ReplaceAndIncrementPairFieldList(const std::string& depend0);
-  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1);
-  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  ReplaceAndIncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~ReplaceAndIncrementPairFieldList();
+  ReplaceAndIncrementPairFieldList(std::initializer_list<std::string> depends = {});
+  virtual ~ReplaceAndIncrementPairFieldList() {}
   
   static const std::string incrementPrefix() { return "delta "; }
   static const std::string replacePrefix() { return "new "; }

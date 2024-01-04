@@ -11,7 +11,6 @@
 #include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
@@ -41,16 +40,8 @@ static inline double Hvolume(const Dim<3>::SymTensor& H) {
 template<typename Dimension>
 ContinuityVolumePolicy<Dimension>::
 ContinuityVolumePolicy():
-  IncrementFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::mass,
-                                                            HydroFieldNames::massDensity) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ContinuityVolumePolicy<Dimension>::
-~ContinuityVolumePolicy() {
+  IncrementState<Dimension, typename Dimension::Scalar>({HydroFieldNames::mass,
+                                                         HydroFieldNames::massDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -68,24 +59,24 @@ update(const KeyType& key,
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::volume and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> volume = state.fields(fieldKey, Scalar());
-  const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
-  const FieldList<Dimension, Scalar> rho = state.fields(HydroFieldNames::massDensity, 0.0);
-  const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const FieldList<Dimension, Scalar> DrhoDt = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
+  REQUIRE(fieldKey == HydroFieldNames::volume);
+  auto& volume = state.field(key, 0.0);
+
+  // Get the state we depend on
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+  const auto& rho = state.field(buildKey(HydroFieldNames::massDensity), 0.0);
+  const auto& H = state.field(buildKey(HydroFieldNames::H), SymTensor::zero);
+  const auto& DrhoDt = derivs.field(buildKey(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity), 0.0);
 
   // Loop over the internal values of the field.
-  const unsigned numNodeLists = volume.size();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = volume[k]->numInternalElements();
-    for (unsigned i = 0; i != n; ++i) {
-      const Scalar volMin = 0.5*mass(k,i)*safeInvVar(rho(k,i));
-      const Scalar volMax = Hvolume(H(k,i));
-      const Scalar dVdt = -mass(k,i)*safeInvVar(rho(k,i)*rho(k,i))*DrhoDt(k,i);
-      volume(k,i) = std::max(volMin, std::min(volMax, volume(k,i) + multiplier*dVdt));
-    }
+  const auto n = volume.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const auto volMin = 0.5*mass(i)*safeInvVar(rho(i));
+    const auto volMax = Hvolume(H(i));
+    const auto dVdt = -mass(i)*safeInvVar(rho(i)*rho(i))*DrhoDt(i);
+    volume(i) = std::max(volMin, std::min(volMax, volume(i) + multiplier*dVdt));
   }
 }
 
@@ -96,14 +87,7 @@ template<typename Dimension>
 bool
 ContinuityVolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const ContinuityVolumePolicy<Dimension>* rhsPtr = dynamic_cast<const ContinuityVolumePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  return dynamic_cast<const ContinuityVolumePolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

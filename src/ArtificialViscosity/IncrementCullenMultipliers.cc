@@ -30,9 +30,10 @@ IncrementCullenMultipliers<Dimension>::
 IncrementCullenMultipliers(const typename Dimension::Scalar minValue,
                            const typename Dimension::Scalar maxValue,
                            const bool hopkinsForm):
-  IncrementBoundedFieldList<Dimension, typename Dimension::Scalar, typename Dimension::Scalar>(minValue, 
-                                                                                               maxValue),
-  mHopkinsForm(hopkinsForm) {
+  UpdatePolicyBase<Dimension>(),
+  mHopkinsForm(hopkinsForm),
+  mAlphaMin(minValue),
+  mAlphaMax(maxValue) {
 }
 
 //------------------------------------------------------------------------------
@@ -57,34 +58,33 @@ update(const KeyType&,
        const double /*dt*/) {
 
   // Get the state we're advancing and the needed derivatives.
-  FieldList<Dimension, Scalar> rvQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
-  FieldList<Dimension, Scalar> rvL = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
-  FieldList<Dimension, Scalar> alpha0 = state.fields("mCullAlpha", 0.0);
-  const FieldList<Dimension, Scalar> alpha_local = derivs.fields("Cullen alpha local", 0.0);
-  const FieldList<Dimension, Scalar> DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
-  const FieldList<Dimension, Scalar> alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
+  auto rvQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  auto rvL = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  auto alpha0 = state.fields("mCullAlpha", 0.0);
+  const auto alpha_local = derivs.fields("Cullen alpha local", 0.0);
+  const auto DalphaDt = derivs.fields("Cullen alpha delta", 0.0);
+  const auto alpha_tmp = derivs.fields("mCullAlpha2", 0.0);
 
-  const unsigned numNodeLists = rvQ.size();
+  const auto numNodeLists = rvQ.size();
   CHECK(rvL.size() == numNodeLists);
   CHECK(alpha0.size() == numNodeLists);
   CHECK(alpha_local.size() == numNodeLists);
   CHECK(DalphaDt.size() == numNodeLists);
 
   // Set the new values.
-  const Scalar alphaMin = this->minValue();
-  const Scalar alphaMax = this->maxValue();
-  for (unsigned k = 0; k != numNodeLists; ++k) {
-    const unsigned n = rvQ[k]->numInternalElements();
-    for (unsigned i = 0; i < n; ++i) {
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = rvQ[k]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
       if (mHopkinsForm) {
         // Hopkins 2014
-        const Scalar alphai = std::max(alphaMin, std::min(alphaMax, alpha_local(k, i)));
+        const auto alphai = std::max(mAlphaMin, std::min(mAlphaMax, alpha_local(k, i)));
         rvQ(k, i) = alphai;
         rvL(k, i) = alphai;
         alpha0(k, i) = DalphaDt(k, i);
       } else {
         // Cullen & Dehnen 2010
-        const Scalar alphai = std::max(alphaMin, std::min(alphaMax, max(alpha_local(k, i), rvQ(k, i)) + multiplier*DalphaDt(k, i)));
+        const auto alphai = std::max(mAlphaMin, std::min(mAlphaMax, max(alpha_local(k, i), rvQ(k, i)) + multiplier*DalphaDt(k, i)));
         rvQ(k, i) = alphai;
         rvL(k, i) = alphai;
       }
@@ -101,11 +101,11 @@ IncrementCullenMultipliers<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const IncrementCullenMultipliers<Dimension>* rhsPtr = dynamic_cast<const IncrementCullenMultipliers<Dimension>*>(&rhs);
-  if (rhsPtr == 0) return false;
+  const auto* rhsPtr = dynamic_cast<const IncrementCullenMultipliers<Dimension>*>(&rhs);
+  if (rhsPtr == nullptr) return false;
 
   // Ok, now do we agree on min & max?
-  return (this->minValue() == rhsPtr->minValue()) && (this->maxValue() == rhsPtr->maxValue());
+  return (mAlphaMin == rhsPtr->mAlphaMin) && (mAlphaMax == rhsPtr->mAlphaMax);
 }
 
 }
