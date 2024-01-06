@@ -571,18 +571,18 @@ else:
 dxbound = 10*dx
 xmin += dxbound
 xmax -= dxbound
-xprof = np.array(mpi.reduce([x.x for x in pos.internalValues()], mpi.SUM))
-rhoprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.massDensity)[0].internalValues(), mpi.SUM))
-epsprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.specificThermalEnergy)[0].internalValues(), mpi.SUM))
-vprof = np.array(mpi.reduce([x.x for x in state.vectorFields(HydroFieldNames.velocity)[0].internalValues()], mpi.SUM))
-Pprof = np.array(mpi.reduce(state.scalarFields(HydroFieldNames.pressure)[0].internalValues(), mpi.SUM))
-hprof = np.array(mpi.reduce(h[0].internalValues(), mpi.SUM))
-alphaprof = np.array(mpi.reduce(state.scalarFields(SolidFieldNames.porosityAlpha)[0].internalValues(), mpi.SUM))
+xprof = np.array(mpi.allreduce([x.x for x in pos.internalValues()], mpi.SUM))
+rhoprof = np.array(mpi.allreduce(state.scalarFields(HydroFieldNames.massDensity)[0].internalValues(), mpi.SUM))
+epsprof = np.array(mpi.allreduce(state.scalarFields(HydroFieldNames.specificThermalEnergy)[0].internalValues(), mpi.SUM))
+vprof = np.array(mpi.allreduce([x.x for x in state.vectorFields(HydroFieldNames.velocity)[0].internalValues()], mpi.SUM))
+Pprof = np.array(mpi.allreduce(state.scalarFields(HydroFieldNames.pressure)[0].internalValues(), mpi.SUM))
+hprof = np.array(mpi.allreduce(h[0].internalValues(), mpi.SUM))
+alphaprof = np.array(mpi.allreduce(state.scalarFields(SolidFieldNames.porosityAlpha)[0].internalValues(), mpi.SUM))
+multiSort(xprof, rhoprof, epsprof, vprof, Pprof, hprof, alphaprof)
+xans, vans, epsans, rhoans, Pans, hans = solution.solution(t, xprof)
+xans, alphaans = solution.alpha_solution(t, xprof)
 failure = False
 if mpi.rank == 0:
-    multiSort(xprof, rhoprof, epsprof, vprof, Pprof, hprof, alphaprof)
-    xans, vans, epsans, rhoans, Pans, hans = solution.solution(t, xprof)
-    xans, alphaans = solution.alpha_solution(t, xprof)
     print("Quantity \t\tL1 \t\t\t\tL2 \t\t\t\tLinf")
     for (name, data, ans) in [("Mass density", rhoprof, rhoans),
                               ("Spec Therm E", epsprof, epsans),
@@ -596,13 +596,14 @@ if mpi.rank == 0:
         L1 = Pn.gridpnorm(1, xmin, xmax)
         L2 = Pn.gridpnorm(2, xmin, xmax)
         Linf = Pn.gridpnorm("inf", xmin, xmax)
-        print("{}\t\t{} \t\t{} \t\t{}".format(name, L1, L2, Linf))
+        print(f"{name}\t\t{L1} \t\t{L2} \t\t{Linf}")
 
         if checkError and not (np.allclose(L1, LnormRef[hydroType][name]["L1"], tol, tol) and
                                np.allclose(L2, LnormRef[hydroType][name]["L2"], tol, tol) and
                                np.allclose(Linf, LnormRef[hydroType][name]["Linf"], tol, tol)):
             print("Failing Lnorm tolerance for ", name, (L1, L2, Linf), LnormRef[hydroType][name])
             failure = True
+sys.stdout.flush()
 
 failure = mpi.allreduce(failure, mpi.MAX)
 if checkError and failure:

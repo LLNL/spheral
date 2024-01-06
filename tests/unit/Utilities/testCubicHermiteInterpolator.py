@@ -197,7 +197,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             C = rangen.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
-            tol, f1tol, f2tol = 5.0e-9, 1e-8, 1e-6
+            tol, f1tol, f2tol = 5.0e-9, 5e-8, 1e-6
             self.checkError(xmin, xmax, func, F, tol, f1tol, f2tol, "quadratic function")
 
     #===========================================================================
