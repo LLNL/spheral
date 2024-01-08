@@ -13,11 +13,9 @@
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -34,7 +32,7 @@ namespace Spheral {
 template<typename Dimension>
 SpecificFromTotalThermalEnergyPolicy<Dimension>::
 SpecificFromTotalThermalEnergyPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>() {
+  UpdatePolicyBase<Dimension>() {
 }
 
 //------------------------------------------------------------------------------
@@ -62,19 +60,20 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  auto eps = state.fields(fieldKey, Scalar());
+  auto       eps = state.fields(fieldKey, Scalar());
   const auto numFields = eps.numFields();
 
   // Get the state fields.
   const auto mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto DEDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto DEDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
 
   // Do it.
-  for (size_t nodeListi = 0; nodeListi != numFields; ++nodeListi) {
-    const size_t n = eps[nodeListi]->numInternalElements();
-    for (size_t i = 0; i != n; ++i) {
+  for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
+    const auto n = eps[nodeListi]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
       auto& epsi = eps(nodeListi, i);
       const auto  mi = mass(nodeListi, i);
       const auto& vi0 = velocity(nodeListi, i);

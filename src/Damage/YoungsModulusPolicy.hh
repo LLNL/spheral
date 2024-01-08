@@ -8,6 +8,7 @@
 #define __Spheral_YoungsModulusPolicy_hh__
 
 #include "DataBase/UpdatePolicyBase.hh"
+#include "NodeList/SolidNodeList.hh"
 
 #include <string>
 
@@ -26,14 +27,14 @@ class YoungsModulusPolicy:
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  YoungsModulusPolicy();
+  YoungsModulusPolicy(const SolidNodeList<Dimension>& nodes);
   virtual ~YoungsModulusPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -47,8 +48,14 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
+  // Provide a static method to compute Youngs modulus
+  static double YoungsModulus(const double K,     // bulk modulus
+                              const double mu);   // shear modulus
+
 private:
   //--------------------------- Private Interface ---------------------------//
+  const SolidNodeList<Dimension>& mSolidNodeList;
+
   YoungsModulusPolicy(const YoungsModulusPolicy& rhs);
   YoungsModulusPolicy& operator=(const YoungsModulusPolicy& rhs);
 };

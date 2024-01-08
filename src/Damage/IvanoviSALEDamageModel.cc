@@ -26,6 +26,8 @@
 #include "DamageGradientPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
+#include "Material/EquationOfState.hh"
+#include "SolidMaterial/StrengthModel.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -159,34 +161,23 @@ IvanoviSALEDamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Register Youngs modulus and the longitudinal sound speed.
-  PolicyPointer EPolicy(new YoungsModulusPolicy<Dimension>());
-  PolicyPointer clPolicy(new LongitudinalSoundSpeedPolicy<Dimension>());
-  state.enroll(mYoungsModulus, EPolicy);
-  state.enroll(mLongitudinalSoundSpeed, clPolicy);
-
-  // Set the initial values
-  typename StateDerivatives<Dimension>::PackageList dummyPackages;
-  StateDerivatives<Dimension> derivs(dataBase, dummyPackages);
-  EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
-  clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
+  auto& nodes = this->nodeList();
+  state.enroll(mYoungsModulus, std::make_shared<YoungsModulusPolicy<Dimension>>(nodes));
+  state.enroll(mLongitudinalSoundSpeed, std::make_shared<LongitudinalSoundSpeedPolicy<Dimension>>(nodes));
 
   // Register the strain and effective strain.
-  PolicyPointer effectiveStrainPolicy(new TensorStrainPolicy<Dimension>(TensorStrainAlgorithm::PseudoPlasticStrain));
   state.enroll(mStrain);
-  state.enroll(mEffectiveStrain, effectiveStrainPolicy);
+  state.enroll(mEffectiveStrain, std::make_shared<TensorStrainPolicy<Dimension>>(TensorStrainAlgorithm::PseudoPlasticStrain));
 
   // Register the damage and state it requires.
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
   auto& damage = this->nodeList().damage();
-  PolicyPointer damagePolicy(new IvanoviSALEDamagePolicy<Dimension>(mEpsPfb,
-                                                                    mB,
-                                                                    mPc,
-                                                                    mTensileFailureStress));
-  state.enroll(damage, damagePolicy);
+  state.enroll(damage, std::make_shared<IvanoviSALEDamagePolicy<Dimension>>(mEpsPfb,
+                                                                            mB,
+                                                                            mPc,
+                                                                            mTensileFailureStress));
  
   // Mask out nodes beyond the critical damage threshold from setting the timestep.
   auto maskKey = state.buildFieldKey(HydroFieldNames::timeStepMask, this->nodeList().name());
@@ -258,6 +249,33 @@ enforceBoundaries(State<Dimension>& state,
 }
 
 //------------------------------------------------------------------------------
+// Stuff to do on problem startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+IvanoviSALEDamageModel<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+
+  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
+  const auto& nodes = this->nodeList();
+  const auto& rho = nodes.massDensity();
+  const auto& eps = nodes.specificThermalEnergy();
+  const auto& D = nodes.damage();
+  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
+  nodes.equationOfState().setPressure(P, rho, eps);
+  if (nodes.strengthModel().providesBulkModulus()) {
+    nodes.strengthModel().bulkModulus(K, rho, eps);
+  } else {
+    nodes.equationOfState().setBulkModulus(K, rho, eps);
+  }
+  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
+
+  // Set the initial values for Youngs modulus and the longitudinal sound speed
+  nodes.YoungsModulus(mYoungsModulus, K, mu);
+  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
+}
+
+//------------------------------------------------------------------------------
 // Dump the current state to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -265,6 +283,8 @@ void
 IvanoviSALEDamageModel<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   DamageModel<Dimension>::dumpState(file, pathName);
+  file.write(mYoungsModulus, pathName + "/YoungsModulus");
+  file.write(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
   file.write(mDdamageDt, pathName + "/DdamageDt");
@@ -279,6 +299,8 @@ void
 IvanoviSALEDamageModel<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   DamageModel<Dimension>::restoreState(file, pathName);
+  file.read(mYoungsModulus, pathName + "/YoungsModulus");
+  file.read(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
   file.read(mDdamageDt, pathName + "/DdamageDt");

@@ -1,17 +1,21 @@
 //---------------------------------Spheral++----------------------------------//
 // ReplaceBoundedState -- An implementation of UpdatePolicyBase appropriate for
 // when 'ya just want to replace the state value with the new.
+//
 // This version enforces min/max bounds on the result, and therefore is only 
 // appropriate for Scalar & SymTensor values.
+//
+// This version also assumes there is a derivative based update available.
 //
 // Created by JMO, Tue Aug 31 14:03:45 2004
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ReplaceBoundedState_hh__
 #define __Spheral_ReplaceBoundedState_hh__
 
-#include <float.h>
-#include "FieldUpdatePolicyBase.hh"
+#include "PureReplaceBoundedState.hh"
 #include "Utilities/DBC.hh"
+
+#include <limits>
 
 namespace Spheral {
 
@@ -19,43 +23,20 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType, typename BoundValueType=ValueType>
-class ReplaceBoundedState: public FieldUpdatePolicyBase<Dimension, ValueType> {
+class ReplaceBoundedState: public PureReplaceBoundedState<Dimension, ValueType, BoundValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
-  ReplaceBoundedState(const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  ReplaceBoundedState(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5,
-                      const BoundValueType minValue = BoundValueType(-DBL_MAX),
-                      const BoundValueType maxValue = BoundValueType(DBL_MAX));
-  virtual ~ReplaceBoundedState();
+  ReplaceBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                      const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  ReplaceBoundedState(std::initializer_list<std::string> depends = {},
+                      const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
+                      const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()));
+  virtual ~ReplaceBoundedState() {}
   
-  // Overload the methods describing how to update Fields.
-  virtual void update(const KeyType& key,
-                      State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs,
-                      const double multiplier,
-                      const double t,
-                      const double dt);
-
   // An alternate method to be called when you want to specify that the "Replace" information
   // in the derivatives is invalid, and instead the value should be treated as a time advancement
   // algorithm instead.
@@ -64,22 +45,15 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt);
-
-  // Access the min and max's.
-  BoundValueType minValue() const;
-  BoundValueType maxValue() const;
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
-
-  static const std::string prefix() { return "new "; }
-
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  BoundValueType mMinValue;
-  BoundValueType mMaxValue;
+  using PureReplaceBoundedState<Dimension, ValueType, BoundValueType>::mMinValue;
+  using PureReplaceBoundedState<Dimension, ValueType, BoundValueType>::mMaxValue;
 
   ReplaceBoundedState(const ReplaceBoundedState& rhs);
   ReplaceBoundedState& operator=(const ReplaceBoundedState& rhs);
@@ -87,8 +61,6 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "ReplaceBoundedStateInline.hh"
-#endif
 
 #endif

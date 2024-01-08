@@ -10,6 +10,7 @@
 
 #include "SolidEquationOfState.hh"
 
+#include <tuple>
 #include <limits>
 
 namespace Spheral {
@@ -51,6 +52,12 @@ public:
                            const Field<Dimension, Scalar>& massDensity,
                            const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,           // set pressure
+                                    Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                                    Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                                    const Field<Dimension, Scalar>& massDensity,
+                                    const Field<Dimension, Scalar>& specificThermalEnergy) const override;
+
   virtual void setTemperature(Field<Dimension, Scalar>& temperature,
                               const Field<Dimension, Scalar>& massDensity,
                               const Field<Dimension, Scalar>& specificThermalEnergy) const;
@@ -80,8 +87,8 @@ public:
                           const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
   // We also want the equivalent functions for individual calculations.
-  Scalar pressure(const Scalar massDensity,
-                  const Scalar specificThermalEnergy) const;
+  std::tuple<Scalar, Scalar, Scalar> pressureAndDerivs(const Scalar massDensity,
+                                                       const Scalar specificThermalEnergy) const;
 
   Scalar temperature(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;

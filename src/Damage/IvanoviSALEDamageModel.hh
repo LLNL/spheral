@@ -83,6 +83,9 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
+  // An optional hook to initialize once when the problem is starting up.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
   //............................................................................
   // Accessors for state
   double minPlasticFailure() const;

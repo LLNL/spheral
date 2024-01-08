@@ -38,9 +38,9 @@ public:
   typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
 
   // Constructors, destructor.
-  explicit ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
-                                     const double kWeibull,           // coefficient in Weibull power-law
-                                     const double mWeibull);          // exponenent in Weibull power-law
+  ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
+                            const double kWeibull,           // coefficient in Weibull power-law
+                            const double mWeibull);          // exponenent in Weibull power-law
   virtual ~ProbabilisticDamagePolicy();
   
   // Overload the methods describing how to update Fields.

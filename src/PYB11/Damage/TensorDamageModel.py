@@ -83,6 +83,12 @@ required of descendant classes."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    @PYB11virtual
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        "An optional hook to initialize once when the problem is starting up."
+        return "void"
+
     #...........................................................................
     # Methods
     def cullToWeakestFlaws(sefl):

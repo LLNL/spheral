@@ -9,15 +9,15 @@
 #include "FileIO/FileIO.hh"
 
 #include "Hydro/HydroFieldNames.hh"
-#include "Hydro/PositionPolicy.hh"
 
 #include "Physics/Physics.hh"
 
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/ReplaceState.hh"
 #include "DataBase/DataBase.hh"
+
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -67,7 +67,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using std::make_shared;
 
 namespace Spheral {
 
@@ -111,10 +110,10 @@ DEMBase(const DataBase<Dimension>& dataBase,
                                            &DEMBase<Dimension>::finalizeAfterRedistribution)){
     
     mTimeStepMask = dataBase.newDEMFieldList(int(0), "timeStepMask");
-    mDxDt = dataBase.newDEMFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::position);
+    mDxDt = dataBase.newDEMFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
     mDvDt = dataBase.newDEMFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
     mOmega = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity);
-    mDomegaDt = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
+    mDomegaDt = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, IncrementState<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
     
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
     mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
@@ -310,14 +309,14 @@ registerState(DataBase<Dimension>& dataBase,
   auto compositeParticleIndex = dataBase.DEMCompositeParticleIndex();
   auto uniqueIndex = dataBase.DEMUniqueIndex();
 
-  auto positionPolicy = make_shared<IncrementFieldList<Dimension,Vector>>();
-  auto velocityPolicy = make_shared<IncrementFieldList<Dimension,Vector>>(HydroFieldNames::position,true);
-  auto angularVelocityPolicy = make_shared<IncrementFieldList<Dimension,RotationType>>();
-  auto shearDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
-  auto rollingDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
-  auto torsionalDisplacementPolicy = make_shared<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
+  auto positionPolicy = make_policy<IncrementState<Dimension,Vector>>();
+  auto velocityPolicy = make_policy<IncrementState<Dimension,Vector>>({HydroFieldNames::position},true);
+  auto angularVelocityPolicy = make_policy<IncrementState<Dimension,RotationType>>();
+  auto shearDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto rollingDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
+  auto torsionalDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
 
-  auto boundaryPolicy = make_shared<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
+  auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
 
   state.enroll(DEMFieldNames::solidBoundaries,boundaryPolicy);
 
@@ -351,9 +350,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("DEMregisterDerivs");
 
-  dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
+  dataBase.resizeDEMFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeDEMFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
-  dataBase.resizeDEMFieldList(mDomegaDt, DEMDimension<Dimension>::zero,  IncrementFieldList<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity , false);
+  dataBase.resizeDEMFieldList(mDomegaDt, DEMDimension<Dimension>::zero,  IncrementState<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity , false);
   dataBase.resizeDEMFieldList(mDDtShearDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::shearDisplacement , false);
   dataBase.resizeDEMFieldList(mNewShearDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::replacePrefix()  + DEMFieldNames::shearDisplacement , false);
   dataBase.resizeDEMFieldList(mDDtRollingDisplacement, vector<Vector>(),  ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix()  + DEMFieldNames::rollingDisplacement , false);

@@ -16,15 +16,16 @@ list(APPEND _packages
   Boundary
   CRKSPH
   CXXTests
+  DEM
   Damage
   DataBase
   DataOutput
-  DEM
   Distributed
+  FSISPH
   Field
   FieldOperations
   FileIO
-  FSISPH
+  GSPH
   Geometry
   Hydro
   Integrator
@@ -36,12 +37,12 @@ list(APPEND _packages
   NodeGenerators
   NodeList
   Physics
+  Porosity
   RK
-  GSPH
-  SolidMaterial
   SPH
-  Strength
   SVPH
+  SolidMaterial
+  Strength
   Utilities
   )
 

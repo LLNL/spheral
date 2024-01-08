@@ -283,8 +283,8 @@ PlanarBoundary<Dimension>::setGhostNodeIndices(NodeList<Dimension>& nodeList) {
   // Fill in the pointers to the ghost nodes.
   ghostNodes.resize(controlNodes.size());
   for (auto i = 0u; i < controlNodes.size(); ++i) {
-    CHECK(i >= 0 and i < controlNodes.size());
-    CHECK(i >= 0 and i < ghostNodes.size());
+    CHECK(i < controlNodes.size());
+    CHECK(i < ghostNodes.size());
     ghostNodes[i] = firstNewGhostNode + i;
     CHECK(ghostNodes[i] >= (int)nodeList.numInternalNodes() and
           ghostNodes[i] < (int)nodeList.numNodes());

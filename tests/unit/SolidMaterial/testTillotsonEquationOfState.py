@@ -93,17 +93,11 @@ class TestTillotsonEquationOfState(unittest.TestCase):
         if mui >= 0.0:
             return (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
         elif epsi <= self.epsLiquid:
-            if etai > self.etamin:
-                return (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
-            else:
-                return 0.0
+            return (self.a + phi)*rho*epsi + self.A*mui # + self.B*mui*mui
         elif epsi >= self.epsVapor:
             return self.a*rho*epsi + (phi*rho*epsi + self.A*mui*exp(-self.beta*chi))*exp(-self.alpha*chi*chi)
         else:
-            if etai > self.etamin:
-                P2 = (self.a + phi)*rho*epsi + self.A*mui + self.B*mui*mui
-            else:
-                P2 = 0.0
+            P2 = (self.a + phi)*rho*epsi + self.A*mui  #  + self.B*mui*mui
             P4 = self.a*rho*epsi + (phi*rho*epsi + self.A*mui*exp(-self.beta*chi))*exp(-self.alpha*chi*chi)
             return P2 + (P4 - P2)*(epsi - self.epsLiquid)/(self.epsVapor - self.epsLiquid)
 

@@ -11,9 +11,6 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Kernel/TableKernel.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -36,9 +33,7 @@ MeshIdealHPolicy(const SmoothingScaleBase<Dimension>& smoothingScaleBase,
                  const Scalar hmax,
                  const Scalar hminratio,
                  const Scalar nPerh):
-  ReplaceBoundedState<Dimension, SymTensor, Scalar>(HydroFieldNames::mesh,
-                                                    1.0/hmax,
-                                                    1.0/hmin),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mesh}),
   mSmoothingScaleBase(smoothingScaleBase),
   mhmin(hmin),
   mhmax(hmax),
@@ -68,7 +63,7 @@ update(const KeyType& key,
        const double /*multiplier*/,
        const double /*t*/,
        const double /*dt*/) {
-  typedef typename Mesh<Dimension>::Zone Zone;
+  using Zone = typename Mesh<Dimension>::Zone;
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
@@ -148,12 +143,8 @@ MeshIdealHPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also a CompatibleSpecificThermalEnergy operator.
-  const MeshIdealHPolicy<Dimension>* rhsPtr = dynamic_cast<const MeshIdealHPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const MeshIdealHPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 //------------------------------------------------------------------------------

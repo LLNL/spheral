@@ -7,7 +7,7 @@
 #ifndef __Spheral_ShearModulusPolicy_hh__
 #define __Spheral_ShearModulusPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
@@ -19,14 +19,13 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class ShearModulusPolicy: 
-    public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class ShearModulusPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
   using Scalar = typename Dimension::Scalar;
   using SymTensor = typename Dimension::SymTensor;
-  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   ShearModulusPolicy();
@@ -38,10 +37,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

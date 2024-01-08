@@ -51,15 +51,15 @@ class DamageModel: public Physics<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs.
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
-  typedef typename std::shared_ptr<NodeCoupling> NodeCouplingPtr;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
+  using NodeCouplingPtr = typename std::shared_ptr<NodeCoupling>;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef Field<Dimension, std::vector<double> > FlawStorageType;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
+  using FlawStorageType = Field<Dimension, std::vector<double>>;
 
   // Constructors, destructor.
   DamageModel(SolidNodeList<Dimension>& nodeList,

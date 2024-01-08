@@ -42,10 +42,17 @@ Reference: Equation of State and Strength of Properties of Selected Materials
     #...........................................................................
     # Methods
     @PYB11const
+    @PYB11implementation("[](const GruneisenEquationOfState<%(Dimension)s>& self, const Scalar& rho, const Scalar& eps) { return std::get<0>(self.pressureAndDerivs(rho, eps)); }")
     def pressure(self,
                  massDensity = "const Scalar",
                  specificThermalEnergy = "const Scalar"):
         return "Scalar"
+
+    @PYB11const
+    def pressureAndDerivs(self,
+                          massDensity = "const Scalar",
+                          specificThermalEnergy = "const Scalar"):
+        return "std::tuple<Scalar, Scalar, Scalar>"
 
     @PYB11const
     def temperature(self,
@@ -114,4 +121,4 @@ where you want to make the Gruneisen independent of energy.""")
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, GruneisenEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, GruneisenEquationOfState, virtual=True)

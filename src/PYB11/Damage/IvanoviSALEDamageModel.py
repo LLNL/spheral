@@ -95,6 +95,12 @@ Lundborg, N. (1967). The strength-size relation of granite. International Journa
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    @PYB11virtual
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        "An optional hook to initialize once when the problem is starting up."
+        return "void"
+
     #...........................................................................
     # Properties
     minPlasticFailure = PYB11property("double", "minPlasticFailure",

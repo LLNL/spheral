@@ -9,7 +9,7 @@
 #ifndef __Spheral_SpecificFromTotalThermalEnergyPolicy_hh__
 #define __Spheral_SpecificFromTotalThermalEnergyPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 #include <string>
 
@@ -24,13 +24,13 @@ template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class SpecificFromTotalThermalEnergyPolicy: 
-    public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+    public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   SpecificFromTotalThermalEnergyPolicy();
@@ -42,10 +42,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

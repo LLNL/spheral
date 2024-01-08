@@ -165,7 +165,7 @@ IvanoviSALEDamagePolicy(const double minPlasticFailure,             // minimum p
                         const double plasticFailurePressureSlope,   // slope for critical plastic strain
                         const double plasticFailurePressureOffset,  // intercept for critical plastic strain
                         const double tensileFailureStress):         // threshold for tensile failure
-  UpdatePolicyBase<Dimension>(SolidFieldNames::strain),
+  UpdatePolicyBase<Dimension>({SolidFieldNames::strain}),
   mEpsPfb(minPlasticFailure),
   mB(plasticFailurePressureSlope),
   mPc(plasticFailurePressureOffset),
