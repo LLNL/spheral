@@ -977,6 +977,9 @@ for machineArg in machineSettings.options.atsArgs:
     if 'REMOVE' in machineArg:
         listCommandsToRemove.append(machineArg)
 
+# Remove all extra spaces
+finalCommandToRun = re.sub(r"\s+", " ", finalCommandToRun.strip())
+
 # Remove extra options for both batch and interactive
 if len(listCommandsToRemove) > 0:
     for unwantedCommand in listCommandsToRemove[:]:
@@ -1005,7 +1008,7 @@ if len(listCommandsToRemove) > 0:
             if d_debug:
                 print("DEBUG: ", unwantedCommand, "-----> ", finalCommandToRun)
 
-finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
+#finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
 realFinalCommandToRun= None
 
 #----------------------------------------------------------
