@@ -23,7 +23,7 @@ def cpu_count():
     """
     if 'rzwhippet' in platform.node():
         return 56
-    elif 'rzgenie' in platform.node():
+    elif 'rzgenie' in platform.node() or 'ruby' in platform.node():
         return 36
     else:
         try:
