@@ -418,36 +418,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                  connectivityMap,
                                                  nodeListi,
                                                  i);
-      // const auto Ngb_target = (Dimension::nDim == 3 ? 32 :
-      //                           (Dimension::nDim == 2 ? 16 :
-      //                                                   4));
-      // const auto C = (Dimension::nDim == 3 ? 1.33333*3.1415 :
-      //                 (Dimension::nDim == 2 ? 3.1415         :
-      //                                         1.0));
-      // const auto detMSM = massSecondMomenti.Determinant();
-      // weightedNeighborSumi = detMSM;//XSPHHfieldi.Determinant()/Hdeti;
-      // if(abs(detMSM) > 1e-10){
-      //   massSecondMomenti /= Dimension::rootnu(detMSM);
-        
-      //   const auto stretchFactor = 0.25;
-      //   const auto circlerFactor = 0.30;
-      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
-      //   const auto  Hstretch  =  circlerFactor * Dimension::rootnu(Hdeti)*SymTensor::one +
-      //                         ((1.00-stretchFactor-circlerFactor)*SymTensor::one +
-      //                                 stretchFactor*massSecondMomenti)*Hi;
-      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
-      //   Hideali = std::min(std::max(scaleFactor,0.9),1.1) * Hstretch;
-      //   DHDti = 0.25*(Hideali-Hi)/dt;
-      // } else{
-      //   const auto stretchFactor = 0.00;
-      //   const auto circlerFactor = 0.3;
-      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
-      //   const auto  Hstretch  =  circlerFactor * Dimension::rootnu(Hdeti)*SymTensor::one +
-      //                         ((1.00-stretchFactor-circlerFactor)*SymTensor::one)*Hi;
-      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
-      //   Hideali = std::min(std::max(scaleFactor,0.9),1.1) * Hstretch;
-      //   DHDti = 0.25*(Hideali-Hi)/dt;
-      // }
     } // nodes loop
   } // nodeLists loop
 

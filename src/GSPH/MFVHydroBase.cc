@@ -92,6 +92,7 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool evolveTotalEnergy,
              const bool XSPH,
              const bool correctVelocityGradient,
+             const double nodeMotionCoefficient,
              const NodeMotionType nodeMotionType,
              const GradientType gradType,
              const MassDensityType densityUpdate,
@@ -118,6 +119,7 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  nTensile,
                                  xmin,
                                  xmax),
+  mNodeMotionCoefficient(nodeMotionCoefficient),
   mNodeMotionType(nodeMotionType),
   mNodalVelocity(FieldStorageType::CopyFields),
   mDmassDt(FieldStorageType::CopyFields),
@@ -206,28 +208,35 @@ registerState(DataBase<Dimension>& dataBase,
   
   
 
-  switch (mNodeMotionType){
-    case NodeMotionType::Eulerian:    // Eulerian
-    {
-      state.enroll(mNodalVelocity);
-    }
-      break;
-    case NodeMotionType::Lagrangian:  // pure MFV
-      {
-        auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,
-                                                                                                     HydroFieldNames::velocity); // depends on
-        state.enroll(mNodalVelocity, nodalVelocityPolicy);
-      }
-      break;
-    case NodeMotionType::XSPH:
-      { 
-        auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
-        state.enroll(mNodalVelocity, nodalVelocityPolicy);
-      }
-      break;
-    default:
-      break;
-  }
+  // switch (mNodeMotionType){
+  //   case NodeMotionType::Eulerian:    // Eulerian
+  //   {
+  //     state.enroll(mNodalVelocity);
+  //   }
+  //     break;
+  //   case NodeMotionType::Lagrangian:  // pure MFV
+  //     {
+  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,
+  //                                                                                                    HydroFieldNames::velocity); // depends on
+  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
+  //     }
+  //     break;
+  //   case NodeMotionType::XSPH:
+  //     { 
+  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
+  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
+  //     }
+  //     break;
+  //   case NodeMotionType::Fician:
+  //     { 
+  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV,
+  //                                                                                           HydroFieldNames::velocity);
+  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
+  //     }
+  //     break;
+  //   default:
+  //     break;
+  // }
 
   if (this->compatibleEnergyEvolution()) {
     auto thermalEnergyPolicy = std::make_shared<CompatibleMFVSpecificThermalEnergyPolicy<Dimension>>(dataBase);

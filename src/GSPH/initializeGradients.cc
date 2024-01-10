@@ -19,6 +19,7 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
                     const FieldList<Dimension, typename Dimension::Scalar>& volume,
                     const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                     const FieldList<Dimension, typename Dimension::Vector>& velocity,
+                          FieldList<Dimension, typename Dimension::Tensor>& M,
                           FieldList<Dimension, typename Dimension::Vector>& DpDx,
                           FieldList<Dimension, typename Dimension::Tensor>& DvDx) {
 
@@ -37,13 +38,7 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
 
   REQUIRE(DpDx.size() == numNodeLists);
   REQUIRE(DvDx.size() == numNodeLists);
-
-  // Prepare the kernel sum correction field.
-  FieldList<Dimension, Tensor> M(FieldStorageType::CopyFields);
-  for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
-    M.appendNewField("temporary linear correction matrix M", volume[nodeListi]->nodeList(), Tensor::zero);
-  }
-
+  REQUIRE(M.size() == numNodeLists);
 
 #pragma omp parallel
   {
@@ -63,6 +58,8 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
       nodeListj = pairs[kk].j_list;
       
       // Get the state for node i.
+      const auto& vi = velocity(nodeListi, i);
+      const auto& Pi = pressure(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& voli = volume(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
@@ -71,9 +68,13 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(voli > 0.0);
       CHECK(Hdeti > 0.0);
 
-      auto& Mi = M_thread(nodeListi, i);
+      auto& DpDxi = DpDx(nodeListi, i);
+      auto& DvDxi = DvDx(nodeListi, i);
+      auto& Mi = M(nodeListi, i);
 
       // Get the state for node j
+      const auto& vj = velocity(nodeListj, j);
+      const auto& Pj = pressure(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& volj = volume(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
@@ -82,9 +83,13 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
       CHECK(volj > 0.0);
       CHECK(Hdetj > 0.0);
 
-      auto& Mj = M_thread(nodeListj, j);
+      auto& DpDxj = DpDx(nodeListj, j);
+      auto& DvDxj = DvDx(nodeListj, j);
+      auto& Mj = M(nodeListj, j);
 
       const auto rij = ri - rj;
+      const auto vij = vi - vj;
+      const auto Pij = Pi - Pj;
 
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
@@ -105,32 +110,21 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
       const auto gradPsii = volj*gradWi;
       const auto gradPsij = voli*gradWj;
 
-      // Linear gradient correction term.
       Mi -= rij.dyad(gradPsii);
       Mj -= rij.dyad(gradPsij);
       
-      // // based on nodal values
-      const auto& vi = velocity(nodeListi, i);
-      const auto& Pi = pressure(nodeListi, i);
-      const auto& vj = velocity(nodeListj, j);
-      const auto& Pj = pressure(nodeListj, j);
-      auto& DpDxi = DpDx_thread(nodeListi, i);
-      auto& DvDxi = DvDx_thread(nodeListi, i);
-      auto& DpDxj = DpDx_thread(nodeListj, j);
-      auto& DvDxj = DvDx_thread(nodeListj, j);
+      DpDxi -= Pij*gradPsii;
+      DpDxj -= Pij*gradPsij;
 
-      DpDxi -= (Pi-Pj)*gradPsii;
-      DpDxj -= (Pi-Pj)*gradPsij;
-
-      DvDxi -= (vi-vj).dyad(gradPsii);
-      DvDxj -= (vi-vj).dyad(gradPsij);
+      DvDxi -= vij.dyad(gradPsii);
+      DvDxj -= vij.dyad(gradPsij);
 
     } // loop over pairs
-
     // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
-
   }   // OpenMP parallel region
+  
+  std::cout << "this loop" << std::endl;
   
   // Finish up the spatial gradient calculation
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {

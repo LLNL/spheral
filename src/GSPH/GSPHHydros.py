@@ -184,6 +184,7 @@ def MFV(dataBase,
         riemannSolver=None,
         specificThermalEnergyDiffusionCoefficient = 0.0,
         cfl = 0.25,
+        nodeMotionCoefficient = 0.2,
         nodeMotionType = NodeMotionType.Lagrangian,
         gradientType = HydroAccelerationGradient,
         densityUpdate = IntegrateDensity,
@@ -248,6 +249,7 @@ def MFV(dataBase,
               "evolveTotalEnergy" : evolveTotalEnergy,
               "XSPH" : XSPH,
               "correctVelocityGradient" : correctVelocityGradient,
+              "nodeMotionCoefficient" : nodeMotionCoefficient,
               "nodeMotionType" : nodeMotionType,
               "gradType" : gradientType,
               "densityUpdate" : densityUpdate,
@@ -257,10 +259,10 @@ def MFV(dataBase,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
-    print(nodeMotionType)
+    #print(nodeMotionType)
     # Build and return the thing.
     result = Constructor(**kwargs)
     result._smoothingScaleMethod = smoothingScaleMethod
-    print(result.nodeMotionType)
+    #print(result.nodeMotionType)
     return result
 

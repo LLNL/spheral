@@ -79,6 +79,7 @@ public:
                const bool evolveTotalEnergy,
                const bool XSPH,
                const bool correctVelocityGradient,
+               const double nodeMotionCoefficient,
                const NodeMotionType nodeMotionType,
                const GradientType gradType,
                const MassDensityType densityUpdate,
@@ -159,6 +160,9 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  Scalar nodeMotionCoefficient() const;
+  void nodeMotionCoefficient(const Scalar x);
+
   NodeMotionType nodeMotionType() const;
   void nodeMotionType(NodeMotionType x);
 
@@ -178,6 +182,8 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
 private:
+
+  Scalar mNodeMotionCoefficient; 
 
   NodeMotionType mNodeMotionType;
 

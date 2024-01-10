@@ -2,6 +2,24 @@ namespace Spheral {
 
 
 //------------------------------------------------------------------------------
+// set/get for mesh motion coefficient
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+MFVHydroBase<Dimension>::nodeMotionCoefficient() const {
+  return mNodeMotionCoefficient;
+}
+
+template<typename Dimension>
+inline
+void
+MFVHydroBase<Dimension>::
+nodeMotionCoefficient(typename Dimension::Scalar x) {
+  mNodeMotionCoefficient = x;
+}
+
+//------------------------------------------------------------------------------
 // set/get mesh motion type
 //------------------------------------------------------------------------------
 template<typename Dimension>

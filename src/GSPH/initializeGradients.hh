@@ -25,6 +25,7 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
                     const FieldList<Dimension, typename Dimension::Scalar>& volume,
                     const FieldList<Dimension, typename Dimension::Scalar>& pressure,
                     const FieldList<Dimension, typename Dimension::Vector>& velocity,
+                          FieldList<Dimension, typename Dimension::Tensor>& M,
                           FieldList<Dimension, typename Dimension::Vector>& DpDx,
                           FieldList<Dimension, typename Dimension::Tensor>& DvDx);
 

@@ -178,6 +178,7 @@ void
 GenericRiemannHydro<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
+  const auto& connectivityMap = dataBase.connectivityMap();
   auto mass = dataBase.fluidMass();
   auto massDensity = dataBase.fluidMassDensity();
   auto position = dataBase.fluidPosition();
@@ -200,13 +201,14 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
          boundaryItr != this->boundaryEnd();
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
-  initializeGradients(dataBase.connectivityMap(),
+  initializeGradients(connectivityMap,
                       this->kernel(),
                       position,
                       H,
                       mVolume,
                       mPressure,
                       velocity,
+                      mM,
                       mRiemannDpDx,
                       mRiemannDvDx);
  

@@ -15,6 +15,7 @@ namespace Spheral {
                                     const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                     const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>&,
                                     const FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
+                                          FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&,
                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>&,
                                           FieldList<Dim< %(ndim)s >, Dim< %(ndim)s >::Tensor>&);
 }
