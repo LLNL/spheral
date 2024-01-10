@@ -2,6 +2,7 @@
 #include "test-basic-exec-policies.hh"
 
 #include "Field/SphArray.hh"
+#include "chai/managed_ptr.hpp"
 
 using MVDouble = Spheral::ManagedVector<double>;
 
@@ -82,13 +83,74 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, IdentityConstructor)
 }
 
 
+GPU_TYPED_TEST(ManagedVectorTypedTest, ManagedPtrArrayTest)
+{
+  using WORK_EXEC_POLICY = TypeParam;
+
+  Spheral::MVSmartRef array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
+  Spheral::MVSmartRef copy_array(array);
+
+  SPHERAL_ASSERT_EQ(array.size(), copy_array.size());
+
+  std::cout << "check0\n";
+  RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,array.size()),
+    [=] RAJA_HOST_DEVICE (unsigned i){
+      array[i] = i*2;
+      Spheral::MVSmartRef copy_array_2 = array;
+      SPHERAL_ASSERT_EQ(copy_array_2[i], i*2);
+    }
+  );
+
+
+  std::cout << "resize\n";
+  array.resize(20);
+
+
+  std::cout << "check1\n";
+  RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,array.size()),
+    [=] RAJA_HOST_DEVICE (unsigned i){
+      if (i >= 5) copy_array[i] = i*3;
+      SPHERAL_ASSERT_TRUE (copy_array.size() == 20);
+    }
+  );
+
+  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,array.size()),
+    [=] RAJA_HOST (unsigned i){
+      if (i < 5) SPHERAL_ASSERT_EQ(copy_array[i], i*2);
+      else SPHERAL_ASSERT_EQ(copy_array[i], i*3);
+    }
+  );
+
+  std::cout << "check2\n";
+  SPHERAL_ASSERT_EQ(&array[15], &copy_array[15]);
+  SPHERAL_ASSERT_EQ(array.size(), copy_array.size());
+
+  Spheral::MVSmartRef deep_copy_array = Spheral::make_MVSmartRef<double>(deepCopy(*array.get()));
+  SPHERAL_ASSERT_EQ(array.size(), deep_copy_array.size());
+
+  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,array.size()),
+    [=] RAJA_HOST (unsigned i){
+      SPHERAL_ASSERT_EQ(deep_copy_array[i], array[i]);
+    }
+  );
+
+  deep_copy_array[5] = 1234;
+  SPHERAL_ASSERT_NE(deep_copy_array[5], array[5]);
+  SPHERAL_ASSERT_NE(&deep_copy_array[0], &array[0]);
+}
+
 GPU_TYPED_TEST(ManagedVectorTypedTest, CopyConstructor)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
-  MVDouble array(6, 5);
-
+  MVDouble array(4);
   MVDouble copy_array(array);
+  //MVDouble copy_array = array.slice(0, array.size());
+
+  array.resize(6);
+
+  SPHERAL_ASSERT_EQ(&array[0], &copy_array[0]);
+  SPHERAL_ASSERT_EQ(array.capacity(), copy_array.capacity());
 
   RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,6),
     [=] RAJA_HOST_DEVICE (unsigned i){
@@ -101,6 +163,10 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, CopyConstructor)
       SPHERAL_ASSERT_EQ(copy_array[i], i);
     }
   );
+
+  SPHERAL_ASSERT_EQ(&array[0], &copy_array[0]);
+
+  array.resize(20);
 
   SPHERAL_ASSERT_EQ(&array[0], &copy_array[0]);
 }
@@ -224,11 +290,11 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc)
   EXEC_IN_SPACE_END()
 
   array.move(chai::CPU);
-  array.resize(6);
+  array.resize(10);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(array.size(),     6);
-    SPHERAL_ASSERT_EQ(array.capacity(), 6);
+    SPHERAL_ASSERT_EQ(array.size(),     10);
+    SPHERAL_ASSERT_EQ(array.capacity(), 10);
   EXEC_IN_SPACE_END()
 
   MVDouble array2(4);
@@ -314,6 +380,39 @@ TEST(ManagedVectorTest, Erase)
   array.erase(array.begin());
 
   std::vector<double> check4 = {1,3,4};
+  SPHERAL_ASSERT_EQ(array.size(), check4.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check4[i]);
+}
+
+TEST(ManagedVectorTest, Insert)
+{
+  MVDouble array;
+  std::vector<double> check = {0,1,2,3,4,5};
+
+  for (size_t i = 0; i < 6; i++) {
+    array.insert(array.begin() + i, check[i]);
+  }
+  SPHERAL_ASSERT_EQ(array.size(), check.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check[i]);
+
+  // Insert element at end
+  array.insert(array.end(), 6);
+
+  std::vector<double> check2 = {0,1,2,3,4,5,6};
+  SPHERAL_ASSERT_EQ(array.size(), check2.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check2[i]);
+
+  // Erase the 3rd element
+  array.insert(array.begin() + 2, 7);
+
+  std::vector<double> check3 = {0,1,7,2,3,4,5,6};
+  SPHERAL_ASSERT_EQ(array.size(), check3.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check3[i]);
+  
+  // Erase the first element
+  array.insert(array.begin(), -1);
+
+  std::vector<double> check4 = {-1,0,1,7,2,3,4,5,6};
   SPHERAL_ASSERT_EQ(array.size(), check4.size());
   for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check4[i]);
 }

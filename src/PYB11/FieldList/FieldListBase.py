@@ -5,6 +5,7 @@ from PYB11Generator import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralField")
+@PYB11holder("std::shared_ptr")
 class FieldListBase:
     "Base class for FieldLists -- not much to implement in Python."
 

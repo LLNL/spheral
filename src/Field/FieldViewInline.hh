@@ -720,7 +720,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldView<Dimension, DataType>::iterator
 FieldView<Dimension, DataType>::begin() {
-  return mDataArray.begin();
+  return mDataArray.get()->begin();
 }
 
 //------------------------------------------------------------------------------
@@ -730,7 +730,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldView<Dimension, DataType>::iterator
 FieldView<Dimension, DataType>::end() {
-  return mDataArray.end();
+  return mDataArray.get()->end();
 }
 
 //------------------------------------------------------------------------------
@@ -740,7 +740,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldView<Dimension, DataType>::const_iterator
 FieldView<Dimension, DataType>::begin() const {
-  return mDataArray.begin();
+  return mDataArray.get()->begin();
 }
 
 //------------------------------------------------------------------------------
@@ -750,7 +750,7 @@ template<typename Dimension, typename DataType>
 inline
 typename FieldView<Dimension, DataType>::const_iterator
 FieldView<Dimension, DataType>::end() const {
-  return mDataArray.end();
+  return mDataArray.get()->end();
 }
 
 //------------------------------------------------------------------------------

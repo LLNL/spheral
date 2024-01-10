@@ -45,10 +45,11 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  using ContainerType = ManagedVector<DataType>;
+  //using ContainerType = ManagedVector<DataType>;
+  using ContainerType = MVSmartRef<DataType>;
 
-  using iterator = typename ContainerType::iterator;
-  using const_iterator = typename ContainerType::const_iterator;
+  using iterator = typename ContainerType::MV::iterator;
+  using const_iterator = typename ContainerType::MV::const_iterator;
 
   // Constructors.
   SPHERAL_HOST_DEVICE FieldView();

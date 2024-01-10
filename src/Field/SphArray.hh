@@ -41,15 +41,15 @@ public:
 #endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST ManagedVector(size_t elems) : 
+  SPHERAL_HOST_DEVICE ManagedVector(size_t elems) : 
     MA(elems < initial_capacity ? initial_capacity: elems),
     m_size(elems) 
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
     setCallback();
-#endif // SPHERAL_GPU_ACTIVE
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
     MA::registerTouch(chai::CPU);
+#endif // SPHERAL_GPU_ACTIVE
   }
 
   SPHERAL_HOST ManagedVector(size_t elems, DataType identity) :
@@ -58,9 +58,9 @@ public:
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
     setCallback();
-#endif // SPHERAL_GPU_ACTIVE
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
+#endif // SPHERAL_GPU_ACTIVE
   }
 
 #ifdef MV_VALUE_SEMANTICS
@@ -90,7 +90,7 @@ public:
 #else
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    setCallback();
+    //setCallback();
 #endif // SPHERAL_GPU_ACTIVE
   }
 #endif
@@ -159,18 +159,50 @@ public:
   }
 
   SPHERAL_HOST
+  void reserve(size_t size) {
+    if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: size);
+    if (size >= capacity()) MA::reallocate(size);
+  }
+
+  SPHERAL_HOST
   void resize(size_t size) {
     const size_t old_size = m_size;
 
     if (old_size < size) {
-      if (capacity() < size) MA::reallocate(size);
+      if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: size);
+      else if (capacity() < size) MA::reallocate(size);
       for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
+      //std::cout << "initialized " << size << " element(s)\n";
     }
     if (old_size > size) {
       destroy(begin() + old_size, begin() + size);
     }
 
     m_size = size;
+  }
+
+  SPHERAL_HOST
+  void insert(iterator pos, DataType const& value) {
+    auto delta = std::distance(begin(), pos);
+    if (m_size == 0) {
+      push_back(value);
+    }else {
+      resize(m_size + 1);
+      for (iterator it = end() - 1; it > begin() + delta; it--) {
+        *it = std::move(*(it - 1));
+        //*it = (*(it - 1));
+      } 
+      //*pos = value;
+      //std::cout<< std::distance(begin(), pos) << std::endl;
+      //*pos = DataType(value);
+      new(begin() + delta) DataType(value);
+    }
+  }
+
+  SPHERAL_HOST
+  void clear() {
+    destroy(begin(), end());
+    m_size = 0;
   }
 
   SPHERAL_HOST
@@ -216,6 +248,11 @@ public:
           std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
           std::cout << "Allocated " << paddedSize << " : " << typeString << " " << std::endl;
         }
+        if (action == chai::Action::ACTION_FREE){
+          std::string const size = LvArray::system::calculateSize(record->m_size);
+          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << std::endl;
+        }
       }
     );
   }
@@ -254,6 +291,102 @@ private:
   }
 
 };
+
+template<typename T>
+class MVSmartRef : public chai::CHAICopyable
+{
+public:
+  using MV = Spheral::ManagedVector<T>;
+
+  using iterator = MV*;
+  using const_iterator = const MV*;
+
+  iterator begin() { return m_ptr.begin(); }
+  const_iterator begin() const { return m_ptr.begin(); }
+
+  iterator end() { return begin() + size(); }
+  const_iterator end() const { return begin() + size(); }
+
+  SPHERAL_HOST_DEVICE MVSmartRef() {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    //m_ref_count = new size_t(0);
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  template<typename... Args>
+  SPHERAL_HOST MVSmartRef(Args... args) {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    m_ptr = chai::ManagedArray<MV>(1);
+    m_ptr[0] = MV(args...);
+    m_ptr.registerTouch(chai::CPU);
+    m_ref_count = new size_t(1);
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  SPHERAL_HOST_DEVICE MVSmartRef& operator=(MVSmartRef const& rhs) {
+    if (this != &rhs) {
+      m_ptr = rhs.m_ptr;
+      m_ref_count = rhs.m_ref_count;
+      if (m_ref_count != nullptr) (*m_ref_count)++;
+    }
+    return *this;
+  }
+
+  SPHERAL_HOST_DEVICE MVSmartRef(MVSmartRef const& rhs) : m_ptr(rhs.m_ptr), m_ref_count(rhs.m_ref_count) {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    if (m_ref_count != nullptr) {
+      (*m_ref_count)++;
+    }
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  SPHERAL_HOST_DEVICE T& operator[](size_t idx) {return m_ptr[0].operator[](idx); }
+  SPHERAL_HOST_DEVICE T& operator[](size_t idx) const {return m_ptr[0].operator[](idx); }
+  SPHERAL_HOST_DEVICE size_t size() const { return (m_ref_count) ? m_ptr[0].size() : 0; }
+
+  SPHERAL_HOST void resize(size_t sz) {
+    move(chai::CPU);
+    m_ptr[0].resize(sz); 
+    m_ptr.registerTouch(chai::CPU);
+  }
+
+  SPHERAL_HOST void move(chai::ExecutionSpace space, bool touch = true) const { 
+    m_ptr[0].move(space, touch);
+  }
+
+  SPHERAL_HOST_DEVICE MV* get() const { return (m_ref_count) ? &m_ptr[0] : nullptr; }
+
+  SPHERAL_HOST_DEVICE ~MVSmartRef() {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+      if (m_ref_count != nullptr){
+        (*m_ref_count)--;
+        if (*m_ref_count == 0)
+        {
+          m_ptr[0].free();
+          m_ptr.free();
+          delete m_ref_count;
+        }
+      }
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  SPHERAL_HOST_DEVICE MVSmartRef& operator=(std::nullptr_t) { m_ptr=nullptr; return *this; }
+  SPHERAL_HOST_DEVICE void shallowCopy(MVSmartRef const& rhs) {
+    *this = rhs;
+  }
+
+  //template<typename... Args>
+  //friend MVSmartRef& make_MVSmartRef(Args... args);
+private:
+  chai::ManagedArray<MV> m_ptr;
+  size_t* m_ref_count = nullptr;
+
+};
+
+template<typename T, typename... Args>
+SPHERAL_HOST MVSmartRef<T> make_MVSmartRef(Args&&... args) {
+  return MVSmartRef<T>(args...);
+}
 
 
 

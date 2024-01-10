@@ -7,6 +7,8 @@
 #include "umpire/ResourceManager.hpp"
 #include "umpire/strategy/QuickPool.hpp"
 
+#include "DataBase/DataBase.hh"
+
 
 #include <cstdlib>
 #include <cstdio>
@@ -135,6 +137,7 @@ void SpheralVectorTest()
   //Spheral::NodeList<DIM> data_node_list_c("DataNodeListC", data_sz, 0);
   Spheral::NodeList<DIM> data_node_list_bc("DataNodeListBC", data_sz, 0);
   
+  std::cout << "Creating fields\n";
   FIELD_TYPE a_field("MyFieldA", data_node_list_a);
   //FIELD_TYPE b_field("MyFieldB", data_node_list_b);
   //FIELD_TYPE c_field("MyFieldC", data_node_list_c);
@@ -152,12 +155,32 @@ void SpheralVectorTest()
   fieldlist2.appendField(c_field);
   fieldlist2.appendField(a_field);
   //fieldlist2.appendField(b_field);
-
-  FIELDLISTVIEW_TYPE fieldlist2_v = fieldlist2.toView();
   FIELDLISTVIEW_TYPE fieldlist_v = fieldlist.toView();
+  FIELDLISTVIEW_TYPE fieldlist2_v = fieldlist2.toView();
 
-  for(auto& elem : fieldlist_v) std::cout << elem->name() << std::endl;
-  for(auto& elem : fieldlist2_v) std::cout << elem->name() << std::endl;
+  FIELDLIST_TYPE fl_copy(Spheral::FieldStorageType::CopyFields);
+  //FIELDLIST_TYPE fl_copy;
+  //fl_copy.copyFields(fieldlist);
+  //FIELD_TYPE test_field("test_field", data_node_list_a);
+  fl_copy.appendNewField("test_field", data_node_list_a, 5.0);
+
+  Spheral::DataBase<DIM> db;
+  auto mTimeStepMask = db.newFluidFieldList(int(0), "test_fl");
+
+  //FIELDLIST_TYPE fl_copy = FIELDLIST_TYPE(fieldlist);
+  //fl_copy.copyFields();
+  //fl_copy.appendField(test_field);
+
+  std::cout << "fl_v sz : " << fieldlist_v.size() << std::endl;
+  std::cout << "fl2_v sz : " << fieldlist2_v.size() << std::endl;
+
+  for(auto& elem : fieldlist_v)  std::cout << elem->name() << " @ "<< &elem[0] << std::endl;
+  for(auto& elem : fieldlist2_v) std::cout << elem->name() << " @ "<< &elem[0] << std::endl;
+  for(auto& elem : fl_copy)      std::cout << elem->name() << " @ "<< &elem << std::endl;
+  std::cout << fl_copy[0]->name() << " @ "<< &fl_copy.begin()[0] << std::endl;
+  std::cout << fl_copy[0]->name() << " @ "<< fl_copy.end() << std::endl;
+
+
   
   std::cout << "RAJA Teams Implementation Idx.\n";
   launch_timer.start();

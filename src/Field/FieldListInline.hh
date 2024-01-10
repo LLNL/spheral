@@ -65,7 +65,8 @@ inline
 FieldList<Dimension, DataType>::
 FieldList(const FieldList<Dimension, DataType>& rhs):
   FieldListBase<Dimension>(rhs),
-  FieldListViewType(rhs),//mFieldPtrs(rhs.mFieldPtrs),
+  FieldListViewType(),
+  //mFieldPtrs(rhs.mFieldPtrs),
   //mFieldBasePtrs(rhs.mFieldBasePtrs),
   mFieldCache(),
   mStorageType(rhs.storageType()),
@@ -76,6 +77,9 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
 
   // If we're maintaining Fields by copy, then copy the Field cache.
 #pragma omp critical (FieldList_copy)
+  FieldListViewType::mFieldPtrs = StorageType();
+  FieldListViewType::mFieldPtrs.reserve(rhs.size());
+
   {
     if (storageType() == FieldStorageType::CopyFields) {
       CHECK(mFieldCache.size() == 0);
@@ -99,9 +103,21 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
       CHECK(fieldPtrItr == this->end() &&
             //fieldBasePtrItr == this->end_base() &&
             fieldCacheItr == mFieldCache.end());
+    } else {
+      //Update the view objects from the original fields.
+      for (auto fieldPtrItr = rhs.begin(); 
+           fieldPtrItr != rhs.end();
+           ++fieldPtrItr) {
+        FieldListViewType::mFieldPtrs.push_back((*fieldPtrItr)->toView());
+        //mFieldBasePtrs.push_back(*fieldPtrItr);
+      }
+      //for (auto fptr: FieldListViewType::mFieldPtrs) {
+      //  fptr = fptr->toView();
+      //}
     }
 
-    NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
+    //NodeListRegistrar<Dimension>::sortInNodeListOrder(FieldListViewType::mFieldPtrs.begin(), FieldListViewType::mFieldPtrs.end());
+    NodeListRegistrar<Dimension>::sortInNodeListOrder(begin(), end());
     //mFieldBasePtrs.clear();
     mNodeListPtrs.clear();
     for (auto fptr: FieldListViewType::mFieldPtrs) {
@@ -146,7 +162,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
       mNodeListPtrs = rhs.mNodeListPtrs;
       mFieldCache = FieldCacheType();
       mNodeListIndexMap = rhs.mNodeListIndexMap;
-      FieldListViewType::mFieldPtrs = std::vector<ElementType>();
+      FieldListViewType::mFieldPtrs = StorageType(0);
       //mFieldBasePtrs = std::vector<BaseElementType>();
       FieldListViewType::mFieldPtrs.reserve(rhs.size());
       //mFieldBasePtrs.reserve(rhs.size());
@@ -163,7 +179,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
         for (auto fieldPtrItr = rhs.begin(); 
              fieldPtrItr != rhs.end();
              ++fieldPtrItr) {
-          FieldListViewType::mFieldPtrs.push_back(*fieldPtrItr);
+          FieldListViewType::mFieldPtrs.push_back((*fieldPtrItr)->toView());
           //mFieldBasePtrs.push_back(*fieldPtrItr);
         }
         break;

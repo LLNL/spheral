@@ -2,6 +2,7 @@
 #include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
 #include "Field/NodeIterators.hh"
+#include "SphArray.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
@@ -31,7 +32,11 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
+  FieldViewType(),
   mValid(false) {
+  //std::cout << "Field Name Ctor\n";
+  FieldViewType::mDataArray = MVSmartRef<DataType>(0);
+  //std::cout << &FieldViewType::mDataArray.get()[0] << std::endl;
   }
 
 ////------------------------------------------------------------------------------
@@ -44,7 +49,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
   mValid(field.mValid) {
-  FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
+  //FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
   }
 
 //------------------------------------------------------------------------------
@@ -56,8 +62,10 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
+  FieldViewType(),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), DataType());
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>((size_t) nodeList.numNodes(), DataType());
+  //FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), DataType());
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -68,7 +76,8 @@ Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
+  FieldViewType::mDataArray = make_MVSmartRef<Dim<1>::Scalar>((size_t) nodeList.numNodes(), 0.0);
+  //FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -79,7 +88,8 @@ Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
+  FieldViewType::mDataArray = make_MVSmartRef<Dim<2>::Scalar>((size_t) nodeList.numNodes(), 0.0);
+  //FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -90,7 +100,8 @@ Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
+  FieldViewType::mDataArray = make_MVSmartRef<Dim<3>::Scalar>((size_t) nodeList.numNodes(), 0.0);
+  //FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), 0.0);
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -105,7 +116,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), value);
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>((size_t) nodeList.numNodes(), value);
+  //FieldViewType::mDataArray = ContainerType((size_t) nodeList.numNodes(), value);
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -123,7 +135,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
-  FieldViewType::mDataArray = ContainerType(deepCopy(array));
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*array.get()));
 }
 
 //------------------------------------------------------------------------------
@@ -136,7 +148,7 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
   ENSURE(numElements() == nodeList.numNodes());
 }
 
@@ -149,7 +161,7 @@ Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
   FieldView<Dimension, DataType>(field),
   mValid(field.valid()) {
-  FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
 }
 
 //------------------------------------------------------------------------------
@@ -169,7 +181,7 @@ Field<Dimension, DataType>::clone() const {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::~Field() {
-  FieldViewType::mDataArray.free();
+  //FieldViewType::mDataArray.free();
 }
 
 //------------------------------------------------------------------------------
@@ -186,7 +198,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      FieldViewType::mDataArray = deepCopy(rhsPtr->mDataArray);
+      FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhsPtr->mDataArray.get()));
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -206,7 +218,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    FieldViewType::mDataArray = deepCopy(rhs.mDataArray);
+    FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.mDataArray.get()));
     mValid = rhs.mValid;
   }
   return *this;
@@ -221,7 +233,7 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const ContainerType& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
-  FieldViewType::mDataArray = deepCopy(rhs);
+  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.get()));
   return *this;
 }
 
@@ -261,7 +273,7 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
   try {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
     if (rhsPtr == 0) return false;
-    return CrappyFieldCompareMethod<DataType>::compare(FieldViewType::mDataArray, rhsPtr->mDataArray);
+    return CrappyFieldCompareMethod<DataType>::compare(*FieldViewType::mDataArray.get(), *rhsPtr->mDataArray.get());
   } catch (const std::bad_cast &) {
     return false;
   }
@@ -479,7 +491,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::internalBegin() {
-  return FieldViewType::mDataArray.begin();
+  return FieldViewType::mDataArray.get()->begin();
 }
 
 //------------------------------------------------------------------------------
@@ -491,7 +503,7 @@ typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::internalEnd() {
   CHECK(this->nodeList().firstGhostNode() >= 0 &&
          this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
-  return FieldViewType::mDataArray.begin() + this->nodeList().firstGhostNode();
+  return FieldViewType::mDataArray.get()->begin() + this->nodeList().firstGhostNode();
 }
 
 //------------------------------------------------------------------------------
@@ -511,7 +523,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::ghostEnd() {
-  return FieldViewType::mDataArray.end();
+  return FieldViewType::mDataArray.get()->end();
 }
 
 //------------------------------------------------------------------------------
@@ -521,7 +533,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::internalBegin() const {
-  return FieldViewType::mDataArray.begin();
+  return FieldViewType::mDataArray.get()->begin();
 }
 
 //------------------------------------------------------------------------------
@@ -533,7 +545,7 @@ typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::internalEnd() const {
   REQUIRE(this->nodeList().firstGhostNode() >= 0 &&
           this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
-  return FieldViewType::mDataArray.begin() + this->nodeList().firstGhostNode();
+  return FieldViewType::mDataArray.get()->begin() + this->nodeList().firstGhostNode();
 }
 
 //------------------------------------------------------------------------------
@@ -553,7 +565,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::ghostEnd() const {
-  return FieldViewType::mDataArray.end();
+  return FieldViewType::mDataArray.get()->end();
 }
 
 //------------------------------------------------------------------------------
@@ -565,12 +577,15 @@ void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
+  //std::cout << "oldSize : "<< oldSize << " numNodes : " << nodeList.numNodes() << "\n";
   FieldViewType::mDataArray.resize(nodeList.numNodes());
   if (this->size() > oldSize) {
     for (unsigned i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
   }
+  //std::cout << &FieldViewType::mDataArray.get()[0] << std::endl;
+  //std::cout << FieldViewType::begin() << std::endl;
   mValid = true;
 }
 
@@ -586,8 +601,8 @@ Field<Dimension, DataType>::resizeField(unsigned size) {
   unsigned oldSize = this->size();
   FieldViewType::mDataArray.resize(size);
   if (oldSize < size) {
-    std::fill(FieldViewType::mDataArray.begin() + oldSize,
-              FieldViewType::mDataArray.end(),
+    std::fill(FieldViewType::mDataArray.get()->begin() + oldSize,
+              FieldViewType::mDataArray.get()->end(),
               DataTypeTraits<DataType>::zero());
   }
   mValid = true;
@@ -603,7 +618,7 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
   CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
-  FieldViewType::mDataArray.erase(FieldViewType::mDataArray.begin() + nodeID);
+  FieldViewType::mDataArray.get()->erase(FieldViewType::mDataArray.get()->begin() + nodeID);
   ENSURE(FieldViewType::mDataArray.size() == originalSize - 1);
 }
 
@@ -615,7 +630,7 @@ inline
 void
 Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
   // The standalone method does the actual work.
-  removeElements(FieldViewType::mDataArray, nodeIDs);
+  removeElements(*FieldViewType::mDataArray.get(), nodeIDs);
 }
 
 //------------------------------------------------------------------------------
@@ -674,8 +689,8 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   // Fill in any new internal values.
   if (newSize > currentSize) {
     CHECK(currentInternalSize < this->nodeList().firstGhostNode());
-    std::fill(FieldViewType::mDataArray.begin() + currentInternalSize,
-              FieldViewType::mDataArray.begin() + this->nodeList().firstGhostNode(),
+    std::fill(FieldViewType::mDataArray.get()->begin() + currentInternalSize,
+              FieldViewType::mDataArray.get()->begin() + this->nodeList().firstGhostNode(),
               DataTypeTraits<DataType>::zero());
   }
 
@@ -712,8 +727,8 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
 
   // Fill in any new ghost values.
   if (newSize > currentSize) {
-    std::fill(FieldViewType::mDataArray.begin() + numInternalNodes + currentNumGhostNodes,
-              FieldViewType::mDataArray.end(),
+    std::fill(FieldViewType::mDataArray.get()->begin() + numInternalNodes + currentNumGhostNodes,
+              FieldViewType::mDataArray.get()->end(),
               DataTypeTraits<DataType>::zero());
   }
 

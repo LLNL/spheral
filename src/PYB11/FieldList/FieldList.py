@@ -22,8 +22,8 @@ class FieldList(FieldListBase):
     def pyinit1(self, name="FieldStorageType"):
         "Build with the storage type for the fields"
 
-    def pyinitCopy(self, rhs="const FieldListType&"):
-        "Copy constructor"
+    #def pyinitCopy(self, rhs="const FieldListType&"):
+    #    "Copy constructor"
 
     #...........................................................................
     # Methods

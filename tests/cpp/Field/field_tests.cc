@@ -33,6 +33,7 @@ TEST_F(FieldTest, NameCtor)
   {
     std::string field_name = "Field::NameCtor";
     FieldDouble field(field_name);
+    std::cout << "check\n";
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 0);
     SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);

@@ -25,6 +25,10 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, DefaultCtor)
   using WORK_EXEC_POLICY = TypeParam;
 
   {
+
+    std::shared_ptr<double> sptr;
+    std::cout << sptr.get() << std::endl;
+
     FieldDouble field("test");
     FieldViewDouble fieldv;
     SPHERAL_ASSERT_EQ(fieldv.size(), 0);

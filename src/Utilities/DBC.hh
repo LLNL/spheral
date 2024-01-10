@@ -108,7 +108,7 @@ inline bool nearlyEqual(const T& x,
 //----------------------------------------------------------------------------
 
 #ifdef DBC_USE_REQUIRE
-#if !defined(SPHERAL_GPU_ACTIVE) && !defined(__CUDACC__)
+#if !defined(SPHERAL_GPU_ACTIVE) //&& !defined(__CUDACC__)
 #define DBC_ASSERTION(x, msg, kind)                     \
    if (::Spheral::dbc::assertionLock()) {               \
       if (!(x)) {                                       \

@@ -59,8 +59,10 @@ public:
   using FieldViewType = FieldView<Dimension, DataType>;
   using ContainerType = typename FieldViewType::ContainerType;
 
-  using iterator = typename ContainerType::iterator;
-  using const_iterator = typename ContainerType::const_iterator;
+  using iterator = typename FieldViewType::iterator;
+  using const_iterator = typename FieldViewType::const_iterator;
+  //using iterator = typename ContainerType::iterator;
+  //using const_iterator = typename ContainerType::const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
