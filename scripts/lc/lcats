@@ -529,6 +529,23 @@ toss4BatchSettings= MachineInfo(
             ],
 )
 
+# Ruby settings (same as TOSS4 interactive without pdebug)
+rubySettings= MachineInfo(
+    name='toss4machine',
+    machineType='slurm36',
+    batch= False,
+    allocTime = 180,
+    numNodes=2,
+    bank='wbronze',
+    atsArgs=[
+              "--glue='independent=True'",
+              '--allInteractive',
+              "--npMax=36",
+              "--continueFreq=15",
+              "--timelimit 120m",
+            ],
+)
+
 #  settings when rzwhippet is running flux natively
 rzwhippetSettings= MachineInfo(
     name='rzwhippet',
@@ -581,9 +598,8 @@ elif 'toss_3' in SYS_TYPE:
         # Put it in batch.
         machineSettings = toss3Batch
 elif 'toss_4' in SYS_TYPE:
-    if 'rzwhippet' in platform.node():
-        #machineSettings = rzwhippetSettings  # when running flux
-        machineSettings = toss4Settings  # when running slurm 
+    if 'ruby' in  LCSCHEDCLUSTER:
+        machineSettings = rubySettings
     else:
         machineSettings = toss4Settings
 else:
@@ -875,6 +891,7 @@ def getUniqueTestPath():
 
         for entry in filesystem:
             thePath = os.path.join( entry, os.environ['USER'], kullTestSubDir, uniqueSubDir )
+            print("Checking filesystem path ", thePath)
             fileSystemOK = checkFileSystem( thePath )
             if not fileSystemOK:
                 print("ezats: Could not write to filesystem location '%s', trying next file system." % thePath)
