@@ -1,14 +1,9 @@
 //---------------------------------Spheral++----------------------------------//
-// CompatibleMFVSpecificThermalEnergyPolicy -- An implementation of 
-// UpdatePolicyBase specialized for the updating the specific thermal energy 
-// as a dependent quantity.
-// 
-// This version is specialized for the compatible energy discretization 
-// method.
+// CompatibleMFVSpecificThermalEnergyPolicy -- This is a generalization of the 
+//     Lagrangian compatible energy scheme to ALE based scheme with mass flux
+//     between nodes. 
 //
 // J.M. Pearl 2023
-//
-//
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__

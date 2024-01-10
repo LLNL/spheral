@@ -1,13 +1,7 @@
 //---------------------------------Spheral++----------------------------------//
-// CompatibleMFVSpecificThermalEnergyPolicy -- An implementation of 
-// UpdatePolicyBase specialized for the updating the specific thermal energy 
-// as a dependent quantity.
-// 
-// This version is specialized for materials with different properties. A 
-// compatible energy discretization in which pairwise work allows for opposite
-// sign pair-wise work. DepsDti and  DepsDtj are used as weights and the 
-// difference between the conservative and consistent formulations is added 
-// back in.
+// CompatibleMFVSpecificThermalEnergyPolicy -- This is a generalization of the 
+//     Lagrangian compatible energy scheme to ALE based scheme with mass flux
+//     between nodes. 
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
@@ -182,9 +176,8 @@ update(const KeyType& key,
       if (m1 > tiny) eps(nodeListi, i) += (DepsDt(nodeListi, i) - DmassDt(nodeListi, i)*eps(nodeListi, i)) * multiplier * safeInv(m1);
     }
   }
+
 }
-
-
 
 //------------------------------------------------------------------------------
 // Update the field using increments

@@ -51,7 +51,7 @@ commandLine(nx1 = 100,
 
             # kernel
             HUpdate = IdealH,
-            nPerh = 2.0,
+            nPerh = 3.0,
             KernelConstructor = WendlandC2Kernel,
             order = 3,
             hmin = 0.0001, 
@@ -445,7 +445,7 @@ elif mfv:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 nodeMotionCoefficient = nodeMotionCoefficient,
-                nodeMotionType = NodeMotionType.Fician,
+                nodeMotionType = NodeMotionType.Lagrangian,
                 gradientType = SPHSameTimeGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
@@ -540,6 +540,7 @@ output("integrator.verbose")
 #    import SpheralPointmeshSiloDump
 #    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
 control = SpheralController(integrator, WT,
+                            initializeDerivatives=True,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,

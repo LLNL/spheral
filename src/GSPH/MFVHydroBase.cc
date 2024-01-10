@@ -58,7 +58,8 @@
 #include "GSPH/computeMFMDensity.hh"
 #include "GSPH/Policies/MassFluxPolicy.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
-#include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
+#include "GSPH/Policies/MFVIncrementSpecificThermalEnergyPolicy.hh"
+#include "GSPH/Policies/MFVIncrementVelocityPolicy.hh"
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
@@ -174,7 +175,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
 
  // We use the thermal energy to update the specific thermal energy
-  state.removePolicy(specificThermalEnergy);
+  state.removePolicy(specificThermalEnergy,false);
 
   CHECK(position.numFields() == dataBase.numFluidNodeLists());
   CHECK(velocity.numFields() == dataBase.numFluidNodeLists());
@@ -193,28 +194,30 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                            maxVolume));
   }
 
-  state.enroll(massDensity, make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>(HydroFieldNames::mass,
+  
+  state.enroll(massDensity, make_policy<ReplaceWithRatioPolicy<Dimension,Scalar>>({HydroFieldNames::mass,
+                                                                                   HydroFieldNames::volume},
+                                                                                  HydroFieldNames::mass,
                                                                                   HydroFieldNames::volume));
 
-  state.enroll(mass,  make_policy<MassFluxPolicy<Dimension>>());
+  state.enroll(mass,  make_policy<MassFluxPolicy<Dimension>>({GSPHFieldNames::momentumPolicy, 
+                                                              GSPHFieldNames::thermalEnergyPolicy}));
 
-  state.enroll(GSPHFieldNames::momentumPolicy, 
-               make_policy<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, 
-                                                                                     IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum));
+  state.enroll(velocity, 
+               make_policy<MFVIncrementVelocityPolicy<Dimension>>({GSPHFieldNames::thermalEnergyPolicy,
+                                                                   HydroFieldNames::specificThermalEnergy}));
 
+  
   if (this->compatibleEnergyEvolution()) {
     auto thermalEnergyPolicy = make_policy<CompatibleMFVSpecificThermalEnergyPolicy<Dimension>>(dataBase);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }else if (this->evolveTotalEnergy()) {
     std::cout <<"evolve total energy not implemented for MFV" << std::endl;
   } else {
-    auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy,
-                                                                                                     IncrementState<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
-    state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
+    auto thermalEnergyPolicy = make_policy<MFVIncrementSpecificThermalEnergyPolicy<Dimension>>();
+    state.enroll(specificThermalEnergy,thermalEnergyPolicy);
   }
 
-  //state.enroll(GSPHFieldNames::momentumPolicy,momentumPolicy);
-  //      massPolicy);
 }
 
 //------------------------------------------------------------------------------

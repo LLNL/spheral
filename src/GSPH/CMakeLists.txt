@@ -10,10 +10,9 @@ set(GSPH_inst
     MFMHydroBase
     MFVHydroBase
     Policies/MassFluxPolicy
-    #Policies/PureReplaceWithStateFieldList
-    #Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
-    Policies/IncrementSpecificFromTotalPolicy
+    Policies/MFVIncrementVelocityPolicy
+    Policies/MFVIncrementSpecificThermalEnergyPolicy
     Policies/CompatibleMFVSpecificThermalEnergyPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
@@ -44,10 +43,9 @@ set(GSPH_headers
     MFMHydroBase.hh
     MFVHydroBase.hh
     Policies/MassFluxPolicy.hh
-    #Policies/PureReplaceWithStateFieldList.hh
-    #Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
-    Policies/IncrementSpecificFromTotalPolicy.hh
+    Policies/MFVIncrementVelocityPolicy.hh
+    Policies/MFVIncrementSpecificThermalEnergyPolicy.hh
     Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh

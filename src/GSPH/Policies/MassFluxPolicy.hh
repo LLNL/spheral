@@ -1,8 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// MassFluxPolicy -- 
+// MassFluxPolicy -- update method for ALE - based hydro schemes that allow
+//                   for mass flux between nodes.
 //
 // J. M. Pearl 2023
 //----------------------------------------------------------------------------//
+
 #ifndef __Spheral_MassFluxPolicy_hh__
 #define __Spheral_MassFluxPolicy_hh__
 

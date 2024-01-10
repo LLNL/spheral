@@ -3,10 +3,9 @@ text = """
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "GSPH/Policies/IncrementSpecificFromTotalPolicy.cc"
+#include "GSPH/Policies/MFVIncrementVelocityPolicy.cc"
 
 namespace Spheral {
-  template class IncrementSpecificFromTotalPolicy<Dim< %(ndim)s >, Dim< %(ndim)s >::Scalar>;
-  template class IncrementSpecificFromTotalPolicy<Dim< %(ndim)s >, Dim< %(ndim)s >::Vector>;
+  template class MFVIncrementVelocityPolicy<Dim< %(ndim)s >>;
 }
 """
