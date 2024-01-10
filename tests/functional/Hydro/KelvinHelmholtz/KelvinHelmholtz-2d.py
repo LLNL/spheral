@@ -8,7 +8,7 @@ import shutil, os, sys
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+#from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
@@ -28,9 +28,9 @@ title("Kelvin-Helmholtz test problem in 2D")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(nx1 = 100,
-            ny1 = 50,
+            ny1 =  50,
             nx2 = 100,
-            ny2 = 50,
+            ny2 =  50,
             
             rho1 = 2.0,
             rho2 = 1.0,
@@ -52,8 +52,8 @@ commandLine(nx1 = 100,
             # kernel
             HUpdate = IdealH,
             nPerh = 1.51,
-            KernelConstructor = BSplineKernel,
-            order = 5,
+            KernelConstructor = NBSplineKernel,
+            order = 3,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -65,6 +65,7 @@ commandLine(nx1 = 100,
             fsisph = False,
             gsph = False,
             mfm = False,
+            mfv = False,
 
             # hydro options
             solid = False,                        # fluid limit of the solid hydro
@@ -92,11 +93,12 @@ commandLine(nx1 = 100,
             fsiInterfaceMethod = HLLCInterface,     # (HLLCInterface, ModulusInterface)
             fsiKernelMethod  = NeverAverageKernels, # (NeverAverageKernels, AlwaysAverageKernels, AverageInterfaceKernels)
     
-            # GSPH/MFM parameters
+            # GSPH/MFM/MFV parameters 
             gsphEpsDiffuseCoeff = 0.0,
             gsphLinearCorrect = True,
             LimiterConstructor = VanLeerLimiter,
             WaveSpeedConstructor = DavisWaveSpeed,
+            nodeMotionCoefficient = 0.2,
 
             # artificial viscosity
             Qconstructor = LimitedMonaghanGingoldViscosity,
@@ -118,7 +120,7 @@ commandLine(nx1 = 100,
             arCondAlpha = 0.5,
 
             # integrator
-            cfl = 0.5,
+            cfl = 0.25,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
             steps = None,
@@ -156,7 +158,7 @@ assert not svph
 assert not (compatibleEnergy and evolveTotalEnergy)
 assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
 assert not (fsisph and not solid)
-assert not ((mfm or gsph) and (boolCullenViscosity or boolReduceViscosity))
+assert not ((mfm or gsph or mfv) and ( boolReduceViscosity))
 
 # Decide on our hydro algorithm.
 hydroname = 'SPH'
@@ -176,6 +178,9 @@ elif gsph:
     useArtificialViscosity=False
 elif mfm:
     hydroname = "MFM"
+    useArtificialViscosity=False
+elif mfv:
+    hydroname = "MFV"
     useArtificialViscosity=False
 if asph: 
     hydorname = "A"+hydroname
@@ -224,14 +229,12 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor=="NBSplineKernel":
+if KernelConstructor == NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
-output("WTPi")
+
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -409,6 +412,7 @@ elif gsph:
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
+                gradientType = SPHSameTimeGradient,
                 XSPH = xsph,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
@@ -423,6 +427,26 @@ elif mfm:
                 cfl=cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradientType = SPHSameTimeGradient,
+                densityUpdate=densityUpdate,
+                XSPH = xsph,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfv:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                nodeMotionCoefficient = nodeMotionCoefficient,
+                nodeMotionType = NodeMotionType.Fician,
+                gradientType = SPHSameTimeGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
                 XSPH = xsph,

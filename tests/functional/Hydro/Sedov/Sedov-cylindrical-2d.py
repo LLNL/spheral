@@ -70,7 +70,7 @@ commandLine(seed = "lattice",
             volumeType = RKSumVolume,
 
             # gsph options
-            RiemannGradientType = SPHSameTimeGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            RiemannGradientType = SPHGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
             linearReconstruction = True,
 
             # Artifical Viscosity
@@ -391,6 +391,7 @@ elif mfv:
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 gradientType = RiemannGradientType,
+                nodeMotionType=NodeMotionType.Fician,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,

@@ -49,8 +49,8 @@ commandLine(seed = "constantDTheta",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
-            nRadial = 50,
-            nTheta = 50,
+            nRadial = 100,
+            nTheta = 100,
             rmin = 0.0,
             rmax = 1.0,
             rho0 = 1.0,
@@ -73,6 +73,7 @@ commandLine(seed = "constantDTheta",
             asph = False,     # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
+            nodeMotion = NodeMotionType.Lagrangian,
             # general hydro options
             densityUpdate = RigorousSumDensity, # (IntegrateDensity)
             evolveTotalEnergy = False,          # evolve total rather than specific energy
@@ -206,6 +207,7 @@ dataDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter,
+                       "%s" % nodeMotion,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
@@ -411,14 +413,14 @@ elif mfv:
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
-                nodeMotionType=NodeMotionType.Lagrangian,
+                nodeMotionType=nodeMotion,
                 specificThermalEnergyDiffusionCoefficient = 0.00,
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
-                gradientType = RiemannGradient,
+                gradientType = SPHSameTimeGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
