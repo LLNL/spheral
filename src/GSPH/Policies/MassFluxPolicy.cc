@@ -8,7 +8,7 @@
 
 #include "MassFluxPolicy.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/Field.hh"
@@ -46,21 +46,17 @@ update(const KeyType& key,
        const double multiplier,
        const double /*t*/,
        const double /*dt*/) {
-  KeyType fieldKey, nodeListKey;
-  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::mass and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
 
   // state
-  auto m = state.field(fieldKey, 0.0);
+  auto m = state.field(key, 0.0);
 
   // deriv
-  const auto dmdt = derivs.field(IncrementState<Dimension, Scalar>::prefix() + fieldKey, 0.0);
+  const auto dmdt = derivs.field(this->prefix() + key, 0.0);
 
 // Loop over the internal values of the field.
   const auto n = m.numInternalElements();
 #pragma omp parallel for
-  for (auto j = 0u; j < n; ++j) {
+  for (auto i = 0u; i < n; ++i) {
     m(i) += std::max(multiplier*dmdt(i),-m(i));
   }
 }
@@ -74,12 +70,8 @@ MassFluxPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const MassFluxPolicy<Dimension>* rhsPtr = dynamic_cast<const MassFluxPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const MassFluxPolicy<Dimension>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 }

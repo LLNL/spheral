@@ -20,13 +20,13 @@ template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
 class MassFluxPolicy: 
-    public IncrementFieldList<Dimension, typename Dimension::Scalar> {
+    public IncrementState<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using KeyType = typename IncrementState<Dimension,Scalar>::KeyType;
 
   // Constructors, destructor.
   MassFluxPolicy(std::initializer_list<std::string> depends = {});
@@ -38,10 +38,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const  override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

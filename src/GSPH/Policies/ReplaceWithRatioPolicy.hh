@@ -20,7 +20,7 @@ public:
 
   // Constructors, destructor.
   ReplaceWithRatioPolicy(const KeyType& numerator, const KeyType& denomator);
-  ReplaceWithRatioPolicy(std::initializer_list<std::string> depends = {},
+  ReplaceWithRatioPolicy(std::initializer_list<std::string> depends,
                          const KeyType& numerator, const KeyType& denomator);
   virtual ~ReplaceWithRatioPolicy();
   

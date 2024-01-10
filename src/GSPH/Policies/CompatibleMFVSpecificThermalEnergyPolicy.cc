@@ -13,16 +13,22 @@
 //----------------------------------------------------------------------------//
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/GSPHFieldNames.hh"
+
 #include "Hydro/HydroFieldNames.hh"
+
 #include "NodeList/NodeList.hh"
-#include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
+#include "NodeList/FluidNodeList.hh"
+
 #include "DataBase/IncrementState.hh"
+#include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+
 #include "Neighbor/ConnectivityMap.hh"
+
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
+
 #include "Utilities/DBC.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/SpheralFunctions.hh"
@@ -42,8 +48,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CompatibleMFVSpecificThermalEnergyPolicy<Dimension>::
-CompatibleMFVSpecificThermalEnergyPolicy():
-  IncrementFieldList<Dimension, typename Dimension::Scalar>(){
+CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
+  UpdatePolicyBase<Dimension>(),
+  mDataBasePtr(&dataBase){
 }
 
 //------------------------------------------------------------------------------
@@ -177,6 +184,37 @@ update(const KeyType& key,
   }
 }
 
+
+
+//------------------------------------------------------------------------------
+// Update the field using increments
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CompatibleMFVSpecificThermalEnergyPolicy<Dimension>::
+updateAsIncrement(const KeyType& key,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs,
+                  const double multiplier,
+                  const double t,
+                  const double dt) {
+
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  auto eps = state.fields(fieldKey, Scalar());
+
+  // Build an increment policy to use.
+  IncrementState<Dimension, Scalar> fpolicy;
+
+  // Do the deed for each of our Fields.
+  for (auto fptr: eps) {
+    fpolicy.updateAsIncrement(State<Dimension>::key(*fptr),
+                              state, derivs, multiplier, t, dt);
+  }
+}
+
 //------------------------------------------------------------------------------
 // Equivalence operator.
 //------------------------------------------------------------------------------
@@ -186,12 +224,8 @@ CompatibleMFVSpecificThermalEnergyPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const CompatibleMFVSpecificThermalEnergyPolicy<Dimension>* rhsPtr = dynamic_cast<const CompatibleMFVSpecificThermalEnergyPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto* rhsPtr = dynamic_cast<const CompatibleMFVSpecificThermalEnergyPolicy<Dimension>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 }

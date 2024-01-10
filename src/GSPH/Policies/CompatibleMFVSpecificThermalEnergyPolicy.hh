@@ -7,12 +7,14 @@
 // method.
 //
 // J.M. Pearl 2023
+//
+//
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__
 #define __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__
 
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 #include <string>
 
@@ -21,21 +23,22 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
 class CompatibleMFVSpecificThermalEnergyPolicy: 
-    public IncrementFieldList<Dimension, typename Dimension::Scalar> {
+    public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  CompatibleMFVSpecificThermalEnergyPolicy();
+  CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
   virtual ~CompatibleMFVSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -44,7 +47,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // If the derivative stored values for the pair-accelerations has not been updated,
   // we need to just time advance normally.
@@ -53,20 +56,15 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt) {
-    IncrementFieldList<Dimension, Scalar>::update(key,
-                                                  state,
-                                                  derivs,
-                                                  multiplier,
-                                                  t,
-                                                  dt);
-  }
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  const DataBase<Dimension>* mDataBasePtr;
+
   CompatibleMFVSpecificThermalEnergyPolicy(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
   CompatibleMFVSpecificThermalEnergyPolicy& operator=(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
 };

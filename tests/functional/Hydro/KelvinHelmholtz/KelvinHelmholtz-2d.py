@@ -51,8 +51,8 @@ commandLine(nx1 = 100,
 
             # kernel
             HUpdate = IdealH,
-            nPerh = 1.51,
-            KernelConstructor = NBSplineKernel,
+            nPerh = 2.0,
+            KernelConstructor = WendlandC2Kernel,
             order = 3,
             hmin = 0.0001, 
             hmax = 0.5,

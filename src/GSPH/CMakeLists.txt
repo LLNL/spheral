@@ -10,8 +10,8 @@ set(GSPH_inst
     MFMHydroBase
     MFVHydroBase
     Policies/MassFluxPolicy
-    Policies/PureReplaceWithStateFieldList
-    Policies/PureReplaceFieldList
+    #Policies/PureReplaceWithStateFieldList
+    #Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
     Policies/IncrementSpecificFromTotalPolicy
     Policies/CompatibleMFVSpecificThermalEnergyPolicy
@@ -44,8 +44,8 @@ set(GSPH_headers
     MFMHydroBase.hh
     MFVHydroBase.hh
     Policies/MassFluxPolicy.hh
-    Policies/PureReplaceWithStateFieldList.hh
-    Policies/PureReplaceFieldList.hh
+    #Policies/PureReplaceWithStateFieldList.hh
+    #Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
     Policies/IncrementSpecificFromTotalPolicy.hh
     Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh

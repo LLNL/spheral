@@ -8,22 +8,24 @@
 #ifndef __Spheral_IncrementSpecificFromTotalPolicy_hh__
 #define __Spheral_IncrementSpecificFromTotalPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
+
+#include <string>
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class IncrementSpecificFromTotalPolicy: public FieldListUpdatePolicyBase<Dimension, ValueType> {
+class IncrementSpecificFromTotalPolicy: public UpdatePolicyBase<Dimension> {
 public:
 
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  IncrementSpecificFromTotalPolicy(std::initializer_list<std::string> depends = {}, const std::string& stateKey, const std::string& derivKey);
+  IncrementSpecificFromTotalPolicy(std::initializer_list<std::string> depends, const std::string& stateKey, const std::string& derivKey);
   IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey);
    ~IncrementSpecificFromTotalPolicy();
   
@@ -38,6 +40,8 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
+  static const std::string prefix() { return "delta "; }
+  
 private:
 
   const std::string mStateKey;
