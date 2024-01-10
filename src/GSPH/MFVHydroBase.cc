@@ -43,6 +43,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementFieldList.hh"
 #include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/PureReplaceState.hh"
 #include "DataBase/ReplaceBoundedFieldList.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/CompositeFieldListPolicy.hh"
@@ -59,8 +60,6 @@
 #include "GSPH/Policies/MassFluxPolicy.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/Policies/IncrementSpecificFromTotalPolicy.hh"
-#include "GSPH/Policies/PureReplaceFieldList.hh"
-#include "GSPH/Policies/PureReplaceWithStateFieldList.hh"
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
@@ -129,10 +128,10 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mHStretchTensor(FieldStorageType::CopyFields),
   mPairMassFlux(){
     mNodalVelocity = dataBase.newFluidFieldList(Vector::zero, GSPHFieldNames::nodalVelocity);
-    mDmassDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
-    mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
-    mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
-    mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
+    mDmassDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::mass);
+    mDthermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
+    mDmomentumDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum);
+    mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
     mHStretchTensor = dataBase.newFluidFieldList(SymTensor::zero, "HStretchTensor");
     mPairMassFlux.clear();
 }
@@ -205,38 +204,6 @@ registerState(DataBase<Dimension>& dataBase,
   auto momentumPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Vector>>(HydroFieldNames::velocity, 
                                                                                               IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum,
                                                                                               HydroFieldNames::specificThermalEnergy);
-  
-  
-
-  // switch (mNodeMotionType){
-  //   case NodeMotionType::Eulerian:    // Eulerian
-  //   {
-  //     state.enroll(mNodalVelocity);
-  //   }
-  //     break;
-  //   case NodeMotionType::Lagrangian:  // pure MFV
-  //     {
-  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceWithStateFieldList<Dimension,Vector>>(HydroFieldNames::velocity,
-  //                                                                                                    HydroFieldNames::velocity); // depends on
-  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
-  //     }
-  //     break;
-  //   case NodeMotionType::XSPH:
-  //     { 
-  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV);
-  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
-  //     }
-  //     break;
-  //   case NodeMotionType::Fician:
-  //     { 
-  //       auto nodalVelocityPolicy = std::make_shared<PureReplaceFieldList<Dimension,Vector>>(HydroFieldNames::XSPHDeltaV,
-  //                                                                                           HydroFieldNames::velocity);
-  //       state.enroll(mNodalVelocity, nodalVelocityPolicy);
-  //     }
-  //     break;
-  //   default:
-  //     break;
-  // }
 
   if (this->compatibleEnergyEvolution()) {
     auto thermalEnergyPolicy = std::make_shared<CompatibleMFVSpecificThermalEnergyPolicy<Dimension>>(dataBase);
@@ -246,7 +213,7 @@ registerState(DataBase<Dimension>& dataBase,
     std::cout <<"evolve total energy not implemented for MFV" << std::endl;
   } else {
     auto thermalEnergyPolicy = std::make_shared<IncrementSpecificFromTotalPolicy<Dimension, Scalar>>(HydroFieldNames::specificThermalEnergy, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy);
-    auto velocityPolicy = std::make_shared<IncrementFieldList<Dimension, Vector>>(HydroFieldNames::position,true);
+    auto velocityPolicy = std::make_shared<IncrementState<Dimension, Vector>>(HydroFieldNames::position,true);
     state.enroll(GSPHFieldNames::thermalEnergyPolicy,thermalEnergyPolicy);
     state.enroll(velocity, velocityPolicy);
   }
@@ -268,10 +235,10 @@ MFVHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   GenericRiemannHydro<Dimension>::registerDerivatives(dataBase,derivs);
-  dataBase.resizeFluidFieldList(mDmassDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, false);
-  dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
-  dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
-  dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
+  dataBase.resizeFluidFieldList(mDmassDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::mass, false);
+  dataBase.resizeFluidFieldList(mDthermalEnergyDt, 0.0, IncrementStateDimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, false);
+  dataBase.resizeFluidFieldList(mDmomentumDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, false);
+  dataBase.resizeFluidFieldList(mDvolumeDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::volume, false);
   dataBase.resizeFluidFieldList(mHStretchTensor,SymTensor::zero, "HStretchTensor", false);
   derivs.enroll(mDmassDt);
   derivs.enroll(mDthermalEnergyDt);
@@ -342,8 +309,8 @@ finalizeDerivatives(const typename Dimension::Scalar time,
                     StateDerivatives<Dimension>& derivs) const {
   // hackish solution and I should be ashamed.
   if (this->compatibleEnergyEvolution()) {
-    auto DpDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
-    auto DmDt = derivs.fields(IncrementFieldList<Dimension, Scalar>::prefix() + HydroFieldNames::mass, 0.0);
+    auto DpDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
+    auto DmDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::mass, 0.0);
     for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
          boundaryItr != this->boundaryEnd();
          ++boundaryItr){

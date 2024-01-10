@@ -17,6 +17,8 @@
 #include "DamageGradientPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
+#include "Material/EquationOfState.hh"
+#include "SolidMaterial/StrengthModel.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -210,6 +212,22 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
            << "    Avg Neff/Nflaws       : " << numFlawsRatio << endl;
     }
   }
+
+  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
+  const auto& eps = nodes.specificThermalEnergy();
+  const auto& D = nodes.damage();
+  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
+  nodes.equationOfState().setPressure(P, rho, eps);
+  if (nodes.strengthModel().providesBulkModulus()) {
+    nodes.strengthModel().bulkModulus(K, rho, eps);
+  } else {
+    nodes.equationOfState().setBulkModulus(K, rho, eps);
+  }
+  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
+
+  // Set the initial values for Youngs modulus and the longitudinal sound speed
+  nodes.YoungsModulus(mYoungsModulus, K, mu);
+  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
 }
 
 //------------------------------------------------------------------------------
@@ -277,33 +295,22 @@ ProbabilisticDamageModel<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Register Youngs modulus and the longitudinal sound speed.
-  PolicyPointer EPolicy(new YoungsModulusPolicy<Dimension>());
-  PolicyPointer clPolicy(new LongitudinalSoundSpeedPolicy<Dimension>());
-  state.enroll(mYoungsModulus, EPolicy);
-  state.enroll(mLongitudinalSoundSpeed, clPolicy);
-
-  // Set the initial values for the Youngs modulus, sound speed, and pressure.
-  typename StateDerivatives<Dimension>::PackageList dummyPackages;
-  StateDerivatives<Dimension> derivs(dataBase, dummyPackages);
-  EPolicy->update(state.key(mYoungsModulus), state, derivs, 1.0, 0.0, 0.0);
-  clPolicy->update(state.key(mLongitudinalSoundSpeed), state, derivs, 1.0, 0.0, 0.0);
+  auto& nodes = this->nodeList();
+  state.enroll(mYoungsModulus, std::make_shared<YoungsModulusPolicy<Dimension>>(nodes));
+  state.enroll(mLongitudinalSoundSpeed, std::make_shared<LongitudinalSoundSpeedPolicy<Dimension>>(nodes));
 
   // Register the strain and effective strain.
-  PolicyPointer effectiveStrainPolicy(new TensorStrainPolicy<Dimension>(mStrainAlgorithm));
   state.enroll(mStrain);
-  state.enroll(mEffectiveStrain, effectiveStrainPolicy);
+  state.enroll(mEffectiveStrain, std::make_shared<TensorStrainPolicy<Dimension>>(mStrainAlgorithm));
 
   // Register the damage and state it requires.
   // Note we are overriding the default no-op policy for the damage
   // as originally registered by the SolidSPHHydroBase class.
-  auto& damage = this->nodeList().damage();
-  PolicyPointer damagePolicy(new ProbabilisticDamagePolicy<Dimension>(mDamageInCompression,
-                                                                      mkWeibull,
-                                                                      mmWeibull));
-  state.enroll(damage, damagePolicy);
+  auto& damage = nodes.damage();
+  state.enroll(damage, std::make_shared<ProbabilisticDamagePolicy<Dimension>>(mDamageInCompression,
+                                                                              mkWeibull,
+                                                                              mmWeibull));
   state.enroll(mNumFlaws);
   state.enroll(mMinFlaw);
   state.enroll(mMaxFlaw);
@@ -389,9 +396,11 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mNumFlaws, pathName + "/numFlaws");
   file.write(mMinFlaw, pathName + "/minFlaw");
   file.write(mMaxFlaw, pathName + "/maxFlaw");
+  file.write(mYoungsModulus, pathName + "/YoungsModulus");
+  file.write(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
+  file.write(mDdamageDt, pathName + "/DdamageDt");
   file.write(mStrain, pathName + "/strain");
   file.write(mEffectiveStrain, pathName + "/effectiveStrain");
-  file.write(mDdamageDt, pathName + "/DdamageDt");
   file.write(mMask, pathName + "/mask");
 }
 
@@ -406,9 +415,11 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mNumFlaws, pathName + "/numFlaws");
   file.read(mMinFlaw, pathName + "/minFlaw");
   file.read(mMaxFlaw, pathName + "/maxFlaw");
+  file.read(mYoungsModulus, pathName + "/YoungsModulus");
+  file.read(mLongitudinalSoundSpeed, pathName + "/LongitudinalSoundSpeed");
+  file.read(mDdamageDt, pathName + "/DdamageDt");
   file.read(mStrain, pathName + "/strain");
   file.read(mEffectiveStrain, pathName + "/effectiveStrain");
-  file.read(mDdamageDt, pathName + "/DdamageDt");
   file.read(mMask, pathName + "/mask");
 }
 

@@ -868,7 +868,7 @@ setTreeMasterList(const typename TreeNeighbor<Dimension>::LevelKey levelID,
                   std::vector<int>& masterList,
                   std::vector<int>& coarseNeighbors,
                   const bool ghostConnectivity) const {
-  REQUIRE(levelID >= 0 and levelID < num1dbits);
+  REQUIRE(levelID < num1dbits);
 
   // Get the per dimension cell indices.
   CellKey ix_master, iy_master, iz_master;

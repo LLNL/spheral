@@ -1,6 +1,5 @@
 include_directories(.)
 set(Gravity_inst
-  CompatibleGravitationalVelocityPolicy
   NBodyGravity
   )
 

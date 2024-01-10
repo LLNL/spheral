@@ -55,14 +55,14 @@ class TensorDamageModel:
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs.
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
-  typedef Field<Dimension, std::vector<double> > FlawStorageType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
+  using FlawStorageType = Field<Dimension, std::vector<double> >;
 
   // Constructors, destructor.
   TensorDamageModel(SolidNodeList<Dimension>& nodeList,
@@ -105,6 +105,10 @@ public:
   // Enforce boundary conditions for the physics specific fields.
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
+
+  // An optional hook to initialize once when the problem is starting up.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
   //...........................................................................
   // Optional method to cull the set of flaws to the single weakest one on
   // each point.

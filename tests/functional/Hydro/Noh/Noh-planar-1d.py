@@ -374,15 +374,14 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
-                   interfaceMethod = ModulusInterface,
+                   interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    HUpdate = HUpdate)
 elif gsph:
     limiter = VanLeerLimiter()
@@ -443,12 +442,12 @@ output("hydro")
 try:
     output("hydro.kernel")
     output("hydro.PiKernel")
+    output("hydro.XSPH")
 except:
     pass
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.XSPH")
 
 packages = [hydro]
 

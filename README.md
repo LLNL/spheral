@@ -17,7 +17,7 @@ Release and license:
 Copyright (c) 2012, Lawrence Livermore National Security, LLC.  
 Produced at the Lawrence Livermore National Laboratory  
 Written by J. Michael Owen <mikeowen@llnl.gov>  
-CODE-OCEC-12-049  
+LLNL-CODE-561852  
 All rights reserved.
 
 Please see full license at https://github.com/jmikeowen/spheral/blob/master/License.txt

@@ -38,6 +38,32 @@ typedef Spheral::Dim<3>::ThirdRankTensor ThirdRankTensor3d;
 typedef Spheral::Dim<3>::FourthRankTensor FourthRankTensor3d;
 typedef Spheral::Dim<3>::FifthRankTensor FifthRankTensor3d;
 typedef Spheral::Dim<3>::FacetedVolume FacetedVolume3d;
+
+namespace Spheral {
+namespace PYB11utils {
+
+// Helper method for converting to/from STL vectors and Python lists
+template<typename T>
+inline
+py::list
+to_list(const std::vector<T>& stuff) {
+  py::list result;
+  for (const auto& x: stuff) result.append(x);
+  return result;
+}
+
+template<typename T>
+inline
+std::vector<T>
+from_list(const py::list& stuff) {
+  std::vector<T> result;
+  for (auto obj: stuff) result.push_back(obj.cast<T>());
+  return result;
+}
+
+}
+}
+
 """
 
 PYB11opaque = ["std::vector<char>",

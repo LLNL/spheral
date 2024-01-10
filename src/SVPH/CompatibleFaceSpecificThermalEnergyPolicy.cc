@@ -11,7 +11,6 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Kernel/TableKernel.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldUpdatePolicyBase.hh"
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
@@ -187,8 +186,8 @@ update(const KeyType& key,
        const double multiplier,
        const double /*t*/,
        const double dt) {
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Face Face;
+  using Zone = typename Mesh<Dimension>::Zone;
+  using Face = typename Mesh<Dimension>::Face;
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);

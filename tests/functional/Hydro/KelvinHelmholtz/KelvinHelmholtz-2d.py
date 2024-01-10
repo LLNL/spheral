@@ -395,7 +395,7 @@ if fsisph:
                    interfaceMethod = fsiInterfaceMethod,
                    kernelAveragingMethod = fsiKernelMethod,
                    sumDensityNodeLists = sumDensityNodeListSwitch,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergy,  
                    evolveTotalEnergy = evolveTotalEnergy,         
                    ASPH = asph,

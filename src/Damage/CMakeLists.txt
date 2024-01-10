@@ -17,7 +17,6 @@ set(Damage_inst
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
-    DamagedPressurePolicy
     PairMaxDamageNodeCoupling
     ThreePointDamagedNodeCoupling
     DamageGradientNodeCoupling
@@ -31,8 +30,6 @@ set(Damage_headers
     DamageGradientPolicy.hh
     DamageModel.hh
     DamageModelInline.hh
-    DamagedPressurePolicy.hh
-    DamagedSoundSpeedPolicy.hh
     EffectiveTensorDamagePolicy.hh
     GradyKippScalarDamage.hh
     JohnsonCookDamage.hh

@@ -19,7 +19,7 @@ namespace Spheral {
 template<typename Dimension>
 SpecificThermalEnergyVolumePolicy<Dimension>::
 SpecificThermalEnergyVolumePolicy():
-  FieldUpdatePolicyBase<Dimension, Scalar>(HydroFieldNames::volume) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::volume}) {
 }
 
 //------------------------------------------------------------------------------
@@ -48,22 +48,17 @@ update(const KeyType& key,
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy);
 
   // Get the state fields.
-  const KeyType volKey = State<Dimension>::buildFieldKey(HydroFieldNames::volume, nodeListKey);
-  const KeyType vol0Key = State<Dimension>::buildFieldKey(HydroFieldNames::volume + "0", nodeListKey);
-  const KeyType Pkey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType Qkey = State<Dimension>::buildFieldKey(HydroFieldNames::maxViscousPressure, nodeListKey);
-  CHECK(state.registered(volKey));
-  CHECK(state.registered(vol0Key));
-  CHECK(state.registered(Pkey));
-  CHECK(derivs.registered(Qkey));
-  Field<Dimension, Scalar>& eps = state.field(key, 0.0);
-  const Field<Dimension, Scalar>& vol = state.field(volKey, 0.0);
-  const Field<Dimension, Scalar>& vol0 = state.field(vol0Key, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(Pkey, 0.0);
-  const Field<Dimension, Scalar>& Q = derivs.field(Qkey, 0.0);
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  auto&       eps = state.field(key, 0.0);
+  const auto& vol = state.field(buildKey(HydroFieldNames::volume), 0.0);
+  const auto& vol0 = state.field(buildKey(HydroFieldNames::volume + "0"), 0.0);
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+  const auto& Q = derivs.field(buildKey(HydroFieldNames::maxViscousPressure), 0.0);
 
   // Do the deed.
-  for (unsigned i = 0; i != eps.numInternalElements(); ++i) {
+  const auto n = eps.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     CHECK(vol0(i) > 0.0);
     eps(i) += multiplier*((P(i) + Q(i))*(vol0(i) - vol(i)));
   }
@@ -78,8 +73,8 @@ SpecificThermalEnergyVolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const SpecificThermalEnergyVolumePolicy<Dimension>* rhsPtr = dynamic_cast<const SpecificThermalEnergyVolumePolicy<Dimension>*>(&rhs);
-  return rhsPtr != 0;
+  const auto* rhsPtr = dynamic_cast<const SpecificThermalEnergyVolumePolicy<Dimension>*>(&rhs);
+  return rhsPtr != nullptr;
 }
 
 }

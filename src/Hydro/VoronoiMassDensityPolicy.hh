@@ -8,7 +8,7 @@
 #ifndef __Spheral_VoronoiMassDensityPolicy_hh__
 #define __Spheral_VoronoiMassDensityPolicy_hh__
 
-#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 #include <string>
 
@@ -21,12 +21,12 @@ template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class VoronoiMassDensityPolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
+class VoronoiMassDensityPolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename ReplaceFieldList<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   VoronoiMassDensityPolicy(const double rhoMin,
@@ -39,10 +39,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -9,7 +9,7 @@
 #ifndef __Spheral_CopyState_hh__
 #define __Spheral_CopyState_hh__
 
-#include "FieldUpdatePolicyBase.hh"
+#include "UpdatePolicyBase.hh"
 
 namespace Spheral {
 
@@ -17,15 +17,15 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType>
-class CopyState: public FieldUpdatePolicyBase<Dimension, ValueType> {
+class CopyState: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename FieldUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   CopyState(const std::string& masterState, const std::string& copyState);
-  virtual ~CopyState();
+  virtual ~CopyState() {}
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -33,10 +33,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
   static const std::string prefix() { return "delta "; }
 
@@ -50,6 +50,8 @@ private:
 };
 
 }
+
+#include "CopyStateInline.hh"
 
 #else
 

@@ -32,6 +32,10 @@ KernelAveragingMethod = PYB11enum(("NeverAverageKernels",
                                    "AlwaysAverageKernels",
                                    "AverageInterfaceKernels"), export_values = True)
 
+FSIMassDensityMethod = PYB11enum(("FSISumMassDensity",
+                                  "PressureCorrectSumMassDensity",
+                                  "HWeightedSumMassDensity"), export_values = True)
+
 #-------------------------------------------------------------------------------
 # Namespaces
 #-------------------------------------------------------------------------------
@@ -52,11 +56,14 @@ SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, templat
 # expose our field names
 #-------------------------------------------------------------------------------
 class FSIFieldNames:
-    rawPressure = PYB11readonly(static=True, returnpolicy="copy")
+    damagedPressure = PYB11readonly(static=True, returnpolicy="copy")
     pressureGradient = PYB11readonly(static=True, returnpolicy="copy")
     specificThermalEnergyGradient = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceFlags = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceAreaVectors = PYB11readonly(static=True, returnpolicy="copy")
     interfaceNormals = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceAngles = PYB11readonly(static=True, returnpolicy="copy")
     interfaceFraction = PYB11readonly(static=True, returnpolicy="copy")
     interfaceSmoothness = PYB11readonly(static=True, returnpolicy="copy")
     smoothedInterfaceNormals = PYB11readonly(static=True, returnpolicy="copy")
-    smoothnessNormalization = PYB11readonly(static=True, returnpolicy="copy")
+    interfaceSmoothnessNormalization = PYB11readonly(static=True, returnpolicy="copy")

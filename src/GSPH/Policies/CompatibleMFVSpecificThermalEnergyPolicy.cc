@@ -8,16 +8,16 @@
 // sign pair-wise work. DepsDti and  DepsDtj are used as weights and the 
 // difference between the conservative and consistent formulations is added 
 // back in.
+//
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/GSPHFieldNames.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "NodeList/NodeList.hh"
-#include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/FieldUpdatePolicyBase.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/IncrementState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -42,9 +42,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CompatibleMFVSpecificThermalEnergyPolicy<Dimension>::
-CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
-  IncrementFieldList<Dimension, typename Dimension::Scalar>(),
-  mDataBasePtr(&dataBase) {
+CompatibleMFVSpecificThermalEnergyPolicy():
+  IncrementFieldList<Dimension, typename Dimension::Scalar>(){
 }
 
 //------------------------------------------------------------------------------
@@ -81,8 +80,8 @@ update(const KeyType& key,
   // Get the state fields.
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto  DmassDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + HydroFieldNames::mass, 0.0);
-  const auto  DmomentumDt = derivs.fields(IncrementFieldList<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
+  const auto  DmassDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::mass, 0.0);
+  const auto  DmomentumDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto& pairDepsDt = derivs.getAny(HydroFieldNames::pairWork, vector<Scalar>());
   const auto& pairMassFlux = derivs.getAny(GSPHFieldNames::pairMassFlux, vector<Scalar>());
@@ -95,7 +94,7 @@ update(const KeyType& key,
   CHECK(pairMassFlux.size() == npairs);
   CHECK(pairDepsDt.size() == 2*npairs);
 
-  auto  DepsDt = derivs.fields(IncrementFieldList<Dimension, Scalar >::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar >::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
   DepsDt.Zero();
 
   const auto hdt = 0.5*multiplier;

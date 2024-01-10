@@ -13,6 +13,7 @@
 #include "Strength/SolidFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "SolidMaterial/StrengthModel.hh"
+#include "Utilities/safeInv.hh"
 #include "Utilities/DBC.hh"
 
 #include "SolidNodeList.hh"
@@ -131,6 +132,51 @@ yieldStrength(Field<Dimension, typename Dimension::Scalar>& field) const {
   Field<Dimension, Scalar> P(HydroFieldNames::pressure, *this);
   this->pressure(P);
   mStrength.yieldStrength(field, rho, u, P, mPlasticStrain, mPlasticStrainRate, D);
+}
+
+//------------------------------------------------------------------------------
+// Calculate and return Youngs modulus.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidNodeList<Dimension>::
+YoungsModulus(Field<Dimension, typename Dimension::Scalar>& field,
+              const Field<Dimension, typename Dimension::Scalar>& K,          // bulk modulus
+              const Field<Dimension, typename Dimension::Scalar>& mu) const { // shear modulus
+  REQUIRE(K.nodeList().name() == this->name());
+  REQUIRE(mu.nodeList().name() == this->name());
+  const auto n = this->numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    field(i) = 9.0*K(i)*mu(i)*safeInv(3.0*K(i) + mu(i));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Calculate and return the longitudinal sound speed
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SolidNodeList<Dimension>::
+longitudinalSoundSpeed(Field<Dimension, typename Dimension::Scalar>& field,
+                       const Field<Dimension, typename Dimension::Scalar>& rho,        // mass density
+                       const Field<Dimension, typename Dimension::Scalar>& K,          // bulk modulus
+                       const Field<Dimension, typename Dimension::Scalar>& mu) const { // shear modulus
+  REQUIRE(rho.nodeList().name() == this->name());
+  REQUIRE(K.nodeList().name() == this->name());
+  REQUIRE(mu.nodeList().name() == this->name());
+  const auto n = this->numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    field(i) = std::sqrt(std::abs(K(i) + 4.0/3.0*mu(i))*safeInv(rho(i)));
+    // const auto ack = 3.0*K(i) + mu(i);
+    // const auto nu = std::min(0.5, std::max(0.0, 0.5*(3.0*K(i) - 2.0*mu(i))*safeInv(ack)));
+    // CHECK(nu >= 0.0 and nu <= 0.5);
+    // const auto barf = (1.0 + nu)*(1.0 - 2.0*nu) + 1.0e-10;
+    // CHECK(distinctlyGreaterThan(barf, 0.0));
+    // field(i) = std::sqrt(std::abs(E(i)*(1.0 - nu)*safeInv(rho(i)*barf)));
+    ENSURE(field(i) >= 0.0);
+  }
 }
 
 //------------------------------------------------------------------------------

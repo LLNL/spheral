@@ -3,7 +3,9 @@
 // for the updating the specific thermal energy as a dependent quantity.
 // 
 // This version is specialized for the compatible energy discretization 
-// method.
+// method described in
+// Owen, J. M. (2014). A compatibly differenced total energy conserving form of
+// SPH. International Journal for Numerical Methods in Fluids, 75(11), 749–774. 
 //
 // Created by JMO, Tue Sep 14 22:27:08 2004
 //----------------------------------------------------------------------------//
@@ -11,7 +13,7 @@
 #ifndef __Spheral_SpecificThermalEnergyPolicy_hh__
 #define __Spheral_SpecificThermalEnergyPolicy_hh__
 
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 #include <string>
 
@@ -25,14 +27,13 @@ template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class SpecificThermalEnergyPolicy: 
-    public IncrementFieldList<Dimension, typename Dimension::Scalar> {
+class SpecificThermalEnergyPolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   SpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
@@ -44,7 +45,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // If the derivative stored values for the pair-accelerations has not been updated,
   // we need to just time advance normally.
@@ -53,17 +54,10 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt) {
-    IncrementFieldList<Dimension, Scalar>::update(key,
-                                                  state,
-                                                  derivs,
-                                                  multiplier,
-                                                  t,
-                                                  dt);
-  }
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//

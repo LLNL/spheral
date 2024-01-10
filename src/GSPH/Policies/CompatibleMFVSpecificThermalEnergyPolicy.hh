@@ -5,6 +5,8 @@
 // 
 // This version is specialized for the compatible energy discretization 
 // method.
+//
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_CompatibleMFVSpecificThermalEnergyPolicy_hh__
@@ -19,7 +21,6 @@ namespace Spheral {
 // Forward declarations.
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
@@ -34,7 +35,7 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
+  CompatibleMFVSpecificThermalEnergyPolicy();
   virtual ~CompatibleMFVSpecificThermalEnergyPolicy();
   
   // Overload the methods describing how to update Fields.
@@ -66,8 +67,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  const DataBase<Dimension>* mDataBasePtr;
-
   CompatibleMFVSpecificThermalEnergyPolicy(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
   CompatibleMFVSpecificThermalEnergyPolicy& operator=(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
 };

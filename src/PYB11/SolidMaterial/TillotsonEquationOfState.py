@@ -50,11 +50,19 @@ Reference: Tillotson 1962
 
     #...........................................................................
     # Methods
+    # Methods
     @PYB11const
+    @PYB11implementation("[](const TillotsonEquationOfState<%(Dimension)s>& self, const Scalar& rho, const Scalar& eps) { return std::get<0>(self.pressureAndDerivs(rho, eps)); }")
     def pressure(self,
                  massDensity = "const Scalar",
                  specificThermalEnergy = "const Scalar"):
         return "Scalar"
+
+    @PYB11const
+    def pressureAndDerivs(self,
+                          massDensity = "const Scalar",
+                          specificThermalEnergy = "const Scalar"):
+        return "std::tuple<Scalar, Scalar, Scalar>"
 
     @PYB11const
     def temperature(self,
@@ -210,4 +218,4 @@ Reference: Tillotson 1962
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, TillotsonEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, TillotsonEquationOfState, virtual=True)

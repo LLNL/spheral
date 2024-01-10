@@ -64,12 +64,15 @@ message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 # PYB11 Target Flags
 #-------------------------------------------------------------------------------
 set(SPHERAL_PYB11_TARGET_FLAGS
+  -O1
   -Wno-unused-local-typedefs 
   -Wno-overloaded-virtual)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   list(APPEND SPHERAL_PYB11_TARGET_FLAGS
     -Wno-self-assign-overloaded 
-    -Wno-delete-non-abstract-non-virtual-dtor)
+    -Wno-inconsistent-missing-override
+    -Wno-delete-non-abstract-non-virtual-dtor
+    -Wno-delete-abstract-non-virtual-dtor)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND SPHERAL_PYB11_TARGET_FLAGS
     -Wno-pedantic)

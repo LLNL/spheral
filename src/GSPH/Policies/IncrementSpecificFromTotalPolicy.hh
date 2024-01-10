@@ -23,15 +23,9 @@ public:
   typedef typename Dimension::Vector Vector;
 
   // Constructors, destructor.
-
+  IncrementSpecificFromTotalPolicy(std::initializer_list<std::string> depends = {}, const std::string& stateKey, const std::string& derivKey);
   IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0, const std::string& depend1);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  IncrementSpecificFromTotalPolicy(const std::string& stateKey, const std::string& derivKey, const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~IncrementSpecificFromTotalPolicy();
+   ~IncrementSpecificFromTotalPolicy();
   
   // Overload the methods describing how to update FieldLists.
   virtual void update(const KeyType& key,

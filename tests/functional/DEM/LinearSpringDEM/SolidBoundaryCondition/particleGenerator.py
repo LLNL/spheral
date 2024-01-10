@@ -56,7 +56,7 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             
             # output control
             vizCycle = None,
-            vizTime = None, 
+            vizTime = 1.0, 
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 10000,
@@ -177,8 +177,8 @@ dem = DEM(db,
 
 packages = [dem]
 
-solidWall = InfinitePlane(Vector(0.0, 0.0, -10.0), Vector(  0.0, 0.0, 1.0))
-solidWall2 = FiniteCylinder(Vector(0.0, 0.0, -10.0),Vector(0.0, 0.0,1.0),5.0,15.0)
+solidWall = InfinitePlaneSolidBoundary(Vector(0.0, 0.0, -10.0), Vector(  0.0, 0.0, 1.0))
+solidWall2 = CylinderSolidBoundary(Vector(0.0, 0.0, -10.0),Vector(0.0, 0.0,1.0),5.0,15.0)
 
 dem.appendSolidBoundary(solidWall)
 dem.appendSolidBoundary(solidWall2)
@@ -313,7 +313,7 @@ class DEMInflow:
 
             for i in range(numParticles):
                 for j in range(particles[i].numSubParticles):
-                    print(k, uId[k], uIdi)
+                    #print(k, uId[k], uIdi)
                     mas[k] = particles[i].mass[j]
                     rad[k] = particles[i].radius[j]
                     pos[k] = particles[i].position[j]
@@ -336,7 +336,7 @@ class DEMInflow:
 
     def __call__(self,cycle,time,dt):
 
-        print(self.nodeList.numInternalNodes)
+        #print(self.nodeList.numInternalNodes)
         if (time - self.tGen >= self.dtGen):
             maxPosz = -1e100
             pos = self.nodeList.positions()

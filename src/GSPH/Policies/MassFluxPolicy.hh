@@ -1,14 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// MassFluxPolicy -- This is basically a direct copy of the standard 
-//                      position policy but instead we're substituting in 
-//                      the nodal velocity as the derivative.
+// MassFluxPolicy -- 
 //
 // J. M. Pearl 2023
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_MassFluxPolicy_hh__
 #define __Spheral_MassFluxPolicy_hh__
 
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/IncrementState.hh"
 
 #include <string>
 
@@ -31,13 +29,7 @@ public:
   typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
 
   // Constructors, destructor.
-  MassFluxPolicy();
-  MassFluxPolicy(const std::string& depend0);
-  MassFluxPolicy(const std::string& depend0,const std::string& depend1);
-  MassFluxPolicy(const std::string& depend0,const std::string& depend1,const std::string& depend2);
-  MassFluxPolicy(const std::string& depend0,const std::string& depend1,const std::string& depend2,const std::string& depend3);
-  MassFluxPolicy(const std::string& depend0,const std::string& depend1,const std::string& depend2,const std::string& depend3,const std::string& depend4);
-  MassFluxPolicy(const std::string& depend0,const std::string& depend1,const std::string& depend2,const std::string& depend3,const std::string& depend4,const std::string& depend5);
+  MassFluxPolicy(std::initializer_list<std::string> depends = {});
   virtual ~MassFluxPolicy();
   
   // Overload the methods describing how to update Fields.
