@@ -7,6 +7,8 @@
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
+// TODO : HydroAcceleration needs to be added in
+//----------------------------------------------------------------------------//
 
 #include "GSPH/Policies/MFVIncrementVelocityPolicy.hh"
 #include "GSPH/GSPHFieldNames.hh"
@@ -66,7 +68,6 @@ update(const KeyType& key,
   const auto&  DpDt = derivs.field(momDerivFieldKey,   Vector());
   const auto&  DvDt = derivs.field(accDerivFieldKey,   Vector());
 
-// Loop over the internal values of the field.
   const auto n = m.numInternalElements();
 #pragma omp parallel for
   for (unsigned i = 0; i != n; ++i) {

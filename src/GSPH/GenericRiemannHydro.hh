@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // GenericRiemannHydro --  pure virtual class for hydros using a Riemann
-//                        solver
+//                         solver
 //
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//

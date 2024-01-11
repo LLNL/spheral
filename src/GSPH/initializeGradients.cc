@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// Compute volume from inverse of the kernel summation
+// initializes the pressure and velocity gradients for Riemann solver - based
+// SPH varients
+//
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 #include "GSPH/initializeGradients.hh"
@@ -123,8 +126,6 @@ initializeGradients(const ConnectivityMap<Dimension>& connectivityMap,
     // Reduce the thread values to the master.
     threadReduceFieldLists<Dimension>(threadStack);
   }   // OpenMP parallel region
-  
-  std::cout << "this loop" << std::endl;
   
   // Finish up the spatial gradient calculation
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {

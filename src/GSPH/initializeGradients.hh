@@ -1,6 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
 // initializes the pressure and velocity gradients for Riemann solver - based
 // SPH varients
+//
+// J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral__initializeGradients__

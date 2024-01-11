@@ -16,6 +16,3 @@ const std::string Spheral::GSPHFieldNames::RiemannPressureGradient = "Riemann so
 const std::string Spheral::GSPHFieldNames::RiemannVelocityGradient = "Riemann solvers velocity gradient";
 const std::string Spheral::GSPHFieldNames::RiemannDeviatoricStressTensorGradient = "Riemann solvers deviatoric stress tensor gradient";
 const std::string Spheral::GSPHFieldNames::pairMassFlux = "pairwise mass flux";
-
-const std::string Spheral::GSPHFieldNames::momentumPolicy = "update policy momentum";
-const std::string Spheral::GSPHFieldNames::thermalEnergyPolicy = "update policy thermal energy";

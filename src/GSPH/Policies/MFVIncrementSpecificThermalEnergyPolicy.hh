@@ -1,8 +1,15 @@
 //---------------------------------Spheral++----------------------------------//
-// MFVIncrementSpecificThermalEnergyPolicy -- policy to update the velocity from the 
-//                                  momentum time derivative
+// MFVIncrementSpecificThermalEnergyPolicy -- This is a specialized increment
+//            policy for the specific thermal energy for schemes that allow
+//            for flux between nodes. The specific thermal energy is updated
+//            based on the time derivative of thermal energy. The mass and 
+//            time derivative are needed to got from thermal to specific 
+//            thermal. 
 //
 // J.M. Pearl 2022
+//----------------------------------------------------------------------------//
+// TODO: the edge case handing for m->0 needs to be improved to robustly
+//       handle void when full Eulerian.
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_MFVIncrementSpecificThermalEnergyPolicy_hh__

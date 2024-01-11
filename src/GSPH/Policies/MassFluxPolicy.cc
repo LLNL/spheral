@@ -45,29 +45,16 @@ update(const KeyType& key,
        const double multiplier,
        const double /*t*/,
        const double /*dt*/) {
-  //std::cout<< "beginMASFLUX" << std::endl;
-  // state
+
   auto& m = state.field(key, 0.0);
-  
-  // deriv
   const auto& dmdt = derivs.field(this->prefix() + key, 0.0);
-  //std::cout << key << " " << this->prefix()+key<< std::endl;
-// Loop over the internal values of the field.
+
   const auto n = m.numInternalElements();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    // std::cout << dmdt(i) << std::endl;
-    // std::cout << " " << std::endl;
-    // std::cout << m(i) << std::endl;
     const auto mi = m(i);
     m(i) +=  multiplier*(dmdt(i));
-    // std::cout << multiplier*(dmdt(i)) << std::endl;
-    // std::cout << multiplier*dmdt(i) << std::endl;
-    // std::cout << std::max(multiplier*dmdt(i), -m(i)) << std::endl;
-    // std::cout << m(i) - mi << std::endl;
   }
-
-  //std::cout<< "endMASFLUX" << std::endl;
 }
 
 //------------------------------------------------------------------------------

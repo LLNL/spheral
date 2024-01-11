@@ -1,10 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
 // CompatibleMFVSpecificThermalEnergyPolicy -- This is a generalization of the 
-//     Lagrangian compatible energy scheme to ALE based scheme with mass flux
+//     Lagrangian compatible energy scheme to ALE-based scheme with mass flux
 //     between nodes. 
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
+
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
 #include "GSPH/GSPHFieldNames.hh"
 

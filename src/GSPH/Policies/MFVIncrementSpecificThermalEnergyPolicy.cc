@@ -1,8 +1,15 @@
 //---------------------------------Spheral++----------------------------------//
-// MFVIncrementSpecificThermalEnergyPolicy -- replaces one fieldlist with the ratio 
-//                                     of two fieldlists from the state.
+// MFVIncrementSpecificThermalEnergyPolicy -- This is a specialized increment
+//            policy for the specific thermal energy for schemes that allow
+//            for flux between nodes. The specific thermal energy is updated
+//            based on the time derivative of thermal energy. The mass and 
+//            time derivative are needed to got from thermal to specific 
+//            thermal. 
 //
 // J.M. Pearl 2022
+//----------------------------------------------------------------------------//
+// TODO: the edge case handing for m->0 needs to be improved to robustly
+//       handle void when full Eulerian.
 //----------------------------------------------------------------------------//
 
 #include "GSPH/Policies/MFVIncrementSpecificThermalEnergyPolicy.hh"
@@ -61,7 +68,6 @@ update(const KeyType& key,
   const auto&  DmDt = derivs.field(prefix() + massKey, Scalar());
   const auto&  DmepsDt = derivs.field(derivFieldKey,   Scalar());
 
-// Loop over the internal values of the field.
   const auto n = m.numInternalElements();
 #pragma omp parallel for
   for (unsigned i = 0; i != n; ++i) {

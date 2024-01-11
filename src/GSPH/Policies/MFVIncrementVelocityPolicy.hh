@@ -1,11 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
 // MFVIncrementVelocityPolicy -- specialized policy for hydros that allow for mass
-//                      mass flux between nodes. The momentum time derivative
+//                      flux between nodes. The momentum time derivative
 //                      is used to update the velocity. The "hydro acceleration"
 //                      is also added in to be compatible w/ phys packages
 //                      that apply a pure acceleration. 
 //
 // J.M. Pearl 2023
+//----------------------------------------------------------------------------//
+// TODO : HydroAcceleration needs to be added in
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_MFVIncrementVelocityPolicy_hh__

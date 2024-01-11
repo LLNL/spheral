@@ -4,7 +4,7 @@
 //                 approaches which promote more regular particle distributions.
 //
 //                 Each of the ALE options defines the velocity of the nodes 
-//                 differently then the flux then results from the difference
+//                 differently. The flux that results from the difference
 //                 between the nodes velocities and the fluid velocity.
 //                 The velocities are defined as follows for the 
 //                 NodeMotionTypes:
@@ -16,15 +16,18 @@
 //                 3) Fician ------ nodal velocity = fluid velocity + Fician
 //                                  PST correction
 //                 4) XSPH -------- nodal velocity = xsph velocity
-//                 5) BackgroundPressure -- nodal acceleration = fluid 
-//                                          acceleration + Background pressure
-//                                          force to drive regularization.
 //
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
+// TODO:
+//   1 backpressure and fician particle shifting
+//   2 Eulerian model will still crash on the Noh implosion due to void particles
+//   3 Good implementation of Ngb update
+//   4 treatment for material interfaces
+//---------------------------------------------------------------------------//
 
 #ifndef __Spheral_MFVHydroBase_hh__
 #define __Spheral_MFVHydroBase_hh__
