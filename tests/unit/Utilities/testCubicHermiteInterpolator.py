@@ -153,23 +153,23 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                    checkMonotonicity = False):
         for x in xgen(self.nsamples, xmin, xmax):
             passing = err(F(x), func(x)) < Ftol
-            if not passing:
-                #print(F.vals)
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     print(F.vals)
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating F(x) for %s: %g != %g, err = %g" % (errorLabel, F(x), func(x), err(F(x), func(x))))
 
             # Check the first derivative
             passing = err(F.prime(x), func.prime(x)) < F1tol
-            if not passing:
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating dF/dx(x) for %s: %g != %g, err = %g" % (errorLabel, F.prime(x), func.prime(x), err(F.prime(x), func.prime(x))))
 
             # Check the second derivative
             passing = err(F.prime2(x), func.prime2(x)) < F2tol
-            if not passing:
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating d^2F/dx^2(x) for %s: %g != %g, err = %g" % (errorLabel, F.prime2(x), func.prime2(x), err(F.prime2(x), func.prime2(x))))
 
