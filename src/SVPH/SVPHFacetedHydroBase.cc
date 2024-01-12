@@ -26,7 +26,6 @@
 #include "SVPH/CellPressurePolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "SVPH/MeshIdealHPolicy.hh"
 #include "Mesh/generateMesh.hh"
@@ -298,7 +297,6 @@ registerState(DataBase<Dimension>& dataBase,
     // state.enroll(*mGradB[nodeListi]);
 
     // Register the position update.
-    // PolicyPointer positionPolicy(new PositionPolicy<Dimension>());
     PolicyPointer positionPolicy(new IncrementState<Dimension, Vector>());
     state.enroll((*itr)->positions(), positionPolicy);
 
@@ -340,8 +338,8 @@ registerState(DataBase<Dimension>& dataBase,
       state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
     } else {
       mCellPressure[nodeListi]->name("Cell" + HydroFieldNames::pressure); // Have to fix from the copy above.
-      PolicyPointer cellPressurePolicy(new CopyState<Dimension, Scalar>(HydroFieldNames::pressure,
-                                                                        "Cell" + HydroFieldNames::pressure));
+      PolicyPointer cellPressurePolicy(new CopyState<Dimension, Field<Dimension, Scalar>>(HydroFieldNames::pressure,
+                                                                                          "Cell" + HydroFieldNames::pressure));
       state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
     }
 

@@ -103,4 +103,4 @@ class MurnaghanEquationOfState(SolidEquationOfState):
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, MurnaghanEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, MurnaghanEquationOfState, virtual=True)

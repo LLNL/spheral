@@ -21,13 +21,22 @@ title("DEM Composite-Particle Restitution Coefficient Test")
 #-------------------------------------------------------------------------------
 commandLine(vImpact = 1.0,                 # impact velocity
             normalSpringConstant=10000.0,  # spring constant for LDS model
-            restitutionCoefficient=0.8,    # restitution coefficient to get damping const
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
+            dynamicFriction = 1.0,                    # dynamic sliding friction coefficient
+            staticFriction = 1.0,                     # static sliding friction coefficient
+            rollingFriction = 1.05,                   # rolling friction coefficient
+            torsionalFriction = 1.3,                  # torisional friction coefficient
+            cohesiveTensileStrength =0.0,             # units of pressure
+            shapeFactor = 0.5,                        # shape irregularity parameter 0-1 (1 most irregular)
+            
+            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
+
             radius = 0.25,                 # particle radius
             
-            neighborSearchBuffer = 0.1,    # multiplicative buffer to radius for neighbor search algo
-
             # integration
-            IntegratorConstructor = Verlet,
+            IntegratorConstructor = VerletIntegrator,
             stepsPerCollision = 50,  # replaces CFL for DEM
             goalTime = None,
             dt = 1e-8,
@@ -122,6 +131,7 @@ if restoreCycle is None:
     velocity = nodes1.velocity()
     particleRadius = nodes1.particleRadius()
     position = nodes1.positions()
+    cId = nodes1.compositeParticleIndex()
 
     velocity[0] = Vector(vImpact,0.0)
     velocity[1] = Vector(vImpact,0.0)
@@ -133,6 +143,9 @@ if restoreCycle is None:
     particleRadius[1] = radius
     particleRadius[2] = radius
 
+    cId[0] = 0
+    cId[1] = 0
+    cId[2] = 1
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -148,25 +161,20 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # DEM
 #-------------------------------------------------------------------------------
-hydro = DEM(db,
-            normalSpringConstant,
-            restitutionCoefficient,
-            stepsPerCollision = stepsPerCollision)
+dem = DEM(db,
+          normalSpringConstant = normalSpringConstant,
+          normalRestitutionCoefficient = normalRestitutionCoefficient,
+          tangentialSpringConstant = tangentialSpringConstant,
+          tangentialRestitutionCoefficient = tangentialRestitutionCoefficient,
+          dynamicFrictionCoefficient = dynamicFriction,
+          staticFrictionCoefficient = staticFriction,
+          rollingFrictionCoefficient = rollingFriction,
+          torsionalFrictionCoefficient = torsionalFriction,
+          cohesiveTensileStrength =cohesiveTensileStrength,
+          shapeFactor = shapeFactor,
+          stepsPerCollision = stepsPerCollision)
 
-eqOverlap=hydro.equilibriumOverlap
-neighborIndices = hydro.neighborIndices
-uniqueIndices = hydro.uniqueIndices
-shearDisplacement = hydro.shearDisplacement
-DDtShearDisplacement = hydro.DDtShearDisplacement
-neighborIndices[0][0]=vector_of_int([uniqueIndices(0,1)])
-eqOverlap[0][0]=vector_of_double([0.25])
-
-print((neighborIndices(0,0)))
-print(eqOverlap(0,0))
-print(eqOverlap(0,0))
-print(uniqueIndices(0,0))
-print(uniqueIndices(0,1))
-packages = [hydro]
+packages = [dem]
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -186,7 +194,7 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.cullGhostNodes = False
 
 output("integrator")
-output("integrator.havePhysicsPackage(hydro)")
+output("integrator.havePhysicsPackage(dem)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -195,12 +203,6 @@ output("integrator.domainDecompositionIndependent")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-def printFunc(cycle,time,dt):
-    print([eqOverlap(0,0),eqOverlap(0,1),eqOverlap(0,2)])
-    print([uniqueIndices(0,0),uniqueIndices(0,1),uniqueIndices(0,2)])
-    print([neighborIndices(0,0),neighborIndices(0,1),neighborIndices(0,2)])
-    print([shearDisplacement(0,0),shearDisplacement(0,1),shearDisplacement(0,2)])
-    print([DDtShearDisplacement(0,0),DDtShearDisplacement(0,1),DDtShearDisplacement(0,2)])
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
@@ -215,8 +217,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH,
-                            periodicWork=[(printFunc,1)])
+                            SPH = SPH)
 output("control")
 
 #-------------------------------------------------------------------------------

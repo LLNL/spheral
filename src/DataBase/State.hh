@@ -8,7 +8,6 @@
 
 #include "StateBase.hh"
 #include "UpdatePolicyBase.hh"
-#include "FieldUpdatePolicyBase.hh"
 
 #include <vector>
 #include <map>
@@ -29,17 +28,17 @@ class State: public StateBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Vector3d Vector3d;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Vector3d = typename Dimension::Vector3d;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename StateBase<Dimension>::KeyType KeyType;
+  using KeyType = typename StateBase<Dimension>::KeyType;
 
-  typedef std::vector<Physics<Dimension>*> PackageList;
-  typedef typename PackageList::iterator PackageIterator;
-  typedef typename std::shared_ptr<UpdatePolicyBase<Dimension> > PolicyPointer;
+  using PackageList = std::vector<Physics<Dimension>*>;
+  using PackageIterator = typename PackageList::iterator;
+  using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
   // Constructors, destructor.
   State();
@@ -69,12 +68,17 @@ public:
   void removePolicy(const KeyType& key);
   void removePolicy(FieldBase<Dimension>& field);
   template<typename DataType>
-  void removePolicy(FieldList<Dimension, DataType>& field);
+  void removePolicy(FieldList<Dimension, DataType>& field,
+                    const bool clonePerField);
 
   // Enroll the given Field and associated update policy
   void enroll(FieldBase<Dimension>& field, PolicyPointer policy);
 
   // Enroll the given FieldList and associated update policy
+  // This method queries the "clonePerField" method of the policy, and
+  // if true enrolls each Field in the FieldList with a copy of the policy.
+  // Otherwise the FieldList is enrolled directly as normal, and the policy is
+  // assumed to handle a FieldList directly.
   template<typename DataType>
   void enroll(FieldList<Dimension, DataType>& fieldList, PolicyPointer policy);
 
@@ -92,6 +96,9 @@ public:
   // Return the policy for the specified key.
   PolicyPointer policy(const KeyType& key) const;
 
+  // Return all the policies associated with the given Field Key
+  std::map<KeyType, PolicyPointer> policies(const KeyType& fieldKey) const;
+
   // Return the policy for the specified field.
   template<typename Value>
   PolicyPointer policy(const Field<Dimension, Value>& field) const;
@@ -103,7 +110,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::map<KeyType, std::map<KeyType, PolicyPointer> > PolicyMapType;
+  using PolicyMapType = std::map<KeyType, std::map<KeyType, PolicyPointer>>;
   PolicyMapType mPolicyMap;
   bool mTimeAdvanceOnly;
 };

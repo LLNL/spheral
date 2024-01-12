@@ -63,8 +63,8 @@ commandLine(nx1 = 1000,     # number of nodes
             mfm = False,      # moving finite mass -- hopkins 2015
 
             # FSI parameters
-            fsiRhoStabilizeCoeff = 0.0,         # diffusion operating through the vel-gradient
-            fsiEpsDiffuseCoeff = 0.0,           # diffusion coeff for specific thermal energy
+            fsiRhoStabilizeCoeff = 0.1,         # diffusion operating through the vel-gradient
+            fsiEpsDiffuseCoeff = 0.1,           # diffusion coeff for specific thermal energy
             fsiXSPHCoeff = 0.0,                 # ramps xsph up
             fsiInterfaceMethod = HLLCInterface, # (HLLCInterface, ModulusInterface, NoInterface)
 
@@ -306,7 +306,6 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=[],                       
                    densityStabilizationCoefficient = fsiRhoStabilizeCoeff,
@@ -315,7 +314,7 @@ elif fsisph:
                    interfaceMethod = fsiInterfaceMethod,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    HUpdate = HUpdate)
 elif gsph:
     limiter = VanLeerLimiter()

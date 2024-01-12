@@ -35,6 +35,11 @@ include(Compilers)
 #-------------------------------------------------------------------------------
 # Configure and Include blt
 #-------------------------------------------------------------------------------
+
+# Need to define Python paths here as BLT finds it's own Python package.
+set(Python_EXECUTABLE ${python_DIR}/bin/python3)
+set(Python3_EXECUTABLE ${python_DIR}/bin/python3)
+
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
@@ -60,6 +65,7 @@ include(SpheralMacros)
 #-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
+# TODO: Prefix Spheral options
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
 set(ENABLE_1D ON CACHE BOOL "enable 1d")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
@@ -70,6 +76,11 @@ set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
 set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
+option(SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION "Enable the artificial conduction package" ON)
+option(SPHERAL_ENABLE_EXTERNAL_FORCE "Enable the external force package" ON)
+option(SPHERAL_ENABLE_GRAVITY "Enable the gravity package" ON)
+
+option(ENABLE_DEV_BUILD "Build separate internal C++ libraries for faster code development" OFF)
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)
 
@@ -188,4 +199,6 @@ if (ENABLE_TESTS)
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
-include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
+if(NOT ENABLE_DEV_BUILD)
+  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
+endif()

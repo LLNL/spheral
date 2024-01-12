@@ -61,6 +61,25 @@ setPressure(Field<Dimension, Scalar>& Pressure,
 }
 
 //------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PolytropicEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  for (size_t i = 0u; i < massDensity.numElements(); ++i) {
+    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    dPdu(i) = 0.0;
+    dPdrho(i) = mPolytropicConstant*mGamma*pow(massDensity(i), mGamma - 1.0);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -253,7 +272,7 @@ PolytropicEquationOfState<Dimension>::
 bulkModulus(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return mGamma*(pressure(massDensity, specificThermalEnergy) + this->externalPressure());
+  return mGamma*(pressure(massDensity, specificThermalEnergy));
 }
 
 //------------------------------------------------------------------------------

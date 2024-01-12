@@ -21,8 +21,15 @@ template<typename Dimension>
 template<typename DataType>
 void
 State<Dimension>::
-removePolicy(FieldList<Dimension, DataType>& fieldList) {
-  this->removePolicy(StateBase<Dimension>::key(fieldList));
+removePolicy(FieldList<Dimension, DataType>& fieldList,
+             const bool clonePerField) {
+  if (clonePerField) {
+    for (auto fieldPtrItr = fieldList.begin();
+         fieldPtrItr < fieldList.end();
+         ++fieldPtrItr) this->removePolicy(**fieldPtrItr);
+  } else {
+    this->removePolicy(StateBase<Dimension>::key(fieldList));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -48,8 +55,17 @@ void
 State<Dimension>::
 enroll(FieldList<Dimension, DataType>& fieldList,
        typename State<Dimension>::PolicyPointer polptr) {
-  this->enroll(fieldList);
-  this->enroll(this->key(fieldList), polptr);
+  if (polptr->clonePerField()) {
+    // std::cerr << "Registering FieldList " << this->key(fieldList) << " with cloning policy" << std::endl;
+    for (auto bitr = fieldList.begin(); bitr < fieldList.end(); ++bitr) {
+      this->enroll(**bitr, polptr);
+    }
+  } else {
+    // std::cerr << "Registering FieldList " << this->key(fieldList) << " with SINGLE policy" << std::endl;
+    // this->enroll(this->key(fieldList), fieldList);
+    this->enroll(fieldList);  // enrolls each field without a policy
+    this->enroll(this->key(fieldList), polptr);
+  }
 }
 
 //------------------------------------------------------------------------------

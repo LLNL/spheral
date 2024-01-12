@@ -1,4 +1,3 @@
-get_property(SPHERAL_CXX_LIBS GLOBAL PROPERTY SPHERAL_CXX_LIBS)
 
 add_subdirectory(DeviceTestLib)
 

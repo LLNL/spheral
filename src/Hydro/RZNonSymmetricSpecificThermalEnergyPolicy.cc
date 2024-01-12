@@ -12,11 +12,9 @@
 #include "NodeList/NodeList.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "DataBase/DataBase.hh"
-#include "DataBase/FieldListUpdatePolicyBase.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/ReplaceState.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -56,7 +54,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 RZNonSymmetricSpecificThermalEnergyPolicy::
 RZNonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dim<2>>& dataBase):
-  IncrementFieldList<Dimension, Dim<2>::Scalar>(),
+  UpdatePolicyBase<Dimension>(),
   mDataBasePtr(&dataBase) {
 }
 
@@ -97,7 +95,7 @@ update(const KeyType& key,
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto  DepsDt0 = derivs.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
@@ -200,6 +198,34 @@ update(const KeyType& key,
 }
 
 //------------------------------------------------------------------------------
+// Update the field using increments
+//------------------------------------------------------------------------------
+void
+RZNonSymmetricSpecificThermalEnergyPolicy::
+updateAsIncrement(const KeyType& key,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs,
+                  const double multiplier,
+                  const double t,
+                  const double dt) {
+
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
+          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  auto eps = state.fields(fieldKey, Scalar());
+
+  // Build an increment policy to use.
+  IncrementState<Dimension, Scalar> fpolicy;
+
+  // Do the deed for each of our Fields.
+  for (auto fptr: eps) {
+    fpolicy.updateAsIncrement(State<Dimension>::key(*fptr),
+                              state, derivs, multiplier, t, dt);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Equivalence operator.
 //------------------------------------------------------------------------------
 bool
@@ -208,11 +234,7 @@ operator==(const UpdatePolicyBase<Dim<2>>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
   const auto* rhsPtr = dynamic_cast<const RZNonSymmetricSpecificThermalEnergyPolicy*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  return (rhsPtr != nullptr);
 }
 
 }

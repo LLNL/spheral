@@ -75,4 +75,4 @@ Reference: PAGOSA Physics manual, LA-14425-M"""
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, OsborneEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, OsborneEquationOfState, virtual=True)

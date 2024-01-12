@@ -15,6 +15,7 @@
 #include "Utilities/BiCubicInterpolator.hh"
 
 #include <memory>
+#include <tuple>
 
 // Forward declarations.
 namespace Spheral {
@@ -54,6 +55,12 @@ public:
                            const Field<Dimension, Scalar>& massDensity,
                            const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,           // set pressure
+                                    Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                                    Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                                    const Field<Dimension, Scalar>& massDensity,
+                                    const Field<Dimension, Scalar>& specificThermalEnergy) const override;
+
   virtual void setTemperature(Field<Dimension, Scalar>& temperature,
                               const Field<Dimension, Scalar>& massDensity,
                               const Field<Dimension, Scalar>& specificThermalEnergy) const;
@@ -85,6 +92,9 @@ public:
   // We also want the equivalent functions for individual calculations.
   Scalar pressure(const Scalar massDensity,
                   const Scalar specificThermalEnergy) const;
+
+  std::tuple<Scalar, Scalar, Scalar> pressureAndDerivs(const Scalar massDensity,
+                                                       const Scalar specificThermalEnergy) const;
 
   Scalar temperature(const Scalar massDensity,
                      const Scalar specificThermalEnergy) const;
@@ -133,7 +143,7 @@ private:
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax;
   std::shared_ptr<CubicHermiteInterpolator> mEpsMinInterp, mEpsMaxInterp;
-  std::shared_ptr<BiCubicInterpolator> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp;
+  std::shared_ptr<BiCubicInterpolator> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp, mDPDepsInterp, mDPDRinterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;

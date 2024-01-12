@@ -7,7 +7,6 @@
 
 #include "VolumePolicy.hh"
 #include "HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -23,7 +22,7 @@ namespace Spheral {
 template<typename Dimension>
 VolumePolicy<Dimension>::
 VolumePolicy():
-  ReplaceFieldList<Dimension, typename Dimension::Scalar>(HydroFieldNames::mesh) {
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mesh}) {
 }
 
 //------------------------------------------------------------------------------
@@ -51,15 +50,17 @@ update(const KeyType& key,
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::volume and 
           nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> volume = state.fields(fieldKey, Scalar());
-  const unsigned numFields = volume.numFields();
+  auto       volume = state.fields(fieldKey, Scalar());
+  const auto numFields = volume.numFields();
 
   // Get the mesh from the state.
-  const Mesh<Dimension>& mesh = state.mesh();
+  const auto& mesh = state.mesh();
 
   // Read the cell volumes from the mesh as our new value.
-  for (unsigned i = 0; i != numFields; ++i) {
-    for (unsigned j = 0; j != volume[i]->numInternalElements(); ++j) {
+  for (auto i = 0u; i < numFields; ++i) {
+    const auto n = volume[i]->numInternalElements();
+#pragma omp parallel for
+    for (auto j = 0u; j < n; ++j) {
       volume(i,j) = mesh.zone(i,j).volume();
     }
   }
@@ -74,12 +75,8 @@ VolumePolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const VolumePolicy<Dimension>* rhsPtr = dynamic_cast<const VolumePolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto rhsPtr = dynamic_cast<const VolumePolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

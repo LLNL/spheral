@@ -5,7 +5,6 @@ set(Strength_inst
     MeltEnergyPolicy
     PlasticStrainPolicy
     ShearModulusPolicy
-    StrengthSoundSpeedPolicy
     YieldStrengthPolicy
    )
 
@@ -22,7 +21,6 @@ set(Strength_headers
     PlasticStrainPolicy.hh
     ShearModulusPolicy.hh
     SolidFieldNames.hh
-    StrengthSoundSpeedPolicy.hh
     YieldStrengthPolicy.hh
     effectiveKernelVolume.hh
     )

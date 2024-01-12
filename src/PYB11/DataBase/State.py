@@ -95,7 +95,8 @@ class State(StateBase):
 
     @PYB11template("DataType")
     @PYB11pycppname("removePolicy")
-    def removePolicy2(self, fieldList="FieldList<%(Dimension)s, %(DataType)s>&"):
+    def removePolicy2(self, fieldList="FieldList<%(Dimension)s, %(DataType)s>&",
+                      clonePerField = "const bool"):
         "Remove the policy associated with the FieldList"
         return "void"
 

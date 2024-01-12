@@ -357,15 +357,14 @@ elif fsisph:
         sumDensityNodeLists += [nodes2]
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    sumDensityNodeLists=sumDensityNodeLists,                       
-                   densityStabilizationCoefficient = 0.00,
-                   specificThermalEnergyDiffusionCoefficient = 0.00,
+                   densityStabilizationCoefficient = 0.1,
+                   specificThermalEnergyDiffusionCoefficient = 0.1,
                    interfaceMethod = HLLCInterface,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    HUpdate = HUpdate)
 elif gsph:
     limiter = VanLeerLimiter()

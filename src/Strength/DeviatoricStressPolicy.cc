@@ -7,6 +7,8 @@
 #include "DeviatoricStressPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementBoundedState.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Kernel/TableKernel.hh"
@@ -16,6 +18,8 @@
 #include "Geometry/GeometryRegistrar.hh"
 #include "Utilities/DBC.hh"
 
+#include <algorithm>
+
 namespace Spheral {
 
 //------------------------------------------------------------------------------
@@ -24,7 +28,7 @@ namespace Spheral {
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
 DeviatoricStressPolicy():
-  IncrementFieldList<Dimension, typename Dimension::SymTensor>() {
+  FieldUpdatePolicy<Dimension>() {
 }
 
 //------------------------------------------------------------------------------
@@ -41,35 +45,61 @@ DeviatoricStressPolicy<Dimension>::
 template<typename Dimension>
 void
 DeviatoricStressPolicy<Dimension>::
-update(const KeyType& /*key*/,
+update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double /*t*/,
-       const double /*dt*/) {
+       const double t,
+       const double dt) {
+
+  KeyType fieldKey, nodeListKey;
+  StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
+  REQUIRE(fieldKey == SolidFieldNames::deviatoricStress);
+
+  // Alias for shorter call building State Field keys
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
 
   // Get the state we're advancing.
-  auto       S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
-  const auto DSDt = derivs.fields(IncrementFieldList<Dimension, SymTensor>::prefix() + 
-                                  SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto&       S = state.field(key, SymTensor::zero);
+  const auto& DSDt = derivs.field(IncrementState<Dimension, SymTensor>::prefix() + key, SymTensor::zero);
+
+  // Check if a porosity model has registered a modifier for the deviatoric stress.
+  // They should have added it as a dependency of this policy if so.
+  const auto porosityScaling = state.registered(buildKey(SolidFieldNames::fDSjutzi));
+  const Field<Dimension, Scalar>* fDSptr = nullptr;
+  const Field<Dimension, Scalar>* alphaPtr = nullptr;
+  const Field<Dimension, Scalar>* DalphaDtPtr = nullptr;
+  if (porosityScaling) {
+    fDSptr = &state.field(buildKey(SolidFieldNames::fDSjutzi), 0.0);
+    alphaPtr = &state.field(buildKey(SolidFieldNames::porosityAlpha), 0.0);
+    DalphaDtPtr = &derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
+  }
 
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
   const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
 
   // Iterate over the internal nodes.
-  const auto numFields = S.numFields();
-  for (auto k = 0u; k < numFields; ++k) {
-    const auto n = S[k]->numInternalElements();
-    for (auto i = 0u; i < n; ++i) {
-      auto S0 = S(k,i) + multiplier*(DSDt(k,i));               // Elastic prediction for the new deviatoric stress
-      if (zeroTrace) {
-        S0 -= SymTensor::one * S0.Trace()/Dimension::nDim;     // Ensure the deviatoric stress is traceless (all but RZ and spherical)
-        CHECK(fuzzyEqual(S0.Trace(), 0.0));
-      }
+  const auto n = S.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
 
-      // Purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
-      S(k,i) = S0;
+    // Get the deviatoric time derivative, and if necessary scale by the porosity factor
+    auto DSDti = DSDt(i);
+    if (porosityScaling) {
+      const auto fDSi = (*fDSptr)(i);
+      const auto alphai = (*alphaPtr)(i);
+      const auto DalphaDti = (*DalphaDtPtr)(i);
+      CHECK(alphai >= 1.0);
+      DSDti = (fDSi*DSDti - S(i)*DalphaDti/alphai)/alphai;
+    }
+
+    // Update S
+    // Note -- purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
+    S(i) += multiplier*DSDti;                                // Elastic prediction for the new deviatoric stress
+    if (zeroTrace) {
+      S(i) -= SymTensor::one * S(i).Trace()/Dimension::nDim; // Ensure the deviatoric stress is traceless (all but RZ and spherical)
+      CHECK(fuzzyEqual(S(i).Trace(), 0.0));
     }
   }
 
@@ -87,8 +117,8 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is a DeviatoricStress operator, and has
   // the same cutoff values.
-  const DeviatoricStressPolicy<Dimension>* rhsPtr = dynamic_cast<const DeviatoricStressPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != 0);
+  const auto rhsPtr = dynamic_cast<const DeviatoricStressPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

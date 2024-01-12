@@ -36,6 +36,19 @@ NodeList.
                denialPlane = "const Plane&"):
         "Construct a constant boundary for the specified nodes, including plane nodes are not allowed through"
 
+    @PYB11implementation("""[](DataBase<%(Dimension)s>& db,
+                               NodeList<%(Dimension)s>& nodes,
+                               py::list nodeIndices,
+                               const Plane& denialPlane) {
+                                   return std::make_unique<ConstantBoundary<%(Dimension)s>>(db, nodes, Spheral::PYB11utils::from_list<int>(nodeIndices), denialPlane);
+                               }""")
+    def pyinit1(self,
+                dataBase = "DataBase<%(Dimension)s>&",
+                nodeList = "NodeList<%(Dimension)s>&",
+                nodeIndices = "const std::vector<int>&",
+                denialPlane = "const Plane&"):
+        "Construct a constant boundary for the specified nodes, including plane nodes are not allowed through"
+
     #...........................................................................
     # Methods
     @PYB11virtual

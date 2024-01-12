@@ -10,30 +10,36 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
-list(APPEND _packages 
-  CXXTests
-  DataBase
-  DataOutput
-  Distributed
-  Field
-  FileIO
-  Geometry
-  Hydro
-  NodeList
-  Utilities
-  )
+#list(APPEND _packages 
+#  CXXTests
+#  DataBase
+#  DataOutput
+#  Distributed
+#  Field
+#  FileIO
+#  Geometry
+#  Hydro
+#  NodeList
+#  Utilities
+#  )
 
 list(APPEND _packages 
   ArtificialViscosity
-  ArtificialConduction
   Boundary
   CRKSPH
-  Damage
+  CXXTests
   DEM
-  ExternalForce
-  FieldOperations
+  Damage
+  DataBase
+  DataOutput
+  Distributed
   FSISPH
-  Gravity
+  Field
+  FieldOperations
+  FileIO
+  GSPH
+  Geometry
+  Hydro
   Integrator
   Kernel
   KernelIntegrator
@@ -41,14 +47,28 @@ list(APPEND _packages
   Mesh
   Neighbor
   NodeGenerators
+  NodeList
   Physics
+  Porosity
   RK
-  GSPH
-  SolidMaterial
   SPH
-  Strength
   SVPH
+  SolidMaterial
+  Strength
+  Utilities
   )
+
+if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)
+  list(APPEND _packages ArtificialConduction)
+endif()
+
+if (SPHERAL_ENABLE_EXTERNAL_FORCE)
+  list(APPEND _packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_GRAVITY)
+   list(APPEND _packages Gravity)
+endif()
 
 if(NOT ENABLE_CXXONLY)
   list(APPEND _packages
@@ -60,12 +80,14 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
-# Retrieve the global list populated in spheral_obj_add_library
-get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+if(NOT ENABLE_DEV_BUILD)
+  # Retrieve the global list populated in spheral_obj_add_library
+  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 
-set(CXX_sources spheralCXX.cc)
-# Must use quotes when passing lists as inputs for functions
-spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
+  set(CXX_sources spheralCXX.cc)
+  # Must use quotes when passing lists as inputs for functions
+  spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
+endif()
 
 # This calls LLNLSpheralInstallObjs.cmake
 if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
