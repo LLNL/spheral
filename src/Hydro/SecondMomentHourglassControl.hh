@@ -90,11 +90,4 @@ private:
 
 #include "SecondMomentHourglassControlInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SecondMomentHourglassControl;
-}
-
 #endif

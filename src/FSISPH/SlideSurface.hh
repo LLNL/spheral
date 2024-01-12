@@ -96,11 +96,4 @@ class SlideSurface {
 
 #include "SlideSurfaceInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SlideSurface;
-}
-
 #endif

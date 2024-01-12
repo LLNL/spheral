@@ -49,11 +49,4 @@ protected:
 
 #include "InternalNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class InternalNodeIterator;
-}
-
 #endif

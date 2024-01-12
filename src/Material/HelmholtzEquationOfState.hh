@@ -137,10 +137,4 @@ private:
 
 }
 
-#else
-        
-namespace Spheral {
-  template<typename Dimension> class HelmholtzEquationOfState;
-}
-
 #endif

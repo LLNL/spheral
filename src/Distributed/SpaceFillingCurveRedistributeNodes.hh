@@ -147,11 +147,4 @@ private:
 
 }
 
-#else
-
-// Forward declare the SpaceFillingCurveRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class SpaceFillingCurveRedistributeNodes;
-}
-
 #endif

@@ -28,10 +28,4 @@ struct DEMFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  struct DEMFieldNames;
-}
-
 #endif

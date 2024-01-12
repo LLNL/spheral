@@ -217,11 +217,4 @@ private:
 
 #include "BoundaryInline.hh"
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  template<typename Dimension> class Boundary;
-}
-
 #endif

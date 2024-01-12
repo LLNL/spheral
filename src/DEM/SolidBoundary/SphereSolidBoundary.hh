@@ -77,11 +77,4 @@ private:
 
 #include "SphereSolidBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SphereSolidBoundary;
-}
-
 #endif

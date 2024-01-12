@@ -111,12 +111,5 @@ private:
 
 #include "GHLLCInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class GHLLC;
-}
-
 #endif
 

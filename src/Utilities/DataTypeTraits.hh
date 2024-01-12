@@ -632,10 +632,4 @@ struct DataTypeTraits<uniform_random> {
 
 } // namespace Spheral
 
-#else
-
-namespace Spheral {
-  template<typename DataType> struct DataTypeTraits;
-}
-
 #endif

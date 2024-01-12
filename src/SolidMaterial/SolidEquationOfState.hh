@@ -64,11 +64,4 @@ private:
 
 #include "SolidEquationOfStateInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SolidEquationOfState;
-}
-
 #endif

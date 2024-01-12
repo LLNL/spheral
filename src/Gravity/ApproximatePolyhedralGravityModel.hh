@@ -57,11 +57,4 @@ class ApproximatePolyhedralGravityModel{
 
 #include "ApproximatePolyhedralGravityModelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class ApproximatePolyhedralGravityModel;
-}
-
 #endif
