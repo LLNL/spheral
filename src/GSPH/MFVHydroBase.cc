@@ -195,12 +195,11 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                   HydroFieldNames::mass,
                                                                                   HydroFieldNames::volume));
 
-  state.enroll(mass,  make_policy<MassFluxPolicy<Dimension>>({GSPHFieldNames::momentumPolicy, 
-                                                              GSPHFieldNames::thermalEnergyPolicy}));
+  state.enroll(mass,  make_policy<MassFluxPolicy<Dimension>>({HydroFieldNames::velocity, 
+                                                              HydroFieldNames::specificThermalEnergy}));
 
   state.enroll(velocity, 
-               make_policy<MFVIncrementVelocityPolicy<Dimension>>({GSPHFieldNames::thermalEnergyPolicy,
-                                                                   HydroFieldNames::specificThermalEnergy}));
+               make_policy<MFVIncrementVelocityPolicy<Dimension>>({HydroFieldNames::specificThermalEnergy}));
 
   
   if (this->compatibleEnergyEvolution()) {
