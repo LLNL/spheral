@@ -99,11 +99,4 @@ template<> GeomPlane<Dim<2> >::GeomPlane(const std::vector<Dim<2>::Vector>& poin
 template<> GeomPlane<Dim<3> >::GeomPlane(const std::vector<Dim<3>::Vector>& points);
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class GeomPlane;
-}
-
 #endif

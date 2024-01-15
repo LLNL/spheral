@@ -59,10 +59,4 @@ private:
 
 }
 
-#else
-
-namespace Spheral {
-  class PriceMonaghanDissipation;
-}
-
 #endif

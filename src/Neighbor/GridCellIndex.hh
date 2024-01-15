@@ -192,43 +192,4 @@ template<> int GridCellIndex<Dim<3> >::productElements() const;
 
 #include "GridCellIndexInline.hh"
 
-#else
-
-namespace Spheral {
-
-// Forward declaration.
-template<typename Dimension> class GridCellIndex;
-
-std::vector<GridCellIndex<Dim<1> > >
-GridCellIndexRange(const GridCellIndex<Dim<1> >& gridCellMin,
-                   const GridCellIndex<Dim<1> >& gridCellMax);
-std::vector<GridCellIndex<Dim<2> > >
-GridCellIndexRange(const GridCellIndex<Dim<2> >& gridCellMin,
-                   const GridCellIndex<Dim<2> >& gridCellMax);
-std::vector<GridCellIndex<Dim<3> > >
-GridCellIndexRange(const GridCellIndex<Dim<3> >& gridCellMin,
-                   const GridCellIndex<Dim<3> >& gridCellMax);
-
-void
-incrementGridCell(GridCellIndex<Dim<1> >& gridCell,
-                  const GridCellIndex<Dim<1> >& gridCellMin,
-                  const GridCellIndex<Dim<1> >& gridCellMax);
-void
-incrementGridCell(GridCellIndex<Dim<2> >& gridCell,
-                  const GridCellIndex<Dim<2> >& gridCellMin,
-                  const GridCellIndex<Dim<2> >& gridCellMax);
-void
-incrementGridCell(GridCellIndex<Dim<3> >& gridCell,
-                  const GridCellIndex<Dim<3> >& gridCellMin,
-                  const GridCellIndex<Dim<3> >& gridCellMax);
-
-template<typename Dimension>
-GridCellIndex<Dimension> operator+(int lhs, const GridCellIndex<Dimension>& rhs);
-template<typename Dimension>
-GridCellIndex<Dimension> operator-(int lhs, const GridCellIndex<Dimension>& rhs);
-template<typename Dimension>
-GridCellIndex<Dimension> operator*(int lhs, const GridCellIndex<Dimension>& rhs);
-
-}
-
 #endif

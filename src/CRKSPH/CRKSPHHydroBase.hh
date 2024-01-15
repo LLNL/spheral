@@ -243,11 +243,4 @@ private:
 
 #include "CRKSPHHydroBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class CRKSPHHydroBase;
-}
-
 #endif

@@ -97,18 +97,4 @@ newtonRaphson(const Function& functor,
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Function>
-  double
-  newtonRaphson(const Function& functor,
-                double x1,
-                double x2,
-                const double xaccuracy = 1.0e-15,
-                const double yaccuracy = 1.0e-15,
-                const unsigned maxIterations = 100);
-}
-
 #endif

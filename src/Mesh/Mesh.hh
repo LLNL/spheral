@@ -252,11 +252,4 @@ template<> inline void Mesh<Dim<1> >::cleanEdges(const double /*edgeTol*/) {}
 #include "Zone.hh"
 #include "MeshInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class Mesh;
-}
-
 #endif

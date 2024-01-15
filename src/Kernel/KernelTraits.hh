@@ -43,8 +43,4 @@ public:
   }
 };
 
-#else
-// Forward declare KernelTraits.
-template<typename KernelType> KernelTraits;
-
 #endif

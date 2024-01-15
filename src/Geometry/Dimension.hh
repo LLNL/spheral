@@ -385,12 +385,4 @@ public:
 
 }
 
-#else
-
-// Forward declare the Dim trait class.
-namespace Spheral {
-  template<int ndim> class Dim;
-  template<typename DataType1, typename DataType2> class CombineTypes;
-}
-
 #endif

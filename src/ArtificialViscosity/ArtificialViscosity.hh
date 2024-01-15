@@ -228,11 +228,4 @@ private:
 
 #include "ArtificialViscosityInline.hh"
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  template<typename Dimension> class ArtificialViscosity;
-}
-
 #endif

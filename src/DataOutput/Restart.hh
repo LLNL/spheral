@@ -49,11 +49,4 @@ private:
 
 #include "RestartInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Object> class Restart;
-}
-
 #endif

@@ -129,11 +129,4 @@ private:
 
 #include "PalphaPorosityInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PalphaPorosity;
-}
-
 #endif

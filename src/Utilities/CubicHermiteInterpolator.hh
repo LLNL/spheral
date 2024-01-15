@@ -86,11 +86,4 @@ private:
 
 #include "CubicHermiteInterpolatorInline.hh"
 
-#else
-
-// Forward declaration
-namespace Spheral {
-  class CubicHermiteInterpolator;
-}
-
 #endif

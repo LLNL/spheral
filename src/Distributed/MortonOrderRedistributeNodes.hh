@@ -57,10 +57,4 @@ private:
 
 }
 
-#else
-// Forward declare the MortonOrderRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class MortonOrderRedistributeNodes;
-}
-
 #endif
