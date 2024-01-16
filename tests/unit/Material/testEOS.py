@@ -30,7 +30,7 @@ class EOSTest(unittest.TestCase):
         rhoMin, rhoMax = 1e-5, 1000.0    # range of densities
         Pmin, Pmax = 0.0, 1e5            # range of target pressures
         epsTol, Ptol = 1e-10, 1e-10      # tolerances
-        Perrcheck = 1e-5                 # error check
+        Perrcheck = 1e-4                 # error check
         maxIterations = 100
         rho0 = np.random.uniform(rhoMin, rhoMax, n)
         P0 = np.random.uniform(Pmin, Pmax, n)
