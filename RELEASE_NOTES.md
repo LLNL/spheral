@@ -36,6 +36,8 @@ Notable changes include:
       * new, more rigorous, interface and free surface tracking
     * Fixed initialization of longitudinal sound speed and Youngs modulus for damage models.
     * Corrected some minor bugs/inconsistencies in the Tillotson EOS.
+    * lcats updated to work with current TOSS4 machine configurations.
+    * Updated various tests to make out automated testing more robust.
 
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
