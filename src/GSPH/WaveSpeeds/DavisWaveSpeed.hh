@@ -35,12 +35,5 @@ public:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class DavisWaveSpeed;
-}
-
 #endif
 

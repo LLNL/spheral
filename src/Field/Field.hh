@@ -195,11 +195,4 @@ private:
 
 #include "FieldInline.hh"
 
-#else
-
-// Forward declare the Field class.
-namespace Spheral {
-  template<typename Dimension, typename DataType> class Field;
-} // namespace Spheral
-
 #endif

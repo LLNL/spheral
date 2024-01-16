@@ -183,11 +183,4 @@ public:
 
 #include "NodeListRegistrarInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension>  class NodeListRegistrar;
-}
-
 #endif

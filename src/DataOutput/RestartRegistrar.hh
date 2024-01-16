@@ -82,11 +82,4 @@ private:
 
 #include "RestartRegistrarInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class RestartRegistrar;
-}
-
 #endif

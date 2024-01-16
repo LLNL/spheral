@@ -268,11 +268,4 @@ private:
 
 #include "DEMBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class DEMBase;
-}
-
 #endif

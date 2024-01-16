@@ -123,11 +123,4 @@ private:
 
 #include "NestedGridRedistributeNodesInline.hh"
 
-#else
-
-// Forward declare the NestedGridRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class NestedGridRedistributeNodes;
-}
-
 #endif

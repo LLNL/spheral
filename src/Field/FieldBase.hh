@@ -106,11 +106,4 @@ private:
 
 #include "FieldBaseInline.hh"
 
-#else
-
-// Forward declare the FieldBase class.
-namespace Spheral {
-  template<typename Dimension> class FieldBase;
-}
-
 #endif

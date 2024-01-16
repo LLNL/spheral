@@ -63,11 +63,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class MonaghanGingoldViscosityGSRZ;
-}
-
 #endif

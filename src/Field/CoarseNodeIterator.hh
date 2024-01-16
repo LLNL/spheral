@@ -66,11 +66,4 @@ private:
 
 #include "CoarseNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class CoarseNodeIterator;
-}
-
 #endif

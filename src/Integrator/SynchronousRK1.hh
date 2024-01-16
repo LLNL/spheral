@@ -50,11 +50,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SynchronousRK1;
-}
-
 #endif

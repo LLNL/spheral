@@ -64,11 +64,4 @@ private:
 
 #include "FieldListBaseInline.hh"
 
-#else
-
-// Forward declare the FieldListBase class.
-namespace Spheral {
-  class FieldListBase;
-}
-
 #endif

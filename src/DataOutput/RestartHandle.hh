@@ -49,11 +49,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class RestartHandle;
-}
-
 #endif

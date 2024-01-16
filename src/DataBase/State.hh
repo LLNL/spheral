@@ -119,12 +119,5 @@ private:
 
 #include "StateInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class State;
-}
-
 #endif
 

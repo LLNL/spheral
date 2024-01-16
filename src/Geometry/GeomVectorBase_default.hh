@@ -54,10 +54,4 @@ class GeomVectorBase<3> {
 
 }
 
-#else
-
-namespace Spheral {
-  template<int nDim> class GeomVectorBase;
-}
-
 #endif

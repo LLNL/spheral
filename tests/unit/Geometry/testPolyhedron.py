@@ -346,10 +346,18 @@ class TestPolyhedron(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testClosestPointAboveFacets(self):
         facets = self.polyhedron.facets
+        verts = self.polyhedron.vertices
         for f in facets:
-            chi = rangen.uniform(0.1, 10.0)
+            iverts = f.ipoints
+            n = len(iverts)
+            assert n >= 3
+            minedge = 1e100
+            for k in range(len(iverts)):
+                i0, i1 = iverts[k], iverts[(k + 1) % n]
+                minedge = min(minedge, (verts[i1] - verts[i0]).magnitude())
+            #chi = rangen.uniform(0.1, 10.0)
             cp0 = f.position
-            p = cp0 + chi*f.normal
+            p = cp0 + 0.5*minedge*f.normal
             cp = self.polyhedron.closestPoint(p)
             self.assertTrue(fuzzyEqual((cp0 - cp).magnitude(), 0.0, 1.0e-10),
                             "Closest point to position off of facet position %s : %s" % (cp0, cp))

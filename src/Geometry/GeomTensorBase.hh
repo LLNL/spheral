@@ -87,11 +87,4 @@ class GeomTensorBase<3> {
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<int nDim> class GeomTensorBase;
-}
-
 #endif

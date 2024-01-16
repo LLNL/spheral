@@ -83,11 +83,4 @@ protected:
 
 #include "XYInterpolatorInline.hh"
 
-#else
-
-// Forward declaration
-namespace Spheral {
-  class XYInterpolator;
-}
-
 #endif

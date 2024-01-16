@@ -328,10 +328,4 @@ public:
 
 #include "FieldListInline.hh"
 
-#else
-
-namespace Spheral {
-  template<typename Dimension, typename DataType> class FieldList;
-}
-
 #endif
