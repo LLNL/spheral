@@ -90,8 +90,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto damagedPressure = state.fields(HydroFieldNames::pressure, 0.0);
-  const auto pressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  const auto damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto K = state.fields(SolidFieldNames::bulkModulus, 0.0);
