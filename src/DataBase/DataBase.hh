@@ -414,10 +414,4 @@ template<typename Dimension> int DataBase<Dimension>::nDim = Dimension::nDim;
 
 #include "DataBaseInline.hh"
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> class DataBase;
-}
-
 #endif

@@ -62,11 +62,4 @@ template<> const double SuperGaussianKernel<Dim<3>>::mKGW;
 
 #include "SuperGaussianKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SuperGaussianKernel;
-}
-
 #endif

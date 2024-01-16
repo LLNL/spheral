@@ -97,11 +97,4 @@ private:
 
 #include "SphericalBoundaryInline.hh"
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  class SphericalBoundary;
-}
-
 #endif

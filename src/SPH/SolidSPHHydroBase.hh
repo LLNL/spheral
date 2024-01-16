@@ -148,11 +148,4 @@ private:
 
 #include "SolidSPHHydroBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SolidSPHHydroBase;
-}
-
 #endif

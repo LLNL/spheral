@@ -254,11 +254,4 @@ template<typename Dimension> const int NestedGridNeighbor<Dimension>::mGridNorma
 
 #include "NestedGridNeighborInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NestedGridNeighbor;
-}
-
 #endif

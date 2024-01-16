@@ -104,11 +104,4 @@ private:
 
 #include "RedistributeNodesInline.hh"
 
-#else
-
-// Forward declare the RedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class RedistributeNodes;
-}
-
 #endif

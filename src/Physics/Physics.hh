@@ -184,13 +184,4 @@ private:
 
 #include "PhysicsInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  namespace PhysicsSpace {
-    template<typename Dimension> class Physics;
-  }
-}
-
 #endif

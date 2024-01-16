@@ -66,11 +66,4 @@ private:
 
 #include "MasterNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class MasterNodeIterator;
-}
-
 #endif

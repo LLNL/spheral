@@ -64,11 +64,4 @@ class CurrentDensityUpdatePolicy:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class CurrentDensityUpdatePolicy;
-}
-
 #endif

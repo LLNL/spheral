@@ -120,11 +120,4 @@ private:
 
 #include "ConstantBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class ConstantBoundary;
-}
-
 #endif

@@ -135,11 +135,4 @@ private:
 
 #include "VoronoiHourglassControlInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class VoronoiHourglassControl;
-}
-
 #endif

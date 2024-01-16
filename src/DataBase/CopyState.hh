@@ -53,11 +53,4 @@ private:
 
 #include "CopyStateInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename ValueType> class CopyState;
-}
-
 #endif

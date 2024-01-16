@@ -134,11 +134,4 @@ private:
 
 #include "NFWPotentialInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NFWPotential;
-}
-
 #endif

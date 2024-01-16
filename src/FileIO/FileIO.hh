@@ -217,11 +217,4 @@ private:
 
 #include "FileIOInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral{
-  class FileIO;
-}
-
 #endif

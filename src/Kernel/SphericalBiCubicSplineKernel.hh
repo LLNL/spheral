@@ -70,12 +70,5 @@ private:
 
 #include "SphericalBiCubicSplineKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SphericalBiCubicSplineKernel;
-}
-
 #endif
 

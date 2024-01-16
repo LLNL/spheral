@@ -124,11 +124,4 @@ viscousInternalEnergyField() const {
 
 }
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  template<typename Dimension> class MonaghanGingoldSumViscosity;
-}
-
 #endif

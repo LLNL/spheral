@@ -47,11 +47,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename Value> class ReplaceAndIncrementPairFieldList;
-}
-
 #endif

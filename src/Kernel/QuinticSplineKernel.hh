@@ -47,11 +47,4 @@ template<> QuinticSplineKernel<Dim<3> >::QuinticSplineKernel();
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class QuinticSplineKernel;
-}
-
 #endif

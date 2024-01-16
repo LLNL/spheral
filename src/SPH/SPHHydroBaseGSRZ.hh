@@ -103,11 +103,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SPHHydroBaseGSRZ;
-}
-
 #endif
