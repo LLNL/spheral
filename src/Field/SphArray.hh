@@ -17,7 +17,7 @@ class ManagedVector:
 
 public:
 
-  inline static constexpr size_t initial_capacity = 8u;
+  static constexpr size_t initial_capacity = 8u;
 
   using MA::setUserCallback;
 
@@ -34,7 +34,7 @@ public:
   // Constructors
   // ---------------------
   SPHERAL_HOST_DEVICE ManagedVector() :
-    MA(initial_capacity)
+    MA()
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
     setCallback();
