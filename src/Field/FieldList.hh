@@ -55,23 +55,16 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
-  typedef FieldBase<Dimension>* BaseElementType;
-  //typedef Field<Dimension, DataType>* ElementType;
-  //typedef Field<Dimension, DataType>* value_type;    // STL compatibility
-  typedef FieldView<Dimension, DataType> ElementType;
-  typedef FieldView<Dimension, DataType> value_type;    // STL compatibility
-  typedef std::vector<ElementType> StorageType;
-
   using FieldListViewType = FieldListView<Dimension, DataType>;
 
-  typedef typename StorageType::iterator iterator;
-  typedef typename StorageType::const_iterator const_iterator;
-  typedef typename StorageType::reverse_iterator reverse_iterator;
-  typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
+  using ElementType    = typename FieldListViewType::ElementType;
+  using value_type     = typename FieldListViewType::value_type;
+  using StorageType    = typename FieldListViewType::StorageType;
+  using iterator       = typename FieldListViewType::iterator;
+  using const_iterator = typename FieldListViewType::const_iterator;
 
-  typedef std::vector<DataType> CacheElementsType;
-  typedef typename CacheElementsType::iterator cache_iterator;
-  typedef typename CacheElementsType::const_iterator const_cache_iterator;
+  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
+  typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
   // Constructors.
   FieldList();
@@ -299,13 +292,10 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
-  typedef std::map<const NodeList<Dimension>*, int> HashMapType;
-
-  //std::vector<ElementType> mFieldPtrs;
-  //std::vector<BaseElementType> mFieldBasePtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
+
+  using FieldListViewType::mFieldViews;
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
   // construct NodeIterators.

@@ -74,7 +74,7 @@ class FieldList(FieldListBase):
         return "void"
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return &*self.fieldForNodeList(nodeList); }")
+    @PYB11implementation("[](const FieldListType& self, const NodeListType& nodeList) { return &(**self.fieldForNodeList(nodeList)); }")
     def fieldForNodeList(self, nodeList="const NodeListType&"):
         "Return the Field associated with the given NodeList"
         return "FieldType*"

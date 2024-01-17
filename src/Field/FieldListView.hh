@@ -36,9 +36,11 @@ public:
 
   //typedef Field<Dimension, DataType>* ElementType;
   //typedef Field<Dimension, DataType>* value_type;    // STL compatibility
-  typedef FieldView<Dimension, DataType> ElementType;
-  typedef FieldView<Dimension, DataType> value_type;    // STL compatibility
-  typedef std::vector<ElementType> StorageType;
+  using ElementType = FieldView<Dimension, DataType>;
+  using value_type  = ElementType;
+  using StorageType = std::vector<ElementType>;
+  //using StorageType = ManagedVector<ElementType>;
+  //using StorageType = MVSmartRef<ElementType>;
 
   typedef typename StorageType::iterator iterator;
   typedef typename StorageType::const_iterator const_iterator;
@@ -152,6 +154,10 @@ public:
 protected:
   //--------------------------- Protected Interface ---------------------------//
   StorageType mFieldPtrs;
+
+  StorageType & mFieldViews() { return mFieldPtrs; }
+  StorageType const& mFieldViews() const { return mFieldPtrs; }
+  //typename StorageType::MV& mFieldViews() { return *(mFieldPtrs.get()); }
 
 public:
   //// The master FieldListView if this is a thread copy.
