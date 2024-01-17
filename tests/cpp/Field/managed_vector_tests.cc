@@ -87,7 +87,10 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ManagedPtrArrayTest)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
-  Spheral::MVSmartRef array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
+  //Spheral::MVSmartRef array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
+  Spheral::MVSmartRef<double> array;
+  array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
+
   Spheral::MVSmartRef copy_array(array);
 
   SPHERAL_ASSERT_EQ(array.size(), copy_array.size());

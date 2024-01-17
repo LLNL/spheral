@@ -42,22 +42,22 @@ public:
   }
 
   SPHERAL_HOST_DEVICE ManagedVector(size_t elems) : 
-    MA(elems < initial_capacity ? initial_capacity: elems),
+    MA(),
     m_size(elems) 
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    setCallback();
+    MA::allocate(elems < initial_capacity ? initial_capacity: elems, chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
     MA::registerTouch(chai::CPU);
 #endif // SPHERAL_GPU_ACTIVE
   }
 
   SPHERAL_HOST ManagedVector(size_t elems, DataType identity) :
-    MA(elems < initial_capacity ? initial_capacity: elems),
+    MA(),
     m_size(elems) 
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    setCallback();
+    MA::allocate(elems < initial_capacity ? initial_capacity: elems, chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
 #endif // SPHERAL_GPU_ACTIVE
@@ -90,7 +90,6 @@ public:
 #else
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    //setCallback();
 #endif // SPHERAL_GPU_ACTIVE
   }
 #endif
@@ -172,7 +171,6 @@ public:
       if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: size);
       else if (capacity() < size) MA::reallocate(size);
       for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
-      //std::cout << "initialized " << size << " element(s)\n";
     }
     if (old_size > size) {
       destroy(begin() + old_size, begin() + size);
@@ -192,9 +190,6 @@ public:
         *it = std::move(*(it - 1));
         //*it = (*(it - 1));
       } 
-      //*pos = value;
-      //std::cout<< std::distance(begin(), pos) << std::endl;
-      //*pos = DataType(value);
       new(begin() + delta) DataType(value);
     }
   }
@@ -234,9 +229,14 @@ public:
   template< typename U=ManagedVector< DataType > >
   SPHERAL_HOST
   void setCallback() {
+    MA::setUserCallback( getCallback() );
+  }
+
+  template< typename U=ManagedVector< DataType > >
+  SPHERAL_HOST
+  auto getCallback() {
     std::string const typeString = LvArray::system::demangleType< U >();
-    MA::setUserCallback(
-      [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
         if (action == chai::Action::ACTION_MOVE){
           std::string const size = LvArray::system::calculateSize(record->m_size);
           std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
@@ -253,8 +253,7 @@ public:
           std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
           std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << std::endl;
         }
-      }
-    );
+      };
   }
 
 private:
