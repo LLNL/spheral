@@ -365,12 +365,13 @@ public:
           m_ptr[0].free();
           m_ptr.free();
           delete m_ref_count;
+          m_ref_count = nullptr;
         }
       }
 #endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST_DEVICE MVSmartRef& operator=(std::nullptr_t) { m_ptr=nullptr; return *this; }
+  SPHERAL_HOST_DEVICE MVSmartRef& operator=(std::nullptr_t) { m_ref_count=nullptr; m_ptr=nullptr; return *this; }
   SPHERAL_HOST_DEVICE void shallowCopy(MVSmartRef const& rhs) {
     *this = rhs;
   }
