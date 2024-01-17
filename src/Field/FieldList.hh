@@ -60,15 +60,14 @@ public:
   //typedef Field<Dimension, DataType>* value_type;    // STL compatibility
   typedef FieldView<Dimension, DataType> ElementType;
   typedef FieldView<Dimension, DataType> value_type;    // STL compatibility
-  typedef ManagedVector<ElementType> StorageType;
-  //typedef std::vector<ElementType> StorageType;
+  typedef std::vector<ElementType> StorageType;
 
   using FieldListViewType = FieldListView<Dimension, DataType>;
 
   typedef typename StorageType::iterator iterator;
   typedef typename StorageType::const_iterator const_iterator;
-  //typedef typename StorageType::reverse_iterator reverse_iterator;
-  //typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
+  typedef typename StorageType::reverse_iterator reverse_iterator;
+  typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
 
   typedef std::vector<DataType> CacheElementsType;
   typedef typename CacheElementsType::iterator cache_iterator;

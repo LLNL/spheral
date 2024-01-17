@@ -28,7 +28,7 @@ namespace Spheral {
 template<typename Dimension, typename DataType>
 inline
 FieldListView<Dimension, DataType>::FieldListView():
-  mFieldPtrs() {}
+  mFieldPtrs(0) {}
 
 //------------------------------------------------------------------------------
 // FieldList constructor.

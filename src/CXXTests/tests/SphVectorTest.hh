@@ -177,8 +177,8 @@ void SpheralVectorTest()
   for(auto& elem : fieldlist_v)  std::cout << elem->name() << " @ "<< &elem[0] << std::endl;
   for(auto& elem : fieldlist2_v) std::cout << elem->name() << " @ "<< &elem[0] << std::endl;
   for(auto& elem : fl_copy)      std::cout << elem->name() << " @ "<< &elem << std::endl;
-  std::cout << fl_copy[0]->name() << " @ "<< &fl_copy.begin()[0] << std::endl;
-  std::cout << fl_copy[0]->name() << " @ "<< fl_copy.end() << std::endl;
+  //std::cout << fl_copy[0]->name() << " @ "<< &fl_copy.begin()[0] << std::endl;
+  //std::cout << fl_copy[0]->name() << " @ "<< fl_copy.end() << std::endl;
 
 
   
