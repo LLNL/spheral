@@ -1,11 +1,16 @@
 set(spheralversion "v${CMAKE_PROJECT_VERSION}")
 if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
   execute_process(
-    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git describe --tags
+    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git describe --tags --abbrev=0
     OUTPUT_VARIABLE tagcomm
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  string(REPLACE "-" " " tagcomm "${tagcomm}")
+
+  execute_process(
+    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git rev-parse --short HEAD
+    OUTPUT_VARIABLE githash
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 
   execute_process(
     COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git rev-parse --abbrev-ref HEAD
@@ -13,7 +18,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  set(SPHERAL_VERSION_LIST ${tagcomm} ${abbref})
+  set(SPHERAL_VERSION_LIST ${tagcomm} ${githash} ${abbref})
   string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 endif()
 configure_file(
