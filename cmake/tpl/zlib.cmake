@@ -1,5 +1,11 @@
-set(${lib_name}_libs libz.so)
+if(APPLE)
+  set(SHARED_EXT "dylib")
+else()
+  set(SHARED_EXT "so")
+endif()
+
+set(${lib_name}_libs libz.${SHARED_EXT})
 
 if(ENABLE_STATIC_TPL)
-  string(REPLACE ".so" ".a;" ${lib_name}_libs ${${lib_name}_libs})
+  string(REPLACE ".${SHARED_EXT}" ".a;" ${lib_name}_libs ${${lib_name}_libs})
 endif()
