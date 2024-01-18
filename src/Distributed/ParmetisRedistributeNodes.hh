@@ -129,11 +129,4 @@ private:
 
 #include "ParmetisRedistributeNodesInline.hh"
 
-#else
-
-// Forward declare the ParmetisRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class ParmetisRedistributeNodes;
-}
-
 #endif

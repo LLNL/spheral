@@ -53,16 +53,4 @@ simpsonsIntegration(const Function& function,
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Function, typename Result, typename Value>
-  Result
-  simpsonsIntegration(const Function& function,
-                      const Value x0,
-                      const Value x1,
-                      const unsigned numBins);
-}
-
 #endif

@@ -56,10 +56,4 @@ private:
 
 }
 
-#else
-// Forward declare the PeanoHilbertOrderRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class PeanoHilbertOrderRedistributeNodes;
-}
-
 #endif

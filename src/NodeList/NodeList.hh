@@ -228,10 +228,4 @@ private:
 
 #include "NodeListInline.hh"
 
-#else
-// Forward declare the NodeList class.
-namespace Spheral {
-  template<typename Dimension> class NodeList;
-}
-
 #endif

@@ -80,12 +80,5 @@ yieldStrength(Field<Dimension, Scalar>& yieldStrength,
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NullStrength;
-}
-
 #endif
 

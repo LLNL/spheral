@@ -104,11 +104,4 @@ private:
 
 #include "PlanarBoundaryInline.hh"
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  template<typename Dimension> class PlanarBoundary;
-}
-
 #endif

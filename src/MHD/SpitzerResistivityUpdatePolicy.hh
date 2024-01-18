@@ -81,11 +81,4 @@ class SpitzerResistivityUpdatePolicy:
 }
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-   class SpitzerResistivityUpdatePolicy;
-}
-
 #endif

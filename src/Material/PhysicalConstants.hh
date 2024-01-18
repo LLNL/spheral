@@ -82,13 +82,5 @@ private:
 
 #include "PhysicalConstantsInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class PhysicalConstants;
-}
-
 #endif
 
-  

@@ -71,11 +71,4 @@ private:
 
 #include "LinearAccelerationInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class LinearAcceleration;
-}
-
 #endif

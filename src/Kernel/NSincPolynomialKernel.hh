@@ -56,11 +56,4 @@ private:
 
 #include "NSincPolynomialKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NSincPolynomialKernel;
-}
-
 #endif

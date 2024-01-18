@@ -14,9 +14,4 @@ private:
   //--------------------------- Private Interface ---------------------------//
 };
 
-#else
-
-// Forward declaration.
-class <class>;
-
 #endif

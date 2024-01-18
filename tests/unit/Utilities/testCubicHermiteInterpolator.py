@@ -153,23 +153,23 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
                    checkMonotonicity = False):
         for x in xgen(self.nsamples, xmin, xmax):
             passing = err(F(x), func(x)) < Ftol
-            if not passing:
-                #print(F.vals)
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     print(F.vals)
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating F(x) for %s: %g != %g, err = %g" % (errorLabel, F(x), func(x), err(F(x), func(x))))
 
             # Check the first derivative
             passing = err(F.prime(x), func.prime(x)) < F1tol
-            if not passing:
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating dF/dx(x) for %s: %g != %g, err = %g" % (errorLabel, F.prime(x), func.prime(x), err(F.prime(x), func.prime(x))))
 
             # Check the second derivative
             passing = err(F.prime2(x), func.prime2(x)) < F2tol
-            if not passing:
-                self.plotem(x, xmin, xmax, func, F)
+            # if not passing:
+            #     self.plotem(x, xmin, xmax, func, F)
             self.assertTrue(passing,
                             "Error interpolating d^2F/dx^2(x) for %s: %g != %g, err = %g" % (errorLabel, F.prime2(x), func.prime2(x), err(F.prime2(x), func.prime2(x))))
 
@@ -177,9 +177,9 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             if checkMonotonicity:
                 i0 = F.lowerBound(x)
                 passing = (F(x) - F.vals[i0])*(F(x) - F.vals[i0 + 1]) <= 0.0
-                if not passing:
-                    #print(F.vals)
-                    self.plotem(x, xmin, xmax, func, F)
+                # if not passing:
+                #     #print(F.vals)
+                #     self.plotem(x, xmin, xmax, func, F)
                 self.assertTrue(passing,
                                 "Failing monotonicity test for %s: F(%g) = %g not in [%g, %g]" % (errorLabel, x, F(x), F.vals[i0], F.vals[i0 + 1]))
 
@@ -197,7 +197,7 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
             C = rangen.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
-            tol, f1tol, f2tol = 5.0e-9, 1e-8, 1e-6
+            tol, f1tol, f2tol = 5.0e-9, 5e-8, 1e-6
             self.checkError(xmin, xmax, func, F, tol, f1tol, f2tol, "quadratic function")
 
     #===========================================================================

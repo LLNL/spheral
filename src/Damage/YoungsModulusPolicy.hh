@@ -62,11 +62,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class YoungsModulusPolicy;
-}
-
 #endif

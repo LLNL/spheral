@@ -19,10 +19,4 @@ struct SVPHFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  string SVPHFieldNames;
-}
-
 #endif

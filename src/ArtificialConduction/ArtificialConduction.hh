@@ -81,11 +81,4 @@ private:
 
 }
 
-#else
-
-// Fwd Declaration
-namespace Spheral{
-  template<typename Dimension> class ArtificialConduction;
-}
-
 #endif

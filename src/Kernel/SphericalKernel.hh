@@ -88,12 +88,5 @@ private:
 
 #include "SphericalKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SphericalKernel;
-}
-
 #endif
 
