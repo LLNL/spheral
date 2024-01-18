@@ -1111,6 +1111,75 @@ class FileIOTestBase:
         return
 
     #---------------------------------------------------------------------------
+    # FacetedVolumeField1d
+    #---------------------------------------------------------------------------
+    def testFacetedVolumeField1d(self):
+        v0 = FacetedVolumeField1d("faceted volume field 1d control", nodes1d)
+        for ii in range(self.n):
+            v0[ii] = self.randomBox()
+        assert len(v0) == self.n
+        f = self.constructor("TestFacetedVolumeField1d", Write)
+        f.write(v0, "FileIOTestBase/FacetedVolumeField1d")
+        f.close()
+        f = self.constructor("TestFacetedVolumeField1d", Read)
+        v = FacetedVolumeField1d("faceted volume field 1d test", nodes1d)
+        f.read(v, "FileIOTestBase/FacetedVolumeField1d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
+                            "%s != %s @ %i of %i in FacetedVolumeField1d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestFacetedVolumeField1d")
+        return
+
+    #---------------------------------------------------------------------------
+    # FacetedVolumeField2d
+    #---------------------------------------------------------------------------
+    def testFacetedVolumeField2d(self):
+        v0 = FacetedVolumeField2d("faceted volume field 2d control", nodes2d)
+        for ii in range(self.n):
+            v0[ii] = self.randomPolygon()
+        assert len(v0) == self.n
+        f = self.constructor("TestFacetedVolumeField2d", Write)
+        f.write(v0, "FileIOTestBase/FacetedVolumeField2d")
+        f.close()
+        f = self.constructor("TestFacetedVolumeField2d", Read)
+        v = FacetedVolumeField2d("faceted volume field 2d test", nodes2d)
+        f.read(v, "FileIOTestBase/FacetedVolumeField2d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
+                            "%s != %s @ %i of %i in FacetedVolumeField2d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestFacetedVolumeField2d")
+        return
+
+    #---------------------------------------------------------------------------
+    # FacetedVolumeField3d
+    #---------------------------------------------------------------------------
+    def testFacetedVolumeField3d(self):
+        v0 = FacetedVolumeField3d("faceted volume field 3d control", nodes3d)
+        for ii in range(self.n):
+            v0[ii] = self.randomPolyhedron()
+        assert len(v0) == self.n
+        f = self.constructor("TestFacetedVolumeField3d", Write)
+        f.write(v0, "FileIOTestBase/FacetedVolumeField3d")
+        f.close()
+        f = self.constructor("TestFacetedVolumeField3d", Read)
+        v = FacetedVolumeField3d("faceted volume field 3d test", nodes3d)
+        f.read(v, "FileIOTestBase/FacetedVolumeField3d")
+        f.close()
+        assert len(v) == len(v0)
+        for i in range(self.n):
+            self.assertTrue(v[i] == v0[i],
+                            "%s != %s @ %i of %i in FacetedVolumeField3d test" %
+                            (str(v[i]), str(v0[i]), i, self.n))
+        self.removeFile("TestFacetedVolumeField3d")
+        return
+
+    #---------------------------------------------------------------------------
     # IntFieldList1d
     #---------------------------------------------------------------------------
     def testIntFieldList1d(self):
