@@ -68,17 +68,17 @@ public:
   explicit Field(FieldName name);
   Field(FieldName name, const Field& field);
   Field(FieldName name,
-                     const NodeList<Dimension>& nodeList);
+        const NodeList<Dimension>& nodeList);
   Field(FieldName name,
-                     const NodeList<Dimension>& nodeList,
-                     DataType value);
+        const NodeList<Dimension>& nodeList,
+        DataType value);
   Field(FieldName name,
-                     const NodeList<Dimension>& nodeList, 
-                     const ContainerType& array);
+        const NodeList<Dimension>& nodeList, 
+        const ContainerType& array);
   Field(const NodeList<Dimension>& nodeList, const Field& field);
   
   Field(const Field& field);
-  virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
+  virtual std::shared_ptr<FieldBase<Dimension>> clone() const override;
 
   // Destructor.
   ~Field();

@@ -172,7 +172,7 @@ template<typename Dimension, typename DataType>
 inline
 std::shared_ptr<FieldBase<Dimension> >
 Field<Dimension, DataType>::clone() const {
-  return std::shared_ptr<FieldBase<Dimension>>(new Field<Dimension, DataType>(*this));
+  return std::make_shared<Field<Dimension, DataType>>(*this);
 }
 
 //------------------------------------------------------------------------------
