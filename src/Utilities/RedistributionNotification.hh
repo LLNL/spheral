@@ -49,11 +49,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral{
-  template<typename Object> class RedistributionNotification;
-}
-
 #endif

@@ -39,7 +39,6 @@ set(RK_headers
     ContinuityVolumePolicy.hh
     ContinuityVolumePolicyRZ.hh
     HVolumePolicy.hh
-    HullVolumePolicy.hh
     RKCoefficients.hh
     RKCorrectionParams.hh
     RKCorrections.hh
@@ -61,5 +60,5 @@ set(RK_headers
     interpolateRK.hh
     )
 
-spheral_add_obj_library(RK)
+spheral_add_obj_library(RK SPHERAL_OBJ_LIBS)
 

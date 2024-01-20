@@ -7,7 +7,6 @@ set(GSPH_inst
     GenericRiemannHydro
     GSPHHydroBase
     MFMHydroBase
-    Policies/PureReplaceFieldList
     Policies/ReplaceWithRatioPolicy
     Limiters/LimiterBase
     Limiters/VanLeerLimiter
@@ -34,7 +33,6 @@ set(GSPH_headers
     GenericRiemannHydro.hh
     GSPHHydroBase.hh
     MFMHydroBase.hh
-    Policies/PureReplaceFieldList.hh
     Policies/ReplaceWithRatioPolicy.hh
     Limiters/LimiterBase.hh
     Limiters/VanLeerLimiter.hh
@@ -59,5 +57,5 @@ instantiate(GSPH_inst GSPH_sources)
 
 spheral_install_python_files(GSPHHydros.py)
 
-spheral_add_obj_library(GSPH)
+spheral_add_obj_library(GSPH SPHERAL_OBJ_LIBS)
 

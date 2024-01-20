@@ -85,11 +85,4 @@ protected:
 
 #include "KernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename Descendant> class Kernel;
-}
-
 #endif

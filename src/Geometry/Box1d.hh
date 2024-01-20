@@ -118,11 +118,4 @@ private:
 
 #include "Box1dInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class Box1d;
-}
-
 #endif

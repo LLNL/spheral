@@ -28,12 +28,12 @@ class CompatibleFaceSpecificThermalEnergyPolicy:
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors, destructor.
   CompatibleFaceSpecificThermalEnergyPolicy(const TableKernel<Dimension>& W,
@@ -48,23 +48,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
-
-  // If the derivative stored values for the pair-accelerations has not been updated,
-  // we need to just time advance normally.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt) {
-    IncrementState<Dimension, Scalar>::update(key,
-                                              state,
-                                              derivs,
-                                              multiplier,
-                                              t,
-                                              dt);
-  }
+                      const double dt) override;
 
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
@@ -80,13 +64,6 @@ private:
   CompatibleFaceSpecificThermalEnergyPolicy& operator=(const CompatibleFaceSpecificThermalEnergyPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class CompatibleFaceSpecificThermalEnergyPolicy;
 }
 
 #endif

@@ -39,11 +39,4 @@ public:
 
 #include "SincKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SincKernel;
-}
-
 #endif

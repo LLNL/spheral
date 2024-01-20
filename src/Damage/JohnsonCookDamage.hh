@@ -122,12 +122,5 @@ private:
 
 #include "JohnsonCookDamageInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class JohnsonCookDamage;
-}
-
 #endif
 

@@ -17,7 +17,6 @@ set(Damage_inst
     JohnsonCookDamage
     JohnsonCookFailureStrainPolicy
     JohnsonCookDamagePolicy
-    DamagedPressurePolicy
     PairMaxDamageNodeCoupling
     ThreePointDamagedNodeCoupling
     DamageGradientNodeCoupling
@@ -31,8 +30,6 @@ set(Damage_headers
     DamageGradientPolicy.hh
     DamageModel.hh
     DamageModelInline.hh
-    DamagedPressurePolicy.hh
-    DamagedSoundSpeedPolicy.hh
     EffectiveTensorDamagePolicy.hh
     GradyKippScalarDamage.hh
     JohnsonCookDamage.hh
@@ -73,5 +70,5 @@ spheral_install_python_files(
   ShadowIvanoviSALEDamageModel.py
   )
 
-spheral_add_obj_library(Damage)
+spheral_add_obj_library(Damage SPHERAL_OBJ_LIBS)
 

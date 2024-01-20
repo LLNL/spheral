@@ -99,6 +99,9 @@ source("functional/Strength/Verney/Verney-spherical.py")
 # Damage tests.
 source("functional/Damage/TensileRod/TensileRod-1d.py")
 
+# Porosity tests
+source("functional/Porosity/PlanarCompaction/PlanarCompaction-1d.py")
+
 # Surface detection test
 # Susending this until we fix the test for the up to date surface detection method.
 # source("functional/Surfaces/Surface.py")

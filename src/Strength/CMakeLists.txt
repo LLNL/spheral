@@ -5,7 +5,6 @@ set(Strength_inst
     MeltEnergyPolicy
     PlasticStrainPolicy
     ShearModulusPolicy
-    StrengthSoundSpeedPolicy
     YieldStrengthPolicy
    )
 
@@ -22,10 +21,9 @@ set(Strength_headers
     PlasticStrainPolicy.hh
     ShearModulusPolicy.hh
     SolidFieldNames.hh
-    StrengthSoundSpeedPolicy.hh
     YieldStrengthPolicy.hh
     effectiveKernelVolume.hh
     )
 
-spheral_add_obj_library(Strength)
+spheral_add_obj_library(Strength SPHERAL_OBJ_LIBS)
 

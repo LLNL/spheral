@@ -7,7 +7,7 @@
 #ifndef __Spheral_PlasticStrainPolicy_hh__
 #define __Spheral_PlasticStrainPolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
@@ -20,16 +20,15 @@ template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class Field;
 
 template<typename Dimension>
-class PlasticStrainPolicy: 
-    public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class PlasticStrainPolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename UpdatePolicyBase<Dimension>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   PlasticStrainPolicy();
@@ -41,10 +40,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -52,13 +51,6 @@ private:
   PlasticStrainPolicy& operator=(const PlasticStrainPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PlasticStrainPolicy;
 }
 
 #endif

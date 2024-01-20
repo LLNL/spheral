@@ -40,10 +40,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -54,13 +54,6 @@ private:
   SVPHMassDensityPolicy& operator=(const SVPHMassDensityPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SVPHMassDensityPolicy;
 }
 
 #endif

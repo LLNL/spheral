@@ -11,10 +11,6 @@ set(SolidMaterial_inst
     JohnsonCookStrength
     CollinsStrength
     iSALEROCKStrength
-    PorousEquationOfState
-    PiecewiseLinearPorousStrengthModel
-    PorousStrengthModel
-    StrainPorosity
     PhysicsEvolvingMaterialLibrary
     )
 
@@ -39,15 +35,10 @@ set(SolidMaterial_headers
     PhysicsEvolvingMaterialLibrary.hh
     PolynomialFit.hh
     PolynomialFitInline.hh
-    PorousEquationOfState.hh
-    PiecewiseLinearPorousStrengthModel.hh
-    PorousStrengthModel.hh
     SolidEquationOfState.hh
     SolidEquationOfStateInline.hh
     SteinbergGuinanLundStrength.hh
     SteinbergGuinanStrength.hh
-    StrainPorosity.hh
-    StrainPorosityInline.hh
     StrengthModel.hh
     TillotsonEquationOfState.hh
     TillotsonEquationOfStateInline.hh
@@ -82,5 +73,5 @@ instantiate(SolidMaterial_inst SolidMaterial_sources)
 # Ignore -W-maybe-uninitialized warnings thrown from bisectSearch for possibly uninitialized iterators from boost multi-array.
 set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANGUAGE:CXX>:-Wno-uninitialized>")
 
-spheral_add_obj_library(SolidMaterial)
+spheral_add_obj_library(SolidMaterial SPHERAL_OBJ_LIBS)
 

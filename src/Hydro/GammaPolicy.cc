@@ -6,10 +6,8 @@
 //----------------------------------------------------------------------------//
 
 #include "GammaPolicy.hh"
-#include "HydroFieldNames.hh"
-#include "DataBase/UpdatePolicyBase.hh"
-#include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/FieldList.hh"
@@ -26,8 +24,9 @@ namespace Spheral {
 template<typename Dimension>
 GammaPolicy<Dimension>::
 GammaPolicy():
-  FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar>(HydroFieldNames::massDensity,
-                                                                   HydroFieldNames::specificThermalEnergy) {
+  FieldUpdatePolicy<Dimension>({HydroFieldNames::massDensity,
+                                HydroFieldNames::specificThermalEnergy,
+                                SolidFieldNames::porositySolidDensity}) {
 }
 
 //------------------------------------------------------------------------------
@@ -52,28 +51,24 @@ update(const KeyType& key,
        const double /*dt*/) {
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::gamma and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
-  FieldList<Dimension, Scalar> gamma = state.fields(fieldKey, Scalar());
-  const unsigned numFields = gamma.numFields();
+  REQUIRE(fieldKey == HydroFieldNames::gamma);
+  auto& gamma = state.field(key, Scalar());
 
-  // Get the mass density and specific thermal energy fields from the state.
-  const FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, Scalar());
-  const FieldList<Dimension, Scalar> energy = state.fields(HydroFieldNames::specificThermalEnergy, Scalar());
-  CHECK(massDensity.numFields() == numFields);
-  CHECK(energy.numFields() == numFields);
+  // Check if this material has porosity and get the state we need
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto  usePorosity = state.registered(buildKey(SolidFieldNames::porosityAlpha));
+  const auto& rhoS = (usePorosity ?
+                      state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                      state.field(buildKey(HydroFieldNames::massDensity), 0.0));
+  const auto& eps = state.field(buildKey(HydroFieldNames::specificThermalEnergy), 0.0);
 
-  // Walk the fields.
-  for (unsigned i = 0; i != numFields; ++i) {
+  // Get the eos.  This cast is ugly, but is a work-around for now.
+  const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(gamma.nodeListPtr());
+  CHECK(fluidNodeListPtr != nullptr);
+  const auto& eos = fluidNodeListPtr->equationOfState();
 
-    // Get the eos.  This cast is ugly, but is a work-around for now.
-    const FluidNodeList<Dimension>* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(gamma[i]->nodeListPtr());
-    CHECK(fluidNodeListPtr != 0);
-    const EquationOfState<Dimension>& eos = fluidNodeListPtr->equationOfState();
-
-    // Now set the gamma for this field.
-    eos.setGammaField(*gamma[i], *massDensity[i], *energy[i]);
-  }
+  // Now set the gamma for this field.
+  eos.setGammaField(gamma, rhoS, eps);
 }
 
 //------------------------------------------------------------------------------
@@ -85,12 +80,8 @@ GammaPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const GammaPolicy<Dimension>* rhsPtr = dynamic_cast<const GammaPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  const auto rhsPtr = dynamic_cast<const GammaPolicy<Dimension>*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

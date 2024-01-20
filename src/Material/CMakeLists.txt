@@ -28,6 +28,7 @@ set(Material_headers
 spheral_install_python_files(
   MaterialUnits.py
   MaterialEquationsOfState.py
+  computeHugoniot.py
   )
 
 # Helmholtz
@@ -42,5 +43,5 @@ endif()
 
 instantiate(Material_inst Material_sources)
 
-spheral_add_obj_library(Material)
+spheral_add_obj_library(Material SPHERAL_OBJ_LIBS)
 

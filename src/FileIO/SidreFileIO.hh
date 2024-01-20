@@ -117,12 +117,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral
-{
-  class SidreFileIO;
-}
-
 #endif

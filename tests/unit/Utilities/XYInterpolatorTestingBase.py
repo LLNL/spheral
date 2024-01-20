@@ -175,8 +175,8 @@ class XYInterpolatorTestingBase:
                         tol = self.tol[1] / sqrt(nx*ny)
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                             passing = err(Finterp(x, y), F(x, y)) < tol
-                            if not passing:
-                                self.plotem(x, y, F, Finterp)
+                            # if not passing:
+                            #     self.plotem(x, y, F, Finterp)
                             self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
@@ -193,8 +193,8 @@ class XYInterpolatorTestingBase:
                         tol = self.tol[2] / sqrt(nx*ny)
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                             passing = err(Finterp(x, y), F(x, y)) < tol
-                            if not passing:
-                                self.plotem(x, y, F, Finterp)
+                            # if not passing:
+                            #     self.plotem(x, y, F, Finterp)
                             self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))
 
@@ -213,7 +213,7 @@ class XYInterpolatorTestingBase:
 
                         for x, y in xygen(self.n, self.xmin, self.xmax, self.ymin, self.ymax):
                             passing = err(Finterp(x, y), F(x, y)) < tol
-                            if not passing:
-                                self.plotem(x, y, F, Finterp)
+                            # if not passing:
+                            #     self.plotem(x, y, F, Finterp)
                             self.assertTrue(passing,
                                             "Interpolation off @ (%g,%g) (xlog,ylog)=(%s,%s) (nx,ny)=(%i,%i): %g != %g, err=%g" % (x, y, xlog, ylog, nx, ny, Finterp(x, y), F(x, y), err(Finterp(x,y), F(x,y))))

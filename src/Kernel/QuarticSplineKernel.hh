@@ -44,11 +44,4 @@ public:
 
 #include "QuarticSplineKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class QuarticSplineKernel;
-}
-
 #endif

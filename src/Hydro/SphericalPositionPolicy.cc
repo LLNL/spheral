@@ -31,7 +31,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 SphericalPositionPolicy::
 SphericalPositionPolicy():
-  IncrementFieldList<Dim<1>, Dim<1>::Vector>() {
+  UpdatePolicyBase<Dim<1>>() {
 }
 
 //------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ update(const KeyType& key,
   auto f = state.fields(fieldKey, Vector::zero);
   const auto numNodeLists = f.size();
 
-  // Find all the available matching derivative FieldList keys.
+  // Find all the available matching derivative Field keys.
   const auto incrementKey = prefix() + fieldKey;
   const auto allkeys = derivs.fieldKeys();
   vector<string> incrementKeys;
@@ -73,10 +73,6 @@ update(const KeyType& key,
   }
   CHECK(not incrementKeys.empty());
 
-  // If we're not allowing wildcard update, there should only be one match.
-  VERIFY2(this->wildCardDerivs() or incrementKeys.size() == 1,
-          "SphericalPositionPolicy ERROR: unable to find unique match for derivative field key " << incrementKey);
-
   // Update by each of our derivative fields.
   for (const auto& key: incrementKeys) {
     const auto df = derivs.fields(key, Vector::zero);
@@ -84,7 +80,7 @@ update(const KeyType& key,
     for (auto k = 0u; k != numNodeLists; ++k) {
       const auto n = f[k]->numInternalElements();
       for (auto i = 0u; i != n; ++i) {
-        // This is where we diverge from the standard IncrementFieldList.  Ensure we cannot cross to
+        // This is where we diverge from the standard IncrementState.  Ensure we cannot cross to
         // negative radius.
         f(k,i) = std::max(0.5*f(k,i), f(k,i) + multiplier*(df(k, i)));
       }
@@ -100,8 +96,8 @@ SphericalPositionPolicy::
 operator==(const UpdatePolicyBase<Dim<1>>& rhs) const {
 
   // We're only equal if the other guy is also an increment operator.
-  const SphericalPositionPolicy* rhsPtr = dynamic_cast<const SphericalPositionPolicy*>(&rhs);
-  return rhsPtr != 0 and this->wildCardDerivs() == rhsPtr->wildCardDerivs();
+  const auto rhsPtr = dynamic_cast<const SphericalPositionPolicy*>(&rhs);
+  return (rhsPtr != nullptr);
 }
 
 }

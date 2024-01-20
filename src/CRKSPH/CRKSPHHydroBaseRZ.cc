@@ -13,16 +13,12 @@
 #include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
-#include "DataBase/IncrementFieldList.hh"
-#include "DataBase/IncrementBoundedFieldList.hh"
-#include "DataBase/ReplaceFieldList.hh"
-#include "DataBase/ReplaceBoundedFieldList.hh"
+#include "DataBase/IncrementState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
-#include "DataBase/CompositeFieldListPolicy.hh"
 #include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
-#include "Hydro/PositionPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Hydro/EntropyPolicy.hh"
@@ -145,26 +141,26 @@ CRKSPHHydroBaseRZ::
 registerState(DataBase<Dim<2> >& dataBase,
               State<Dim<2> >& state) {
 
-  typedef State<Dimension>::PolicyPointer PolicyPointer;
-
   // The base class does most of it.
   CRKSPHHydroBase<Dim<2> >::registerState(dataBase, state);
 
   // Reregister the volume update
-  PolicyPointer volumePolicy(new ContinuityVolumePolicyRZ());
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
-  state.enroll(vol, volumePolicy);
+  state.enroll(vol, make_policy<ContinuityVolumePolicyRZ>());
 
   // Are we using the compatible energy evolution scheme?
   // If so we need to override the ordinary energy registration with a specialized version.
   if (mCompatibleEnergyEvolution) {
-    FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    PolicyPointer thermalEnergyPolicy(new RZNonSymmetricSpecificThermalEnergyPolicy(dataBase));
-    state.enroll(specificThermalEnergy, thermalEnergyPolicy);
+    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+    state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
     // Get the policy for the position, and add the specific energy as a dependency.
-    PolicyPointer positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
-    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+    const auto posPolicies = state.policies(HydroFieldNames::position);      // map<Key, Policy>
+    State<Dimension>::KeyType fkey, nodeListKey;
+    for (auto& [key, policy]: posPolicies) {
+      State<Dimension>::splitFieldKey(key, fkey, nodeListKey);
+      policy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
+    }
   }
 }
 
@@ -254,14 +250,14 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(corrections.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedFieldList<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);

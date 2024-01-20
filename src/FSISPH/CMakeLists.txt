@@ -1,8 +1,10 @@
 include_directories(.)
+
 set(FSISPH_inst
     SolidFSISPHHydroBase
     computeFSISPHSumMassDensity
     computeHWeightedFSISPHSumMassDensity
+    computeInterfacePressureCorrectedSumMassDensity
     SlideSurface
     )
 
@@ -18,6 +20,7 @@ set(FSISPH_headers
     SolidFSISPHHydroBaseInline.hh
     computeFSISPHSumMassDensity.hh
     computeHWeightedFSISPHSumMassDensity.hh
+    computeInterfacePressureCorrectedSumMassDensity.hh
     FSIFieldNames.hh
     SlideSurface.hh
     SlideSurfaceInline.hh
@@ -28,5 +31,5 @@ spheral_install_python_files(
   SlideSurfaces.py
   )
 
-spheral_add_obj_library(FSISPH)
+spheral_add_obj_library(FSISPH SPHERAL_OBJ_LIBS)
 

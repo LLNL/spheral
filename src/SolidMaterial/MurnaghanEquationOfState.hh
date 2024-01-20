@@ -44,6 +44,12 @@ public:
                            const Field<Dimension, Scalar>& massDensity,
                            const Field<Dimension, Scalar>& specificThermalEnergy) const;
 
+  virtual void setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,           // set pressure
+                                    Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                                    Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                                    const Field<Dimension, Scalar>& massDensity,
+                                    const Field<Dimension, Scalar>& specificThermalEnergy) const override;
+
   virtual void setTemperature(Field<Dimension, Scalar>& temperature,
                               const Field<Dimension, Scalar>& massDensity,
                               const Field<Dimension, Scalar>& specificThermalEnergy) const;
@@ -128,12 +134,5 @@ private:
 }
 
 #include "MurnaghanEquationOfStateInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class MurnaghanEquationOfState;
-}
 
 #endif

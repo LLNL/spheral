@@ -53,11 +53,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class AxisBoundaryRZ;
-}
-
 #endif

@@ -8,22 +8,22 @@
 
 #include <string>
 
-#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 #include "NodeList/SmoothingScaleBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
 class MeshIdealHPolicy: 
-    public ReplaceBoundedState<Dimension, typename Dimension::SymTensor, typename Dimension::Scalar> {
+    public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename FieldUpdatePolicyBase<Dimension, SymTensor>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   MeshIdealHPolicy(const SmoothingScaleBase<Dimension>& smoothingScaleBase,
@@ -39,26 +39,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
-
-  // If the derivative stored values for the pair-accelerations has not been updated,
-  // we need to just time advance normally.
-  virtual void updateAsIncrement(const KeyType& key,
-                                 State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs,
-                                 const double multiplier,
-                                 const double t,
-                                 const double dt) {
-    ReplaceBoundedState<Dimension, SymTensor, Scalar>::update(key,
-                                                              state,
-                                                              derivs,
-                                                              multiplier,
-                                                              t,
-                                                              dt);
-  }
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -70,13 +54,6 @@ private:
   MeshIdealHPolicy& operator=(const MeshIdealHPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class MeshIdealHPolicy;
 }
 
 #endif

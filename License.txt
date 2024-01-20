@@ -1,7 +1,7 @@
 Copyright (c) 2012, Lawrence Livermore National Security, LLC. 
 Produced at the Lawrence Livermore National Laboratory
 Written by J. Michael Owen <mikeowen@llnl.gov>
-CODE-OCEC-12-049
+LLNL-CODE-561852
 All rights reserved.
 
 The files in this directory and below are part of Spheral++. For details, see

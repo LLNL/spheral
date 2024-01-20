@@ -37,7 +37,6 @@ endif()
 instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
-    OmegaGradhPolicy.hh
     PSPHHydroBase.hh
     PSPHHydroBaseInline.hh
     SPHHydroBase.hh
@@ -63,5 +62,5 @@ spheral_install_python_files(
     FacetedSurfaceASPHHydro.py
     )
 
-spheral_add_obj_library(SPH)
+spheral_add_obj_library(SPH SPHERAL_OBJ_LIBS)
 

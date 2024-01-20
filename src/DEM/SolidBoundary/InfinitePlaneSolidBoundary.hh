@@ -63,11 +63,4 @@ private:
 
 #include "InfinitePlaneSolidBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class InfinitePlaneSolidBoundary;
-}
-
 #endif

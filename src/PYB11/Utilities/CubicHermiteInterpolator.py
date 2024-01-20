@@ -28,11 +28,20 @@ class CubicHermiteInterpolator:
         "Constructs an interpolator based on the given function and its gradient"
         return
 
+    @PYB11implementation("[](const double xmin, const double xmax, py::list& yvals) { std::vector<double> yvec; for (auto y: yvals) yvec.push_back(y.cast<double>()); return new CubicHermiteInterpolator(xmin, xmax, yvec); }")
+    def pyinit_table(self,
+                     xmin = "const double",
+                     xmax = "const double",
+                     yvals = "py::list"):
+        "Initialize from tabulated values"
+        return
+
     def initialize(self,
                    xmin = "const double",
                    xmax = "const double",
                    yvals = "const std::vector<double>&"):
         "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
+        return
 
     def makeMonotonic(self):
         """Force interpolation to be monotonic.  This generally degrades accuracy, and can introduce structure between
@@ -51,6 +60,34 @@ tabulated knots (although that structure should still be monotonic between the t
                    x = "const double",
                    i0 = "const size_t"):
         "Returns the interpolated value <y>(x)"
+        return "double"
+
+    @PYB11const
+    def prime(self,
+              x = "const double"):
+        "Return the interpolated derivative <dy/dx>(x)"
+        return "double"
+
+    @PYB11pycppname("prime")
+    @PYB11const
+    def prime_i0(self,
+                 x = "const double",
+                 i0 = "const size_t"):
+        "Return the interpolated derivative <dy/dx>(x)"
+        return "double"
+
+    @PYB11const
+    def prime2(self,
+               x = "const double"):
+        "Return the interpolated second derivative <d^2y/dx^2>(x)"
+        return "double"
+
+    @PYB11pycppname("prime2")
+    @PYB11const
+    def prime2_i0(self,
+                  x = "const double",
+                  i0 = "const size_t"):
+        "Return the interpolated second derivative <d^2y/dx^2>(x)"
         return "double"
 
     @PYB11const

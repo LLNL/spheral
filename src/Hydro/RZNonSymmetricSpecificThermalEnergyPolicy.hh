@@ -10,7 +10,7 @@
 #ifndef __Spheral_RZNonSymmetricSpecificThermalEnergyPolicy_hh__
 #define __Spheral_RZNonSymmetricSpecificThermalEnergyPolicy_hh__
 
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 #include "Geometry/Dimension.hh"
 
 #include <string>
@@ -24,16 +24,15 @@ template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class DataBase;
 
-class RZNonSymmetricSpecificThermalEnergyPolicy: 
-    public IncrementFieldList<Dim<2>, Dim<2>::Scalar> {
+class RZNonSymmetricSpecificThermalEnergyPolicy: public UpdatePolicyBase<Dim<2>> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef Dim<2> Dimension;
-  typedef Dimension::Scalar Scalar;
-  typedef Dimension::Vector Vector;
-  typedef Dimension::SymTensor SymTensor;
-  typedef FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Dimension = Dim<2>;
+  using Scalar = Dimension::Scalar;
+  using Vector = Dimension::Vector;
+  using SymTensor = Dimension::SymTensor;
+  using KeyType = UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   RZNonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
@@ -45,7 +44,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // If the derivative stored values for the pair-accelerations has not been updated,
   // we need to just time advance normally.
@@ -54,17 +53,10 @@ public:
                                  StateDerivatives<Dimension>& derivs,
                                  const double multiplier,
                                  const double t,
-                                 const double dt) {
-    IncrementFieldList<Dimension, Scalar>::update(key,
-                                                  state,
-                                                  derivs,
-                                                  multiplier,
-                                                  t,
-                                                  dt);
-  }
+                                 const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -74,13 +66,6 @@ private:
   RZNonSymmetricSpecificThermalEnergyPolicy& operator=(const RZNonSymmetricSpecificThermalEnergyPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class RZNonSymmetricSpecificThermalEnergyPolicy;
 }
 
 #endif

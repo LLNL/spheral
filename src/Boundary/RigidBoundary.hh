@@ -62,11 +62,4 @@ public:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class RigidBoundary;
-}
-
 #endif

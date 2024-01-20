@@ -3,7 +3,7 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 # Configure CMake
 #-------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
@@ -20,6 +20,11 @@ include(Compilers)
 #-------------------------------------------------------------------------------
 # Configure and Include blt
 #-------------------------------------------------------------------------------
+
+# Need to define Python paths here as BLT finds it's own Python package.
+set(Python_EXECUTABLE ${python_DIR}/bin/python3)
+set(Python3_EXECUTABLE ${python_DIR}/bin/python3)
+
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 
@@ -39,6 +44,7 @@ include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 #-------------------------------------------------------------------------------
 # Include standard build system logic and options / definitions
 #-------------------------------------------------------------------------------
+# TODO: Prefix Spheral options
 set(ENABLE_CXXONLY OFF CACHE BOOL "enable C++ only build without python bindings")
 set(ENABLE_1D ON CACHE BOOL "enable 1d")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
@@ -49,6 +55,11 @@ set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
 set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
 
+option(SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION "Enable the artificial conduction package" ON)
+option(SPHERAL_ENABLE_EXTERNAL_FORCE "Enable the external force package" ON)
+option(SPHERAL_ENABLE_GRAVITY "Enable the gravity package" ON)
+
+option(ENABLE_DEV_BUILD "Build separate internal C++ libraries for faster code development" OFF)
 option(ENABLE_STATIC_CXXONLY "build only static libs" OFF)
 option(ENABLE_SHARED "Building C++ libs shared" ON)
 
@@ -59,16 +70,16 @@ endif()
 
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-  list(APPEND spheral_blt_depends mpi)
+  list(APPEND SPHERAL_BLT_DEPENDS mpi)
 endif()
 
 if(ENABLE_OPENMP)
-  list(APPEND spheral_blt_depends openmp)
+  list(APPEND SPHERAL_BLT_DEPENDS openmp)
 endif()
 
 if(ENABLE_CUDA)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
-  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
 
@@ -117,15 +128,12 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #-------------------------------------------------------------------------------
-# We need the set of Spheral C++ libraries globally
+# Set global variables used for dependencies
 #-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_CXX_LIBS)
-
-#-------------------------------------------------------------------------------
-# Also globally set the variable for the list we accumulate the obj files from
-# each library into
-#-------------------------------------------------------------------------------
-set_property(GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+# List of external dependencies
+set_property(GLOBAL PROPERTY SPHERAL_BLT_DEPENDS "${SPHERAL_BLT_DEPENDS}")
+# List of compiler dependencies
+set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 
 #-------------------------------------------------------------------------------
 # Prepare to build the src
@@ -158,10 +166,18 @@ if (ENABLE_TESTS)
   endmacro(install_with_directory)
 
   # Find the test files we want to install
-  execute_process(
-    COMMAND git ls-files tests
-    WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-    OUTPUT_VARIABLE test_files1)
+  set(test_files1 "")
+  if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(
+      COMMAND git ls-files tests
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  else()
+    execute_process(
+      COMMAND find tests -type f
+      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
+      OUTPUT_VARIABLE test_files1)
+  endif()
   string(REPLACE "\n" " " test_files ${test_files1})
   separate_arguments(test_files)
   list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
@@ -169,4 +185,8 @@ if (ENABLE_TESTS)
     FILES       ${test_files} 
     SOURCE      ${SPHERAL_ROOT_DIR}
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
+endif()
+
+if(NOT ENABLE_DEV_BUILD)
+  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
 endif()

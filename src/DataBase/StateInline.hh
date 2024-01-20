@@ -36,8 +36,17 @@ void
 State<Dimension>::
 enroll(FieldListBase<Dimension>& fieldList,
        typename State<Dimension>::PolicyPointer polptr) {
-  this->enroll(fieldList);
-  this->enroll(this->key(fieldList), polptr);
+  if (polptr->clonePerField()) {
+    // std::cerr << "Registering FieldList " << this->key(fieldList) << " with cloning policy" << std::endl;
+    for (auto bitr = fieldList.begin_base(); bitr < fieldList.end_base(); ++bitr) {
+      this->enroll(**bitr, polptr);
+    }
+  } else {
+    // std::cerr << "Registering FieldList " << this->key(fieldList) << " with SINGLE policy" << std::endl;
+    // this->enroll(this->key(fieldList), fieldList);
+    this->enroll(fieldList);  // enrolls each field without a policy
+    this->enroll(this->key(fieldList), polptr);
+  }
 }
 
 //------------------------------------------------------------------------------

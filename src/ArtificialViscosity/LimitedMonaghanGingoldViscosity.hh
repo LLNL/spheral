@@ -88,11 +88,4 @@ private:
 
 }
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  template<typename Dimension> class LimitedMonaghanGingoldViscosity;
-}
-
 #endif

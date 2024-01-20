@@ -62,11 +62,4 @@ private:
 
 #include "RedistributionRegistrarInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class RedistributionRegistrar;
-}
-
 #endif

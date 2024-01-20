@@ -53,12 +53,5 @@ private:
 
 #include "PolynomialFitInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class NinthOrderPolynomialFit;
-}
-
 #endif
 

@@ -109,11 +109,4 @@ private:
 
 #include "NestedGridDistributedBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NestedGridDistributedBoundary;
-}
-
 #endif

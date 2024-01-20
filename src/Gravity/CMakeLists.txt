@@ -1,6 +1,5 @@
 include_directories(.)
 set(Gravity_inst
-  CompatibleGravitationalVelocityPolicy
   NBodyGravity
   )
 
@@ -23,5 +22,5 @@ set(Gravity_headers
   PolyGravity.hh
   )
 
-spheral_add_obj_library(Gravity)
+spheral_add_obj_library(Gravity SPHERAL_OBJ_LIBS)
 

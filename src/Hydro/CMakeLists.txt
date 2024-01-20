@@ -3,7 +3,6 @@ set(Hydro_inst
     EntropyPolicy
     CompatibleDifferenceSpecificThermalEnergyPolicy
     NonSymmetricSpecificThermalEnergyPolicy
-    PositionPolicy
     PressurePolicy
     SoundSpeedPolicy
     SpecificFromTotalThermalEnergyPolicy
@@ -34,14 +33,10 @@ instantiate(Hydro_inst Hydro_sources)
 set(Hydro_headers
     EntropyPolicy.hh
     GammaPolicy.hh
-    HybridMassDensityPolicyInline.hh
     HydroFieldNames.hh
     HydroInline.hh
-    MashCorrectionPolicy.hh
-    MeshScaledMassDensityPolicy.hh
     CompatibleDifferenceSpecificThermalEnergyPolicy.hh
     NonSymmetricSpecificThermalEnergyPolicy.hh
-    PositionPolicy.hh
     PressurePolicy.hh
     RZNonSymmetricSpecificThermalEnergyPolicy.hh
     SecondMomentHourglassControl.hh
@@ -59,5 +54,5 @@ set(Hydro_headers
     entropyWeightingFunction.hh
     )
 
-spheral_add_obj_library(Hydro)
+spheral_add_obj_library(Hydro SPHERAL_OBJ_LIBS)
 

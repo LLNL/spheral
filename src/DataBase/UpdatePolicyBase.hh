@@ -13,6 +13,13 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+#include <utility>
+#include <initializer_list>
+
+// Since std::make_shared has problems with our use of initializer_lists, we
+// include a convenience function here for making policies.
+#include "make_policy.hh"
 
 namespace Spheral {
 
@@ -28,35 +35,7 @@ public:
   typedef std::string KeyType;
 
   // Constructors, destructor.
-  UpdatePolicyBase();
-  explicit UpdatePolicyBase(const std::string& depend0);
-  UpdatePolicyBase(const std::string& depend0, 
-                   const std::string& depend1);
-  UpdatePolicyBase(const std::string& depend0, 
-                   const std::string& depend1,
-                   const std::string& depend2);
-  UpdatePolicyBase(const std::string& depend0, 
-                   const std::string& depend1, 
-                   const std::string& depend2, 
-                   const std::string& depend3);
-  UpdatePolicyBase(const std::string& depend0, 
-                   const std::string& depend1,
-                   const std::string& depend2,
-                   const std::string& depend3, 
-                   const std::string& depend4);
-  UpdatePolicyBase(const std::string& depend0, 
-                   const std::string& depend1,
-                   const std::string& depend2,
-                   const std::string& depend3,
-                   const std::string& depend4, 
-                   const std::string& depend5);
-  UpdatePolicyBase(const std::string& depend0,
-                   const std::string& depend1,
-                   const std::string& depend2, 
-                   const std::string& depend3, 
-                   const std::string& depend4,
-                   const std::string& depend5,
-                   const std::string& depend6);
+  UpdatePolicyBase(std::initializer_list<std::string> depends = {});
   virtual ~UpdatePolicyBase() {};
   
   // The methods you overload to define behavior mapping new state field 
@@ -85,6 +64,9 @@ public:
   virtual bool operator==(const UpdatePolicyBase& rhs) const = 0;
   bool operator!=(const UpdatePolicyBase& rhs) const;
 
+  // Should this policy be cloned per Field when registering for a FieldList?
+  virtual bool clonePerField() const { return false; }
+
   // Test is this policy is for independent or dependent state.
   bool independent() const;
   bool dependent() const;
@@ -108,15 +90,6 @@ private:
 
 }
 
-#ifndef __GCCXML__
 #include "UpdatePolicyBaseInline.hh"
-#endif
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class UpdatePolicyBase;
-}
 
 #endif

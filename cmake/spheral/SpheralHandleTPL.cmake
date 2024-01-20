@@ -1,125 +1,96 @@
-# Initialize commonly used paths during TPL installs
-set(CACHE_DIR ${CMAKE_BINARY_DIR}/tpl/cache)
-set(PATCH_DIR ${SPHERAL_ROOT_DIR}/src/tpl/patch)
-set(TPL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
-
-# Verboseness of TPL builds
-if (TPL_VERBOSE)
-  set(OUT_PROTOCOL_EP 0)
-else()
-  set(OUT_PROTOCOL_EP 1)
-  set(OUT_PROTOCOL_PIP "-q")
-endif()
-
-# Set the build directory for TPL to default to BUILD/Spheral-tpl if SPHERAL_TPL_DIR
-# is not set.
-if (NOT SPHERAL_TPL_DIR)
-  get_filename_component(DEFAULT_TPL_LOCATION ${CMAKE_BINARY_DIR}/Spheral/tpl ABSOLUTE)
-else()
-  if (NOT IS_ABSOLUTE ${SPHERAL_TPL_DIR})
-    set(SPHERAL_TPL_DIR ${CMAKE_BINARY_DIR}/${SPHERAL_TPL_DIR})
-  endif()
-  get_filename_component(DEFAULT_TPL_LOCATION ${SPHERAL_TPL_DIR} ABSOLUTE)
-endif()
-message("Default TPL location : ${DEFAULT_TPL_LOCATION}\n")
 
 #----------------------------------------------------------------------------------------
 #                                   Spheral_Handle_TPL
 #----------------------------------------------------------------------------------------
 
 # -------------------------------------------
-# VARIBALES THAT NEED TO BE PREVIOSLY DEFINED
+# VARIABLES THAT NEED TO BE PREVIOUSLY DEFINED
 # -------------------------------------------
-# BUILD_TPL             : REQUIRED : Set at configure time defines weather to search or build tpl.
-# <lib_name>_DIR        : OPTIONAL : The installation location of the tpl, if installed or not.
-#                                    If not set and BUILD_TPL=On <lib_name> will be installed to a 
-#                                    default loc. 
+# <lib_name>_DIR        : REQUIRED : The installation location of the TPL
+# <lib_name>_INCLUDES   : OPTIONAL : Specific includes for the TPL
 
 # ----------------------
-# INPUT-OUTPUT VARIBALES
+# INPUT-OUTPUT VARIABLES
 # ----------------------
-# <lib_name>   : REQUIRED : The name of the target tpl
-# <dep_list>   : REQUIRED : list that appends new target <lib_name> to itself.
+# <lib_name>     : REQUIRED : The name of the target TPL
+# TPL_CMAKE_DIR  : REQUIRED : Directory containing files for each TPL
+#                             listing their library names
 
 # -----------------------
-# OUTPUT VARIABLES TO USE - Made available implicitly after funciton call.
+# OUTPUT VARIABLES TO USE - Made available implicitly after function call
 # -----------------------
-# <lib_name>_libs : list of full paths to tpl lib files to be linked to.
+# <lib_name> : Exportable target for the TPL
 #----------------------------------------------------------------------------------------
 
-function(Spheral_Handle_TPL lib_name dep_list target_type)
+function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
 
-  # If no location to search is sepcified, search default dir
+  # Make shortcut variable for directory assigned to ${lib_name}_DIR
+  set(lib_dir "${${lib_name}_DIR}")
   if (NOT ${lib_name}_DIR)
-    message("${lib_name}_DIR not set.")
+    message(FATAL_ERROR "${lib_name}_DIR not set.")
   else()
     message("${lib_name}_DIR set.")
     message("Searching ${lib_name} for : ${${lib_name}_DIR}")
   endif()
 
-  # Default this flag for the TPL to be added as a BLT lib, 
-  # in the <tpl>.cmake file we may change this so as not to
-  # add a blt lib component
-  set(${lib_name}_ADD_BLT_TARGET ON)
-
-  # Include the actual <tpl>.cmake file
+  # Find libraries
+  set(${lib_name}_libs "")
+  # Library names to be set in <tpl>.cmake file
   include(${TPL_CMAKE_DIR}/${lib_name}.cmake)
-
-  if (NOT DEFINED ${lib_name}_NO_INCLUDES)
-    list(APPEND ${lib_name}_INCLUDES $<BUILD_INTERFACE:${${lib_name}_DIR}/include>)
-  endif()
-
-  # Generate full path to lib file for output list
+  # If library names are given, find them
   set(${lib_name}_LIBRARIES )
   foreach(libpath ${${lib_name}_libs})
-    if(IS_ABSOLUTE ${libpath})
-      get_filename_component(lib ${libpath} NAME)
-      set(temp_abs_path ${libpath})
-    else()
-      set(lib ${libpath})
-      find_file(temp_abs_path
-        NAME ${lib}
-        PATHS ${${lib_name}_DIR}
-        PATH_SUFFIXES lib lib64
-        NO_CACHE
-        NO_DEFAULT_PATH
-        )
-    endif()
-    # set(temp_abs_path "${${lib_name}_DIR}/lib/${lib}")
-    list(APPEND ${lib_name}_LIBRARIES $<BUILD_INTERFACE:${temp_abs_path}>)
-
-    # Check all necessary files exist during config time when not installing TPL
-    if (NOT EXISTS ${temp_abs_path})
-      message(FATAL_ERROR "Cannot find ${lib} in ${${lib_name}_DIR} for TPL ${lib_name}.  Full path: ${tmp_abs_path}")
-    else()
-      message("Found: ${temp_abs_path}")
-    endif()
-
-    # find_file treats output as a standard variable from 3.21+ We get different behavior on later CMake versions.
+    find_library(${libpath}_clib NAMES ${libpath}
+      PATHS ${lib_dir}/lib
+      REQUIRED
+      NO_CACHE
+      NO_DEFAULT_PATH
+      NO_CMAKE_ENVIRONMENT_PATH
+      NO_CMAKE_PATH
+      NO_SYSTEM_ENVIRONMENT_PATH
+      NO_CMAKE_SYSTEM_PATH)
+    list(APPEND ${lib_name}_LIBRARIES ${${libpath}_clib})
+    message("Importing libraries for ${${libpath}_clib}")
+    # find_library treats output as a standard variable from 3.21+
+    # We get different behavior on earlier CMake versions.
     if(${CMAKE_VERSION} VERSION_LESS "3.21.0")
-      unset(temp_abs_path CACHE)
+      unset(${libpath}_clib CACHE)
     else()
-      unset(temp_abs_path)
+      unset(${libpath}_clib)
     endif()
-
   endforeach()
+  # Find includes by assuming they are explicitly provided as ${lib_name}_INCLUDES
+  set(${lib_name}_INCLUDE_DIR ${${lib_name}_INCLUDES})
 
-  # Register any libs/includes under a blt dir for later use/depends
-  blt_register_library(NAME blt_${lib_name}
-                       INCLUDES ${${lib_name}_INCLUDES}
-                       LIBRARIES ${${lib_name}_LIBRARIES}
-                       TREAT_INCLUDES_AS_SYSTEM On
-                       )
-
-  # Add the blt target to a list of libs that can be depended on
-  if (${lib_name}_ADD_BLT_TARGET)
-    list(APPEND spheral_blt_${target_type}_depends blt_${lib_name})
+  # If include directories are not explicity set, look for an include directory
+  string(COMPARE EQUAL "${${lib_name}_INCLUDE_DIR}" "" incl_test)
+  if(incl_test) # Includes are not explicitly provided
+    # Look for an include directory but it isn't required
+    if(EXISTS "${lib_dir}/include/")
+      set(${lib_name}_INCLUDE_DIR "${lib_dir}/include")
+      message("Importing includes for ${lib_name}")
+      message("")
+    endif()
+  else() # Includes are explicitly provided
+    # Check to be sure they exist
+    if(EXISTS ${${lib_name}_INCLUDE_DIR})
+      message("Importing includes for ${lib_name}")
+      message("")
+    else()
+      message(FATAL_ERROR "Include directories for ${lib_name} not found")
+    endif()
   endif()
 
-  set(${lib_name}_DIR ${${lib_name}_DIR} PARENT_SCOPE)
-  set(${dep_list} ${${dep_list}} PARENT_SCOPE)
-  set(spheral_blt_${target_type}_depends ${spheral_blt_${target_type}_depends} PARENT_SCOPE)
-
-  message("")
-
+  blt_import_library(NAME ${lib_name}
+    TREAT_INCLUDES_AS_SYSTEM ON
+    INCLUDES ${${lib_name}_INCLUDE_DIR}
+    LIBRARIES ${${lib_name}_LIBRARIES}
+    EXPORTABLE ON)
+  get_target_property(_is_imported ${lib_name} IMPORTED)
+  if(NOT ${_is_imported})
+    install(TARGETS ${lib_name}
+      EXPORT spheral_cxx-targets
+      DESTINATION lib/cmake)
+  endif()
+  set_target_properties(${lib_name} PROPERTIES EXPORT_NAME spheral::${lib_name})
 endfunction()

@@ -61,7 +61,6 @@ NodeList<Dimension>::NodeList(std::string name,
   mDummyList(),
   mRestart(registerWithRestart(*this, 10)) {
   NodeListRegistrar<Dimension>::instance().registerNodeList(*this);
-  REQUIRE(numInternal >= 0 && numGhost >= 0);
   mMass.setNodeList(*this);
   mPositions.setNodeList(*this);
   mVelocity.setNodeList(*this);
@@ -472,8 +471,7 @@ deleteNodes(const vector<int>& nodeIDs) {
     CHECK(numInternalNodesRemoved <= (int)numInternalNodes());
     mNumNodes -= uniqueIDs.size();
     mFirstGhostNode -= numInternalNodesRemoved;
-    CHECK(mNumNodes >= 0);
-    CHECK(mFirstGhostNode >= 0 && mFirstGhostNode <= mNumNodes);
+    CHECK(mFirstGhostNode <= mNumNodes);
 
     // Now iterate over the Fields defined on this NodeList, and remove the appropriate
     // elements from each.

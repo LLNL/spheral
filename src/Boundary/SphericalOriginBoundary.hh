@@ -52,11 +52,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SphericalOriginBoundary;
-}
-
 #endif
