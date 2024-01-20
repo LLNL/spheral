@@ -6,7 +6,11 @@
 #include "LvArray/ChaiBuffer.hpp"
 #include "chai/ManagedArray.hpp"
 
+#include <iostream>
+
 namespace Spheral {
+
+#define PDEBUG(msg) std::cerr << msg << std::endl;
 
 //#define MV_VALUE_SEMANTICS
 
@@ -36,6 +40,7 @@ public:
   SPHERAL_HOST_DEVICE ManagedVector() :
     MA()
   {
+    PDEBUG("ManagedVector::ManagedVector()")
 #if !defined(SPHERAL_GPU_ACTIVE) 
     setCallback();
 #endif // SPHERAL_GPU_ACTIVE
@@ -45,6 +50,7 @@ public:
     MA(),
     m_size(elems) 
   {
+    PDEBUG("ManagedVector::ManagedVector(" << elems << ")")
 #if !defined(SPHERAL_GPU_ACTIVE) 
     MA::allocate(elems < initial_capacity ? initial_capacity: elems, chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
@@ -56,6 +62,7 @@ public:
     MA(),
     m_size(elems) 
   {
+    PDEBUG("ManagedVector::ManagedVector(" << elems << ", identity)")
 #if !defined(SPHERAL_GPU_ACTIVE) 
     MA::allocate(elems < initial_capacity ? initial_capacity: elems, chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
@@ -89,6 +96,7 @@ public:
   }
 #else
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
+    PDEBUG("ManagedVector::ManagedVector(rhs)");
 #if !defined(SPHERAL_GPU_ACTIVE) 
 #endif // SPHERAL_GPU_ACTIVE
   }
@@ -106,6 +114,7 @@ public:
   }
 #else
   SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) {
+    PDEBUG("ManagedVector::operator=()")
     MA::operator=(rhs);
     m_size = rhs.m_size;
     return *this; 
@@ -127,21 +136,25 @@ public:
   }
 #else
   SPHERAL_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
+    PDEBUG("ManagedVector::operator==()")
     if (m_size != rhs.m_size) return false;
     return MA::operator==(rhs);
   }
   SPHERAL_HOST_DEVICE bool operator!=(ManagedVector const& rhs) const {
+    PDEBUG("ManagedVector::operator!=()")
     return !(*this == rhs);
   }
 #endif
 
   SPHERAL_HOST void push_back(const DataType& value) {
+    PDEBUG("ManagedVector::push_back(&)")
     if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
     new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
   SPHERAL_HOST void push_back(DataType&& value) {
+    PDEBUG("ManagedVector::push_back(&&)")
     if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
     MA::data()[m_size] = std::move(value);
@@ -150,6 +163,7 @@ public:
   template<typename... Args>
   SPHERAL_HOST
   DataType& emplace_back(Args&&... args) {
+    PDEBUG("ManagedVector::emplace_back()")
     if (capacity() == 0) MA::allocate(initial_capacity);
     if (m_size >= capacity()) MA::reallocate(capacity() + (capacity() / 2));
 
@@ -159,12 +173,14 @@ public:
 
   SPHERAL_HOST
   void reserve(size_t size) {
+    PDEBUG("ManagedVector::reserve()")
     if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: size);
     if (size >= capacity()) MA::reallocate(size);
   }
 
   SPHERAL_HOST
   void resize(size_t size) {
+    PDEBUG("ManagedVector::resize(" << size << ")")
     const size_t old_size = m_size;
 
     if (old_size < size) {
@@ -181,6 +197,7 @@ public:
 
   SPHERAL_HOST
   void insert(iterator pos, DataType const& value) {
+    PDEBUG("ManagedVector::insert()")
     auto delta = std::distance(begin(), pos);
     if (m_size == 0) {
       push_back(value);
@@ -196,12 +213,14 @@ public:
 
   SPHERAL_HOST
   void clear() {
+    PDEBUG("ManagedVector::clear()")
     destroy(begin(), end());
     m_size = 0;
   }
 
   SPHERAL_HOST
   void erase(iterator pos) {
+    PDEBUG("ManagedVector::erase()")
     for (iterator it = pos; it < end(); it++) {
       *it = std::move(*(it + 1));
     }
@@ -217,8 +236,9 @@ public:
 
   // *******************************************************
   // Required to Allow ManagedVector to be properly CHAICopyable
-  SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { MA::operator=(nullptr); return *this; }
+  SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(std::nullptr_t) { PDEBUG("ManagedVector::operator=(nullptr)"); MA::operator=(nullptr); return *this; }
   SPHERAL_HOST_DEVICE void shallowCopy(const ManagedVector& other) {
+    PDEBUG("ManagedVector::shallowCopy()")
     m_size=other.m_size;
     MA::shallowCopy(other);
   }
@@ -260,6 +280,7 @@ private:
   size_t m_size = 0;
 
   SPHERAL_HOST void destroy(iterator first, iterator last) {
+    PDEBUG("ManagedVector::destroy()")
     if ( !std::is_trivially_destructible< DataType >::value ) {
       for (iterator it = first; it < last; it++) {
         *it = DataType(); 
@@ -267,10 +288,11 @@ private:
     }
   }
 
-  ManagedVector(MA const& managed_array) : MA(managed_array), m_size(managed_array.size()) {}
+  ManagedVector(MA const& managed_array) : MA(managed_array), m_size(managed_array.size()) { PDEBUG("ManagedVector::ManagedVector(managed_array)") }
 
   friend ManagedVector deepCopy(ManagedVector const& array)
   {
+    PDEBUG("ManagedVector::deepCopy()")
 #if 0
     DataType* data_ptr = array.getActiveBasePointer();
 
