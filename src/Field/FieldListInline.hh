@@ -148,7 +148,7 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
       mNodeListPtrs = rhs.mNodeListPtrs;
       mFieldCache = FieldCacheType();
       mNodeListIndexMap = rhs.mNodeListIndexMap;
-      FieldListViewType::mFieldPtrs = StorageType();
+      FieldListViewType::mFieldPtrs = StorageType(0);
       //mFieldBasePtrs = std::vector<BaseElementType>();
       mFieldViews().reserve(rhs.size());
       //mFieldBasePtrs.reserve(rhs.size());

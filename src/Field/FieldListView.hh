@@ -38,12 +38,12 @@ public:
   //typedef Field<Dimension, DataType>* value_type;    // STL compatibility
   using ElementType = FieldView<Dimension, DataType>;
   using value_type  = ElementType;
-  using StorageType = std::vector<ElementType>;
+  //using StorageType = std::vector<ElementType>;
   //using StorageType = ManagedVector<ElementType>;
-  //using StorageType = MVSmartRef<ElementType>;
+  using StorageType = MVSmartRef<ElementType>;
 
-  typedef typename StorageType::iterator iterator;
-  typedef typename StorageType::const_iterator const_iterator;
+  typedef typename StorageType::MV::iterator iterator;
+  typedef typename StorageType::MV::const_iterator const_iterator;
 
   // Constructors.
   SPHERAL_HOST_DEVICE FieldListView();
@@ -155,9 +155,10 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   StorageType mFieldPtrs;
 
-  StorageType & mFieldViews() { return mFieldPtrs; }
-  StorageType const& mFieldViews() const { return mFieldPtrs; }
-  //typename StorageType::MV& mFieldViews() { return *(mFieldPtrs.get()); }
+  //StorageType & mFieldViews() { return mFieldPtrs; }
+  //StorageType const& mFieldViews() const { return mFieldPtrs; }
+  typename StorageType::MV & mFieldViews() { return *(mFieldPtrs.get()); }
+  typename StorageType::MV const& mFieldViews() const { return *(mFieldPtrs.get()); }
 
 public:
   //// The master FieldListView if this is a thread copy.
