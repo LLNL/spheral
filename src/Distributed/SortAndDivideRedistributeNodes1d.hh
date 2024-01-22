@@ -49,11 +49,4 @@ private:
 
 }
 
-#else
-
-// Forward declare the SortAndDivideRedistributeNodes class.
-namespace Spheral {
-  class SortAndDivideRedistributeNodes1d;
-}
-
 #endif

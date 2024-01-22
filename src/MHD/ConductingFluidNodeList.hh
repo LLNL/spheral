@@ -180,10 +180,4 @@ class ConductingFluidNodeList: public SphNodeList<Dim<3> >
 
 } // end namespace Spheral
 
-#else
-// Forward declare the ConductingFluidNodeList class.
-namespace Spheral {
-   class ConductingFluidNodeList;
-}
-
 #endif

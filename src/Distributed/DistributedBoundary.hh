@@ -186,11 +186,4 @@ private:
 
 #include "DistributedBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class DistributedBoundary;
-}
-
 #endif

@@ -28,6 +28,7 @@ set(Material_headers
 spheral_install_python_files(
   MaterialUnits.py
   MaterialEquationsOfState.py
+  computeHugoniot.py
   )
 
 # Helmholtz

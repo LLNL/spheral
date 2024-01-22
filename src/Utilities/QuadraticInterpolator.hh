@@ -65,11 +65,4 @@ private:
 
 #include "QuadraticInterpolatorInline.hh"
 
-#else
-
-// Forward declaration
-namespace Spheral {
-  class QuadraticInterpolator;
-}
-
 #endif

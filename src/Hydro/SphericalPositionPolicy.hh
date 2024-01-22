@@ -10,13 +10,12 @@
 #ifndef __Spheral_SphericalPositionPolicy_hh__
 #define __Spheral_SphericalPositionPolicy_hh__
 
-#include <float.h>
-#include "DataBase/IncrementFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SphericalPositionPolicy: public IncrementFieldList<Dim<1>, Dim<1>::Vector> {
+class SphericalPositionPolicy: public UpdatePolicyBase<Dim<1>> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
@@ -39,19 +38,14 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
 
+  static const std::string prefix() { return "delta "; }
+
 private:
   //--------------------------- Private Interface ---------------------------//
   SphericalPositionPolicy(const SphericalPositionPolicy& rhs);
   SphericalPositionPolicy& operator=(const SphericalPositionPolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SphericalPositionPolicy;
 }
 
 #endif

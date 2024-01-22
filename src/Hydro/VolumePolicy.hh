@@ -9,17 +9,17 @@
 
 #include <string>
 
-#include "DataBase/ReplaceFieldList.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class VolumePolicy: public ReplaceFieldList<Dimension, typename Dimension::Scalar> {
+class VolumePolicy: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   VolumePolicy();
@@ -31,7 +31,7 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // We'll make the updateAsIncrement a no-op.
   virtual void updateAsIncrement(const KeyType& /*key*/,
@@ -39,10 +39,10 @@ public:
                                  StateDerivatives<Dimension>& /*derivs*/,
                                  const double /*multiplier*/,
                                  const double /*t*/,
-                                 const double /*dt*/) {}
+                                 const double /*dt*/) override {}
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -50,13 +50,6 @@ private:
   VolumePolicy& operator=(const VolumePolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class VolumePolicy;
 }
 
 #endif

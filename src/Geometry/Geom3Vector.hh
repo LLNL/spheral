@@ -115,11 +115,5 @@ std::ostream& operator<<(std::ostream& os, const Geom3Vector& vec);
 #include "Geom3VectorInline.hh"
 #endif
 
-#else
-
-namespace Spheral {
-  class Geom3Vector;
-}
-
 #endif
 

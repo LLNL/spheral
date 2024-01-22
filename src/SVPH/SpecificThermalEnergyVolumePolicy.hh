@@ -6,18 +6,17 @@
 #ifndef __Spheral_SpecificThermalEnergyVolumePolicy_hh__
 #define __Spheral_SpecificThermalEnergyVolumePolicy_hh__
 
-#include "DataBase/FieldUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 namespace Spheral {
 
 template<typename Dimension>
-class SpecificThermalEnergyVolumePolicy: 
-    public FieldUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class SpecificThermalEnergyVolumePolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   SpecificThermalEnergyVolumePolicy();
@@ -29,10 +28,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -40,13 +39,6 @@ private:
   SpecificThermalEnergyVolumePolicy& operator=(const SpecificThermalEnergyVolumePolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SpecificThermalEnergyVolumePolicy;
 }
 
 #endif

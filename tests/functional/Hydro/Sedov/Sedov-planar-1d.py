@@ -4,7 +4,7 @@
 import os, sys, shutil
 from Spheral1d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+#from SpheralGnuPlotUtilities import *
 
 import mpi
 
@@ -274,16 +274,14 @@ if crksph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
-                   interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.1,
                    specificThermalEnergyDiffusionCoefficient = 0.1,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
-                   correctVelocityGradient = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    HUpdate = HUpdate) 
 elif gsph:
     limiter = VanLeerLimiter()
@@ -331,7 +329,6 @@ packages = [hydro]
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.XSPH")
 output("hydro.HEvolution")
 
 if not gsph:

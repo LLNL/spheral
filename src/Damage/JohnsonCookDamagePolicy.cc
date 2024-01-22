@@ -26,8 +26,8 @@ namespace Spheral {
 template<typename Dimension>
 JohnsonCookDamagePolicy<Dimension>::
 JohnsonCookDamagePolicy():
-  UpdatePolicyBase<Dimension>(SolidFieldNames::flaws,
-                              SolidFieldNames::plasticStrain) {
+  UpdatePolicyBase<Dimension>({SolidFieldNames::flaws,
+                               SolidFieldNames::plasticStrain}) {
 }
 
 //------------------------------------------------------------------------------

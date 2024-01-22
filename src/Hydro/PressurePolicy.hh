@@ -7,7 +7,7 @@
 #ifndef __Spheral_PressurePolicy_hh__
 #define __Spheral_PressurePolicy_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/FieldUpdatePolicy.hh"
 
 #include <string>
 
@@ -20,12 +20,13 @@ template<typename Dimension> class FluidNodeList;
 template<typename Dimension, typename DataType> class FieldList;
 
 template<typename Dimension>
-class PressurePolicy: public FieldListUpdatePolicyBase<Dimension, typename Dimension::Scalar> {
+class PressurePolicy: public FieldUpdatePolicy<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename FieldListUpdatePolicyBase<Dimension, Scalar>::KeyType KeyType;
+  using Scalar = typename Dimension::Scalar;
+  using SymTensor = typename Dimension::SymTensor;
+  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
 
   // Constructors, destructor.
   PressurePolicy();
@@ -37,10 +38,10 @@ public:
                       StateDerivatives<Dimension>& derivs,
                       const double multiplier,
                       const double t,
-                      const double dt);
+                      const double dt) override;
 
   // Equivalence.
-  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const;
+  virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -48,13 +49,6 @@ private:
   PressurePolicy& operator=(const PressurePolicy& rhs);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PressurePolicy;
 }
 
 #endif

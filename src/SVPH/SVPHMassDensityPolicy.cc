@@ -23,8 +23,8 @@ template<typename Dimension>
 SVPHMassDensityPolicy<Dimension>::
 SVPHMassDensityPolicy(const Scalar& rhoMin,
                       const Scalar& rhoMax):
-  UpdatePolicyBase<Dimension>(HydroFieldNames::mass,
-                              SVPHFieldNames::A_SVPH),
+  UpdatePolicyBase<Dimension>({HydroFieldNames::mass,
+                               SVPHFieldNames::A_SVPH}),
   mRhoMin(rhoMin),
   mRhoMax(rhoMax) {
 }

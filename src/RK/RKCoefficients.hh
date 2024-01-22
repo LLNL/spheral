@@ -97,12 +97,6 @@ operator<<(std::ostream& os, const RKCoefficients<Dimension>& x) {
 
 }
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> struct RKCoefficients;
-}
-
 #endif
 
   

@@ -76,17 +76,58 @@ CubicHermiteInterpolator::operator()(const double x) const {
 inline
 double
 CubicHermiteInterpolator::operator()(const double x,
-                                       const size_t i0) const {
+                                     const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
   const auto t3 = t*t2;
   return ((2.0*t3 - 3.0*t2 + 1.0)*mVals[i0] +          // h00
-          (-2.0*t3 + 3.0*t2)*mVals[i0 + 1] +           // h01
+          (-2.0*t3 + 3.0*t2)*mVals[i0 + 1u] +           // h01
           mXstep*((t3 - 2.0*t2 + t)*mVals[mN + i0] +   // h10
                   (t3 - t2)*mVals[mN + i0 + 1u]));     // h11
-  // return (h00(t)*mVals[i0] + h01(t)*mVals[i0 + 1u] + 
-  //         mXstep*(h10(t)*mVals[mN + i0] + h11(t)*mVals[mN + i0 + 1u]));
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for dy/dx
+//------------------------------------------------------------------------------
+inline
+double
+CubicHermiteInterpolator::prime(const double x) const {
+  const auto i0 = lowerBound(x);
+  return this->prime(x, i0);
+}
+
+inline
+double
+CubicHermiteInterpolator::prime(const double x,
+                                const size_t i0) const {
+  REQUIRE(i0 <= mN - 2u);
+  const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
+  const auto t2 = t*t;
+  return (6.0*(t2 - t)*(mVals[i0] - mVals[i0 + 1u])/mXstep +
+          (3.0*t2 - 4.0*t + 1.0)*mVals[mN + i0] +
+          (3.0*t2 - 2.0*t)*mVals[mN + i0 + 1u]);
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for d^2y/dx^2
+//------------------------------------------------------------------------------
+inline
+double
+CubicHermiteInterpolator::prime2(const double x) const {
+  const auto i0 = lowerBound(x);
+  return this->prime2(x, i0);
+}
+
+inline
+double
+CubicHermiteInterpolator::prime2(const double x,
+                                 const size_t i0) const {
+  REQUIRE(i0 <= mN - 2u);
+  const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
+  return 2.0*(3.0*(2.0*t - 1.0)*(mVals[i0] - mVals[i0 + 1u])/mXstep +
+              (3.0*t - 2.0)*mVals[mN + i0] +
+              (3.0*t - 1.0)*mVals[mN + i0 + 1u])/mXstep;
 }
 
 //------------------------------------------------------------------------------

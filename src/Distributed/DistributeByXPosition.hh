@@ -43,10 +43,4 @@ private:
 
 }
 
-#else
-// Forward declare the DistributeByXPosition class.
-namespace Spheral {
-  template<typename Dimension> class DistributeByXPosition;
-}
-
 #endif

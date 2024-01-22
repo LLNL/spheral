@@ -32,21 +32,17 @@ struct SolidFieldNames {
   static const std::string maxFlaw;
   static const std::string initialVolume;
   static const std::string randomGenerator;
+  static const std::string porositySolidDensity;
   static const std::string porosityAlpha;
   static const std::string porosityStrain;
   static const std::string porosityAlpha0;
   static const std::string porosityc0;
+  static const std::string fDSjutzi;
   static const std::string fragmentIDs;
   static const std::string particleTypes;
   static const std::string meltSpecificEnergy;
 };
 
-}
-
-#else
-
-namespace Spheral {
-  struct SolidFieldNames;
 }
 
 #endif

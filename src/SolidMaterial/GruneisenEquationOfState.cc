@@ -80,7 +80,29 @@ setPressure(Field<Dimension, Scalar>& pressure,
   const auto n = massDensity.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    pressure(i) = std::get<0>(this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i)));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GruneisenEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+  CHECK(valid());
+  const auto n = massDensity.size();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const auto stuff = this->pressureAndDerivs(massDensity(i), specificThermalEnergy(i));
+    pressure(i) = std::get<0>(stuff);
+    dPdu(i) = std::get<1>(stuff);
+    dPdrho(i) = std::get<2>(stuff);
   }
 }
 
@@ -195,18 +217,18 @@ setEntropy(Field<Dimension, Scalar>& entropy,
   const auto n = massDensity.size();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    entropy(i) = pressure(massDensity(i), specificThermalEnergy(i))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
+    entropy(i) = std::get<0>(pressureAndDerivs(massDensity(i), specificThermalEnergy(i)))*safeInvVar(pow(massDensity(i), gamma(massDensity(i), specificThermalEnergy(i))));
   }
 }
 
 //------------------------------------------------------------------------------
-// Calculate an individual pressure.
+// Calculate an individual pressure with partial derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-typename Dimension::Scalar
+std::tuple<typename Dimension::Scalar, typename Dimension::Scalar, typename Dimension::Scalar>
 GruneisenEquationOfState<Dimension>::
-pressure(const Scalar massDensity,
-         const Scalar specificThermalEnergy) const {
+pressureAndDerivs(const Scalar massDensity,
+                  const Scalar specificThermalEnergy) const {
   CHECK(valid());
   const double tiny = 1.0e-20;
   const double eta = this->boundedEta(massDensity);
@@ -216,23 +238,28 @@ pressure(const Scalar massDensity,
   const double eps = mEnergyMultiplier*specificThermalEnergy;
 
   //TODO double check branching and apply eta convention in appropriate branch
-  // if (mu <= 0.0 or specificThermalEnergy < 0.0) {
-  //   return this->applyPressureLimits(K0*mu + mgamma0*rho0*eps);
+  if (mu <= 0.0 or eps < 0.0) {
+    return std::make_tuple(this->applyPressureLimits(K0*mu + mgamma0*rho0*eps),    // P
+                           mgamma0*rho0,                                           // \partial P/\partial eps
+                           K0);                                                    // \partial P/\partial rho
 
-  // } else {
-    const double mu1 = mu + 1.0;
-    CHECK(mu1 >= -1.0);
-    const double ack = 1.0/(sgn(mu1)*max(mu1, tiny));
-    const double thpt1 = mu*mu*ack;
-    const double thpt2 = thpt1*mu*ack;
+  } else {
+    CHECK(eta >= -1.0);
+    const double etaInv = safeInvVar(eta, tiny);
+    const double ack = mu*etaInv;
+    const double thpt1 = mu*mu*etaInv;
+    const double thpt2 = thpt1*mu*etaInv;
+    const double A = K0*mu*(eta - 0.5*mgamma0*mu - 0.5*mb*mu*mu);
+    const double dAdrho = mC0*mC0*(eta + (1.0 - mgamma0)*mu - 1.5*mb*mu*mu);
     const double D = 1.0 - (mS1 - 1.0)*mu - mS2*thpt1 - mS3*thpt2;
-    const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
-    return this->applyPressureLimits((K0*mu*(eta - 0.5*mgamma0*mu - 0.5*mb*mu*mu)*Dinv*Dinv +
-                                      (mgamma0 + mb*mu)*eps*rho0));
+    const double Dinv = safeInvVar(D, tiny);
+    const double dDdrho = (1.0 - mS1 - mS2*ack*(2.0 - ack) - mS3*ack*ack*(3.0 - 2.0*ack))/rho0;
+    return std::make_tuple(this->applyPressureLimits(A*Dinv*Dinv + (mgamma0 + mb*mu)*rho0*eps), // P
+                           (mgamma0 + mb*mu)*rho0,                                              // \partial P/\partial eps
+                           (D*dAdrho - 2.0*A*dDdrho)*FastMath::pow3(Dinv) + mb*eps);            // \partial P/\partial rho
     // return this->applyPressureLimits((K0*mu*(1.0 + (1.0 - 0.5*mgamma0)*mu - 0.5*mb*mu*mu)*Dinv*Dinv + 
-    //                                   (mgamma0 + mb*mu)*eps*rho0));
-  // }
-
+    //                                   (mgamma0 + mb*mu)*rho0*eps));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -328,7 +355,7 @@ GruneisenEquationOfState<Dimension>::
 entropy(const Scalar massDensity,
         const Scalar specificThermalEnergy) const {
   CHECK(valid());
-  return this->pressure(massDensity, specificThermalEnergy)*
+  return std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))*
     safeInvVar(pow(massDensity, gamma(massDensity, specificThermalEnergy)));
 }
 
@@ -345,36 +372,43 @@ typename Dimension::Scalar
 GruneisenEquationOfState<Dimension>::
 computeDPDrho(const Scalar massDensity,
               const Scalar specificThermalEnergy) const {
-  CHECK(valid());
-  const double tiny = 1.0e-20;
-  const double eta = this->boundedEta(massDensity);
-  const double mu = eta - 1.0;
-  const double rho0 = this->referenceDensity();
-  const double rho = rho0*eta;
-  const double eps = mEnergyMultiplier*specificThermalEnergy;
+  const double eta = this->boundedEta(massDensity),
+               rho0 = this->referenceDensity(),
+               rho = rho0*eta;
+  const auto [P, dPdeps, dPdrho] = this->pressureAndDerivs(massDensity, specificThermalEnergy);  // Note, requires C++17
+  const auto dPdrho_ad = dPdrho + dPdeps*P/(rho*rho);
+  return std::abs(dPdrho_ad);
 
-  double ack;
-  if (mu <= 0.0) {
-    ack = 1.0;
-  } else {
-    const double N = (1.0 + (1.0 - 0.5*mgamma0 - 0.5*mb*mu)*mu)*mu;
-    const double x = mu/(1.0 + mu);
-    const double D = 1.0 - (mS1 - 1.0 + (mS2 + mS3*x)*x)*mu;
-    const double dNdmu = 1.0 + (2.0 - mgamma0 - 1.5*mb*mu)*mu;
-    const double dDdmu = - (mS1 - 1.0 + (mS2*(mu + 2.0) + mS3*(mu + 3.0)*x)*x/(1.0 + mu));
-    const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
-    ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(Dinv));
-  }
-  CHECK(ack >= 0.0);
-  const double dpdrho_cold = mC0*mC0*ack;
+  // CHECK(valid());
+  // const double tiny = 1.0e-20;
+  // const double eta = this->boundedEta(massDensity);
+  // const double mu = eta - 1.0;
+  // const double rho0 = this->referenceDensity();
+  // const double rho = rho0*eta;
+  // const double eps = mEnergyMultiplier*specificThermalEnergy;
 
-  // Put the whole thing together, depending on the thermal energy.
-  if (mu <= 0.0 or eps < 0.0) {
-    return dpdrho_cold;
-  } else {
-    const double Prho2 = this->pressure(massDensity, specificThermalEnergy)/(rho*rho);
-    return std::max(0.0, dpdrho_cold + max(0.0, mb*eps + mb*Prho2));
-  }
+  // double ack;
+  // if (mu <= 0.0) {
+  //   ack = 1.0;
+  // } else {
+  //   const double N = (1.0 + (1.0 - 0.5*mgamma0 - 0.5*mb*mu)*mu)*mu;
+  //   const double x = mu/(1.0 + mu);
+  //   const double D = 1.0 - (mS1 - 1.0 + (mS2 + mS3*x)*x)*mu;
+  //   const double dNdmu = 1.0 + (2.0 - mgamma0 - 1.5*mb*mu)*mu;
+  //   const double dDdmu = - (mS1 - 1.0 + (mS2*(mu + 2.0) + mS3*(mu + 3.0)*x)*x/(1.0 + mu));
+  //   const double Dinv = 1.0/(sgn(D)*max(abs(D), tiny));
+  //   ack = max(0.0, (dNdmu*D - 2.0*N*dDdmu)*FastMath::cube(Dinv));
+  // }
+  // CHECK(ack >= 0.0);
+  // const double dpdrho_cold = mC0*mC0*ack;
+
+  // // Put the whole thing together, depending on the thermal energy.
+  // if (mu <= 0.0 or eps < 0.0) {
+  //   return dpdrho_cold;
+  // } else {
+  //   const double Prho2 = std::get<0>(this->pressureAndDerivs(massDensity, specificThermalEnergy))/(rho*rho);
+  //   return std::max(0.0, dpdrho_cold + max(0.0, mb*eps + mb*Prho2));
+  // }
 }
 
 //------------------------------------------------------------------------------

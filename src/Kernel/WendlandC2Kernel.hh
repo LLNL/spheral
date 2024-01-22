@@ -39,11 +39,4 @@ public:
 
 #include "WendlandC2KernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class WendlandC2Kernel;
-}
-
 #endif

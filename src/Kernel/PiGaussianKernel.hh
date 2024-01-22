@@ -55,11 +55,4 @@ private:
 
 #include "PiGaussianKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PiGaussianKernel;
-}
-
 #endif

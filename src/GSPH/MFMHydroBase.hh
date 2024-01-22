@@ -145,11 +145,4 @@ private:
 
 #include "MFMHydroBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class MFMHydroBase;
-}
-
 #endif

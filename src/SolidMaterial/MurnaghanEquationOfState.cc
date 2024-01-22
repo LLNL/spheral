@@ -79,6 +79,30 @@ setPressure(Field<Dimension, Scalar>& pressure,
 }
 
 //------------------------------------------------------------------------------
+// Set the pressure and derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+MurnaghanEquationOfState<Dimension>::
+setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,
+                     Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                     Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                     const Field<Dimension, Scalar>& massDensity,
+                     const Field<Dimension, Scalar>& specificThermalEnergy) const {
+
+  REQUIRE(valid());
+  const auto n = Pressure.size();
+  const auto rho0 = this->referenceDensity();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
+    const double eta = this->boundedEta(massDensity(i));
+    Pressure(i) = this->pressure(massDensity(i), specificThermalEnergy(i));
+    dPdu(i) = 0.0;
+    dPdrho(i) = mn*mnKi*pow(eta, mn - 1.0)/rho0;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Set the temperature.
 //------------------------------------------------------------------------------
 template<typename Dimension>

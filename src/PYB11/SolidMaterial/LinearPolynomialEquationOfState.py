@@ -44,10 +44,17 @@ linear polynomial, i.e.:
     #...........................................................................
     # Methods
     @PYB11const
+    @PYB11implementation("[](const LinearPolynomialEquationOfState<%(Dimension)s>& self, const Scalar& rho, const Scalar& eps) { return std::get<0>(self.pressureAndDerivs(rho, eps)); }")
     def pressure(self,
                  massDensity = "const Scalar",
                  specificThermalEnergy = "const Scalar"):
         return "Scalar"
+
+    @PYB11const
+    def pressureAndDerivs(self,
+                          massDensity = "const Scalar",
+                          specificThermalEnergy = "const Scalar"):
+        return "std::tuple<Scalar, Scalar, Scalar>"
 
     @PYB11const
     def temperature(self,
@@ -113,4 +120,4 @@ linear polynomial, i.e.:
 #-------------------------------------------------------------------------------
 # Inject EOS interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, LinearPolynomialEquationOfState, virtual=True, pure_virtual=False)
+PYB11inject(EOSAbstractMethods, LinearPolynomialEquationOfState, virtual=True)

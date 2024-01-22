@@ -7,26 +7,20 @@
 #ifndef __Spheral_IncrementPairFieldList_hh__
 #define __Spheral_IncrementPairFieldList_hh__
 
-#include "DataBase/FieldListUpdatePolicyBase.hh"
+#include "DataBase/UpdatePolicyBase.hh"
 
 namespace Spheral {
 
 template<typename Dimension, typename ValueType>
-class IncrementPairFieldList: public FieldListUpdatePolicyBase<Dimension, ValueType> {
+class IncrementPairFieldList: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // pull up from the parent
-  typedef typename  FieldListUpdatePolicyBase<Dimension, ValueType>::KeyType KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  IncrementPairFieldList();
-  explicit IncrementPairFieldList(const std::string& depend0);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4);
-  IncrementPairFieldList(const std::string& depend0, const std::string& depend1, const std::string& depend2, const std::string& depend3, const std::string& depend4, const std::string& depend5);
-  virtual ~IncrementPairFieldList();
+  IncrementPairFieldList(std::initializer_list<std::string> depends = {});
+  virtual ~IncrementPairFieldList() {}
   
   static const std::string prefix() { return "delta "; }
   
@@ -47,13 +41,6 @@ private:
 
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename ValueType> class IncrementPairFieldList;
 }
 
 #endif

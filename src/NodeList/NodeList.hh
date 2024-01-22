@@ -42,13 +42,13 @@ class NodeList {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename std::vector<FieldBase<Dimension>*>::iterator FieldBaseIterator;
-  typedef typename std::vector<FieldBase<Dimension>*>::const_iterator const_FieldBaseIterator;
+  using FieldBaseIterator = typename std::vector<FieldBase<Dimension>*>::iterator;
+  using const_FieldBaseIterator = typename std::vector<FieldBase<Dimension>*>::const_iterator;
 
   // Constructors
   explicit NodeList(std::string name,
@@ -227,11 +227,5 @@ private:
 }
 
 #include "NodeListInline.hh"
-
-#else
-// Forward declare the NodeList class.
-namespace Spheral {
-  template<typename Dimension> class NodeList;
-}
 
 #endif

@@ -46,11 +46,4 @@ protected:
 
 #include "AllNodeIteratorInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class AllNodeIterator;
-}
-
 #endif

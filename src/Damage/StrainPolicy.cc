@@ -35,11 +35,11 @@ namespace Spheral {
 template<typename Dimension>
 StrainPolicy<Dimension>::
 StrainPolicy():
-  UpdatePolicyBase<Dimension>(HydroFieldNames::position,
-                              HydroFieldNames::H,
-                              SolidFieldNames::YoungsModulus,
-                              HydroFieldNames::pressure,
-                              SolidFieldNames::deviatoricStress) {
+  UpdatePolicyBase<Dimension>({HydroFieldNames::position,
+                               HydroFieldNames::H,
+                               SolidFieldNames::YoungsModulus,
+                               HydroFieldNames::pressure,
+                               SolidFieldNames::deviatoricStress}) {
 }
 
 //------------------------------------------------------------------------------
@@ -65,37 +65,32 @@ update(const KeyType& key,
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == SolidFieldNames::strain);
-  Field<Dimension, Scalar>& stateField = state.field(key, 0.0);
+  auto& stateField = state.field(key, 0.0);
 
-  const double tiny = 1.0e-30;
+  const auto tiny = 1.0e-30;
 
   // Get the state fields.
-  const KeyType EKey = State<Dimension>::buildFieldKey(SolidFieldNames::YoungsModulus, nodeListKey);
-  const KeyType PKey = State<Dimension>::buildFieldKey(HydroFieldNames::pressure, nodeListKey);
-  const KeyType stressKey = State<Dimension>::buildFieldKey(SolidFieldNames::deviatoricStress, nodeListKey);
-  CHECK(state.registered(EKey));
-  CHECK(state.registered(PKey));
-  CHECK(state.registered(stressKey));
-
-  const Field<Dimension, Scalar>& E = state.field(EKey, 0.0);
-  const Field<Dimension, Scalar>& P = state.field(PKey, 0.0);
-  const Field<Dimension, SymTensor>& S = state.field(stressKey, SymTensor::zero);
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
+  const auto& E = state.field(buildKey(SolidFieldNames::YoungsModulus), 0.0);
+  const auto& P = state.field(buildKey(HydroFieldNames::pressure), 0.0);
+  const auto& S = state.field(buildKey(SolidFieldNames::deviatoricStress), SymTensor::zero);
 
   // Iterate over the internal nodes.
-  for (auto i = 0u; i != stateField.numInternalElements(); ++i) {
+  const auto n = stateField.numInternalElements();
+#pragma omp parallel for
+  for (auto i = 0u; i < n ; ++i) {
 
     // Compute the maximum tensile stress.
 //     Scalar Pi = P(i);
 //     if (Pi < 0.0) Pi *= 1.0 - D(i);
-    const SymTensor sigmai = S(i) - P(i)*SymTensor::one;
-    const Scalar sigmati = max(0.0, sigmai.eigenValues().maxElement());
+    const auto sigmai = S(i) - P(i)*SymTensor::one;
+    const auto sigmati = max(0.0, sigmai.eigenValues().maxElement());
     CHECK(sigmati >= 0.0);
 
     // Compute the initial strain for this node.
     CHECK(E(i) >= 0.0);
     stateField(i) = sigmati/(E(i) + tiny*max(1.0, sigmati));
     CHECK(stateField(i) >= 0.0);
-
   }
 }
 
@@ -106,14 +101,7 @@ template<typename Dimension>
 bool
 StrainPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
-
-  // We're only equal if the other guy is also an increment operator.
-  const StrainPolicy<Dimension>* rhsPtr = dynamic_cast<const StrainPolicy<Dimension>*>(&rhs);
-  if (rhsPtr == 0) {
-    return false;
-  } else {
-    return true;
-  }
+  return dynamic_cast<const StrainPolicy<Dimension>*>(&rhs) != nullptr;
 }
 
 }

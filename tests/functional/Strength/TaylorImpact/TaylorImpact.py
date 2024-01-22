@@ -445,7 +445,7 @@ elif fsisph:
     hydro = FSISPH(dataBase = db,
                 W = WT,
                 cfl = cfl, 
-                correctVelocityGradient = correctVelocityGradient,
+                linearCorrectGradients = correctVelocityGradient,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
                 HUpdate = HUpdate,

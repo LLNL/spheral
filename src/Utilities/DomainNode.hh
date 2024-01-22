@@ -51,9 +51,4 @@ struct DomainNode {
 
 #include "DomainNodeInline.hh"
 
-#else
-namespace Spheral {
-  template<typename Dimension> struct DomainNode;
-}
-
 #endif

@@ -83,6 +83,9 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
+  // An optional hook to initialize once when the problem is starting up.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
   //............................................................................
   // Accessors for state
   double minPlasticFailure() const;
@@ -125,13 +128,6 @@ private:
 }
 
 #include "IvanoviSALEDamageModelInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class IvanoviSALEDamageModel;
-}
 
 #endif
 

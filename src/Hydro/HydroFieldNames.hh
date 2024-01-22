@@ -34,6 +34,8 @@ struct HydroFieldNames {
   static const std::string massSecondMoment;
   static const std::string weightedNeighborSum;
   static const std::string pressure;
+  static const std::string partialPpartialEps;
+  static const std::string partialPpartialRho;
   static const std::string temperature;
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
@@ -67,12 +69,6 @@ struct HydroFieldNames {
   static const std::string surfaceArea;
 };
 
-}
-
-#else
-
-namespace Spheral {
-  struct HydroFieldNames;
 }
 
 #endif

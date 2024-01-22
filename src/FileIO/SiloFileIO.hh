@@ -113,11 +113,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SiloFileIO;
-}
-
 #endif
