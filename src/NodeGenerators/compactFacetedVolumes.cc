@@ -38,9 +38,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
   VERIFY(centers.size() == nshapes);
   VERIFY(flags.size() == nshapes);
 
+#ifdef USE_MPI
   // Only proceed if there's work to do!
   int flagmax = *max_element(flags.begin(), flags.end());
-#ifdef USE_MPI
   if (allReduce(flagmax, MPI_MAX, Communicator::communicator()) != 2) return 0;
 #endif
 

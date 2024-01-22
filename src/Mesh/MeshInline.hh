@@ -373,6 +373,8 @@ minimumScale() const {
   }
 #ifdef USE_MPI
   result = allReduce(0.5*sqrt(result), MPI_MIN, Communicator::communicator());
+#else
+  result = 0.5*sqrt(result);
 #endif
 
   // That's it.
@@ -395,6 +397,8 @@ minimumScale() const {
   }
 #ifdef USE_MPI
   result = allReduce(0.5*result, MPI_MIN, Communicator::communicator());
+#else
+  result = 0.5*result;
 #endif
 
   // That's it.
