@@ -6,6 +6,20 @@
 #include "LvArray/ChaiBuffer.hpp"
 #include "chai/ManagedArray.hpp"
 
+#include <cstdint>
+
+constexpr uint32_t pow2_ceil(uint32_t v) {
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+
+    return v;
+}
+
 namespace Spheral {
 
 //#define MV_VALUE_SEMANTICS
@@ -17,7 +31,7 @@ class ManagedVector:
 
 public:
 
-  static constexpr size_t initial_capacity = 8u;
+  inline static constexpr size_t initial_capacity = 8u;
 
   using MA::setUserCallback;
 
@@ -169,7 +183,8 @@ public:
 
     if (old_size < size) {
       if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: size);
-      else if (capacity() < size) MA::reallocate(size);
+      else if (capacity() < size) MA::reallocate(pow2_ceil(size));
+      //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
       for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
     }
     if (old_size > size) {
