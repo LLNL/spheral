@@ -42,7 +42,7 @@ TEST(ManagedVectorTest, SizeConstructor)
   // are above initial_capacity
   MVDouble array2(MVDouble::initial_capacity + 1);
   SPHERAL_ASSERT_EQ(array2.size(),     MVDouble::initial_capacity + 1);
-  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity + 1);
+  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity * 2);
 }
 
 
@@ -128,7 +128,8 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ManagedPtrArrayTest)
   SPHERAL_ASSERT_EQ(&array[15], &copy_array[15]);
   SPHERAL_ASSERT_EQ(array.size(), copy_array.size());
 
-  Spheral::MVSmartRef deep_copy_array = Spheral::make_MVSmartRef<double>(deepCopy(*array.get()));
+  Spheral::MVSmartRef deep_copy_array = deepCopy(array);
+  //Spheral::MVSmartRef deep_copy_array = Spheral::make_MVSmartRef<double>(deepCopy(*array.get()));
   SPHERAL_ASSERT_EQ(array.size(), deep_copy_array.size());
 
   RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,array.size()),
@@ -257,7 +258,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, PushBackDefault)
     }
   );
 
-  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity + (MVDouble::initial_capacity / 2) );
+  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity * 2);
 }
 
 TEST(ManagedVectorTest, PushBackMove)
@@ -278,7 +279,7 @@ TEST(ManagedVectorTest, PushBackMove)
   for(size_t i = 0; i < array2.size(); i++)
     SPHERAL_ASSERT_EQ(array2[i], i);
 
-  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity + (MVDouble::initial_capacity / 2) );
+  SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity * 2);
 }
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc)
@@ -297,7 +298,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc)
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     SPHERAL_ASSERT_EQ(array.size(),     10);
-    SPHERAL_ASSERT_EQ(array.capacity(), 10);
+    SPHERAL_ASSERT_EQ(array.capacity(), 16);
   EXEC_IN_SPACE_END()
 
   MVDouble array2(4);
@@ -332,7 +333,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerRealloc)
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array.size(),     12);
-  SPHERAL_ASSERT_EQ(array.capacity(), 12);
+  SPHERAL_ASSERT_EQ(array.capacity(), 16);
   EXEC_IN_SPACE_END()
 }
 
