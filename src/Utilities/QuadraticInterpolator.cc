@@ -27,7 +27,7 @@ QuadraticInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(mN1 + 1u);
-  mCoeffs().resize(3*(mN1 + 1u));
+  mcoeffs.resize(3*(mN1 + 1u));
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;

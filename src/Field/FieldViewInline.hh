@@ -521,8 +521,8 @@ bool
 FieldView<Dimension, DataType>::
 operator==(const FieldView<Dimension, DataType>& rhs) const {
   if (&rhs == this) return true;
-  //return mDataArray == rhs.mDataArray;
-  return mFieldPtr == rhs.mFieldPtr;
+  return mDataArray == rhs.mDataArray;
+  //return mFieldPtr == rhs.mFieldPtr;
 }
 
 //------------------------------------------------------------------------------

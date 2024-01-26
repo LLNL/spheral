@@ -59,11 +59,6 @@ protected:
   double mXmin, mXmax, mXstep;
   CoeffsType mcoeffs;
 
-  //CoeffsType & mcoeffs() { return mcoeffs; }
-  //CoeffsType const& mcoeffs() const { return mcoeffs; }
-  typename CoeffsType::MV & mCoeffs() { return *(mcoeffs.get()); }
-  typename CoeffsType::MV const& mCoeffs() const { return *(mcoeffs.get()); }
-  
 };
 
 }

@@ -155,10 +155,8 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   StorageType mFieldPtrs;
 
-  //StorageType & mFieldViews() { return mFieldPtrs; }
-  //StorageType const& mFieldViews() const { return mFieldPtrs; }
-  typename StorageType::MV & mFieldViews() { return *(mFieldPtrs.get()); }
-  typename StorageType::MV const& mFieldViews() const { return *(mFieldPtrs.get()); }
+  //typename StorageType::MV & mFieldViews() { return *(mFieldPtrs.get()); }
+  //typename StorageType::MV const& mFieldViews() const { return *(mFieldPtrs.get()); }
 
 public:
   //// The master FieldListView if this is a thread copy.

@@ -134,7 +134,7 @@ operator==(const QuadraticInterpolatorView& rhs) const {
   return ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and
-          (mCoeffs() == rhs.mCoeffs()));
+          (mcoeffs == rhs.mcoeffs));
 }
 
 }

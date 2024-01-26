@@ -182,17 +182,18 @@ public:
   void resize(size_t size) {
     const size_t old_size = m_size;
 
-    if (old_size < size) {
-      if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size));
-      else if (capacity() < size) MA::reallocate(pow2_ceil(size));
-      //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
-      for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
+    if (old_size != size){
+      if (old_size < size) {
+        if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size));
+        else if (capacity() < size) MA::reallocate(pow2_ceil(size));
+        //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
+        for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
+      }
+      if (old_size > size) {
+        destroy(begin() + old_size, begin() + size);
+      }
+      m_size = size;
     }
-    if (old_size > size) {
-      destroy(begin() + old_size, begin() + size);
-    }
-
-    m_size = size;
   }
 
   SPHERAL_HOST
@@ -319,88 +320,72 @@ private:
 };
 
 template<typename T>
-class MVSmartRef : public chai::CHAICopyable
+class ManagedSmartPtr : public chai::CHAICopyable
 {
 public:
-  using MV = Spheral::ManagedVector<T>;
 
-  using iterator = MV*;
-  using const_iterator = const MV*;
-
-  iterator begin() { return m_ptr.begin(); }
-  const_iterator begin() const { return m_ptr.begin(); }
-
-  iterator end() { return begin() + size(); }
-  const_iterator end() const { return begin() + size(); }
-
-  SPHERAL_HOST_DEVICE MVSmartRef() {
+  SPHERAL_HOST_DEVICE ManagedSmartPtr() {
 #if !defined(SPHERAL_GPU_ACTIVE) 
     //m_ref_count = new size_t(0);
 #endif // SPHERAL_GPU_ACTIVE
   }
 
   template<typename... Args>
-  SPHERAL_HOST MVSmartRef(Args... args) {
+  SPHERAL_HOST ManagedSmartPtr(Args... args) {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    m_ptr = chai::ManagedArray<MV>(1);
-    m_ptr[0] = MV(args...);
+    m_ptr = chai::ManagedArray<T>(1);
+    m_ptr[0] = T(args...);
     m_ptr.registerTouch(chai::CPU);
     m_ref_count = new size_t(1);
 #endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST_DEVICE MVSmartRef& operator=(MVSmartRef const& rhs) {
+  SPHERAL_HOST_DEVICE ManagedSmartPtr& operator=(ManagedSmartPtr const& rhs) {
     if (this != &rhs) {
       if (m_ptr != rhs.m_ptr) discontinue_ownership();
       m_ptr = rhs.m_ptr;
       m_ref_count = rhs.m_ref_count;
-      if (m_ref_count != nullptr) (*m_ref_count)++;
+      increment_ref_count();
     }
     return *this;
   }
 
-  SPHERAL_HOST_DEVICE MVSmartRef(MVSmartRef const& rhs) : m_ptr(rhs.m_ptr), m_ref_count(rhs.m_ref_count) {
-#if !defined(SPHERAL_GPU_ACTIVE) 
-    if (m_ref_count != nullptr) {
-      (*m_ref_count)++;
-    }
-#endif // SPHERAL_GPU_ACTIVE
+  SPHERAL_HOST_DEVICE ManagedSmartPtr(ManagedSmartPtr const& rhs) : m_ptr(rhs.m_ptr), m_ref_count(rhs.m_ref_count) {
+    increment_ref_count();
   }
 
-  SPHERAL_HOST_DEVICE T& operator[](size_t idx) {return m_ptr[0].operator[](idx); }
-  SPHERAL_HOST_DEVICE T& operator[](size_t idx) const {return m_ptr[0].operator[](idx); }
-  SPHERAL_HOST_DEVICE size_t size() const { return (m_ref_count) ? m_ptr[0].size() : 0; }
-
-  SPHERAL_HOST void resize(size_t sz) {
-    move(chai::CPU);
-    m_ptr[0].resize(sz); 
-    m_ptr.registerTouch(chai::CPU);
-  }
+  //SPHERAL_HOST_DEVICE T& operator[](size_t idx) {return m_ptr[0].operator[](idx); }
+  //SPHERAL_HOST_DEVICE T& operator[](size_t idx) const {return m_ptr[0].operator[](idx); }
 
   SPHERAL_HOST void move(chai::ExecutionSpace space, bool touch = true) const { 
     m_ptr[0].move(space, touch);
   }
 
-  SPHERAL_HOST_DEVICE MV* get() const { return (m_ref_count) ? &m_ptr[0] : nullptr; }
+  SPHERAL_HOST_DEVICE T* get() const { return (m_ref_count) ? &m_ptr[0] : nullptr; }
+  SPHERAL_HOST_DEVICE T* operator->() { return get(); }
+  SPHERAL_HOST_DEVICE T* operator->() const { return get(); }
+  SPHERAL_HOST_DEVICE T& operator*() { return *get(); }
+  SPHERAL_HOST_DEVICE T& operator*() const { return *get(); }
 
-  SPHERAL_HOST_DEVICE ~MVSmartRef() {
-#if !defined(SPHERAL_GPU_ACTIVE) 
+  SPHERAL_HOST_DEVICE ~ManagedSmartPtr() {
     discontinue_ownership();
-#endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST_DEVICE MVSmartRef& operator=(std::nullptr_t) { m_ref_count=nullptr; m_ptr=nullptr; return *this; }
-  SPHERAL_HOST_DEVICE void shallowCopy(MVSmartRef const& rhs) {
+  SPHERAL_HOST_DEVICE ManagedSmartPtr& operator=(std::nullptr_t) { m_ref_count=nullptr; m_ptr=nullptr; return *this; }
+  SPHERAL_HOST_DEVICE void shallowCopy(ManagedSmartPtr const& rhs) {
     *this = rhs;
   }
 
-  //template<typename... Args>
-  //friend MVSmartRef& make_MVSmartRef(Args... args);
-private:
-  chai::ManagedArray<MV> m_ptr;
-  size_t* m_ref_count = nullptr;
+protected:
 
-  void discontinue_ownership() {
+  SPHERAL_HOST_DEVICE void increment_ref_count() {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    if (m_ref_count != nullptr) (*m_ref_count)++;
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  SPHERAL_HOST_DEVICE void discontinue_ownership() {
+#if !defined(SPHERAL_GPU_ACTIVE) 
     if (m_ref_count != nullptr){
       (*m_ref_count)--;
       if (*m_ref_count == 0)
@@ -411,7 +396,110 @@ private:
         m_ref_count = nullptr;
       }
     }
+#endif // SPHERAL_GPU_ACTIVE
   }
+
+  friend ManagedSmartPtr deepCopy(ManagedSmartPtr const& rhs)
+  {
+    // TODO : not safe
+    return ManagedSmartPtr(deepCopy(rhs.m_ptr[0]));
+  }
+
+  friend bool compare(ManagedSmartPtr const& lhs, ManagedSmartPtr const& rhs)
+  {
+    // TODO : not safe
+    return compare(lhs.m_ptr[0], rhs.m_ptr[0]);
+  }
+
+  chai::ManagedArray<T> m_ptr;
+  size_t* m_ref_count = nullptr;
+
+};
+
+
+
+template<typename T>
+class MVSmartRef : public ManagedSmartPtr<ManagedVector<T>>
+{
+  using Base = ManagedSmartPtr<ManagedVector<T>>;
+  ManagedVector<T> & mv() { return Base::m_ptr[0]; }
+  ManagedVector<T> const& mv() const { return Base::m_ptr[0]; }
+
+public:
+
+  using Base::operator->;
+  using Base::operator*;
+  using Base::get;
+  using Base::move;
+
+  using MV = Spheral::ManagedVector<T>;
+
+  template<typename... Args>
+  MVSmartRef(Args... args) : Base(args...) {}
+  
+  using iterator = typename MV::iterator;
+  using const_iterator = typename MV::const_iterator;
+
+  iterator begin() { return mv().begin(); }
+  const_iterator begin() const { return mv().begin(); }
+
+  iterator end() { return begin() + size(); }
+  const_iterator end() const { return begin() + size(); }
+
+  SPHERAL_HOST_DEVICE T& operator[](size_t idx) {return mv()[idx]; }
+  SPHERAL_HOST_DEVICE T& operator[](size_t idx) const {return mv()[idx]; }
+
+  SPHERAL_HOST_DEVICE size_t size() const { return mv().size(); }
+
+  SPHERAL_HOST void resize(size_t sz) {
+    move(chai::CPU);
+    mv().resize(sz);
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+
+  SPHERAL_HOST
+  void insert(iterator pos, DataType const& value) {
+    move(chai::CPU);
+    mv().insert(pos, value);
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+
+  SPHERAL_HOST void push_back(DataType&& value) {
+    move(chai::CPU);
+    mv().push_back(value);
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+  
+  SPHERAL_HOST
+  void reserve(size_t c) {
+    move(chai::CPU);
+    mv().reserve(c);
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+  
+  SPHERAL_HOST
+  void clear() {
+    move(chai::CPU);
+    mv().clear();
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+
+  SPHERAL_HOST
+  void erase(iterator pos) {
+    move(chai::CPU);
+    mv().erase();
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+
+  SPHERAL_HOST_DEVICE MVSmartRef& operator=(std::nullptr_t) { Base::operator=(nullptr); return *this; }
+  SPHERAL_HOST_DEVICE void shallowCopy(MVSmartRef const& rhs) {
+    Base::shallowCopy(rhs);
+  }
+
+  SPHERAL_HOST_DEVICE bool operator==(MVSmartRef const& rhs) const { return (mv() == rhs.mv()); }
+  SPHERAL_HOST_DEVICE bool operator!=(MVSmartRef const& rhs) const { return (mv() != rhs.mv()); }
+
+private:
 
   friend MVSmartRef deepCopy(MVSmartRef const& rhs)
   {
@@ -422,15 +510,9 @@ private:
   friend bool compare(MVSmartRef const& lhs, MVSmartRef const& rhs)
   {
     // TODO : not safe
-    return compare(lhs.m_ptr[0], rhs.m_ptr[0]);
+    return compare(lhs.mv(), rhs.mv());
   }
-
 };
-
-template<typename T, typename... Args>
-SPHERAL_HOST MVSmartRef<T> make_MVSmartRef(Args&&... args) {
-  return MVSmartRef<T>(args...);
-}
 
 
 
