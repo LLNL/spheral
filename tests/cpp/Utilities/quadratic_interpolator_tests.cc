@@ -28,7 +28,7 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Initialize)
   Spheral::QuadraticInterpolator q_int;
   q_int.initialize(0,4,{0,1,2});
 
-  for (auto elem : q_int.coeffs()) std::cout << elem << " "<< std::endl;
+  for (auto elem : *(q_int.coeffs().get())) std::cout << elem << " "<< std::endl;
  
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     SPHERAL_ASSERT_EQ(q_int.xmin(),          0);

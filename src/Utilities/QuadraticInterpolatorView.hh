@@ -12,6 +12,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "Field/SphArray.hh"
+
 namespace Spheral {
 
 class QuadraticInterpolatorView{
@@ -20,6 +22,8 @@ public:
   // Constructors, destructors
   QuadraticInterpolatorView();
   ~QuadraticInterpolatorView();
+
+  QuadraticInterpolatorView(QuadraticInterpolatorView const& rhs) = default;
 
   // Comparisons
   bool operator==(const QuadraticInterpolatorView& rhs) const;
@@ -42,14 +46,24 @@ public:
   double xmin() const;                        // Minimum x coordinate for table              
   double xmax() const;                        // Maximum x coordinate for table              
   double xstep() const;                       // delta x between tabulated values            
-  const std::vector<double>& coeffs() const;  // the fitting coefficients
+  //using CoeffsType = std::vector<double>;
+  using CoeffsType = MVSmartRef<double>;
+
+  //const std::vector<double>& coeffs() const;  // the fitting coefficients
+  const CoeffsType& coeffs() const;  // the fitting coefficients
   
 protected:
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1;
   double mXmin, mXmax, mXstep;
-  std::vector<double> mcoeffs;
+  CoeffsType mcoeffs;
+
+  //CoeffsType & mcoeffs() { return mcoeffs; }
+  //CoeffsType const& mcoeffs() const { return mcoeffs; }
+  typename CoeffsType::MV & mCoeffs() { return *(mcoeffs.get()); }
+  typename CoeffsType::MV const& mCoeffs() const { return *(mcoeffs.get()); }
+  
 };
 
 }

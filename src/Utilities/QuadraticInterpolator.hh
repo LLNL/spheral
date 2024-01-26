@@ -22,8 +22,30 @@ public:
                         const double xmax,
                         const size_t n,
                         const Func& F);
-  QuadraticInterpolator() {};
+  QuadraticInterpolator() { mcoeffs = CoeffsType(0); };
   ~QuadraticInterpolator() {};
+
+  //QuadraticInterpolator(QuadraticInterpolator const& rhs) = default;
+  QuadraticInterpolator(QuadraticInterpolator const& rhs) : QuadraticInterpolatorView(rhs) { mcoeffs = deepCopy(rhs.mcoeffs); }
+
+  QuadraticInterpolator& operator=(QuadraticInterpolator const& rhs) {
+    if (this != &rhs) {
+      mN1 = rhs.mN1;
+      mXmin = rhs.mXmin;
+      mXmax = rhs.mXmax;
+      mcoeffs = deepCopy(rhs.mcoeffs);
+    }
+    return *this;
+  }
+  
+  bool operator==(QuadraticInterpolator const& rhs) const {
+    return ((mN1 == rhs.mN1) and
+            (mXmin == rhs.mXmin) and
+            (mXmax == rhs.mXmax) and
+            (compare(mcoeffs, rhs.mcoeffs)));
+  }
+
+  QuadraticInterpolatorView toView() { return QuadraticInterpolatorView(*this); }
 
   // Alternatively initialize from tabulated values
   void initialize(const double xmin, const double xmax,
@@ -31,7 +53,8 @@ public:
 
 };
 
-
 }
+
+#include "QuadraticInterpolatorInline.hh"
 
 #endif

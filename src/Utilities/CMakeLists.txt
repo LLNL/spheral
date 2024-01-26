@@ -47,7 +47,7 @@ set(Utilities_headers
     CounterClockwiseComparator.hh
     DBC.hh
     QuadraticInterpolator.hh
-    QuadraticInterpolatorInline.hh
+    QuadraticInterpolatorViewInline.hh
     CubicHermiteInterpolator.hh
     CubicHermiteInterpolatorInline.hh
     XYInterpolator.hh

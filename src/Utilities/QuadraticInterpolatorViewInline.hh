@@ -111,7 +111,8 @@ QuadraticInterpolatorView::xstep() const {
 }
 
 inline
-const std::vector<double>&
+//const std::vector<double>&
+const typename QuadraticInterpolatorView::CoeffsType&
 QuadraticInterpolatorView::coeffs() const {
   return mcoeffs;
 }
@@ -133,7 +134,7 @@ operator==(const QuadraticInterpolatorView& rhs) const {
   return ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and
-          (mcoeffs == rhs.mcoeffs));
+          (mCoeffs() == rhs.mCoeffs()));
 }
 
 }
