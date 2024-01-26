@@ -49,7 +49,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
   mValid(field.mValid) {
-  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
+  FieldViewType::mDataArray = deepCopy(field.mDataArray);
+  //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
   //FieldViewType::mDataArray = ContainerType(deepCopy(field.mDataArray));
   }
 
@@ -135,7 +136,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
-  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*array.get()));
+  FieldViewType::mDataArray = deepCopy(array);
+  //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*array.get()));
 }
 
 //------------------------------------------------------------------------------
@@ -148,7 +150,8 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
   mValid(true) {
-  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
+  FieldViewType::mDataArray = deepCopy(field.mDataArray);
+  //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
   ENSURE(numElements() == nodeList.numNodes());
 }
 
@@ -161,7 +164,8 @@ Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
   FieldView<Dimension, DataType>(field),
   mValid(field.valid()) {
-  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
+  FieldViewType::mDataArray = deepCopy(field.mDataArray);
+  //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*field.mDataArray.get()));
 }
 
 //------------------------------------------------------------------------------
@@ -198,7 +202,8 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhsPtr->mDataArray.get()));
+      FieldViewType::mDataArray = deepCopy(rhsPtr->mDataArray);
+      //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhsPtr->mDataArray.get()));
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -218,7 +223,8 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.mDataArray.get()));
+    FieldViewType::mDataArray = deepCopy(rhs.mDataArray);
+    //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.mDataArray.get()));
     mValid = rhs.mValid;
   }
   return *this;
@@ -233,7 +239,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const ContainerType& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
-  FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.get()));
+  FieldViewType::mDataArray = deepCopy(rhs);
+  //FieldViewType::mDataArray = make_MVSmartRef<DataType>(deepCopy(*rhs.get()));
   return *this;
 }
 

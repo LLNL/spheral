@@ -305,6 +305,17 @@ private:
 #endif
   }
 
+  friend bool compare(ManagedVector const& lhs, ManagedVector const& rhs)
+  {
+    if (lhs.m_size != rhs.m_size) return false;
+    for (size_t i = 0; i < lhs.m_size; i++) {
+      if (lhs[i] != rhs[i]) { 
+        return false;
+      }
+    }
+    return true;
+  }
+
 };
 
 template<typename T>
@@ -340,6 +351,7 @@ public:
 
   SPHERAL_HOST_DEVICE MVSmartRef& operator=(MVSmartRef const& rhs) {
     if (this != &rhs) {
+      if (m_ptr != rhs.m_ptr) discontinue_ownership();
       m_ptr = rhs.m_ptr;
       m_ref_count = rhs.m_ref_count;
       if (m_ref_count != nullptr) (*m_ref_count)++;
@@ -373,16 +385,7 @@ public:
 
   SPHERAL_HOST_DEVICE ~MVSmartRef() {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-      if (m_ref_count != nullptr){
-        (*m_ref_count)--;
-        if (*m_ref_count == 0)
-        {
-          m_ptr[0].free();
-          m_ptr.free();
-          delete m_ref_count;
-          m_ref_count = nullptr;
-        }
-      }
+    discontinue_ownership();
 #endif // SPHERAL_GPU_ACTIVE
   }
 
@@ -396,6 +399,31 @@ public:
 private:
   chai::ManagedArray<MV> m_ptr;
   size_t* m_ref_count = nullptr;
+
+  void discontinue_ownership() {
+    if (m_ref_count != nullptr){
+      (*m_ref_count)--;
+      if (*m_ref_count == 0)
+      {
+        m_ptr[0].free();
+        m_ptr.free();
+        delete m_ref_count;
+        m_ref_count = nullptr;
+      }
+    }
+  }
+
+  friend MVSmartRef deepCopy(MVSmartRef const& rhs)
+  {
+    // TODO : not safe
+    return MVSmartRef(deepCopy(rhs.m_ptr[0]));
+  }
+
+  friend bool compare(MVSmartRef const& lhs, MVSmartRef const& rhs)
+  {
+    // TODO : not safe
+    return compare(lhs.m_ptr[0], rhs.m_ptr[0]);
+  }
 
 };
 
