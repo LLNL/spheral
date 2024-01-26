@@ -235,7 +235,6 @@ collapseDegenerateVertices(const std::vector<Vector>& vertices,
                            const Vector& xmax,
                            const Vector& boxInv,
                            const Uint tol) {
-  using namespace boost;
   typedef std::tuple<Uint, Uint, Uint> Key;
   using std::vector;
   using std::set;
@@ -330,7 +329,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   CONTRACT_VAR(neighborDomains);
   CONTRACT_VAR(neighborKeys);
 #ifdef USE_MPI
-  using namespace boost;
   typedef std::tuple<T, T, T> Key;
   using std::vector;
 
@@ -395,7 +393,6 @@ exchangeTuples(const std::vector<std::tuple<T, T, T> >& localKeys,
   CONTRACT_VAR(sendIndices);
   CONTRACT_VAR(neighborKeys);
 #ifdef USE_MPI
-  using namespace boost;
   typedef std::tuple<T, T, T> Key;
 
   const unsigned numNeighborDomains = neighborDomains.size();
@@ -781,7 +778,6 @@ inline
 std::tuple<T, T, T, T, T, T>
 hashEdge(const std::tuple<T, T, T>& hashi,
          const std::tuple<T, T, T>& hashj) {
-  using namespace boost;
   return (hashi < hashj ? 
           std::make_tuple(std::get<0>(hashi), std::get<1>(hashi), std::get<2>(hashi),
                           std::get<0>(hashj), std::get<1>(hashj), std::get<2>(hashj)) :

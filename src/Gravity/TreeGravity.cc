@@ -178,7 +178,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CompletedCellSet cellsCompleted;
   for (unsigned nodeListi = 0; nodeListi != mass.numFields(); ++nodeListi) {
     for (unsigned i = 0; i != mass[nodeListi]->numInternalElements(); ++i) {
-      cellsCompleted[NodeID(nodeListi, i)] = vector<boost::unordered_set<CellKey> >(num1dbits);
+      cellsCompleted[NodeID(nodeListi, i)] = vector<std::unordered_set<CellKey> >(num1dbits);
     }
   }
 
