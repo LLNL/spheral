@@ -36,11 +36,11 @@ namespace {
 // //------------------------------------------------------------------------------
 // template<typename T>
 // T*
-// extractType(boost::any& anyT) {
+// extractType(std::any& anyT) {
 //   try {
-//     T* result = boost::any_cast<T*>(anyT);
+//     T* result = std::any_cast<T*>(anyT);
 //     return result;
-//   } catch (boost::any_cast_error) {
+//   } catch (std::any_cast_error) {
 //     return NULL;
 //   }
 // }

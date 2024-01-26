@@ -18,7 +18,7 @@
 #include "Boundary/InflowOutflowBoundary.hh"
 #include "Boundary/ConstantBoundaryUtilities.hh"
 
-#include "boost/lexical_cast.hpp"
+#include <string>
 
 using std::vector;
 using std::map;
@@ -515,7 +515,7 @@ InflowOutflowBoundary<Dimension>::clearStoredValues() {
 template<typename Dimension>
 std::string
 InflowOutflowBoundary<Dimension>::label() const {
-  return "InflowOutflowBoundary" + boost::lexical_cast<std::string>(mBoundaryCount);
+  return "InflowOutflowBoundary" + std::to_string(mBoundaryCount);
 }
 
 //------------------------------------------------------------------------------

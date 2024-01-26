@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include "boost/unordered_map.hpp"
-#include "boost/unordered_set.hpp"
+#include <unordered_set>
 
 namespace Spheral {
 
@@ -143,7 +143,7 @@ private:
   typedef uint32_t LevelKey;
   typedef uint64_t CellKey;
   typedef std::pair<size_t, size_t> NodeID;
-  typedef boost::unordered_map<NodeID, std::vector<boost::unordered_set<CellKey> > > CompletedCellSet;
+  typedef boost::unordered_map<NodeID, std::vector<std::unordered_set<CellKey> > > CompletedCellSet;
 
   static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
   static CellKey max1dKey;                     // The maximum number of cells this corresponds to in a direction.

@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include "boost/unordered_map.hpp"
-#include "boost/unordered_set.hpp"
+#include <unordered_set>
 
 namespace Spheral {
 
@@ -59,7 +59,7 @@ public:
   // Data types we use to build the internal tree structure.
   typedef uint32_t LevelKey;
   typedef std::pair<size_t, size_t> NodeID;
-  typedef boost::unordered_map<NodeID, std::vector<boost::unordered_set<CellKey> > > CompletedCellSet;
+  typedef boost::unordered_map<NodeID, std::vector<std::unordered_set<CellKey> > > CompletedCellSet;
   typedef boost::unordered_map<CellKey, Cell> TreeLevel;
 
   static unsigned num1dbits;                   // The number of bits we quantize 1D coordinates to.  We have to fit three of these in 64 bits.
