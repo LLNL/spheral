@@ -606,7 +606,7 @@ inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 effectiveViscousPressure() const {
-  return mEffectiveViscousPressure;
+  return mEffViscousPressure;
 }
 
 template<typename Dimension>

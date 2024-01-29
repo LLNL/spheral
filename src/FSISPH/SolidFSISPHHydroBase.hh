@@ -328,7 +328,7 @@ private:
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffectiveViscousPressure;
+  FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, SymTensor> mMassSecondMoment;
