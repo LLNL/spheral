@@ -1,4 +1,4 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
   * Important Notes:
     * The PolyClipper, BLT, and PYB11Generator submodules have been modified. Be sure to recursively update the submodules.  
@@ -6,7 +6,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features/ API changes:
-    * Adding P-alpha porosity model
+    * Adding P-alpha porosity model.
     * Updating treatment of various state variables in the presence of porosity.
     * Introduced a new common base class for porosity physics (PorosityModel), which PalphaPorosity and StrainPorosity share.
     * Revamped interaction UpdatePolicies with FieldLists:
@@ -15,27 +15,29 @@ Notable changes include:
     * Adding more Shadow Python interfaces wrapping our C++ classes, in particular PalphaPorosity and StrainPorosity.
     * EquationOfState now requires instances to provide \partial P/\partial \rho and \partial P/\partial \epsilon.  All current equations of state have been updated accordingly.
     * Tillotson and Gruneisen EOSs implementations updated a bit in the revamping.
-    * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book)
+    * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book).
 
   * Build changes / improvements:
-    * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use
+    * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use:
       ```
       find_package(Spheral_CXX <path_to_spheral_installation>)
       ```
     * CMake variables have a more consistent naming convention. Unused variables are removed.
-    * Added ENABLE_DEV_BUILD option to improve build times during code development
-    * Upped our required C++ standard to 17
+    * Added ENABLE_DEV_BUILD option to improve build times during code development.
+    * Upped our required C++ standard to 17.
 
   * Bug Fixes / improvements:
     * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.
     * Fixed range of dimensionless melt temperature for Johnson-Cook strength.
-    * FSISPH new features and modifications to method 
-      * NOTE constructor inputs have changed
-      * strength implementation modified
-      * new features added including plane strain option and settable minP for interfaces
-      * new, more rigorous, interface and free surface tracking
+    * FSISPH new features and modifications to method. 
+      * NOTE constructor inputs have changed.
+      * strength implementation modified.
+      * new features added including plane strain option and settable minP for interfaces.
+      * new, more rigorous, interface and free surface tracking.
     * Fixed initialization of longitudinal sound speed and Youngs modulus for damage models.
     * Corrected some minor bugs/inconsistencies in the Tillotson EOS.
+    * lcats updated to work with current TOSS4 machine configurations.
+    * Updated various tests to make out automated testing more robust.
 
 Version v2023-06-0 -- Release date 2023-06-20
 ==============================================
@@ -164,3 +166,15 @@ Notable changes include:
     * CullenDehnen segfault fix.
 
 **Full Changelog**: https://github.com/LLNL/spheral/compare/2022.2.0-pre-spack...v2022.6.0
+
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+
+  * Bug Fixes / improvements:

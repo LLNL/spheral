@@ -46,11 +46,4 @@ public:
 
 #include "BiQuadraticInterpolatorInline.hh"
 
-#else
-
-// Forward declaration
-namespace Spheral {
-  class BiQuadraticInterpolator;
-}
-
 #endif

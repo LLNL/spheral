@@ -46,11 +46,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename DataType, typename BoundValueType> class IncrementCullenMultipliers;
-}
-
 #endif

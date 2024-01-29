@@ -50,11 +50,4 @@ public:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PredictorCorrector;
-}
-
 #endif

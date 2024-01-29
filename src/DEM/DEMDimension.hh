@@ -51,11 +51,4 @@ namespace Spheral {
 
 #include "DEMDimensionInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> struct DEMDimension;
-}
-
 #endif

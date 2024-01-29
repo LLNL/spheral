@@ -61,10 +61,4 @@ private:
 
 #include "uniform_random_Inline.hh"
 
-#else
-
-namespace Spheral {
-  class uniform_random;
-}
-
 #endif

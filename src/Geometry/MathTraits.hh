@@ -111,11 +111,4 @@ public:
 };
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension, typename DataType> class MathTraits;
-}
-
 #endif

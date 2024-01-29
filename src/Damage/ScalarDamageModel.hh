@@ -135,12 +135,5 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class ScalarDamageModel;
-}
-
 #endif
 

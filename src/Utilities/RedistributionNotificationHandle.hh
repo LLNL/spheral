@@ -32,11 +32,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral{
-  class RedistributionNotificationHandle;
-}
-
 #endif

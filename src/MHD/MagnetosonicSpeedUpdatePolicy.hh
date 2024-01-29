@@ -53,11 +53,4 @@ class MagnetosonicSpeedUpdatePolicy:
 }
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class MagnetosonicSpeedUpdatePolicy;
-}
-
 #endif

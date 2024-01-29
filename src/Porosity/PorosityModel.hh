@@ -114,11 +114,4 @@ protected:
 
 #include "PorosityModelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PorosityModel;
-}
-
 #endif

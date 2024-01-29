@@ -61,11 +61,5 @@ private:
 
 }
 
-#else
-
-namespace Spheral {
-  template<typename Dimension, typename DataType> class FieldListThreadWrapper;
-}
-
 #endif
 

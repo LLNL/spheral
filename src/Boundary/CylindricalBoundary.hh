@@ -95,11 +95,4 @@ private:
 
 #include "CylindricalBoundaryInline.hh"
 
-#else
-
-namespace Spheral {
-  // Forward declaration.
-  class CylindricalBoundary;
-}
-
 #endif

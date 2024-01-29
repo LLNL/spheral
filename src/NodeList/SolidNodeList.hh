@@ -107,10 +107,4 @@ private:
 
 #include "SolidNodeListInline.hh"
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> class SolidNodeList;
-}
-
 #endif

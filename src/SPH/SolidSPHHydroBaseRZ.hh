@@ -118,11 +118,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SolidSPHHydroBaseRZ;
-}
-
 #endif
