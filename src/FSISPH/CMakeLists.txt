@@ -5,6 +5,7 @@ set(FSISPH_inst
     computeFSISPHSumMassDensity
     computeHWeightedFSISPHSumMassDensity
     computeInterfacePressureCorrectedSumMassDensity
+    InverseEquivalentStressDeviatorPolicy
     SlideSurface
     )
 
@@ -22,6 +23,7 @@ set(FSISPH_headers
     computeHWeightedFSISPHSumMassDensity.hh
     computeInterfacePressureCorrectedSumMassDensity.hh
     FSIFieldNames.hh
+    InverseEquivalentStressDeviatorPolicy.hh
     SlideSurface.hh
     SlideSurfaceInline.hh
     )

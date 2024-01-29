@@ -3,20 +3,19 @@
 
 #-------------------------------------------------------------------------------
 # This is the basic Kelvin-Helmholtz problem as discussed in
-# Springel 2010, MNRAS, 401, 791-851.
+# Hopkins, A New Class of Accurate, Mesh-Free Hydrodynamic Simulation
+# Methods, MNRAS, 2015
 #-------------------------------------------------------------------------------
-import os, sys, shutil
-import mpi
+import os, shutil, mpi
 from math import *
 
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
 
-import DistributeNodes
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
@@ -42,8 +41,6 @@ commandLine(nx1 = 256,
             smooth = 0.025,
             delta = 0.01,
             freq = 4.0,
-            w0 = 0.1,
-            sigma = 0.05/sqrt(2.0),
 
             numNodeLists = 2,  # If 2, makes this a two material problem.
 
@@ -51,9 +48,9 @@ commandLine(nx1 = 256,
             mu = 1.0,
 
             # kernel
-            KernelConstructor = WendlandC4Kernel,
-            nbSplineOrder = 7,
-            nPerh = 4.01,
+            KernelConstructor = NBSplineKernel,
+            nbSplineOrder = 5,
+            nPerh = 1.33,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
@@ -85,7 +82,6 @@ commandLine(nx1 = 256,
             nh = 5.0,
             aMin = 0.1,
             aMax = 2.0,
-            Qhmult = 1.0,
             boolCullenViscosity = False,
             alphMax = 2.0,
             alphMin = 0.02,
@@ -145,7 +141,7 @@ commandLine(nx1 = 256,
             clearDirectories = False,
             restoreCycle = -1,
             restartStep = 100,
-            redistributeStep = None,
+            redistributeStep = 100,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d_McNally",
             outputFile = "None",
@@ -196,7 +192,7 @@ dataDir = os.path.join(dataDir,
                        "filter=%g" % filter,
                        "Cl=%s-Cq=%s" % (Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
-                       "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
+                       "nPerh=%g" % (nPerh))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d_McNally")
@@ -423,7 +419,7 @@ if fsisph:
                    interfaceMethod = fsiInterfaceMethod,
                    kernelAveragingMethod = fsiKernelMethod,
                    sumDensityNodeLists = sumDensityNodeListSwitch,
-                   linearCorectGradients = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergy,  
                    evolveTotalEnergy = evolveTotalEnergy,         
                    ASPH = asph,

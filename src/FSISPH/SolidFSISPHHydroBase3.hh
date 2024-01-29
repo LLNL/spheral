@@ -244,7 +244,6 @@ public:
   const FieldList<Dimension, Tensor>&    M() const;
   const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
@@ -328,7 +327,6 @@ private:
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffectiveViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, SymTensor> mMassSecondMoment;

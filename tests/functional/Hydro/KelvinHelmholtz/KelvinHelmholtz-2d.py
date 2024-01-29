@@ -4,18 +4,16 @@
 # This is the basic Kelvin-Helmholtz problem as discussed in
 # Springel 2010, MNRAS, 401, 791-851.
 #-------------------------------------------------------------------------------
-import shutil, os, sys
+import shutil, os, mpi
 from math import *
+
 from Spheral2d import *
+
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
-
-import mpi
-import DistributeNodes
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes2d
@@ -27,11 +25,12 @@ title("Kelvin-Helmholtz test problem in 2D")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(nx1 = 100,
-            ny1 = 50,
-            nx2 = 100,
-            ny2 = 50,
-            
+commandLine(nx1 = 128,
+            ny1 = 64,
+            nx2 = 128,
+            ny2 = 64,
+            refineRatio = 1,
+
             rho1 = 2.0,
             rho2 = 1.0,
             P1 = 2.5,
@@ -51,8 +50,8 @@ commandLine(nx1 = 100,
 
             # kernel
             HUpdate = IdealH,
-            nPerh = 1.51,
-            KernelConstructor = BSplineKernel,
+            nPerh = 3.0,
+            KernelConstructor = WendlandC2Kernel,
             order = 5,
             hmin = 0.0001, 
             hmax = 0.5,
@@ -97,7 +96,7 @@ commandLine(nx1 = 100,
             # artificial viscosity
             Cl = 1.0, 
             Cq = 1.0,
-            Qconstructor = MonaghanGingoldViscosity,
+            Qconstructor = LimitedMonaghanGingoldViscosity,
             linearConsistent = False,
             boolReduceViscosity = False,
             nh = 5.0,
@@ -114,7 +113,7 @@ commandLine(nx1 = 100,
             arCondAlpha = 0.5,
 
             # integrator
-            cfl = 0.5,
+            cfl = 0.40,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
             steps = None,
@@ -137,7 +136,7 @@ commandLine(nx1 = 100,
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 100,
-            redistributeStep = 500,
+            redistributeStep = 100,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d",
             outputFile = "None",
@@ -146,12 +145,20 @@ commandLine(nx1 = 100,
             
             )
 
+
+
 assert numNodeLists in (1, 2)
 
 assert not svph 
 assert not (compatibleEnergy and evolveTotalEnergy)
 assert sum([fsisph,psph,gsph,crksph,svph])<=1
 assert not (fsisph and not solid)
+
+# allow for easy resolution studies
+nx1 = nx1* refineRatio
+nx2 = nx2* refineRatio
+ny1 = ny1* refineRatio
+ny2 = ny2* refineRatio
 
 # Decide on our hydro algorithm.
 hydroname = 'SPH'
@@ -180,17 +187,11 @@ dataDir = os.path.join(dataDir,
                        "filter=%s" % filter,
                        "%s-Cl=%g-Cq=%g" % (str(Qconstructor).split("'")[1].split(".")[-1], Cl, Cq),
                        "%ix%i" % (nx1, ny1 + ny2),
-                       "nPerh=%g-Qhmult=%g" % (nPerh, Qhmult))
+                       "nPerh=%g" % (nPerh))
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, "KelvinHelmholtz-2d")
 vizBaseName = "KelvinHelmholtz-2d"
-
-#-------------------------------------------------------------------------------
-# CRKSPH Switches to ensure consistency
-#-------------------------------------------------------------------------------
-if crksph or fsisph:
-    Qconstructor = LimitedMonaghanGingoldViscosity
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
@@ -218,14 +219,11 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor=="NBSplineKernel":
+if KernelConstructor==NBSplineKernel:
   WT = TableKernel(NBSplineKernel(order), 1000)
-  WTPi = TableKernel(NBSplineKernel(order), 1000, Qhmult)
 else:
   WT = TableKernel(KernelConstructor(), 1000)
-  WTPi = TableKernel(KernelConstructor(), 1000, Qhmult)
 output("WT")
-output("WTPi")
 kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
@@ -240,11 +238,13 @@ nodes1 = nodeListConstructor("High density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
+                           kernelExtent = WT.kernelExtent,
                            nPerh = nPerh)
 nodes2 = nodeListConstructor("Low density gas", eos,
                            hmin = hmin,
                            hmax = hmax,
                            hminratio = hminratio,
+                           kernelExtent = WT.kernelExtent,
                            nPerh = nPerh)
 nodeSet = [nodes1, nodes2]
 for nodes in nodeSet:
@@ -293,7 +293,7 @@ if restoreCycle is None:
         thpt = 1.0/(2.0*sigma*sigma)
         return (w0*sin(freq*pi*ri.x) *
                 (exp(-((ri.y - 0.25)**2 * thpt)) +
-                 exp(-((ri.y - 0.75)**2 * thpt))))*abs(0.5 - ri.y)
+                 exp(-((ri.y - 0.75)**2 * thpt))))
 
     # Finish initial conditions.
     eps1 = P1/((gamma - 1.0)*rho1)

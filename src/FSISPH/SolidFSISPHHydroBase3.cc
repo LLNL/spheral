@@ -52,7 +52,6 @@
 
 #include "FSISPH/SolidFSISPHHydroBase.hh"
 #include "FSISPH/FSIFieldNames.hh"
-#include "FSISPH/InverseEquivalentStressDeviatorPolicy.hh"
 #include "FSISPH/computeFSISPHSumMassDensity.hh"
 #include "FSISPH/computeHWeightedFSISPHSumMassDensity.hh"
 #include "FSISPH/computeInterfacePressureCorrectedSumMassDensity.hh"
@@ -201,7 +200,6 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
-  mEffectiveViscousPressure(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
   mMassSecondMoment(FieldStorageType::CopyFields),
@@ -255,7 +253,6 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
     mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
     mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-    mEffectiveViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
     mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
     mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
     mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
@@ -371,8 +368,7 @@ registerState(DataBase<Dimension>& dataBase,
   auto interfaceAreaVectorsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
   auto interfaceNormalsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
   auto interfaceSmoothnessPolicy = make_policy<PureReplaceState<Dimension,Scalar>>();
-  auto invEqvStressDevPolicy = make_policy<InverseEquivalentStressDeviatorPolicy<Dimension>>();
-
+  
   if(this->planeStrain()){
     auto deviatoricStressPolicy = make_policy<IncrementState<Dimension, SymTensor>>();
     state.enroll(deviatoricStress, deviatoricStressPolicy);
@@ -415,7 +411,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mShearModulus,        shearModulusPolicy);
   state.enroll(mYieldStrength,       yieldStrengthPolicy);
   state.enroll(plasticStrain,        plasticStrainPolicy);
-  state.enroll(mInverseEquivalentDeviatoricStress, invEqvStressDevPolicy);
 
   state.enroll(mInterfaceFlags,       interfaceFlagsPolicy);
   state.enroll(mInterfaceAreaVectors, interfaceAreaVectorsPolicy); 
@@ -424,6 +419,7 @@ registerState(DataBase<Dimension>& dataBase,
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
+  state.enroll(mInverseEquivalentDeviatoricStress);
   state.enroll(damage);
   state.enroll(fragIDs);
   state.enroll(pTypes);
@@ -459,7 +455,6 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffectiveViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
@@ -497,7 +492,6 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mEffectiveViscousPressure);
   derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
   derivs.enroll(mMassSecondMoment);
@@ -774,7 +768,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mM, pathName + "/M");
   file.write(mLocalM, pathName + "/localM");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mEffectiveViscousPressure, pathName + "/effectiveViscousPressure");
   file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.write(mMassSecondMoment, pathName + "/massSecondMoment");
@@ -826,7 +819,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mM, pathName + "/M");
   file.read(mLocalM, pathName + "/localM");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.read(mEffectiveViscousPressure, pathName + "/effectiveViscousPressure");
   file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
   file.read(mMassSecondMoment, pathName + "/massSecondMoment");

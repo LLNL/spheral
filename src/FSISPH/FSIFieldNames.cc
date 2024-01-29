@@ -17,3 +17,4 @@ const std::string Spheral::FSIFieldNames::interfaceFraction = "interfaceFraction
 const std::string Spheral::FSIFieldNames::interfaceSmoothness = "interfaceSmoothness";
 const std::string Spheral::FSIFieldNames::smoothedInterfaceNormals = "smoothedInterfaceNormals";
 const std::string Spheral::FSIFieldNames::interfaceSmoothnessNormalization = "interfaceSmoothnessNormalization";
+const std::string Spheral::FSIFieldNames::inverseEquivalentDeviatoricStress = "inverse Equiv Dev Stress";
