@@ -502,8 +502,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
           const auto Qj = rhoi*rhoj * QPiji.diagonalElements().maxAbsElement();
           maxViscousPressurei = max(maxViscousPressurei, Qi);
           maxViscousPressurej = max(maxViscousPressurej, Qj);
-          effViscousPressurei = volj * Qi * Wi;
-          effViscousPressurej = voli * Qi * Wj;
+          effViscousPressurei += volj * Qi * Wi;
+          effViscousPressurej += voli * Qi * Wj;
         }
         // stress tensor
         //{
