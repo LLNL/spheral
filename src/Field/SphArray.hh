@@ -104,6 +104,7 @@ public:
 #else
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
 #if !defined(SPHERAL_GPU_ACTIVE) 
+    setCallback();
 #endif // SPHERAL_GPU_ACTIVE
   }
 #endif
@@ -150,14 +151,14 @@ public:
 #endif
 
   SPHERAL_HOST void push_back(const DataType& value) {
-    if (capacity() == 0) MA::allocate(initial_capacity);
+    if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
     if (m_size >= capacity()) MA::reallocate(pow2_ceil(m_size + 1));
     new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
 
   SPHERAL_HOST void push_back(DataType&& value) {
-    if (capacity() == 0) MA::allocate(initial_capacity);
+    if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
     if (m_size >= capacity()) MA::reallocate(pow2_ceil(m_size + 1));
     MA::data()[m_size] = std::move(value);
     m_size++;
@@ -165,7 +166,7 @@ public:
   template<typename... Args>
   SPHERAL_HOST
   DataType& emplace_back(Args&&... args) {
-    if (capacity() == 0) MA::allocate(initial_capacity);
+    if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
     if (m_size >= capacity()) MA::reallocate(pow2_ceil(m_size + 1));
 
     new(&MA::data()[m_size]) DataType(std::forward<Args>(args)...);
@@ -174,7 +175,7 @@ public:
 
   SPHERAL_HOST
   void reserve(size_t c) {
-    if (capacity() == 0) MA::allocate(c < initial_capacity ? initial_capacity: pow2_ceil(c));
+    if (capacity() == 0) MA::allocate(c < initial_capacity ? initial_capacity: pow2_ceil(c), chai::CPU, getCallback());
     if (c >= capacity()) MA::reallocate(pow2_ceil(c));
   }
 
@@ -184,15 +185,17 @@ public:
 
     if (old_size != size){
       if (old_size < size) {
-        if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size));
+        if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size), chai::CPU, getCallback());
         else if (capacity() < size) MA::reallocate(pow2_ceil(size));
         //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
-        for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
+        for (size_t i = old_size; i < size; i++) new(MA::data(chai::CPU, false)) DataType();
+        //for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
       }
       if (old_size > size) {
         destroy(begin() + old_size, begin() + size);
       }
       m_size = size;
+      MA::registerTouch(chai::CPU);
     }
   }
 
@@ -254,21 +257,18 @@ public:
   auto getCallback() {
     std::string const typeString = LvArray::system::demangleType< U >();
     return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+        std::string const size = LvArray::system::calculateSize(record->m_size);
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
+
         if (action == chai::Action::ACTION_MOVE){
-          std::string const size = LvArray::system::calculateSize(record->m_size);
-          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
-          char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
-          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << std::endl;
+          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
         }
         if (action == chai::Action::ACTION_ALLOC){
-          std::string const size = LvArray::system::calculateSize(record->m_size);
-          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
-          std::cout << "Allocated " << paddedSize << " : " << typeString << " " << std::endl;
+          std::cout << "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
         }
         if (action == chai::Action::ACTION_FREE){
-          std::string const size = LvArray::system::calculateSize(record->m_size);
-          std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
-          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << std::endl;
+          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << " @ " <<  record->m_pointers[exec] << std::endl;
         }
       };
   }
@@ -306,6 +306,7 @@ private:
 #endif
   }
 
+  SPHERAL_HOST_DEVICE
   friend bool compare(ManagedVector const& lhs, ManagedVector const& rhs)
   {
     if (lhs.m_size != rhs.m_size) return false;
@@ -320,9 +321,19 @@ private:
 };
 
 template<typename T>
+class ManagedSmartPtr;
+
+template<typename T>
+ManagedSmartPtr<T> make_ManagedSmartPtr(T* host_ptr);
+
+template<typename T, typename... Args>
+ManagedSmartPtr<T> make_ManagedSmartPtr(Args... args);
+
+template<typename T>
 class ManagedSmartPtr : public chai::CHAICopyable
 {
 public:
+struct PrivateConstruct {};
 
   SPHERAL_HOST_DEVICE ManagedSmartPtr() {
 #if !defined(SPHERAL_GPU_ACTIVE) 
@@ -331,14 +342,29 @@ public:
   }
 
   template<typename... Args>
-  SPHERAL_HOST ManagedSmartPtr(Args... args) {
+  SPHERAL_HOST ManagedSmartPtr(PrivateConstruct, Args... args) {
 #if !defined(SPHERAL_GPU_ACTIVE) 
-    m_ptr = chai::ManagedArray<T>(1);
+    m_ptr = chai::ManagedArray<T>();
+    m_ptr.allocate(1, chai::CPU, getCallback());
     m_ptr[0] = T(args...);
+    m_ptr.registerTouch(chai::CPU);
+    m_ref_count = new size_t(1);
+
+#endif // SPHERAL_GPU_ACTIVE
+  }
+
+  SPHERAL_HOST ManagedSmartPtr(PrivateConstruct, T* host_ptr) {
+#if !defined(SPHERAL_GPU_ACTIVE) 
+    m_ptr = chai::makeManagedArray(host_ptr, 1, chai::CPU, true);
+    m_ptr.setUserCallback(getCallback());
     m_ptr.registerTouch(chai::CPU);
     m_ref_count = new size_t(1);
 #endif // SPHERAL_GPU_ACTIVE
   }
+
+
+public:
+  SPHERAL_HOST void registerTouch(chai::ExecutionSpace space) { m_ptr.registerTouch(space); }
 
   SPHERAL_HOST_DEVICE ManagedSmartPtr& operator=(ManagedSmartPtr const& rhs) {
     if (this != &rhs) {
@@ -361,7 +387,7 @@ public:
     m_ptr[0].move(space, touch);
   }
 
-  SPHERAL_HOST_DEVICE T* get() const { return (m_ref_count) ? &m_ptr[0] : nullptr; }
+  SPHERAL_HOST_DEVICE T* get() const { return (m_ref_count) ? (m_ptr.data()) : nullptr; }
   SPHERAL_HOST_DEVICE T* operator->() { return get(); }
   SPHERAL_HOST_DEVICE T* operator->() const { return get(); }
   SPHERAL_HOST_DEVICE T& operator*() { return *get(); }
@@ -376,6 +402,27 @@ public:
     *this = rhs;
   }
 
+  template< typename U=ManagedSmartPtr< T > >
+  SPHERAL_HOST
+  auto getCallback() {
+
+    std::string const typeString = LvArray::system::demangleType< U >();
+    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+        std::string const size = LvArray::system::calculateSize(record->m_size);
+        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
+
+        if (action == chai::Action::ACTION_MOVE){
+          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+        }
+        if (action == chai::Action::ACTION_ALLOC){
+          std::cout << "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+        }
+        if (action == chai::Action::ACTION_FREE){
+          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << " @ " <<  record->m_pointers[exec] << std::endl;
+        }
+      };
+  }
 protected:
 
   SPHERAL_HOST_DEVICE void increment_ref_count() {
@@ -390,14 +437,21 @@ protected:
       (*m_ref_count)--;
       if (*m_ref_count == 0)
       {
+        std::cout << "freeing memory\n";
         m_ptr[0].free();
         m_ptr.free();
-        delete m_ref_count;
-        m_ref_count = nullptr;
+        //delete m_ref_count;
+        //m_ref_count = nullptr;
       }
+    }
+
+    if (m_ref_count != nullptr){
+      //std::string const typeString = LvArray::system::demangleType< T >();
+      //std::cout << "count @ " << this << " : " << typeString << " : " << m_ref_count << " @ " << (*m_ref_count) << std::endl;
     }
 #endif // SPHERAL_GPU_ACTIVE
   }
+
 
   friend ManagedSmartPtr deepCopy(ManagedSmartPtr const& rhs)
   {
@@ -405,6 +459,7 @@ protected:
     return ManagedSmartPtr(deepCopy(rhs.m_ptr[0]));
   }
 
+  SPHERAL_HOST_DEVICE
   friend bool compare(ManagedSmartPtr const& lhs, ManagedSmartPtr const& rhs)
   {
     // TODO : not safe
@@ -414,7 +469,26 @@ protected:
   chai::ManagedArray<T> m_ptr;
   size_t* m_ref_count = nullptr;
 
+  friend ManagedSmartPtr make_ManagedSmartPtr(T* host_ptr);
+
+  template<typename... Args>
+  friend ManagedSmartPtr make_ManagedSmartPtr(Args... args);
+
 };
+
+template<typename T>
+ManagedSmartPtr<T> make_ManagedSmartPtr(T* host_ptr)
+  {
+    ManagedSmartPtr<T> ptr = ManagedSmartPtr<T>(typename ManagedSmartPtr<T>::PrivateConstruct(), host_ptr);
+    return ptr;
+  }
+
+template<typename T, typename... Args>
+ManagedSmartPtr<T> make_ManagedSmartPtr(Args... args)
+  {
+    ManagedSmartPtr<T> ptr = ManagedSmartPtr<T>(typename ManagedSmartPtr<T>::PrivateConstruct(), args...);
+    return ptr;
+  }
 
 
 
@@ -422,8 +496,8 @@ template<typename T>
 class MVSmartRef : public ManagedSmartPtr<ManagedVector<T>>
 {
   using Base = ManagedSmartPtr<ManagedVector<T>>;
-  ManagedVector<T> & mv() { return Base::m_ptr[0]; }
-  ManagedVector<T> const& mv() const { return Base::m_ptr[0]; }
+  SPHERAL_HOST_DEVICE ManagedVector<T> & mv() { return Base::m_ptr[0]; }
+  SPHERAL_HOST_DEVICE ManagedVector<T> const& mv() const { return Base::m_ptr[0]; }
 
 public:
 
@@ -434,8 +508,10 @@ public:
 
   using MV = Spheral::ManagedVector<T>;
 
+  SPHERAL_HOST_DEVICE MVSmartRef() = default;
+
   template<typename... Args>
-  MVSmartRef(Args... args) : Base(args...) {}
+  MVSmartRef(Args... args) : Base(make_ManagedSmartPtr<MV>(args...)) {mv().setCallback();}
   
   using iterator = typename MV::iterator;
   using const_iterator = typename MV::const_iterator;
@@ -452,19 +528,24 @@ public:
   SPHERAL_HOST_DEVICE size_t size() const { return mv().size(); }
 
   SPHERAL_HOST void resize(size_t sz) {
-    move(chai::CPU);
     mv().resize(sz);
     Base::m_ptr.registerTouch(chai::CPU);
   }
 
   SPHERAL_HOST
-  void insert(iterator pos, DataType const& value) {
+  void insert(iterator pos, T const& value) {
     move(chai::CPU);
     mv().insert(pos, value);
     Base::m_ptr.registerTouch(chai::CPU);
   }
 
-  SPHERAL_HOST void push_back(DataType&& value) {
+  SPHERAL_HOST void push_back(T const& value) {
+    move(chai::CPU);
+    mv().push_back(value);
+    Base::m_ptr.registerTouch(chai::CPU);
+  }
+  
+  SPHERAL_HOST void push_back(T&& value) {
     move(chai::CPU);
     mv().push_back(value);
     Base::m_ptr.registerTouch(chai::CPU);
@@ -507,6 +588,7 @@ private:
     return MVSmartRef(deepCopy(rhs.m_ptr[0]));
   }
 
+  SPHERAL_HOST_DEVICE
   friend bool compare(MVSmartRef const& lhs, MVSmartRef const& rhs)
   {
     // TODO : not safe
