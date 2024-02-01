@@ -16,6 +16,17 @@
 
 namespace Spheral {
 
+// This macro assumes that internal members of the XXXData type are defined as:
+//   type _var; 
+// It is also Assumed that the Base type is defined as: 
+//   using Base = ManagedSmartPtr<ClassType>;
+#define MANAGED_SMART_PTR_MEMBER_ACCESSOR(type, var) \
+public: \
+  SPHERAL_HOST_DEVICE type & var() { return Base::get()->_##var; } \
+  SPHERAL_HOST_DEVICE type & var() const { return Base::get()->_##var; }
+
+
+
 // Making an interface class to ensure all required methods are defined by classes.
 template<typename T>
 class SPHERALCopyable : public chai::CHAICopyable{
@@ -24,6 +35,8 @@ class SPHERALCopyable : public chai::CHAICopyable{
   SPHERAL_HOST_DEVICE virtual void shallowCopy(T const& rhs) = 0;
 };
   
+
+
 // The Data class needs to be CHAICopyable in order to trigger nested copies for Copyable 
 // members within.
 class QIntData : public SPHERALCopyable<QIntData>{
@@ -49,8 +62,6 @@ public:
   SPHERAL_HOST_DEVICE void shallowCopy(QIntData const& rhs) { *this = rhs; }
 };
 
-
-
 class QIntView : public ManagedSmartPtr<QIntData> 
 {
 protected:
@@ -61,11 +72,8 @@ protected:
   QIntView(QIntData* rhs) : Base(make_ManagedSmartPtr<QIntData>(rhs)) {}
   
   // Interal interface for accessing the underlying members of QIntData
-  SPHERAL_HOST_DEVICE double& mXmin() { return (Base::get()->_mXmin); }
-  SPHERAL_HOST_DEVICE double& mXmin() const { return (Base::get()->_mXmin); }
-
-  SPHERAL_HOST_DEVICE CoeffsType& mcoeffs() { return Base::get()->_mcoeffs; }
-  SPHERAL_HOST_DEVICE CoeffsType& mcoeffs() const { return Base::get()->_mcoeffs; }
+  MANAGED_SMART_PTR_MEMBER_ACCESSOR(double, mXmin)
+  MANAGED_SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
 
 public:
   QIntView() : Base() {};
