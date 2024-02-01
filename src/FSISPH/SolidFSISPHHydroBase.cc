@@ -38,6 +38,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/PureReplaceState.hh"
+#include "DataBase/updateStateFields.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"
@@ -278,30 +279,27 @@ SolidFSISPHHydroBase<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// initialization on problem start up
+// On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase){
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+
   mDamagedPressure+=this->pressure();
 
   const auto& mass = dataBase.fluidMass();
   const auto& massDensity = dataBase.fluidMassDensity();
   computeSPHVolume(mass,massDensity,mVolume);
-
-  // Set the moduli.
-  auto nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
-    (*itr)->shearModulus(*mShearModulus[nodeListi]);
-    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
-  } 
 }
 
 //------------------------------------------------------------------------------

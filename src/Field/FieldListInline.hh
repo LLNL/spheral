@@ -1630,6 +1630,13 @@ FieldList<Dimension, DataType>::size() const {
 
 template<typename Dimension, typename DataType>
 inline
+bool
+FieldList<Dimension, DataType>::empty() const {
+  return mFieldPtrs.empty();
+}
+
+template<typename Dimension, typename DataType>
+inline
 unsigned 
 FieldList<Dimension, DataType>::numNodes() const {
   unsigned numberOfNodes = 0;

@@ -112,16 +112,6 @@ SPHHydroBaseRZ::
 }
 
 //------------------------------------------------------------------------------
-// On problem start up, we set the RZ flag on the DataBase.
-//------------------------------------------------------------------------------
-void
-SPHHydroBaseRZ::
-initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
-  GeometryRegistrar::coords(CoordinateType::RZ);
-  SPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
-}
-
-//------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void

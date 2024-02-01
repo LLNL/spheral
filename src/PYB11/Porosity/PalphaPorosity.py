@@ -98,14 +98,6 @@ parameter (alpha) and gives it to the PorousEquationOfState.
         jutziStateUpdate: Optionally update the deviatoric stress and damage as described in Jutzi 2008"""
 
     #...........................................................................
-    # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(self, 
-                                 dataBase = "DataBase<%(Dimension)s>&"):
-        "Do any required one-time initializations on problem start up."
-        return "void"
-
-    #...........................................................................
     # Methods
     @PYB11const
     def phi(self):

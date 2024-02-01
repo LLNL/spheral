@@ -18,6 +18,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Hydro/PressurePolicy.hh"
@@ -149,12 +150,14 @@ CRKSPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 CRKSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
   // Initialize the pressure, sound speed, and entropy.
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
-  dataBase.fluidEntropy(mEntropy);
+  updateStateFields<Dimension>(HydroFieldNames::pressure, state, derivs);
+  updateStateFields<Dimension>(HydroFieldNames::soundSpeed, state, derivs);
+  updateStateFields<Dimension>(HydroFieldNames::entropy, state, derivs);
 }
 
 //------------------------------------------------------------------------------
@@ -168,8 +171,6 @@ registerState(DataBase<Dimension>& dataBase,
 
   // Create the local storage for time step mask, pressure, sound speed, and correction fields.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
-  // dataBase.fluidPressure(mPressure);
-  // dataBase.fluidSoundSpeed(mSoundSpeed);
   dataBase.resizeFluidFieldList(mEntropy,    0.0,                   HydroFieldNames::entropy, false);
   dataBase.resizeFluidFieldList(mPressure,   0.0,                   HydroFieldNames::pressure, false);
   dataBase.resizeFluidFieldList(mSoundSpeed, 0.0,                   HydroFieldNames::soundSpeed, false);
