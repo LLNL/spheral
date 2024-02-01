@@ -55,6 +55,7 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
+  friend class FieldListView<Dimension, DataType>;
   using FieldListViewType = FieldListView<Dimension, DataType>;
 
   using ElementType    = typename FieldListViewType::ElementType;
@@ -295,7 +296,7 @@ private:
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
 
-  using FieldListViewType::mFieldViews;
+  using FieldListViewType::mFieldPtrs;
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
   // construct NodeIterators.

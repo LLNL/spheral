@@ -93,7 +93,7 @@ inline
 typename FieldListView<Dimension, DataType>::iterator
 FieldListView<Dimension, DataType>::
 begin() {
-  return mFieldViews().begin();
+  return mFieldPtrs.begin();
 }
 
 template<typename Dimension, typename DataType>
@@ -101,7 +101,7 @@ inline
 typename FieldListView<Dimension, DataType>::iterator
 FieldListView<Dimension, DataType>::
 end() {
-  return mFieldViews().end();
+  return mFieldPtrs.end();
 }
 
 template<typename Dimension, typename DataType>
@@ -109,7 +109,7 @@ inline
 typename FieldListView<Dimension, DataType>::const_iterator
 FieldListView<Dimension, DataType>::
 begin() const {
-  return mFieldViews().begin();
+  return mFieldPtrs.begin();
 }
 
 template<typename Dimension, typename DataType>
@@ -117,7 +117,7 @@ inline
 typename FieldListView<Dimension, DataType>::const_iterator
 FieldListView<Dimension, DataType>::
 end() const {
-  return mFieldViews().end();
+  return mFieldPtrs.end();
 }
 
 //------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ inline
 typename FieldListView<Dimension, DataType>::ElementType
 FieldListView<Dimension, DataType>::
 operator[](const unsigned int index) const {
-  REQUIRE2(index < mFieldViews().size(), "FieldListView index ERROR: out of bounds " << index << " !< " << mFieldViews().size());
+  REQUIRE2(index < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
   return mFieldPtrs[index];
 }
 
@@ -137,7 +137,7 @@ inline
 typename FieldListView<Dimension, DataType>::ElementType
 FieldListView<Dimension, DataType>::
 operator[](const unsigned int index) {
-  REQUIRE2(index < mFieldViews().size(), "FieldListView index ERROR: out of bounds " << index << " !< " << mFieldViews().size());
+  REQUIRE2(index < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << index << " !< " << mFieldPtrs.size());
   return mFieldPtrs[index];
 }
 
@@ -170,7 +170,7 @@ DataType&
 FieldListView<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) {
-  REQUIRE2(fieldIndex < mFieldViews().size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldViews().size());
+  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
   REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldListView node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
   return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
@@ -181,7 +181,7 @@ DataType&
 FieldListView<Dimension, DataType>::
 operator()(const unsigned int fieldIndex,
            const unsigned int nodeIndex) const {
-  REQUIRE2(fieldIndex < mFieldViews().size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldViews().size());
+  REQUIRE2(fieldIndex < mFieldPtrs.size(), "FieldListView index ERROR: out of bounds " << fieldIndex << " !< " << mFieldPtrs.size());
   REQUIRE2(nodeIndex < mFieldPtrs[fieldIndex]->size(), "FieldListView node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldPtrs[fieldIndex]->size());
   return mFieldPtrs[fieldIndex]->operator()(nodeIndex);
 }
@@ -751,7 +751,7 @@ template<typename Dimension, typename DataType>
 inline
 unsigned 
 FieldListView<Dimension, DataType>::numFields() const {
-  return mFieldViews().size();
+  return mFieldPtrs.size();
 }
 
 template<typename Dimension, typename DataType>
