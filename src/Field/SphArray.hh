@@ -81,10 +81,10 @@ public:
   // ---------------------
   // Destructor
   // ---------------------
-  //SPHERAL_HOST ~ManagedVector() 
-  //{
-  //  MA::free();
-  //}
+  SPHERAL_HOST ~ManagedVector() 
+  {
+    MA::free();
+  }
 #endif
   using MA::move;
   using MA::free;
@@ -94,11 +94,8 @@ public:
   // ---------------------
 #ifdef MV_VALUE_SEMANTICS
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : 
-    m_size(rhs.m_size)
+    ManagedVector(rhs.m_size)
   {
-  //#if !defined(CHAI_DEVICE_COMPILE)
-    *this = ManagedVector(rhs.m_size);
-  //#endif
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
@@ -131,7 +128,7 @@ public:
   // Equivalence
   // ---------------------
 #ifdef MV_VALUE_SEMANTICS
-  SPHERAL_HOST bool operator==(ManagedVector const& rhs) {
+  SPHERAL_HOST bool operator==(ManagedVector const& rhs) const {
     if (m_size != rhs.m_size) return false;
     for (size_t i = 0; i < m_size; i++) {
       if (MA::operator[](i) != rhs[i]) { 
@@ -145,10 +142,10 @@ public:
     if (m_size != rhs.m_size) return false;
     return MA::operator==(rhs);
   }
+#endif
   SPHERAL_HOST_DEVICE bool operator!=(ManagedVector const& rhs) const {
     return !(*this == rhs);
   }
-#endif
 
   SPHERAL_HOST void push_back(const DataType& value) {
     if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
