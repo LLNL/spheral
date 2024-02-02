@@ -87,7 +87,7 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, SmartCopySemantics)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
-  //Spheral::QInt::CoeffsType c;
+  Spheral::QInt::CoeffsType c;
   {
     Spheral::QInt qq_int;
 
@@ -100,26 +100,30 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, SmartCopySemantics)
     EXEC_IN_SPACE_END();
 
     qq_int.initialize(4);
-    SPHERAL_ASSERT_EQ(qq_int_v.coeffs().size(), 20);
+    SPHERAL_ASSERT_EQ(qq_int_v.coeffs().size(), 10);
 
     EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
       printf("xmin : %lf\n", qq_int_v.xmin());
       //SPHERAL_ASSERT_EQ(qq_int_v.coeffs()[0], 0.1);
       SPHERAL_ASSERT_EQ(qq_int_v.xmin(),          4);
-      SPHERAL_ASSERT_EQ(qq_int_v.coeffs().size(), 20);
-      SPHERAL_ASSERT_EQ(qq_int_v.coeffs()[19], 0.19);
+      SPHERAL_ASSERT_EQ(qq_int_v.coeffs().size(), 10);
+      SPHERAL_ASSERT_EQ(qq_int_v.coeffs()[9], 0.19);
 
     EXEC_IN_SPACE_END();
 
+    qq_int.editData(2);
 
     EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-      SPHERAL_ASSERT_EQ(qq_int_v.xmin(),          4);
+      SPHERAL_ASSERT_EQ(qq_int_v.xmin(),          2);
+      SPHERAL_ASSERT_EQ(qq_int_v.coeffs()[9], 91);
+      printf("xmin : %lf\n", qq_int_v.xmin());
+      printf("coeffs[19] : %lf\n", qq_int_v.coeffs()[9]);
     EXEC_IN_SPACE_END();
 
     for (auto elem : qq_int.coeffs()) std::cout << elem << std::endl;
-    //c = qq_int_v.coeffs();
+    c = qq_int.coeffs();
   }
-  //for (auto elem : c) std::cout << elem << std::endl;
+  for (auto elem : c) std::cout << elem << std::endl;
 }
 
 //GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, CopySemantics)
