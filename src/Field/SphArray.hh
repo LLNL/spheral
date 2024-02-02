@@ -285,22 +285,9 @@ private:
 
   friend ManagedVector deepCopy(ManagedVector const& array)
   {
-#if 0
-    DataType* data_ptr = array.getActiveBasePointer();
-
-    chai::ArrayManager* manager = chai::ArrayManager::getInstance();
-
-    chai::PointerRecord const* record = manager->getPointerRecord(data_ptr);
-    chai::PointerRecord* copy_record = manager->deepCopyRecord(record);
-
-    return ManagedVector(MA(copy_record, chai::CPU));
-#else
-    size_t size = array.size();
-    auto copy = ManagedVector<DataType>(size);
-    for (size_t i = 0; i < size; i++) new (&copy[i]) DataType(array[i]);
-
+    ManagedVector<DataType> copy(array.size());
+    for (size_t i = 0; i < array.size(); i++) new (&copy[i]) DataType(array[i]);
     return copy;
-#endif
   }
 
   SPHERAL_HOST_DEVICE
@@ -330,6 +317,7 @@ template<typename T>
 class ManagedSmartPtr : public chai::CHAICopyable
 {
 public:
+  using element_type = T;
 struct PrivateConstruct {};
 
   SPHERAL_HOST_DEVICE ManagedSmartPtr() {
@@ -437,8 +425,8 @@ protected:
         std::cout << "freeing memory\n";
         m_ptr[0].free();
         m_ptr.free();
-        //delete m_ref_count;
-        //m_ref_count = nullptr;
+        delete m_ref_count;
+        m_ref_count = nullptr;
       }
     }
 
