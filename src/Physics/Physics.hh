@@ -100,15 +100,19 @@ public:
 
   //******************************************************************************//
   // An optional hook to initialize once when the problem is starting up.
-  // Typically this is used to size arrays once all the materials and NodeLists have
-  // been created.  It is assumed after this method has been called it is safe to
-  // call Physics::registerState for instance to create full populated State objects.
+  // This is called after the materials and NodeLists are created. This method
+  // should set the sizes of all arrays owned by the physics package and initialize
+  // independent variables.
+  // It is assumed after this method has been called it is safe to call
+  // Physics::registerState to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase);
 
-  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
-  // been called.
-  // One use for this hook is to fill in dependendent state using the State object, such as
-  // temperature or pressure.
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup
+  // has been called.
+  // This method is called after independent variables have been initialized and put into
+  // the state and derivatives. During this method, the dependent state, such as
+  // temperature and pressure, is initialized so that all the fields in the initial
+  // state and derivatives objects are valid.
   virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                                     State<Dimension>& state,
                                                     StateDerivatives<Dimension>& derivs);
