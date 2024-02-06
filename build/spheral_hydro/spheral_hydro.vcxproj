@@ -294,8 +294,6 @@
     <ClCompile Include="..\..\src\Hydro\HydroFieldNames.cc" />
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Hydro\RZNonSymmetricSpecificThermalEnergyPolicy.cc" />
@@ -348,14 +346,6 @@
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\PositionPolicyInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
