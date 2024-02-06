@@ -20,6 +20,7 @@ set(DataBase_headers
     FieldUpdatePolicyInline.hh
     CopyState.hh
     CopyStateInline.hh
+    make_policy.hh
     IncrementState.hh
     IncrementStateInline.hh
     IncrementBoundedState.hh
