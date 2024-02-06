@@ -357,5 +357,8 @@
     <ClInclude Include="..\..\src\Utilities\QuadraticInterpolatorInline.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\range.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

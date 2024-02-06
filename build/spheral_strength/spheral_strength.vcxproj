@@ -346,17 +346,6 @@
     <None Include="..\..\src\Strength\SolidNodeListInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Strength\StrengthSoundSpeedPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.py">
-      <Command>
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-       </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
     <None Include="..\..\src\Strength\YieldStrengthPolicy.hh">
       <FileType>Document</FileType>
     </None>
@@ -379,8 +368,6 @@
     <ClCompile Include="..\..\src\Strength\ShearModulusPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Strength\ShearModulusPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Strength\SolidFieldNames.cc" />
-    <ClCompile Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Strength\YieldStrengthPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Strength\YieldStrengthPolicyInst.cc.3.cc" />
   </ItemGroup>

@@ -9,37 +9,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.2.cc" >
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.3.cc" >
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.2.cc" >
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.3.cc" >
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.2.cc" >
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc" >
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc" >
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.3.cc" >
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\FSIFieldNames.cc" >
+    <ClCompile Include="..\..\src\FSISPH\FSIFieldNames.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SlideSurface.cc" >
+    <ClCompile Include="..\..\src\FSISPH\SlideSurface.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHEvaluateDerivatives.cc" >
+    <ClCompile Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,5 +59,10 @@
     <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

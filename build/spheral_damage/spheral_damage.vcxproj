@@ -289,8 +289,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Damage\computeFragmentFieldInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\computeFragmentFieldInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\DamageGradientNodeCouplingInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Damage\DamageGradientNodeCouplingInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.2.cc" />
@@ -317,14 +315,6 @@
       <FileType>Document</FileType>
     </None>
     <CustomBuild Include="..\..\src\Damage\computeFragmentFieldInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -414,8 +404,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\Damage\DamagedPressurePolicy.hh" />
-    <ClInclude Include="..\..\src\Damage\DamagedSoundSpeedPolicy.hh" />
     <ClInclude Include="..\..\src\Damage\DamageGradientNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Damage\DamageGradientPolicy.hh" />
     <ClInclude Include="..\..\src\Damage\DamageModel.hh" />

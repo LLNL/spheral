@@ -98,16 +98,10 @@
     <None Include="..\..\src\Hydro\HydroInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Hydro\MashCorrectionPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Hydro\MeshScaledMassDensityPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\PositionPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\PressurePolicy.hh">

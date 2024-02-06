@@ -21,6 +21,42 @@
     <ClCompile Include="..\..\src\GSPH\computeSPHVolumeInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\GSPH\computeSumVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeSumVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\GSPH\computeMFMDensityInst.cc.py">
@@ -29,5 +65,23 @@
     <CustomBuild Include="..\..\src\GSPH\computeSPHVolumeInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\computeSumVolumeInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\MFMHydroBaseInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.py" />
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.py" />
   </ItemGroup>
 </Project>

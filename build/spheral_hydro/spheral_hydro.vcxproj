@@ -341,9 +341,6 @@
     <None Include="..\..\src\Hydro\HydroInline.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Hydro\MashCorrectionPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Hydro\MeshScaledMassDensityPolicy.hh">
       <FileType>Document</FileType>
     </None>
@@ -358,9 +355,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Hydro\PositionPolicy.hh">
-      <FileType>Document</FileType>
-    </None>
     <CustomBuild Include="..\..\src\Hydro\PositionPolicyInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
