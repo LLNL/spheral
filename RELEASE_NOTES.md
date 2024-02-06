@@ -1,7 +1,7 @@
-Version vX.Y.Z -- Release date xxxx-xx-xx
+Version v2024.01.1 -- Release date 2024-02-xx
 ==============================================
   * Important Notes:
-    * 
+    * This is a patch release for v2024.01.0.
 
 Notable changes include:
 
@@ -15,6 +15,8 @@ Notable changes include:
 
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
