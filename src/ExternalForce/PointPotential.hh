@@ -36,27 +36,38 @@ public:
 
   // We augment the generic body force state.
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state);
+                             State<Dimension>& state) override;
 
   // This is the derivative method that all BodyPotential classes must provide.
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
                                    const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
-                                   StateDerivatives<Dimension>& derivs) const;
+                                   StateDerivatives<Dimension>& derivs) const override;
 
   // Provide the timestep appropriate for this package.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
 
-  //! Initializations on problem start up.
-  virtual void initializeProblemStartup(DataBase<Dimension>& db);
+  // An optional hook to initialize once when the problem is starting up.
+  // Typically this is used to size arrays once all the materials and NodeLists have
+  // been created.  It is assumed after this method has been called it is safe to
+  // call Physics::registerState for instance to create full populated State objects.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Get the cumulative potential energy calculated in the last 
   // evaluateDerivatives.
-  virtual Scalar extraEnergy() const;
+  virtual Scalar extraEnergy() const override;
 
   // The specific potential.
   Scalar specificPotential(const Vector& r) const;

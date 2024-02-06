@@ -130,16 +130,6 @@ SolidSPHHydroBaseRZ::
 }
 
 //------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-void
-SolidSPHHydroBaseRZ::
-initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
-  GeometryRegistrar::coords(CoordinateType::RZ);
-  SolidSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
-}
-
-//------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void

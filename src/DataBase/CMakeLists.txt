@@ -39,6 +39,8 @@ set(DataBase_headers
     StateDerivatives.hh
     StateDerivativesInline.hh
     StateInline.hh
+    applyPolicyToFieldList.hh
+    updateStateFields.hh
     )
 
 spheral_add_obj_library(DataBase SPHERAL_OBJ_LIBS)
