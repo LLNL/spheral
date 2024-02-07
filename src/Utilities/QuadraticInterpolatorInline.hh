@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 
 namespace Spheral {
-  
+
 //------------------------------------------------------------------------------
 // Construct to fit the given function
 //------------------------------------------------------------------------------
@@ -13,17 +13,12 @@ inline
 QuadraticInterpolator::QuadraticInterpolator(const double xmin,
                                              const double xmax,
                                              const size_t n,
-                                             const Func& F) {
-  //mN1(n - 1),
-  //mXmin(xmin),
-  //mXmax(xmax),
-  //mXstep((xmax - xmin)/n),
-  //mcoeffs(3u*n)
-  mN1=n - 1;
-  mXmin=xmin;
-  mXmax=xmax;
-  mXstep= (xmax - xmin)/n;
-  mcoeffs = CoeffsType(3u*n);
+                                             const Func& F):
+  mN1(n - 1),
+  mXmin(xmin),
+  mXmax(xmax),
+  mXstep((xmax - xmin)/n),
+  mcoeffs(3u*n) {
 
   // Preconditions
   VERIFY2(n > 0, "QuadraticInterpolator requires n > 1 : n=" << n);
@@ -51,6 +46,105 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
     mcoeffs[3*i0 + 1u] = X(1);
     mcoeffs[3*i0 + 2u] = X(2);
   }
+}
+
+//------------------------------------------------------------------------------
+// Interpolate for the given x value.
+//------------------------------------------------------------------------------
+inline
+double
+QuadraticInterpolator::operator()(const double x) const {
+  const auto i0 = lowerBound(x);
+  return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
+}
+
+inline
+double
+QuadraticInterpolator::operator()(const double x,
+                                  const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
+  return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
+}
+
+//------------------------------------------------------------------------------
+// Interpolate the first derivative the given x value.
+//------------------------------------------------------------------------------
+inline
+double
+QuadraticInterpolator::prime(const double x) const {
+  const auto i0 = lowerBound(x);
+  return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
+}
+
+inline
+double
+QuadraticInterpolator::prime(const double x,
+                             const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
+  return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
+}
+
+//------------------------------------------------------------------------------
+// Interpolate the second derivative for the given x value.
+// Just a constant value, so not a great fit.
+//------------------------------------------------------------------------------
+inline
+double
+QuadraticInterpolator::prime2(const double x) const {
+  const auto i0 = lowerBound(x);
+  return 2.0*mcoeffs[i0 + 2];
+}
+
+inline
+double
+QuadraticInterpolator::prime2(const double /*x*/,
+                              const size_t i0) const {
+  REQUIRE(i0 <= 3u*mN1);
+  return 2.0*mcoeffs[i0 + 2];
+}
+
+//------------------------------------------------------------------------------
+// Return the lower bound entry in the table for the given x coordinate
+//------------------------------------------------------------------------------
+inline
+size_t
+QuadraticInterpolator::lowerBound(const double x) const {
+  const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
+  ENSURE(result <= 3u*mN1);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Data accessors
+//------------------------------------------------------------------------------
+inline
+size_t
+QuadraticInterpolator::size() const {
+  return mcoeffs.size();
+}
+
+inline
+double
+QuadraticInterpolator::xmin() const {
+  return mXmin;
+}
+
+inline
+double
+QuadraticInterpolator::xmax() const {
+  return mXmax;
+}
+
+inline
+double
+QuadraticInterpolator::xstep() const {
+  return mXstep;
+}
+
+inline
+const std::vector<double>&
+QuadraticInterpolator::coeffs() const {
+  return mcoeffs;
 }
 
 }

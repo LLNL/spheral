@@ -10,6 +10,16 @@
 
 namespace Spheral {
 
+//------------------------------------------------------------------------------
+// Default constructor
+//------------------------------------------------------------------------------
+QuadraticInterpolator::QuadraticInterpolator():
+  mN1(),
+  mXmin(),
+  mXmax(),
+  mXstep(),
+  mcoeffs() {
+}
 
 //------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
@@ -53,5 +63,22 @@ QuadraticInterpolator::initialize(const double xmin,
   }
 }
 
+//------------------------------------------------------------------------------
+// Destructor
+//------------------------------------------------------------------------------
+QuadraticInterpolator::~QuadraticInterpolator() {
+}
+
+//------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+bool
+QuadraticInterpolator::
+operator==(const QuadraticInterpolator& rhs) const {
+  return ((mN1 == rhs.mN1) and
+          (mXmin == rhs.mXmin) and
+          (mXmax == rhs.mXmax) and
+          (mcoeffs == rhs.mcoeffs));
+}
 
 }

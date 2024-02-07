@@ -9,11 +9,12 @@
 #ifndef __Spheral_QuadraticInterpolator__
 #define __Spheral_QuadraticInterpolator__
 
-#include "QuadraticInterpolatorView.hh"
+#include <cstddef>
+#include <vector>
 
 namespace Spheral {
 
-class QuadraticInterpolator : public QuadraticInterpolatorView{
+class QuadraticInterpolator {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
@@ -22,35 +23,42 @@ public:
                         const double xmax,
                         const size_t n,
                         const Func& F);
-  QuadraticInterpolator() { mcoeffs = CoeffsType(0); };
-  ~QuadraticInterpolator() {};
-
-  //QuadraticInterpolator(QuadraticInterpolator const& rhs) = default;
-  QuadraticInterpolator(QuadraticInterpolator const& rhs) : QuadraticInterpolatorView(rhs) { mcoeffs = deepCopy(rhs.mcoeffs); }
-
-  QuadraticInterpolator& operator=(QuadraticInterpolator const& rhs) {
-    if (this != &rhs) {
-      mN1 = rhs.mN1;
-      mXmin = rhs.mXmin;
-      mXmax = rhs.mXmax;
-      mcoeffs = deepCopy(rhs.mcoeffs);
-    }
-    return *this;
-  }
-  
-  bool operator==(QuadraticInterpolator const& rhs) const {
-    return ((mN1 == rhs.mN1) and
-            (mXmin == rhs.mXmin) and
-            (mXmax == rhs.mXmax) and
-            (compare(mcoeffs, rhs.mcoeffs)));
-  }
-
-  QuadraticInterpolatorView toView() { return QuadraticInterpolatorView(*this); }
+  QuadraticInterpolator();
+  ~QuadraticInterpolator();
 
   // Alternatively initialize from tabulated values
   void initialize(const double xmin, const double xmax,
                   const std::vector<double>& yvals);
 
+  // Comparisons
+  bool operator==(const QuadraticInterpolator& rhs) const;
+
+  // Interpolate for the y value
+  double operator()(const double x) const;
+  double prime(const double x) const;    // First derivative
+  double prime2(const double x) const;   // Second derivative
+
+  // Same as above, but use a pre-computed table position (from lowerBound)
+  double operator()(const double x, const size_t i0) const;
+  double prime(const double x, const size_t i0) const;    // First derivative
+  double prime2(const double x, const size_t i0) const;   // Second derivative
+
+  // Return the lower bound index in the table for the given x coordinate
+  size_t lowerBound(const double x) const;
+
+  // Allow read access the internal data representation
+  size_t size() const;                        // The size of the tabulated coefficient arrays
+  double xmin() const;                        // Minimum x coordinate for table              
+  double xmax() const;                        // Maximum x coordinate for table              
+  double xstep() const;                       // delta x between tabulated values            
+  const std::vector<double>& coeffs() const;  // the fitting coefficients
+  
+private:
+  //--------------------------- Private Interface --------------------------//
+  // Member data
+  size_t mN1;
+  double mXmin, mXmax, mXstep;
+  std::vector<double> mcoeffs;
 };
 
 }
