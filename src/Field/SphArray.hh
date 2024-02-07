@@ -454,24 +454,25 @@ protected:
   chai::ManagedArray<T> m_ptr;
   size_t* m_ref_count = nullptr;
 
-  friend ManagedSmartPtr make_ManagedSmartPtr(T* host_ptr);
+  template<typename U>
+  friend ManagedSmartPtr make_ManagedSmartPtr(U* host_ptr);
 
-  template<typename... Args>
+  template<typename U, typename... Args>
   friend ManagedSmartPtr make_ManagedSmartPtr(Args... args);
 
 };
 
-template<typename T>
-ManagedSmartPtr<T> make_ManagedSmartPtr(T* host_ptr)
+template<typename U>
+ManagedSmartPtr<U> make_ManagedSmartPtr(U* host_ptr)
   {
-    ManagedSmartPtr<T> ptr = ManagedSmartPtr<T>(typename ManagedSmartPtr<T>::PrivateConstruct(), host_ptr);
+    ManagedSmartPtr<U> ptr = ManagedSmartPtr<U>(typename ManagedSmartPtr<U>::PrivateConstruct(), host_ptr);
     return ptr;
   }
 
-template<typename T, typename... Args>
-ManagedSmartPtr<T> make_ManagedSmartPtr(Args... args)
+template<typename U, typename... Args>
+ManagedSmartPtr<U> make_ManagedSmartPtr(Args... args)
   {
-    ManagedSmartPtr<T> ptr = ManagedSmartPtr<T>(typename ManagedSmartPtr<T>::PrivateConstruct(), args...);
+    ManagedSmartPtr<U> ptr = ManagedSmartPtr<U>(typename ManagedSmartPtr<U>::PrivateConstruct(), args...);
     return ptr;
   }
 
