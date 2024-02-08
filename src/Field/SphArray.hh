@@ -25,6 +25,12 @@ namespace Spheral {
 //#define MV_VALUE_SEMANTICS
 
 template<typename DataType>
+class ManagedVector;
+
+template<typename U>
+ManagedVector<U> deepCopy(ManagedVector<U> const& array);
+
+template<typename DataType>
 class ManagedVector:
   private chai::ManagedArray<DataType>{
   using MA = chai::ManagedArray<DataType>;
@@ -283,12 +289,8 @@ private:
 
   ManagedVector(MA const& managed_array) : MA(managed_array), m_size(managed_array.size()) {}
 
-  friend ManagedVector deepCopy(ManagedVector const& array)
-  {
-    ManagedVector<DataType> copy(array.size());
-    for (size_t i = 0; i < array.size(); i++) new (&copy[i]) DataType(array[i]);
-    return copy;
-  }
+  template<typename U>
+  friend ManagedVector deepCopy(ManagedVector const& array);
 
   SPHERAL_HOST_DEVICE
   friend bool compare(ManagedVector const& lhs, ManagedVector const& rhs)
@@ -304,8 +306,21 @@ private:
 
 };
 
+
+template<typename U>
+inline 
+ManagedVector<U> deepCopy(ManagedVector<U> const& array)
+{
+  ManagedVector<U> copy(array.size());
+  for (size_t i = 0; i < array.size(); i++) new (&copy[i]) U(array[i]);
+  return copy;
+}
+
 template<typename T>
 class ManagedSmartPtr;
+
+template<typename U>
+ManagedSmartPtr<U> deepCopy(ManagedSmartPtr<U> const& rhs);
 
 template<typename T>
 ManagedSmartPtr<T> make_ManagedSmartPtr(T* host_ptr);
@@ -438,12 +453,6 @@ protected:
   }
 
 
-  friend ManagedSmartPtr deepCopy(ManagedSmartPtr const& rhs)
-  {
-    // TODO : not safe
-    return ManagedSmartPtr(deepCopy(rhs.m_ptr[0]));
-  }
-
   SPHERAL_HOST_DEVICE
   friend bool compare(ManagedSmartPtr const& lhs, ManagedSmartPtr const& rhs)
   {
@@ -455,12 +464,16 @@ protected:
   size_t* m_ref_count = nullptr;
 
   template<typename U>
+  friend ManagedSmartPtr deepCopy(ManagedSmartPtr const& rhs);
+
+  template<typename U>
   friend ManagedSmartPtr make_ManagedSmartPtr(U* host_ptr);
 
   template<typename U, typename... Args>
   friend ManagedSmartPtr make_ManagedSmartPtr(Args... args);
 
 };
+
 
 template<typename U>
 ManagedSmartPtr<U> make_ManagedSmartPtr(U* host_ptr)
@@ -476,6 +489,14 @@ ManagedSmartPtr<U> make_ManagedSmartPtr(Args... args)
     return ptr;
   }
 
+template<typename U>
+ManagedSmartPtr<U> deepCopy(ManagedSmartPtr<U> const& rhs)
+{
+  // TODO : not safe
+  ManagedSmartPtr<U> ptr = make_ManagedSmartPtr<U>(deepCopy(*rhs));
+  return ptr;
+  //return ManagedSmartPtr<U>(typename ManagedSmartPtr<U>::PrivateConstruct(), deepCopy(*rhs));
+}
 
 
 template<typename T>
@@ -554,7 +575,7 @@ public:
   SPHERAL_HOST
   void erase(iterator pos) {
     move(chai::CPU);
-    mv().erase();
+    mv().erase(pos);
     Base::m_ptr.registerTouch(chai::CPU);
   }
 
