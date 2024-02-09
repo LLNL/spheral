@@ -216,6 +216,8 @@ class SpheralController:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+        for package in packages:
+            package.initializeProblemStartupDependencies(db, state, derivs)
         db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)

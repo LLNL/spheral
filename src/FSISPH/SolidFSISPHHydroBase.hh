@@ -88,8 +88,13 @@ public:
 
   virtual ~SolidFSISPHHydroBase();
 
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   virtual
   void registerState(DataBase<Dimension>& dataBase,

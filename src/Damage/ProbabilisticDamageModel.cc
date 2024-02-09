@@ -23,6 +23,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
@@ -212,22 +213,25 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
            << "    Avg Neff/Nflaws       : " << numFlawsRatio << endl;
     }
   }
+}
 
-  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
-  const auto& eps = nodes.specificThermalEnergy();
-  const auto& D = nodes.damage();
-  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
-  nodes.equationOfState().setPressure(P, rho, eps);
-  if (nodes.strengthModel().providesBulkModulus()) {
-    nodes.strengthModel().bulkModulus(K, rho, eps);
-  } else {
-    nodes.equationOfState().setBulkModulus(K, rho, eps);
-  }
-  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ProbabilisticDamageModel<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
-  // Set the initial values for Youngs modulus and the longitudinal sound speed
-  nodes.YoungsModulus(mYoungsModulus, K, mu);
-  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+  updateStateFields(SolidFieldNames::YoungsModulus, state, derivs);
+  updateStateFields(SolidFieldNames::longitudinalSoundSpeed, state, derivs);
 }
 
 //------------------------------------------------------------------------------
