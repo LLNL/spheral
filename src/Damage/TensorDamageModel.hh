@@ -73,6 +73,13 @@ public:
                     const double criticalDamageThreshold,
                     const bool damageInCompression,
                     const FlawStorageType& flaws);
+  TensorDamageModel(SolidNodeList<Dimension>& nodeList,
+                    const TensorStrainAlgorithm strainAlgorithm,
+                    const DamageCouplingAlgorithm damageCouplingAlgorithm,
+                    const TableKernel<Dimension>& W,
+                    const double crackGrowthMultiplier,
+                    const double criticalDamageThreshold,
+                    const bool damageInCompression);
   virtual ~TensorDamageModel();
 
   //...........................................................................
@@ -136,6 +143,8 @@ public:
   const Field<Dimension, Scalar>& DdamageDt() const;
   const FlawStorageType& flaws() const;
   FlawStorageType& flaws();
+
+  void flaws(const FlawStorageType& x);
 
   // The algorithms to update the strain.
   TensorStrainAlgorithm strainAlgorithm() const;

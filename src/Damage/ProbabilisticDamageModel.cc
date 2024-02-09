@@ -101,7 +101,7 @@ ProbabilisticDamageModel<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// initializeProblemStartup
+// initializeProblemStartupDependencies
 //
 // After all initial state has been initialize (node positions, masses, etc),
 // but before we try to run any physics cycles.  This is when we initialize a
@@ -110,7 +110,9 @@ ProbabilisticDamageModel<Dimension>::
 template<typename Dimension>
 void
 ProbabilisticDamageModel<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
   // How many points are actually being damaged?
   // We have to be careful to use an unsigned size_t here due to overflow
@@ -132,8 +134,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the initial volumes and random seeds for each node.  We hash the
   // morton index of each point with the global seed value to create unique
   // but reproducible seeds for each points random number generator.
-  const auto& mass = nodes.mass();
-  const auto& rho = nodes.massDensity();
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodes.name()); };
+  const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+  const auto& rho = (state.registered(buildKey(SolidFieldNames::porositySolidDensity)) ?
+                     state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                     state.field(buildKey(HydroFieldNames::massDensity), 0.0));
   const auto  nlocal = nodes.numInternalNodes();
   vector<uniform_random> randomGenerators(nlocal);
 #pragma omp parallel for
@@ -213,17 +218,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
            << "    Avg Neff/Nflaws       : " << numFlawsRatio << endl;
     }
   }
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we need to initialize our internal data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-ProbabilisticDamageModel<Dimension>::
-initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
-                                     State<Dimension>& state,
-                                     StateDerivatives<Dimension>& derivs) {
 
   // Set the moduli.
   updateStateFields(HydroFieldNames::pressure, state, derivs);
