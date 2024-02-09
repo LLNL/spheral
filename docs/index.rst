@@ -18,6 +18,11 @@ Welcome to Spheral's documentation!
    build_guide/lc/index.rst
 
 .. toctree::
+   :caption: User Guide:
+
+   user_guide/user_docs.rst
+
+.. toctree::
    :maxdepth: 1
    :caption: Developer Guide:
 
