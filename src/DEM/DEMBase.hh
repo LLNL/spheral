@@ -87,6 +87,14 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
+  
+  // hook after the intergrator step
+  // virtual
+  // void finalize(const Scalar time,
+  //               const Scalar dt,
+  //               const DataBase<Dimension>& dataBase,
+  //               const State<Dimension>& state,
+  //                     StateDerivatives<Dimension>& derivs) const override;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
@@ -218,11 +226,11 @@ protected:
 
   std::vector<SolidBoundaryBase<Dimension>*> mSolidBoundaries;
 
-  int mCycle;
-  int mContactRemovalFrequency;
+  int mCycle;                    // current cycle
+  int mContactRemovalFrequency;  // how often do we clear out old contacts
 
   // number of steps per collision time-scale
-  Scalar mStepsPerCollision;              
+  Scalar mStepsPerCollision;        
 
   // Optional bounding box for generating the mesh.
   Vector mxmin, mxmax;
@@ -250,6 +258,7 @@ protected:
   FieldList<Dimension,std::vector<Scalar>> mDDtTorsionalDisplacement;  // derivative to evolve frictional spring displacement
   FieldList<Dimension,std::vector<Scalar>> mNewTorsionalDisplacement;  // handles rotation of frictional spring and reset on slip
 
+  // map to storage location from connectivityMap to pairwise fieldlists
   std::vector<ContactIndex> mContactStorageIndices;
 
   // The restart registration.

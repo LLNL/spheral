@@ -316,9 +316,21 @@ registerState(DataBase<Dimension>& dataBase,
   auto rollingDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
   auto torsionalDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
 
+  // solid boundary conditions w/ properties that need to be integrated
   auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
+  state.enroll(DEMFieldNames::solidBoundaryPolicy,boundaryPolicy);
+  const auto& solidBoundaries = this->solidBoundaryConditions();
+  const auto  numSolidBoundaries = this->numSolidBoundaries();
+   for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
+    const auto name = "SolidBoundary_" + std::to_string(this->getSolidBoundaryUniqueIndex(ibc));
+    solidBoundaries[ibc]->registerState(dataBase,state,name);
+   }
 
-  state.enroll(DEMFieldNames::solidBoundaries,boundaryPolicy);
+  // for (ConstSolidBoundaryIterator solidboundItr = mSolidBoundaries.begin();
+  //       solidboundItr != mSolidBoundaries.end();
+  //       ++solidboundItr){
+  //   (*solidboundItr)->registerState(dataBase,state);
+  // }
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -409,6 +421,21 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
   TIME_END("DEMpreStepInitialize");
 }
+
+//------------------------------------------------------------------------------
+// This method is called once at the beginning of a timestep, after all state registration.
+//------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// DEMBase<Dimension>::
+// finalize(const DataBase<Dimension>& dataBase, 
+//                   State<Dimension>& state,
+//                   StateDerivatives<Dimension>& derivatives) {
+//   TIME_BEGIN("DEMfinalize");
+
+
+//   TIME_END("DEMfinalize");
+// }
 
 //------------------------------------------------------------------------------
 // Call before deriv evaluation
@@ -650,7 +677,14 @@ finalizeAfterRedistribution() {
 }
 
 //------------------------------------------------------------------------------
-// redistribution sub function
+// redistribution sub function  -- we store the pairwise fields in one of the 
+//     nodes. Prior to redistribution, we don't know where the new domain 
+//     boundaries will be so we want to store the pairwise data in both nodes.
+//     pairs that span a domain boundary already do this so we just need to make
+//     sure all the internal contacts data is stored in both nodes. We do this
+//     by looking through the contacts for each node. If the pair node is an 
+//     internal node than it needs to add the current (storage node) as a contact.
+//     The NeighborIndices needs special treatement so it gets its own method
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename Value>
@@ -861,7 +895,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           // now add our contact
           #pragma omp critical
           {
-            mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist index
+            mContactStorageIndices.push_back(ContactIndex(nodeListi,          // storage nodelist index
                                                         i,                    // storage node index
                                                         storageContactIndex,  // storage contact index
                                                         ibc));                // bc index
