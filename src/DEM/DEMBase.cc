@@ -448,8 +448,9 @@ initialize(const Scalar  time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs){
+TIME_BEGIN("DEMinitialize");
 
-
+TIME_END("DEMinitialize");
 }
 
 
@@ -603,6 +604,8 @@ void
 DEMBase<Dimension>::
 initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex){
 
+  TIME_BEGIN("DEMinitializeOverlap");
+  
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  numPairs = pairs.size();
@@ -643,6 +646,7 @@ initializeOverlap(const DataBase<Dimension>& dataBase, const int startingComposi
       mEquilibriumOverlap(storeNodeList,storeNode)[storeContact] = delta0;
     }
   }
+  TIME_END("DEMinitializeOverlap");
 }
 //------------------------------------------------------------------------------
 // Redistribution methods -- before we redistribute, we are going to make sure
@@ -655,6 +659,9 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 initializeBeforeRedistribution(){
+
+  TIME_BEGIN("DEMinitializeBeforeRedistribution");
+
   this->prepNeighborIndicesForRedistribution();
 
   this->prepPairFieldListForRedistribution(mShearDisplacement);
@@ -668,6 +675,9 @@ initializeBeforeRedistribution(){
   this->prepPairFieldListForRedistribution(mNewRollingDisplacement);
   this->prepPairFieldListForRedistribution(mDDtTorsionalDisplacement);
   this->prepPairFieldListForRedistribution(mNewTorsionalDisplacement);
+
+  TIME_END("DEMinitializeBeforeRedistribution");
+
 }
 
 template<typename Dimension>
@@ -786,6 +796,8 @@ void
 DEMBase<Dimension>::
 updateContactMap(const DataBase<Dimension>& dataBase){
   
+  TIME_BEGIN("DEMupdateContactMap");
+
   const auto& uniqueIndex = dataBase.DEMUniqueIndex();
   const auto& radius = dataBase.DEMParticleRadius();
   const auto& position = dataBase.DEMPosition();
@@ -904,6 +916,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
       }   // loop nodes
     }     // loop nodelists
   }       // loop solid boundaries
+  TIME_END("DEMupdateContactMap");
 }         // method
 
 //------------------------------------------------------------------------------
@@ -913,7 +926,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 identifyInactiveContacts(const DataBase<Dimension>& dataBase){
-
+  TIME_BEGIN("DEMidentifyInactiveContacts");
   const auto bufferDistance = dataBase.maxNeighborSearchBuffer();
   const auto  numNodeLists = dataBase.numNodeLists();
   const auto& nodeListPtrs = dataBase.DEMNodeListPtrs();
@@ -968,5 +981,6 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   } // loop particle bc contacts
 }   // omp parallel region
+TIME_END("DEMidentifyInactiveContacts");
 }   // class
 }   // namespace

@@ -33,6 +33,8 @@
 #include "DEM/ContactStorageLocation.hh"
 #include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
+#include "Utilities/Timer.hh"
+
 #ifdef _OPENMP
 #include "omp.h"
 #endif
@@ -114,6 +116,8 @@ dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& /*derivs*/,
    const typename Dimension::Scalar /*currentTime*/) const{
+
+  TIME_BEGIN("LinearSpringDEMdt");
 
   // Get some useful fluid variables from the DataBase.
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -268,6 +272,7 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
+  TIME_END("LinearSpringDEMdt");
   return result;
 }
 
@@ -279,8 +284,10 @@ template<typename Dimension>
 void
 LinearSpringDEM<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase){
+  TIME_BEGIN("LinearSpringDEMinitializeProblemStartup");
   DEMBase<Dimension>::initializeProblemStartup(dataBase);
   this->setMomentOfInertia();
+  TIME_END("LinearSpringDEMinitializeProblemStartup");
 }
 
 //------------------------------------------------------------------------------
@@ -291,9 +298,11 @@ void
 LinearSpringDEM<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_BEGIN("LinearSpringDEMregisterState");
   DEMBase<Dimension>::registerState(dataBase,state);
   dataBase.resizeDEMFieldList(mMomentOfInertia, 0.0, DEMFieldNames::momentOfInertia, false);
   state.enroll(mMomentOfInertia);
+  TIME_END("LinearSpringDEMregisterState");
 }
 //------------------------------------------------------------------------------
 // evaluate the derivatives
@@ -306,7 +315,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const{
-
+  TIME_BEGIN("LinearSpringDEMevaluateDerivatives");                    
   this->resizeDerivativePairFieldLists(derivatives);
 
   // A few useful constants we'll use in the following loop.
@@ -796,6 +805,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         DxDt(nodeListi,i) = veli;
     }   // loop nodes
   }     // loop nodelists
+
+  TIME_END("LinearSpringDEMevaluateDerivatives");
 }       // method
 
 
