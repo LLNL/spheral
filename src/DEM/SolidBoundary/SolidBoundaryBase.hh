@@ -17,6 +17,8 @@
 #ifndef __Spheral_SolidBoundaryBase_hh__
 #define __Spheral_SolidBoundaryBase_hh__
 
+#include <string>
+
 namespace Spheral {
 
 template<typename Dimension> class State;
@@ -38,6 +40,10 @@ public:
 
   virtual Vector distance(const Vector& position) const = 0;
   virtual Vector velocity(const Vector& position) const = 0;
+
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state,
+                             const std::string& boundaryKey) = 0;
 
   virtual void update(const double multiplier,
                       const double t,

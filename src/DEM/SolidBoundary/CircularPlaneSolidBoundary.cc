@@ -52,6 +52,14 @@ velocity(const Vector& position) const {
 template<typename Dimension>
 void
 CircularPlaneSolidBoundary<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state,
+              const std::string& boundaryKey) {   
+}
+
+template<typename Dimension>
+void
+CircularPlaneSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {
   mPoint += multiplier*mVelocity;
 }

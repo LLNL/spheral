@@ -19,3 +19,4 @@ const std::string Spheral::DEMFieldNames::rollingDisplacement = "rolling displac
 const std::string Spheral::DEMFieldNames::torsionalDisplacement = "torsional displacement";
 const std::string Spheral::DEMFieldNames::equilibriumOverlap = "equilibrium overlap";
 const std::string Spheral::DEMFieldNames::solidBoundaries = "solid boundaries";
+const std::string Spheral::DEMFieldNames::solidBoundaryPolicy = "solid boundary policy";

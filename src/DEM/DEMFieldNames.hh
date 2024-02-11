@@ -24,6 +24,7 @@ struct DEMFieldNames {
   static const std::string torsionalDisplacement;
   static const std::string equilibriumOverlap;
   static const std::string solidBoundaries;
+  static const std::string solidBoundaryPolicy;
 };
 
 }

@@ -43,6 +43,16 @@ velocity(const Vector& position) const {
 template<typename Dimension>
 void
 InfinitePlaneSolidBoundary<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state,
+              const std::string& boundaryKey) {
+  const auto pointKey = boundaryKey +"_point";
+  state.enrollAny(pointKey,mPoint);
+}
+
+template<typename Dimension>
+void
+InfinitePlaneSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mPoint += multiplier*mVelocity;
 }
