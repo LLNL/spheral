@@ -32,6 +32,15 @@ required of descendant classes."""
                flaws = "const FlawStorageType&"):
         "Constructor"
 
+    def pyinit1(self,
+                nodeList = "SolidNodeList<%(Dimension)s>&",
+                strainAlgorithm = "const TensorStrainAlgorithm",
+                damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
+                kernel = "const TableKernel<%(Dimension)s>&",
+                crackGrowthMultiplier = "const double",
+                criticalDamageThreshold = "const double",
+                damageInCompression = "const bool"):
+        "Constructor"
     #...........................................................................
     # Virtual methods
     @PYB11virtual 
@@ -109,7 +118,7 @@ temperature or pressure."""
     # Properties
     youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
+    flaws = PYB11property("const FlawStorageType&", "flaws", "flaws", returnpolicy="reference_internal",
                           doc="The raw set of flaw activation strains per point")
     sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
                                                  doc="Compute a Field with the sum of the activation energies per node.")
