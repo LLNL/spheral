@@ -11,6 +11,7 @@
 namespace Spheral {
   template<typename Dimension> class FluidNodeList;
   template<typename Dimension, typename DataType> class Field;
+  template<typename Dimension> class State;
 }
 
 namespace Spheral {
@@ -25,6 +26,7 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double kWeibull,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
+                            const State<Dimension>& state,
                             const int minFlawsPerNode,
                             const double volumeMultiplier,
                             const Field<Dimension, int>& mask);

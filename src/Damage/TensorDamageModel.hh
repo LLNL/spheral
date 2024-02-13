@@ -73,6 +73,13 @@ public:
                     const double criticalDamageThreshold,
                     const bool damageInCompression,
                     const FlawStorageType& flaws);
+  TensorDamageModel(SolidNodeList<Dimension>& nodeList,
+                    const TensorStrainAlgorithm strainAlgorithm,
+                    const DamageCouplingAlgorithm damageCouplingAlgorithm,
+                    const TableKernel<Dimension>& W,
+                    const double crackGrowthMultiplier,
+                    const double criticalDamageThreshold,
+                    const bool damageInCompression);
   virtual ~TensorDamageModel();
 
   //...........................................................................
@@ -106,8 +113,13 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
-  // An optional hook to initialize once when the problem is starting up.
-  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   //...........................................................................
   // Optional method to cull the set of flaws to the single weakest one on
@@ -131,6 +143,8 @@ public:
   const Field<Dimension, Scalar>& DdamageDt() const;
   const FlawStorageType& flaws() const;
   FlawStorageType& flaws();
+
+  void flaws(const FlawStorageType& x);
 
   // The algorithms to update the strain.
   TensorStrainAlgorithm strainAlgorithm() const;

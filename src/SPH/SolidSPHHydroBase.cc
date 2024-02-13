@@ -20,6 +20,7 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -201,25 +202,21 @@ SolidSPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 SolidSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SolidSPHinitializeStartup");
 
   // Call the ancestor.
   SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
 
   // Set the moduli.
-  auto nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr != dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
-    (*itr)->shearModulus(*mShearModulus[nodeListi]);
-    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
-  }
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
 
   // Copy the initial H field to apply to nodes as they become damaged.
-  const FieldList<Dimension, SymTensor> H = dataBase.fluidHfield();
+  const auto H = dataBase.fluidHfield();
   mHfield0.assignFields(H);
 
   TIME_END("SolidSPHinitializeStartup");

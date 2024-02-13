@@ -114,6 +114,17 @@ initializeProblemStartup(DataBase<Dimension>& /*dataBase*/) {
 }
 
 //------------------------------------------------------------------------------
+// Provide a default no-op problem startup initialization dependencies method.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& /*dataBase*/,
+                                     State<Dimension>& /*state*/,
+                                     StateDerivatives<Dimension>& /*derivs*/) {
+}
+
+//------------------------------------------------------------------------------
 // Provide a default no-op pre-step initialization method.
 //------------------------------------------------------------------------------
 template<typename Dimension>
