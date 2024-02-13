@@ -1,4 +1,4 @@
-The first thing to know, Spheral is a Python Module
+The first thing to know: Spheral is a Python Module
 ###################################################
 
 Spheral is a Python extension rather than a standalone code.  This is an unusual choice in the world of physics modeling software, which are generally provided as standalone software packages with their own interface languages and conventions.  Spheral was developed as a Python extension for a few reasons:
