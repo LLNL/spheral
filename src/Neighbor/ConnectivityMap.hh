@@ -171,6 +171,9 @@ public:
   // Return which NodeList index in order the given one would be in our connectivity.
   unsigned nodeListIndex(const NodeList<Dimension>* nodeListPtr) const;
 
+  // Exclude (nodeListi, nodei, nodeListj, nodej) pairs if this returns false
+  void setNodePairExclusion(std::function<bool(int, int, int, int)> excludePairs);
+   
   // Check that the internal data structure is valid.
   bool valid() const;
 
@@ -208,6 +211,9 @@ private:
   using IntersectionConnectivityContainer = std::unordered_map<NodePairIdxType, std::vector<std::vector<int>>>;
   IntersectionConnectivityContainer mIntersectionConnectivity;
 
+  // Exclude pairs matching this function
+  std::function<bool(int, int, int, int)> mExcludePairs;
+   
   // Internal method to fill in the connectivity, once the set of NodeLists 
   // is determined.
   void computeConnectivity();

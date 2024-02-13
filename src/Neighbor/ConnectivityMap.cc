@@ -134,7 +134,8 @@ ConnectivityMap():
   mNodeTraversalIndices(),
   mKeys(FieldStorageType::CopyFields),
   mCouplingPtr(std::make_shared<NodeCoupling>()),
-  mIntersectionConnectivity() {
+  mIntersectionConnectivity(),
+  mExcludePairs([](int, int, int, int) { return false; }){
 }
 
 //------------------------------------------------------------------------------
@@ -269,7 +270,8 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       const auto jNodeList = mNodePairList[k].j_list;
       const auto i = mNodePairList[k].i_node;
       const auto j = mNodePairList[k].j_node;
-      if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
+      if ((flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) and
+          !mExcludePairs(iNodeList, i, jNodeList, j)) {
         culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
                                                      old2new(jNodeList, j), jNodeList));
       }
