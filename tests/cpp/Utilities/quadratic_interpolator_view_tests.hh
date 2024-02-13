@@ -91,6 +91,8 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, OperatorParen)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::QuadraticInterpolator q_int;
+  auto q_int_v  = q_int.toView();
+
   q_int.initialize(0,4,{0,1,2});
 
   std::cout << q_int(1) << std::endl;
@@ -104,15 +106,15 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, OperatorParen)
   std::cout << q_int(4, 0) << std::endl;
  
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(q_int(1), 0.5);
-    SPHERAL_ASSERT_EQ(q_int(2), 1);
-    SPHERAL_ASSERT_EQ(q_int(3), 1.5);
-    SPHERAL_ASSERT_EQ(q_int(4), 2);
+    SPHERAL_ASSERT_EQ(q_int_v(1), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v(2), 1);
+    SPHERAL_ASSERT_EQ(q_int_v(3), 1.5);
+    SPHERAL_ASSERT_EQ(q_int_v(4), 2);
    
-    SPHERAL_ASSERT_EQ(q_int(1, 0), 0.5);
-    SPHERAL_ASSERT_EQ(q_int(2, 0), 1);
-    SPHERAL_ASSERT_EQ(q_int(3, 0), 1.5);
-    SPHERAL_ASSERT_EQ(q_int(4, 0), 2);
+    SPHERAL_ASSERT_EQ(q_int_v(1, 0), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v(2, 0), 1);
+    SPHERAL_ASSERT_EQ(q_int_v(3, 0), 1.5);
+    SPHERAL_ASSERT_EQ(q_int_v(4, 0), 2);
   EXEC_IN_SPACE_END();
 }
 
@@ -121,6 +123,8 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Prime)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::QuadraticInterpolator q_int;
+  auto q_int_v  = q_int.toView();
+
   q_int.initialize(0,4,{0,1,2});
 
   std::cout << q_int.prime(1) << std::endl;
@@ -134,15 +138,15 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Prime)
   std::cout << q_int.prime(4, 0) << std::endl;
  
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(q_int.prime(1), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(2), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(3), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(4), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(1), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(2), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(3), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(4), 0.5);
    
-    SPHERAL_ASSERT_EQ(q_int.prime(1, 0), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(2, 0), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(3, 0), 0.5);
-    SPHERAL_ASSERT_EQ(q_int.prime(4, 0), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(1, 0), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(2, 0), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(3, 0), 0.5);
+    SPHERAL_ASSERT_EQ(q_int_v.prime(4, 0), 0.5);
   EXEC_IN_SPACE_END();
 }
 
@@ -151,6 +155,8 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Prime2)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::QuadraticInterpolator q_int;
+  auto q_int_v  = q_int.toView();
+
   q_int.initialize(0,4,{0,1,2});
 
   std::cout << q_int.prime2(1) << std::endl;
@@ -164,15 +170,15 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Prime2)
   std::cout << q_int.prime2(4, 0) << std::endl;
  
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(q_int.prime2(1), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(2), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(3), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(4), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(1), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(2), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(3), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(4), 0);
    
-    SPHERAL_ASSERT_EQ(q_int.prime2(1, 0), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(2, 0), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(3, 0), 0);
-    SPHERAL_ASSERT_EQ(q_int.prime2(4, 0), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(1, 0), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(2, 0), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(3, 0), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.prime2(4, 0), 0);
   EXEC_IN_SPACE_END();
 }
 
@@ -181,6 +187,8 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, LowerBound)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::QuadraticInterpolator q_int;
+  auto q_int_v  = q_int.toView();
+
   q_int.initialize(0,4,{0,1,2});
 
   std::cout << q_int.lowerBound(1) << std::endl;
@@ -189,10 +197,10 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, LowerBound)
   std::cout << q_int.lowerBound(4) << std::endl;
  
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(q_int.lowerBound(1), 0);
-    SPHERAL_ASSERT_EQ(q_int.lowerBound(2), 0);
-    SPHERAL_ASSERT_EQ(q_int.lowerBound(3), 0);
-    SPHERAL_ASSERT_EQ(q_int.lowerBound(4), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.lowerBound(1), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.lowerBound(2), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.lowerBound(3), 0);
+    SPHERAL_ASSERT_EQ(q_int_v.lowerBound(4), 0);
   EXEC_IN_SPACE_END();
 }
 
