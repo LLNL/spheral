@@ -72,7 +72,8 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-eos = GammaLawGasMKS(gamma, mu)
+units = MKS()
+eos = GammaLawGas(gamma, mu, units)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
@@ -80,14 +81,13 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 WT = TableKernel(WendlandC4Kernel())
 output("WT")
-kernelExtent = WT.kernelExtent
 
 #-------------------------------------------------------------------------------
 # Create a NodeList and associated Neighbor object.
 #-------------------------------------------------------------------------------
 nodes = makeSolidNodeList(name = "gamma-law gas points",
                           eos = eos, 
-                          kernelExtent = kernelExtent,
+                          kernelExtent = WT.kernelExtent,
                           nPerh = nPerh)
 
 #-------------------------------------------------------------------------------
