@@ -50,8 +50,19 @@ public:
   //............................................................................
   // Override the Physics package interface.
 
-  // Initialize once when the problem is starting up.
+  // An optional hook to initialize once when the problem is starting up.
+  // Typically this is used to size arrays once all the materials and NodeLists have
+  // been created.  It is assumed after this method has been called it is safe to
+  // call Physics::registerState for instance to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Compute the derivatives.
   virtual void evaluateDerivatives(const Scalar time,

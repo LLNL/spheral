@@ -16,6 +16,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
@@ -169,9 +170,13 @@ GenericRiemannHydro<Dimension>::
 template<typename Dimension>
 void
 GenericRiemannHydro<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
 
   // for now initialize with SPH volume to make sure things are defined
   const auto mass = dataBase.fluidMass();

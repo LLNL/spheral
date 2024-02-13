@@ -232,12 +232,20 @@ initializeProblemStartup(DataBase<Dimension>& db) {
 
   // Allocate space for the gravitational potential FieldList.
   mPotential = db.newGlobalFieldList(0.0, "gravitational potential");
+}
 
+//------------------------------------------------------------------------------
+// Do start of the problem type tasks.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void 
+PolyGravity<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& db,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   // We need to make a dry run through setting derivatives and such
   // to set our initial vote on the time step.
   vector<Physics<Dimension>*> packages(1, this);
-  State<Dimension> state(db, packages);
-  StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
   this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
 }

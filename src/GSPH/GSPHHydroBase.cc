@@ -103,9 +103,11 @@ GSPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 GSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHinitializeStartup");
-  GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
+  GenericRiemannHydro<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
   TIME_END("GSPHinitializeStartup");
 }
 
