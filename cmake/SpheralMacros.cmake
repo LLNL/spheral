@@ -64,6 +64,11 @@ macro(spheral_add_test)
     DEPENDS_ON ${SPHERAL_BLT_DEPENDS} ${original_deps}
     SHARED False 
     )
+
+  if(ENABLE_CUDA)
+    set_target_properties(${original_test_name}_lib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+  endif()
+
   target_link_options(${original_test_name}_lib PRIVATE "-Wl,--unresolved-symbols=ignore-in-object-files")
 
   spheral_add_executable(
