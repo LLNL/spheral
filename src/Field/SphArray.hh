@@ -105,11 +105,7 @@ public:
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
-  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {
-#if !defined(SPHERAL_GPU_ACTIVE) 
-    setCallback();
-#endif // SPHERAL_GPU_ACTIVE
-  }
+  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
 #endif
 
   // ---------------------
@@ -191,7 +187,7 @@ public:
         if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size), chai::CPU, getCallback());
         else if (capacity() < size) MA::reallocate(pow2_ceil(size));
         //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
-        for (size_t i = old_size; i < size; i++) new(MA::data(chai::CPU, false)) DataType();
+        for (size_t i = old_size; i < size; i++) new(&MA::data(chai::CPU, false)[i]) DataType();
         //for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
       }
       if (old_size > size) {
