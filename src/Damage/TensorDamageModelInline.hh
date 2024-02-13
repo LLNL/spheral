@@ -67,6 +67,14 @@ flaws() {
   return mFlaws;
 }
 
+template<typename Dimension>
+inline
+void
+TensorDamageModel<Dimension>::
+flaws(const typename TensorDamageModel<Dimension>::FlawStorageType& x) {
+  mFlaws = x;
+}
+
 //------------------------------------------------------------------------------
 // The strain update algorithm.
 //------------------------------------------------------------------------------

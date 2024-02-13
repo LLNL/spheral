@@ -8,7 +8,9 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "DataBase/DataBase.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
+#include "DataBase/State.hh"
 #ifdef USE_MPI
 #include "Distributed/Communicator.hh"
 #endif
@@ -46,6 +48,7 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double kWeibull,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
+                            const State<Dimension>& state,
                             const int minFlawsPerNode,
                             const double volumeMultiplier,
                             const Field<Dimension, int>& mask) {
@@ -56,7 +59,6 @@ weibullFlawDistributionOwen(const unsigned seed,
   REQUIRE(minFlawsPerNode > 0);
   REQUIRE(mask.nodeListPtr() == &nodeList);
 
-  typedef typename Dimension::Scalar Scalar;
   typedef KeyTraits::Key Key;
 
   // Prepare the result.
@@ -68,17 +70,20 @@ weibullFlawDistributionOwen(const unsigned seed,
   db.appendNodeList(const_cast<FluidNodeList<Dimension>&>(nodeList));
   FieldList<Dimension, Key> keyList = mortonOrderIndices(db);
   const auto nglobal = db.globalNumInternalNodes();
+  const auto nlocal = nodeList.numInternalNodes();
 
   // Is there anything to do?
   if (nglobal > 0) {
-    const auto nlocal = nodeList.numInternalNodes();
 
     // Identify the rank and number of domains.
     const auto procID = Process::getRank();
 
     // State for this NodeList.
-    const Field<Dimension, Scalar>& mass = nodeList.mass();
-    const Field<Dimension, Scalar>& rho = nodeList.massDensity();
+    auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeList.name()); };
+    const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+    const auto& rho = (state.registered(buildKey(SolidFieldNames::porositySolidDensity)) ?
+                       state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                       state.field(buildKey(HydroFieldNames::massDensity), 0.0));
 
     // Construct a random number generator for each point.
     // Note we hash with the ordering key to generate a unique but reproducible sequence for each point.
@@ -98,7 +103,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Find the minimum and maximum node volumes.
     double Vmin = std::numeric_limits<double>::max(), 
            Vmax = std::numeric_limits<double>::min();
-    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i < nlocal; i++) {
       if (mask(i) == 1) {
         const double Vi = mass(i)/rho(i);
         Vmin = min(Vmin, Vi);
@@ -122,8 +127,8 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Generate the flaws on each node indepedently.
     const double mInv = 1.0/mWeibull;
     unsigned minNumFlaws = std::numeric_limits<int>::max();
-    unsigned maxNumFlaws = 0;
-    unsigned totalNumFlaws = 0;
+    unsigned maxNumFlaws = 0u;
+    unsigned totalNumFlaws = 0u;
     double epsMin = std::numeric_limits<double>::max();
     double epsMax = std::numeric_limits<double>::min();
     double sumFlaws = 0.0;
@@ -178,7 +183,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     // That's it.
     BEGIN_CONTRACT_SCOPE
     {
-      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
+      for (auto i = 0u; i < nlocal; ++i) {
         if (mask(i) == 1) {
           for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
                itr != flaws(i).end();
