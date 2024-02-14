@@ -81,8 +81,7 @@ public:
             (compare(lhs.mcoeffs, rhs.mcoeffs)));
   }
   void free() { mcoeffs.free(); } //Managed Vector
-  SPHERAL_HOST_DEVICE QuadraticInterpolatorImpl& operator=(std::nullptr_t) { return *this; }
-  //SPHERAL_HOST_DEVICE QuadraticInterpolatorImpl& operator=(std::nullptr_t) { mcoeffs=nullptr; return *this; }
+  SPHERAL_HOST_DEVICE QuadraticInterpolatorImpl& operator=(std::nullptr_t) { mcoeffs=nullptr; return *this; }
   SPHERAL_HOST_DEVICE void shallowCopy(QuadraticInterpolatorImpl const& rhs) { *this = rhs; }
   
 //private:
