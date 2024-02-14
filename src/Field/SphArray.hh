@@ -261,13 +261,13 @@ public:
         char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
 
         if (action == chai::Action::ACTION_MOVE){
-          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_ALLOC){
-          std::cout << "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_FREE){
-          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
   }
@@ -376,9 +376,6 @@ public:
     increment_ref_count();
   }
 
-  //SPHERAL_HOST_DEVICE T& operator[](size_t idx) {return m_ptr[0].operator[](idx); }
-  //SPHERAL_HOST_DEVICE T& operator[](size_t idx) const {return m_ptr[0].operator[](idx); }
-
   SPHERAL_HOST void move(chai::ExecutionSpace space, bool touch = true) const { 
     m_ptr[0].move(space, touch);
   }
@@ -409,13 +406,13 @@ public:
         char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
 
         if (action == chai::Action::ACTION_MOVE){
-          std::cout << "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_ALLOC){
-          std::cout << "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_FREE){
-          std::cout << "Deallocated " << paddedSize << " : " << typeString << " " << " @ " <<  record->m_pointers[exec] << std::endl;
+          UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
   }
@@ -433,17 +430,11 @@ protected:
       (*m_ref_count)--;
       if (*m_ref_count == 0)
       {
-        std::cout << "freeing memory\n";
         m_ptr[0].free();
         m_ptr.free();
         delete m_ref_count;
         m_ref_count = nullptr;
       }
-    }
-
-    if (m_ref_count != nullptr){
-      //std::string const typeString = LvArray::system::demangleType< T >();
-      //std::cout << "count @ " << this << " : " << typeString << " : " << m_ref_count << " @ " << (*m_ref_count) << std::endl;
     }
 #endif // SPHERAL_GPU_ACTIVE
   }
