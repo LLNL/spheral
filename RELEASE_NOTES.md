@@ -1,4 +1,4 @@
-Version v2024.01.1 -- Release date 2024-02-xx
+Version v2024.01.1 -- Release date 2024-02-17
 ==============================================
   * Important Notes:
     * This is a patch release for v2024.01.0.
