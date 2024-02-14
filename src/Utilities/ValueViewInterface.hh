@@ -27,28 +27,31 @@ class SPHERALCopyable : public chai::CHAICopyable{
 // SpheralViewInterface children will want to use VIEW_DEFINE_ALLOC_CTOR
 // in order to set up a forwarding constructor from the Value class ctor
 // that passes in a "new DataObject" type.
-template<typename view_type, typename DataType>
-class SpheralViewInterface : public ManagedSmartPtr<DataType>
+template<typename view_type, typename ImplType>
+class SpheralViewInterface : public ManagedSmartPtr<ImplType>
 {
 protected:
-  using Base = SpheralViewInterface<view_type, DataType>;
+  using Base = SpheralViewInterface<view_type, ImplType>;
   using ViewBase = Base;
 
 public:
   using ViewType = view_type;
-  using SmartPtrType = ManagedSmartPtr<DataType>;
+  using SmartPtrType = ManagedSmartPtr<ImplType>;
 
-  SPHERAL_HOST_DEVICE DataType & sptr_data() { return *(SmartPtrType::get()); } \
-  SPHERAL_HOST_DEVICE DataType & sptr_data() const { return *(SmartPtrType::get()); } 
+  SPHERAL_HOST_DEVICE SmartPtrType & sptr() { return *this; }
+  SPHERAL_HOST_DEVICE SmartPtrType const& sptr() const { return *this; }
+
+  SPHERAL_HOST_DEVICE ImplType & sptr_data() { return *(SmartPtrType::get()); } \
+  SPHERAL_HOST_DEVICE ImplType & sptr_data() const { return *(SmartPtrType::get()); } 
 
   SPHERAL_HOST SpheralViewInterface(SmartPtrType&& rhs) : SmartPtrType(std::forward<SmartPtrType>(rhs)) {}
 };
 
 // Defines a ctor that will take a "new" Data object to create the underlying
 // ManagedSmartPtr.
-#define VIEW_DEFINE_ALLOC_CTOR(view_t, data_t) \
-protected: \
-  view_t(data_t* rhs) : ViewBase(make_ManagedSmartPtr<data_t>(rhs)) {}
+#define VIEW_DEFINE_ALLOC_CTOR(view_t, impl_t) \
+public: \
+  view_t(impl_t* rhs) : ViewBase(make_ManagedSmartPtr<impl_t>(rhs)) {}
 
 // It is assumed that the Base type is defined with from inheriting 
 // SpheralViewInterface or by explicitly defining : 
@@ -66,11 +69,11 @@ protected:
   using Base = SpheralValueInterface<view_type>;
 
 private:
-  using m_DataType = typename view_type::SmartPtrType::element_type;
+  using m_ImplType = typename view_type::SmartPtrType::element_type;
   using m_ViewType = typename view_type::ViewType;
 
 public:
-  SPHERAL_HOST SpheralValueInterface(m_DataType* rhs) : view_type((rhs)) {}
+  SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
   virtual m_ViewType toView() = 0;
 };
 
@@ -151,7 +154,7 @@ public:
   // Forward Value capable methods
   SPHERAL_HOST void initialize(size_t min) const { return sptr_data().initialize(min); }
   SPHERAL_HOST void editData(size_t min) const { return sptr_data().editData(min); }
-  SPHERAL_HOST_DEVICE CoeffsType coeffs() const { return deepCopy(sptr_data().coeffs()); }
+  SPHERAL_HOST CoeffsType coeffs() const { return deepCopy(sptr_data().coeffs()); }
 
   QIntView toView() { return ViewType(*this); }
 };
