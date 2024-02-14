@@ -57,10 +57,6 @@ public:
   // Destructor.
   virtual ~SPHHydroBaseRZ();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
-
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,

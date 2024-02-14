@@ -1,3 +1,24 @@
+Version v2024.01.1 -- Release date 2024-02-17
+==============================================
+  * Important Notes:
+    * This is a patch release for v2024.01.0.
+
+Notable changes include:
+
+  * New features/ API changes:
+    * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
+      of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
+      State and StateDerivatives object).
+
+  * Build changes / improvements:
+    * 
+
+  * Bug Fixes / improvements:
+    * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
+    * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
   * Important Notes:

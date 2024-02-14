@@ -245,12 +245,18 @@ initializeProblemStartup(DataBase<Dimension>& db) {
   mPotential.copyFields();
   mPotential0.copyFields();
   mVel02.copyFields();
+}
 
-  // We need to make a dry run through setting derivatives and such
-  // to set our initial vote on the time step.
+//------------------------------------------------------------------------------
+// Do start of the problem type tasks.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void 
+NBodyGravity<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& db,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   vector<Physics<Dimension>*> packages(1, this);
-  State<Dimension> state(db, packages);
-  StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
   this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
 }

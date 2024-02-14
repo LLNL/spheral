@@ -90,8 +90,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mR = dataBase.newFluidFieldList(0.0, "mR");
   mVsig = dataBase.newFluidFieldList(0.0, "mVsig");
 
-  FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
-  FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
+  auto& rvQ = myq.CqMultiplier();
+  auto& rvL = myq.ClMultiplier();
   rvQ = dataBase.newFluidFieldList(malphMin, HydroFieldNames::ArtificialViscousCqMultiplier);  // This will override the Q initializer intializing these to unity.
   rvL = dataBase.newFluidFieldList(malphMin, HydroFieldNames::ArtificialViscousClMultiplier);
 }
@@ -104,17 +104,17 @@ void
 CullenDehnenViscosity<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
-  dataBase.resizeFluidFieldList(mPrevDvDt, Vector::zero, "mPrevDvDt", false);
-  dataBase.resizeFluidFieldList(mPrevDivV, 0.0, "mPrevDivV", false);
-  dataBase.resizeFluidFieldList(mCullAlpha, 1.0, "mCullAlpha", false);
+  CHECK(mPrevDvDt.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mPrevDivV.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mCullAlpha.numFields() == dataBase.numFluidNodeLists());
   state.enroll(mPrevDvDt);
   state.enroll(mPrevDivV);
   state.enroll(mCullAlpha);
 
-  FieldList<Dimension, Scalar>& rvAlphaQ = myq.CqMultiplier();
-  FieldList<Dimension, Scalar>& rvAlphaL = myq.ClMultiplier();
-  state.enroll(rvAlphaQ, std::make_shared<IncrementCullenMultipliers<Dimension>>(malphMin, malphMax, mboolHopkins));
-  state.enroll(rvAlphaL);
+  auto& rvQ = myq.CqMultiplier();
+  auto& rvL = myq.ClMultiplier();
+  state.enroll(rvQ, make_policy<IncrementCullenMultipliers<Dimension>>(malphMin, malphMax, mboolHopkins));
+  state.enroll(rvL);
 }
     
 //------------------------------------------------------------------------------
@@ -125,12 +125,12 @@ void
 CullenDehnenViscosity<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  dataBase.resizeFluidFieldList(mPrevDivV2, 0.0, "mPrevDivV2", false);
-  dataBase.resizeFluidFieldList(mCullAlpha2, 1.0, "mCullAlpha2", false);
-  dataBase.resizeFluidFieldList(mDalphaDt, 0.0, "mDalphaDt", false);
-  dataBase.resizeFluidFieldList(mAlphaLocal, 0.0, "mAlphaLocal", false);
-  dataBase.resizeFluidFieldList(mR, 0.0, "mR", false);
-  dataBase.resizeFluidFieldList(mVsig, 0.0, "mVsig", false);
+  CHECK(mPrevDivV2.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mCullAlpha2.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mDalphaDt.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mAlphaLocal.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mR.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mVsig.numFields() == dataBase.numFluidNodeLists());
   derivs.enroll(mPrevDivV2);
   derivs.enroll(mCullAlpha2);
   derivs.enroll(mDalphaDt);
