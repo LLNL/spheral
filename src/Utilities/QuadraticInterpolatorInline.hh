@@ -1,3 +1,4 @@
+#include "QuadraticInterpolator.hh"
 #include "Utilities/DBC.hh"
 #include <algorithm>
 
@@ -10,7 +11,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Func>
 inline
-QuadraticInterpolator::QuadraticInterpolator(const double xmin,
+QuadraticInterpolatorImpl::QuadraticInterpolatorImpl(const double xmin,
                                              const double xmax,
                                              const size_t n,
                                              const Func& F):
@@ -21,8 +22,8 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
   mcoeffs(3u*n) {
 
   // Preconditions
-  VERIFY2(n > 0, "QuadraticInterpolator requires n > 1 : n=" << n);
-  VERIFY2(xmax > xmin, "QuadraticInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 0, "QuadraticInterpolatorImpl requires n > 1 : n=" << n);
+  VERIFY2(xmax > xmin, "QuadraticInterpolatorImpl requires a positive domain: [" << xmin << " " << xmax << "]");
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -53,14 +54,14 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
 //------------------------------------------------------------------------------
 inline
 double
-QuadraticInterpolator::operator()(const double x) const {
+QuadraticInterpolatorImpl::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
 inline
 double
-QuadraticInterpolator::operator()(const double x,
+QuadraticInterpolatorImpl::operator()(const double x,
                                   const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
@@ -71,14 +72,14 @@ QuadraticInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 inline
 double
-QuadraticInterpolator::prime(const double x) const {
+QuadraticInterpolatorImpl::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
 inline
 double
-QuadraticInterpolator::prime(const double x,
+QuadraticInterpolatorImpl::prime(const double x,
                              const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
@@ -90,14 +91,14 @@ QuadraticInterpolator::prime(const double x,
 //------------------------------------------------------------------------------
 inline
 double
-QuadraticInterpolator::prime2(const double x) const {
+QuadraticInterpolatorImpl::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mcoeffs[i0 + 2];
 }
 
 inline
 double
-QuadraticInterpolator::prime2(const double /*x*/,
+QuadraticInterpolatorImpl::prime2(const double /*x*/,
                               const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return 2.0*mcoeffs[i0 + 2];
@@ -108,7 +109,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 //------------------------------------------------------------------------------
 inline
 size_t
-QuadraticInterpolator::lowerBound(const double x) const {
+QuadraticInterpolatorImpl::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
   ENSURE(result <= 3u*mN1);
   return result;
@@ -119,31 +120,31 @@ QuadraticInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-QuadraticInterpolator::size() const {
+QuadraticInterpolatorImpl::size() const {
   return mcoeffs.size();
 }
 
 inline
 double
-QuadraticInterpolator::xmin() const {
+QuadraticInterpolatorImpl::xmin() const {
   return mXmin;
 }
 
 inline
 double
-QuadraticInterpolator::xmax() const {
+QuadraticInterpolatorImpl::xmax() const {
   return mXmax;
 }
 
 inline
 double
-QuadraticInterpolator::xstep() const {
+QuadraticInterpolatorImpl::xstep() const {
   return mXstep;
 }
 
 inline
-const std::vector<double>&
-QuadraticInterpolator::coeffs() const {
+const typename QuadraticInterpolatorImpl::CoeffsType&
+QuadraticInterpolatorImpl::coeffs() const {
   return mcoeffs;
 }
 
