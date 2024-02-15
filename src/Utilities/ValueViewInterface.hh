@@ -57,7 +57,6 @@ public: \
 // SpheralViewInterface or by explicitly defining : 
 //   using Base = ManagedSmartPtr<ClassType>;
 #define SMART_PTR_MEMBER_ACCESSOR(type, var) \
-public: \
   SPHERAL_HOST_DEVICE type & var() { return ViewBase::get()->var; } \
   SPHERAL_HOST_DEVICE type & var() const { return ViewBase::get()->var; }
 

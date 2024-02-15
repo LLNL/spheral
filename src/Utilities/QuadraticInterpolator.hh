@@ -39,12 +39,7 @@ public:
                   const std::vector<double>& yvals);
 
   // Comparisons
-  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorImpl& rhs) const {
-    return ((mN1 == rhs.mN1) and
-            (mXmin == rhs.mXmin) and
-            (mXmax == rhs.mXmax) and
-            (mcoeffs == rhs.mcoeffs));
-  }
+  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorImpl& rhs) const;
 
   // Interpolate for the y value
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
@@ -67,12 +62,12 @@ public:
   SPHERAL_HOST_DEVICE const CoeffsType& coeffs() const;  // the fitting coefficients
                                               
   // Define the required interface for a SPHERALCopyable object.
-  //void free() { mcoeffs.clear(); }
   friend QuadraticInterpolatorImpl deepCopy(QuadraticInterpolatorImpl const& rhs) {
     QuadraticInterpolatorImpl result(rhs);
     result.mcoeffs = Spheral::deepCopy(rhs.mcoeffs);
     return result;
   }
+
   SPHERAL_HOST_DEVICE
   friend bool compare(QuadraticInterpolatorImpl const& lhs, QuadraticInterpolatorImpl const& rhs) {
     return ((lhs.mN1 == rhs.mN1) and
@@ -84,13 +79,14 @@ public:
   SPHERAL_HOST_DEVICE QuadraticInterpolatorImpl& operator=(std::nullptr_t) { mcoeffs=nullptr; return *this; }
   SPHERAL_HOST_DEVICE void shallowCopy(QuadraticInterpolatorImpl const& rhs) { *this = rhs; }
   
-//private:
-  //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1;
   double mXmin, mXmax, mXstep;
   CoeffsType mcoeffs;
 };
+
+
+
 
 class QuadraticInterpolatorView : 
   public SpheralViewInterface<QuadraticInterpolatorView, QuadraticInterpolatorImpl>
@@ -98,12 +94,24 @@ class QuadraticInterpolatorView :
   VIEW_DEFINE_ALLOC_CTOR(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
 
 // Forward Type aliases we want to use from interfaces.
-protected:
+public:
   using CoeffsType = typename QuadraticInterpolatorImpl::CoeffsType;
-  SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
+
+protected:
+  //SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
 
 public:
 
+  // Default Ctor
+  SPHERAL_HOST_DEVICE QuadraticInterpolatorView() = default;
+
+  // Default Copy Ctor
+  SPHERAL_HOST_DEVICE QuadraticInterpolatorView(QuadraticInterpolatorView const&) = default;
+
+  // Assignment
+  SPHERAL_HOST_DEVICE QuadraticInterpolatorView& operator=(QuadraticInterpolatorView const&) = default;
+
+  // Equivalence
   SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorView& rhs) const
     { return sptr_data() == rhs.sptr_data(); }
   
@@ -121,16 +129,16 @@ public:
   SPHERAL_HOST_DEVICE double xmin() const { return sptr_data().xmin(); }
   SPHERAL_HOST_DEVICE double xmax() const { return sptr_data().xmax(); }
   SPHERAL_HOST_DEVICE double xstep() const { return sptr_data().xstep(); }
-  SPHERAL_HOST_DEVICE CoeffsType coeffs() const { return sptr_data().coeffs(); }
+  SPHERAL_HOST_DEVICE CoeffsType const& coeffs() const { return sptr_data().coeffs(); }
 };
+
+
+
 
 class QuadraticInterpolator :
   public SpheralValueInterface<QuadraticInterpolatorView>
 {
 public:
-  QuadraticInterpolator() :
-    Base( new QuadraticInterpolatorImpl() ) {}
-
   template<typename Func>
   QuadraticInterpolator(const double xmin,
                         const double xmax,
@@ -138,21 +146,27 @@ public:
                         const Func& F) :
     Base( new QuadraticInterpolatorImpl(xmin, xmax, n, F) ) {}
 
+  // Default Ctor
+  QuadraticInterpolator() :
+    Base( new QuadraticInterpolatorImpl() ) {}
+
+  // Copy Ctor
   QuadraticInterpolator(QuadraticInterpolator const& rhs) :
     Base( new QuadraticInterpolatorImpl(deepCopy(rhs.sptr_data())) ) {}
 
+  // Assignment
   QuadraticInterpolator& operator=(QuadraticInterpolator const& rhs) {
     ViewType::operator=( ViewType( new QuadraticInterpolatorImpl(deepCopy(rhs.sptr_data())) ) );
     return *this;
   }
-
-  void initialize(const double xmin, const double xmax, const std::vector<double>& yvals) 
-    { sptr_data().initialize(xmin, xmax, yvals); }
-
+  
+  // Equivalence
   bool operator==(const QuadraticInterpolator& rhs) const
     { return compare(*this, rhs); }
   
-  SPHERAL_HOST CoeffsType const& coeffs() const { return sptr_data().coeffs(); }
+
+  void initialize(const double xmin, const double xmax, const std::vector<double>& yvals) 
+    { sptr_data().initialize(xmin, xmax, yvals); }
 
   // Required interface for SpheralValueInterface classes.
   ViewType toView() { return ViewType(*this); }

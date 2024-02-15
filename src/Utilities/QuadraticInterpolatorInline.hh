@@ -50,6 +50,19 @@ QuadraticInterpolatorImpl::QuadraticInterpolatorImpl(const double xmin,
 }
 
 //------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+inline
+bool
+QuadraticInterpolatorImpl::
+operator==(const QuadraticInterpolatorImpl& rhs) const {
+  return ((mN1 == rhs.mN1) and
+          (mXmin == rhs.mXmin) and
+          (mXmax == rhs.mXmax) and
+          (mcoeffs == rhs.mcoeffs));
+}
+
+//------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
 inline

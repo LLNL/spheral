@@ -186,9 +186,7 @@ public:
       if (old_size < size) {
         if (capacity() == 0) MA::allocate(size < initial_capacity ? initial_capacity: pow2_ceil(size), chai::CPU, getCallback());
         else if (capacity() < size) MA::reallocate(pow2_ceil(size));
-        //else if (capacity() < size) MA::reallocate(capacity() + (capacity() / 2));
         for (size_t i = old_size; i < size; i++) new(&MA::data(chai::CPU, false)[i]) DataType();
-        //for (size_t i = old_size; i < size; i++) new(&MA::operator[](i)) DataType();
       }
       if (old_size > size) {
         destroy(begin() + old_size, begin() + size);

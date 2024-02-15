@@ -35,33 +35,44 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, CopySemantics)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
-  Spheral::QuadraticInterpolator q_int;
-  auto q_int_v = q_int.toView();
-  q_int.initialize(0,4,{0,1,2});
+  Spheral::QuadraticInterpolator::CoeffsType c_copy;
+  {
+    Spheral::QuadraticInterpolator q_int;
+    auto q_int_v = q_int.toView();
+    q_int.initialize(0,4,{0,1,2});
 
-  Spheral::QuadraticInterpolator q_int2 = q_int;
+    Spheral::QuadraticInterpolator q_int2 = q_int;
 
-  auto q_int2_v = q_int2.toView();
-  auto q_int_v2 = q_int_v;
+    auto q_int2_v = q_int2.toView();
+    auto q_int_v2 = q_int_v;
 
-  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    SPHERAL_ASSERT_EQ(q_int_v.xmin(),          0);
-    SPHERAL_ASSERT_EQ(q_int_v.xmax(),          4);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs().size(), 3);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[0],     0);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[1],     0.5);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[2],     0);
+    EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
+      SPHERAL_ASSERT_EQ(q_int_v.xmin(),          0);
+      SPHERAL_ASSERT_EQ(q_int_v.xmax(),          4);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs().size(), 3);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[0],     0);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[1],     0.5);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[2],     0);
 
-    SPHERAL_ASSERT_EQ(q_int_v.xmin(),          q_int2_v.xmin());
-    SPHERAL_ASSERT_EQ(q_int_v.xmax(),          q_int2_v.xmax());
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs().size(), q_int2_v.coeffs().size());
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[0],     q_int2_v.coeffs()[0]);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[1],     q_int2_v.coeffs()[1]);
-    SPHERAL_ASSERT_EQ(q_int_v.coeffs()[2],     q_int2_v.coeffs()[2]);
+      SPHERAL_ASSERT_EQ(q_int_v.xmin(),          q_int2_v.xmin());
+      SPHERAL_ASSERT_EQ(q_int_v.xmax(),          q_int2_v.xmax());
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs().size(), q_int2_v.coeffs().size());
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[0],     q_int2_v.coeffs()[0]);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[1],     q_int2_v.coeffs()[1]);
+      SPHERAL_ASSERT_EQ(q_int_v.coeffs()[2],     q_int2_v.coeffs()[2]);
 
-    SPHERAL_ASSERT_NE(&(q_int_v.coeffs()[0]), &(q_int2_v.coeffs()[0]));
-    SPHERAL_ASSERT_EQ(&(q_int_v.coeffs()[0]), &(q_int_v2.coeffs()[0]));
-  EXEC_IN_SPACE_END();
+      SPHERAL_ASSERT_NE(&(q_int_v.coeffs()[0]), &(q_int2_v.coeffs()[0]));
+      SPHERAL_ASSERT_EQ(&(q_int_v.coeffs()[0]), &(q_int_v2.coeffs()[0]));
+    EXEC_IN_SPACE_END();
+
+    c_copy = deepCopy(q_int.coeffs());
+  }
+  SPHERAL_ASSERT_EQ(c_copy[0],     0);
+  SPHERAL_ASSERT_EQ(c_copy[1],     0.5);
+  SPHERAL_ASSERT_EQ(c_copy[2],     0);
+
+  c_copy.free();
+
 }
 
 GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Equivalence)

@@ -12,9 +12,7 @@ TEST(QuadraticInterpolatorTest, DefaultConstructor)
 TEST(QuadraticInterpolatorTest, Initialize)
 {
   Spheral::QuadraticInterpolator q_int;
-  std::cout << "init\n";
   q_int.initialize(0,4,{0,1,2});
-  std::cout << "test values\n";
 
   SPHERAL_ASSERT_EQ(q_int.xmin(),          0);
   SPHERAL_ASSERT_EQ(q_int.xmax(),          4);
