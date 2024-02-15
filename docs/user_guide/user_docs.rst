@@ -12,4 +12,5 @@ Spheral is also used as a platform for numerical modeling methods research -- pa
    :maxdepth: 1
 
    user/intro.rst
+   user/sph.rst
    user/demo/script_tour.rst

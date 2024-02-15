@@ -59,7 +59,6 @@ restartBaseName = os.path.join(restartDir, "Sedov-cylindrical-2d-%i" % nRadial)
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -73,7 +72,9 @@ mpi.barrier()
 # Material properties.
 #-------------------------------------------------------------------------------
 units = MKS()
-eos = GammaLawGas(gamma, mu, units)
+eos = GammaLawGas(gamma = gamma,
+                  mu = mu,
+                  constants = units)
 
 #-------------------------------------------------------------------------------
 # Create our interpolation kernels -- one for normal hydro interactions, and
@@ -207,11 +208,6 @@ output("control")
 # Finally run the problem and plot the results.
 #-------------------------------------------------------------------------------
 control.advance(goalTime)
-
-# Output the energy conservation.
-print("Energy conservation: ", ((control.conserve.EHistory[-1] -
-                                 control.conserve.EHistory[0])/
-                                control.conserve.EHistory[0]))
 
 #-------------------------------------------------------------------------------
 # Plot the final state if desired.
