@@ -47,8 +47,6 @@ import mpi
 
 from Spheral import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
-from SpheralController import *
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
