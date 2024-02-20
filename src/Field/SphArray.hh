@@ -23,6 +23,7 @@ constexpr uint32_t pow2_ceil(uint32_t v) {
 namespace Spheral {
 
 //#define MV_VALUE_SEMANTICS
+//#define SPHERAL_CALLBACK_ENABLED
 
 template<typename DataType>
 class ManagedVector;
@@ -252,6 +253,7 @@ public:
   template< typename U=ManagedVector< DataType > >
   SPHERAL_HOST
   auto getCallback() {
+#ifdef SPHERAL_CALLBACK_ENABLED
     std::string const typeString = LvArray::system::demangleType< U >();
     return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
         std::string const size = LvArray::system::calculateSize(record->m_size);
@@ -268,6 +270,9 @@ public:
           UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
+#else
+    return [](const chai::PointerRecord* , chai::Action , chai::ExecutionSpace ) {};
+#endif
   }
 
 private:
@@ -396,7 +401,7 @@ public:
   template< typename U=ManagedSmartPtr< T > >
   SPHERAL_HOST
   auto getCallback() {
-
+#ifdef SPHERAL_CALLBACK_ENABLED
     std::string const typeString = LvArray::system::demangleType< U >();
     return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
         std::string const size = LvArray::system::calculateSize(record->m_size);
@@ -413,6 +418,9 @@ public:
           UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
+#else
+    return [](const chai::PointerRecord* , chai::Action , chai::ExecutionSpace ) {};
+#endif
   }
 protected:
 
@@ -520,6 +528,7 @@ public:
   SPHERAL_HOST_DEVICE size_t size() const { return mv().size(); }
 
   SPHERAL_HOST void resize(size_t sz) {
+    move(chai::CPU);
     mv().resize(sz);
     Base::m_ptr.registerTouch(chai::CPU);
   }
