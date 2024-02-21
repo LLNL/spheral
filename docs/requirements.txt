@@ -1,2 +1,3 @@
 sphinx-rtd-theme
+sphinx-subfigure
 docutils<0.18
