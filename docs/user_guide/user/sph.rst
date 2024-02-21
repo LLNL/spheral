@@ -4,24 +4,48 @@ What are these meshfree modeling methods?
 
 Spheral was conceived as a tool for the development and utilization of meshfree physics modeling algorithms, such as N-body gravitational models and Smoothed Particle Hydrodynamics (SPH).  In order to understand how best to use Spheral and it's applicability to a given problem, it is useful having a basic grasp of how these sorts of meshfree methods work.  This section is intended as a (very) brief introduction to these ideas -- the interested researcher is encouraged to dive into the detailed references to gain a deeper understanding.
 
-SPH began in the astrophysics community which was looking for a method of modeling hydrodynamics coupled with N-body gravity methods.  Since N-body is particle based, it was natural to look for a hydrodynamics method which could also be particle based, and so SPH was born in the late 1970's.  
+SPH began in the astrophysics community which was looking for a method of modeling hydrodynamics coupled with N-body gravity methods.  Since N-body is particle based, it was natural to look for a hydrodynamics method which could also be particle based, and so SPH was born in the late 1970's.  SPH is indeed a method that solves the Lagrangian hydrodynamic conservation equations (mass, momentum, and energy1) on points that move freely about the problem.  Ordinary hydrodynamic methods ususally discretize space using a mesh of some sort, which carves space up into cells.  Meshfree methods instead distribute the mass of the problem amongst a finite number of points, which should be laid down conformally with the mass distribution being modeled.  As an example, consider a 2D cartoon example where we want represent a bounded circle of fluid using SPH:
 
+.. subfigure::
+   :layout-sm: AB
+   :layout-lg: AB
+   :layout-xl: AB
+   :layout-xxl: AB
+   :subcaptions: below
+   :class-grid: outline
 
-.. |circle| image:: Circle.*
+   .. image:: Circle.png
+      :width: 98%
+      :alt: Bounded circle of fluid.
 
-.. |SPH_circle| image:: Circle_SPH.*
+   .. image:: Circle_SPH.png
+      :width: 98%
+      :alt: Evenly spaced SPH nodes to represent fluid
 
-.. table:: Discretizing a circle of material in SPH
-   :align: center
+   Example of bounded circle of fluid in 2D we want to discretize using SPH
 
-   +-----------------------------------------------------+------------------------------------------------------+
-   |                     |circle|                        |                    |SPH_circle|                      |
-   | Bounded circle of fluid we wish to represent in 2D. |      Evenly spaced SPH nodes to represent fluid      |
-   +-----------------------------------------------------+------------------------------------------------------+
-
-Hurgle gurgle
+In this example we are representing the continuous green fluid on the left by evenly distributing a collection of SPH points in the volume of that fluid.  Each of the SPH points carries the physics variables we need for the physics problem we're trying to solve: mass, velocity, energy, temperature, deviatoric stress, etc.  SPH like methods take a discrete representation from a finite number of points such as this and extend that to a continuous representation by convolving a so-called interpolation kernel over the values on these points.  Interpolation kernels generally look like Gaussian functions of distance, except we generally use functions that have "compact support", which simply means that these functions fall to zero and terminate at some finite distance from their central point (unlike Gaussians which are formally infinite).  A cartoon representation of this interpolation process can be seen here:
 
 .. figure:: SPH_sample_cartoon.*
    :width: 80%
 
    Notional SPH interpolation kernel centered on the red node.  Blue node have non-zero values for the kernel, while the black points do not and therefore do not contribute to the state of the blue point in question.
+
+In this cartoon example the interpolation kernel is centered on the red point, and has non-zero values extending over the blue points.  However, it formally falls to zero outside this range, and therefore the black points do not contribute to the interpolation about the red point in question.  In SPH the interpolation kernel is generally represented by a function :math:`W(x^\alpha - x_i^\alpha, h)` where :math:`x^\alpha - x_i^\alpha` is the distance between the sampling position and a point denoted by the index :math:`i`, and :math:`h` is the so-called smoothing scale.  For most interpolation kernels this actually devolves to a function of the nornalized distance :math:`W(\eta^\alpha)`, where :math:`\eta^\alpha \equiv (x^\alpha - x_i^\alpha)/h`.  Common examples of functions that might be used as interpolation kernels include
+
+  - Gaussian: :math:`W(\eta) = A \exp(-\eta^2)`
+  - Cubic B-spline:
+  - Wendland: 
+
+However, despite "Particle" being right there in the name of the method, SPH and its ilk are not really particle methods.  The points in SPH are best viewed as moving centers of interpolation, on which we are solving partial differential equations (PDE's), very similarly to how more traditional meshed methods such as finite-volume or finite-elements treat equations.  For this reason in Spheral we try to refer to use the term "nodes" rather than particles to refer to these points.  To be more concrete in SPH we are solving the standard Lagragian conservation equations for mass, momentum, and energy either in the fluid limit:
+
+.. math::
+
+   \begin{align}
+   \frac{D\rho}{Dt}        &= -\rho \partial_\alpha v^\alpha \\
+   \frac{Dv^\alpha}{Dt}    &= -\rho^{-1} \partial_\alpha P \\
+   \frac{D\varepsilon}{Dt} &= -\rho^{-1} P \partial_\alpha v^\alpha \\
+   \end{align}
+
+Hurgle gurgle
+
