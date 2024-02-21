@@ -31,21 +31,50 @@ In this example we are representing the continuous green fluid on the left by ev
 
    Notional SPH interpolation kernel centered on the red node.  Blue node have non-zero values for the kernel, while the black points do not and therefore do not contribute to the state of the blue point in question.
 
-In this cartoon example the interpolation kernel is centered on the red point, and has non-zero values extending over the blue points.  However, it formally falls to zero outside this range, and therefore the black points do not contribute to the interpolation about the red point in question.  In SPH the interpolation kernel is generally represented by a function :math:`W(x^\alpha - x_i^\alpha, h)` where :math:`x^\alpha - x_i^\alpha` is the distance between the sampling position and a point denoted by the index :math:`i`, and :math:`h` is the so-called smoothing scale.  For most interpolation kernels this actually devolves to a function of the nornalized distance :math:`W(\eta^\alpha)`, where :math:`\eta^\alpha \equiv (x^\alpha - x_i^\alpha)/h`.  Common examples of functions that might be used as interpolation kernels include
+In this example the interpolation kernel is centered on the red point, and has non-zero values extending over the blue points.  However, it formally falls to zero outside this range, and therefore the black points do not contribute to the interpolation about the red point in question.
+
+In SPH the interpolation kernel is represented by a function :math:`W(x^\alpha - x_i^\alpha, h)` where :math:`x^\alpha - x_i^\alpha` is the vector displacement between the sampling position and a point denoted by the index :math:`i`, and :math:`h` is the so-called smoothing scale which has units of length.  For most interpolation kernels this form can be reduced to a function of the nornalized distance :math:`W(\eta)`, where :math:`\eta^\alpha \equiv (x^\alpha - x_i^\alpha)/h` is the dimesionless coordinate vector and :math:`\eta = (\eta^\alpha \eta^\alpha)^{1/2}` is its magnitude.  (Note for mathematics throughout this guide we use the `Einstein summation convention <https://en.wikipedia.org/wiki/Einstein_notation>`_ for repeated indices.)  Common examples of functions that might be used as interpolation kernels include
 
   - Gaussian: :math:`W(\eta) = A \exp(-\eta^2)`
-  - Cubic B-spline:
-  - Wendland: 
+  - Wendland C4: :math:`W(\eta) = A \left(1 - \eta\right)^6 \left(1 + 6 \eta + \frac{35}{3} \eta^2\right), \forall \; \eta \le 1.0`
 
-However, despite "Particle" being right there in the name of the method, SPH and its ilk are not really particle methods.  The points in SPH are best viewed as moving centers of interpolation, on which we are solving partial differential equations (PDE's), very similarly to how more traditional meshed methods such as finite-volume or finite-elements treat equations.  For this reason in Spheral we try to refer to use the term "nodes" rather than particles to refer to these points.  To be more concrete in SPH we are solving the standard Lagragian conservation equations for mass, momentum, and energy either in the fluid limit:
+where the constant :math:`A` is used to enforce a volume normalization on the integral of :math:`W` such that :math:`\int W(\eta) \, dV = 1`.  Using this convention we can represent this volume convolution for SPH interpolation for a spatial field :math:`F(x^\alpha)` as
 
 .. math::
 
-   \begin{align}
+   \langle F(x^\alpha) \rangle                &=       \int F(\prime{x}^\alpha) W(\prime{x}^\alpha - x^\alpha, h) dV \approx \sum_j V_j F(x_j^\alpha) W(x_j^\alpha - x^\alpha, h) \\
+   \langle \partial_\beta F(x^\alpha) \rangle &\approx \sum_j V_j F(x_j^\alpha) \partial_\beta W(x_j^\alpha - x^\alpha, h) \\
+
+So in the discrete approximation SPH in its simplest form provides numerical estimates of fields and their spatial gradients at any point in space (most crucially at the interpolation points themselves).  This same mathematical framework allows us to perform this spatial convolution over general partial differential equations (PDE's) and arrive at numerical approximations such as these for those PDE's as simple sums over the points near a given particle as functions of the interpolation kernel.
+
+This leads us to a sometimes subtle but important distinction about these sorts of schemes: despite "Particle" being right there in the name of the method, SPH and its ilk are not really particle methods.  The points in SPH are best viewed as moving centers of interpolation, on which we are solving partial differential equations (PDE's), very similarly to how more traditional meshed methods such as finite-volume or finite-elements treat equations.  For this reason in Spheral we try to refer to use the term "nodes" rather than particles to refer to these points.  To be more concrete, in SPH we are solving the standard Lagragian conservation equations for mass, momentum, and energy either in the fluid or solid regimes:
+
+Fluid equations:
+
+.. math::
+
    \frac{D\rho}{Dt}        &= -\rho \partial_\alpha v^\alpha \\
    \frac{Dv^\alpha}{Dt}    &= -\rho^{-1} \partial_\alpha P \\
    \frac{D\varepsilon}{Dt} &= -\rho^{-1} P \partial_\alpha v^\alpha \\
-   \end{align}
 
-Hurgle gurgle
+Solid equations:
 
+.. math::
+
+   \frac{D\rho}{Dt}        &= -\rho \partial_\alpha v^\alpha \\
+   \frac{Dv^\alpha}{Dt}    &= \rho^{-1} \partial_\beta \sigma^{\alpha \beta} \\
+   \frac{D\varepsilon}{Dt} &= -\rho^{-1} \sigma^{\alpha \beta} \partial_\alpha v^\beta \\
+
+where the standard fluid variables are
+
+==========================================================================   =========================
+:math:`\rho`                                                                 mass density             
+:math:`V`                                                                    volume
+:math:`v^\alpha`                                                             velocity vector          
+:math:`P`                                                                    pressure                 
+:math:`\varepsilon`                                                          specific thermal energy  
+:math:`S^{\alpha \beta}`                                                     deviatoric stress        
+:math:`\sigma^{\alpha \beta} = S^{\alpha \beta} - P \delta^{\alpha \beta}`   stress tensor
+==========================================================================   =========================
+
+These equations are solved in an SPH formalism by integrating the SPH interpolation 
