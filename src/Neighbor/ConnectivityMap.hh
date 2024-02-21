@@ -173,7 +173,7 @@ public:
 
   // Exclude (nodeListi, nodei, nodeListj, nodej) pairs if this returns false
   void setNodePairExclusion(std::function<bool(int, int, int, int)> excludePairs);
-   
+
   // Check that the internal data structure is valid.
   bool valid() const;
 

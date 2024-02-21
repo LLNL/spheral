@@ -1128,6 +1128,8 @@ computeConnectivity() {
   //   }
   // }
 
+  mNodePairList.makeUnique();
+  
   // Post conditions.
   BEGIN_CONTRACT_SCOPE
   // Make sure that the correct number of nodes have been completed.

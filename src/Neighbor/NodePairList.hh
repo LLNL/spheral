@@ -60,6 +60,7 @@ public:
   void push_back(NodePairIdxType nodePair);
   void clear(); 
   size_t size() const { return mNodePairList.size(); }
+  void makeUnique();
 
   // Iterators
   iterator begin() { return mNodePairList.begin(); }
