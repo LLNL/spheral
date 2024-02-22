@@ -91,6 +91,7 @@ public:
 class QuadraticInterpolatorView : 
   public SpheralViewInterface<QuadraticInterpolatorView, QuadraticInterpolatorImpl>
 {
+  VIEW_TYPE_ALIASES(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
   VIEW_DEFINE_ALLOC_CTOR(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
 
 // Forward Type aliases we want to use from interfaces.
@@ -136,8 +137,9 @@ public:
 
 
 class QuadraticInterpolator :
-  public SpheralValueInterface<QuadraticInterpolatorView>
+  public SpheralValueInterface<QuadraticInterpolatorView, QuadraticInterpolatorImpl>
 {
+  VALUE_TYPE_ALIASES(QuadraticInterpolator, QuadraticInterpolatorView, QuadraticInterpolatorImpl)
 public:
   template<typename Func>
   QuadraticInterpolator(const double xmin,
@@ -162,7 +164,7 @@ public:
   
   // Equivalence
   bool operator==(const QuadraticInterpolator& rhs) const
-    { return compare(*this, rhs); }
+    { return compare(sptr_data(), rhs.sptr_data()); }
   
 
   void initialize(const double xmin, const double xmax, const std::vector<double>& yvals) 

@@ -2,6 +2,7 @@
 #define __SPHERAL_VALUEVIEWINTERFACE__
 
 #include "Field/SphArray.hh"
+#include <memory>
 
 namespace Spheral {
 
@@ -27,22 +28,26 @@ class SPHERALCopyable : public chai::CHAICopyable{
 // SpheralViewInterface children will want to use VIEW_DEFINE_ALLOC_CTOR
 // in order to set up a forwarding constructor from the Value class ctor
 // that passes in a "new DataObject" type.
-template<typename view_type, typename ImplType>
-class SpheralViewInterface : public ManagedSmartPtr<ImplType>
+
+template<typename T>
+using SMART_PTR_TYPE = std::shared_ptr<T>;
+//using SMART_PTR_TYPE = ManagedSmartPtr<T>;
+
+template<typename view_type, typename impl_type>
+class SpheralViewInterface : public SMART_PTR_TYPE<impl_type>
 {
+private:
+  using m_ImplType = impl_type;
+
 protected:
-  using Base = SpheralViewInterface<view_type, ImplType>;
-  using ViewBase = Base;
+  using SmartPtrType = SMART_PTR_TYPE<m_ImplType>;
 
 public:
-  using ViewType = view_type;
-  using SmartPtrType = ManagedSmartPtr<ImplType>;
-
   SPHERAL_HOST_DEVICE SmartPtrType & sptr() { return *this; }
   SPHERAL_HOST_DEVICE SmartPtrType const& sptr() const { return *this; }
 
-  SPHERAL_HOST_DEVICE ImplType & sptr_data() { return *(SmartPtrType::get()); } \
-  SPHERAL_HOST_DEVICE ImplType & sptr_data() const { return *(SmartPtrType::get()); } 
+  SPHERAL_HOST_DEVICE m_ImplType & sptr_data() { return *(SmartPtrType::get()); } \
+  SPHERAL_HOST_DEVICE m_ImplType & sptr_data() const { return *(SmartPtrType::get()); } 
 
   SPHERAL_HOST SpheralViewInterface(SmartPtrType&& rhs) : SmartPtrType(std::forward<SmartPtrType>(rhs)) {}
 };
@@ -51,29 +56,53 @@ public:
 // ManagedSmartPtr.
 #define VIEW_DEFINE_ALLOC_CTOR(view_t, impl_t) \
 public: \
-  view_t(impl_t* rhs) : ViewBase(make_ManagedSmartPtr<impl_t>(rhs)) {}
+  view_t(impl_t* rhs) : Base(SmartPtrType(rhs, [](impl_t *p) { p->free(); } )) {}
+  //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
+
+
+#define VIEW_TYPE_ALIASES(type, impl) \
+private: \
+  using Base = SpheralViewInterface<type, impl>; \
+  using ViewInterface = Base; \
+  using ViewType = type; \
+  using SmartPtrType = typename Base::SmartPtrType; \
+  using ImplType = impl;
+
+#define VALUE_TYPE_ALIASES(type, view, impl) \
+private: \
+  using Base = SpheralValueInterface<view, impl>; \
+  using ViewInterface = SpheralViewInterface<view, impl>; \
+  using ViewType = view; \
+  using SmartPtrType = typename ViewInterface::SmartPtrType; \
+  using ImplType = impl;
+
+#define VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(type) \
+  type& operator=(type const& rhs) { \
+    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterface::sptr_data())) ) ); \
+    return *this; \
+  }
+
 
 // It is assumed that the Base type is defined with from inheriting 
 // SpheralViewInterface or by explicitly defining : 
 //   using Base = ManagedSmartPtr<ClassType>;
 #define SMART_PTR_MEMBER_ACCESSOR(type, var) \
-  SPHERAL_HOST_DEVICE type & var() { return ViewBase::get()->var; } \
-  SPHERAL_HOST_DEVICE type & var() const { return ViewBase::get()->var; }
+  SPHERAL_HOST_DEVICE type & var() { return Base::get()->var; } \
+  SPHERAL_HOST_DEVICE type & var() const { return Base::get()->var; }
+
 
 // Interface class for Value like objects.
-template<typename view_type>
+template<typename view_type, typename impl_type>
 class SpheralValueInterface : public view_type
 {
-protected:
-  using Base = SpheralValueInterface<view_type>;
-
 private:
-  using m_ImplType = typename view_type::SmartPtrType::element_type;
-  using m_ViewType = typename view_type::ViewType;
+  using m_ViewInterface = SpheralViewInterface<view_type, impl_type>;
+  using m_ImplType = typename m_ViewInterface::SmartPtrType::element_type;
+  using m_SmartPtrType = typename m_ViewInterface::SmartPtrType;
 
 public:
   SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
-  virtual m_ViewType toView() = 0;
+  SPHERAL_HOST SpheralValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
 };
 
 //-----------------------------------------------------------------------------
@@ -128,6 +157,7 @@ public:
 
 class QIntView : public SpheralViewInterface<QIntView, QIntData>
 {
+  VIEW_TYPE_ALIASES(QIntView, QIntData)
   VIEW_DEFINE_ALLOC_CTOR(QIntView, QIntData)
 
 public:
@@ -145,8 +175,9 @@ public:
 
 
 
-class QInt : public SpheralValueInterface<QIntView>
+class QInt : public SpheralValueInterface<QIntView, QIntData>
 {
+  VALUE_TYPE_ALIASES(QInt, QIntView, QIntData)
 public:
   QInt() : Base( new QIntData() ) {}
 

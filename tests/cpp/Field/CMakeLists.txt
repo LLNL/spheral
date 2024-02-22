@@ -4,6 +4,11 @@ spheral_add_test(
 )
 
 spheral_add_test(
+  NAME field_diamond_inheritance_tests
+  SOURCES field_diamond_inheritance_tests.cc
+)
+
+spheral_add_test(
   NAME field_tests
   SOURCES field_tests.cc
   DEPENDS_ON Spheral_NodeList Spheral_Geometry Spheral_Hydro Spheral_DataOutput Spheral_Utilities
