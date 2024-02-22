@@ -6,14 +6,10 @@
 namespace Spheral {
 
 
-#define SPTR_REF ViewInterface::sptr
-#define SPTR_DATA_REF ViewInterface::sptr_data
-
 // Some macro redefinitions that can be reworked to be variabdic and replaced in ValueViewInterface.
 #define VIEW_DEFINE_ALLOC_CTOR_DESCENDENT(view_t, impl_t, parent_t) \
 public: \
   view_t(impl_t* rhs) : Base(SmartPtrType(rhs, [](impl_t *p) { p->free(); } )), parent_t(SPTR_REF()){}
-
 
 #define VALUE_DEF_CTOR_DESCENDENT(type, impl_t, parent_t) \
   type() : Base(new impl_t()), parent_t(SPTR_REF()) {}
@@ -21,16 +17,7 @@ public: \
 #define VALUE_COPY_CTOR_DESCENDENT(type, impl_t, parent_t) \
   type(type const& rhs) : Base(new impl_t( deepCopy( rhs.SPTR_DATA_REF() ) )), parent_t(SPTR_REF()) {}
 
-#define VALUE_ASSIGNEMT_OP(type, impl_t) \
-  type& operator=(type const& rhs) { \
-    ViewType::operator=( ViewType(new impl_t(deepCopy( rhs.SPTR_DATA_REF() )))); \
-    return *this; \
-  }
-
-  //ViewType toView() {return ViewType(*this);}
-#define VALUE_TOVIEW_OP(view_t) \
-  ViewType toView() { return ViewType(*this); }
-
+// New macro for this implementation.
 #define PARENT_SPTR_FWD_CTOR(type) \
   type(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
 

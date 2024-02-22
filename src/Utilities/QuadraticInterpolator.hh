@@ -94,27 +94,13 @@ class QuadraticInterpolatorView :
   VIEW_TYPE_ALIASES(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
   VIEW_DEFINE_ALLOC_CTOR(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
 
-// Forward Type aliases we want to use from interfaces.
 public:
+  SPHERAL_HOST_DEVICE VIEW_DEF_CTOR(QuadraticInterpolatorView)
+  SPHERAL_HOST_DEVICE VIEW_COPY_CTOR(QuadraticInterpolatorView)
+  SPHERAL_HOST_DEVICE VIEW_ASSIGNEMT_OP(QuadraticInterpolatorView)
+  SPHERAL_HOST_DEVICE VIEW_EQ_OP(QuadraticInterpolatorViewView)
+
   using CoeffsType = typename QuadraticInterpolatorImpl::CoeffsType;
-
-protected:
-  //SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
-
-public:
-
-  // Default Ctor
-  SPHERAL_HOST_DEVICE QuadraticInterpolatorView() = default;
-
-  // Default Copy Ctor
-  SPHERAL_HOST_DEVICE QuadraticInterpolatorView(QuadraticInterpolatorView const&) = default;
-
-  // Assignment
-  SPHERAL_HOST_DEVICE QuadraticInterpolatorView& operator=(QuadraticInterpolatorView const&) = default;
-
-  // Equivalence
-  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorView& rhs) const
-    { return sptr_data() == rhs.sptr_data(); }
   
   SPHERAL_HOST_DEVICE double operator()(const double x) const { return sptr_data()(x); }
   SPHERAL_HOST_DEVICE double prime(const double x) const { return sptr_data().prime(x); }
@@ -141,6 +127,13 @@ class QuadraticInterpolator :
 {
   VALUE_TYPE_ALIASES(QuadraticInterpolator, QuadraticInterpolatorView, QuadraticInterpolatorImpl)
 public:
+
+  VALUE_DEF_CTOR(QuadraticInterpolator, QuadraticInterpolatorImpl)
+  VALUE_COPY_CTOR(QuadraticInterpolator, QuadraticInterpolatorImpl)
+  VALUE_ASSIGNEMT_OP(QuadraticInterpolator, QuadraticInterpolatorImpl)
+  VALUE_EQ_OP(QuadraticInterpolator)
+  VALUE_TOVIEW_OP()
+
   template<typename Func>
   QuadraticInterpolator(const double xmin,
                         const double xmax,
@@ -148,30 +141,9 @@ public:
                         const Func& F) :
     Base( new QuadraticInterpolatorImpl(xmin, xmax, n, F) ) {}
 
-  // Default Ctor
-  QuadraticInterpolator() :
-    Base( new QuadraticInterpolatorImpl() ) {}
-
-  // Copy Ctor
-  QuadraticInterpolator(QuadraticInterpolator const& rhs) :
-    Base( new QuadraticInterpolatorImpl(deepCopy(rhs.sptr_data())) ) {}
-
-  // Assignment
-  QuadraticInterpolator& operator=(QuadraticInterpolator const& rhs) {
-    ViewType::operator=( ViewType( new QuadraticInterpolatorImpl(deepCopy(rhs.sptr_data())) ) );
-    return *this;
-  }
-  
-  // Equivalence
-  bool operator==(const QuadraticInterpolator& rhs) const
-    { return compare(sptr_data(), rhs.sptr_data()); }
-  
-
   void initialize(const double xmin, const double xmax, const std::vector<double>& yvals) 
     { sptr_data().initialize(xmin, xmax, yvals); }
 
-  // Required interface for SpheralValueInterface classes.
-  ViewType toView() { return ViewType(*this); }
 };
 
 } // namespace Spheral
