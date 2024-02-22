@@ -45,11 +45,14 @@ where the constant :math:`A` is used to enforce a volume normalization on the in
    \langle F(x^\alpha) \rangle                &=       \int F(\prime{x}^\alpha) W(\prime{x}^\alpha - x^\alpha, h) dV \approx \sum_j V_j F(x_j^\alpha) W(x_j^\alpha - x^\alpha, h) \\
    \langle \partial_\beta F(x^\alpha) \rangle &\approx \sum_j V_j F(x_j^\alpha) \partial_\beta W(x_j^\alpha - x^\alpha, h) \\
 
-So in the discrete approximation SPH in its simplest form provides numerical estimates of fields and their spatial gradients at any point in space (most crucially at the interpolation points themselves).  This same mathematical framework allows us to perform this spatial convolution over general partial differential equations (PDE's) and arrive at numerical approximations such as these for those PDE's as simple sums over the points near a given particle as functions of the interpolation kernel.
-
-This leads us to a sometimes subtle but important distinction about these sorts of schemes: despite "Particle" being right there in the name of the method, SPH and its ilk are not really particle methods.  The points in SPH are best viewed as moving centers of interpolation, on which we are solving partial differential equations (PDE's), very similarly to how more traditional meshed methods such as finite-volume or finite-elements treat equations.  For this reason in Spheral we try to refer to use the term "nodes" rather than particles to refer to these points.  To be more concrete, in SPH we are solving the standard Lagragian conservation equations for mass, momentum, and energy either in the fluid or solid regimes:
+In these relations we've transitioned from the continuous integral representations to the discrete numerical approximations represented by sums over particles (represented by the neighbor point indices :math:`j`).  In this discrete approximation SPH provides numerical estimates of fields and their spatial gradients at any point in space (most crucially at the interpolation points themselves).  This same mathematical framework allows us to perform this spatial convolution over general partial differential equations (PDE's) and arrive at numerical approximations such as these for those PDE's as simple sums over the points near a given particle as functions of the interpolation kernel.  For instance, the following are standard SPH representations of the standard Lagrangian conservation relations for mass, momentum, and energy in the fluid and solid regimes:
 
 Fluid equations:
+
+   ..
+      \frac{D\rho}{Dt}        &= -\rho \partial_\alpha v^\alpha         \approx \rho_i \sum_j m_j (v_i^\alpha - v_j^\alpha) \partial_\alpha W_{ij} \\
+      \frac{Dv^\alpha}{Dt}    &= -\rho^{-1} \partial_\alpha P            \approx -\sum_j m_j \left( \frac{P_i}{\rho_i^2} + \frac{P_j}{\rho_j^} \right) \partial_\alpha W_{ij} \\
+      \frac{D\varepsilon}{Dt} &= -\rho^{-1} P \partial_\alpha v^\alpha   \approx -\frac{P_i}{\rho_i^2} \sum_j (v_i^\alpha - v_j^\alpha) \partial_\alpha W_{ij} \\
 
 .. math::
 
@@ -65,7 +68,7 @@ Solid equations:
    \frac{Dv^\alpha}{Dt}    &= \rho^{-1} \partial_\beta \sigma^{\alpha \beta} \\
    \frac{D\varepsilon}{Dt} &= -\rho^{-1} \sigma^{\alpha \beta} \partial_\alpha v^\beta \\
 
-where the standard fluid variables are
+where we have expressed these relations at a point :math:`i` with position :math:`x_i^\alpha`, and the standard fluid variables are
 
 ==========================================================================   =========================
 :math:`\rho`                                                                 mass density             
@@ -76,5 +79,8 @@ where the standard fluid variables are
 :math:`S^{\alpha \beta}`                                                     deviatoric stress        
 :math:`\sigma^{\alpha \beta} = S^{\alpha \beta} - P \delta^{\alpha \beta}`   stress tensor
 ==========================================================================   =========================
+
+This leads us to a sometimes subtle but important distinction about these sorts of schemes: despite "Particle" being right there in the name of the method, SPH and its ilk are not really particle methods.  The points in SPH are best viewed as moving centers of interpolation, on which we are solving partial differential equations (PDE's), very similarly to how more traditional meshed methods such as finite-volume or finite-elements treat equations.  For this reason in Spheral we try to refer to use the term "nodes" rather than particles to refer to these points.  To be more concrete, in SPH we are solving the standard Lagragian conservation equations for mass, momentum, and energy either in the fluid or solid regimes:
+
 
 These equations are solved in an SPH formalism by integrating the SPH interpolation 
