@@ -22,8 +22,18 @@ constexpr uint32_t pow2_ceil(uint32_t v) {
 
 namespace Spheral {
 
+#define SPHERAL_CALLBACK_ENABLED
+#define STD_OUT_LOG
+
+#ifdef STD_OUT_LOG
+#define SPHERAL_LOG(A, B) std::cout << #A << " : " << B << std::endl;
+#else
+#define SPHERAL_LOG(A, B) UMPIRE_LOG(A, B)
+#endif
+
+
+
 //#define MV_VALUE_SEMANTICS
-//#define SPHERAL_CALLBACK_ENABLED
 
 template<typename DataType>
 class ManagedVector;
@@ -261,13 +271,13 @@ public:
         char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
 
         if (action == chai::Action::ACTION_MOVE){
-          UMPIRE_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_ALLOC){
-          UMPIRE_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_FREE){
-          UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
 #else
@@ -409,13 +419,13 @@ public:
         char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
 
         if (action == chai::Action::ACTION_MOVE){
-          UMPIRE_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_ALLOC){
-          UMPIRE_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
         if (action == chai::Action::ACTION_FREE){
-          UMPIRE_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
         }
       };
 #else
