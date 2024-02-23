@@ -2,9 +2,9 @@
 What are these meshfree modeling methods?
 ###################################################
 
-Spheral was conceived as a tool for the development and utilization of meshfree physics modeling algorithms, such as N-body gravitational models and Smoothed Particle Hydrodynamics (SPH).  In order to understand how best to use Spheral and it's applicability to a given problem, it is useful having a basic grasp of how these sorts of meshfree methods work.  This section is intended as a (very) brief introduction to these ideas -- the interested researcher is encouraged to dive into the detailed references to gain a deeper understanding.
+Spheral was conceived as a tool for the development and utilization of meshfree physics modeling algorithms, such as N-body gravitational models and Smoothed Particle Hydrodynamics (SPH).  In order to understand how best to use Spheral and its applicability to a given problem, it is useful to have a basic grasp of how these sorts of meshfree methods work.  This section is intended as a (very) brief introduction to these ideas -- the interested researcher is encouraged to dive into the detailed references to gain a deeper understanding.
 
-SPH began in the astrophysics community which was looking for a method of modeling hydrodynamics coupled with N-body gravity methods.  Since N-body is particle based, it was natural to look for a hydrodynamics method which could also be particle based, and so SPH was born in the late 1970's.  SPH is indeed a method that solves the Lagrangian hydrodynamic conservation equations (mass, momentum, and energy) on points that move freely about the problem.  Ordinary hydrodynamic methods usually discretize space using a mesh of some sort, which carves space up into cells.  Meshfree methods instead distribute the mass of the problem amongst a finite number of points, which should be laid down conformally with the mass distribution being modeled.  As an example, consider a 2D cartoon example where we want represent a bounded circle of fluid using SPH:
+SPH began in the astrophysics community which was looking for a method of modeling hydrodynamics coupled with N-body gravity methods.  Since N-body is particle based, it was natural to look for a hydrodynamics method which could also be particle based, and so SPH was born in the late 1970's.  SPH is indeed a method that solves the Lagrangian hydrodynamic conservation equations (mass, momentum, and energy) on points that move freely about the problem.  Ordinary hydrodynamic methods usually discretize space using a mesh of some sort, which carves space up into cells.  Meshfree methods instead distribute the mass of the problem amongst a finite number of points, which should be laid down conformally with the mass distribution being modeled.  As an example, consider a 2D problem where we want represent a bounded circle of fluid using SPH:
 
 .. subfigure::
    :layout-sm: AB
@@ -16,11 +16,11 @@ SPH began in the astrophysics community which was looking for a method of modeli
 
    .. image:: Circle.png
       :width: 98%
-      :alt: Bounded circle of fluid.
+      :alt: A continuous fluid disk
 
    .. image:: Circle_SPH.png
       :width: 98%
-      :alt: Evenly spaced SPH nodes to represent fluid
+      :alt: Evenly spaced SPH nodes representing the fluid in this disk
 
    Example of bounded circle of fluid in 2D we want to discretize using SPH
 
@@ -42,13 +42,13 @@ In SPH the interpolation kernel is represented by a function :math:`W(x^\alpha -
 Common examples of functions that might be used as interpolation kernels include
 
   - Gaussian: :math:`W(\eta) = A \exp(-\eta^2)`
-  - Wendland C4: :math:`W(\eta) = A \left(1 - \eta\right)^6 \left(1 + 6 \eta + \frac{35}{3} \eta^2\right), \forall \; \eta \le 1.0`
+  - Wendland C4: :math:`W(\eta) = A \left(1 - \eta\right)^6 \left(1 + 6 \eta + \frac{35}{3} \eta^2\right), \forall \; \eta \le 1`
 
 where the constant :math:`A` is used to enforce a volume normalization on the integral of :math:`W` such that :math:`\int W(\eta) \, dV = 1`.  Using this convention we can represent this volume convolution for SPH interpolation for a spatial field :math:`F(x^\alpha)` as
 
 .. math::
 
-   \langle F(x^\alpha) \rangle                &=       \int F({x^\prime}^\alpha) W(\prime{x}^\alpha - x^\alpha, h) dV \approx \sum_j V_j F(x_j^\alpha) W(x_j^\alpha - x^\alpha, h) \\
+   \langle F(x^\alpha) \rangle                &=       \int F({x^\prime}^\alpha) W({x^\prime}^\alpha - x^\alpha, h) dV \approx \sum_j V_j F(x_j^\alpha) W(x_j^\alpha - x^\alpha, h) \\
    \langle \partial_\beta F(x^\alpha) \rangle &\approx \sum_j V_j F(x_j^\alpha) \partial_\beta W(x_j^\alpha - x^\alpha, h) \\
 
 In these relations we've transitioned from the continuous integral representations to the discrete numerical approximations represented by sums over particles (represented by the neighbor point indices :math:`j`), which is the crux of how SPH works.  In this discrete approximation SPH provides numerical estimates of fields and their spatial gradients at any point in space (most crucially at the interpolation points themselves).  This same mathematical framework allows us to perform this spatial convolution over general partial differential equations (PDE's) and arrive at numerical approximations for those PDE's as simple sums over the points near a given particle as functions of the interpolation kernel.  For instance, the following are standard SPH representations of the Lagrangian conservation relations for mass, momentum, and energy in the fluid regime:
