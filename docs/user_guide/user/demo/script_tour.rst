@@ -23,4 +23,5 @@ Now let's go through each section of this script in some detail.
 
    imports.rst
    command_line.rst
+   directories.rst
    point_generation.rst
