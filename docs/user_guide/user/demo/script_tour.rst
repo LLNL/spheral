@@ -22,4 +22,5 @@ Now let's go through each section of this script in some detail.
    :maxdepth: 1
 
    imports.rst
+   command_line.rst
    point_generation.rst
