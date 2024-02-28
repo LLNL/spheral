@@ -29,8 +29,8 @@ class FBi {
     FBi(size_t h) : hash(h) {}
 
     void free() {}
-    FBi& operator=(std::nullptr_t) {return *this; }
-    void shallowCopy(FBi const& rhs) {*this = rhs;}
+    //FBi& operator=(std::nullptr_t) {return *this; }
+    //void shallowCopy(FBi const& rhs) {*this = rhs;}
 
     size_t getHash() const { return hash; }
 
