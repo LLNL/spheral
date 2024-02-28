@@ -23,14 +23,11 @@ public: \
 
 
 class FBi {
-//class FBi : public Spheral::SPHERALCopyable<FBi> {
   public:
     FBi() {}
     FBi(size_t h) : hash(h) {}
 
     void free() {}
-    //FBi& operator=(std::nullptr_t) {return *this; }
-    //void shallowCopy(FBi const& rhs) {*this = rhs;}
 
     size_t getHash() const { return hash; }
 
@@ -133,17 +130,16 @@ TEST(FieldDiamondInheritance, AccessPattern)
   Spheral::FB* fbptr = &f;
   auto f_v = f.toView();
   Spheral::FBV* fb_v = &f_v;
-  //Spheral::FV<double>* f_v2 = reinterpret_cast<Spheral::FV<double>*>(&fb_v);
+  Spheral::FV<double>* f_v2 = dynamic_cast<Spheral::FV<double>*>(fb_v);
 
   std::cout << "fb_v : " << fb_v->getHash() << " , " << std::endl;
   std::cout << "fbptr: " << fbptr->getHash()<< " , " << std::endl;
   std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
   std::cout << "f.FB : " << f.FB::getHash() << " , " << std::endl;
   std::cout << "f    : " << f.getHash()     << " , " << f.data()     << " , " << f.size()   << std::endl;
-  //std::cout << "f_v2 : " << f_v2->getHash() << " , " << f_v2->data() << std::endl;
+  std::cout << "f_v2 : " << f_v2->getHash() << " , " << f_v2->data() << std::endl;
   
 
-  //Spheral::FB* fbptr = &f;
   fbptr->resize(1123);
 
 
@@ -151,4 +147,12 @@ TEST(FieldDiamondInheritance, AccessPattern)
   std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
 
   std::cout << fbptr->size() << std::endl;
+  std::cout << f_v2->size() << std::endl;
+
+
+  Spheral::ManagedVector<Spheral::FBV*> vec_fbv(5);
+  std::cout << vec_fbv.size() << std::endl;
+  vec_fbv.free();
+
+
 }

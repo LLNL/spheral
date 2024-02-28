@@ -49,6 +49,7 @@ public:
   SPHERAL_HOST_DEVICE m_ImplType & sptr_data() { return *(SmartPtrType::get()); } \
   SPHERAL_HOST_DEVICE m_ImplType & sptr_data() const { return *(SmartPtrType::get()); } 
 
+  SPHERAL_HOST_DEVICE SpheralViewInterface() = default;
   SPHERAL_HOST SpheralViewInterface(SmartPtrType&& rhs) : SmartPtrType(std::forward<SmartPtrType>(rhs)) {}
 };
 
@@ -58,7 +59,7 @@ public:
 // Defines a ctor that will take a "new" Data object to create the underlying
 // ManagedSmartPtr.
 #define VIEW_DEFINE_ALLOC_CTOR(view_t, impl_t) \
-public: \
+protected: \
   view_t(impl_t* rhs) : Base(SmartPtrType(rhs, [](impl_t *p) { p->free(); } )) {}
   //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
 
@@ -92,7 +93,7 @@ public: \
     { return compare(sptr_data(), rhs.sptr_data()); }
   
 
-#define VALUE_TOVIEW_OP(view_t) \
+#define VALUE_TOVIEW_OP() \
   ViewType toView() { return ViewType(*this); }
 
 #define VIEW_TYPE_ALIASES(value_t, impl) \
@@ -192,10 +193,11 @@ public:
 class QIntView : public SpheralViewInterface<QIntView, QIntData>
 {
   VIEW_TYPE_ALIASES(QIntView, QIntData)
-  VIEW_DEFINE_ALLOC_CTOR(QIntView, QIntData)
 public:
+  friend class QInt;
   using CoeffsType = typename QIntData::CoeffsType;
 protected:
+  VIEW_DEFINE_ALLOC_CTOR(QIntView, QIntData)
   // Interal interface for accessing the underlying members of QIntData
   SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
 

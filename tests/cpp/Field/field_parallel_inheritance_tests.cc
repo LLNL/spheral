@@ -10,16 +10,18 @@ namespace Spheral {
 #define SPTR_FWD_CTOR(type) \
   type(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
 
+#define UPCAST_CONVERSION_OP(parent_t) \
+  explicit operator parent_t() const {return parent_t(this->sptr());}
+
+#define DOWNCAST_CONVERSION_OP(child_t, impl_t) \
+  explicit operator child_t() const {return child_t(std::dynamic_pointer_cast<impl_t>(this->sptr()));}
 
 class FBi {
-//class FBi : public Spheral::SPHERALCopyable<FBi> {
   public:
     FBi() {}
     FBi(size_t h) : hash(h) {}
 
     void free() {}
-    //FBi& operator=(std::nullptr_t) {return *this; }
-    //void shallowCopy(FBi const& rhs) {*this = rhs;}
 
     size_t getHash() const { return hash; }
 
@@ -52,6 +54,8 @@ public:
   virtual size_t size() override { return m_data.size(); }
 };
 
+
+// We need to forward declare child classes for use in conversion functions.
 template<typename T>
 class FV;
 template<typename T>
@@ -60,33 +64,36 @@ class F;
 
 class FBV : protected Spheral::SpheralViewInterface<FBV, FBi> {
   VIEW_TYPE_ALIASES(FBV, FBi)
-public:
   VIEW_DEFINE_ALLOC_CTOR(FBV, FBi)
+
+public:
+  VIEW_DEF_CTOR(FBV)
   VIEW_COPY_CTOR(FBV)
-  SPHERAL_HOST_DEVICE virtual size_t getHash() const { return sptr_data().getHash(); }
-  size_t size() const {return sptr_data().size(); }
+  VIEW_ASSIGNEMT_OP(FBV)
 
   SPTR_FWD_CTOR(FBV)
 
   template<typename T>
-  explicit operator FV<T>() const {return FV<T>(std::dynamic_pointer_cast<Fi<T>>(this->sptr()));}
+  DOWNCAST_CONVERSION_OP(FV<T>, Fi<T>)
+
+  SPHERAL_HOST_DEVICE size_t getHash() const { return sptr_data().getHash(); }
+
+  // We want to forward the pure virtual interface here.
+  SPHERAL_HOST_DEVICE size_t size() const {return sptr_data().size(); }
+  SPHERAL_HOST_DEVICE void resize(size_t sz) { sptr_data().resize(sz); }
 };
 
-
+// Because the underlying impl type is pure virtual we can not allow
+// construction of FB class with default Ctor, Copy Ctor or assignment Op. 
+// We can only construct a FB object from an existing smart_ptr type so 
+// they must be constructed from F type objects directly...
 class FB : public Spheral::SpheralValueInterface<FBV, FBi> {
   VALUE_TYPE_ALIASES(FB, FBV, FBi)
-protected:
-public:
-  //VALUE_DEF_CTOR(F, Fi<T>)
-  //VALUE_COPY_CTOR(FB, FBi)
-  //VALUE_ASSIGNEMT_OP(FB, FBi)
-  VALUE_TOVIEW_OP()
-
-  // Can no longer be pure
-  void resize(size_t sz) {SPTR_DATA_REF().resize(sz);}
-
-  // Underlying smart pointer conversion happens in here...
   SPTR_FWD_CTOR(FB)
+public:
+  FB() = delete;
+  FB(FB const&) = delete;
+  FB& operator=(FB const&) = delete;
 };
 
 
@@ -94,71 +101,87 @@ public:
 template<typename T>
 class FV : public Spheral::SpheralViewInterface<FV<T>, Fi<T>> {
   VIEW_TYPE_ALIASES(FV, Fi<T>)
-public:
   VIEW_DEFINE_ALLOC_CTOR(FV, Fi<T>)
+public:
+  SPTR_FWD_CTOR(FV)
+  //UPCAST_CONVERSION_OP(FBV)
 
   SPHERAL_HOST_DEVICE T* data() {return SPTR_DATA_REF().data(); }
-  size_t size() { return SPTR_DATA_REF().size(); }
+  SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
 
-  explicit operator FBV() const {return FBV(this->sptr());}
-
-  size_t getHash() const { return SPTR_DATA_REF().getHash(); }
-  SPTR_FWD_CTOR(FV)
+  SPHERAL_HOST_DEVICE size_t getHash() const { return this->sptr_data().getHash(); }
 };
 
 template<typename T>
 class F : public Spheral::SpheralValueInterface<FV<T>, Fi<T>> {
   VALUE_TYPE_ALIASES(F, FV<T>, Fi<T>)
+
 public:
-  // Def Ctor, Copy Ctor, Assign Op,toView
   VALUE_DEF_CTOR(F, Fi<T>)
   VALUE_COPY_CTOR(F, Fi<T>)
   VALUE_ASSIGNEMT_OP(F, Fi<T>)
   VALUE_TOVIEW_OP()
-
-  explicit operator FB() const {return FB(this->sptr());}
+  //UPCAST_CONVERSION_OP(FB)
 
   // Ctor 
   F(size_t h, size_t sz) : Base(new Fi<T>(h, sz)) {}
 
-  void resize(size_t sz) { SPTR_DATA_REF().resize(sz); } 
-
-  // Methods defined in base implementation need to be explicilty
-  // defined in the top level class to remove ambiguous function calls.
-  size_t size() { return FV<T>::size(); }
+  void resize(size_t sz) { this->sptr_data().resize(sz); } 
 };
 
 }// namespace Spheral
 
 
-TEST(FieldOrthInheritance, AccessPattern)
+TEST(FieldParallelInheritance, AccessPattern)
 {
 
   Spheral::F<double> f(2, 200);
-  //Spheral::FB* fbptr = &f; // Can not do this.
-  Spheral::FB fb = (Spheral::FB)f; // Can not do this.
-  //Spheral::FB fb2;
+  //Spheral::FB fb = (Spheral::FB)f; // I don't think you should be able to do this in this case...
+  //Spheral::FB* fbptr = &f; // Can not do this...
+  //Spheral::FB fb2; //Can not do this...
+  //Spheral::FB fb2 = fb; // Can not do this...
   auto f_v = f.toView();
   Spheral::FBV fb_v = (Spheral::FBV)f_v;
 
   Spheral::FV<double> f_v2 = (Spheral::FV<double>)(fb_v);
 
-  //std::cout << "fb_v : " << fb_v.getHash() << " , " << std::endl;
-  std::cout << "fb   : " << fb.getHash()<< " , " << std::endl;
-  //std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
-  //std::cout << "f    : " << f.getHash() << " , " << std::endl;
+  std::cout << "fb_v : " << fb_v.getHash() << " , " << std::endl;
+  //std::cout << "fb   : " << fb.getHash()<< " , " << std::endl;
+  std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
   std::cout << "f    : " << f.getHash()     << " , " << f.data()     << " , " << f.size()   << std::endl;
   std::cout << "f_v2 : " << f_v2.getHash() << " , " << f_v2.data() << std::endl;
-  //
-
-  ////Spheral::FB* fbptr = &f;
-  fb.resize(1123);
-  //fbptr->resize(1123);
-
-
+  
+  //fb.resize(1123);
+  fb_v.resize(1123);
   
   std::cout << "f    : " << f.getHash()     << " , " << f.data()     << " , " << f.size()   << std::endl;
   std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
 
-  std::cout << fb.size() << std::endl;
+  //std::cout << fb.size() << std::endl;
+  std::cout << f_v2.size() << std::endl;
+
+  
+  Spheral::F<double> f0(0, 0);
+  Spheral::F<double> f1(1, 1);
+  Spheral::F<double> f2(2, 2);
+  Spheral::F<double> f3(3, 3);
+  Spheral::F<double> f4(4, 4);
+
+  Spheral::ManagedVector<Spheral::FBV> vec_fbv;
+  vec_fbv.push_back(  (Spheral::FBV)f0.toView()  );
+  vec_fbv.push_back(  (Spheral::FBV)f1.toView()  );
+  vec_fbv.push_back(  (Spheral::FBV)f2.toView()  );
+  vec_fbv.push_back(  (Spheral::FBV)f3.toView()  );
+  vec_fbv.push_back(  (Spheral::FBV)f4.toView()  );
+
+  for(auto elem : vec_fbv) elem.resize(elem.size()*2);
+
+  vec_fbv.free();
+
+  std::cout << f0.size() << std::endl;
+  std::cout << f1.size() << std::endl;
+  std::cout << f2.size() << std::endl;
+  std::cout << f3.size() << std::endl;
+  std::cout << f4.size() << std::endl;
+
 }
