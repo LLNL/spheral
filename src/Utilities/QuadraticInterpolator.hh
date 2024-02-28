@@ -98,7 +98,7 @@ public:
   SPHERAL_HOST_DEVICE VIEW_DEF_CTOR(QuadraticInterpolatorView)
   SPHERAL_HOST_DEVICE VIEW_COPY_CTOR(QuadraticInterpolatorView)
   SPHERAL_HOST_DEVICE VIEW_ASSIGNEMT_OP(QuadraticInterpolatorView)
-  SPHERAL_HOST_DEVICE VIEW_EQ_OP(QuadraticInterpolatorViewView)
+  SPHERAL_HOST_DEVICE VIEW_EQ_OP(QuadraticInterpolatorView)
 
   using CoeffsType = typename QuadraticInterpolatorImpl::CoeffsType;
   
