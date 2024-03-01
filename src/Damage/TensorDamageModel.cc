@@ -74,6 +74,30 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
 }
 
 //------------------------------------------------------------------------------
+// Constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+TensorDamageModel<Dimension>::
+TensorDamageModel(SolidNodeList<Dimension>& nodeList,
+                  const TensorStrainAlgorithm strainAlgorithm,
+                  const DamageCouplingAlgorithm damageCouplingAlgorithm,
+                  const TableKernel<Dimension>& W,
+                  const double crackGrowthMultiplier,
+                  const double criticalDamageThreshold,
+                  const bool damageInCompression):
+  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm),
+  mFlaws(SolidFieldNames::flaws, nodeList),
+  mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
+  mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
+  mStrain(SolidFieldNames::strainTensor, nodeList),
+  mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
+  mDdamageDt(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
+  mStrainAlgorithm(strainAlgorithm),
+  mCriticalDamageThreshold(criticalDamageThreshold),
+  mDamageInCompression(damageInCompression) {
+}
+
+//------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
