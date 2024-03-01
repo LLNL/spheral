@@ -73,8 +73,10 @@ public:
   // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
   Scalar equivalentWsum(const Scalar nPerh) const;
 
-  // Number of points in our lookup data
+  // Access the internal data
   size_t numPoints() const                               { return mNumPoints; }
+  Scalar minNperhLookup() const                          { return mMinNperh; }
+  Scalar maxNperhLookup() const                          { return mMaxNperh; }
 
   // Direct access to our interpolators
   const InterpolatorType& Winterpolator() const          { return mInterp; }

@@ -397,6 +397,8 @@ class TableKernel(Kernel):
     #...........................................................................
     # Properties
     numPoints = PYB11property("size_t", doc="The number of points in the table")
+    minNperhLookup = PYB11property("double", doc="The lower limit for looking up the effective nPerh")
+    maxNperhLookup = PYB11property("double", doc="The upper limit for looking up the effective nPerh")
     Winterpolator = PYB11property(doc = "W(x) interpolator")
     gradWinterpolator = PYB11property(doc = "grad W(x) interpolator")
     grad2Winterpolator = PYB11property(doc = "grad^2 W(x) interpolator")

@@ -192,40 +192,6 @@ gradf1Integral(const KernelType& W,
                                                                      numbins);
 }
 
-//------------------------------------------------------------------------------
-// Functors for building interpolation of kernel
-//------------------------------------------------------------------------------
-template<typename KernelType>
-struct Wlookup {
-  const KernelType& mW;
-  Wlookup(const KernelType& W): mW(W) {}
-  double operator()(const double x) const { return mW(x, 1.0); }
-};
-
-// template<typename KernelType>
-// struct gradWlookup {
-//   const KernelType& mW;
-//   gradWlookup(const KernelType& W): mW(W) {}
-//   double operator()(const double x) const { return mW.grad(x, 1.0); }
-// };
-
-// template<typename KernelType>
-// struct grad2Wlookup {
-//   const KernelType& mW;
-//   grad2Wlookup(const KernelType& W): mW(W) {}
-//   double operator()(const double x) const { return mW.grad2(x, 1.0); }
-// };
-
-//------------------------------------------------------------------------------
-// Functors for building interpolation of nperh (SPH)
-//------------------------------------------------------------------------------
-template<typename KernelType>
-struct SPHsumKernelValues {
-  const KernelType& mW;
-  SPHsumKernelValues(const KernelType& W): mW(W) {}
-  double operator()(const double nPerh) const { return sumKernelValues(mW, 1.0/nPerh); }
-};
-
 }  // anonymous
 
 //------------------------------------------------------------------------------
