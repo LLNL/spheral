@@ -165,11 +165,4 @@ private:
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class FlatFileIO;
-}
-
 #endif

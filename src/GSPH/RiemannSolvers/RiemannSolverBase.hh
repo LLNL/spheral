@@ -132,12 +132,5 @@ private:
 
 #include "RiemannSolverBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class RiemannSolverBase;
-}
-
 #endif
 

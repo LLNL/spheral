@@ -83,11 +83,4 @@ protected:
 
 #include "NodeIteratorBaseInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class NodeIteratorBase;
-}
-
 #endif

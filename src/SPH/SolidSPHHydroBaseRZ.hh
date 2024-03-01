@@ -71,10 +71,6 @@ public:
   // Destructor.
   virtual ~SolidSPHHydroBaseRZ();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
-
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
@@ -116,13 +112,6 @@ private:
   SolidSPHHydroBaseRZ& operator=(const SolidSPHHydroBaseRZ&);
 };
 
-}
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  class SolidSPHHydroBaseRZ;
 }
 
 #endif

@@ -100,11 +100,4 @@ private:
 
 #include "ConstantVelocityBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class ConstantVelocityBoundary;
-}
-
 #endif

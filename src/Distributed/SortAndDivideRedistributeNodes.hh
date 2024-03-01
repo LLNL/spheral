@@ -97,11 +97,4 @@ private:
 
 #include "SortAndDivideRedistributeNodesInline.hh"
 
-#else
-
-// Forward declare the SortAndDivideRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class SortAndDivideRedistributeNodes;
-}
-
 #endif

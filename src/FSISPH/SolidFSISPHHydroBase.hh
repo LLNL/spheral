@@ -88,8 +88,13 @@ public:
 
   virtual ~SolidFSISPHHydroBase();
 
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   virtual
   void registerState(DataBase<Dimension>& dataBase,
@@ -244,6 +249,7 @@ public:
   const FieldList<Dimension, Tensor>&    M() const;
   const FieldList<Dimension, Tensor>&    localM() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
+  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, SymTensor>& massSecondMoment() const;
@@ -327,6 +333,7 @@ private:
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
+  FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, SymTensor> mMassSecondMoment;
@@ -359,12 +366,5 @@ protected:
 
 
 #include "SolidFSISPHHydroBaseInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SolidFSISPHHydroBase;
-}
 
 #endif

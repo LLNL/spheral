@@ -103,8 +103,10 @@ MFMHydroBase<Dimension>::
 template<typename Dimension>
 void
 MFMHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+  GenericRiemannHydro<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------

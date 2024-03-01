@@ -26,10 +26,4 @@ struct GSPHFieldNames {
 
 }
 
-#else
-
-namespace Spheral {
-  struct GSPHFieldNames;
-}
-
 #endif

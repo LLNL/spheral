@@ -17,6 +17,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
@@ -180,12 +181,15 @@ SPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHinitializeStartup");
-  // Initialize the pressure and sound speed.
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
+
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
+
   // dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.

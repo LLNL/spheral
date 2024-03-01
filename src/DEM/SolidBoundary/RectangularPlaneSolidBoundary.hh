@@ -70,11 +70,4 @@ private:
 
 #include "RectangularPlaneSolidBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class RectangularPlaneSolidBoundary;
-}
-
 #endif

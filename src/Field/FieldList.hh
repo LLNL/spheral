@@ -247,6 +247,7 @@ public:
   // The number of fields in the FieldList.
   unsigned numFields() const;
   unsigned size() const;
+  bool empty() const;
 
   // The number of nodes in the FieldList.
   unsigned numNodes() const;
@@ -308,11 +309,5 @@ public:
 }
 
 #include "FieldListInline.hh"
-
-#else
-
-namespace Spheral {
-  template<typename Dimension, typename DataType> class FieldList;
-}
 
 #endif

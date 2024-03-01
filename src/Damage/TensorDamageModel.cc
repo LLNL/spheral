@@ -24,6 +24,7 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
@@ -62,6 +63,30 @@ TensorDamageModel(SolidNodeList<Dimension>& nodeList,
                   const FlawStorageType& flaws):
   DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm),
   mFlaws(SolidFieldNames::flaws, flaws),
+  mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
+  mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
+  mStrain(SolidFieldNames::strainTensor, nodeList),
+  mEffectiveStrain(SolidFieldNames::effectiveStrainTensor, nodeList),
+  mDdamageDt(TensorDamagePolicy<Dimension>::prefix() + SolidFieldNames::scalarDamage, nodeList),
+  mStrainAlgorithm(strainAlgorithm),
+  mCriticalDamageThreshold(criticalDamageThreshold),
+  mDamageInCompression(damageInCompression) {
+}
+
+//------------------------------------------------------------------------------
+// Constructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+TensorDamageModel<Dimension>::
+TensorDamageModel(SolidNodeList<Dimension>& nodeList,
+                  const TensorStrainAlgorithm strainAlgorithm,
+                  const DamageCouplingAlgorithm damageCouplingAlgorithm,
+                  const TableKernel<Dimension>& W,
+                  const double crackGrowthMultiplier,
+                  const double criticalDamageThreshold,
+                  const bool damageInCompression):
+  DamageModel<Dimension>(nodeList, W, crackGrowthMultiplier, damageCouplingAlgorithm),
+  mFlaws(SolidFieldNames::flaws, nodeList),
   mYoungsModulus(SolidFieldNames::YoungsModulus, nodeList),
   mLongitudinalSoundSpeed(SolidFieldNames::longitudinalSoundSpeed, nodeList),
   mStrain(SolidFieldNames::strainTensor, nodeList),
@@ -225,30 +250,22 @@ enforceBoundaries(State<Dimension>& state,
 }
 
 //------------------------------------------------------------------------------
-// Stuff to do on problem startup
+// On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 TensorDamageModel<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
-  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
-  const auto& nodes = this->nodeList();
-  const auto& rho = nodes.massDensity();
-  const auto& eps = nodes.specificThermalEnergy();
-  const auto& D = nodes.damage();
-  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
-  nodes.equationOfState().setPressure(P, rho, eps);
-  if (nodes.strengthModel().providesBulkModulus()) {
-    nodes.strengthModel().bulkModulus(K, rho, eps);
-  } else {
-    nodes.equationOfState().setBulkModulus(K, rho, eps);
-  }
-  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
-
-  // Set the initial values for Youngs modulus and the longitudinal sound speed
-  nodes.YoungsModulus(mYoungsModulus, K, mu);
-  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+  updateStateFields(SolidFieldNames::YoungsModulus, state, derivs);
+  updateStateFields(SolidFieldNames::longitudinalSoundSpeed, state, derivs);
 }
 
 //------------------------------------------------------------------------------

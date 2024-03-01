@@ -45,10 +45,4 @@ class CompareDomainNodesByPosition {
 
 }
 
-#else
-
-namespace Spheral {
-  template<typename Dimension> class CompareDomainNodesByPosition;
-}
-
 #endif

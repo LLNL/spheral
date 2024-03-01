@@ -75,11 +75,4 @@ private:
 
 #include "CylinderSolidBoundaryInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class CylinderSolidBoundary;
-}
-
 #endif

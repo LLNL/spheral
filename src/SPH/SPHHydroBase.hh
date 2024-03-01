@@ -59,9 +59,13 @@ public:
   // Destructor.
   virtual ~SPHHydroBase();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -301,12 +305,5 @@ private:
 }
 
 #include "SPHHydroBaseInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SPHHydroBase;
-}
 
 #endif

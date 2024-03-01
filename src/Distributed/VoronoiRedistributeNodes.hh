@@ -115,10 +115,4 @@ private:
 
 }
 
-#else
-// Forward declare the VoronoiRedistributeNodes class.
-namespace Spheral {
-  template<typename Dimension> class VoronoiRedistributeNodes;
-}
-
 #endif

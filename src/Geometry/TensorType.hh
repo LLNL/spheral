@@ -52,13 +52,5 @@ struct FullTensorType {
 
 }
 
-#else
-// Forward declaration.
-
-namespace Spheral {
-  struct SymmetricTensorType;
-  struct FullTensorType;
-}
-
 #endif
 

@@ -161,11 +161,4 @@ private:
 
 #include "LinearSpringDEMInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class LinearSpringDEM;
-}
-
 #endif

@@ -82,9 +82,6 @@ public:
   // Register our state.
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
-
-  // Do any required one-time initializations on problem start up.
-  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   //............................................................................
 
   //............................................................................
@@ -128,12 +125,5 @@ private:
 }
 
 #include "PalphaPorosityInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class PalphaPorosity;
-}
 
 #endif

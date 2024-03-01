@@ -61,7 +61,9 @@ public:
 
   // Tasks we do once on problem startup.
   virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                            State<Dimension>& state,
+                                            StateDerivatives<Dimension>& derivatives) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
@@ -134,12 +136,5 @@ private:
 }
 
 #include "SolidCRKSPHHydroBaseInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class SolidCRKSPHHydroBase;
-}
 
 #endif

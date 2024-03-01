@@ -48,11 +48,4 @@ public:
 
 #include "W4SplineKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class W4SplineKernel;
-}
-
 #endif

@@ -19,11 +19,4 @@ struct HDF5Traits {
 
 }
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename DataType> class HDF5Traits;
-}
-
 #endif

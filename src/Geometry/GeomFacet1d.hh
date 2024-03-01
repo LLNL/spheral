@@ -51,11 +51,5 @@ std::ostream& operator <<(std::ostream& os, const GeomFacet1d& facet);
 
 #include "GeomFacet1dInline.hh"
 
-#else 
-
-namespace Spheral {
-  class GeomFacet1d;
-}
-
 #endif
 

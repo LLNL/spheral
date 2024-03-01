@@ -143,11 +143,4 @@ private:
 
 #include "OsborneEquationOfStateInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class OsborneEquationOfState;
-}
-
 #endif

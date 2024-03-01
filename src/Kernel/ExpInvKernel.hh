@@ -46,11 +46,4 @@ public:
 
 #include "ExpInvKernelInline.hh"
 
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class ExpInvKernel;
-}
-
 #endif

@@ -96,11 +96,5 @@ std::ostream& operator <<(std::ostream& os, const GeomFacet2d& facet);
 
 #include "GeomFacet2dInline.hh"
 
-#else 
-
-namespace Spheral {
-  class GeomFacet2d;
-}
-
 #endif
 
