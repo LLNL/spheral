@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SecondOrderArtificialViscosity -- approximate riemann solver
+// SecondOrderArtificialViscosity
 //   Frontiere, Raskin, Owen (2017) "CRKSPH:- A Conservative Reproducing Kernel 
 //   Smoothed Particle Hydrodynamics Scheme," J. Comp. Phys.
 //

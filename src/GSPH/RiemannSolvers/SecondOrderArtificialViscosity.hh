@@ -1,7 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// SecondOrderArtificialViscosity -- approximate riemann solver
-//   Toro E.F., Spruce M., Speares W., (1994) "Restoration of the Contact Surface in
-//   the HLL-Riemann Solver," Shock Waves, 4:25-34
+// SecondOrderArtificialViscosity 
+//   Frontiere, Raskin, Owen (2017) "CRKSPH:- A Conservative Reproducing Kernel 
+//   Smoothed Particle Hydrodynamics Scheme," J. Comp. Phys.
+//
+// This is a reimplementation of the LimitedArtificialViscosity class as a
+// derivative of RiemannSolverBase so it can be used with GSPH derived
+// classes 
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//

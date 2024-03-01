@@ -179,12 +179,13 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
 
+  const auto& connectivityMap = dataBase.connectivityMap();
   const auto mass = dataBase.fluidMass();
   const auto massDensity = dataBase.fluidMassDensity();
-  const auto velocity = dataBase.fluidVelocity();
   const auto position = dataBase.fluidPosition();
   const auto H = dataBase.fluidHfield();
-
+  auto velocity = dataBase.fluidVelocity();
+  
   updateStateFields(HydroFieldNames::pressure, state, derivs);
   updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
 
