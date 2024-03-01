@@ -10,7 +10,14 @@
 //                      is implemented in the DEMBase class.  The boundaries
 //                      themselves simply define the surface and how it evolves
 //                      in time.                  
-//
+//----------------------------------------------------------------------------//
+// ToDo
+// -- add complete registration methods
+// -- set the unique index of the bc so no std::str input req. for regState
+// -- make restartable 
+// -- stateBase add scalar and tensor (talk to Mike about different pattern)
+// -- tests
+//-----------------------------------------------------------------------------
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 

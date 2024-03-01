@@ -55,6 +55,12 @@ CircularPlaneSolidBoundary<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state,
               const std::string& boundaryKey) {   
+  const auto pointKey = boundaryKey +"_point";
+  const auto velocityKey = boundaryKey +"_velocity";
+  const auto normalKey = boundaryKey +"_normal";
+  state.enrollAny(pointKey,mPoint);
+  state.enrollAny(pointKey,mVelocity);
+  state.enrollAny(pointKey,mNormal);
 }
 
 template<typename Dimension>
