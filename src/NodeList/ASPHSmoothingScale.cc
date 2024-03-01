@@ -333,7 +333,7 @@ idealSmoothingScale(const SymTensor& H,
     // for the observed sum.
     currentNodesPerSmoothingScale = W.equivalentNodesPerSmoothingScale(zerothMoment);
   }
-  CHECK(currentNodesPerSmoothingScale > 0.0);
+  CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
   // The (limited) ratio of the desired to current nodes per smoothing scale.
   const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));

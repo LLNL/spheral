@@ -9,7 +9,7 @@
 #include "TableKernel.hh"
 
 #include "Utilities/SpheralFunctions.hh"
-#include "Utilities/bisectSearch.hh"
+#include "Utilities/bisectRoot.hh"
 #include "Utilities/simpsonsIntegration.hh"
 #include "Utilities/safeInv.hh"
 
@@ -24,6 +24,7 @@ using std::abs;
 namespace Spheral {
 
 namespace {  // anonymous
+
 //------------------------------------------------------------------------------
 // Sum the Kernel values for the given stepsize.
 //------------------------------------------------------------------------------
@@ -93,23 +94,6 @@ sumKernelValues(const TableKernel<Dim<3> >& W,
     etaz += deta;
   }
   return FastMath::CubeRootHalley2(result);
-}
-
-// Special hacked version to allow for running 1-D stacks of nodes in 3-D.
-// This is way ugly and tricky -- DON'T EMULATE THIS KIND OF EXAMPLE!
-template<typename KernelType>
-inline
-double
-sumKernelValuesAs1D(const KernelType& W,
-                    const double deta) {
-  REQUIRE(deta > 0);
-  double result = 0.0;
-  double etax = deta;
-  while (etax < W.kernelExtent()) {
-    result += 2.0*std::abs(W.gradValue(etax, 1.0));
-    etax += deta;
-  }
-  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -218,18 +202,28 @@ struct Wlookup {
   double operator()(const double x) const { return mW(x, 1.0); }
 };
 
-template<typename KernelType>
-struct gradWlookup {
-  const KernelType& mW;
-  gradWlookup(const KernelType& W): mW(W) {}
-  double operator()(const double x) const { return mW.grad(x, 1.0); }
-};
+// template<typename KernelType>
+// struct gradWlookup {
+//   const KernelType& mW;
+//   gradWlookup(const KernelType& W): mW(W) {}
+//   double operator()(const double x) const { return mW.grad(x, 1.0); }
+// };
 
+// template<typename KernelType>
+// struct grad2Wlookup {
+//   const KernelType& mW;
+//   grad2Wlookup(const KernelType& W): mW(W) {}
+//   double operator()(const double x) const { return mW.grad2(x, 1.0); }
+// };
+
+//------------------------------------------------------------------------------
+// Functors for building interpolation of nperh (SPH)
+//------------------------------------------------------------------------------
 template<typename KernelType>
-struct grad2Wlookup {
+struct SPHsumKernelValues {
   const KernelType& mW;
-  grad2Wlookup(const KernelType& W): mW(W) {}
-  double operator()(const double x) const { return mW.grad2(x, 1.0); }
+  SPHsumKernelValues(const KernelType& W): mW(W) {}
+  double operator()(const double nPerh) const { return sumKernelValues(mW, 1.0/nPerh); }
 };
 
 }  // anonymous
@@ -240,27 +234,35 @@ struct grad2Wlookup {
 template<typename Dimension>
 template<typename KernelType>
 TableKernel<Dimension>::TableKernel(const KernelType& kernel,
-                                    const unsigned numPoints):
+                                    const unsigned numPoints,
+                                    const typename Dimension::Scalar minNperh,
+                                    const typename Dimension::Scalar maxNperh):
   Kernel<Dimension, TableKernel<Dimension> >(),
-  mInterp(0.0, kernel.kernelExtent(), numPoints, Wlookup<KernelType>(kernel)),
-  mGradInterp(0.0, kernel.kernelExtent(), numPoints, gradWlookup<KernelType>(kernel)),
-  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, grad2Wlookup<KernelType>(kernel)),
   mNumPoints(numPoints),
-  mNperhValues(),
-  mWsumValues(),
-  mMinNperh(0.25),
-  mMaxNperh(64.0) {
+  mMinNperh(minNperh),
+  mMaxNperh(maxNperh),
+  mInterp(0.0, kernel.kernelExtent(), numPoints,      [&](const double x) { return kernel(x, 1.0); }),
+  mGradInterp(0.0, kernel.kernelExtent(), numPoints,  [&](const double x) { return kernel.grad(x, 1.0); }),
+  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, [&](const double x) { return kernel.grad2(x, 1.0); }),
+  mNperhLookup(),
+  mWsumLookup(),
+  mNperhLookupASPH(),
+  mWsumLookupASPH() {
 
   // Pre-conditions.
   VERIFY(numPoints > 0);
+  VERIFY(minNperh > 0.0 and maxNperh > minNperh);
 
   // Set the volume normalization and kernel extent.
   this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.
   this->setKernelExtent(kernel.kernelExtent());
   this->setInflectionPoint(kernel.inflectionPoint());
 
-  // Set the table of n per h values.
-  this->setNperhValues();
+  // Set the interpolation methods for looking up nperh
+  mWsumLookup.initialize(mMinNperh, mMaxNperh, numPoints,
+                         [&](const double x) -> double { return sumKernelValues(*this, 1.0/x); });
+  mNperhLookup.initialize(mWsumLookup(mMinNperh), mWsumLookup(mMaxNperh), numPoints,
+                          [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookup(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
 }
 
 //------------------------------------------------------------------------------
@@ -270,14 +272,16 @@ template<typename Dimension>
 TableKernel<Dimension>::
 TableKernel(const TableKernel<Dimension>& rhs):
   Kernel<Dimension, TableKernel<Dimension>>(rhs),
+  mNumPoints(rhs.mNumPoints),
+  mMinNperh(rhs.mMinNperh),
+  mMaxNperh(rhs.mMaxNperh),
   mInterp(rhs.mInterp),
   mGradInterp(rhs.mGradInterp),
   mGrad2Interp(rhs.mGrad2Interp),
-  mNumPoints(rhs.mNumPoints),
-  mNperhValues(rhs.mNperhValues),
-  mWsumValues( rhs.mWsumValues),
-  mMinNperh(rhs.mMinNperh),
-  mMaxNperh(rhs.mMaxNperh) {
+  mNperhLookup(rhs.mNperhLookup),
+  mWsumLookup(rhs.mWsumLookup),
+  mNperhLookupASPH(rhs.mNperhLookupASPH),
+  mWsumLookupASPH(rhs.mWsumLookupASPH) {
 }
 
 //------------------------------------------------------------------------------
@@ -297,14 +301,16 @@ TableKernel<Dimension>::
 operator=(const TableKernel<Dimension>& rhs) {
   if (this != &rhs) {
     Kernel<Dimension, TableKernel<Dimension>>::operator=(rhs);
+    mNumPoints = rhs.mNumPoints;
+    mMinNperh = rhs.mMinNperh;
+    mMaxNperh = rhs.mMaxNperh;
     mInterp = rhs.mInterp;
     mGradInterp = rhs.mGradInterp;
     mGrad2Interp = rhs.mGrad2Interp;
-    mNumPoints = rhs.mNumPoints;
-    mNperhValues = rhs.mNperhValues;
-    mWsumValues =  rhs.mWsumValues;
-    mMinNperh = rhs.mMinNperh;
-    mMaxNperh = rhs.mMaxNperh;
+    mNperhLookup = rhs.mNperhLookup;
+    mWsumLookup = rhs.mWsumLookup;
+    mNperhLookupASPH = rhs.mNperhLookupASPH;
+    mWsumLookupASPH = rhs.mWsumLookupASPH;
   }
   return *this;
 }
@@ -329,33 +335,7 @@ template<typename Dimension>
 typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentNodesPerSmoothingScale(const Scalar Wsum) const {
-
-  // Find the lower bound in the tabulated Wsum's bracketing the input
-  // value.
-  const int lb = bisectSearch(mWsumValues, Wsum);
-  CHECK((lb >= -1) and (lb <= int(mWsumValues.size()) - 1));
-  const int ub = lb + 1;
-  const int n = int(mNumPoints);
-  CHECK((lb == -1 and Wsum <= mWsumValues[0]) ||
-        (ub == n and Wsum >= mWsumValues[n - 1]) ||
-        (Wsum >= mWsumValues[lb] and Wsum <= mWsumValues[ub]));
-
-  // Now interpolate for the corresponding nodes per h (within bounds);
-  Scalar result;
-  if (lb == -1) {
-    result = mNperhValues[0];
-  } else if (ub == n) {
-    result = mNperhValues[n - 1];
-  } else {
-    result = std::min(mNperhValues[ub],
-                      std::max(mNperhValues[lb],
-                               mNperhValues[lb] +
-                               (Wsum - mWsumValues[lb])/
-                               (mWsumValues[ub] - mWsumValues[lb])*
-                               (mNperhValues[ub] - mNperhValues[lb])));
-    ENSURE(result >= mNperhValues[lb] and result <= mNperhValues[ub]);
-  }
-  return result;
+  return mNperhLookup(Wsum);
 }
 
 //------------------------------------------------------------------------------
@@ -365,75 +345,7 @@ template<typename Dimension>
 typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentWsum(const Scalar nPerh) const {
-
-  // Find the lower bound in the tabulated n per h's bracketing the input
-  // value.
-  const int lb = bisectSearch(mNperhValues, nPerh);
-  CHECK((lb >= -1) and (lb <= int(mNperhValues.size()) - 1));
-  const int ub = lb + 1;
-  const int n = int(mNumPoints);
-  CHECK((lb == -1 and nPerh <= mNperhValues[0]) ||
-        (ub == n and nPerh >= mNperhValues[n - 1]) ||
-        (nPerh >= mNperhValues[lb] and nPerh <= mNperhValues[ub]));
-
-  // Now interpolate for the corresponding Wsum.
-  Scalar result;
-  if (lb == -1) {
-    result = mWsumValues[0];
-  } else if (ub == n) {
-    result = mWsumValues[n - 1];
-  } else {
-    result = std::min(mWsumValues[ub], 
-                      std::max(mWsumValues[lb],
-                               mWsumValues[lb] +
-                               (nPerh - mNperhValues[lb])/
-                               (mNperhValues[ub] - mNperhValues[lb])*
-                               (mWsumValues[ub] - mWsumValues[lb])));
-    ENSURE(result >= mWsumValues[lb] and result <= mWsumValues[ub]);
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Initialize the Nperh values.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-TableKernel<Dimension>::
-setNperhValues(const bool scaleTo1D) {
-  REQUIRE(mMinNperh > 0.0);
-  REQUIRE(mMaxNperh > mMinNperh);
-  REQUIRE(mNumPoints > 1);
-  REQUIRE(this->kernelExtent() > 0.0);
-
-  // Size the Nperh array.
-  mWsumValues = vector<Scalar>(mNumPoints);
-  mNperhValues = vector<Scalar>(mNumPoints);
-
-  // For the allowed range of n per h, sum up the kernel values.
-  const Scalar dnperh = (mMaxNperh - mMinNperh)/(mNumPoints - 1u);
-  for (auto i = 0u; i < mNumPoints; ++i) {
-    const Scalar nperh = mMinNperh + i*dnperh;
-    CHECK(nperh >= mMinNperh and nperh <= mMaxNperh);
-    const Scalar deta = 1.0/nperh;
-    mNperhValues[i] = nperh;
-    if (scaleTo1D) {
-      mWsumValues[i] = sumKernelValuesAs1D(*this, deta);
-    } else {
-      mWsumValues[i] = sumKernelValues(*this, deta);
-    }
-  }
-
-  // Post-conditions.
-  BEGIN_CONTRACT_SCOPE
-  ENSURE(mWsumValues.size() == mNumPoints);
-  ENSURE(mNperhValues.size() == mNumPoints);
-  for (auto i = 0u; i < mNumPoints - 1; ++i) {
-    ENSURE(mWsumValues[i] <= mWsumValues[i + 1]);
-    ENSURE(mNperhValues[i] <= mNperhValues[i + 1]);
-  }
-  END_CONTRACT_SCOPE
-
+  return mWsumLookup(nPerh);
 }
 
 }

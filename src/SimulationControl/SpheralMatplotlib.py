@@ -931,6 +931,44 @@ def plotSurface(x,   # 1D numpy array with x-coordinates for edge of plot : shap
     plt.title(title)
     return fig, ax, surf
 
+#-------------------------------------------------------------------------------
+# Plot a QuadraticInterpolator
+#-------------------------------------------------------------------------------
+def plotInterpolator(interp,
+                     n = None,
+                     plot = None,
+                     plotstyle = "r-",
+                     label = None,
+                     xlabel = None,
+                     ylabel = None,
+                     title = None):
+    x0, x1 = interp.xmin, interp.xmax
+    if n is None:
+        n = 2 * interp.size
+    if plot is None:
+        plot = newFigure()
+    xvals = np.linspace(x0, x1, n)
+    yvals = np.array([interp(x) for x in xvals])
+    plot.plot(xvals, yvals, plotstyle, label=label)
+    plot.set_xlabel(xlabel)
+    plot.set_ylabel(ylabel)
+    plot.set_title(title)
+    return plot
+
+#-------------------------------------------------------------------------------
+# Plot a table kernel
+#-------------------------------------------------------------------------------
+def plotTableKernel(WT):
+    plots = [plotInterpolator(interp = x,
+                              xlabel = xlab,
+                              ylabel = ylab,
+                              title = ylab) for x, xlab, ylab in [(WT.Winterpolator,      r"$\eta$",   r"$W(\eta)$"),
+                                                                  (WT.gradWinterpolator,  r"$\eta$",   r"$\partial_\eta W(\eta)$"),
+                                                                  (WT.grad2Winterpolator, r"$\eta$",   r"$\partial^2_\eta W(\eta)$"),
+                                                                  (WT.nPerhInterpolator,  r"$\sum W$",  r"n per h($\sum W$)"),
+                                                                  (WT.WsumInterpolator,   r"n per h",  r"$\sum W$")]]
+    return plots
+
 # #-------------------------------------------------------------------------------
 # # Plot a polygon.
 # #-------------------------------------------------------------------------------

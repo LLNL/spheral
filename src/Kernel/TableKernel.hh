@@ -19,15 +19,18 @@ class TableKernel: public Kernel<Dimension, TableKernel<Dimension> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using InterpolatorType = QuadraticInterpolator;
 
   // Constructors.
   template<typename KernelType>
   TableKernel(const KernelType& kernel,
-              const unsigned numPoints = 100u);
+              const unsigned numPoints = 100u,
+              const Scalar minNperh = 0.25,
+              const Scalar maxNperh = 64.0);
   TableKernel(const TableKernel<Dimension>& rhs);
 
   // Destructor.
@@ -70,26 +73,26 @@ public:
   // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
   Scalar equivalentWsum(const Scalar nPerh) const;
 
-  // Allow read only access to the tabular data.
-  const std::vector<Scalar>& nperhValues() const;
-  const std::vector<Scalar>& WsumValues() const;
-
   // Number of points in our lookup data
-  size_t numPoints() const;
+  size_t numPoints() const                               { return mNumPoints; }
+
+  // Direct access to our interpolators
+  const InterpolatorType& Winterpolator() const          { return mInterp; }
+  const InterpolatorType& gradWinterpolator() const      { return mGradInterp; }
+  const InterpolatorType& grad2Winterpolator() const     { return mGrad2Interp; }
+  const InterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
+  const InterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
+  const InterpolatorType& nPerhInterpolatorASPH() const  { return mNperhLookupASPH; }
+  const InterpolatorType& WsumInterpolatorASPH() const   { return mWsumLookupASPH; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  typedef QuadraticInterpolator InterpolatorType;
-  InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   size_t mNumPoints;
-
-  // Data for the nperh lookup algorithm.
-  std::vector<Scalar> mNperhValues, mWsumValues;
   Scalar mMinNperh, mMaxNperh;
-
-  // Initialize the table relating Wsum to nodes per smoothing scale.
-  void setNperhValues(const bool scaleTo1D = false);
+  InterpolatorType mInterp, mGradInterp, mGrad2Interp;  // W, grad W, grad^2 W
+  InterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
+  InterpolatorType mNperhLookupASPH, mWsumLookupASPH;   // ASPH nperh lookups
 };
 
 }

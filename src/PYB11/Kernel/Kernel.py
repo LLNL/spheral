@@ -251,72 +251,100 @@ class TableKernel(Kernel):
     # Constructors
     def pyinit(self,
                kernel = "const BSplineKernel<%(Dimension)s>&",
-               numPoints = ("const unsigned", "100")):
+               numPoints = ("const unsigned", "100"),
+               minNperh = ("const double", "0.25"),
+               maxNperh = ("const double", "64.0")):
         "Construct with BSpline kernel"
 
     def pyinita(self,
                 kernel = "const W4SplineKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with W4Spline kernel"
 
     def pyinitb(self,
                 kernel = "const GaussianKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with Gaussian kernel"
 
     def pyinitc(self,
                 kernel = "const SuperGaussianKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with SuperGaussian kernel"
 
     def pyinitd(self,
                 kernel = "const PiGaussianKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with PiGaussian kernel"
 
     def pyinite(self,
                 kernel = "const HatKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with Hat kernel"
 
     def pyinitf(self,
                 kernel = "const SincKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with Sinc kernel"
 
     def pyinitg(self,
                 kernel = "const NSincPolynomialKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with NSincPolynomial kernel"
 
     def pyinith(self,
                 kernel = "const QuarticSplineKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with Quartic spline kernel"
 
     def pyiniti(self,
                 kernel = "const QuinticSplineKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with Quintic spline kernel"
 
     def pyinitj(self,
                 kernel = "const NBSplineKernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with NBSpline kernel"
 
     def pyinitk(self,
                 kernel = "const WendlandC2Kernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with WendlandC2 kernel"
 
     def pyinitl(self,
                 kernel = "const WendlandC4Kernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with WendlandC4 kernel"
 
     def pyinitm(self,
                 kernel = "const WendlandC6Kernel<%(Dimension)s>&",
-                numPoints = ("const unsigned", "100")):
+                numPoints = ("const unsigned", "100"),
+                minNperh = ("const double", "0.25"),
+                maxNperh = ("const double", "64.0")):
         "Construct with WendlandC6 kernel"
 
     #...........................................................................
@@ -368,9 +396,14 @@ class TableKernel(Kernel):
 
     #...........................................................................
     # Properties
-    nperhValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table used for finding nperh")
-    WsumValues = PYB11property("const std::vector<Scalar>&", returnpolicy="reference_internal", doc="The lookup table of Wsum values")
     numPoints = PYB11property("size_t", doc="The number of points in the table")
+    Winterpolator = PYB11property(doc = "W(x) interpolator")
+    gradWinterpolator = PYB11property(doc = "grad W(x) interpolator")
+    grad2Winterpolator = PYB11property(doc = "grad^2 W(x) interpolator")
+    nPerhInterpolator = PYB11property(doc = "nperh(x) interpolator (SPH)")
+    WsumInterpolator = PYB11property(doc = "Wsum(x) interpolator (SPH)")
+    nPerhInterpolatorASPH = PYB11property(doc = "nperh(x) interpolator (ASPH)")
+    WsumInterpolatorASPH = PYB11property(doc = "Wsum(x) interpolator (ASPH)")
 
 #-------------------------------------------------------------------------------
 # WendlandC2
