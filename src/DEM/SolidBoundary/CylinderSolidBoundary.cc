@@ -54,8 +54,7 @@ template<typename Dimension>
 void
 CylinderSolidBoundary<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state,
-              const std::string& boundaryKey) {   
+              State<Dimension>& state) {   
 }
 
 template<typename Dimension>

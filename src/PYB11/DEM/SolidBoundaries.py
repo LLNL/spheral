@@ -36,8 +36,7 @@ class InfinitePlaneSolidBoundary(SolidBoundaryBase):
     @PYB11virtual 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
     
@@ -88,8 +87,7 @@ class RectangularPlaneSolidBoundary(SolidBoundaryBase):
     @PYB11virtual 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
     
@@ -140,8 +138,7 @@ class CircularPlaneSolidBoundary(SolidBoundaryBase):
     @PYB11virtual 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
     
@@ -193,8 +190,7 @@ class CylinderSolidBoundary(SolidBoundaryBase):
     @PYB11virtual 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
     
@@ -248,8 +244,7 @@ class SphereSolidBoundary(SolidBoundaryBase):
     @PYB11virtual 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
     

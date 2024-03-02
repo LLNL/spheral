@@ -319,13 +319,9 @@ registerState(DataBase<Dimension>& dataBase,
   auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
   state.enroll(DEMFieldNames::solidBoundaryPolicy,boundaryPolicy);
   
-  const auto& solidBoundaries = this->solidBoundaryConditions();
-  const auto  numSolidBoundaries = this->numSolidBoundaries();
-   for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
-    const auto name = "SolidBoundary_" + std::to_string(solidBoundaries[ibc]->uniqueIndex());
-    solidBoundaries[ibc]->registerState(dataBase,state,name);
-   }
-
+  for (auto ibc = 0u; ibc < this->numSolidBoundaries(); ++ibc){
+    mSolidBoundaries[ibc]->registerState(dataBase,state);}
+  //const auto name = "SolidBoundary_" + std::to_string(solidBoundaries[ibc]->uniqueIndex());
   // for (ConstSolidBoundaryIterator solidboundItr = mSolidBoundaries.begin();
   //       solidboundItr != mSolidBoundaries.end();
   //       ++solidboundItr){

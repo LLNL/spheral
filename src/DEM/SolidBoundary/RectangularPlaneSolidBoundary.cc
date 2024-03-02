@@ -48,8 +48,8 @@ template<typename Dimension>
 void
 RectangularPlaneSolidBoundary<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state,
-              const std::string& boundaryKey) {   
+              State<Dimension>& state) {   
+  const auto boundaryKey = "RectangularPlaneSolidBoundary_" + std::to_string(std::abs(this->uniqueIndex()));
   const auto pointKey = boundaryKey +"_point";
   const auto velocityKey = boundaryKey +"_velocity";
   state.enrollAny(pointKey,mPoint);

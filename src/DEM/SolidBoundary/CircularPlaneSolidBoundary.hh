@@ -35,8 +35,7 @@ public:
   virtual Vector velocity(const Vector& position) const override;
 
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state,
-                             const std::string& boundaryKey) override;
+                             State<Dimension>& state) override;
 
   virtual void update(const double multiplier,
                       const double time,

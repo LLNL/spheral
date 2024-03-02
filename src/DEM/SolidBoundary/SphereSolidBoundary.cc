@@ -75,8 +75,7 @@ template<typename Dimension>
 void
 SphereSolidBoundary<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state,
-              const std::string& boundaryKey) {   
+              State<Dimension>& state) {   
 }
 
 template<typename Dimension>

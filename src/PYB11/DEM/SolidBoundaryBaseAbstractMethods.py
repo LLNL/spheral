@@ -20,8 +20,7 @@ class SolidBoundaryBaseAbstractMethods:
 
     def registerState(self,
                       dataBase = "DataBase<%(Dimension)s>&",
-                      state = "State<%(Dimension)s>&",
-                      boundaryKey = "const std::string&"):
+                      state = "State<%(Dimension)s>&"):
         "Register the state solid bc expects to use and evolve."
         return "void"
 

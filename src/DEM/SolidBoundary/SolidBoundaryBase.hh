@@ -49,8 +49,7 @@ public:
   virtual Vector velocity(const Vector& position) const = 0;
 
   virtual void registerState(DataBase<Dimension>& dataBase,
-                             State<Dimension>& state,
-                             const std::string& boundaryKey) = 0;
+                             State<Dimension>& state) = 0;
 
   virtual void update(const double multiplier,
                       const double t,
