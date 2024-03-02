@@ -321,12 +321,6 @@ registerState(DataBase<Dimension>& dataBase,
   
   for (auto ibc = 0u; ibc < this->numSolidBoundaries(); ++ibc){
     mSolidBoundaries[ibc]->registerState(dataBase,state);}
-  //const auto name = "SolidBoundary_" + std::to_string(solidBoundaries[ibc]->uniqueIndex());
-  // for (ConstSolidBoundaryIterator solidboundItr = mSolidBoundaries.begin();
-  //       solidboundItr != mSolidBoundaries.end();
-  //       ++solidboundItr){
-  //   (*solidboundItr)->registerState(dataBase,state);
-  // }
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);

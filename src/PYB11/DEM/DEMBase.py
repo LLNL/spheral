@@ -58,8 +58,7 @@ class DEMBase(Physics):
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the DEM before we start a derivative evaluation."
-        return "void"
-                       
+        return "void"                
 
     @PYB11virtual
     @PYB11const
@@ -103,11 +102,6 @@ class DEMBase(Physics):
     def clearSolidBoundaries(self):
         "remove all solid boundaries from the dem package"
         return "void"
-
-    # @PYB11const
-    # def numSolidBoundaries(self):
-    #     "return the number of solid boundaries being tracked"
-    #     return "unsigned int"
 
     @PYB11const
     def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
