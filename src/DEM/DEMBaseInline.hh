@@ -370,15 +370,8 @@ inline
 void
 DEMBase<Dimension>::
 removeSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) {
-
   const auto bcPtr = std::find(mSolidBoundaries.begin(),mSolidBoundaries.end(),&boundary);
-  if (bcPtr != mSolidBoundaries.end()){
-    //const int bcIndex = std::distance(mSolidBoundaries.begin(),bcPtr);
-    mSolidBoundaries.erase(bcPtr);
-    //std::cout << "removing solid bc " << bcIndex << std::endl;
-  } else {
-    std:: cout << "THEY AINT HOME";
-  }
+  if (bcPtr != mSolidBoundaries.end()) mSolidBoundaries.erase(bcPtr);
 }
 
 
