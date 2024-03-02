@@ -55,8 +55,17 @@ public:
   virtual void update(const double multiplier,
                       const double t,
                       const double dt) = 0;
-};
+  
+  void uniqueIndex(const int uId);
+  int uniqueIndex() const;
 
+private:
+//--------------------------- Public Interface ---------------------------//
+int mUniqueIndex;
+
+};
 }
+
+#include "SolidBoundaryBaseInline.hh"
 
 #endif

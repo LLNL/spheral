@@ -18,7 +18,6 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/DataBase.hh"
 
-
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 
@@ -46,7 +45,6 @@
 #ifdef _OPENMP
 #include "omp.h"
 #endif
-
 
 #include <iostream>
 #include <stdexcept>
@@ -319,6 +317,7 @@ registerState(DataBase<Dimension>& dataBase,
   // solid boundary conditions w/ properties that need to be integrated
   auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
   state.enroll(DEMFieldNames::solidBoundaryPolicy,boundaryPolicy);
+  
   const auto& solidBoundaries = this->solidBoundaryConditions();
   const auto  numSolidBoundaries = this->numSolidBoundaries();
    for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
