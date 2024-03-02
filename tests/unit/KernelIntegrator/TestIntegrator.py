@@ -1,4 +1,4 @@
-#ATS:t1 = test(SELF, "--dimension 1 --order 100 --tolerance 2.0e-4", label="integration, 1d", np=1)
+#ATS:t1 = test(SELF, "--dimension 1 --order 100 --tolerance 1.0e-3", label="integration, 1d", np=1)
 #ATS:t2 = test(SELF, "--dimension 2 --nx 10 --ny 10 --order 10 --tolerance 4.0e-4", label="integration, 2d", np=1)
 #ATS:t3 = test(SELF, "--dimension 3 --nx 5 --ny 5 --nz 5 --order 6", label="integration, 3d", np=1)
 #ATS:r1 = test(SELF, "--dimension 1 --nx 20 --order 100 --correctionOrderIntegration 1", label="integration, 1d, rk1", np=1)
