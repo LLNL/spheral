@@ -79,6 +79,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
+  mNewSolidBoundaryIndex(0),
   mSolidBoundaries(),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
@@ -321,7 +322,7 @@ registerState(DataBase<Dimension>& dataBase,
   const auto& solidBoundaries = this->solidBoundaryConditions();
   const auto  numSolidBoundaries = this->numSolidBoundaries();
    for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
-    const auto name = "SolidBoundary_" + std::to_string(this->getSolidBoundaryUniqueIndex(ibc));
+    const auto name = "SolidBoundary_" + std::to_string(solidBoundaries[ibc]->uniqueIndex());
     solidBoundaries[ibc]->registerState(dataBase,state,name);
    }
 
@@ -891,7 +892,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
         if (disBc.magnitude() < Ri*(1+bufferDistance)){
 
           // create a unique index for the boundary condition 
-          const auto uId_bc = this->getSolidBoundaryUniqueIndex(ibc);
+          const auto uId_bc = solidBoundaryi->uniqueIndex();
 
           // check to see if it already exists
           const auto neighborContacts = mNeighborIndices(nodeListi,i);

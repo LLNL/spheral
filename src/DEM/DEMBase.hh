@@ -200,12 +200,13 @@ public:
                              const Vector vrotj) const;
 
   // Solid Bounderies 
+  int newSolidBoundaryIndex() const;
   void appendSolidBoundary(SolidBoundaryBase<Dimension>& boundary);
   void clearSolidBoundaries();
+  void removeSolidBoundary(const SolidBoundaryBase<Dimension>& boundary);
   bool haveSolidBoundary(const SolidBoundaryBase<Dimension>& boundary) const;
   unsigned int numSolidBoundaries() const;
   const std::vector<SolidBoundaryBase<Dimension>*>& solidBoundaryConditions() const;
-  int getSolidBoundaryUniqueIndex(const int x) const;
 
   // counts
   unsigned int numParticleParticleContacts() const;
@@ -224,6 +225,7 @@ protected:
 
   const DataBase<Dimension>& mDataBase;
 
+  int mNewSolidBoundaryIndex;
   std::vector<SolidBoundaryBase<Dimension>*> mSolidBoundaries;
 
   int mCycle;                    // current cycle

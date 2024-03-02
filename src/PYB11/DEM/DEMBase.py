@@ -113,11 +113,10 @@ class DEMBase(Physics):
     def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
         "is this boundary being tracked?"
         return "bool"
-
-    @PYB11const
-    def getSolidBoundaryUniqueIndex(x="const int"):
-        "Unique index for neighborIndices pairFieldList (returns -x-1)"
-        return "int"
+    
+    def removeSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
+        "remove the specified solid boundary"
+        return "void"
 
     #...........................................................................
     # Properties
