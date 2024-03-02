@@ -104,10 +104,10 @@ class DEMBase(Physics):
         "remove all solid boundaries from the dem package"
         return "void"
 
-    @PYB11const
-    def numSolidBoundaries(self):
-        "return the number of solid boundaries being tracked"
-        return "unsigned int"
+    # @PYB11const
+    # def numSolidBoundaries(self):
+    #     "return the number of solid boundaries being tracked"
+    #     return "unsigned int"
 
     @PYB11const
     def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
@@ -144,6 +144,8 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    newSolidBoundaryIndex = PYB11property("int", "newSolidBoundaryIndex", doc="index of the most recent solid bc added to the package")
+    numSolidBoundaries = PYB11property("unsigned int", "numSolidBoundaries", doc="number of solid boundaries")
     numContacts = PYB11property("unsigned int", "numContacts", doc="Total number of contacts")
     numParticleParticleContacts = PYB11property("unsigned int", "numParticleParticleContacts", doc="Number of interactions with other dem particles")
     numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")
