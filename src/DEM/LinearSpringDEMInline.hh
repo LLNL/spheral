@@ -257,4 +257,20 @@ momentOfInertia() const {
   return mMomentOfInertia;
 }
 
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+LinearSpringDEM<Dimension>::
+maximumOverlap() const {
+  return mMaximumOverlap;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::Scalar>&
+LinearSpringDEM<Dimension>::
+newMaximumOverlap() const {
+  return mNewMaximumOverlap;
+}
+
 }

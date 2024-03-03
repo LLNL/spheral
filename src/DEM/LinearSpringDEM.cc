@@ -18,7 +18,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/IncrementState.hh"
-#include "DataBase/ReplaceState.hh"
+#include "DataBase/MaxReplaceState.hh"
 
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -95,8 +95,12 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mShapeFactor(shapeFactor),
   mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
   mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))),
-  mMomentOfInertia(FieldStorageType::CopyFields) { 
+  mMomentOfInertia(FieldStorageType::CopyFields),
+  mMaximumOverlap(FieldStorageType::CopyFields),
+  mNewMaximumOverlap(FieldStorageType::CopyFields) { 
     mMomentOfInertia = dataBase.newDEMFieldList(0.0, DEMFieldNames::momentOfInertia);
+    mMaximumOverlap = dataBase.newDEMFieldList(0.0, DEMFieldNames::maximumOverlap);
+    mNewMaximumOverlap = dataBase.newDEMFieldList(0.0,MaxReplaceState<Dimension, Scalar>::prefix() + DEMFieldNames::maximumOverlap);
 }
 
 //------------------------------------------------------------------------------
@@ -299,11 +303,39 @@ LinearSpringDEM<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_BEGIN("LinearSpringDEMregisterState");
+
   DEMBase<Dimension>::registerState(dataBase,state);
+
   dataBase.resizeDEMFieldList(mMomentOfInertia, 0.0, DEMFieldNames::momentOfInertia, false);
+  dataBase.resizeDEMFieldList(mMaximumOverlap, 0.0, DEMFieldNames::maximumOverlap, false);
+
+  auto maxOverlapPolicy = make_policy<MaxReplaceState<Dimension,Scalar>>();
+
   state.enroll(mMomentOfInertia);
+  state.enroll(mMaximumOverlap, maxOverlapPolicy);
+
   TIME_END("LinearSpringDEMregisterState");
 }
+
+//------------------------------------------------------------------------------
+// Register the state we need/are going to evolve.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+              StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("LinearSpringDEMregisterDerivs");
+
+  DEMBase<Dimension>::registerDerivatives(dataBase,derivs);
+
+  dataBase.resizeDEMFieldList(mNewMaximumOverlap, 0.0, DEMFieldNames::maximumOverlap, false);
+
+  derivs.enroll(mNewMaximumOverlap);
+
+  TIME_END("LinearSpringDEMregisterDerivs");
+}
+
 //------------------------------------------------------------------------------
 // evaluate the derivatives
 //------------------------------------------------------------------------------
@@ -387,10 +419,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto DomegaDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
+  auto newMaximumOverlap = derivatives.fields(MaxReplaceState<Dimension,Scalar>::prefix() + DEMFieldNames::maximumOverlap, 0.0);
   
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DomegaDt.size() == numNodeLists);
+  CHECK(newMaximumOverlap.size() == numNodeLists);
   
   // Get the deriv pairFieldLists
   auto DDtShearDisplacement = derivatives.fields(ReplaceAndIncrementPairFieldList<Dimension, std::vector<Vector>>::incrementPrefix() +  DEMFieldNames::shearDisplacement, std::vector<Vector>());
@@ -421,6 +455,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DomegaDt_thread = DomegaDt.threadCopy(threadStack);
+    auto newMaxOverlap_thread = newMaximumOverlap.threadCopy(threadStack, ThreadReduction::MAX);
 
     //------------------------------------
     // particle-particle contacts
@@ -458,7 +493,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       
       // if so do the things
       if (delta0 > 0.0){
-
+        
         // get remaining state for node i
         const auto  cIdi = compositeIndex(nodeListi,i);
         const auto  uIdi = uniqueIndices(nodeListi,i);
@@ -482,10 +517,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // Get the derivs from node i
         auto& DvDti = DvDt_thread(nodeListi, i);
         auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+        auto& maxOverlapi = newMaxOverlap_thread(nodeListi,i);
 
         // Get the derivs from node j
         auto& DvDtj = DvDt_thread(nodeListj, j);
         auto& DomegaDtj = DomegaDt_thread(nodeListj, j);
+        auto& maxOverlapj = newMaxOverlap_thread(nodeListj,j);
 
         // storage sign, this makes pairwise values i-j independent
         const int storageSign = (uIdi <= uIdj ? 1 : -1);
@@ -607,6 +644,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
         DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lij)/Ii;
         DomegaDtj += (Msliding*lj + (Mtorsion + Mrolling) * lij)/Ij;
+
+        // update max overlaps
+        maxOverlapi = max(maxOverlapi,delta);
+        maxOverlapj = max(maxOverlapj,delta);
 
         // for spring updates
         newShearDisplacement(nodeListi,i)[contacti] = storageSign*newDeltaSlidij;

@@ -23,6 +23,7 @@ struct DEMFieldNames {
   static const std::string rollingDisplacement;
   static const std::string torsionalDisplacement;
   static const std::string equilibriumOverlap;
+  static const std::string maximumOverlap;
   static const std::string solidBoundaries;
   static const std::string solidBoundaryPolicy;
 };

@@ -65,6 +65,9 @@ public:
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
+                                   StateDerivatives<Dimension>& derivs) override;
+
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
                                    const DataBase<Dimension>& dataBase,
@@ -123,6 +126,8 @@ public:
 
   // get methods for class FieldLists
   const FieldList<Dimension,Scalar>& momentOfInertia() const;
+  const FieldList<Dimension,Scalar>& maximumOverlap() const;
+  const FieldList<Dimension,Scalar>& newMaximumOverlap() const;
 
   
   //****************************************************************************
@@ -149,6 +154,8 @@ private:
 
   // field Lists
   FieldList<Dimension,Scalar> mMomentOfInertia;
+  FieldList<Dimension,Scalar> mMaximumOverlap;
+  FieldList<Dimension,Scalar> mNewMaximumOverlap;
 //  FieldList<Dimension,Scalar> mOptimalSpringConstant;
 
   // No default constructor, copying, or assignment.
