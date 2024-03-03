@@ -401,7 +401,6 @@ assign(const StateBase<Dimension>& rhs) {
         *lhsptr = *rhsptr;
       } catch(const boost::bad_any_cast&) {
         try {
-          std::cout << "key= " << itr -> first << std::endl;
           auto lhsptr = boost::any_cast<Vector*>(anylhs);
           const auto rhsptr = boost::any_cast<Vector*>(anyrhs);
           *lhsptr = *rhsptr;
