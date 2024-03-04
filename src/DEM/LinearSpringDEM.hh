@@ -73,12 +73,37 @@ public:
                                    const DataBase<Dimension>& dataBase,
                                    const State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) const override;
-  virtual
-  void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs) override;
-  virtual
-  void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs) override;
+
+  virtual void applyGhostBoundaries(State<Dimension>& state,
+                                    StateDerivatives<Dimension>& derivs) override;
+
+  virtual void enforceBoundaries(State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
+  void slidingSpringDamper(const Scalar  k,
+                           const Scalar  C,
+                           const Scalar  mus,
+                           const Scalar  mud,
+                           const Vector& x,
+                           const Vector& DxDt,
+                           const Scalar  fnMag,
+                           const Scalar  invK,
+                           const Vector& rhatij,
+                           const bool    allowSiding,
+                                 Vector& xNew,
+                                 Vector& force) const;
+                                       
+  void slidingSpringDamper(const Scalar  k,
+                           const Scalar  C,
+                           const Scalar  mus,
+                           const Scalar  mud,
+                           const Scalar  x,
+                           const Scalar  DxDt,
+                           const Scalar  fnMag,
+                           const Scalar  invK,
+                           const bool    allowSiding,
+                                 Scalar& xNew,
+                                 Scalar& force) const;
 
   // set/gets
   Scalar normalSpringConstant() const;

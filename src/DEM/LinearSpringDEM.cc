@@ -357,8 +357,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
   const auto muD = this->dynamicFrictionCoefficient();
   const auto muS = this->staticFrictionCoefficient();
-  const auto muT = this->torsionalFrictionCoefficient();
-  const auto muR = this->rollingFrictionCoefficient();
+  const auto muT = this->torsionalFrictionCoefficient() * shapeFactor * muS;
+  const auto muR = this->rollingFrictionCoefficient() * shapeFactor;
 
   const auto Cc = this->cohesiveTensileStrength();
 
@@ -535,6 +535,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // boolean checks
         const auto isBondedParticle = (cIdi == cIdj);
+        const auto allowSliding = (!isBondedParticle);
 
         // effective delta
         const auto delta = delta0 - overlapij;
@@ -562,8 +563,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         const Vector vij = vi-vj + li*vroti - lj*vrotj;
 
-        const Scalar vn = vij.dot(rhatij);                  // normal velocity
-        const Vector vs = vij - vn*rhatij;                  // sliding velocity
+        const Scalar vn = vij.dot(rhatij);                   // normal velocity
+        const Vector vs = vij - vn*rhatij;                   // sliding velocity
         const Vector vr = -li*vroti - lj*vrotj;              // rolling velocity
         const Scalar vt = -lij*DEMDimension<Dimension>::dot(omegai-omegaj,rhatij); // torsion velocity
 
@@ -575,73 +576,32 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // sliding
         //------------------------------------------------------------
-        // project onto new tangential plane -- maintain magnitude
-        Vector newDeltaSlidij = (deltaSlidij - rhatij.dot(deltaSlidij)*rhatij).unitVector()*deltaSlidij.magnitude();
-        
-        // spring dashpot
-        const Vector ft0spring = - ks*newDeltaSlidij;
-        const Vector ft0damp = - Cs*vs;
-              Vector ft = ft0spring + ft0damp;
-
-        // static friction limit
-        if  (!isBondedParticle and (ft.magnitude() > muS*fnMag)){
-
-          const Scalar ftDynamic = muD*fnMag;
-          ft = ftDynamic*ft.unitVector();
-
-          newDeltaSlidij = ( ft0damp.magnitude() > ftDynamic ? 
-                                Vector::zero : 
-                               -(ft-ft0damp)*invKs );
-
-        }
+        Vector newDeltaSlidij, fs;
+        this->slidingSpringDamper(ks,Cs,muS,muD,deltaSlidij,vs,fnMag,invKs,rhatij,allowSliding,
+                                  newDeltaSlidij,fs); // outputs
 
         // torsion
         //------------------------------------------------------------
-        // since we use a scalar no need to modify here
-        auto newDeltaTorsij = deltaTorsij;
-        
-        // spring dashpot
-        const Scalar Mt0spring = - kt*newDeltaTorsij;
-        const Scalar Mt0damp = - Ct*vt;
-              Scalar MtorsionMag = (Mt0spring + Mt0damp); 
-        const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
-
-        // limit to static
-        if  (!isBondedParticle and (std::abs(MtorsionMag) > MtStatic)){
-         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
-         newDeltaTorsij = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
-        }
+        Scalar newDeltaTorsij, ft;
+        this->slidingSpringDamper(kt,Ct,muT,muT,deltaTorsij,vt,fnMag,invKt,allowSliding,
+                                  newDeltaTorsij,ft); // output
 
         // rolling
         //------------------------------------------------------------
-        // project onto new tangential plane -- maintain magnitude
-        Vector newDeltaRollij = (deltaRollij - rhatij.dot(deltaRollij)*rhatij).unitVector()*deltaRollij.magnitude();
-    
-        // spring dashpot
-        const Vector Mr0spring = - kr*newDeltaRollij;
-        const Vector Mr0damp = - Cr*vr;
-              Vector effectiveRollingForce = (Mr0spring + Mr0damp); 
-        const Scalar MrStatic = muR*shapeFactor*fnMag;
-
-        // limit to static
-        if  (!isBondedParticle and (effectiveRollingForce.magnitude() > MrStatic)){
-         effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
-         newDeltaRollij = (Mr0damp.magnitude() > MrStatic ?
-                           Vector::zero :  
-                           -(effectiveRollingForce-Mr0damp)*invKr);
-        }
-
+        Vector newDeltaRollij, fr;
+        this->slidingSpringDamper(kr,Cr,muR,muR,deltaRollij,vr,fnMag,invKr,rhatij,allowSliding,
+                                  newDeltaRollij,fr); // outputs
         // accelerations
         //------------------------------------------------------------
         // Rectilinear Acceleration 
-        const Vector fij = fn - fc + ft;
+        const Vector fij = fn - fc + fs;
         DvDti += fij/mi;
         DvDtj -= fij/mj;
 
         // angular acceleration
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatij,fij);
-        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,effectiveRollingForce);
-        const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
+        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatij,fr);
+        const auto Mtorsion = ft * this->torsionMoment(rhatij,omegai,omegaj); // rename torsionDirection
         DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lij)/Ii;
         DomegaDtj += (Msliding*lj + (Mtorsion + Mrolling) * lij)/Ij;
 
@@ -725,12 +685,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto mib = 2*mi;
         const auto lib = 2*li;
 
-        // damping constants -- ct and cr derived quantities ala Zhang 2017
-        //----------------------------To-Do-----------------------------------
-        // oh man okay, solid bc's were overdamping. The 0.5 factor got the
-        // coeff of restitution right (i guess i missed a factor of 2 somewhere)
-        // need to go back and do the math later.
-        //--------------------------------------------------------------------
+        // damping coefficients
         const auto Cn = std::sqrt(mib*normalDampingTerms);
         const auto Cs = std::sqrt(mib*tangentialDampingTerms);
         const auto Ct = 0.50 * Cs * shapeFactor2;
@@ -754,62 +709,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // sliding
         //------------------------------------------------------------
-        // project onto new tangential plane -- maintain magnitude
-        Vector newDeltaSlidib = (deltaSlidib - rhatib.dot(deltaSlidib)*rhatib).unitVector()*deltaSlidib.magnitude();
-        
-        // spring dashpot
-        const Vector ft0spring = - ks*newDeltaSlidib;
-        const Vector ft0damp = - Cs*vs;
-              Vector ft = ft0spring + ft0damp;
-
-        // static friction limit
-        if (ft.magnitude() > muS*fnMag){
-
-          const Scalar ftDynamic = muD*fnMag;
-          ft = ftDynamic*ft.unitVector();
-
-          newDeltaSlidib = ( ft0damp.magnitude() > ftDynamic ? 
-                                Vector::zero : 
-                               -(ft-ft0damp)*invKs );
-
-        }
+        Vector newDeltaSlidib, ft;
+        this->slidingSpringDamper(ks,Cs,muS,muD,deltaSlidib,vs,fnMag,invKs,rhatib,true,
+                                  newDeltaSlidib,ft);  // outputs
 
         // torsion
         //------------------------------------------------------------
-        // since we use a scalar no need to modify here
-        auto newDeltaTorsib = deltaTorsib;
-        
-        // spring dashpot
-        const Scalar Mt0spring = - kt*newDeltaTorsib;
-        const Scalar Mt0damp = - Ct*vt;
-              Scalar MtorsionMag = (Mt0spring + Mt0damp); 
-        const Scalar MtStatic = muT*shapeFactor*muS*fnMag;
-
-        // limit to static
-        if (std::abs(MtorsionMag) > MtStatic){
-         MtorsionMag =  (MtorsionMag > 0.0 ? 1.0 : -1.0)*MtStatic;
-         newDeltaTorsib = (std::abs(Mt0damp) > MtStatic ? 0.0 :  -(MtorsionMag-Mt0damp)*invKt);
-        }
+        Scalar newDeltaTorsib, MtorsionMag;
+        this->slidingSpringDamper(kt,Ct,muT,muT,deltaTorsib,vt,fnMag,invKt,true,
+                                  newDeltaTorsib, MtorsionMag); // output
 
         // rolling
         //------------------------------------------------------------
-        // project onto new tangential plane -- maintain magnitude
-        Vector newDeltaRollib = (deltaRollib - rhatib.dot(deltaRollib)*rhatib).unitVector()*deltaRollib.magnitude();
-    
-        // spring dashpot
-        const Vector Mr0spring = - kr*newDeltaRollib;
-        const Vector Mr0damp = - Cr*vr;
-              Vector effectiveRollingForce = (Mr0spring + Mr0damp); 
-        const Scalar MrStatic = muR*shapeFactor*fnMag;
-
-        // limit to static
-        if (effectiveRollingForce.magnitude() > MrStatic){
-         effectiveRollingForce =  MrStatic*effectiveRollingForce.unitVector();
-         newDeltaRollib = (Mr0damp.magnitude() > MrStatic ?
-                           Vector::zero :  
-                           -(effectiveRollingForce-Mr0damp)*invKr);
-        }
-
+        Vector newDeltaRollib, fr;
+        this->slidingSpringDamper(kr,Cr,muR,muR,deltaRollib,vr,fnMag,invKr,rhatib,true,
+                                  newDeltaRollib, fr); // outputs
         // accelerations
         //------------------------------------------------------------
         // Rectilinear Acceleration 
@@ -818,7 +732,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
         // angular acceleration
         const auto Msliding = -DEMDimension<Dimension>::cross(rhatib,fib);
-        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,effectiveRollingForce);
+        const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,fr);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatib,omegai,0*omegai); // rename torsionDirection
         DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lib)/Ii;
 
