@@ -148,7 +148,16 @@ operator==(const StateBase<Dimension>& rhs) const {
             result = false;
           }
         } catch (const boost::bad_any_cast&) {
-          std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+          try {
+            auto lhsPtr = boost::any_cast<Scalar*>(lhsItr->second);
+            auto rhsPtr = boost::any_cast<Scalar*>(rhsItr->second);
+            if (*lhsPtr != *rhsPtr) {
+              cerr << "Scalar for " << lhsItr->first <<  " don't match." << endl;
+              result = false;
+            }
+          } catch (const boost::bad_any_cast&) {
+            std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+          }
         }
       }
     }
@@ -405,8 +414,14 @@ assign(const StateBase<Dimension>& rhs) {
           const auto rhsptr = boost::any_cast<Vector*>(anyrhs);
           *lhsptr = *rhsptr;
         } catch(const boost::bad_any_cast&) {
-        // We'll assume other things don't need to be assigned...
-        // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+          try {
+            auto lhsptr = boost::any_cast<Scalar*>(anylhs);
+            const auto rhsptr = boost::any_cast<Scalar*>(anyrhs);
+            *lhsptr = *rhsptr;
+          } catch(const boost::bad_any_cast&) {
+          // We'll assume other things don't need to be assigned...
+          // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+          }
         }
       }
     }
