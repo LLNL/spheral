@@ -26,75 +26,150 @@ namespace Spheral {
 namespace {  // anonymous
 
 //------------------------------------------------------------------------------
-// Sum the Kernel values for the given stepsize.
+// Sum the Kernel values for the given stepsize (SPH)
 //------------------------------------------------------------------------------
 inline
 double
-sumKernelValues(const TableKernel<Dim<1> >& W,
+sumKernelValues(const TableKernel<Dim<1>>& W,
                 const double deta) {
   REQUIRE(deta > 0);
   double result = 0.0;
-  double etax = deta;
-  while (etax < W.kernelExtent()) {
-    result += 2.0*std::abs(W.gradValue(etax, 1.0));
-    etax += deta;
+  double etar = deta;
+  while (etar < W.kernelExtent()) {
+    result += 2.0*std::abs(W.gradValue(etar, 1.0));
+    etar += deta;
   }
   return result;
 }
 
 inline
 double
-sumKernelValues(const TableKernel<Dim<2> >& W,
+sumKernelValues(const TableKernel<Dim<2>>& W,
                 const double deta) {
   REQUIRE(deta > 0);
-  typedef Dim<2>::Vector Vector;
   double result = 0.0;
-  double etay = 0.0;
-  while (etay < W.kernelExtent()) {
-    double etax = 0.0;
-    while (etax < W.kernelExtent()) {
-      const Vector eta(etax, etay);
-      double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
-      if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-      if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-      if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
-      result += dresult;
-      etax += deta;
-    }
-    etay += deta;
+  double etar = deta;
+  while (etar < W.kernelExtent()) {
+    result += 2.0*M_PI*etar/deta*std::abs(W.gradValue(etar, 1.0));
+    etar += deta;
   }
   return sqrt(result);
 }
 
 inline
 double
-sumKernelValues(const TableKernel<Dim<3> >& W,
+sumKernelValues(const TableKernel<Dim<3>>& W,
                 const double deta) {
   REQUIRE(deta > 0);
-  typedef Dim<3>::Vector Vector;
   double result = 0.0;
-  double etaz = 0.0;
-  while (etaz < W.kernelExtent()) {
-    double etay = 0.0;
-    while (etay < W.kernelExtent()) {
-      double etax = 0.0;
-      while (etax < W.kernelExtent()) {
-        const Vector eta(etax, etay, etaz);
-        CHECK(eta >= 0.0);
-        double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
-        if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
-        if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
-        result += dresult;
-        etax += deta;
-      }
-      etay += deta;
-    }
-    etaz += deta;
+  double etar = deta;
+  while (etar < W.kernelExtent()) {
+    result += 4.0*M_PI*FastMath::square(etar/deta)*std::abs(W.gradValue(etar, 1.0));
+    etar += deta;
   }
-  return FastMath::CubeRootHalley2(result);
+  return pow(result, 1.0/3.0);
 }
+
+// inline
+// double
+// sumKernelValues(const TableKernel<Dim<3>>& W,
+//                 const double deta) {
+//   REQUIRE(deta > 0);
+//   typedef Dim<3>::Vector Vector;
+//   double result = 0.0;
+//   double etaz = 0.0;
+//   while (etaz < W.kernelExtent()) {
+//     double etay = 0.0;
+//     while (etay < W.kernelExtent()) {
+//       double etax = 0.0;
+//       while (etax < W.kernelExtent()) {
+//         const Vector eta(etax, etay, etaz);
+//         CHECK(eta >= 0.0);
+//         double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
+//         if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+//         if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+//         if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
+//         if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
+//         result += dresult;
+//         etax += deta;
+//       }
+//       etay += deta;
+//     }
+//     etaz += deta;
+//   }
+//   return FastMath::CubeRootHalley2(result);
+// }
+
+// //------------------------------------------------------------------------------
+// // Sum the Kernel values for the given stepsize (ASPH)
+// //------------------------------------------------------------------------------
+// inline
+// double
+// sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
+//                     const double deta) {
+//   REQUIRE(deta > 0);
+//   Dim<1>::SymTensor result;
+//   Dim<1>::Vector eta(deta);
+//   while (etax < W.kernelExtent()) {
+//     result += 2.0*std::abs(W.gradValue(etax, 1.0)) * eta.selfdyad();
+//     eta.x() += deta;
+//   }
+//   return std::sqrt(result.xx());
+// }
+
+// inline
+// double
+// sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
+//                     const double deta) {
+//   REQUIRE(deta > 0);
+//   typedef Dim<2>::Vector Vector;
+//   double result = 0.0;
+//   double etay = 0.0;
+//   while (etay < W.kernelExtent()) {
+//     double etax = 0.0;
+//     while (etax < W.kernelExtent()) {
+//       const Vector eta(etax, etay);
+//       double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
+//       if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+//       if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+//       if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
+//       result += dresult;
+//       etax += deta;
+//     }
+//     etay += deta;
+//   }
+//   return sqrt(result);
+// }
+
+// inline
+// double
+// sumKernelValues(const TableKernel<Dim<3>>& W,
+//                 const double deta) {
+//   REQUIRE(deta > 0);
+//   typedef Dim<3>::Vector Vector;
+//   double result = 0.0;
+//   double etaz = 0.0;
+//   while (etaz < W.kernelExtent()) {
+//     double etay = 0.0;
+//     while (etay < W.kernelExtent()) {
+//       double etax = 0.0;
+//       while (etax < W.kernelExtent()) {
+//         const Vector eta(etax, etay, etaz);
+//         CHECK(eta >= 0.0);
+//         double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
+//         if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+//         if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+//         if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
+//         if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
+//         result += dresult;
+//         etax += deta;
+//       }
+//       etay += deta;
+//     }
+//     etaz += deta;
+//   }
+//   return FastMath::CubeRootHalley2(result);
+// }
 
 //------------------------------------------------------------------------------
 // Compute the (f1,f2) integrals relation for the given zeta = r/h 
@@ -203,9 +278,9 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const unsigned numPoints,
                                     const typename Dimension::Scalar minNperh,
                                     const typename Dimension::Scalar maxNperh):
-  Kernel<Dimension, TableKernel<Dimension> >(),
+  Kernel<Dimension, TableKernel<Dimension>>(),
   mNumPoints(numPoints),
-  mMinNperh(minNperh),
+  mMinNperh(std::max(minNperh, 1.0/kernel.kernelExtent())),
   mMaxNperh(maxNperh),
   mInterp(0.0, kernel.kernelExtent(), numPoints,      [&](const double x) { return kernel(x, 1.0); }),
   mGradInterp(0.0, kernel.kernelExtent(), numPoints,  [&](const double x) { return kernel.grad(x, 1.0); }),
@@ -215,9 +290,12 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mNperhLookupASPH(),
   mWsumLookupASPH() {
 
+  // Gotta have a minimally reasonable nperh range
+  if (mMaxNperh <= mMinNperh) mMaxNperh = 4.0*mMinNperh;
+
   // Pre-conditions.
-  VERIFY(numPoints > 0);
-  VERIFY(minNperh > 0.0 and maxNperh > minNperh);
+  VERIFY(mNumPoints > 0);
+  VERIFY(mMinNperh > 0.0 and mMaxNperh > mMinNperh);
 
   // Set the volume normalization and kernel extent.
   this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.

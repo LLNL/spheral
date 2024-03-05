@@ -29,7 +29,7 @@ def sumKernelValues2d(WT, nperh):
         for etax in np.arange(-etamax, etamax, deta):
             eta = sqrt(etax*etax + etay*etay)
             result += abs(WT.gradValue(eta, 1.0))
-    return result
+    return sqrt(result)
 
 def sumKernelValues3d(WT, nperh):
     deta = 1.0/nperh
@@ -40,7 +40,7 @@ def sumKernelValues3d(WT, nperh):
             for etax in np.arange(-etamax, etamax, deta):
                 eta = sqrt(etax*etax + etay*etay + etaz*etaz)
                 result += abs(WT.gradValue(eta, 1.0))
-    return result
+    return (result)**(1.0/3.0)
 
 kernelDict = {'spline': [BSplineKernel1d(),
                          BSplineKernel2d(),
@@ -87,7 +87,7 @@ for Wstr in kernels:
 
     # Now how well do we recover nPerh based on kernel sums?
     etamax = WT.kernelExtent
-    nperh0 = np.arange(0.5, 20.0, 0.5)
+    nperh0 = np.arange(0.5, 20.0, 0.1)
     nperh1 = []
     for nperh in nperh0:
         Wsum = eval(f"sumKernelValues{nDim}d(WT, {nperh})")
@@ -96,13 +96,13 @@ for Wstr in kernels:
 
     plot = newFigure()
     plot.plot(nperh0, nperh1, "b*-")
-    plot.set_title("n per h lookup test")
+    plot.set_title(f"{Wstr} n per h lookup test")
     plot.set_xlabel("nperh actual")
     plot.set_ylabel("nperh estimated")
 
     err = (nperh1 - nperh0)/nperh0
     plot = newFigure()
     plot.plot(nperh0, err, "r*-")
-    plot.set_title("n per h lookup test error")
+    plot.set_title(f"{Wstr} n per h lookup test error")
     plot.set_xlabel("nperh actual")
     plot.set_ylabel("Error")

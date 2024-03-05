@@ -21,6 +21,7 @@ bisectRoot(const Function& functor,
            double x1,
            double x2,
            const double xaccuracy = 1.0e-15,
+           const double yaccuracy = 1.0e-10,
            const unsigned maxIterations = 100,
            const bool verbose = false) {
 
@@ -33,16 +34,16 @@ bisectRoot(const Function& functor,
   // if (fuzzyEqual(xmaxValue, 0.0, yaccuracy)) return x2;
 
   // Make sure the root is bracketed by the input range.
-  VERIFY2(xminValue*xmaxValue <= 0.0, // distinctlyLessThan(xminValue * xmaxValue, 0.0),
+  VERIFY2(fuzzyLessThanOrEqual(xminValue*xmaxValue, 0.0, yaccuracy), // distinctlyLessThan(xminValue * xmaxValue, 0.0),
           "bisectRoot: root must be bracketed by input range:  " << xminValue << " " << xmaxValue);
 
   // Initialize the searching parameters.
   double xl, xh;
-  if (xminValue <= 0.0) {
+  if (fuzzyLessThanOrEqual(xminValue, 0.0, yaccuracy)) {
     xl = x1;
     xh = x2;
   } else {
-    CHECK(xminValue > 0.0 && xmaxValue <= 0.0);
+    CHECK(xminValue > 0.0 and fuzzyLessThanOrEqual(xmaxValue, 0.0, yaccuracy));
     xl = x2;
     xh = x1;
   }
@@ -63,7 +64,7 @@ bisectRoot(const Function& functor,
     if (std::abs(dx) <= xaccuracy) return rootSafe;
 
     f = functor(rootSafe);
-    if (f < 0.0) {
+    if (fuzzyLessThanOrEqual(f, 0.0, yaccuracy)) {
       xl = rootSafe;
     } else {
       xh = rootSafe;
