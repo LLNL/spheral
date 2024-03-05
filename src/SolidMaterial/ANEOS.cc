@@ -109,7 +109,7 @@ public:
       // cerr << " **> (" << rho << " " << eps << ") [" << mEpsMinInterp(rho) << " " << mEpsMaxInterp(rho) << "] " << FT(mTmin) << " " << FT(mTmax) << endl;
       return bisectRoot(Trho_func(rho, eps, mEpsInterp),
                         mTmin, mTmax,
-                        1.0e-15, 200u);
+                        1.0e-15, 1.0e-10, 200u);
     }
   }
 
