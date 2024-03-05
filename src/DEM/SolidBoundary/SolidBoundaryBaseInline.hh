@@ -15,6 +15,6 @@ int
 SolidBoundaryBase<Dimension>::
 uniqueIndex() const {
   return mUniqueIndex;
-};
+}
 }
 
