@@ -38,8 +38,20 @@ public:
   CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs);
   CubicHermiteInterpolator& operator=(const CubicHermiteInterpolator& rhs);
 
-  // Initialize from tabulated values
-  void initialize(const double xmin, const double xmax,
+  // (Re)initialize after construction, same options as construction
+  template<typename Func>
+  void initialize(const double xmin,
+                  const double xmax,
+                  const size_t n,
+                  const Func& F);
+  template<typename Func, typename GradFunc>
+  void initialize(const double xmin,
+                  const double xmax,
+                  const size_t n,
+                  const Func& F,
+                  const GradFunc& Fgrad);
+  void initialize(const double xmin,
+                  const double xmax,
                   const std::vector<double>& yvals);
 
   // Force interpolation to be monotonic (may introduce structure between tabulated points)

@@ -19,20 +19,7 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
   mXmax(xmax),
   mXstep((xmax - xmin)/(n - 1u)),
   mVals(2u*n) {
-
-  // Preconditions
-  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
-  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
-
-  // Compute the function values
-  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
-
-  // Estimate the gradients at each interpolation node
-  const auto dx = 0.001*mXstep;
-  for (auto i = 0u; i < mN; ++i) {
-    const auto xi = xmin + i*mXstep;
-    mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
-  }
+  this->initialize(xmin, xmax, n, F);
 }
 
 //------------------------------------------------------------------------------
@@ -50,10 +37,63 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
   mXmax(xmax),
   mXstep((xmax - xmin)/(n - 1u)),
   mVals(2u*n) {
+  this->initialize(xmin, xmax, n, F, Fgrad);
+}
 
+//------------------------------------------------------------------------------
+// (Re)initialize from a function
+//------------------------------------------------------------------------------
+template<typename Func>
+inline
+void
+CubicHermiteInterpolator::initialize(const double xmin,
+                                     const double xmax,
+                                     const size_t n,
+                                     const Func& F) {
+
+  // Preconditions
+  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
+  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+
+  mN = n;
+  mXmin = xmin;
+  mXmax = xmax;
+  mXstep = (xmax - xmin)/(n - 1u);
+  mVals.resize(2u*n);
+
+  // Compute the function values
+  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
+
+  // Estimate the gradients at each interpolation node
+  const auto dx = 0.001*mXstep;
+  for (auto i = 0u; i < mN; ++i) {
+    const auto xi = xmin + i*mXstep;
+    const auto x0 = std::max(xmin, xi - dx);
+    const auto x1 = std::min(xmax, xi + dx);
+    mVals[mN + i] = (F(x1) - F(x0))/(x1 - x0);
+  }
+}
+
+//------------------------------------------------------------------------------
+// (Re)initialize from a function and its gradient
+//------------------------------------------------------------------------------
+template<typename Func, typename GradFunc>
+inline
+void
+CubicHermiteInterpolator::initialize(const double xmin,
+                                     const double xmax,
+                                     const size_t n,
+                                     const Func& F,
+                                     const GradFunc& Fgrad) {
   // Preconditions
   VERIFY2(n > 1u, "CubicHermiteInterpolator requires n >= 2 : n=" << n);
   VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+
+  mN = n;
+  mXmin = xmin;
+  mXmax = xmax;
+  mXstep = (xmax - xmin)/(n - 1u);
+  mVals.resize(2u*n);
 
   // Compute the function and gradient values
   for (auto i = 0u; i < mN; ++i) {
