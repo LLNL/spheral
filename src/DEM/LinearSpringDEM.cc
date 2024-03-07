@@ -259,6 +259,10 @@ dt(const DataBase<Dimension>& dataBase,
 
 
   // Ensure no point moves further than the buffer distance in one timestep
+  //--------------------------------------------------------------------------------------
+  // NOTE: it would be nice if this wasn't based on the absolute velocity for cases
+  //       where we have a blob of dem particles moving at elevated speeds
+  //--------------------------------------------------------------------------------------
   const auto numNodeLists = position.size();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = position[k]->size();
@@ -841,6 +845,8 @@ LinearSpringDEM<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   DEMBase<Dimension>::dumpState(file,pathName);
   file.write(mMomentOfInertia, pathName + "/momentOfInertia");
+  file.write(mMaximumOverlap, pathName + "/maximumOverlap");
+  file.write(mNewMaximumOverlap, pathName + "/newMaximumOverlap");
 }
 
 //------------------------------------------------------------------------------
@@ -852,6 +858,8 @@ LinearSpringDEM<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   DEMBase<Dimension>::restoreState(file,pathName);
   file.read(mMomentOfInertia, pathName + "/momentOfInertia");
+  file.read(mMaximumOverlap, pathName + "/maximumOverlap");
+  file.read(mNewMaximumOverlap, pathName + "/newMaximumOverlap");
 }
 } // namespace
 
