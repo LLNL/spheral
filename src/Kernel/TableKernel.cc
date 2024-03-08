@@ -283,11 +283,11 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mNperhLookupASPH.initialize(mWsumLookupASPH(mMinNperh), mWsumLookupASPH(mMaxNperh), numPoints,
                               [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookupASPH(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
 
-  // // Make nperh lookups monotonic
-  // mWsumLookup.makeMonotonic();
-  // mNperhLookup.makeMonotonic();
-  // mWsumLookupASPH.makeMonotonic();
-  // mNperhLookupASPH.makeMonotonic();
+  // Make nperh lookups monotonic
+  mWsumLookup.makeMonotonic();
+  mNperhLookup.makeMonotonic();
+  mWsumLookupASPH.makeMonotonic();
+  mNperhLookupASPH.makeMonotonic();
 }
 
 //------------------------------------------------------------------------------
