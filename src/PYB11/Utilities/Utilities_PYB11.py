@@ -49,6 +49,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
+                  '"Utilities/LinearInterpolator.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
                   '"Utilities/CubicHermiteInterpolator.hh"',
                   '"Utilities/XYInterpolator.hh"',
@@ -83,6 +84,7 @@ from SpheralFunctor import *
 from KeyTraits import *
 from DomainNode import *
 from NodeCoupling import *
+from LinearInterpolator import *
 from QuadraticInterpolator import *
 from CubicHermiteInterpolator import *
 from XYInterpolator import *

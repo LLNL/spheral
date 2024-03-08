@@ -394,6 +394,18 @@ class TableKernel(Kernel):
         "Compute the Wsum that corresponds to the  nPerh value"
         return "Scalar"
 
+    @PYB11const
+    def equivalentNodesPerSmoothingScaleASPH(self,
+                                             lambdaPsi = "Scalar"):
+        "Compute the nPerh that corresponds to the given eigenvalue of second moment tensor (1/sqrt of the eigenvalue actually)"
+        return "Scalar"
+
+    @PYB11const
+    def equivalentLambdaPsiASPH(self,
+                                nPerh = "Scalar"):
+        "Compute the lambda_psi eigenvalue that corresponds to the  nPerh value"
+        return "Scalar"
+
     #...........................................................................
     # Properties
     numPoints = PYB11property("size_t", doc="The number of points in the table")

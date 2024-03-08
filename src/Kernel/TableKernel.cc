@@ -70,106 +70,75 @@ sumKernelValues(const TableKernel<Dim<3>>& W,
   return pow(result, 1.0/3.0);
 }
 
-// inline
-// double
-// sumKernelValues(const TableKernel<Dim<3>>& W,
-//                 const double deta) {
-//   REQUIRE(deta > 0);
-//   typedef Dim<3>::Vector Vector;
-//   double result = 0.0;
-//   double etaz = 0.0;
-//   while (etaz < W.kernelExtent()) {
-//     double etay = 0.0;
-//     while (etay < W.kernelExtent()) {
-//       double etax = 0.0;
-//       while (etax < W.kernelExtent()) {
-//         const Vector eta(etax, etay, etaz);
-//         CHECK(eta >= 0.0);
-//         double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
-//         if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-//         if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-//         if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
-//         if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
-//         result += dresult;
-//         etax += deta;
-//       }
-//       etay += deta;
-//     }
-//     etaz += deta;
-//   }
-//   return FastMath::CubeRootHalley2(result);
-// }
+//------------------------------------------------------------------------------
+// Sum the Kernel values for the given stepsize (ASPH)
+// We do these on a lattice pattern since the coordinates of the points are
+// used.
+//------------------------------------------------------------------------------
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
+                    const double deta) {
+  REQUIRE(deta > 0);
+  auto result = 0.0;
+  auto etax = deta;
+  while (etax < W.kernelExtent()) {
+    result += 2.0*std::abs(W.gradValue(etax, 1.0)) * etax*etax;
+    etax += deta;
+  }
+  return result;
+}
 
-// //------------------------------------------------------------------------------
-// // Sum the Kernel values for the given stepsize (ASPH)
-// //------------------------------------------------------------------------------
-// inline
-// double
-// sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
-//                     const double deta) {
-//   REQUIRE(deta > 0);
-//   Dim<1>::SymTensor result;
-//   Dim<1>::Vector eta(deta);
-//   while (etax < W.kernelExtent()) {
-//     result += 2.0*std::abs(W.gradValue(etax, 1.0)) * eta.selfdyad();
-//     eta.x() += deta;
-//   }
-//   return std::sqrt(result.xx());
-// }
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
+                    const double deta) {
+  REQUIRE(deta > 0);
+  Dim<2>::SymTensor result;
+  double etay = 0.0;
+  while (etay < W.kernelExtent()) {
+    double etax = 0.0;
+    while (etax < W.kernelExtent()) {
+      const Dim<2>::Vector eta(etax, etay);
+      auto dresult = std::abs(W.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad();
+      if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+      if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+      result += dresult;
+      etax += deta;
+    }
+    etay += deta;
+  }
+  const auto lambda = 0.5*(result.eigenValues().sumElements());
+  return std::sqrt(lambda);
+}
 
-// inline
-// double
-// sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
-//                     const double deta) {
-//   REQUIRE(deta > 0);
-//   typedef Dim<2>::Vector Vector;
-//   double result = 0.0;
-//   double etay = 0.0;
-//   while (etay < W.kernelExtent()) {
-//     double etax = 0.0;
-//     while (etax < W.kernelExtent()) {
-//       const Vector eta(etax, etay);
-//       double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
-//       if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-//       if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-//       if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
-//       result += dresult;
-//       etax += deta;
-//     }
-//     etay += deta;
-//   }
-//   return sqrt(result);
-// }
-
-// inline
-// double
-// sumKernelValues(const TableKernel<Dim<3>>& W,
-//                 const double deta) {
-//   REQUIRE(deta > 0);
-//   typedef Dim<3>::Vector Vector;
-//   double result = 0.0;
-//   double etaz = 0.0;
-//   while (etaz < W.kernelExtent()) {
-//     double etay = 0.0;
-//     while (etay < W.kernelExtent()) {
-//       double etax = 0.0;
-//       while (etax < W.kernelExtent()) {
-//         const Vector eta(etax, etay, etaz);
-//         CHECK(eta >= 0.0);
-//         double dresult = std::abs(W.gradValue(eta.magnitude(), 1.0));
-//         if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-//         if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-//         if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
-//         if (fuzzyEqual(eta.magnitude(), 0.0)) dresult *= 0.0;
-//         result += dresult;
-//         etax += deta;
-//       }
-//       etay += deta;
-//     }
-//     etaz += deta;
-//   }
-//   return FastMath::CubeRootHalley2(result);
-// }
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
+                    const double deta) {
+  REQUIRE(deta > 0);
+  Dim<3>::SymTensor result;
+  double etaz = 0.0;
+  while (etaz < W.kernelExtent()) {
+    double etay = 0.0;
+    while (etay < W.kernelExtent()) {
+      double etax = 0.0;
+      while (etax < W.kernelExtent()) {
+        const Dim<3>::Vector eta(etax, etay, etaz);
+        auto dresult = std::abs(W.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad();
+        if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+        if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+        if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
+        result += dresult;
+        etax += deta;
+      }
+      etay += deta;
+    }
+    etaz += deta;
+  }
+  const auto lambda = (result.eigenValues().sumElements())/3.0;
+  return pow(lambda, 1.0/3.0);
+}
 
 //------------------------------------------------------------------------------
 // Compute the (f1,f2) integrals relation for the given zeta = r/h 
@@ -280,7 +249,7 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                                     const typename Dimension::Scalar maxNperh):
   Kernel<Dimension, TableKernel<Dimension>>(),
   mNumPoints(numPoints),
-  mMinNperh(std::max(minNperh, 1.0/kernel.kernelExtent())),
+  mMinNperh(std::max(minNperh, 1.1/kernel.kernelExtent())),
   mMaxNperh(maxNperh),
   mInterp(0.0, kernel.kernelExtent(), numPoints,      [&](const double x) { return kernel(x, 1.0); }),
   mGradInterp(0.0, kernel.kernelExtent(), numPoints,  [&](const double x) { return kernel.grad(x, 1.0); }),
@@ -307,6 +276,18 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
                          [&](const double x) -> double { return sumKernelValues(*this, 1.0/x); });
   mNperhLookup.initialize(mWsumLookup(mMinNperh), mWsumLookup(mMaxNperh), numPoints,
                           [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookup(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
+
+  // ASPH variants
+  mWsumLookupASPH.initialize(mMinNperh, mMaxNperh, numPoints,
+                             [&](const double x) -> double { return sumKernelValuesASPH(*this, 1.0/x); });
+  mNperhLookupASPH.initialize(mWsumLookupASPH(mMinNperh), mWsumLookupASPH(mMaxNperh), numPoints,
+                              [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookupASPH(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
+
+  // // Make nperh lookups monotonic
+  // mWsumLookup.makeMonotonic();
+  // mNperhLookup.makeMonotonic();
+  // mWsumLookupASPH.makeMonotonic();
+  // mNperhLookupASPH.makeMonotonic();
 }
 
 //------------------------------------------------------------------------------
@@ -373,23 +354,42 @@ operator==(const TableKernel<Dimension>& rhs) const {
 
 //------------------------------------------------------------------------------
 // Determine the number of nodes per smoothing scale implied by the given
-// sum of kernel values.
+// sum of kernel values (SPH round tensor definition).
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentNodesPerSmoothingScale(const Scalar Wsum) const {
-  return mNperhLookup(Wsum);
+  return std::max(0.0, mNperhLookup(Wsum));
 }
 
 //------------------------------------------------------------------------------
 // Determine the effective Wsum we would expect for the given n per h.
+// (SPH round tensor definition).
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentWsum(const Scalar nPerh) const {
-  return mWsumLookup(nPerh);
+  return std::max(0.0, mWsumLookup(nPerh));
+}
+
+//------------------------------------------------------------------------------
+// Same as above for ASPH second moment measurement
+// lambda_psi here is the 1/sqrt(eigenvalue) of the second moment tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+TableKernel<Dimension>::
+equivalentNodesPerSmoothingScaleASPH(const Scalar lambdaPsi) const {
+  return std::max(0.0, mNperhLookupASPH(lambdaPsi));
+}
+
+template<typename Dimension>
+typename Dimension::Scalar
+TableKernel<Dimension>::
+equivalentLambdaPsiASPH(const Scalar nPerh) const {
+  return std::max(0.0, mWsumLookupASPH(nPerh));
 }
 
 }

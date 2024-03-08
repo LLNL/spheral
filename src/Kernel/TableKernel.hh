@@ -9,6 +9,7 @@
 
 #include "Kernel.hh"
 #include "Utilities/QuadraticInterpolator.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 
 #include <vector>
 
@@ -24,6 +25,7 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
   using InterpolatorType = QuadraticInterpolator;
+  using NperhInterpolatorType = CubicHermiteInterpolator;
 
   // Constructors.
   template<typename KernelType>
@@ -67,34 +69,37 @@ public:
                            std::vector<Scalar>& gradValues) const;
 
   // Return the equivalent number of nodes per smoothing scale implied by the given
-  // sum of kernel values.
+  // sum of kernel values, using the zeroth moment SPH algorithm
   Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
-
-  // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
   Scalar equivalentWsum(const Scalar nPerh) const;
 
+  // Return the equivalent number of nodes per smoothing scale implied by the given
+  // sum of kernel values, using the second moment ASPH algorithm
+  Scalar equivalentNodesPerSmoothingScaleASPH(const Scalar lambdaPsi) const;
+  Scalar equivalentLambdaPsiASPH(const Scalar nPerh) const;
+
   // Access the internal data
-  size_t numPoints() const                               { return mNumPoints; }
-  Scalar minNperhLookup() const                          { return mMinNperh; }
-  Scalar maxNperhLookup() const                          { return mMaxNperh; }
+  size_t numPoints() const                                    { return mNumPoints; }
+  Scalar minNperhLookup() const                               { return mMinNperh; }
+  Scalar maxNperhLookup() const                               { return mMaxNperh; }
 
   // Direct access to our interpolators
-  const InterpolatorType& Winterpolator() const          { return mInterp; }
-  const InterpolatorType& gradWinterpolator() const      { return mGradInterp; }
-  const InterpolatorType& grad2Winterpolator() const     { return mGrad2Interp; }
-  const InterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
-  const InterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
-  const InterpolatorType& nPerhInterpolatorASPH() const  { return mNperhLookupASPH; }
-  const InterpolatorType& WsumInterpolatorASPH() const   { return mWsumLookupASPH; }
+  const InterpolatorType& Winterpolator() const               { return mInterp; }
+  const InterpolatorType& gradWinterpolator() const           { return mGradInterp; }
+  const InterpolatorType& grad2Winterpolator() const          { return mGrad2Interp; }
+  const NperhInterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
+  const NperhInterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
+  const NperhInterpolatorType& nPerhInterpolatorASPH() const  { return mNperhLookupASPH; }
+  const NperhInterpolatorType& WsumInterpolatorASPH() const   { return mWsumLookupASPH; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
   size_t mNumPoints;
   Scalar mMinNperh, mMaxNperh;
-  InterpolatorType mInterp, mGradInterp, mGrad2Interp;  // W, grad W, grad^2 W
-  InterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
-  InterpolatorType mNperhLookupASPH, mWsumLookupASPH;   // ASPH nperh lookups
+  InterpolatorType mInterp, mGradInterp, mGrad2Interp;       // W, grad W, grad^2 W
+  NperhInterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
+  NperhInterpolatorType mNperhLookupASPH, mWsumLookupASPH;   // ASPH nperh lookups
 };
 
 }
