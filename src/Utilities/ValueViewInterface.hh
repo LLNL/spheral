@@ -6,6 +6,9 @@
 
 namespace Spheral {
 
+// Macro tool for unpacking types with multiple template arguments.
+#define UNPACK( ... ) __VA_ARGS__
+
 //-----------------------------------------------------------------------------
 // Helper classes and Macros for defining a Value/View pattern in Spheral.
 //-----------------------------------------------------------------------------
@@ -63,6 +66,11 @@ protected: \
   view_t(impl_t* rhs) : Base(SmartPtrType(rhs, [](impl_t *p) { p->free(); } )) {}
   //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
 
+#define UNPACK_VIEW_DEFINE_ALLOC_CTOR(view_t) \
+protected: \
+  view_t(ImplType* rhs) : Base(SmartPtrType(rhs, [](ImplType *p) { p->free(); } )) {}
+  //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
+
 #define VIEW_DEF_CTOR(view_t) \
   view_t() = default;
 
@@ -76,12 +84,23 @@ protected: \
   bool operator==(const view_t& rhs) const \
     { return sptr_data() == rhs.sptr_data(); }
 
+#define UNPACK_VALUE_DEF_CTOR(value_t) \
+  value_t() : Base(new ImplType()) {}
+
 #define VALUE_DEF_CTOR(value_t, impl_t) \
   value_t() : Base(new impl_t()) {}
+
+#define UNPACK_VALUE_COPY_CTOR(value_t) \
+  value_t(value_t const& rhs) : Base(new ImplType( deepCopy( rhs.SPTR_DATA_REF() ) )) {}
 
 #define VALUE_COPY_CTOR(value_t, impl_t) \
   value_t(value_t const& rhs) : Base(new impl_t( deepCopy( rhs.SPTR_DATA_REF() ) )) {}
 
+#define UNPACK_VALUE_ASSIGNEMT_OP() \
+  ValueType& operator=(ValueType const& rhs) { \
+    ViewType::operator=( ViewType(new ImplType( deepCopy( rhs.SPTR_DATA_REF() )))); \
+    return *this; \
+  }
 #define VALUE_ASSIGNEMT_OP(value_t, impl_t) \
   value_t& operator=(value_t const& rhs) { \
     ViewType::operator=( ViewType(new impl_t( deepCopy( rhs.SPTR_DATA_REF() )))); \
@@ -96,20 +115,42 @@ protected: \
 #define VALUE_TOVIEW_OP() \
   ViewType toView() { return ViewType(*this); }
 
+#define UNPACK_VIEW_TYPE_ALIASES(value_t, impl) \
+private: \
+  using Base = Spheral::SpheralViewInterface<UNPACK value_t, UNPACK impl>; \
+  using ViewInterface = Base; \
+  using ViewType = UNPACK value_t; \
+  using SmartPtrType = typename Base::SmartPtrType; \
+public: \
+  using ImplType = UNPACK impl;
+
 #define VIEW_TYPE_ALIASES(value_t, impl) \
 private: \
-  using Base = SpheralViewInterface<value_t, impl>; \
+  using Base = Spheral::SpheralViewInterface<value_t, impl>; \
   using ViewInterface = Base; \
   using ViewType = value_t; \
   using SmartPtrType = typename Base::SmartPtrType; \
+public: \
   using ImplType = impl;
+
+#define UNPACK_VALUE_TYPE_ALIASES(value_t, view, impl) \
+private: \
+  using Base = Spheral::SpheralValueInterface<UNPACK view, UNPACK impl>; \
+  using ViewInterface = Spheral::SpheralViewInterface<UNPACK view, UNPACK impl>; \
+  using ViewType = UNPACK view; \
+  using ValueType = UNPACK value_t; \
+  using SmartPtrType = typename ViewInterface::SmartPtrType; \
+public: \
+  using ImplType = UNPACK impl;
 
 #define VALUE_TYPE_ALIASES(value_t, view, impl) \
 private: \
-  using Base = SpheralValueInterface<view, impl>; \
-  using ViewInterface = SpheralViewInterface<view, impl>; \
+  using Base = Spheral::SpheralValueInterface<view, impl>; \
+  using ViewInterface = Spheral::SpheralViewInterface<view, impl>; \
   using ViewType = view; \
+  using ValueType = value_t; \
   using SmartPtrType = typename ViewInterface::SmartPtrType; \
+public: \
   using ImplType = impl;
 
 #define VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
