@@ -914,9 +914,9 @@ def plotpmomHistory(conserve):
 #-------------------------------------------------------------------------------
 # Plot a surface
 #-------------------------------------------------------------------------------
-def plotSurface(x,   # 1D numpy array with x-coordinates for edge of plot : shape nx
-                y,   # 1D numpy array with y-coordinates for edge of plot : shape ny
-                z,   # 2D numpy array with z values for surface : shape (nx, ny)
+def plotSurface(x,   # 2D numpy array with x-coordinates        : shape (nx,ny)
+                y,   # 2D numpy array with y-coordinates        : shape (nx,ny)
+                z,   # 2D numpy array with z values for surface : shape (nx,ny)
                 cmap = pltcm.coolwarm,   # Colormap
                 xlabel = None,
                 ylabel = None,
