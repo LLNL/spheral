@@ -12,7 +12,7 @@ kernels = sys.argv[1:]
 print(kernels)
 
 #-------------------------------------------------------------------------------
-# Define some dimensional functions for summing expected kernel values
+# SPH zeroth moment algorithm
 #-------------------------------------------------------------------------------
 def sumKernelValues1d(WT, nperh):
     deta = 1.0/nperh
@@ -41,9 +41,9 @@ def sumKernelValues3d(WT, nperh):
                 result += abs(WT.gradValue(eta, 1.0))
     return (result)**(1.0/3.0)
 
-def safeInv(x, fuzz=1e-10):
-    return x/(x*x + fuzz)
-
+#-------------------------------------------------------------------------------
+# ASPH second moment algorithm
+#-------------------------------------------------------------------------------
 def sumKernelValuesASPH1d(WT, nperh):
     deta = 1.0/nperh
     etamax = WT.kernelExtent
@@ -58,8 +58,7 @@ def sumKernelValuesASPH2d(WT, nperh):
         for etax in np.arange(-etamax, etamax, deta):
             eta = Vector2d(etax, etay)
             result += abs(WT.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad()
-    lambdaPsi = 0.5*(result.eigenValues().sumElements())
-    return sqrt(lambdaPsi)
+    return sqrt(0.5*(result.eigenValues().sumElements()))
 
 def sumKernelValuesASPH3d(WT, nperh):
     deta = 1.0/nperh
@@ -70,36 +69,30 @@ def sumKernelValuesASPH3d(WT, nperh):
             for etax in np.arange(-etamax, etamax, deta):
                 eta = Vector3d(etax, etay, etaz)
                 result += abs(WT.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad()
-    lambdaPsi = (result.eigenValues().sumElements())/3.0
-    return lambdaPsi**(1.0/3.0)
+    return ((result.eigenValues().sumElements())/3.0)**(1.0/3.0)
 
-kernelDict = {'spline': [BSplineKernel1d(),
-                         BSplineKernel2d(),
-                         BSplineKernel3d()],
-              }
+def sumKernelValuesSlice2d(WT, nhat, detax, detay):
+    etamax = WT.kernelExtent
+    result = SymTensor2d()
+    for etay in np.arange(-etamax, etamax, detay):
+        for etax in np.arange(-etamax, etamax, detax):
+            eta = Vector2d(etax, etay)
+            result += abs(WT.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad()
+    return sqrt((result*nhat).magnitude())
 
-titleDict = {'spline'     : 'B Spline Kernel',
-             'h'          : 'H kernel',
-             'h10'        : 'H kernel (extent = 10)',
-             'quartic'    : 'Quartic Spline Kernel',
-             'w4spline'   : 'W4 Spline Kernel',
-             'gauss'      : 'Gaussian Kernel',
-             'supergauss' : 'SuperGaussian Kernel',
-             'pigauss'    : 'Pi Gaussian Kernel',
-             'sinc'       : 'Sinc Kernel',
-             'poly1'      : 'Linear Polynomial Sinc approx Kernel',
-             'poly3'      : 'Cubic Polynomial Sinc approx Kernel',
-             'poly5'      : 'Quintic Polynomial Sinc approx Kernel',
-             'poly7'      : 'Septic Polynomial Sinc approx Kernel',
-             'spline3'    : '3rd order b spline Kernel',
-             'spline5'    : '5th order b spline Kernel',
-             'spline7'    : '7th order b spline Kernel',
-             'spline9'    : '9th order b spline Kernel',
-             'spline11'   : '11th order b spline Kernel',
-             'WendlandC2' : 'Wendland C2',
-             'WendlandC4' : 'Wendland C4',
-             }
+def sumKernelValuesSlice3d(WT, nhat, detax, detay, detaz):
+    etamax = WT.kernelExtent
+    result = SymTensor3d()
+    for etaz in np.arange(-etamax, etamax, detaz):
+        for etay in np.arange(-etamax, etamax, detay):
+            for etax in np.arange(-etamax, etamax, detax):
+                eta = Vector3d(etax, etay, etaz)
+                result += abs(WT.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad()
+    return ((result*nhat).magnitude())**(1.0/3.0)
 
+#-------------------------------------------------------------------------------
+# Here we go...
+#-------------------------------------------------------------------------------
 for Wstr in kernels:
     title(Wstr)
 
@@ -180,3 +173,49 @@ for Wstr in kernels:
     plot.set_title(f"{Wstr} n per h lookup test error : ASPH algorithm")
     plot.set_xlabel("nperh actual")
     plot.set_ylabel("Error")
+
+    # Test ASPH with different aspect ratios
+    if nDim == 2:
+        aspect = np.arange(0.1, 1.0, 0.05)
+        X, Y = np.meshgrid(nperh0, aspect)
+        WsumASPHx = np.ndarray(X.shape)
+        WsumASPHy = np.ndarray(X.shape)
+        nperhASPHx = np.ndarray(X.shape)
+        nperhASPHy = np.ndarray(X.shape)
+        nperhASPHx_err = np.ndarray(X.shape)
+        nperhASPHy_err = np.ndarray(X.shape)
+        for iy in range(X.shape[0]):
+            for ix in range(X.shape[1]):
+                nPerhi = X[iy,ix]
+                aspecti = Y[iy,ix]
+                WsumASPHx[iy,ix] = sumKernelValuesSlice2d(WT, Vector2d(1,0), 1.0/nPerhi, aspecti/nPerhi)
+                WsumASPHy[iy,ix] = sumKernelValuesSlice2d(WT, Vector2d(0,1), 1.0/nPerhi, aspecti/nPerhi)
+                nperhASPHx[iy,ix] = WT.equivalentNodesPerSmoothingScaleASPH(WsumASPHx[iy,ix])
+                nperhASPHy[iy,ix] = WT.equivalentNodesPerSmoothingScaleASPH(WsumASPHy[iy,ix])
+                nperhASPHx_err[iy,ix] = (nperhASPHx[iy,ix] - nPerhi)/nPerhi
+                nperhASPHy_err[iy,ix] = (nperhASPHy[iy,ix] - nPerhi/aspecti)/(nPerhi/aspecti)
+
+        plotSurface(X, Y, WsumASPHx,
+                    title = f"{Wstr} ASPH Wsum $X$",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
+        plotSurface(X, Y, WsumASPHy,
+                    title = f"{Wstr} ASPH Wsum $Y$",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
+        plotSurface(X, Y, nperhASPHx,
+                    title = f"{Wstr} ASPH n per h $X$",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
+        plotSurface(X, Y, nperhASPHy,
+                    title = f"{Wstr} ASPH n per h $Y$",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
+        plotSurface(X, Y, nperhASPHx_err,
+                    title = f"{Wstr} ASPH n per h $X$ error",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
+        plotSurface(X, Y, nperhASPHy_err,
+                    title = f"{Wstr} ASPH n per h $Y$ error",
+                    xlabel = "n per h",
+                    ylabel = "aspect ratio")
