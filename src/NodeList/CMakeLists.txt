@@ -19,6 +19,7 @@ instantiate(NodeList_inst NodeList_sources)
 
 set(NodeList_headers
     ASPHSmoothingScale.hh
+    ASPHSmoothingScalev2.hh
     FixedSmoothingScale.hh
     FluidNodeList.hh
     FluidNodeListInline.hh

@@ -21,6 +21,7 @@ PYB11includes += ['"NodeList/NodeListRegistrar.hh"',
                   '"NodeList/FixedSmoothingScale.hh"',
                   '"NodeList/SPHSmoothingScale.hh"',
                   '"NodeList/ASPHSmoothingScale.hh"',
+                  '"NodeList/ASPHSmoothingScalev2.hh"',
                   '"NodeList/generateVoidNodes.hh"',
                   '"NodeList/nthNodalMoment.hh"',
                   '"Material/EquationOfState.hh"',
@@ -59,27 +60,29 @@ from SmoothingScaleBase import SmoothingScaleBase
 from FixedSmoothingScale import FixedSmoothingScale
 from SPHSmoothingScale import SPHSmoothingScale
 from ASPHSmoothingScale import ASPHSmoothingScale
+from ASPHSmoothingScalev2 import ASPHSmoothingScalev2
 
 for ndim in dims:
-    exec('''
-NodeListRegistrar%(ndim)id = PYB11TemplateClass(NodeListRegistrar, template_parameters="Dim<%(ndim)i>")
+    exec(f'''
+NodeListRegistrar{ndim}d = PYB11TemplateClass(NodeListRegistrar, template_parameters="Dim<{ndim}>")
 
-NodeList%(ndim)id = PYB11TemplateClass(NodeList, template_parameters="Dim<%(ndim)i>")
-FluidNodeList%(ndim)id = PYB11TemplateClass(FluidNodeList, template_parameters="Dim<%(ndim)i>")
-SolidNodeList%(ndim)id = PYB11TemplateClass(SolidNodeList, template_parameters="Dim<%(ndim)i>")
-DEMNodeList%(ndim)id = PYB11TemplateClass(DEMNodeList, template_parameters="Dim<%(ndim)i>")
+NodeList{ndim}d = PYB11TemplateClass(NodeList, template_parameters="Dim<{ndim}>")
+FluidNodeList{ndim}d = PYB11TemplateClass(FluidNodeList, template_parameters="Dim<{ndim}>")
+SolidNodeList{ndim}d = PYB11TemplateClass(SolidNodeList, template_parameters="Dim<{ndim}>")
+DEMNodeList{ndim}d = PYB11TemplateClass(DEMNodeList, template_parameters="Dim<{ndim}>")
 
-SmoothingScaleBase%(ndim)id = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<%(ndim)i>")
-FixedSmoothingScale%(ndim)id = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<%(ndim)i>")
-SPHSmoothingScale%(ndim)id = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<%(ndim)i>")
-ASPHSmoothingScale%(ndim)id = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<%(ndim)i>")
+SmoothingScaleBase{ndim}d = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<{ndim}>")
+FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<{ndim}>")
+SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<{ndim}>")
+ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<{ndim}>")
+ASPHSmoothingScalev2{ndim}d = PYB11TemplateClass(ASPHSmoothingScalev2, template_parameters="Dim<{ndim}>")
 
-vector_of_NodeList%(ndim)id = PYB11_bind_vector("NodeList<Dim<%(ndim)i>>*", opaque=True, local=False)
-vector_of_FluidNodeList%(ndim)id = PYB11_bind_vector("FluidNodeList<Dim<%(ndim)i>>*", opaque=True, local=False)
-vector_of_SolidNodeList%(ndim)id = PYB11_bind_vector("SolidNodeList<Dim<%(ndim)i>>*", opaque=True, local=False)
+vector_of_NodeList{ndim}d = PYB11_bind_vector("NodeList<Dim<{ndim}>>*", opaque=True, local=False)
+vector_of_FluidNodeList{ndim}d = PYB11_bind_vector("FluidNodeList<Dim<{ndim}>>*", opaque=True, local=False)
+vector_of_SolidNodeList{ndim}d = PYB11_bind_vector("SolidNodeList<Dim<{ndim}>>*", opaque=True, local=False)
 
-vector_of_pair_NodeList%(ndim)id_string = PYB11_bind_vector("pair_NodeList%(ndim)idptr_string", opaque=True, local=False)
-''' % {"ndim" : ndim})
+vector_of_pair_NodeList{ndim}d_string = PYB11_bind_vector("pair_NodeList{ndim}dptr_string", opaque=True, local=False)
+''')
 
 #-------------------------------------------------------------------------------
 # Functions
@@ -137,12 +140,12 @@ def zerothAndFirstNodalMoments(nodeLists = "const std::vector<NodeList<%(Dimensi
     return "void"
 
 for ndim in dims:
-    exec('''
-generateVoidNodes%(ndim)id = PYB11TemplateFunction(generateVoidNodes, template_parameters="Dim<%(ndim)i>", pyname="generateVoidNodes")
+    exec(f'''
+generateVoidNodes{ndim}d = PYB11TemplateFunction(generateVoidNodes, template_parameters="Dim<{ndim}>", pyname="generateVoidNodes")
 
-zerothNodalMoment%(ndim)id = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<%(ndim)i>", "0"), pyname="zerothNodalMoment")
-firstNodalMoment%(ndim)id = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<%(ndim)i>", "1"), pyname="firstNodalMoment")
-secondNodalMoment%(ndim)id = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<%(ndim)i>", "2"), pyname="secondNodalMoment")
+zerothNodalMoment{ndim}d = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<{ndim}>", "0"), pyname="zerothNodalMoment")
+firstNodalMoment{ndim}d = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<{ndim}>", "1"), pyname="firstNodalMoment")
+secondNodalMoment{ndim}d = PYB11TemplateFunction(nthNodalMoment, template_parameters=("Dim<{ndim}>", "2"), pyname="secondNodalMoment")
 
-zerothAndFirstNodalMoments%(ndim)id = PYB11TemplateFunction(zerothAndFirstNodalMoments, template_parameters="Dim<%(ndim)i>", pyname="zerothAndFirstNodalMoments")
-''' % {"ndim" : ndim})
+zerothAndFirstNodalMoments{ndim}d = PYB11TemplateFunction(zerothAndFirstNodalMoments, template_parameters="Dim<{ndim}>", pyname="zerothAndFirstNodalMoments")
+''')
