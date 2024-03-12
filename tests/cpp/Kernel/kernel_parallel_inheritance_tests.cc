@@ -37,6 +37,13 @@ public:
 	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "TKi HD doSomething()\n"; std::cout << "TableKernel doSomething\n"; }
 };
 
+template<typename Dim>
+class OtherKernelImpl : public KernelImpl<Dim, OtherKernelImpl<Dim>> {
+public:
+  OtherKernelImpl() = default;
+	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "OKi HD doSomething()\n"; std::cout << "OtherKernel doSomething\n"; }
+};
+
 //--------------------------------
 // View Interface
 
@@ -44,6 +51,8 @@ template<typename Dim, typename Desc>
 class Kernel;
 template<typename Dim>
 class TableKernel;
+template<typename Dim>
+class OtherKernel;
 
 template<typename Dim, typename Desc>
 class KernelView :
@@ -67,6 +76,18 @@ public:
   SPTR_MOVE_CTOR(TableKernelView)
 
 	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "TKv HD doSomething()\n"; this->sptr_data().doSomething(); }
+};
+
+template<typename Dim>
+class OtherKernelView : 
+	public Spheral::SpheralViewInterface<OtherKernelView<Dim>,OtherKernelImpl<Dim>>
+{
+  VIEW_TYPE_ALIASES( (OtherKernel<Dim>), (OtherKernelView), (OtherKernelImpl<Dim>))
+  VIEW_DEFINE_ALLOC_CTOR(OtherKernelView)
+public:
+  SPTR_MOVE_CTOR(OtherKernelView)
+
+	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "OKv HD doSomething()\n"; this->sptr_data().doSomething(); }
 };
 
 //--------------------------------
@@ -96,6 +117,19 @@ public:
   VALUE_TOVIEW_OP()
 
 	SPHERAL_HOST void doSomething() { std::cout << "TK H doSomething()\n"; this->sptr_data().doSomething(); }
+};
+
+template<typename Dim>
+class OtherKernel : public Spheral::SpheralValueInterface<OtherKernelView<Dim>>
+{
+  VALUE_TYPE_ALIASES((OtherKernelView<Dim>))
+public:
+  VALUE_DEF_CTOR(OtherKernel)
+  VALUE_COPY_CTOR(OtherKernel)
+  VALUE_ASSIGNEMT_OP()
+  VALUE_TOVIEW_OP()
+
+	SPHERAL_HOST void doSomething() { std::cout << "OK H doSomething()\n"; this->sptr_data().doSomething(); }
 };
 
 class Dim1 {};
@@ -146,6 +180,31 @@ TEST(KernelParallelInterface, KernelInterface)
   k_tkv.doSomething();
 
   KernelView<Dim1, TableKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
+
+  kv_tkv2.doSomething();
+  
+}
+
+TEST(KernelParallelInterface, OtherKernelInterface)
+{
+
+  Kernel<Dim1, OtherKernel<Dim1>> k;
+  
+  k.doSomething();
+
+  KernelView<Dim1, OtherKernel<Dim1>> kv = k.toView();
+
+  kv.doSomething();
+
+  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv = k.toView();
+
+  kv_tkv.doSomething();
+
+  Kernel<Dim1, OtherKernelView<Dim1>> k_tkv;
+
+  k_tkv.doSomething();
+
+  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
 
   kv_tkv2.doSomething();
   
