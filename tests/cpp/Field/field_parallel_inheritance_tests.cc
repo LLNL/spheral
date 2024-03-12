@@ -61,15 +61,17 @@ class FV;
 template<typename T>
 class F;
 
+class FB;
 
 class FBV : protected Spheral::SpheralViewInterface<FBV, FBi> {
-  VIEW_TYPE_ALIASES(FBV, FBi)
-  VIEW_DEFINE_ALLOC_CTOR(FBV, FBi)
+  VIEW_TYPE_ALIASES((FB), (FBV), (FBi))
+  VIEW_DEFINE_ALLOC_CTOR(FBV)
 
 public:
   VIEW_DEF_CTOR(FBV)
   VIEW_COPY_CTOR(FBV)
-  VIEW_ASSIGNEMT_OP(FBV)
+  //VIEW_ASSIGNEMT_OP()
+  FBV& operator=(FBV const&) = default;
 
   SPTR_FWD_CTOR(FBV)
 
@@ -88,7 +90,7 @@ public:
 // We can only construct a FB object from an existing smart_ptr type so 
 // they must be constructed from F type objects directly...
 class FB : public Spheral::SpheralValueInterface<FBV, FBi> {
-  VALUE_TYPE_ALIASES(FB, FBV, FBi)
+  VALUE_TYPE_ALIASES((FBV))
   SPTR_FWD_CTOR(FB)
 public:
   FB() = delete;
@@ -100,11 +102,10 @@ public:
 
 template<typename T>
 class FV : public Spheral::SpheralViewInterface<FV<T>, Fi<T>> {
-  VIEW_TYPE_ALIASES(FV, Fi<T>)
-  VIEW_DEFINE_ALLOC_CTOR(FV, Fi<T>)
+  VIEW_TYPE_ALIASES((F<T>), (FV), (Fi<T>))
+  VIEW_DEFINE_ALLOC_CTOR(FV)
 public:
   SPTR_FWD_CTOR(FV)
-  //UPCAST_CONVERSION_OP(FBV)
 
   SPHERAL_HOST_DEVICE T* data() {return SPTR_DATA_REF().data(); }
   SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
@@ -114,14 +115,13 @@ public:
 
 template<typename T>
 class F : public Spheral::SpheralValueInterface<FV<T>, Fi<T>> {
-  VALUE_TYPE_ALIASES(F, FV<T>, Fi<T>)
+  VALUE_TYPE_ALIASES((FV<T>))
 
 public:
-  VALUE_DEF_CTOR(F, Fi<T>)
-  VALUE_COPY_CTOR(F, Fi<T>)
-  VALUE_ASSIGNEMT_OP(F, Fi<T>)
+  VALUE_DEF_CTOR(F)
+  VALUE_COPY_CTOR(F)
+  VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
-  //UPCAST_CONVERSION_OP(FB)
 
   // Ctor 
   F(size_t h, size_t sz) : Base(new Fi<T>(h, sz)) {}
@@ -167,14 +167,15 @@ TEST(FieldParallelInheritance, AccessPattern)
   Spheral::F<double> f3(3, 3);
   Spheral::F<double> f4(4, 4);
 
-  Spheral::ManagedVector<Spheral::FBV> vec_fbv;
+  Spheral::ManagedVector<Spheral::FBV> vec_fbv(0);
+  std::cout << "chekc\n";
   vec_fbv.push_back(  (Spheral::FBV)f0.toView()  );
   vec_fbv.push_back(  (Spheral::FBV)f1.toView()  );
   vec_fbv.push_back(  (Spheral::FBV)f2.toView()  );
   vec_fbv.push_back(  (Spheral::FBV)f3.toView()  );
   vec_fbv.push_back(  (Spheral::FBV)f4.toView()  );
 
-  for(auto elem : vec_fbv) elem.resize(elem.size()*2);
+  for(auto elem : vec_fbv) { std::cout << elem.size() << std::endl; elem.resize(elem.size()*2); }
 
   vec_fbv.free();
 

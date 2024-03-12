@@ -30,7 +30,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, DefaultCtor)
     std::cout << sptr.get() << std::endl;
 
     FieldDouble field("test");
-    FieldViewDouble fieldv;
+    FieldViewDouble fieldv = field.toView();
     SPHERAL_ASSERT_EQ(fieldv.size(), 0);
 
     RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 

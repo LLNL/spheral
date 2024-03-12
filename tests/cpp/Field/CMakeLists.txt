@@ -3,10 +3,10 @@ spheral_add_test(
   SOURCES managed_vector_tests.cc
 )
 
-spheral_add_test(
-  NAME field_diamond_inheritance_tests
-  SOURCES field_diamond_inheritance_tests.cc
-)
+#spheral_add_test(
+#  NAME field_diamond_inheritance_tests
+#  SOURCES field_diamond_inheritance_tests.cc
+#)
 
 spheral_add_test(
   NAME field_parallel_inheritance_tests

@@ -42,10 +42,8 @@ class SpheralViewInterface : public SMART_PTR_TYPE<impl_type>
 private:
   using m_ImplType = impl_type;
 
-protected:
-  using SmartPtrType = SMART_PTR_TYPE<m_ImplType>;
-
 public:
+  using SmartPtrType = SMART_PTR_TYPE<m_ImplType>;
   SPHERAL_HOST_DEVICE SmartPtrType & sptr() { return *this; }
   SPHERAL_HOST_DEVICE SmartPtrType const& sptr() const { return *this; }
 
@@ -56,20 +54,55 @@ public:
   SPHERAL_HOST SpheralViewInterface(SmartPtrType&& rhs) : SmartPtrType(std::forward<SmartPtrType>(rhs)) {}
 };
 
+
+// Interface class for Value like objects.
+template<typename view_type>
+class SpheralValueInterface : public view_type
+{
+private:
+  using m_ImplType = typename view_type::ImplType;
+  using m_SmartPtrType = typename view_type::SmartPtrType;
+
+protected:
+  using ViewType = typename view_type::ViewType;
+
+public:
+  SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
+  SPHERAL_HOST SpheralValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
+};
+
+
+
+
 #define SPTR_REF ViewInterface::sptr
 #define SPTR_DATA_REF ViewInterface::sptr_data
 
+#define VIEW_TYPE_ALIASES(value_t, view_t, impl_t) \
+public: \
+  using ImplType = UNPACK impl_t; \
+  using ViewType = UNPACK view_t; \
+  using ValueType = UNPACK value_t; \
+protected: \
+  using Base = Spheral::SpheralViewInterface<UNPACK view_t, UNPACK impl_t>; \
+  using ViewInterface = Base; \
+  using SmartPtrType = typename Base::SmartPtrType; \
+  friend class UNPACK value_t;
+
+#define VALUE_TYPE_ALIASES(view_t) \
+public: \
+  using ViewType = UNPACK view_t; \
+  using ValueType = typename ViewType::ValueType; \
+  using ImplType = typename ViewType::ImplType; \
+protected: \
+  using Base = Spheral::SpheralValueInterface<ViewType>; \
+  using ViewInterface = typename ViewType::ViewInterface; \
+  using SmartPtrType = typename ViewType::SmartPtrType; \
+
 // Defines a ctor that will take a "new" Data object to create the underlying
 // ManagedSmartPtr.
-#define VIEW_DEFINE_ALLOC_CTOR(view_t, impl_t) \
-protected: \
-  view_t(impl_t* rhs) : Base(SmartPtrType(rhs, [](impl_t *p) { p->free(); } )) {}
-  //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
-
-#define UNPACK_VIEW_DEFINE_ALLOC_CTOR(view_t) \
+#define VIEW_DEFINE_ALLOC_CTOR(view_t) \
 protected: \
   view_t(ImplType* rhs) : Base(SmartPtrType(rhs, [](ImplType *p) { p->free(); } )) {}
-  //view_t(impl_t* rhs) : Base(spheral::make_managedsmartptr<impl_t>(rhs)) {}
 
 #define VIEW_DEF_CTOR(view_t) \
   view_t() = default;
@@ -77,81 +110,31 @@ protected: \
 #define VIEW_COPY_CTOR(view_t) \
   view_t(view_t const& rhs) = default;
 
-#define VIEW_ASSIGNEMT_OP(view_t) \
-  view_t& operator=(view_t const& rhs) = default;
+#define VIEW_ASSIGNEMT_OP() \
+  ViewType& operator=(ViewType const& rhs) = default;
 
-#define VIEW_EQ_OP(view_t) \
-  bool operator==(const view_t& rhs) const \
+#define VIEW_EQ_OP() \
+  bool operator==(const ViewType& rhs) const \
     { return sptr_data() == rhs.sptr_data(); }
 
-#define UNPACK_VALUE_DEF_CTOR(value_t) \
+#define VALUE_DEF_CTOR(value_t) \
   value_t() : Base(new ImplType()) {}
 
-#define VALUE_DEF_CTOR(value_t, impl_t) \
-  value_t() : Base(new impl_t()) {}
-
-#define UNPACK_VALUE_COPY_CTOR(value_t) \
+#define VALUE_COPY_CTOR(value_t) \
   value_t(value_t const& rhs) : Base(new ImplType( deepCopy( rhs.SPTR_DATA_REF() ) )) {}
 
-#define VALUE_COPY_CTOR(value_t, impl_t) \
-  value_t(value_t const& rhs) : Base(new impl_t( deepCopy( rhs.SPTR_DATA_REF() ) )) {}
-
-#define UNPACK_VALUE_ASSIGNEMT_OP() \
+#define VALUE_ASSIGNEMT_OP() \
   ValueType& operator=(ValueType const& rhs) { \
-    ViewType::operator=( ViewType(new ImplType( deepCopy( rhs.SPTR_DATA_REF() )))); \
-    return *this; \
-  }
-#define VALUE_ASSIGNEMT_OP(value_t, impl_t) \
-  value_t& operator=(value_t const& rhs) { \
-    ViewType::operator=( ViewType(new impl_t( deepCopy( rhs.SPTR_DATA_REF() )))); \
+    ViewType::operator=( ViewType::ViewType(new ImplType( deepCopy( rhs.SPTR_DATA_REF() )))); \
     return *this; \
   }
 
-#define VALUE_EQ_OP(value_t) \
-  bool operator==(const value_t& rhs) const \
+#define VALUE_EQ_OP() \
+  bool operator==(const ValueType& rhs) const \
     { return compare(sptr_data(), rhs.sptr_data()); }
-  
 
 #define VALUE_TOVIEW_OP() \
   ViewType toView() { return ViewType(*this); }
-
-#define UNPACK_VIEW_TYPE_ALIASES(value_t, impl) \
-private: \
-  using Base = Spheral::SpheralViewInterface<UNPACK value_t, UNPACK impl>; \
-  using ViewInterface = Base; \
-  using ViewType = UNPACK value_t; \
-  using SmartPtrType = typename Base::SmartPtrType; \
-public: \
-  using ImplType = UNPACK impl;
-
-#define VIEW_TYPE_ALIASES(value_t, impl) \
-private: \
-  using Base = Spheral::SpheralViewInterface<value_t, impl>; \
-  using ViewInterface = Base; \
-  using ViewType = value_t; \
-  using SmartPtrType = typename Base::SmartPtrType; \
-public: \
-  using ImplType = impl;
-
-#define UNPACK_VALUE_TYPE_ALIASES(value_t, view, impl) \
-private: \
-  using Base = Spheral::SpheralValueInterface<UNPACK view, UNPACK impl>; \
-  using ViewInterface = Spheral::SpheralViewInterface<UNPACK view, UNPACK impl>; \
-  using ViewType = UNPACK view; \
-  using ValueType = UNPACK value_t; \
-  using SmartPtrType = typename ViewInterface::SmartPtrType; \
-public: \
-  using ImplType = UNPACK impl;
-
-#define VALUE_TYPE_ALIASES(value_t, view, impl) \
-private: \
-  using Base = Spheral::SpheralValueInterface<view, impl>; \
-  using ViewInterface = Spheral::SpheralViewInterface<view, impl>; \
-  using ViewType = view; \
-  using ValueType = value_t; \
-  using SmartPtrType = typename ViewInterface::SmartPtrType; \
-public: \
-  using ImplType = impl;
 
 #define VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
   value_t& operator=(value_t const& rhs) { \
@@ -166,20 +149,6 @@ public: \
   SPHERAL_HOST_DEVICE type & var() { return Base::get()->var; } \
   SPHERAL_HOST_DEVICE type & var() const { return Base::get()->var; }
 
-
-// Interface class for Value like objects.
-template<typename view_type, typename impl_type>
-class SpheralValueInterface : public view_type
-{
-private:
-  using m_ViewInterface = SpheralViewInterface<view_type, impl_type>;
-  using m_ImplType = typename m_ViewInterface::SmartPtrType::element_type;
-  using m_SmartPtrType = typename m_ViewInterface::SmartPtrType;
-
-public:
-  SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
-  SPHERAL_HOST SpheralValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
-};
 
 //-----------------------------------------------------------------------------
 
@@ -230,15 +199,16 @@ public:
 };
 
 
+class QInt;
 
 class QIntView : public SpheralViewInterface<QIntView, QIntData>
 {
-  VIEW_TYPE_ALIASES(QIntView, QIntData)
+  VIEW_TYPE_ALIASES((QInt), (QIntView), (QIntData))
 public:
   friend class QInt;
   using CoeffsType = typename QIntData::CoeffsType;
 protected:
-  VIEW_DEFINE_ALLOC_CTOR(QIntView, QIntData)
+  VIEW_DEFINE_ALLOC_CTOR(QIntView)
   // Interal interface for accessing the underlying members of QIntData
   SMART_PTR_MEMBER_ACCESSOR(CoeffsType, mcoeffs)
 
@@ -251,11 +221,11 @@ public:
 
 
 
-class QInt : public SpheralValueInterface<QIntView, QIntData>
+class QInt : public SpheralValueInterface<QIntView>
 {
-  VALUE_TYPE_ALIASES(QInt, QIntView, QIntData)
+  VALUE_TYPE_ALIASES((QIntView))
 public:
-  VALUE_DEF_CTOR(QInt, QIntData)
+  VALUE_DEF_CTOR(QInt)
   //VALUE_COPY_CTOR(QInt, QIntData)
   //VALUE_ASSIGNEMT_OP(QInt, QIntData)
   VALUE_TOVIEW_OP()

@@ -170,7 +170,8 @@ public:
   SPHERAL_HOST void push_back(DataType&& value) {
     if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
     if (m_size >= capacity()) MA::reallocate(pow2_ceil(m_size + 1));
-    MA::data()[m_size] = std::move(value);
+    //MA::operator[](m_size) = std::move(value);
+    new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
   template<typename... Args>

@@ -86,19 +86,19 @@ public:
 };
 
 
-
+class QuadraticInterpolator;
 
 class QuadraticInterpolatorView : 
   public SpheralViewInterface<QuadraticInterpolatorView, QuadraticInterpolatorImpl>
 {
-  VIEW_TYPE_ALIASES(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
-  VIEW_DEFINE_ALLOC_CTOR(QuadraticInterpolatorView, QuadraticInterpolatorImpl)
+  VIEW_TYPE_ALIASES((QuadraticInterpolator), (QuadraticInterpolatorView), (QuadraticInterpolatorImpl))
+  VIEW_DEFINE_ALLOC_CTOR(QuadraticInterpolatorView)
 
 public:
   SPHERAL_HOST_DEVICE VIEW_DEF_CTOR(QuadraticInterpolatorView)
   SPHERAL_HOST_DEVICE VIEW_COPY_CTOR(QuadraticInterpolatorView)
-  SPHERAL_HOST_DEVICE VIEW_ASSIGNEMT_OP(QuadraticInterpolatorView)
-  SPHERAL_HOST_DEVICE VIEW_EQ_OP(QuadraticInterpolatorView)
+  SPHERAL_HOST_DEVICE VIEW_ASSIGNEMT_OP()
+  SPHERAL_HOST_DEVICE VIEW_EQ_OP()
 
   using CoeffsType = typename QuadraticInterpolatorImpl::CoeffsType;
   
@@ -123,15 +123,15 @@ public:
 
 
 class QuadraticInterpolator :
-  public SpheralValueInterface<QuadraticInterpolatorView, QuadraticInterpolatorImpl>
+  public SpheralValueInterface<QuadraticInterpolatorView>
 {
-  VALUE_TYPE_ALIASES(QuadraticInterpolator, QuadraticInterpolatorView, QuadraticInterpolatorImpl)
-public:
+  VALUE_TYPE_ALIASES((QuadraticInterpolatorView))
 
-  VALUE_DEF_CTOR(QuadraticInterpolator, QuadraticInterpolatorImpl)
-  VALUE_COPY_CTOR(QuadraticInterpolator, QuadraticInterpolatorImpl)
-  VALUE_ASSIGNEMT_OP(QuadraticInterpolator, QuadraticInterpolatorImpl)
-  VALUE_EQ_OP(QuadraticInterpolator)
+public:
+  VALUE_DEF_CTOR(QuadraticInterpolator)
+  VALUE_COPY_CTOR(QuadraticInterpolator)
+  VALUE_ASSIGNEMT_OP()
+  VALUE_EQ_OP()
   VALUE_TOVIEW_OP()
 
   template<typename Func>
