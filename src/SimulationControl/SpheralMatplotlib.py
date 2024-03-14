@@ -958,7 +958,7 @@ def plotInterpolator(interp,
 #-------------------------------------------------------------------------------
 # Plot a table kernel
 #-------------------------------------------------------------------------------
-def plotTableKernel(WT):
+def plotTableKernel(WT, nPerh):
     plots = [plotInterpolator(interp = x,
                               xlabel = xlab,
                               ylabel = ylab,
@@ -967,6 +967,25 @@ def plotTableKernel(WT):
                                                                   (WT.grad2Winterpolator, r"$\eta$",   r"$\partial^2_\eta W(\eta)$"),
                                                                   (WT.nPerhInterpolator,  r"$\sum W$",  r"n per h($\sum W$)"),
                                                                   (WT.WsumInterpolator,   r"n per h",  r"$\sum W$")]]
+
+    x0, x1 = 0.0, WT.kernelExtent
+    xvals = np.linspace(x0, x1, 100)
+    yvals = np.array([WT.kernelValueSPH(x) for x in xvals])
+    plotSPH = newFigure()
+    plotSPH.plot(xvals, yvals, "r-", label=None)
+    plotSPH.set_xlabel(r"$\eta$")
+    plotSPH.set_ylabel(r"$W_{SPH}(\eta)$")
+    plotSPH.set_title(r"$W(\eta)$ for SPH h lookup")
+
+    yvals = np.array([WT.kernelValueASPH(x, nPerh) for x in xvals])
+    plotASPH = newFigure()
+    plotASPH.plot(xvals, yvals, "r-", label=None)
+    plotASPH.set_xlabel(r"$\eta$")
+    plotASPH.set_ylabel(r"$W_{ASPH}(\eta)$")
+    plotASPH.set_title(f"$W(\eta)$ for ASPH h lookup with $n_h={nPerh}$")
+
+    plots += [plotSPH, plotASPH]
+
     return plots
 
 # #-------------------------------------------------------------------------------

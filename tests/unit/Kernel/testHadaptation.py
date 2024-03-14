@@ -20,7 +20,7 @@ commandLine(Kernel = WendlandC4Kernel,
 # Make the kernel and the ASPH update method
 #-------------------------------------------------------------------------------
 WT = TableKernel(Kernel())
-asph = ASPHSmoothingScalev2()
+asph = ASPHSmoothingScalev2(WT, targetNperh = nPerh)
 
 #-------------------------------------------------------------------------------
 # Generate our test point positions
@@ -62,7 +62,7 @@ def plotH(H, plot, style="k-"):
 #-------------------------------------------------------------------------------
 # Function to measure the second moment tensor psi
 #-------------------------------------------------------------------------------
-def computePsi(x, y, H, WT):
+def computePsi(x, y, H, WT, nPerh):
     nx = len(x)
     ny = len(y)
     Wsum = 0.0
@@ -72,8 +72,8 @@ def computePsi(x, y, H, WT):
         for i in range(nx):
             rji = Vector(x[i], y[j])
             eta = H*rji
-            Wi = abs(WT.gradValue(eta.magnitude(), 1.0))
-            Wsum += Wi
+            Wsum += WT.kernelValueSPH(eta.magnitude())
+            Wi = WT.kernelValueASPH(eta.magnitude(), nPerh)
             psiLab += Wi * rji.selfdyad()
             psiEta += Wi * eta.selfdyad()
     return Wsum, psiLab, psiEta
@@ -81,7 +81,7 @@ def computePsi(x, y, H, WT):
 #-------------------------------------------------------------------------------
 # Compute a new H based on the current second-moment (psi) and H
 #-------------------------------------------------------------------------------
-def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
+def newH(H0, Wsum, psiLab, psiEta, WT, asph, nPerh):
     H0inv = H0.Inverse()
     eigenLab = psiLab.eigenVectors()
     eigenEta = psiEta.eigenVectors()
@@ -90,21 +90,23 @@ def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
 
     # First the ASPH shape & volume change
     H1inv = SymTensor()
+    fscale = 1.0
     for nu in range(2):
         evec = eigenLab.eigenVectors.getColumn(nu)
         h0 = (H0inv*evec).magnitude()
         thpt = sqrt((psiEta*evec).magnitude())
-        #thpt = sqrt(evecs.eigenValues(nu))
-        nPerheff = WT.equivalentNodesPerSmoothingScaleASPH(thpt)
+        nPerheff = asph.equivalentNodesPerSmoothingScale(thpt)
         print("      --> h0, nPerheff : ", h0, nPerheff)
+        fscale *= nPerh/nPerheff
         H1inv(nu,nu, h0 * nPerh/nPerheff)
 
-    # # A final correction for the total volume using the SPH algorithm
-    # nPerh0 = WT.equivalentNodesPerSmoothingScale(sqrt(Wsum))
-    # fscale = H0inv.Trace()/H1inv.Trace() * nPerh/nPerh0
-    # H1inv *= fscale
+    # Scale by the zeroth moment to get the right overall volume
+    print("         H1inv before SPH scaling: ", H1inv)
+    nPerhSPH = WT.equivalentNodesPerSmoothingScale(Wsum)
+    fscale = nPerh/nPerhSPH / sqrt(fscale)
+    H1inv *= fscale
+    print("          H1inv after SPH scaling: ", H1inv)
 
-    print("         H1inv before scaling: ", H1inv)
     H1inv.rotationalTransform(eigenLab.eigenVectors)
     return H1inv.Inverse()
 
@@ -132,10 +134,10 @@ plotH(H, plot, "k-")
 #-------------------------------------------------------------------------------
 for iter in range(iterations):
     print("Iteration ", iter)
-    Wsum, psiLab, psiEta = computePsi(xcoords, ycoords, H, WT)
-    print("     Wsum, psiLab, psiEta, nperh(sqrt(Wsum)): ", Wsum, psiLab, psiEta, WT.equivalentNodesPerSmoothingScale(sqrt(Wsum)))
+    Wsum, psiLab, psiEta = computePsi(xcoords, ycoords, H, WT, nPerh)
+    print("     Wsum, psiLab, psiEta: ", Wsum, psiLab, psiEta)
     #H = asph.idealSmoothingScale(H, Vector(0,0), 0.0, psi, WT, 1e-10, 1e10, 1e-10, nPerh, ConnectivityMap(), 0, 0)
-    H = newH(H, Wsum, psiLab, psiEta, WT, nPerh)
+    H = newH(H, Wsum, psiLab, psiEta, WT, asph, nPerh)
     evals = H.eigenValues()
     aspectRatio = evals.maxElement()/evals.minElement()
     output("     H.Inverse(), aspectRatio")

@@ -10,6 +10,7 @@
 
 #include "ASPHSmoothingScale.hh"
 #include "Geometry/Dimension.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 
 namespace Spheral {
 
@@ -22,9 +23,12 @@ public:
   using Vector = typename Dimension::Vector;
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
+  using InterpolatorType = CubicHermiteInterpolator;
 
   // Constructors, destructor.
-  ASPHSmoothingScalev2();
+  ASPHSmoothingScalev2(const TableKernel<Dimension>& W,
+                       const Scalar targetNperh,
+                       const size_t numPoints = 0u);     // numPoints == 0 ==> use same number of points as TableKernel
   ASPHSmoothingScalev2(const ASPHSmoothingScalev2& rhs);
   ASPHSmoothingScalev2& operator=(const ASPHSmoothingScalev2& rhs);
   virtual ~ASPHSmoothingScalev2();
@@ -54,6 +58,23 @@ public:
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh) const override { return ASPHSmoothingScale<Dimension>::idealSmoothingScale(H, mesh, zone, hmin, hmax, hminratio, nPerh); }
+
+  // Return the equivalent number of nodes per smoothing scale implied by the given
+  // sum of kernel values, using the second moment ASPH algorithm
+  Scalar equivalentNodesPerSmoothingScale(const Scalar lambdaPsi) const;
+  Scalar equivalentLambdaPsi(const Scalar nPerh) const;
+
+  // Access the internal data
+  Scalar targetNperh() const                         { return mTargetNperh; }
+  Scalar minNperh() const                            { return mMinNperh; }
+  Scalar maxNperh() const                            { return mMaxNperh; }
+  const InterpolatorType& nPerhInterpolator() const  { return mNperhLookup; }
+  const InterpolatorType& WsumInterpolator() const   { return mWsumLookup; }
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  Scalar mTargetNperh, mMinNperh, mMaxNperh;
+  InterpolatorType mNperhLookup, mWsumLookup;
 };
 
 }

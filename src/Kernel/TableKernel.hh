@@ -68,15 +68,16 @@ public:
                            std::vector<Scalar>& kernelValues,
                            std::vector<Scalar>& gradValues) const;
 
+  // Special kernel values for use in finding smoothing scales (SPH and ASPH versions)
+  // ***These are only intended for use adapting smoothing scales***, and are used
+  // for the succeeding equivalentNodesPerSmoothingScale lookups!
+  Scalar kernelValueSPH(const Scalar etaij) const;
+  Scalar kernelValueASPH(const Scalar etaij, const Scalar nPerh) const;
+
   // Return the equivalent number of nodes per smoothing scale implied by the given
   // sum of kernel values, using the zeroth moment SPH algorithm
   Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
   Scalar equivalentWsum(const Scalar nPerh) const;
-
-  // Return the equivalent number of nodes per smoothing scale implied by the given
-  // sum of kernel values, using the second moment ASPH algorithm
-  Scalar equivalentNodesPerSmoothingScaleASPH(const Scalar lambdaPsi) const;
-  Scalar equivalentLambdaPsiASPH(const Scalar nPerh) const;
 
   // Access the internal data
   size_t numPoints() const                                    { return mNumPoints; }
@@ -89,17 +90,14 @@ public:
   const InterpolatorType& grad2Winterpolator() const          { return mGrad2Interp; }
   const NperhInterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
   const NperhInterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
-  const NperhInterpolatorType& nPerhInterpolatorASPH() const  { return mNperhLookupASPH; }
-  const NperhInterpolatorType& WsumInterpolatorASPH() const   { return mWsumLookupASPH; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
   size_t mNumPoints;
-  Scalar mMinNperh, mMaxNperh;
+  Scalar mTargetNperh, mMinNperh, mMaxNperh;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;       // W, grad W, grad^2 W
   NperhInterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
-  NperhInterpolatorType mNperhLookupASPH, mWsumLookupASPH;   // ASPH nperh lookups
 };
 
 }

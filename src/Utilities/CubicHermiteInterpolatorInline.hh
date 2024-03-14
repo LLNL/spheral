@@ -213,7 +213,7 @@ CubicHermiteInterpolator::h11(const double t) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-CubicHermiteInterpolator::N() const {
+CubicHermiteInterpolator::size() const {
   return mN;
 }
 

@@ -383,6 +383,19 @@ class TableKernel(Kernel):
         return "void"
 
     @PYB11const
+    def kernelValueSPH(self,
+                       etaij = "const Scalar"):
+        "Compute the kernel value appropriate for use in the SPH variable h 'ideal h' calculation"
+        return "Scalar"
+
+    @PYB11const
+    def kernelValueASPH(self,
+                        etaij = "const Scalar",
+                        nPerh = "const Scalar"):
+        "Compute the kernel value appropriate for use in the ASPH variable H 'ideal H' calculation"
+        return "Scalar"
+
+    @PYB11const
     def equivalentNodesPerSmoothingScale(self,
                                          Wsum = "Scalar"):
         "Compute the nPerh that corresponds to the Wsum value"
@@ -392,18 +405,6 @@ class TableKernel(Kernel):
     def equivalentWsum(self,
                        nPerh = "Scalar"):
         "Compute the Wsum that corresponds to the  nPerh value"
-        return "Scalar"
-
-    @PYB11const
-    def equivalentNodesPerSmoothingScaleASPH(self,
-                                             lambdaPsi = "Scalar"):
-        "Compute the nPerh that corresponds to the given eigenvalue of second moment tensor (1/sqrt of the eigenvalue actually)"
-        return "Scalar"
-
-    @PYB11const
-    def equivalentLambdaPsiASPH(self,
-                                nPerh = "Scalar"):
-        "Compute the lambda_psi eigenvalue that corresponds to the  nPerh value"
         return "Scalar"
 
     #...........................................................................
@@ -416,8 +417,6 @@ class TableKernel(Kernel):
     grad2Winterpolator = PYB11property(doc = "grad^2 W(x) interpolator")
     nPerhInterpolator = PYB11property(doc = "nperh(x) interpolator (SPH)")
     WsumInterpolator = PYB11property(doc = "Wsum(x) interpolator (SPH)")
-    nPerhInterpolatorASPH = PYB11property(doc = "nperh(x) interpolator (ASPH)")
-    WsumInterpolatorASPH = PYB11property(doc = "Wsum(x) interpolator (ASPH)")
 
 #-------------------------------------------------------------------------------
 # WendlandC2

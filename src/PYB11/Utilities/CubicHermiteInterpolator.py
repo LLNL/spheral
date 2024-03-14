@@ -141,7 +141,7 @@ tabulated knots (although that structure should still be monotonic between the t
         return "double"
 
     # Attributes
-    N = PYB11property(doc="The number of the tabulated values used")
+    size = PYB11property(doc="The number of the tabulated values used")
     xmin = PYB11property(doc="Minimum x coordinate for table")
     xmax = PYB11property(doc="Maximum x coordinate for table")
     xstep = PYB11property(doc="delta x between tabulated values")

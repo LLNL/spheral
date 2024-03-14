@@ -80,7 +80,7 @@ public:
   double h11(const double x) const;
 
   // Allow read access the internal data representation
-  size_t N() const;                           // The number of tabulated values
+  size_t size() const;                        // The number of tabulated values
   double xmin() const;                        // Minimum x coordinate for table              
   double xmax() const;                        // Maximum x coordinate for table              
   double xstep() const;                       // delta x between tabulated values            

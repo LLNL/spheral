@@ -31,12 +31,13 @@ namespace {  // anonymous
 inline
 double
 sumKernelValues(const TableKernel<Dim<1>>& W,
-                const double deta) {
-  REQUIRE(deta > 0);
+                const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
   double result = 0.0;
   double etar = deta;
   while (etar < W.kernelExtent()) {
-    result += 2.0*std::abs(W.gradValue(etar, 1.0));
+    result += 2.0*W.kernelValueSPH(etar);
     etar += deta;
   }
   return result;
@@ -45,12 +46,13 @@ sumKernelValues(const TableKernel<Dim<1>>& W,
 inline
 double
 sumKernelValues(const TableKernel<Dim<2>>& W,
-                const double deta) {
-  REQUIRE(deta > 0);
+                const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
   double result = 0.0;
   double etar = deta;
   while (etar < W.kernelExtent()) {
-    result += 2.0*M_PI*etar/deta*std::abs(W.gradValue(etar, 1.0));
+    result += 2.0*M_PI*etar/deta*W.kernelValueSPH(etar);
     etar += deta;
   }
   return sqrt(result);
@@ -59,85 +61,16 @@ sumKernelValues(const TableKernel<Dim<2>>& W,
 inline
 double
 sumKernelValues(const TableKernel<Dim<3>>& W,
-                const double deta) {
-  REQUIRE(deta > 0);
+                const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
   double result = 0.0;
   double etar = deta;
   while (etar < W.kernelExtent()) {
-    result += 4.0*M_PI*FastMath::square(etar/deta)*std::abs(W.gradValue(etar, 1.0));
+    result += 4.0*M_PI*FastMath::square(etar/deta)*W.kernelValueSPH(etar);
     etar += deta;
   }
   return pow(result, 1.0/3.0);
-}
-
-//------------------------------------------------------------------------------
-// Sum the Kernel values for the given stepsize (ASPH)
-// We do these on a lattice pattern since the coordinates of the points are
-// used.
-//------------------------------------------------------------------------------
-inline
-double
-sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
-                    const double deta) {
-  REQUIRE(deta > 0);
-  auto result = 0.0;
-  auto etax = deta;
-  while (etax < W.kernelExtent()) {
-    result += 2.0*std::abs(W.gradValue(etax, 1.0)) * etax*etax;
-    etax += deta;
-  }
-  return result;
-}
-
-inline
-double
-sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
-                    const double deta) {
-  REQUIRE(deta > 0);
-  Dim<2>::SymTensor result;
-  double etay = 0.0;
-  while (etay < W.kernelExtent()) {
-    double etax = 0.0;
-    while (etax < W.kernelExtent()) {
-      const Dim<2>::Vector eta(etax, etay);
-      auto dresult = std::abs(W.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad();
-      if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-      if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-      result += dresult;
-      etax += deta;
-    }
-    etay += deta;
-  }
-  const auto lambda = 0.5*(result.eigenValues().sumElements());
-  return std::sqrt(lambda);
-}
-
-inline
-double
-sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
-                    const double deta) {
-  REQUIRE(deta > 0);
-  Dim<3>::SymTensor result;
-  double etaz = 0.0;
-  while (etaz < W.kernelExtent()) {
-    double etay = 0.0;
-    while (etay < W.kernelExtent()) {
-      double etax = 0.0;
-      while (etax < W.kernelExtent()) {
-        const Dim<3>::Vector eta(etax, etay, etaz);
-        auto dresult = std::abs(W.gradValue(eta.magnitude(), 1.0)) * eta.selfdyad();
-        if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
-        result += dresult;
-        etax += deta;
-      }
-      etay += deta;
-    }
-    etaz += deta;
-  }
-  const auto lambda = (result.eigenValues().sumElements())/3.0;
-  return pow(lambda, 1.0/3.0);
 }
 
 //------------------------------------------------------------------------------
@@ -255,39 +188,29 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mGradInterp(0.0, kernel.kernelExtent(), numPoints,  [&](const double x) { return kernel.grad(x, 1.0); }),
   mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, [&](const double x) { return kernel.grad2(x, 1.0); }),
   mNperhLookup(),
-  mWsumLookup(),
-  mNperhLookupASPH(),
-  mWsumLookupASPH() {
+  mWsumLookup() {
 
   // Gotta have a minimally reasonable nperh range
   if (mMaxNperh <= mMinNperh) mMaxNperh = 4.0*mMinNperh;
 
   // Pre-conditions.
-  VERIFY(mNumPoints > 0);
-  VERIFY(mMinNperh > 0.0 and mMaxNperh > mMinNperh);
+  VERIFY2(mNumPoints > 0, "TableKernel ERROR: require numPoints > 0 : " << mNumPoints);
+  VERIFY2(mMinNperh > 0.0 and mMaxNperh > mMinNperh, "TableKernel ERROR: Bad (minNperh, maxNperh) range: (" << mMinNperh << ", " << mMaxNperh << ")");
 
   // Set the volume normalization and kernel extent.
   this->setVolumeNormalization(1.0); // (kernel.volumeNormalization() / Dimension::pownu(hmult));  // We now build this into the tabular kernel values.
   this->setKernelExtent(kernel.kernelExtent());
   this->setInflectionPoint(kernel.inflectionPoint());
 
-  // Set the interpolation methods for looking up nperh
+  // Set the interpolation methods for looking up nperh (SPH methodology)
   mWsumLookup.initialize(mMinNperh, mMaxNperh, numPoints,
-                         [&](const double x) -> double { return sumKernelValues(*this, 1.0/x); });
+                         [&](const double x) -> double { return sumKernelValues(*this, x); });
   mNperhLookup.initialize(mWsumLookup(mMinNperh), mWsumLookup(mMaxNperh), numPoints,
                           [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookup(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
-
-  // ASPH variants
-  mWsumLookupASPH.initialize(mMinNperh, mMaxNperh, numPoints,
-                             [&](const double x) -> double { return sumKernelValuesASPH(*this, 1.0/x); });
-  mNperhLookupASPH.initialize(mWsumLookupASPH(mMinNperh), mWsumLookupASPH(mMaxNperh), numPoints,
-                              [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookupASPH(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
 
   // Make nperh lookups monotonic
   mWsumLookup.makeMonotonic();
   mNperhLookup.makeMonotonic();
-  mWsumLookupASPH.makeMonotonic();
-  mNperhLookupASPH.makeMonotonic();
 }
 
 //------------------------------------------------------------------------------
@@ -304,9 +227,7 @@ TableKernel(const TableKernel<Dimension>& rhs):
   mGradInterp(rhs.mGradInterp),
   mGrad2Interp(rhs.mGrad2Interp),
   mNperhLookup(rhs.mNperhLookup),
-  mWsumLookup(rhs.mWsumLookup),
-  mNperhLookupASPH(rhs.mNperhLookupASPH),
-  mWsumLookupASPH(rhs.mWsumLookupASPH) {
+  mWsumLookup(rhs.mWsumLookup) {
 }
 
 //------------------------------------------------------------------------------
@@ -334,8 +255,6 @@ operator=(const TableKernel<Dimension>& rhs) {
     mGrad2Interp = rhs.mGrad2Interp;
     mNperhLookup = rhs.mNperhLookup;
     mWsumLookup = rhs.mWsumLookup;
-    mNperhLookupASPH = rhs.mNperhLookupASPH;
-    mWsumLookupASPH = rhs.mWsumLookupASPH;
   }
   return *this;
 }
@@ -349,7 +268,9 @@ TableKernel<Dimension>::
 operator==(const TableKernel<Dimension>& rhs) const {
   return ((mInterp == rhs.mInterp) and
           (mGradInterp == rhs.mGradInterp) and
-          (mGrad2Interp == rhs.mGrad2Interp));
+          (mGrad2Interp == rhs.mGrad2Interp) and
+          (mNperhLookup == rhs.mNperhLookup) and
+          (mWsumLookup == rhs.mWsumLookup));
 }
 
 //------------------------------------------------------------------------------
@@ -372,24 +293,6 @@ typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentWsum(const Scalar nPerh) const {
   return std::max(0.0, mWsumLookup(nPerh));
-}
-
-//------------------------------------------------------------------------------
-// Same as above for ASPH second moment measurement
-// lambda_psi here is the 1/sqrt(eigenvalue) of the second moment tensor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-TableKernel<Dimension>::
-equivalentNodesPerSmoothingScaleASPH(const Scalar lambdaPsi) const {
-  return std::max(0.0, mNperhLookupASPH(lambdaPsi));
-}
-
-template<typename Dimension>
-typename Dimension::Scalar
-TableKernel<Dimension>::
-equivalentLambdaPsiASPH(const Scalar nPerh) const {
-  return std::max(0.0, mWsumLookupASPH(nPerh));
 }
 
 }
