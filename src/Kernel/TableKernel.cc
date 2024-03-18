@@ -274,6 +274,34 @@ operator==(const TableKernel<Dimension>& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// Kernel value for SPH smoothing scale nperh lookups
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+TableKernel<Dimension>::kernelValueSPH(const Scalar etaij) const {
+  REQUIRE(etaij >= 0.0);
+  if (etaij < this->mKernelExtent) {
+    return std::abs(mGradInterp(etaij));
+  } else {
+    return 0.0;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Kernel value for ASPH smoothing scale nperh lookups
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+TableKernel<Dimension>::kernelValueASPH(const Scalar etaij, const Scalar nPerh) const {
+  REQUIRE(etaij >= 0.0);
+  if (etaij < this->mKernelExtent) {
+    return std::abs(mGradInterp(etaij * std::max(1.0, 0.5*nPerh*mKernelExtent))); // * FastMath::square(sin(nPerh*M_PI*etaij));
+  } else {
+    return 0.0;
+  }
+}
+
+//------------------------------------------------------------------------------
 // Determine the number of nodes per smoothing scale implied by the given
 // sum of kernel values (SPH round tensor definition).
 //------------------------------------------------------------------------------

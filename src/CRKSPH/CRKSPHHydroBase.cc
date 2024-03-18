@@ -101,7 +101,9 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEffViscousPressure(FieldStorageType::CopyFields),
   mViscousWork(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldStorageType::CopyFields),
+  mMassFirstMoment(FieldStorageType::CopyFields),
+  mMassSecondMomentEta(FieldStorageType::CopyFields),
+  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
@@ -124,7 +126,9 @@ CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
-  mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+  mMassFirstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
+  mMassSecondMomentEta = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentEta);
+  mMassSecondMomentLab = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentLab);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
@@ -288,7 +292,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
+  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -303,7 +309,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mEffViscousPressure);
   derivs.enroll(mViscousWork);
   derivs.enroll(mWeightedNeighborSum);
-  derivs.enroll(mMassSecondMoment);
+  derivs.enroll(mMassFirstMoment);
+  derivs.enroll(mMassSecondMomentEta);
+  derivs.enroll(mMassSecondMomentLab);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -493,7 +501,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mEffViscousPressure, pathName + "/effViscousPressure");
   file.write(mViscousWork, pathName + "/viscousWork");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
@@ -522,7 +532,9 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mEffViscousPressure, pathName + "/effViscousPressure");
   file.read(mViscousWork, pathName + "/viscousWork");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");

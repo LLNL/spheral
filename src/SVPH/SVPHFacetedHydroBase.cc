@@ -107,7 +107,9 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mMassDensitySum(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldStorageType::CopyFields),
+  mMassFirstMoment(FieldStorageType::CopyFields),
+  mMassSecondMomentEta(FieldStorageType::CopyFields),
+  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mXSVPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
@@ -383,7 +385,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
+  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mXSVPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -403,7 +407,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     derivs.enroll(*mMaxViscousPressure[i]);
     derivs.enroll(*mMassDensitySum[i]);
     derivs.enroll(*mWeightedNeighborSum[i]);
-    derivs.enroll(*mMassSecondMoment[i]);
+    derivs.enroll(*mMassFirstMoment[i]);
+    derivs.enroll(*mMassSecondMomentEta[i]);
+    derivs.enroll(*mMassSecondMomentLab[i]);
     derivs.enroll(*mXSVPHDeltaV[i]);
 
     // These two (the position and velocity updates) may be registered
@@ -522,7 +528,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, Vector> XSVPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  FieldList<Dimension, Vector> massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
+  FieldList<Dimension, SymTensor> massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
+  FieldList<Dimension, SymTensor> massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
   // FieldList<Dimension, vector<Vector> > faceAcceleration = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
@@ -537,7 +545,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(XSVPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
+  CHECK(massFirstMoment.size() == numNodeLists);
+  CHECK(massSecondMomentEta.size() == numNodeLists);
+  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(faceForce.size() == numNodeLists);
   // CHECK(faceAcceleration.size() == numNodeLists);
 
@@ -1171,7 +1181,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
@@ -1202,7 +1214,9 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");

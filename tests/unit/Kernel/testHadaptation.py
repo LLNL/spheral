@@ -20,7 +20,7 @@ commandLine(Kernel = WendlandC4Kernel,
 # Make the kernel and the ASPH update method
 #-------------------------------------------------------------------------------
 WT = TableKernel(Kernel())
-asph = ASPHSmoothingScalev2(WT, targetNperh = nPerh)
+asph = ASPHSmoothingScale(WT, targetNperh = nPerh)
 
 #-------------------------------------------------------------------------------
 # Generate our test point positions
@@ -90,6 +90,7 @@ def newH(H0, Wsum, psiLab, psiEta, WT, asph, nPerh):
 
     # First the ASPH shape & volume change
     H1inv = SymTensor()
+    fnu = [1.0, 1.0]
     fscale = 1.0
     for nu in range(2):
         evec = eigenLab.eigenVectors.getColumn(nu)
@@ -97,14 +98,16 @@ def newH(H0, Wsum, psiLab, psiEta, WT, asph, nPerh):
         thpt = sqrt((psiEta*evec).magnitude())
         nPerheff = asph.equivalentNodesPerSmoothingScale(thpt)
         print("      --> h0, nPerheff : ", h0, nPerheff)
+        fnu[nu] = nPerh/nPerheff
         fscale *= nPerh/nPerheff
         H1inv(nu,nu, h0 * nPerh/nPerheff)
-
-    # Scale by the zeroth moment to get the right overall volume
     print("         H1inv before SPH scaling: ", H1inv)
-    nPerhSPH = WT.equivalentNodesPerSmoothingScale(Wsum)
+
+    # Share the SPH volume change estimate by the ratio of the eigenvalue scaling
+    nPerhSPH = WT.equivalentNodesPerSmoothingScale(sqrt(Wsum))
     fscale = nPerh/nPerhSPH / sqrt(fscale)
-    H1inv *= fscale
+    H1inv[0] *= fscale*sqrt(fnu[0]/fnu[1])
+    H1inv[2] *= fscale*sqrt(fnu[1]/fnu[0])
     print("          H1inv after SPH scaling: ", H1inv)
 
     H1inv.rotationalTransform(eigenLab.eigenVectors)

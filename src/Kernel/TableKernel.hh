@@ -98,6 +98,10 @@ private:
   Scalar mTargetNperh, mMinNperh, mMaxNperh;
   InterpolatorType mInterp, mGradInterp, mGrad2Interp;       // W, grad W, grad^2 W
   NperhInterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
+
+  using Kernel<Dimension, TableKernel<Dimension>>::mVolumeNormalization;
+  using Kernel<Dimension, TableKernel<Dimension>>::mKernelExtent;
+  using Kernel<Dimension, TableKernel<Dimension>>::mInflectionPoint;
 };
 
 }

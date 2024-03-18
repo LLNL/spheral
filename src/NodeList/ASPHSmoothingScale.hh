@@ -10,6 +10,7 @@
 
 #include "SmoothingScaleBase.hh"
 #include "Geometry/Dimension.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 
 namespace Spheral {
 
@@ -18,12 +19,16 @@ class ASPHSmoothingScale: public SmoothingScaleBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using InterpolatorType = CubicHermiteInterpolator;
 
   // Constructors, destructor.
+  ASPHSmoothingScale(const TableKernel<Dimension>& W,
+                     const Scalar targetNperh,
+                     const size_t numPoints = 0u);     // numPoints == 0 ==> use same number of points as TableKernel
   explicit ASPHSmoothingScale();
   ASPHSmoothingScale(const ASPHSmoothingScale& rhs);
   ASPHSmoothingScale& operator=(const ASPHSmoothingScale& rhs);
@@ -46,7 +51,9 @@ public:
   newSmoothingScale(const SymTensor& H,
                     const Vector& pos,
                     const Scalar zerothMoment,
-                    const SymTensor& secondMoment,
+                    const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -60,27 +67,46 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const Vector& /*pos*/,
+                      const Vector& pos,
                       const Scalar zerothMoment,
-                      const SymTensor& secondMoment,
+                      const Vector& firstMoment,
+                      const SymTensor& secondMomentEta,
+                      const SymTensor& secondMomentLab,
                       const TableKernel<Dimension>& W,
-                      const Scalar /*hmin*/,
-                      const Scalar /*hmax*/,
+                      const Scalar hmin,
+                      const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh,
-                      const ConnectivityMap<Dimension>& /*connectivityMap*/,
-                      const unsigned /*nodeListi*/,
-                      const unsigned /*i*/) const override;
+                      const ConnectivityMap<Dimension>& connectivityMap,
+                      const unsigned nodeListi,
+                      const unsigned i) const override;
 
   // Compute the new H tensors for a tessellation.
   virtual SymTensor
-  idealSmoothingScale(const SymTensor& /*H*/,
+  idealSmoothingScale(const SymTensor& H,
                       const Mesh<Dimension>& mesh,
                       const typename Mesh<Dimension>::Zone& zone,
                       const Scalar hmin,
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh) const override;
+
+  // Return the equivalent number of nodes per smoothing scale implied by the given
+  // sum of kernel values, using the second moment ASPH algorithm
+  Scalar equivalentNodesPerSmoothingScale(const Scalar lambdaPsi) const;
+  Scalar equivalentLambdaPsi(const Scalar nPerh) const;
+
+  // Access the internal data
+  Scalar targetNperh() const                         { return mTargetNperh; }
+  Scalar minNperh() const                            { return mMinNperh; }
+  Scalar maxNperh() const                            { return mMaxNperh; }
+  const InterpolatorType& nPerhInterpolator() const  { return mNperhLookup; }
+  const InterpolatorType& WsumInterpolator() const   { return mWsumLookup; }
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  Scalar mTargetNperh, mMinNperh, mMaxNperh;
+  InterpolatorType mNperhLookup, mWsumLookup;
 };
 
 // We explicitly specialize the time derivatives.

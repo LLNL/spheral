@@ -10,6 +10,7 @@
 #include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"
 #include "Utilities/GeometricUtilities.hh"
+#include "Utilities/bisectRoot.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
@@ -148,6 +149,82 @@ computeHinvFromA(const Dim<3>::Tensor&) {
   return Dim<3>::SymTensor::one;
 }
 
+//------------------------------------------------------------------------------
+// Sum the Kernel values for the given stepsize (ASPH)
+// We do these on a lattice pattern since the coordinates of the points are
+// used.
+//------------------------------------------------------------------------------
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
+                    const double targetNperh,
+                    const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
+  auto result = 0.0;
+  auto etax = deta;
+  while (etax < W.kernelExtent()) {
+    result += 2.0*W.kernelValueASPH(etax, targetNperh) * etax*etax;
+    etax += deta;
+  }
+  return result;
+}
+
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
+                    const double targetNperh,
+                    const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
+  Dim<2>::SymTensor result;
+  double etay = 0.0;
+  while (etay < W.kernelExtent()) {
+    double etax = 0.0;
+    while (etax < W.kernelExtent()) {
+      const Dim<2>::Vector eta(etax, etay);
+      auto dresult = W.kernelValueASPH(eta.magnitude(), targetNperh) * eta.selfdyad();
+      if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+      if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+      result += dresult;
+      etax += deta;
+    }
+    etay += deta;
+  }
+  const auto lambda = 0.5*(result.eigenValues().sumElements());
+  return std::sqrt(lambda);
+}
+
+inline
+double
+sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
+                    const double targetNperh,
+                    const double nPerh) {
+  REQUIRE(nPerh > 0.0);
+  const auto deta = 1.0/nPerh;
+  Dim<3>::SymTensor result;
+  double etaz = 0.0;
+  while (etaz < W.kernelExtent()) {
+    double etay = 0.0;
+    while (etay < W.kernelExtent()) {
+      double etax = 0.0;
+      while (etax < W.kernelExtent()) {
+        const Dim<3>::Vector eta(etax, etay, etaz);
+        auto dresult = W.kernelValueASPH(eta.magnitude(), targetNperh) * eta.selfdyad();
+        if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
+        if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
+        if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
+        result += dresult;
+        etax += deta;
+      }
+      etay += deta;
+    }
+    etaz += deta;
+  }
+  const auto lambda = (result.eigenValues().sumElements())/3.0;
+  return pow(lambda, 1.0/3.0);
+}
+
 }  // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -155,8 +232,28 @@ computeHinvFromA(const Dim<3>::Tensor&) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ASPHSmoothingScale<Dimension>::
-ASPHSmoothingScale():
-  SmoothingScaleBase<Dimension>() {
+ASPHSmoothingScale(const TableKernel<Dimension>& W,
+                   const Scalar targetNperh,
+                   const size_t numPoints):
+  SmoothingScaleBase<Dimension>(),
+  mTargetNperh(targetNperh),
+  mMinNperh(W.minNperhLookup()),
+  mMaxNperh(W.maxNperhLookup()),
+  mNperhLookup(),
+  mWsumLookup() {
+
+  // Preconditions
+  VERIFY2(mTargetNperh >= mMinNperh, "ASPHSmoothingScale ERROR: targetNperh not in (minNperh, maxNperh) : " << mTargetNperh << " : (" << mMinNperh << ", " << mMaxNperh << ")");
+
+  // Initalize the lookup tables for finding the effective n per h
+  const auto n = numPoints > 0u ? numPoints : W.numPoints();
+  mWsumLookup.initialize(mMinNperh, mMaxNperh, n,
+                         [&](const double x) -> double { return sumKernelValuesASPH(W, mTargetNperh, x); });
+  mNperhLookup.initialize(mWsumLookup(mMinNperh), mWsumLookup(mMaxNperh), n,
+                          [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookup(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
+
+  mWsumLookup.makeMonotonic();
+  mNperhLookup.makeMonotonic();
 }
 
 //------------------------------------------------------------------------------
@@ -165,7 +262,12 @@ ASPHSmoothingScale():
 template<typename Dimension>
 ASPHSmoothingScale<Dimension>::
 ASPHSmoothingScale(const ASPHSmoothingScale<Dimension>& rhs):
-  SmoothingScaleBase<Dimension>(rhs) {
+  SmoothingScaleBase<Dimension>(rhs),
+  mTargetNperh(rhs.mTargetNperh),
+  mMinNperh(rhs.mMinNperh),
+  mMaxNperh(rhs.mMaxNperh),
+  mNperhLookup(rhs.mNperhLookup),
+  mWsumLookup(rhs.mWsumLookup) {
 }
 
 //------------------------------------------------------------------------------
@@ -176,6 +278,11 @@ ASPHSmoothingScale<Dimension>&
 ASPHSmoothingScale<Dimension>::
 operator=(const ASPHSmoothingScale& rhs) {
   SmoothingScaleBase<Dimension>::operator=(rhs);
+  mTargetNperh = rhs.mTargetNperh;
+  mMinNperh = rhs.mMinNperh;
+  mMaxNperh = rhs.mMaxNperh;
+  mNperhLookup = rhs.mNperhLookup;
+  mWsumLookup = rhs.mWsumLookup;
   return *this;
 }
 
@@ -277,120 +384,58 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& /*pos*/,
+                    const Vector& pos,
                     const Scalar zerothMoment,
-                    const SymTensor& secondMoment,
+                    const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
-                    const Scalar /*hmin*/,
-                    const Scalar /*hmax*/,
+                    const Scalar hmin,
+                    const Scalar hmax,
                     const Scalar hminratio,
                     const Scalar nPerh,
-                    const ConnectivityMap<Dimension>& /*connectivityMap*/,
-                    const unsigned /*nodeListi*/,
-                    const unsigned /*i*/) const {
+                    const ConnectivityMap<Dimension>& connectivityMap,
+                    const unsigned nodeListi,
+                    const unsigned i) const {
 
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
-//   REQUIRE(secondMoment.Determinant() > 0.0);
+  REQUIRE(secondMomentEta.Determinant() >= 0.0);
 
-  const double tiny = 1.0e-50;
-  const double tolerance = 1.0e-5;
+  // const double tiny = 1.0e-50;
+  // const double tolerance = 1.0e-5;
 
-  // // Count how many neighbors we currently sample by gather.
-  // unsigned n0 = 0;
-  // const double kernelExtent = W.kernelExtent();
-  // const vector<const NodeList<Dimension>*> nodeLists = connectivityMap.nodeLists();
-  // const vector<vector<int> >& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-  // const unsigned numNodeLists = nodeLists.size();
-  // for (unsigned nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-  //   const Field<Dimension, Vector>& posj = nodeLists[nodeListj]->positions();
-  //   for (vector<int>::const_iterator jItr = fullConnectivity[nodeListj].begin();
-  //        jItr != fullConnectivity[nodeListj].end();
-  //        ++jItr) {
-  //     const unsigned j = *jItr;
-  //     const double etai = (H*(pos - posj[j])).magnitude();
-  //     if (etai <= kernelExtent) ++n0;
-  //   }
-  // }
+  // If there is no information to be had (no neighbors), just double the current H vote
+  // and bail
+  if (secondMomentEta.Determinant() == 0.0) return 0.5*H;
 
-  // // We compute an upper-bound for h depending on if we're getting too many neighbors.
-  // const double targetRadius = kernelExtent*nPerh;
-  // double currentActualRadius = equivalentRadius<Dimension>(double(n0));  // This is radius in number of nodes.
-  // const double maxNeighborLimit = 1.25*targetRadius/(currentActualRadius + 1.0e-30);
+  // Decompose the second moment tensor into it's eigen values/vectors.
+  const auto Psi_eigen = secondMomentEta.eigenVectors();
 
-  // Determine the current effective number of nodes per smoothing scale.
-  Scalar currentNodesPerSmoothingScale;
-  if (fuzzyEqual(zerothMoment, 0.0)) {
+  // Iterate over the eigen values and build the new H tensor in the kernel frame.
+  SymTensor HnewInv;
+  for (auto nu = 0u; nu < Dimension::nDim; ++nu) {
+    const auto lambdaPsi = Psi_eigen.eigenValues(nu);
+    const auto evec = Psi_eigen.eigenVectors.getColumn(nu);
+    const auto h0 = 1.0/(H*evec).magnitude();
 
-    // This node appears to be in isolation.  It's not clear what to do here --
-    // for now we'll punt and say you should double the current smoothing scale.
-    currentNodesPerSmoothingScale = 0.5*nPerh;
+    // Query the kernel for the equivalent nodes per smoothing scale in this direction
+    auto currentNodesPerSmoothingScale = this->equivalentNodesPerSmoothingScale(lambdaPsi);
+    CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-  } else {
+    // The (limited) ratio of the desired to current nodes per smoothing scale.
+    const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+    CHECK(s > 0.0);
 
-    // Query from the kernel the equivalent nodes per smoothing scale
-    // for the observed sum.
-    currentNodesPerSmoothingScale = W.equivalentNodesPerSmoothingScale(zerothMoment);
-  }
-  CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
-
-  // The (limited) ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
-  // const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
-  CHECK(s > 0.0);
-
-  // Determine a weighting factor for how confident we are in the second
-  // moment measurement, as a function of the effective number of nodes we're 
-  // sampling.
-  const double psiweight = max(0.0, min(1.0, 2.0/s - 1.0));
-  CHECK(psiweight >= 0.0 && psiweight <= 1.0);
-
-  // Do we have enough neighbors to meaningfully determine the new shape?
-  SymTensor H1hat = SymTensor::one;
-  if (psiweight > 0.0 && secondMoment.Determinant() > 0.0 && secondMoment.eigenValues().minElement() > 0.0) {
-
-    // Calculate the normalized psi in the eta frame.
-    CHECK(secondMoment.maxAbsElement() > 0.0);
-    SymTensor psi = secondMoment / secondMoment.maxAbsElement();
-    if (psi.Determinant() > 1.0e-10) {
-      psi /= Dimension::rootnu(abs(psi.Determinant()) + 1.0e-80);
-    } else {
-      psi = SymTensor::one;
-    }
-    CONTRACT_VAR(tolerance);
-    CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
-
-    // Enforce limits on psi, which helps some with stability.
-    typename SymTensor::EigenStructType psieigen = psi.eigenVectors();
-    // for (int i = 0; i != Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/pow(psieigen.eigenValues(i), 0.5/(Dimension::nDim - 1));
-    for (int i = 0; i != Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/sqrt(psieigen.eigenValues(i));
-    const Scalar psimin = (psieigen.eigenValues.maxElement()) * hminratio;
-    psi = constructSymTensorWithMaxDiagonal(psieigen.eigenValues, psimin);
-    psi.rotationalTransform(psieigen.eigenVectors);
-    CHECK(psi.Determinant() > 0.0);
-    psi /= Dimension::rootnu(psi.Determinant() + 1.0e-80);
-    CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
-
-    // Compute the new vote for the ideal shape.
-    H1hat = psi.sqrt().Inverse();
-    // H1hat = psi.sqrt() / sqrt(Dimension::rootnu(psi.Determinant()) + 1.0e-80);
-    CHECK(fuzzyEqual(H1hat.Determinant(), 1.0, tolerance));
+    HnewInv(nu, nu) = h0*s;
   }
 
-  // Determine the desired final H determinant.
-  Scalar a;
-  if (s < 1.0) {
-    a = 0.4*(1.0 + s*s);
-  } else {
-    a = 0.4*(1.0 + 1.0/(s*s*s + tiny));
-  }
-  CHECK(1.0 - a + a*s > 0.0);
-  CHECK(H.Determinant() > 0.0);
-  const double H1scale = Dimension::rootnu(H.Determinant())/(1.0 - a + a*s);
+  // Rotate to the lab frame.
+  HnewInv.rotationalTransform(Psi_eigen.eigenVectors);
 
-  // Combine the shape and determinant to determine the ideal H.
-  return H1scale * H1hat;
+  // That's it
+  return HnewInv.Inverse();
 }
 
 //------------------------------------------------------------------------------
@@ -403,7 +448,9 @@ ASPHSmoothingScale<Dimension>::
 newSmoothingScale(const SymTensor& H,
                   const Vector& pos,
                   const Scalar zerothMoment,
-                  const SymTensor& secondMoment,
+                  const Vector& firstMoment,
+                  const SymTensor& secondMomentEta,
+                  const SymTensor& secondMomentLab,
                   const TableKernel<Dimension>& W,
                   const Scalar hmin,
                   const Scalar hmax,
@@ -419,7 +466,9 @@ newSmoothingScale(const SymTensor& H,
   const SymTensor Hideal = idealSmoothingScale(H, 
                                                pos,
                                                zerothMoment,
-                                               secondMoment,
+                                               firstMoment,
+                                               secondMomentEta,
+                                               secondMomentLab,
                                                W,
                                                hmin,
                                                hmax,
@@ -533,6 +582,27 @@ idealSmoothingScale(const SymTensor& /*H*/,
   }
   result.rotationalTransform(eigen.eigenVectors);
   return result;
+}
+
+//------------------------------------------------------------------------------
+// Determine the number of nodes per smoothing scale implied by the given
+// sum of kernel values.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ASPHSmoothingScale<Dimension>::
+equivalentNodesPerSmoothingScale(const Scalar lambdaPsi) const {
+  return std::max(0.0, mNperhLookup(lambdaPsi));
+}
+
+//------------------------------------------------------------------------------
+// Determine the effective Wsum we would expect for the given n per h.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ASPHSmoothingScale<Dimension>::
+equivalentLambdaPsi(const Scalar nPerh) const {
+  return std::max(0.0, mWsumLookup(nPerh));
 }
 
 }

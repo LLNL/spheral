@@ -279,6 +279,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // The kernels and such.
   const auto  order = this->correctionOrder();
   const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
+  const auto& WT = WR.kernel();    // Base TableKernel
 
   // A few useful constants we'll use in the following loop.
   //const double tiny = 1.0e-30;
@@ -345,7 +346,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  auto  massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
+  auto  massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
+  auto  massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -360,11 +363,16 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
+  CHECK(massFirstMoment.size() == numNodeLists);
+  CHECK(massSecondMomentEta.size() == numNodeLists);
+  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
+
+  const auto& nodeList = mass[0]->nodeList();
+  const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
   // Build the functor we use to compute the effective coupling between nodes.
   const NodeCoupling coupling;
@@ -374,11 +382,14 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, Wj, gWj;
+    Scalar etaMagi, etaMagj, fweightij;
+    Scalar Wi, Wj;
+    Scalar WSPHi, WSPHj, WASPHi, WASPHj;
     Tensor QPiij, QPiji;
-    Vector gradWi, gradWj, gradWSPHi, gradWSPHj;
+    Vector gradWi, gradWj;
     Vector deltagrad, forceij, forceji;
-    SymTensor sigmai, sigmaj;
+    Vector xij, vij, etai, etaj;
+    SymTensor sigmai, sigmaj, xijdyad;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);
@@ -390,7 +401,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
+    auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
+    auto massSecondMomentEta_thread = massSecondMomentEta.threadCopy(threadStack);
+    auto massSecondMomentLab_thread = massSecondMomentLab.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -432,7 +445,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& viscousWorki = viscousWork(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
+      auto& massSecondMomentEtai = massSecondMomentEta_thread(nodeListi, i);
+      auto& massSecondMomentLabi = massSecondMomentLab_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
@@ -466,13 +481,17 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& viscousWorkj = viscousWork(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment(nodeListj, j);
+      auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
+      auto& massSecondMomentEtaj = massSecondMomentEta_thread(nodeListj, j);
+      auto& massSecondMomentLabj = massSecondMomentLab_thread(nodeListj, j);
 
       // Node displacement.
-      const auto xij = posi - posj;
-      const auto etai = Hi*xij;
-      const auto etaj = Hj*xij;
-      const auto vij = vi - vj;
+      xij = posi - posj;
+      vij = vi - vj;
+      etai = Hi*xij;
+      etaj = Hj*xij;
+      etaMagi = etai.magnitude();
+      etaMagj = etaj.magnitude();
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij = true; // nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -481,25 +500,29 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
 
       // Symmetrized kernel weight and gradient.
-      std::tie(Wj, gradWj, gWj) = WR.evaluateKernelAndGradients( xij, Hj, correctionsi);  // Hj because we compute RK using scatter formalism
-      std::tie(Wi, gradWi, gWi) = WR.evaluateKernelAndGradients(-xij, Hi, correctionsj);
+      std::tie(Wj, gradWj) = WR.evaluateKernelAndGradient( xij, Hj, correctionsi);  // Hj because we compute RK using scatter formalism
+      std::tie(Wi, gradWi) = WR.evaluateKernelAndGradient(-xij, Hi, correctionsj);
       deltagrad = gradWj - gradWi;
-      const auto gradWSPHi = (Hi*etai.unitVector())*gWi;
-      const auto gradWSPHj = (Hj*etaj.unitVector())*gWj;
 
       // Find the damaged pair weighting scaling.
       const auto fDij = coupling(pairs[kk]);
       CHECK(fDij >= 0.0 and fDij <= 1.0);
 
-      // Zero'th and second moment of the node distribution -- used for the
-      // ideal H calculation.
-      const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto xij2 = xij.magnitude2();
-      const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
-      weightedNeighborSumi +=     fweightij*std::abs(gWi);
-      weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      massSecondMomenti +=     fweightij*gradWSPHi.magnitude2()*thpt;
-      massSecondMomentj += 1.0/fweightij*gradWSPHj.magnitude2()*thpt;
+      // Moments of the node distribution -- used for the ideal H calculation.
+      WSPHi = WT.kernelValueSPH(etaMagi);
+      WSPHj = WT.kernelValueSPH(etaMagj);
+      WASPHi = WT.kernelValueASPH(etaMagi, nPerh);
+      WASPHj = WT.kernelValueASPH(etaMagj, nPerh);
+      fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
+      xijdyad = xij.selfdyad();
+      weightedNeighborSumi +=     fweightij*WSPHi;
+      weightedNeighborSumj += 1.0/fweightij*WSPHj;
+      massFirstMomenti -=     fweightij*WSPHi*etai;
+      massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
+      massSecondMomentEtai +=     fweightij*WASPHi*etai.selfdyad();
+      massSecondMomentEtaj += 1.0/fweightij*WASPHj*etaj.selfdyad();
+      massSecondMomentLabi +=     fweightij*WASPHi*xijdyad;
+      massSecondMomentLabj += 1.0/fweightij*WASPHj*xijdyad;
 
       // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
@@ -606,7 +629,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto  Si = S(nodeListi, i);
       const auto  STTi = -Si.Trace();
       const auto  mui = mu(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
       const auto  zetai = abs((Hi*posi).y());
       const auto  hri = ri*safeInv(zetai);
       const auto  riInv = safeInv(ri, 0.25*hri);
@@ -621,7 +643,10 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto& massFirstMomenti = massFirstMoment(nodeListi, i);
+      auto& massSecondMomentEtai = massSecondMomentEta(nodeListi, i);
+      auto& massSecondMomentLabi = massSecondMomentLab(nodeListi, i);
+
       auto& DSDti = DSDt(nodeListi, i);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
@@ -651,8 +676,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       if (this->evolveTotalEnergy()) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
+      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
 
       // The H tensor evolution.
       DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
@@ -665,7 +689,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
                                                        posi,
                                                        weightedNeighborSumi,
-                                                       massSecondMomenti,
+                                                       massFirstMomenti,
+                                                       massSecondMomentEtai,
+                                                       massSecondMomentLabi,
                                                        WR.kernel(),
                                                        hmin,
                                                        hmax,

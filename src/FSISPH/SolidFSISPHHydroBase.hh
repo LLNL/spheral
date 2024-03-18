@@ -252,7 +252,9 @@ public:
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Vector>&    massFirstMoment() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
 
   const FieldList<Dimension, int>& interfaceFlags() const;
   const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
@@ -336,7 +338,9 @@ private:
   FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
+  FieldList<Dimension, Vector>    mMassFirstMoment;
+  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs

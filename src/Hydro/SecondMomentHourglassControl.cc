@@ -122,20 +122,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
   const FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const FieldList<Dimension, SymTensor> Hfield = state.fields(HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, SymTensor> massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   FieldList<Dimension, Vector> DvDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, Scalar());
 
   // Prepare to fill in the diagnostic acceleration field.
   mAcceleration = dataBase.newFluidFieldList(Vector::zero, "anti-hourglass acceleration");
-
-  // Apply boundary conditions to the second moment.
-  for (typename Physics<Dimension>::ConstBoundaryIterator itr = this->boundaryBegin();
-       itr != this->boundaryEnd();
-       ++itr) (*itr)->applyFieldListGhostBoundary(massSecondMoment);
-  for (typename Physics<Dimension>::ConstBoundaryIterator itr = this->boundaryBegin();
-       itr != this->boundaryEnd();
-       ++itr) (*itr)->finalizeGhostBoundary();
 
   // Get the connectivity map.
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -148,7 +139,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const Field<Dimension, Vector>& r = **position.fieldForNodeList(*nodeListPtr);
     //const Field<Dimension, Vector>& v = **velocity.fieldForNodeList(*nodeListPtr);
     const Field<Dimension, SymTensor>& H = **Hfield.fieldForNodeList(*nodeListPtr);
-    //const Field<Dimension, SymTensor>& psi = **massSecondMoment.fieldForNodeList(*nodeListPtr);
     Field<Dimension, Vector>& accel = **DvDt.fieldForNodeList(*nodeListPtr);
     //Field<Dimension, Scalar>& work = **DepsDt.fieldForNodeList(*nodeListPtr);
 
@@ -162,7 +152,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const Vector& ri = r(i);
       //const Vector& vi = v(i);
       const SymTensor& Hi = H(i);
-      //const SymTensor& psii = psi(i);
       const Scalar Hdeti = Hi.Determinant();
 
       // Find the neighbors for this node.
@@ -181,7 +170,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
           const Vector& rj = r(j);
           //const Vector& vj = v(j);
           const SymTensor& Hj = H(j);
-          //const SymTensor& psij = psi(j);
           const Scalar Hdetj = Hj.Determinant();
 
           // Compute the acceleration from this pair.

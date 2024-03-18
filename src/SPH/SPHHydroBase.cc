@@ -121,7 +121,9 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassDensitySum(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldStorageType::CopyFields),
+  mMassFirstMoment(FieldStorageType::CopyFields),
+  mMassSecondMomentEta(FieldStorageType::CopyFields),
+  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mXSPHWeightSum(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
@@ -152,7 +154,9 @@ SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
   mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
-  mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+  mMassFirstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
+  mMassSecondMomentEta = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentEta);
+  mMassSecondMomentLab = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentLab);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
@@ -368,7 +372,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
+  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mXSPHWeightSum, 0.0, HydroFieldNames::XSPHWeightSum, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -387,7 +393,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mMassDensitySum);
   derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
-  derivs.enroll(mMassSecondMoment);
+  derivs.enroll(mMassFirstMoment);
+  derivs.enroll(mMassSecondMomentEta);
+  derivs.enroll(mMassSecondMomentLab);
   derivs.enroll(mXSPHWeightSum);
   derivs.enroll(mXSPHDeltaV);
 
@@ -704,7 +712,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivs.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivs.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
+  auto  massFirstMoment = derivs.fields(HydroFieldNames::massFirstMoment, Vector::zero);
+  auto  massSecondMomentEta = derivs.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
+  auto  massSecondMomentLab = derivs.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -723,7 +733,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
+  CHECK(massFirstMoment.size() == numNodeLists);
+  CHECK(massSecondMomentEta.size() == numNodeLists);
+  CHECK(massSecondMomentLab.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -746,6 +758,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     int i, j, nodeListi, nodeListj;
     Vector gradWi, gradWj, gradWQi, gradWQj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
+    Scalar WSPHi, WSPHj, WASPHi, WASPHj;
     Tensor QPiij, QPiji;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -763,7 +776,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
+    auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
+    auto massSecondMomentEta_thread = massSecondMomentEta.threadCopy(threadStack);
+    auto massSecondMomentLab_thread = massSecondMomentLab.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -801,7 +816,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+      auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
+      auto& massSecondMomentEtai = massSecondMomentEta_thread(nodeListi, i);
+      auto& massSecondMomentLabi = massSecondMomentLab_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -832,7 +849,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+      auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
+      auto& massSecondMomentEtaj = massSecondMomentEta_thread(nodeListj, j);
+      auto& massSecondMomentLabj = massSecondMomentLab_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -863,16 +882,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         gradWQi = gWQi*Hi*etaUnit;
         gradWQj = gWQj*Hj*etaUnit;
       }
+      WSPHi = W.kernelValueSPH(etaMagi);
+      WSPHj = W.kernelValueSPH(etaMagj);
+      WASPHi = W.kernelValueASPH(etaMagi, nPerh);
+      WASPHj = W.kernelValueASPH(etaMagj, nPerh);
 
-      // Zero'th and second moment of the node distribution -- used for the
-      // ideal H calculation.
+      // Moments of the node distribution -- used for the ideal H calculation.
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto rij2 = rij.magnitude2();
-      const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      weightedNeighborSumi +=     fweightij*std::abs(gWi);
-      weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-      massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
+      const auto rijdyad = rij.selfdyad();
+      weightedNeighborSumi +=     fweightij*WSPHi;
+      weightedNeighborSumj += 1.0/fweightij*WSPHj;
+      massFirstMomenti -=     fweightij*WSPHi*etai;
+      massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
+      massSecondMomentEtai +=     fweightij*WASPHi*etai.selfdyad();
+      massSecondMomentEtaj += 1.0/fweightij*WASPHj*etaj.selfdyad();
+      massSecondMomentLabi +=     fweightij*WASPHi*rijdyad;
+      massSecondMomentLabj += 1.0/fweightij*WASPHj*rijdyad;
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
@@ -998,7 +1023,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      const auto& massFirstMomenti = massFirstMoment(nodeListi, i);
+      const auto& massSecondMomentEtai = massSecondMomentEta(nodeListi, i);
+      const auto& massSecondMomentLabi = massSecondMomentLab(nodeListi, i);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
@@ -1030,8 +1057,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
+      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
@@ -1053,7 +1079,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
                                                         ri,
                                                         weightedNeighborSumi,
-                                                        massSecondMomenti,
+                                                        massFirstMomenti,
+                                                        massSecondMomentEtai,
+                                                        massSecondMomentLabi,
                                                         W,
                                                         hmin,
                                                         hmax,
@@ -1295,7 +1323,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
@@ -1336,7 +1366,9 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
   file.read(mOmegaGradh, pathName + "/omegaGradh");

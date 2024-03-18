@@ -184,7 +184,9 @@ public:
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Vector>&    massFirstMoment() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
@@ -242,7 +244,9 @@ protected:
   FieldList<Dimension, Scalar>    mMassDensitySum;
 
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
+  FieldList<Dimension, Vector>    mMassFirstMoment;
+  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, Vector>    mXSVPHDeltaV;
 

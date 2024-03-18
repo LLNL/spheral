@@ -177,7 +177,9 @@ ASPHSmoothingScalev2<Dimension>::
 idealSmoothingScale(const SymTensor& H,
                     const Vector& pos,
                     const Scalar zerothMoment,
-                    const SymTensor& secondMoment,
+                    const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -190,17 +192,17 @@ idealSmoothingScale(const SymTensor& H,
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
-  REQUIRE(secondMoment.Determinant() >= 0.0);
+  REQUIRE(secondMomentEta.Determinant() >= 0.0);
 
   // const double tiny = 1.0e-50;
   // const double tolerance = 1.0e-5;
 
   // If there is no information to be had (no neighbors), just double the current H vote
   // and bail
-  if (secondMoment.Determinant() == 0.0) return 0.5*H;
+  if (secondMomentEta.Determinant() == 0.0) return 0.5*H;
 
   // Decompose the second moment tensor into it's eigen values/vectors.
-  const auto Psi_eigen = secondMoment.eigenVectors();
+  const auto Psi_eigen = secondMomentEta.eigenVectors();
 
   // Iterate over the eigen values and build the new H tensor in the kernel frame.
   SymTensor HnewInv;

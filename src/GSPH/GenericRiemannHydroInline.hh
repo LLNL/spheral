@@ -492,10 +492,26 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::Vector>&
+GenericRiemannHydro<Dimension>::
+massFirstMoment() const {
+  return mMassFirstMoment;
+}
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
 GenericRiemannHydro<Dimension>::
-massSecondMoment() const {
-  return mMassSecondMoment;
+massSecondMomentEta() const {
+  return mMassSecondMomentEta;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+GenericRiemannHydro<Dimension>::
+massSecondMomentLab() const {
+  return mMassSecondMomentLab;
 }
 
 template<typename Dimension>

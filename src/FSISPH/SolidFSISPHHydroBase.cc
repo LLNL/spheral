@@ -204,7 +204,9 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mEffViscousPressure(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
   mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassSecondMoment(FieldStorageType::CopyFields),
+  mMassFirstMoment(FieldStorageType::CopyFields),
+  mMassSecondMomentEta(FieldStorageType::CopyFields),
+  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mInterfaceFlags(FieldStorageType::CopyFields),
   mInterfaceAreaVectors(FieldStorageType::CopyFields),
   mInterfaceNormals(FieldStorageType::CopyFields),
@@ -258,7 +260,9 @@ SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
     mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
     mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
-    mMassSecondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+    mMassFirstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
+    mMassSecondMomentEta = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentEta);
+    mMassSecondMomentLab = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentLab);
     mInterfaceFlags = dataBase.newFluidFieldList(int(0),  FSIFieldNames::interfaceFlags);
     mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
     mInterfaceNormals = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceNormals);
@@ -458,7 +462,9 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
+  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
+  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceState<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
   dataBase.resizeFluidFieldList(mNewInterfaceNormals, Vector::zero,  PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceNormals,false);
@@ -496,7 +502,9 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mEffViscousPressure);
   derivs.enroll(mNormalization);
   derivs.enroll(mWeightedNeighborSum);
-  derivs.enroll(mMassSecondMoment);
+  derivs.enroll(mMassFirstMoment);
+  derivs.enroll(mMassSecondMomentEta);
+  derivs.enroll(mMassSecondMomentLab);
   derivs.enroll(mNewInterfaceFlags);
   derivs.enroll(mNewInterfaceAreaVectors);
   derivs.enroll(mNewInterfaceNormals);
@@ -773,7 +781,9 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.write(mNormalization, pathName + "/normalization");
   file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mInterfaceFlags, pathName + "/interfaceFlags");
   file.write(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.write(mInterfaceNormals, pathName + "/interfaceNormals");
@@ -825,7 +835,9 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.read(mNormalization, pathName + "/normalization");
   file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassSecondMoment, pathName + "/massSecondMoment");
+  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
+  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
+  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mInterfaceFlags, pathName + "/interfaceFlags");
   file.read(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.read(mInterfaceNormals, pathName + "/interfaceNormals");

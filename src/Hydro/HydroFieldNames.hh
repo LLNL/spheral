@@ -31,7 +31,8 @@ struct HydroFieldNames {
   static const std::string XSPHWeightSum;
   static const std::string Hsmooth;
   static const std::string massFirstMoment;
-  static const std::string massSecondMoment;
+  static const std::string massSecondMomentEta;
+  static const std::string massSecondMomentLab;
   static const std::string weightedNeighborSum;
   static const std::string pressure;
   static const std::string partialPpartialEps;

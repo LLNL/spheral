@@ -12,15 +12,15 @@ class CRKSPHHydroBase(GenericHydro):
     "CRKSPHHydroBase -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++."
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
-    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
-    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using FourthRankTensor = typename %(Dimension)s::FourthRankTensor;
+    using FifthRankTensor = typename %(Dimension)s::FifthRankTensor;
+    using FacetedVolume = typename %(Dimension)s::FacetedVolume;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
 """
 
     def pyinit(self,
@@ -171,7 +171,9 @@ mass density, velocity, and specific thermal energy."""
     effectiveViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveViscousPressure", returnpolicy="reference_internal")
     viscousWork = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "viscousWork", returnpolicy="reference_internal")
     weightedNeighborSum = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "weightedNeighborSum", returnpolicy="reference_internal")
-    massSecondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMoment", returnpolicy="reference_internal")
+    massFirstMoment = PYB11property("const FieldList<%(Dimension)s, Vector>&", "massFirstMoment", returnpolicy="reference_internal")
+    massSecondMomentEta = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentEta", returnpolicy="reference_internal")
+    massSecondMomentLab = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentLab", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
 
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")

@@ -321,10 +321,26 @@ weightedNeighborSum() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::Vector>&
+SVPHFacetedHydroBase<Dimension>::
+massFirstMoment() const {
+  return mMassFirstMoment;
+}
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
 SVPHFacetedHydroBase<Dimension>::
-massSecondMoment() const {
-  return mMassSecondMoment;
+massSecondMomentEta() const {
+  return mMassSecondMomentEta;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SVPHFacetedHydroBase<Dimension>::
+massSecondMomentLab() const {
+  return mMassSecondMomentLab;
 }
 
 template<typename Dimension>

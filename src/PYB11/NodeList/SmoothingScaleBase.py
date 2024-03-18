@@ -9,14 +9,14 @@ from SmoothingScaleAbstractMethods import *
 class SmoothingScaleBase:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef Field<%(Dimension)s, Scalar> ScalarField;
-    typedef Field<%(Dimension)s, Vector> VectorField;
-    typedef Field<%(Dimension)s, Tensor> TensorField;
-    typedef Field<%(Dimension)s, SymTensor> SymTensorField;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ScalarField = Field<%(Dimension)s, Scalar>;
+    using VectorField = Field<%(Dimension)s, Vector>;
+    using TensorField = Field<%(Dimension)s, Tensor>;
+    using SymTensorField = Field<%(Dimension)s, SymTensor>;
 """
 
     def pyinit(self):
@@ -28,7 +28,9 @@ class SmoothingScaleBase:
                                        position = "const VectorField&",
                                        DvDx = "const TensorField&",
                                        zerothMoment = "const ScalarField&", 
-                                       secondMoment = "const SymTensorField&", 
+                                       firstMoment = "const VectorField&", 
+                                       secondMomentEta = "const SymTensorField&", 
+                                       secondMomentLab = "const SymTensorField&", 
                                        connectivityMap = "const ConnectivityMap<%(Dimension)s>&", 
                                        W = "const TableKernel<%(Dimension)s>&", 
                                        hmin = "const Scalar", 

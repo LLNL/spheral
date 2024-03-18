@@ -51,7 +51,9 @@ newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
                                const Field<Dimension, Vector>& position,
                                const Field<Dimension, Tensor>& DvDx,
                                const Field<Dimension, Scalar>& zerothMoment,
-                               const Field<Dimension, SymTensor>& secondMoment,
+                               const Field<Dimension, Vector>& firstMoment,
+                               const Field<Dimension, SymTensor>& secondMomentEta,
+                               const Field<Dimension, SymTensor>& secondMomentLab,
                                const ConnectivityMap<Dimension>& connectivityMap,
                                const TableKernel<Dimension>& W,
                                const Scalar hmin,
@@ -60,15 +62,18 @@ newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
                                const Scalar nPerh,
                                Field<Dimension, SymTensor>& DHDt,
                                Field<Dimension, SymTensor>& Hideal) const {
-  const NodeList<Dimension>& nodeList = H.nodeList();
+  const auto& nodeList = H.nodeList();
   REQUIRE(DvDx.nodeListPtr() == &nodeList);
   REQUIRE(zerothMoment.nodeListPtr() == &nodeList);
-  REQUIRE(secondMoment.nodeListPtr() == &nodeList);
+  REQUIRE(firstMoment.nodeListPtr() == &nodeList);
+  REQUIRE(secondMomentEta.nodeListPtr() == &nodeList);
+  REQUIRE(secondMomentLab.nodeListPtr() == &nodeList);
   REQUIRE(DHDt.nodeListPtr() == &nodeList);
   REQUIRE(Hideal.nodeListPtr() == &nodeList);
-  const unsigned nodeListi = connectivityMap.nodeListIndex(&nodeList);
-  const unsigned n = nodeList.numInternalNodes();
-  for (unsigned i = 0; i != n; ++i) {
+  const auto nodeListi = connectivityMap.nodeListIndex(&nodeList);
+  const auto n = nodeList.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < n; ++i) {
     DHDt(i) = smoothingScaleDerivative(H(i),
                                        position(i),
                                        DvDx(i),
@@ -79,7 +84,9 @@ newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
     Hideal(i) = newSmoothingScale(H(i), 
                                   position(i),
                                   zerothMoment(i),
-                                  secondMoment(i),
+                                  firstMoment(i),
+                                  secondMomentEta(i),
+                                  secondMomentLab(i),
                                   W,
                                   hmin,
                                   hmax,

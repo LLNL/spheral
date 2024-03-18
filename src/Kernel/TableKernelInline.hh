@@ -133,35 +133,5 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
   }
 }
 
-//------------------------------------------------------------------------------
-// Kernel value for SPH smoothing scale nperh lookups
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-TableKernel<Dimension>::kernelValueSPH(const Scalar etaij) const {
-  REQUIRE(etaij >= 0.0);
-  if (etaij < this->mKernelExtent) {
-    return std::abs(mGradInterp(etaij));
-  } else {
-    return 0.0;
-  }
-}
-
-//------------------------------------------------------------------------------
-// Kernel value for ASPH smoothing scale nperh lookups
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-typename Dimension::Scalar
-TableKernel<Dimension>::kernelValueASPH(const Scalar etaij, const Scalar nPerh) const {
-  REQUIRE(etaij >= 0.0);
-  if (etaij < this->mKernelExtent) {
-    return std::abs(mGradInterp(etaij)) * FastMath::square(sin(nPerh*M_PI*etaij));
-  } else {
-    return 0.0;
-  }
-}
-
 }
 

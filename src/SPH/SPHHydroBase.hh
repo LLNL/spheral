@@ -198,7 +198,9 @@ public:
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
+  const FieldList<Dimension, Vector>&    massFirstMoment() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
@@ -270,7 +272,9 @@ protected:
   FieldList<Dimension, Scalar>    mNormalization;
 
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
+  FieldList<Dimension, Vector>    mMassFirstMoment;
+  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
