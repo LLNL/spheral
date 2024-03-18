@@ -18,7 +18,7 @@ def LinearSpringDEM(dataBase,
                     cohesiveTensileStrength = 0.0,
                     shapeFactor = 0.0,
                     stepsPerCollision = 25,
-                    enableFastTimeStepping = False,
+                    enableFastTimeStepping = True,
                     xmin = (-1e100, -1e100, -1e100),
                     xmax = ( 1e100,  1e100,  1e100)):
 
@@ -86,7 +86,7 @@ def DEM(dataBase,
         cohesiveTensileStrength=0.0,
         shapeFactor=0.0,
         stepsPerCollision = 25,
-        enableFastTimeStepping = False,
+        enableFastTimeStepping = True,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100)):
     return LinearSpringDEM(dataBase,
