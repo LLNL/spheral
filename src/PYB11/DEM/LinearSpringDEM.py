@@ -26,6 +26,7 @@ class LinearSpringDEM(DEMBase):
                cohesiveTensileStrength = "const Scalar",
                shapeFactor = "const Scalar",
                stepsPerCollision = "const Scalar",
+               enableFastTimeStepping = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "DEMBase constructor"
@@ -68,7 +69,8 @@ class LinearSpringDEM(DEMBase):
 
     def setMomentOfInertia(self):
         return "void"
-        
+
+    enableFastTimeStepping = PYB11property("bool", "enableFastTimeStepping", "enableFastTimeStepping", doc="activate fast time stepping")  
     normalSpringConstant = PYB11property("Scalar", "normalSpringConstant", "normalSpringConstant", doc="normal spring constant")
     normalRestitutionCoefficient = PYB11property("Scalar", "normalRestitutionCoefficient", "normalRestitutionCoefficient", doc="normal restitution coefficient")
     tangentialSpringConstant = PYB11property("Scalar", "tangentialSpringConstant", "tangentialSpringConstant", doc="tangential spring constant")
@@ -83,5 +85,6 @@ class LinearSpringDEM(DEMBase):
     shapeFactor = PYB11property("Scalar", "shapeFactor", "shapeFactor", doc="shape factor - simple approach to non-spherical particles")
     normalBeta = PYB11property("Scalar", "normalBeta", "normalBeta", doc="a damping parameter")
     tangentialBeta = PYB11property("Scalar", "tangentialBeta", "tangentialBeta", doc="a damping parameter")
+    collisionDuration = PYB11property("Scalar", "collisionDuration", "collisionDuration", doc="duration of a contact")
 
     momentOfInertia = PYB11property("const FieldList<%(Dimension)s, Scalar>&","momentOfInertia", returnpolicy="reference_internal")

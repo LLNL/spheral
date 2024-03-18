@@ -80,9 +80,11 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
                 const Scalar cohesiveTensileStrength,
                 const Scalar shapeFactor,
                 const Scalar stepsPerCollision,
+                const bool   enableFastTimeStepping,
                 const Vector& xmin,
                 const Vector& xmax):
   DEMBase<Dimension>(dataBase,stepsPerCollision,xmin,xmax),
+  mEnableFastTimeStepping(enableFastTimeStepping),
   mNormalSpringConstant(normalSpringConstant),
   mNormalRestitutionCoefficient(normalRestitutionCoefficient),
   mTangentialSpringConstant(tangentialSpringConstant),
@@ -95,12 +97,17 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mShapeFactor(shapeFactor),
   mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
   mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))),
+  mCollisionDuration(0.0),
   mMomentOfInertia(FieldStorageType::CopyFields),
   mMaximumOverlap(FieldStorageType::CopyFields),
   mNewMaximumOverlap(FieldStorageType::CopyFields) { 
     mMomentOfInertia = dataBase.newDEMFieldList(0.0, DEMFieldNames::momentOfInertia);
     mMaximumOverlap = dataBase.newDEMFieldList(0.0, DEMFieldNames::maximumOverlap);
     mNewMaximumOverlap = dataBase.newDEMFieldList(0.0,MaxReplaceState<Dimension, Scalar>::prefix() + DEMFieldNames::maximumOverlap);
+
+    const auto mass = dataBase.DEMMass();
+    const auto minMass = mass.min();
+    mCollisionDuration = M_PI*std::sqrt(0.5*minMass/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
 }
 
 //------------------------------------------------------------------------------
@@ -118,20 +125,50 @@ typename LinearSpringDEM<Dimension>::TimeStepType
 LinearSpringDEM<Dimension>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
-   const StateDerivatives<Dimension>& /*derivs*/,
-   const typename Dimension::Scalar /*currentTime*/) const{
+   const StateDerivatives<Dimension>& derivs,
+   const typename Dimension::Scalar currentTime) const {
 
   TIME_BEGIN("LinearSpringDEMdt");
 
+  auto dtMin = std::numeric_limits<Scalar>::max();
+  TimeStepType result(dtMin, "DEM error, this message should not get to the end");
+
+  if (this->enableFastTimeStepping()){
+    result = this->variableTimeStep(dataBase,
+                                    state,
+                                    derivs,
+                                    currentTime);
+  }else{
+    result = this->fixedTimeStep();
+  }
+
+  TIME_END("LinearSpringDEMdt");
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// set our timestep (for now its a constant single value)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename LinearSpringDEM<Dimension>::TimeStepType
+LinearSpringDEM<Dimension>::
+fixedTimeStep() const {
+    return make_pair(mCollisionDuration/this->stepsPerCollision(),("fixed-dt Linear Spring DEM vote for time step"));
+}
+
+template<typename Dimension>
+typename LinearSpringDEM<Dimension>::TimeStepType
+LinearSpringDEM<Dimension>::
+variableTimeStep(const DataBase<Dimension>& dataBase,
+                 const State<Dimension>& state,
+                 const StateDerivatives<Dimension>& /*derivs*/,
+                 const typename Dimension::Scalar /*currentTime*/) const {
+  
   // Get some useful fluid variables from the DataBase.
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
-  //const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
-  //                                                       this->requireOverlapConnectivity(),
-  //                                                       this->requireIntersectionConnectivity());
-  
 
   const auto& contacts = this->contactStorageIndices();
   const unsigned int numP2PContacts = this->numParticleParticleContacts();
@@ -280,10 +317,8 @@ dt(const DataBase<Dimension>& dataBase,
     }
   }
 
-  TIME_END("LinearSpringDEMdt");
   return result;
 }
-
 
 //------------------------------------------------------------------------------
 // method that fires once on startup

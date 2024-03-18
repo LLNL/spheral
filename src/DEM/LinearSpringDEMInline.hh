@@ -1,5 +1,25 @@
 namespace Spheral {
 
+
+//------------------------------------------------------------------------------
+// set/get to activate/deactivate fast timestepping
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+LinearSpringDEM<Dimension>::
+enableFastTimeStepping() const {
+  return mEnableFastTimeStepping;
+}
+template<typename Dimension>
+inline
+void
+LinearSpringDEM<Dimension>::
+enableFastTimeStepping(bool x) {
+  mEnableFastTimeStepping = x;
+}
+
+
 //------------------------------------------------------------------------------
 // set/get our spring constant
 //------------------------------------------------------------------------------
@@ -217,6 +237,20 @@ tangentialBeta(typename Dimension::Scalar x) {
   mTangentialBeta = x;
 }
 
+template<typename Dimension>
+inline
+typename Dimension::Scalar
+LinearSpringDEM<Dimension>::
+collisionDuration() const {
+  return mCollisionDuration;
+}
+template<typename Dimension>
+inline
+void
+LinearSpringDEM<Dimension>::
+collisionDuration(typename Dimension::Scalar x) {
+  mCollisionDuration = x;
+}
 
 //------------------------------------------------------------------------------
 // moment of interia specializations

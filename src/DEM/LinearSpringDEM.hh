@@ -49,6 +49,7 @@ public:
                   const Scalar cohesiveTensileStrength,
                   const Scalar shapeFactor,
                   const Scalar stepsPerCollision,
+                  const bool enableFastTimeStepping,
                   const Vector& xmin,
                   const Vector& xmax);
 
@@ -80,6 +81,15 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
+  // sub-methods for dt
+  TimeStepType variableTimeStep(const DataBase<Dimension>& dataBase,
+                                const State<Dimension>& state,
+                                const StateDerivatives<Dimension>& derivs,
+                                const Scalar time) const;
+
+  TimeStepType fixedTimeStep() const;
+
+  // generalized spring damper functions (inlined)
   void slidingSpringDamper(const Scalar  k,
                            const Scalar  C,
                            const Scalar  mus,
@@ -106,6 +116,9 @@ public:
                                  Scalar& force) const;
 
   // set/gets
+  bool enableFastTimeStepping() const;
+  void   enableFastTimeStepping(bool x);
+
   Scalar normalSpringConstant() const;
   void   normalSpringConstant(Scalar x);
 
@@ -142,6 +155,9 @@ public:
   Scalar tangentialBeta() const;
   void   tangentialBeta(Scalar x);
 
+  Scalar collisionDuration() const;
+  void   collisionDuration(Scalar x);
+
   // set moment of inertia on start up
   void setMomentOfInertia();
 
@@ -163,6 +179,7 @@ public:
   //****************************************************************************
 private:
   //--------------------------- Private Interface ---------------------------//
+  Scalar mEnableFastTimeStepping;
   Scalar mNormalSpringConstant;
   Scalar mNormalRestitutionCoefficient;
   Scalar mTangentialSpringConstant;
@@ -176,6 +193,7 @@ private:
 
   Scalar mNormalBeta;
   Scalar mTangentialBeta;
+  Scalar mCollisionDuration;
 
   // field Lists
   FieldList<Dimension,Scalar> mMomentOfInertia;
