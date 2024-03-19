@@ -1,6 +1,6 @@
-#ATS:DEM3dPureTorsion = test( SELF, "--clearDirectories True --checkRestitutionCoefficient True --checkNaturalFrequency True", label="DEM puretorsion test -- 3-D (serial)")
+#ATS:DEM3dPT = test( SELF, "--clearDirectories True --checkRestitutionCoefficient True --checkNaturalFrequency True", label="DEM pure torsion test -- 3-D (serial)")
 
-import os, sys, shutil, mpi, random
+import os, sys, shutil, mpi
 from math import *
 from Spheral3d import *
 from SpheralTestUtilities import *
@@ -10,15 +10,13 @@ from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
 
 import numpy as np
 
-sys.path.insert(0, '..')
-from DEMConservationTracker import TrackConservation3d as TrackConservation
-
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes3d
 else:
     from DistributeNodes import distributeNodes3d
 
 title("DEM 3d Pure Torsion Test")
+
 # This tests the natural freq and restitution coefficient for Zhang et.al. formulation
 #-------------------------------------------------------------------------------
 # Generic problem parameters
@@ -67,7 +65,7 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             restoreCycle = None,
             restartStep = 10000,
             redistributeStep = 100000000000000,
-            dataDir = "dumps-DEM-impactingSquares-3d",
+            dataDir = "dumps-DEM-PureTorsionTest-3d",
 
             # ats
             checkRestitutionCoefficient = False,
