@@ -109,7 +109,7 @@ for Wstr in kernels:
     WT = eval(f"TableKernel{nDim}d({Wstr}())")
     #plotTableKernel(WT)
 
-    asph = eval(f"ASPHSmoothingScalev2{nDim}d(WT, 4.01)")
+    asph = eval(f"ASPHSmoothingScale{nDim}d(WT, 4.01)")
 
     # Now how well do we recover nPerh based on kernel sums?
     etamax = WT.kernelExtent
