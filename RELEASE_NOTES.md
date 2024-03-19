@@ -9,13 +9,19 @@ Notable changes include:
     * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
       of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
       State and StateDerivatives object).
-
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
   * Build changes / improvements:
     * 
-
+    
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
     * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
