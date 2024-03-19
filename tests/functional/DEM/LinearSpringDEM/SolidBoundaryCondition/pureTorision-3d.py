@@ -1,4 +1,4 @@
-#ATS:DEM3dImpact = test(          SELF, "--clearDirectories True --checkConservation True   --goalTime 1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
+#ATS:DEM3dPureTorsion = test( SELF, "--clearDirectories True --checkRestitutionCoefficient True --checkNaturalFrequency True", label="DEM puretorsion test -- 3-D (serial)")
 
 import os, sys, shutil, mpi, random
 from math import *
@@ -18,19 +18,16 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes3d
 
-title("DEM 3d Drop Test with Particle Generation")
-# this tests the ability to generate particle on the fly
-# during the course of a simulation using a periodic 
-# work function. It also tests the solid boundary condition
-
+title("DEM 3d Pure Torsion Test")
+# This tests the natural freq and restitution coefficient for Zhang et.al. formulation
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(numParticlePerLength = 3,                 # number of particles on a side of the box
-            normalSpringConstant=100.0,          # spring constant for LDS model
+            normalSpringConstant=100.0,               # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=20.857,      # spring constant for LDS model
-            tangentialRestitutionCoefficient=1.00,    # restitution coefficient to get damping const
+            tangentialSpringConstant=20.857,          # spring constant for LDS model
+            tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
             rollingFriction = 1.05,                   # static friction coefficient for rolling
@@ -38,11 +35,11 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
             
-            particleRadius = 1.0,                    # particle radius
+            particleRadius = 1.0,                     # particle radius
             particleDensity = 2.60,
             particleVelocity = 0.1,
 
-            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
+            neighborSearchBuffer = 0.1,               # multiplicative buffer to radius for neighbor search algo
             nPerh = 1.01,
 
 
@@ -50,7 +47,7 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
 
             # integration
             IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 100,  # replaces CFL for DEM
+            stepsPerCollision = 50,
             goalTime = 25.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
@@ -73,15 +70,16 @@ commandLine(numParticlePerLength = 3,                 # number of particles on a
             dataDir = "dumps-DEM-impactingSquares-3d",
 
             # ats
-            checkRestart = False,
-            checkConservation = False,             # turn on error checking for momentum conservation
-            conservationErrorThreshold = 2e-14,    # relative error for momentum conservation  
+            checkRestitutionCoefficient = False,
+            threshRestitutionCoefficient = 0.05,
+            checkNaturalFrequency = False,
+            threshNaturalFrequency = 0.1,
             )
 
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-ImpactingSquares-3d"
+testName = "DEM-PureTorsionTest-3d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -140,7 +138,7 @@ if restoreCycle is None:
                                             xmax = ( particleRadius*5,particleRadius*5, particleRadius*5),
                                             nNodePerh = nPerh)
     
-    # # really simple bar shaped particle
+    # transforms particle properties from generator
     def DEMParticleGenerator(xi,yi,zi,Hi,mi,Ri):
         xout = [xi]
         yout = [yi]
@@ -187,31 +185,27 @@ dem = DEM(db,
 packages = [dem]
 
 
-# #-------------------------------------------------------------------------------
-# # PhysicsPackage : gravity
-# #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# PhysicsPackage : gravity
+#-------------------------------------------------------------------------------
 gravity = ConstantAcceleration(a0 = Vector(0.0, 0.0, -1.00),
                                nodeList = nodes1)
-#packages += [gravity]
-
+packages.append(gravity)
+#-------------------------------------------------------------------------------
+# Create boundary conditions.
+#-------------------------------------------------------------------------------
+# implement boundary condition using the DEM packages solid wall feature
 if useSolidBoundary:
+    
     solidWall = InfinitePlaneSolidBoundary(Vector(0.0, 0.0, 0.0), Vector( 0.0, 0.0, 1.0))
     dem.appendSolidBoundary(solidWall)
+
+# implement boundary condition using Spheral's ghost particle reflection
 else:
     bcs = [ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0, 0.0, 1.0)))]
     for package in packages:
         for bc in bcs:
             package.appendBoundary(bc)
-# #-------------------------------------------------------------------------------
-# # Create boundary conditions.
-# #-------------------------------------------------------------------------------
-# plane1 = Plane(Vector(0.0, 0.0, 0.0), Vector(  0.0, 0.0, 1.0))
-# bc1 = ReflectingBoundary(plane1)
-# bcSet = [bc1]
-
-# for p in packages:
-#     for bc in bcSet:
-#         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
 # Fields and Variables
@@ -229,10 +223,6 @@ compositeParticleIndex = db.DEMCompositeParticleIndex
 uniqueIndex = db.DEMUniqueIndex
 omega = dem.omega
 
-
-#-------------------------------------------------------------------------------
-# Initial Conditions
-#-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
@@ -261,19 +251,21 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
-# Periodic Work Function: Track conseravation
+# Periodic Work Function: track resitution coefficient
 #-------------------------------------------------------------------------------
-
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=True)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
-
-for i in range(nodes.numInternalNodes):
-    if i > 0:
-        velocity[0][i]=Vector(0,0,-0.1)
-        #omega[0][i]=Vector(0,0,particleVelocity/particleRadius)
+class OmegaTracker:
+    def __init__(self):
+        self.maxOmega = 0.0
+        self.period = 0.0
+        self.omegan = 0.0
+    def periodicWorkFunction(self,cycle,time,dt):
+        omegai = omega[0][1][2]
+        if omegai < self.maxOmega:
+            self.maxOmega = omegai
+            self.period = time - 15
+            self.omegan =  pi / self.period
+omegaTracker = OmegaTracker()
+periodicWork=[(omegaTracker.periodicWorkFunction,1)]
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -296,7 +288,6 @@ control = SpheralController(integrator,
                             periodicWork=periodicWork)
 output("control")
 
-#control.redistribute = PeanoHilbertOrderRedistributeNodes(db.maxKernelExtent,workBalance=False)
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
@@ -304,10 +295,64 @@ output("control")
 if not steps is None:
     control.step(steps)
 else:
-    control.advance(10.0, maxSteps)
-    # for i in range(nodes.numInternalNodes):
-    #     if i > 0:
-    #         velocity[0][i]=Vector(0,0,0)
-    #         omega[0][i]=Vector(0,0,particleVelocity/particleRadius)
-    control.advance(10.0+goalTime, maxSteps)
 
+    # settle dem particles on solid bc in grav field
+    control.advance(15.0, maxSteps)
+
+    # give 3 particles torsional rotation
+    for i in range(nodes.numInternalNodes):
+        if i > 0:
+            velocity[0][i]=Vector(0,0,0)
+            omega[0][i]=Vector(0,0,particleVelocity/particleRadius)
+
+    # run to the goal time
+    control.advance(15.0+goalTime, maxSteps)
+
+if checkRestitutionCoefficient or checkNaturalFrequency:
+
+    # get the sliding damping constant
+    beta = pi/log(min(max(tangentialRestitutionCoefficient,1e-4),0.9999))
+    nu = 2*tangentialSpringConstant/(1+beta*beta)
+    mi = particleDensity * 4.0/3.0*np.pi*particleRadius**3 
+    C = sqrt(2*mi*nu)
+
+    # get the natural frequency and effective resitution coefficient of torsion
+    omegan = sqrt(5*tangentialSpringConstant*shapeFactor*shapeFactor/mi)
+    alphan = 5 * C*shapeFactor*shapeFactor/ (2 * mi)
+    analyticRestitution = exp(-alphan*pi/sqrt(omegan**2-alphan**2))
+
+    print("")
+    print("==============================================================")
+
+    if checkNaturalFrequency:
+        print("")
+        print(" Checking Torsional Natural Frequency ")
+        print("")
+        print("    analytic  natural freq : %g" % omegan)
+        print("    numerical natural freq : %g" % omegaTracker.omegan)
+
+        relativeErrorNaturalFrequency = (abs(omegaTracker.omegan-omegan)/omegan)
+
+        print("    relative error   : %g" % relativeErrorNaturalFrequency)
+
+        if relativeErrorNaturalFrequency > threshNaturalFrequency:
+            raise ValueError(" natural frequency is not within error bounds ")
+    
+    if checkRestitutionCoefficient:
+
+        numericalRestitutionCoefficient = (-omegaTracker.maxOmega/particleVelocity*particleRadius)
+        
+        print("")
+        print(" Checking Torsional Restitution Coefficient ")
+        print("")
+        print("    analytic  restitution coefficient : %g" % analyticRestitution)
+        print("    numerical restitution coefficient : %g" % numericalRestitutionCoefficient)
+
+        relativeErrorRestitution = (abs(numericalRestitutionCoefficient-analyticRestitution)/analyticRestitution)
+
+        print("    relative error                    : %g" % relativeErrorRestitution)
+
+        if relativeErrorRestitution > threshRestitutionCoefficient:
+            raise ValueError(" restitution coefficient is not within error bounds ")
+    
+    print("==============================================================")

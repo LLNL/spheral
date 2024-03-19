@@ -412,7 +412,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto invKr = 1.0/max(kr,tiny);
   
   const auto normalDampingTerms = 2.0*kn/(1.0+mNormalBeta*mNormalBeta);
-  const auto tangentialDampingTerms = 4.0/5.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
+  const auto tangentialDampingTerms = 2.0*ks/(1.0+mTangentialBeta*mTangentialBeta);
  
   // The connectivity.
   const auto& nodeLists = dataBase.DEMNodeListPtrs();
