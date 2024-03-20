@@ -77,6 +77,7 @@ commandLine(vImpact = 1.0,                            # impact velocity
             checkConservation = False,             # turn on error checking for momentum conservation
             restitutionErrorThreshold = 0.02,      # relative error actual restitution vs nominal
             conservationErrorThreshold = 1e-15,    # relative error for momentum conservation
+            omegaThreshold = 1e-14,                # tolerance for erroneous spin up in inactive directions
             torsionalObjectivityThreshold = 1e-10  # relative error bounds on torsion objectivity test
             )
 
