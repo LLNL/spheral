@@ -33,6 +33,13 @@ class InfinitePlaneSolidBoundary(SolidBoundaryBase):
                normal = "const Vector&"):
         "solid planar boundary"
 
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
     @PYB11virtual
     def update(self,
                multiplier = "const double",
@@ -77,6 +84,13 @@ class RectangularPlaneSolidBoundary(SolidBoundaryBase):
                basis  = "const Tensor&"):
         "solid planar boundary"
 
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
     @PYB11virtual
     def update(self,
                multiplier = "const double",
@@ -121,6 +135,13 @@ class CircularPlaneSolidBoundary(SolidBoundaryBase):
                extent = "const Scalar"):
         "solid planar boundary"
 
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
     @PYB11virtual
     def update(self,
                multiplier = "const double",
@@ -166,6 +187,13 @@ class CylinderSolidBoundary(SolidBoundaryBase):
                length = "const Scalar"):
         "solid planar boundary"
 
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
     @PYB11virtual
     def update(self,
                multiplier = "const double",
@@ -213,6 +241,13 @@ class SphereSolidBoundary(SolidBoundaryBase):
                clipAxis = "const Vector&"):
         "solid planar boundary"
 
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
     @PYB11virtual
     def update(self,
                multiplier = "const double",

@@ -140,7 +140,25 @@ operator==(const StateBase<Dimension>& rhs) const {
           result = false;
         }
       } catch (const boost::bad_any_cast&) {
-        std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+        try {
+          auto lhsPtr = boost::any_cast<Vector*>(lhsItr->second);
+          auto rhsPtr = boost::any_cast<Vector*>(rhsItr->second);
+          if (*lhsPtr != *rhsPtr) {
+            cerr << "Vector for " << lhsItr->first <<  " don't match." << endl;
+            result = false;
+          }
+        } catch (const boost::bad_any_cast&) {
+          try {
+            auto lhsPtr = boost::any_cast<Scalar*>(lhsItr->second);
+            auto rhsPtr = boost::any_cast<Scalar*>(rhsItr->second);
+            if (*lhsPtr != *rhsPtr) {
+              cerr << "Scalar for " << lhsItr->first <<  " don't match." << endl;
+              result = false;
+            }
+          } catch (const boost::bad_any_cast&) {
+            std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+          }
+        }
       }
     }
   }
@@ -391,12 +409,23 @@ assign(const StateBase<Dimension>& rhs) {
         const auto rhsptr = boost::any_cast<vector<Vector>*>(anyrhs);
         *lhsptr = *rhsptr;
       } catch(const boost::bad_any_cast&) {
-        // We'll assume other things don't need to be assigned...
-        // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+        try {
+          auto lhsptr = boost::any_cast<Vector*>(anylhs);
+          const auto rhsptr = boost::any_cast<Vector*>(anyrhs);
+          *lhsptr = *rhsptr;
+        } catch(const boost::bad_any_cast&) {
+          try {
+            auto lhsptr = boost::any_cast<Scalar*>(anylhs);
+            const auto rhsptr = boost::any_cast<Scalar*>(anyrhs);
+            *lhsptr = *rhsptr;
+          } catch(const boost::bad_any_cast&) {
+          // We'll assume other things don't need to be assigned...
+          // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+          }
+        }
       }
     }
   }
-
   // Copy the connectivity (by reference).  This thing is too
   // big to carry around separate copies!
   if (rhs.mConnectivityMapPtr != NULL) {
@@ -446,8 +475,16 @@ copyState() {
         itr->second = clone.get();
 
       } catch (const boost::bad_any_cast&) {
+      try {
+        auto ptr = boost::any_cast<Vector*>(anythingPtr);
+        auto clone = std::shared_ptr<Vector>(new Vector(*ptr));
+        mCache.push_back(clone);
+        itr->second = clone.get();
+
+        } catch (const boost::bad_any_cast&) {
         // We'll assume other things don't need to be copied...
         // VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
+        }
       }
     }
   }

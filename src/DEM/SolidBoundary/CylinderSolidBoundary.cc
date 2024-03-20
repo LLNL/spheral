@@ -31,7 +31,6 @@ CylinderSolidBoundary<Dimension>::
 ~CylinderSolidBoundary(){
 }
 
-
 template<typename Dimension>
 typename Dimension::Vector
 CylinderSolidBoundary<Dimension>::
@@ -49,6 +48,13 @@ typename Dimension::Vector
 CylinderSolidBoundary<Dimension>::
 velocity(const Vector& position) const { 
   return mVelocity;
+}
+
+template<typename Dimension>
+void
+CylinderSolidBoundary<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {   
 }
 
 template<typename Dimension>

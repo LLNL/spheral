@@ -35,6 +35,9 @@ public:
   virtual Vector distance(const Vector& position) const override;
   virtual Vector velocity(const Vector& position) const override;
 
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override;
+
   virtual void update(const double multiplier,
                       const double time,
                       const double dt) override;

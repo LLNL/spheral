@@ -301,16 +301,16 @@ if boolCheckRestitutionCoefficient:
 if boolCheckSlidingFrictionX:
     if omega[0][0].magnitude() > omega0:
         raise ValueError("particles are rotating faster post-collision")
-    if omega[0][0].y > omegaThreshold or omega[0][0].z > omegaThreshold:
+    if abs(omega[0][0].x) > omegaThreshold or abs(omega[0][0].z) > omegaThreshold:
         raise ValueError("erroneous spin-up in perpendicular direction")
 if boolCheckSlidingFrictionY:
     if omega[0][0].magnitude() > omega0:
         raise ValueError("particles are rotating faster post-collision")
-    if omega[0][0].x > omegaThreshold or omega[0][0].z > omegaThreshold:
+    if abs(omega[0][0].y) > omegaThreshold or abs(omega[0][0].z) > omegaThreshold:
         raise ValueError("erroneous spin-up in perpendicular direction")
 if boolCheckTorsionalFriction:
     if omega[0][0].magnitude() > omega0:
         raise ValueError("particles are rotating faster post-collision")
-    if omega[0][0].x > omegaThreshold or omega[0][0].y > omegaThreshold:
+    if abs(omega[0][0].x) > omegaThreshold or abs(omega[0][0].y) > omegaThreshold:
         raise ValueError("erroneous spin-up in perpendicular direction")
 

@@ -52,6 +52,20 @@ velocity(const Vector& position) const {
 template<typename Dimension>
 void
 CircularPlaneSolidBoundary<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {   
+  const auto boundaryKey = "CircularPlaneSolidBoundary_" + std::to_string(std::abs(this->uniqueIndex()));
+  const auto pointKey = boundaryKey +"_point";
+  const auto velocityKey = boundaryKey +"_velocity";
+  const auto normalKey = boundaryKey +"_normal";
+  state.enrollAny(pointKey,mPoint);
+  state.enrollAny(pointKey,mVelocity);
+  state.enrollAny(pointKey,mNormal);
+}
+
+template<typename Dimension>
+void
+CircularPlaneSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {
   mPoint += multiplier*mVelocity;
 }

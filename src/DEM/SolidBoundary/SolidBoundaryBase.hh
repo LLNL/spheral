@@ -10,12 +10,21 @@
 //                      is implemented in the DEMBase class.  The boundaries
 //                      themselves simply define the surface and how it evolves
 //                      in time.                  
-//
+//----------------------------------------------------------------------------//
+// ToDo
+// -- add complete registration methods
+// -- set the unique index of the bc so no std::str input req. for regState
+// -- make restartable 
+// -- stateBase add scalar and tensor (talk to Mike about different pattern)
+// -- tests
+//-----------------------------------------------------------------------------
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_SolidBoundaryBase_hh__
 #define __Spheral_SolidBoundaryBase_hh__
+
+#include <string>
 
 namespace Spheral {
 
@@ -39,11 +48,23 @@ public:
   virtual Vector distance(const Vector& position) const = 0;
   virtual Vector velocity(const Vector& position) const = 0;
 
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) = 0;
+
   virtual void update(const double multiplier,
                       const double t,
                       const double dt) = 0;
-};
+  
+  void uniqueIndex(const int uId);
+  int uniqueIndex() const;
 
+private:
+//--------------------------- Public Interface ---------------------------//
+int mUniqueIndex;
+
+};
 }
+
+#include "SolidBoundaryBaseInline.hh"
 
 #endif

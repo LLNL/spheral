@@ -74,6 +74,13 @@ velocity(const Vector& position) const {
 template<typename Dimension>
 void
 SphereSolidBoundary<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {   
+}
+
+template<typename Dimension>
+void
+SphereSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mCenter += multiplier*mVelocity;
 }

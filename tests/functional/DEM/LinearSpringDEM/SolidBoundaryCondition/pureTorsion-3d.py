@@ -1,6 +1,6 @@
-#ATS:DEM3dImpact = test(          SELF, "--clearDirectories True --checkConservation True   --goalTime 1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
+#ATS:DEM3dPT = test( SELF, "--clearDirectories True --checkRestitutionCoefficient True --checkNaturalFrequency True", label="DEM pure torsion test -- 3-D (serial)")
 
-import os, sys, shutil, mpi, random
+import os, sys, shutil, mpi
 from math import *
 from Spheral3d import *
 from SpheralTestUtilities import *
@@ -8,28 +8,23 @@ from findLastRestart import *
 from GenerateNodeDistribution3d import *
 from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
 
-sys.path.insert(0, '..')
-from DEMConservationTracker import TrackConservation3d as TrackConservation
+import numpy as np
 
 if mpi.procs > 1:
     from PeanoHilbertDistributeNodes import distributeNodes3d
 else:
     from DistributeNodes import distributeNodes3d
 
-random.seed(0)
+title("DEM 3d Pure Torsion Test")
 
-title("DEM 3d Impacting Squares")
-# This tests the conservation properties of the DEM package when
-# distribution across multiple processors
-
+# This tests the natural freq and restitution coefficient for Zhang et.al. formulation
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 4,                 # number of particles on a side of the box
-            radius = 0.25,                            # particle radius
-            normalSpringConstant=1000.0,              # spring constant for LDS model
+commandLine(numParticlePerLength = 3,                 # number of particles on a side of the box
+            normalSpringConstant=100.0,               # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=285.70,          # spring constant for LDS model
+            tangentialSpringConstant=20.857,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
@@ -37,12 +32,20 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             cohesiveTensileStrength = 0.0,            # units of pressure
             shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+            
+            particleRadius = 1.0,                     # particle radius
+            particleDensity = 2.60,
+            particleVelocity = 0.1,
 
-            neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
+            neighborSearchBuffer = 0.1,               # multiplicative buffer to radius for neighbor search algo
+            nPerh = 1.01,
+
+
+            useSolidBoundary = True,
 
             # integration
             IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
+            stepsPerCollision = 50,
             goalTime = 25.0,
             dt = 1e-8,
             dtMin = 1.0e-8, 
@@ -57,23 +60,24 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             
             # output control
             vizCycle = None,
-            vizTime = None, 
+            vizTime = 1.0, 
             clearDirectories = False,
             restoreCycle = None,
             restartStep = 10000,
-            redistributeStep = 1000000000,
-            dataDir = "dumps-DEM-impactingSquares-3d",
+            redistributeStep = 100000000000000,
+            dataDir = "dumps-DEM-PureTorsionTest-3d",
 
             # ats
-            checkRestart = False,
-            checkConservation = False,             # turn on error checking for momentum conservation
-            conservationErrorThreshold = 2e-14,    # relative error for momentum conservation  
+            checkRestitutionCoefficient = False,
+            threshRestitutionCoefficient = 0.05,
+            checkNaturalFrequency = False,
+            threshNaturalFrequency = 0.1,
             )
 
 #-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-ImpactingSquares-3d"
+testName = "DEM-PureTorsionTest-3d"
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -100,6 +104,7 @@ mpi.barrier()
 if restoreCycle is None:
     restoreCycle = findLastRestart(restartBaseName)
 
+
 #-------------------------------------------------------------------------------
 # This doesn't really matter kernel filler for neighbor algo
 #-------------------------------------------------------------------------------
@@ -110,9 +115,6 @@ WT = TableKernel(WendlandC2Kernel(), 1000)
 #-------------------------------------------------------------------------------
 units = CGuS()
 nodes1 = makeDEMNodeList("nodeList1",
-                          hmin = 1.0e-30,
-                          hmax = 1.0e30,
-                          hminratio = 100.0,
                           neighborSearchBuffer = neighborSearchBuffer,
                           kernelExtent = WT.kernelExtent)
 nodeSet = [nodes1]
@@ -127,24 +129,24 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
-    generator0 = GenerateNodeDistribution3d(2* numParticlePerLength, numParticlePerLength, numParticlePerLength,
-                                            rho = 1.0, # dummy value
+    generator0 = GenerateNodeDistribution3d(2, 2, 1,
+                                            rho = 1.0,
                                             distributionType = "lattice",
-                                            xmin = (-1.0,  0.0, 0.0),
-                                            xmax = ( 1.0,  1.0, 1.0)) # dummy value
+                                            xmin = (0, 0.0, 0),
+                                            xmax = ( particleRadius*5,particleRadius*5, particleRadius*5),
+                                            nNodePerh = nPerh)
     
-    # really simple bar shaped particle
+    # transforms particle properties from generator
     def DEMParticleGenerator(xi,yi,zi,Hi,mi,Ri):
         xout = [xi]
         yout = [yi]
-        zout = [zi]
-        mout = [mi/1.1]
-        Rout = [Ri/1.1]
+        zout = [particleRadius]
+        mout = [particleDensity * 4.0/3.0*np.pi*particleRadius**3]
+        Rout = [particleRadius]
         return xout,yout,zout,mout,Rout
 
     generator1 = GenerateDEMfromSPHGenerator3d(WT,
                                                generator0,
-                                               particleRadius= 0.5/(numParticlePerLength+1),
                                                DEMParticleGenerator=DEMParticleGenerator)
 
     distributeNodes3d((nodes1, generator1))
@@ -177,31 +179,47 @@ dem = DEM(db,
           shapeFactor = shapeFactor,
           stepsPerCollision = stepsPerCollision)
 
+
 packages = [dem]
 
 
 #-------------------------------------------------------------------------------
-# Initial Conditions
+# PhysicsPackage : gravity
+#-------------------------------------------------------------------------------
+gravity = ConstantAcceleration(a0 = Vector(0.0, 0.0, -1.00),
+                               nodeList = nodes1)
+packages.append(gravity)
+#-------------------------------------------------------------------------------
+# Create boundary conditions.
+#-------------------------------------------------------------------------------
+# implement boundary condition using the DEM packages solid wall feature
+if useSolidBoundary:
+    
+    solidWall = InfinitePlaneSolidBoundary(Vector(0.0, 0.0, 0.0), Vector( 0.0, 0.0, 1.0))
+    dem.appendSolidBoundary(solidWall)
+
+# implement boundary condition using Spheral's ghost particle reflection
+else:
+    bcs = [ReflectingBoundary(Plane(Vector(0.0, 0.0, 0.0), Vector( 0.0, 0.0, 1.0)))]
+    for package in packages:
+        for bc in bcs:
+            package.appendBoundary(bc)
+
+#-------------------------------------------------------------------------------
+# Fields and Variables
 #-------------------------------------------------------------------------------
 numNodeLists = db.numNodeLists
 nodeLists = db.nodeLists()
+
+position = db.DEMPosition
+mass = db.DEMMass
+velocity = db.DEMVelocity
+H = db.DEMHfield
+radius = db.DEMParticleRadius
+compositeParticleIndex = db.DEMCompositeParticleIndex
+
+uniqueIndex = db.DEMUniqueIndex
 omega = dem.omega
-for i in range(db.numNodeLists):
-    nodeListi = nodeLists[i]
-    numNodes = nodeListi.numInternalNodes
-    v = nodeListi.velocity()
-    p = nodeListi.positions()
-    for j in range(numNodes):
-        if p[j][0] > 0.0:
-            v[j][0]= -0.1
-            p[j][0]+=0.05/numParticlePerLength
-            p[j][1]+=0.25/numParticlePerLength
-            p[j][2]+=0.10/numParticlePerLength
-            omega[i][j][0]=random.random()-0.5
-            omega[i][j][1]=random.random()-0.5
-            omega[i][j][2]=random.random()-0.5
-        else:
-            v[j][0]=  0.1
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
@@ -231,20 +249,27 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
-# Periodic Work Function: Track conseravation
+# Periodic Work Function: track resitution coefficient
 #-------------------------------------------------------------------------------
-
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=True)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
+class OmegaTracker:
+    def __init__(self):
+        self.maxOmega = 0.0
+        self.period = 0.0
+        self.omegan = 0.0
+    def periodicWorkFunction(self,cycle,time,dt):
+        omegai = omega[0][1][2]
+        if omegai < self.maxOmega:
+            self.maxOmega = omegai
+            self.period = time - 15
+            self.omegan =  pi / self.period
+omegaTracker = OmegaTracker()
+periodicWork=[(omegaTracker.periodicWorkFunction,1)]
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 from SpheralPointmeshSiloDump import dumpPhysicsState
-control = SpheralController(integrator, WT,
+control = SpheralController(integrator,
                             iterateInitialH = False,
                             initializeDerivatives = True,
                             statsStep = statsStep,
@@ -258,45 +283,74 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
-                            SPH = SPH,
                             periodicWork=periodicWork)
 output("control")
-
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
 
 if not steps is None:
-    if checkRestart:
-        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
 else:
-    control.advance(goalTime, maxSteps)
 
-if checkRestart:
-    control.setRestartBaseName(restartBaseName)
-    state0 = State(db, integrator.physicsPackages())
-    state0.copyState()
-    control.loadRestartFile(control.totalSteps)
-    state1 = State(db, integrator.physicsPackages())
-    if not state1 == state0:
-        raise ValueError("The restarted state does not match!")
-    else:
-        print("Restart check PASSED.")
+    # settle dem particles on solid bc in grav field
+    control.advance(15.0, maxSteps)
 
-if checkConservation:
-# check momentum conservation
-#-------------------------------------------------------------
-    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
-    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
-    if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
-        raise ValueError("linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ())
-    if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
-        raise ValueError("rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX())
-    if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
-        raise ValueError("rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY())
-    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())
+    # give 3 particles torsional rotation
+    for i in range(nodes.numInternalNodes):
+        if i > 0:
+            velocity[0][i]=Vector(0,0,0)
+            omega[0][i]=Vector(0,0,particleVelocity/particleRadius)
+
+    # run to the goal time
+    control.advance(15.0+goalTime, maxSteps)
+
+if checkRestitutionCoefficient or checkNaturalFrequency:
+
+    # get the sliding damping constant
+    beta = pi/log(min(max(tangentialRestitutionCoefficient,1e-4),0.9999))
+    nu = 2*tangentialSpringConstant/(1+beta*beta)
+    mi = particleDensity * 4.0/3.0*np.pi*particleRadius**3 
+    C = sqrt(2*mi*nu)
+
+    # get the natural frequency and effective resitution coefficient of torsion
+    omegan = sqrt(5*tangentialSpringConstant*shapeFactor*shapeFactor/mi)
+    alphan = 5 * C*shapeFactor*shapeFactor/ (2 * mi)
+    analyticRestitution = exp(-alphan*pi/sqrt(omegan**2-alphan**2))
+
+    print("")
+    print("==============================================================")
+
+    if checkNaturalFrequency:
+        print("")
+        print(" Checking Torsional Natural Frequency ")
+        print("")
+        print("    analytic  natural freq : %g" % omegan)
+        print("    numerical natural freq : %g" % omegaTracker.omegan)
+
+        relativeErrorNaturalFrequency = (abs(omegaTracker.omegan-omegan)/omegan)
+
+        print("    relative error   : %g" % relativeErrorNaturalFrequency)
+
+        if relativeErrorNaturalFrequency > threshNaturalFrequency:
+            raise ValueError(" natural frequency is not within error bounds ")
+    
+    if checkRestitutionCoefficient:
+
+        numericalRestitutionCoefficient = (-omegaTracker.maxOmega/particleVelocity*particleRadius)
+        
+        print("")
+        print(" Checking Torsional Restitution Coefficient ")
+        print("")
+        print("    analytic  restitution coefficient : %g" % analyticRestitution)
+        print("    numerical restitution coefficient : %g" % numericalRestitutionCoefficient)
+
+        relativeErrorRestitution = (abs(numericalRestitutionCoefficient-analyticRestitution)/analyticRestitution)
+
+        print("    relative error                    : %g" % relativeErrorRestitution)
+
+        if relativeErrorRestitution > threshRestitutionCoefficient:
+            raise ValueError(" restitution coefficient is not within error bounds ")
+    
+    print("==============================================================")

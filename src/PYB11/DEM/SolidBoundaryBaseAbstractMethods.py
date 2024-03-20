@@ -18,6 +18,12 @@ class SolidBoundaryBaseAbstractMethods:
         "distance vector to bc."
         return "Vector"
 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+
     def update(self,
                multiplier = "const double",
                t = "const double",
