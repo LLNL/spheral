@@ -9,8 +9,36 @@
 namespace Spheral {
 
 
+// std::shared_ptr supports a variety of features that I have chosen not 
+// to support in this implementation:
+//     1. Array capture: std::shared_ptr since c++17 can manage a bounded or unbounded array. this
+//        implementation only manages single objects.
+//     2. Thread safety: std::shared_ptr maintains thread safety through the use of mutex symantics 
+//        and atomic types.
+//     3. Support for enable_shared_from_this. Which is a way to have a facotry class only create
+//        objects of itself as a shared_ptr.
+//     4. Conversion form std::weak_ptr and std::unique_ptr.
+//     5. EBO (Empty Base Optimization) / EBCO (Class): std::shared_ptr takes advatage of EBO in 
+//        it's implementation of the deleter counter. We are doing a much simpler implementation
+//        here.
+//     6. Optional Allocator: since we are not supporting arrays this is mostly useless to us. It 
+//        also means we will not support allocate_shared().
+
+// _Sp_counted_base is the base type for shared_ptr's reference counting funcitonality.
+// Since shared_ptr is responsible for owning and deleteing the underlying memory of an 
+// object the reference count object will actually handle this, shared_ptr does not deallocate 
+// the object itself.
+
+// std::shared_ptr holds a pointer to a base reference counter so that it can use type-erasure
+// on the specific counter type a user defines. The counter type is specified by the Ctor arguments
+// a user provides. The counter type also determines the behavior of the dispose and destroy 
+// functionality of the owned pointer. For this it is importnt to us to be able to pass a custom
+// deleter to our Spheral::shared_ptr.
 
 
+// ****************************************************************************
+// _Sp_counted_base
+// 
 // The std derives this from mutex like classes that are template selectable on
 // the locking behavior/ policy. We are not implementing that here...
 class _Sp_counted_base {
@@ -54,7 +82,11 @@ private:
 };
 
 
-
+// ****************************************************************************
+// _Sp_counted_ptr
+//
+// This is the "default" counter object. It holds the owend pointer and will call a simple delete 
+// when the use_count == 0, not much to explain here.
 template<typename _Ptr>
 class _Sp_counted_ptr final : public _Sp_counted_base {
 public:
@@ -75,11 +107,14 @@ private:
 
 
 
+// ****************************************************************************
+// _Sp_counted_deleter
+//
 template<typename _Ptr, typename _Deleter>
 class _Sp_counted_deleter final : public _Sp_counted_base {
 
   // counted_deleter typically uses EBO helpers here to disgues the extra pointer in the object
-  // size, it alos accepts allocators which we aren't doing in this implementation.
+  // size, it also accepts allocators which we aren't doing in this implementation.
   class _Impl {
     public:
       _Impl(_Ptr p, _Deleter d) : _M_ptr(p), _M_deleter(std::move(d)) {}
@@ -102,11 +137,22 @@ private:
 };
 
 
+// ****************************************************************************
+// __shared_count
+//
+// __shared_count is an interface class used to define the which counter type the shared_ptr
+// needs to construct. This is done through Ctor argument overloads. In this case when 
+// a deleter argument is passed to the __shared_count Ctor it will create a _Sp_counted_deleter
+//
+// __shared_count is also responsible for calling _M_add_ref_copy() and _M_release() during 
+// copy, assignemt and destruction of a __shared_count object. Removing that responsibility 
+// from the higher level interfaces of shared_ptr.
 class __shared_count {
 
 public:
   constexpr __shared_count() noexcept : _M_pi(0) {}
 
+  // TODO: Change this to use the new CTor explicit call not this heap allocation of new we have here.
   template<typename _Ptr>
   explicit __shared_count(_Ptr p) : _M_pi(new _Sp_counted_ptr<_Ptr>(p)) {}
 
@@ -117,7 +163,6 @@ public:
 
   __shared_count(__shared_count const& r) noexcept : _M_pi(r._M_pi) { if (_M_pi) _M_pi->_M_add_ref_copy(); }
 
-  
   __shared_count& operator=(__shared_count const& r) noexcept {
     _Sp_counted_base* temp = r._M_pi;
     if (temp != _M_pi)
@@ -145,11 +190,19 @@ public:
 
 
 
+// ****************************************************************************
+// __shared_ptr
+//
+// The std separates shared_ptr from some of it's implementation in __shared_ptr.
+// In this implementation I'm not certain how useful it is as std::__shared_ptr 
+// does a lot more behind the scenes work for functionality Spheral::shared_ptr
+// is not supporting. However it still helps to keep the interface class of 
+// Spheral::shared_ptr very clean and readable.
 
-//// Trait to check if shared_ptr<T> can be constructed from Y*.
-//template<typename _Tp, typename _Yp>
-//struct __sp_is_constructible;
 
+// Type traits for SFINAE in __shared_ptr
+
+// Trait to check if shared_ptr<T> can be constructed from Y*.
 // Y* shall be convertible to T*.
 template<typename _Tp, typename _Yp>
 struct __sp_is_constructible : std::is_convertible<_Yp*, _Tp*>::type {};
@@ -161,8 +214,6 @@ struct __sp_compatible_with : std::false_type {};
 
 template<typename _Yp, typename _Tp>
 struct __sp_compatible_with<_Yp*, _Tp*> : std::is_convertible<_Yp*, _Tp*>::type {};
-
-
 
 
 
@@ -215,8 +266,7 @@ public:
 	  __r._M_ptr = nullptr;
 	}
 
-  __shared_ptr&
-  operator=(__shared_ptr&& __r) noexcept { __shared_ptr(std::move(__r)).swap(*this); return *this; }
+  __shared_ptr& operator=(__shared_ptr&& __r) noexcept { __shared_ptr(std::move(__r)).swap(*this); return *this; }
 
   template<class _Yp>
 	_Assignable<_Yp> operator=(__shared_ptr<_Yp>&& __r) noexcept {
@@ -238,8 +288,7 @@ public:
 	_SafeConv<_Yp> reset(_Yp* __p, _Deleter __d) { __shared_ptr(__p, std::move(__d)).swap(*this); }
 
   /// Return the stored pointer.
-  element_type*
-  get() const noexcept { return _M_ptr; }
+  element_type* get() const noexcept { return _M_ptr; }
 
   /// Return true if the stored pointer is not null.
   explicit operator bool() const noexcept { return _M_ptr != nullptr; }
@@ -248,18 +297,15 @@ public:
   long use_count() const noexcept { return _M_refcount._M_get_use_count(); }
 
   /// Exchange both the owned pointer and the stored pointer.
-  void
-  swap(__shared_ptr<_Tp>& __other) noexcept
+  void swap(__shared_ptr<_Tp>& __other) noexcept
   {
     std::swap(_M_ptr, __other._M_ptr);
     _M_refcount._M_swap(__other._M_refcount);
   }
 
-  element_type&
-  operator*() const noexcept { assert(_M_get() != nullptr); return *_M_get(); }
+  element_type& operator*() const noexcept { assert(_M_get() != nullptr); return *_M_get(); }
 
-  element_type*
-  operator->() const noexcept { assert(_M_get() != nullptr); return _M_get(); }
+  element_type* operator->() const noexcept { assert(_M_get() != nullptr); return _M_get(); }
 
 private:
   element_type* _M_get() const noexcept { return static_cast<const __shared_ptr<_Tp>*>(this)->get(); }
