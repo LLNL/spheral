@@ -1,6 +1,7 @@
 #ifndef __SPHERAL_VALUEVIEWINTERFACE__
 #define __SPHERAL_VALUEVIEWINTERFACE__
 
+#include "Utilities/SharedPtr.hh"
 #include "Field/SphArray.hh"
 #include <memory>
 
@@ -33,7 +34,8 @@ class SPHERALCopyable : public chai::CHAICopyable{
 // that passes in a "new DataObject" type.
 
 template<typename T>
-using SMART_PTR_TYPE = std::shared_ptr<T>;
+using SMART_PTR_TYPE = Spheral::shared_ptr<T>;
+//using SMART_PTR_TYPE = std::shared_ptr<T>;
 //using SMART_PTR_TYPE = ManagedSmartPtr<T>;
 
 template<typename view_type, typename impl_type>
