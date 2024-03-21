@@ -294,8 +294,16 @@ template<typename Dimension>
 typename Dimension::Scalar
 TableKernel<Dimension>::kernelValueASPH(const Scalar etaij, const Scalar nPerh) const {
   REQUIRE(etaij >= 0.0);
-  if (etaij < this->mKernelExtent) {
-    return std::abs(mGradInterp(etaij * std::max(1.0, 0.5*nPerh*mKernelExtent))); // * FastMath::square(sin(nPerh*M_PI*etaij));
+  REQUIRE(nPerh > 0.0);
+  if (etaij < mKernelExtent) {
+    const auto deta = 2.0/std::max(2.0, nPerh);
+    const auto eta0 = std::max(0.0, 0.5*(mKernelExtent - deta));
+    const auto eta1 = std::min(mKernelExtent, eta0 + deta);
+    return (etaij <= eta0 or etaij >= eta1 ?
+            0.0 :
+            kernelValueSPH((etaij - eta0)/deta));
+            // FastMath::square(sin(M_PI*(etaij - eta0)/deta)));
+    // return std::abs(mGradInterp(etaij * std::max(1.0, 0.5*nPerh*mKernelExtent))); // * FastMath::square(sin(nPerh*M_PI*etaij));
   } else {
     return 0.0;
   }

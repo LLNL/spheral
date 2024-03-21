@@ -44,51 +44,56 @@ def sumKernelValues3d(WT, nperh):
 #-------------------------------------------------------------------------------
 # ASPH second moment algorithm
 #-------------------------------------------------------------------------------
-def sumKernelValuesASPH1d(WT, asph, nperh):
+def safeInv(x, fuzz=1e-30):
+    return x/(x*x + fuzz)
+
+def sumKernelValuesASPH1d(WT, targetNperh, nperh):
     deta = 1.0/nperh
     etamax = WT.kernelExtent
-    result = sum([WT.kernelValueASPH(abs(etax), asph.targetNperh)*etax*etax for etax in np.arange(-etamax, etamax, deta)])
+    result = sum([WT.kernelValueASPH(abs(etax), targetNperh)*etax*etax for etax in np.arange(-etamax, etamax, deta)])
     return result
 
-def sumKernelValuesASPH2d(WT, asph, nperh):
+def sumKernelValuesASPH2d(WT, targetNperh, nperh):
     deta = 1.0/nperh
     etamax = WT.kernelExtent
     result = SymTensor2d()
     for etay in np.arange(-etamax, etamax, deta):
         for etax in np.arange(-etamax, etamax, deta):
             eta = Vector2d(etax, etay)
-            result += WT.kernelValueASPH(eta.magnitude(), asph.targetNperh) * eta.selfdyad()
-    return sqrt(0.5*(result.eigenValues().sumElements()))
+            Wi = WT.kernelValueASPH(eta.magnitude(), targetNperh)
+            result += Wi * eta.selfdyad()
+    return sqrt(0.5*result.eigenValues().sumElements())
 
-def sumKernelValuesASPH3d(WT, asph, nperh):
+def sumKernelValuesASPH3d(WT, targetNperh, nperh):
     deta = 1.0/nperh
     etamax = WT.kernelExtent
+    Wsum = SymTensor3d()
     result = SymTensor3d()
     for etaz in np.arange(-etamax, etamax, deta):
         for etay in np.arange(-etamax, etamax, deta):
             for etax in np.arange(-etamax, etamax, deta):
                 eta = Vector3d(etax, etay, etaz)
-                result += WT.kernelValueASPH(eta.magnitude(), asph.targetNperh) * eta.selfdyad()
-    return ((result.eigenValues().sumElements())/3.0)**(1.0/3.0)
+                result += WT.kernelValueASPH(eta.magnitude(), targetNperh) * eta.selfdyad()
+    return (result.eigenValues().sumElements()/3.0)**(1.0/3.0)
 
-def sumKernelValuesSlice2d(WT, nhat, nperh, detax, detay):
-    etamax = WT.kernelExtent
-    result = SymTensor2d()
-    for etay in np.arange(-etamax, etamax, detay):
-        for etax in np.arange(-etamax, etamax, detax):
-            eta = Vector2d(etax, etay)
-            result += WT.kernelValueASPH(eta.magnitude(), nperh) * eta.selfdyad()
-    return sqrt((result*nhat).magnitude())
+# def sumKernelValuesSlice2d(WT, nhat, nperh, detax, detay):
+#     etamax = WT.kernelExtent
+#     result = SymTensor2d()
+#     for etay in np.arange(-etamax, etamax, detay):
+#         for etax in np.arange(-etamax, etamax, detax):
+#             eta = Vector2d(etax, etay)
+#             result += WT.kernelValueASPH(eta.magnitude(), nperh) * eta.selfdyad()
+#     return sqrt((result*nhat).magnitude())
 
-def sumKernelValuesSlice3d(WT, nhat, nperh, detax, detay, detaz):
-    etamax = WT.kernelExtent
-    result = SymTensor3d()
-    for etaz in np.arange(-etamax, etamax, detaz):
-        for etay in np.arange(-etamax, etamax, detay):
-            for etax in np.arange(-etamax, etamax, detax):
-                eta = Vector3d(etax, etay, etaz)
-                result += WT.kernelValueASPH(eta.magnitude(), nperh) * eta.selfdyad()
-    return ((result*nhat).magnitude())**(1.0/3.0)
+# def sumKernelValuesSlice3d(WT, nhat, nperh, detax, detay, detaz):
+#     etamax = WT.kernelExtent
+#     result = SymTensor3d()
+#     for etaz in np.arange(-etamax, etamax, detaz):
+#         for etay in np.arange(-etamax, etamax, detay):
+#             for etax in np.arange(-etamax, etamax, detax):
+#                 eta = Vector3d(etax, etay, etaz)
+#                 result += WT.kernelValueASPH(eta.magnitude(), nperh) * eta.selfdyad()
+#     return ((result*nhat).magnitude())**(1.0/3.0)
 
 #-------------------------------------------------------------------------------
 # Here we go...
@@ -106,10 +111,11 @@ for Wstr in kernels:
     assert nDim > 0
 
     # Plot the kernel basics
-    WT = eval(f"TableKernel{nDim}d({Wstr}())")
-    #plotTableKernel(WT)
+    WT = eval(f"TableKernel{nDim}d({Wstr}(), 400)")
+    #plotTableKernel(WT, nPerh=4.01)
 
-    asph = eval(f"ASPHSmoothingScale{nDim}d(WT, 4.01)")
+    targetNperh = 4.01
+    asph = eval(f"ASPHSmoothingScale{nDim}d(WT, {targetNperh}, 400)")
 
     # Now how well do we recover nPerh based on kernel sums?
     etamax = WT.kernelExtent
@@ -120,15 +126,15 @@ for Wstr in kernels:
     WsumASPH = []
     for nperh in nperh0:
         Wsumi = eval(f"sumKernelValues{nDim}d(WT, {nperh})")
-        WsumASPHi = eval(f"sumKernelValuesASPH{nDim}d(WT, asph, {nperh})")
+        WsumASPHi = eval(f"sumKernelValuesASPH{nDim}d(WT, {targetNperh}, {nperh})")
         WsumSPH.append(Wsumi)
         WsumASPH.append(WsumASPHi)
         nperhSPH.append(WT.equivalentNodesPerSmoothingScale(Wsumi))
         nperhASPH.append(asph.equivalentNodesPerSmoothingScale(WsumASPHi))
-    nperhSPH = np.array(nperhSPH)
-    nperhASPH = np.array(nperhASPH)
     WsumSPH = np.array(WsumSPH)
     WsumASPH = np.array(WsumASPH)
+    nperhSPH = np.array(nperhSPH)
+    nperhASPH = np.array(nperhASPH)
 
     # Helper function for plotting
     def plotIt(x, y, style,
@@ -163,27 +169,27 @@ for Wstr in kernels:
                   ylabel = "n per h")
     plotIt(WsumASPH, nperhASPH, "k-", label="Fit", plot=plot)
 
-    # SPH nperh
-    plot = plotIt(nperh0, nperhSPH, "b*-", label="nperh lookup",
-                  title = f"{Wstr} n per h lookup test : SPH algorithm",
-                  xlabel = "nperh actual",
-                  ylabel = "nperh estimated")
+    # # SPH nperh
+    # plot = plotIt(nperh0, nperhSPH, "b*-", label="nperh lookup",
+    #               title = f"{Wstr} n per h lookup test : SPH algorithm",
+    #               xlabel = "nperh actual",
+    #               ylabel = "nperh estimated")
 
-    # SPH nperh error
-    plot = plotIt(nperh0, (nperhSPH - nperh0)/nperh0, "r*-",
-                  title = f"{Wstr} n per h lookup test error : SPH algorithm",
-                  xlabel = "nperh actual",
-                  ylabel = "Error")
+    # # SPH nperh error
+    # plot = plotIt(nperh0, (nperhSPH - nperh0)/nperh0, "r*-",
+    #               title = f"{Wstr} n per h lookup test error : SPH algorithm",
+    #               xlabel = "nperh actual",
+    #               ylabel = "Error")
 
-    plot = plotIt(nperh0, nperhASPH, "b*-",
-                  title = f"{Wstr} n per h lookup test : ASPH algorithm",
-                  xlabel = "nperh actual",
-                  ylabel = "nperh estimated")
+    # plot = plotIt(nperh0, nperhASPH, "b*-",
+    #               title = f"{Wstr} n per h lookup test : ASPH algorithm",
+    #               xlabel = "nperh actual",
+    #               ylabel = "nperh estimated")
 
-    plot = plotIt(nperh0, (nperhASPH - nperh0)/nperh0, "r*-",
-                  title = f"{Wstr} n per h lookup test error : ASPH algorithm",
-                  xlabel = "nperh actual",
-                  ylabel = "Error")
+    # plot = plotIt(nperh0, (nperhASPH - nperh0)/nperh0, "r*-",
+    #               title = f"{Wstr} n per h lookup test error : ASPH algorithm",
+    #               xlabel = "nperh actual",
+    #               ylabel = "Error")
 
     # # Test ASPH with different aspect ratios
     # if nDim == 2:

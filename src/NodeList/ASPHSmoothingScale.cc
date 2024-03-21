@@ -164,7 +164,7 @@ sumKernelValuesASPH(const TableKernel<Dim<1>>& W,
   auto result = 0.0;
   auto etax = deta;
   while (etax < W.kernelExtent()) {
-    result += 2.0*W.kernelValueASPH(etax, targetNperh) * etax*etax;
+    result += 2.0*W.kernelValueASPH(etax, targetNperh)*etax*etax;
     etax += deta;
   }
   return result;
@@ -183,16 +183,15 @@ sumKernelValuesASPH(const TableKernel<Dim<2>>& W,
     double etax = 0.0;
     while (etax < W.kernelExtent()) {
       const Dim<2>::Vector eta(etax, etay);
-      auto dresult = W.kernelValueASPH(eta.magnitude(), targetNperh) * eta.selfdyad();
-      if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-      if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-      result += dresult;
+      auto Wi = W.kernelValueASPH(eta.magnitude(), targetNperh);
+      if (distinctlyGreaterThan(etax, 0.0)) Wi *= 2.0;
+      if (distinctlyGreaterThan(etay, 0.0)) Wi *= 2.0;
+      result += Wi*eta.selfdyad();
       etax += deta;
     }
     etay += deta;
   }
-  const auto lambda = 0.5*(result.eigenValues().sumElements());
-  return std::sqrt(lambda);
+  return std::sqrt(0.5*(result.eigenValues().sumElements()));
 }
 
 inline
@@ -210,19 +209,18 @@ sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
       double etax = 0.0;
       while (etax < W.kernelExtent()) {
         const Dim<3>::Vector eta(etax, etay, etaz);
-        auto dresult = W.kernelValueASPH(eta.magnitude(), targetNperh) * eta.selfdyad();
-        if (distinctlyGreaterThan(etax, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etay, 0.0)) dresult *= 2.0;
-        if (distinctlyGreaterThan(etaz, 0.0)) dresult *= 2.0;
-        result += dresult;
+        auto Wi = W.kernelValueASPH(eta.magnitude(), targetNperh);
+        if (distinctlyGreaterThan(etax, 0.0)) Wi *= 2.0;
+        if (distinctlyGreaterThan(etay, 0.0)) Wi *= 2.0;
+        if (distinctlyGreaterThan(etaz, 0.0)) Wi *= 2.0;
+        result += Wi*eta.selfdyad();
         etax += deta;
       }
       etay += deta;
     }
     etaz += deta;
   }
-  const auto lambda = (result.eigenValues().sumElements())/3.0;
-  return pow(lambda, 1.0/3.0);
+  return pow((result.eigenValues().sumElements())/3.0, 1.0/3.0);
 }
 
 }  // anonymous namespace
