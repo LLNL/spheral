@@ -302,7 +302,7 @@ print("Generating node distribution.")
 # 2D
 if geometry == "2d":
     from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
     generator1 = GenerateNodeDistribution2d(nz, 2*nr, 
                                             rho = rho0,
                                             distributionType = "lattice",
@@ -325,7 +325,7 @@ if geometry == "2d":
 # RZ
 elif geometry == "RZ":
     from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
     generator1 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
                                                         rho = rho0,
                                                         distributionType = "lattice",
@@ -348,7 +348,7 @@ elif geometry == "RZ":
 # 3D
 else:
     from GenerateNodeDistribution3d import *
-    from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes3d as distributeNodes
     rmin = 0.0
     rmax = rlength
     zmin = 0.0
