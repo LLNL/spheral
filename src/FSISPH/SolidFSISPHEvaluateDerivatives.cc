@@ -151,8 +151,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
-  auto  massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
-  auto  massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
@@ -185,8 +183,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massFirstMoment.size() == numNodeLists);
-  CHECK(massSecondMomentEta.size() == numNodeLists);
-  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
@@ -204,7 +200,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, Wj, gWj, PLineari, PLinearj, epsLineari, epsLinearj;
-    Scalar WSPHi, WSPHj, WASPHi, WASPHj;
+    Scalar WSPHi, WSPHj;
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj;
     Vector sigmarhoi, sigmarhoj;
@@ -228,8 +224,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
-    auto massSecondMomentEta_thread = massSecondMomentEta.threadCopy(threadStack);
-    auto massSecondMomentLab_thread = massSecondMomentLab.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
     
@@ -283,8 +277,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta_thread(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
       auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
@@ -337,8 +329,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
-      auto& massSecondMomentEtaj = massSecondMomentEta_thread(nodeListj, j);
-      auto& massSecondMomentLabj = massSecondMomentLab_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
       auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
@@ -476,17 +466,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       //---------------------------------------------------------------
       WSPHi = W.kernelValueSPH(etaMagi);
       WSPHj = W.kernelValueSPH(etaMagj);
-      WASPHi = W.kernelValueASPH(etaMagi, nPerh);
-      WASPHj = W.kernelValueASPH(etaMagj, nPerh);
-      const auto rijdyad = rij.selfdyad();
       weightedNeighborSumi += WSPHi;
       weightedNeighborSumj += WSPHj;
       massFirstMomenti -= WSPHi*etai;
       massFirstMomentj += WSPHj*etaj;
-      massSecondMomentEtai += WASPHi*etai.selfdyad();
-      massSecondMomentEtaj += WASPHj*etaj.selfdyad();
-      massSecondMomentLabi += WASPHi*rijdyad;
-      massSecondMomentLabj += WASPHj*rijdyad;
 
       if (!decouple){
 
@@ -718,8 +701,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       auto& newInterfaceNormalsi = newInterfaceNormals(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
@@ -770,11 +751,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
                                                             nPerh);
       
       Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       ri,
+                                                       position,
                                                        weightedNeighborSumi,
                                                        massFirstMomenti,
-                                                       massSecondMomentEtai,
-                                                       massSecondMomentLabi,
                                                        W,
                                                        hmin,
                                                        hmax,

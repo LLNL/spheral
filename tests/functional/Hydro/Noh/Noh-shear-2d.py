@@ -6,7 +6,7 @@ import shutil
 import mpi
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
+from SpheralMatplotlib import *
 from findLastRestart import *
 from SpheralVisitDump import dumpPhysicsState
 
@@ -23,9 +23,8 @@ commandLine(seed = "lattice",
 
             nx = 20,
             ny = 100,
-            nPerh = 2.01,
-            KernelConstructor = BSplineKernel,
-            order = 5,
+            nPerh = 4.01,
+            KernelConstructor = WendlandC4Kernel,
 
             x0 = 0.0,
             x1 = 0.2,
@@ -41,10 +40,8 @@ commandLine(seed = "lattice",
             gamma = 5.0/3.0,
             mu = 1.0,
 
-	    SVPH = False,
-            CRKSPH = False,
-            PSPH = False,
-            SPH = True,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM)
+            ASPH = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             Qconstructor = MonaghanGingoldViscosity,
             #Qconstructor = TensorMonaghanGingoldViscosity,
             boolReduceViscosity = False,
@@ -127,31 +124,10 @@ if smallPressure:
    P0 = 1.0e-6
    eps1 = P0/((gamma - 1.0)*rho1)
 
-
-if SVPH:
-    if SPH:
-        HydroConstructor = SVPHFacetedHydro
-    else:
-        HydroConstructor = ASVPHFacetedHydro
-elif CRKSPH:
-    if SPH:
-        HydroConstructor = CRKSPHHydro
-    else:
-        HydroConstructor = ACRKSPHHydro
-    Qconstructor = LimitedMonaghanGingoldViscosity
-elif PSPH:
-    if SPH:
-        HydroConstructor = PSPHHydro
-    else:
-        HydroConstructor = APSPHHydro
-else:
-    if SPH:
-        HydroConstructor = SPHHydro
-    else:
-        HydroConstructor = ASPHHydro
+hydroType = hydroType.upper()
 
 dataDir = os.path.join(dataRoot,
-                       HydroConstructor.__name__,
+                       hydroType,
                        Qconstructor.__name__,
                        "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
                        "nperh=%4.2f" % nPerh,
@@ -201,9 +177,9 @@ eos = GammaLawGasMKS(gamma, mu)
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 1000)
+  WT = TableKernel(NBSplineKernel(order))
 else:
-  WT = TableKernel(KernelConstructor(), 1000)
+  WT = TableKernel(KernelConstructor())
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -281,57 +257,65 @@ output("q.balsaraShearCorrection")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if SVPH:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             densityUpdate = densityUpdate,
-                             XSVPH = XSPH,
-                             linearConsistent = linearConsistent,
-                             generateVoid = False,
-                             HUpdate = HUpdate,
-                             fcentroidal = fcentroidal,
-                             fcellPressure = fcellPressure,
-                             xmin = Vector(-1.1, -1.1),
-                             xmax = Vector( 1.1,  1.1))
-elif CRKSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             XSPH = XSPH,
-                             correctionOrder = correctionOrder,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate)
-elif PSPH:
-    hydro = HydroConstructor(W = WT,
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             HopkinsConductivity = HopkinsConductivity,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH)
+if hydroType == "SVPH":
+    hydro = SVPH(dataBase = db,
+                 W = WT, 
+                 Q = q,
+                 cfl = cfl,
+                 compatibleEnergyEvolution = compatibleEnergy,
+                 densityUpdate = densityUpdate,
+                 XSVPH = XSPH,
+                 linearConsistent = linearConsistent,
+                 generateVoid = False,
+                 HUpdate = HUpdate,
+                 fcentroidal = fcentroidal,
+                 fcellPressure = fcellPressure,
+                 xmin = Vector(-1.1, -1.1),
+                 xmax = Vector( 1.1,  1.1),
+                 ASPH = ASPH)
+elif hydroType == "CRKSPH":
+    hydro = CRKSPH(dataBase = db,
+                   W = WT,
+                   Q = q,
+                   filter = filter,
+                   cfl = cfl,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   XSPH = XSPH,
+                   correctionOrder = correctionOrder,
+                   densityUpdate = densityUpdate,
+                   HUpdate = HUpdate,
+                   ASPH = ASPH)
+elif hydroType == "PSPH":
+   hydro = PSPH(dataBase = db,
+                W = WT,
+                Q = q,
+                filter = filter,
+                cfl = cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                HopkinsConductivity = HopkinsConductivity,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                ASPH = ASPH)
 else:
-    hydro = HydroConstructor(W = WT, 
-                             Q = q,
-                             filter = filter,
-                             cfl = cfl,
-                             useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution = compatibleEnergy,
-                             evolveTotalEnergy = evolveTotalEnergy,
-                             gradhCorrection = gradhCorrection,
-                             correctVelocityGradient = correctVelocityGradient,
-                             densityUpdate = densityUpdate,
-                             HUpdate = HUpdate,
-                             XSPH = XSPH,
-                             epsTensile = epsilonTensile,
-                             nTensile = nTensile)
+    hydro = SPH(dataBase = db,
+                W = WT, 
+                Q = q,
+                filter = filter,
+                cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
+                gradhCorrection = gradhCorrection,
+                correctVelocityGradient = correctVelocityGradient,
+                densityUpdate = densityUpdate,
+                HUpdate = HUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile,
+                ASPH = ASPH)
 
 output("hydro")
 output("hydro.kernel()")
@@ -395,26 +379,18 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
-
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
-                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            skipInitialPeriodicWork = SVPH,
+                            skipInitialPeriodicWork = (hydroType == "SVPH"),
                             SPH = True,)
 output("control")
 
@@ -455,7 +431,6 @@ else:
 if graphics:
 
     # Plot the node positions.
-    import Gnuplot
     rPlot = plotNodePositions2d(db, colorNodeLists=0, colorDomains=1)
 
     # Plot the final state.
@@ -483,7 +458,7 @@ if graphics:
 
     # Make hardcopies of the plots.
     for p, filename in plots:
-        p.hardcopy(os.path.join(dataDir, filename), terminal="png")
+        p.figure.savefig(os.path.join(dataDir, filename))
 
     # Report the error norms.
     rmin, rmax = 0.05, 0.35

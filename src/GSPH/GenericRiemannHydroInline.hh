@@ -500,22 +500,6 @@ massFirstMoment() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-GenericRiemannHydro<Dimension>::
-massSecondMomentEta() const {
-  return mMassSecondMomentEta;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-GenericRiemannHydro<Dimension>::
-massSecondMomentLab() const {
-  return mMassSecondMomentLab;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 GenericRiemannHydro<Dimension>::
 XSPHWeightSum() const {

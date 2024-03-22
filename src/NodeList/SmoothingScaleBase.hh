@@ -27,33 +27,16 @@ class SmoothingScaleBase {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
   // Constructors, destructor.
   SmoothingScaleBase();
   SmoothingScaleBase(const SmoothingScaleBase& rhs);
   SmoothingScaleBase& operator=(const SmoothingScaleBase& rhs);
   virtual ~SmoothingScaleBase();
-
-  // Compute the time derivative and ideal H simultaneously for a Field of H's.
-  void newSmoothingScaleAndDerivative(const Field<Dimension, SymTensor>& H,
-                                      const Field<Dimension, Vector>& position,
-                                      const Field<Dimension, Tensor>& DvDx,
-                                      const Field<Dimension, Scalar>& zerothMoment,
-                                      const Field<Dimension, Vector>& firstMoment,
-                                      const Field<Dimension, SymTensor>& secondMomentEta,
-                                      const Field<Dimension, SymTensor>& secondMomentLab,
-                                      const ConnectivityMap<Dimension>& connectivityMap,
-                                      const TableKernel<Dimension>& W,
-                                      const Scalar hmin,
-                                      const Scalar hmax,
-                                      const Scalar hminratio,
-                                      const Scalar nPerh,
-                                      Field<Dimension, SymTensor>& DHDt,
-                                      Field<Dimension, SymTensor>& Hideal) const;
 
   // Given the volume and target nperh, compute an effective target hmax
   Scalar hmax(const Scalar Vi, const Scalar nPerh) const;
@@ -73,11 +56,9 @@ public:
   // Return a new H, with limiting based on the old value.
   virtual SymTensor
   newSmoothingScale(const SymTensor& H,
-                    const Vector& pos,
+                    const FieldList<Dimension, Vector>& pos,
                     const Scalar zerothMoment,
                     const Vector& firstMoment,
-                    const SymTensor& secondMomentEta,
-                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -90,11 +71,9 @@ public:
   // Determine an "ideal" H for the given moments.
   virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const Vector& pos,
+                      const FieldList<Dimension, Vector>& pos,
                       const Scalar zerothMoment,
                       const Vector& firstMoment,
-                      const SymTensor& secondMomentEta,
-                      const SymTensor& secondMomentLab,
                       const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,

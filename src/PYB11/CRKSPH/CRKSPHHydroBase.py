@@ -172,8 +172,6 @@ mass density, velocity, and specific thermal energy."""
     viscousWork = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "viscousWork", returnpolicy="reference_internal")
     weightedNeighborSum = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "weightedNeighborSum", returnpolicy="reference_internal")
     massFirstMoment = PYB11property("const FieldList<%(Dimension)s, Vector>&", "massFirstMoment", returnpolicy="reference_internal")
-    massSecondMomentEta = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentEta", returnpolicy="reference_internal")
-    massSecondMomentLab = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentLab", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
 
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")

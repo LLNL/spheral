@@ -172,8 +172,6 @@ public:
   const FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, Vector>&    massFirstMoment() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
 
   const FieldList<Dimension, Vector>&    DxDt() const;
@@ -219,8 +217,6 @@ protected:
 
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, Vector>    mMassFirstMoment;
-  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
-  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;

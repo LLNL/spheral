@@ -223,6 +223,44 @@ sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
   return pow((result.eigenValues().sumElements())/3.0, 1.0/3.0);
 }
 
+//------------------------------------------------------------------------------
+// Compute the reflected hull (using points from an original hull)
+//------------------------------------------------------------------------------
+template<typename FacetedVolume>
+inline
+FacetedVolume
+reflectHull(const FacetedVolume& hull0) {
+  const auto& verts0 = hull0.vertices();
+  auto verts1 = verts0;
+  for (const auto& v: verts0) verts1.push_back(-v);
+  return FacetedVolume(verts1);
+}
+
+//------------------------------------------------------------------------------
+// 1D specialization
+inline
+Dim<1>::FacetedVolume
+reflectHull(const Dim<1>::FacetedVolume& hull0) {
+  const auto xmax = std::abs(hull0.center().x()) + hull0.extent();
+  return Dim<1>::FacetedVolume(Dim<1>::Vector::zero, xmax);
+}
+
+//------------------------------------------------------------------------------
+// Extract the hull vertices back in non-inverse space
+//------------------------------------------------------------------------------
+template<typename FacetedVolume>
+inline
+std::vector<typename FacetedVolume::Vector>
+inverseHullVertices(const FacetedVolume& hull) {
+  const auto& verts0 = hull.vertices();
+  std::vector<typename FacetedVolume::Vector> result;
+  for (const auto& v: verts0) {
+    CHECK(v.magnitude2() > 0.0);
+    result.push_back(1.0/v.magnitude() * v.unitVector());
+  }
+  return result;
+}
+
 }  // anonymous namespace
 
 //------------------------------------------------------------------------------
@@ -230,28 +268,8 @@ sumKernelValuesASPH(const TableKernel<Dim<3>>& W,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ASPHSmoothingScale<Dimension>::
-ASPHSmoothingScale(const TableKernel<Dimension>& W,
-                   const Scalar targetNperh,
-                   const size_t numPoints):
-  SmoothingScaleBase<Dimension>(),
-  mTargetNperh(targetNperh),
-  mMinNperh(W.minNperhLookup()),
-  mMaxNperh(W.maxNperhLookup()),
-  mNperhLookup(),
-  mWsumLookup() {
-
-  // Preconditions
-  VERIFY2(mTargetNperh >= mMinNperh, "ASPHSmoothingScale ERROR: targetNperh not in (minNperh, maxNperh) : " << mTargetNperh << " : (" << mMinNperh << ", " << mMaxNperh << ")");
-
-  // Initalize the lookup tables for finding the effective n per h
-  const auto n = numPoints > 0u ? numPoints : W.numPoints();
-  mWsumLookup.initialize(mMinNperh, mMaxNperh, n,
-                         [&](const double x) -> double { return sumKernelValuesASPH(W, mTargetNperh, x); });
-  mNperhLookup.initialize(mWsumLookup(mMinNperh), mWsumLookup(mMaxNperh), n,
-                          [&](const double Wsum) -> double { return bisectRoot([&](const double nperh) { return mWsumLookup(nperh) - Wsum; }, mMinNperh, mMaxNperh); });
-
-  mWsumLookup.makeMonotonic();
-  mNperhLookup.makeMonotonic();
+ASPHSmoothingScale():
+  SmoothingScaleBase<Dimension>() {
 }
 
 //------------------------------------------------------------------------------
@@ -260,12 +278,7 @@ ASPHSmoothingScale(const TableKernel<Dimension>& W,
 template<typename Dimension>
 ASPHSmoothingScale<Dimension>::
 ASPHSmoothingScale(const ASPHSmoothingScale<Dimension>& rhs):
-  SmoothingScaleBase<Dimension>(rhs),
-  mTargetNperh(rhs.mTargetNperh),
-  mMinNperh(rhs.mMinNperh),
-  mMaxNperh(rhs.mMaxNperh),
-  mNperhLookup(rhs.mNperhLookup),
-  mWsumLookup(rhs.mWsumLookup) {
+  SmoothingScaleBase<Dimension>(rhs) {
 }
 
 //------------------------------------------------------------------------------
@@ -276,11 +289,6 @@ ASPHSmoothingScale<Dimension>&
 ASPHSmoothingScale<Dimension>::
 operator=(const ASPHSmoothingScale& rhs) {
   SmoothingScaleBase<Dimension>::operator=(rhs);
-  mTargetNperh = rhs.mTargetNperh;
-  mMinNperh = rhs.mMinNperh;
-  mMaxNperh = rhs.mMaxNperh;
-  mNperhLookup = rhs.mNperhLookup;
-  mWsumLookup = rhs.mWsumLookup;
   return *this;
 }
 
@@ -382,11 +390,9 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& pos,
+                    const FieldList<Dimension, Vector>& pos,
                     const Scalar zerothMoment,
                     const Vector& firstMoment,
-                    const SymTensor& secondMomentEta,
-                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -399,41 +405,67 @@ idealSmoothingScale(const SymTensor& H,
   // Pre-conditions.
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
-  REQUIRE(secondMomentEta.Determinant() >= 0.0);
 
-  // const double tiny = 1.0e-50;
-  // const double tolerance = 1.0e-5;
+  // Build the inverse coordinates for all neighbors.
+  const auto neighbors = connectivityMap.connectivityForNode(nodeListi, i);
+  const auto numNodeLists = neighbors.size();
+  const auto& posi = pos(nodeListi, i);
+  vector<Vector> invCoords = {Vector::zero};
+  for (auto nodeListj = 0u; nodeListj < numNodeLists; ++nodeListj) {
+    for (const auto j: neighbors[nodeListj]) {
+      const auto rji = pos(nodeListj, j) - posi;
+      const auto rjiMag = rji.magnitude();
+      CHECK(rjiMag > 0.0);
+      invCoords.push_back(1.0/rjiMag * rji.unitVector());
+    }
+  }
 
-  // If there is no information to be had (no neighbors), just double the current H vote
-  // and bail
-  if (secondMomentEta.Determinant() == 0.0) return 0.5*H;
+  // Construct the convex hull of the inverse coordinates.
+  const auto hull0 = FacetedVolume(invCoords);
 
-  // Decompose the second moment tensor into it's eigen values/vectors.
-  const auto Psi_eigen = secondMomentEta.eigenVectors();
+  // Now build a hull again with the starting hull points reflected through the position of i
+  const auto hull1 = reflectHull(hull0);
 
-  // Iterate over the eigen values and build the new H tensor in the kernel frame.
-  SymTensor HnewInv;
-  for (auto nu = 0u; nu < Dimension::nDim; ++nu) {
-    const auto lambdaPsi = Psi_eigen.eigenValues(nu);
-    const auto evec = Psi_eigen.eigenVectors.getColumn(nu);
-    const auto h0 = 1.0/(H*evec).magnitude();
+  // Extract the hull coordinates (back in non-inverse world)
+  const auto vertices = inverseHullVertices(hull1);
 
-    // Query the kernel for the equivalent nodes per smoothing scale in this direction
-    auto currentNodesPerSmoothingScale = this->equivalentNodesPerSmoothingScale(lambdaPsi);
+  // Now we can build the second moment from these vertices
+  SymTensor psi;
+  for (const auto& v: vertices) {
+    psi += v.selfdyad();
+  }
+
+  // Find the desired shape for the new H tensor
+  SymTensor Hnew;
+  const auto D0 = psi.Determinant();
+  if (D0 > 0.0) {   // Check for degeneracies
+
+    // Got a valid second-moment, so do the normal algorithm
+    psi /= Dimension::rootnu(D0);
+    Hnew = psi.sqrt().Inverse();
+    CHECK(fuzzyEqual(Hnew.Determinant(), 1.0));
+    
+    // Look up the volume scaling from the zeroth moment using our normal SPH approach
+    const auto currentNodesPerSmoothingScale = W.equivalentNodesPerSmoothingScale(zerothMoment);
     CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
     // The (limited) ratio of the desired to current nodes per smoothing scale.
     const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
     CHECK(s > 0.0);
 
-    HnewInv(nu, nu) = h0*s;
+    // Scale to the desired determinant
+    Hnew *= Dimension::rootnu(H.Determinant())/s;
+
+  } else {
+
+    // We have a degenerate hull (and second moment).  We'll just freeze the shape and
+    // expand.
+    Hnew = 0.5 * H;
+
   }
 
-  // Rotate to the lab frame.
-  HnewInv.rotationalTransform(Psi_eigen.eigenVectors);
-
   // That's it
-  return HnewInv.Inverse();
+  return Hnew;
 }
 
 //------------------------------------------------------------------------------
@@ -444,11 +476,9 @@ template<typename Dimension>
 typename Dimension::SymTensor
 ASPHSmoothingScale<Dimension>::
 newSmoothingScale(const SymTensor& H,
-                  const Vector& pos,
+                  const FieldList<Dimension, Vector>& pos,
                   const Scalar zerothMoment,
                   const Vector& firstMoment,
-                  const SymTensor& secondMomentEta,
-                  const SymTensor& secondMomentLab,
                   const TableKernel<Dimension>& W,
                   const Scalar hmin,
                   const Scalar hmax,
@@ -465,8 +495,6 @@ newSmoothingScale(const SymTensor& H,
                                                pos,
                                                zerothMoment,
                                                firstMoment,
-                                               secondMomentEta,
-                                               secondMomentLab,
                                                W,
                                                hmin,
                                                hmax,
@@ -580,27 +608,6 @@ idealSmoothingScale(const SymTensor& /*H*/,
   }
   result.rotationalTransform(eigen.eigenVectors);
   return result;
-}
-
-//------------------------------------------------------------------------------
-// Determine the number of nodes per smoothing scale implied by the given
-// sum of kernel values.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-ASPHSmoothingScale<Dimension>::
-equivalentNodesPerSmoothingScale(const Scalar lambdaPsi) const {
-  return std::max(0.0, mNperhLookup(lambdaPsi));
-}
-
-//------------------------------------------------------------------------------
-// Determine the effective Wsum we would expect for the given n per h.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-ASPHSmoothingScale<Dimension>::
-equivalentLambdaPsi(const Scalar nPerh) const {
-  return std::max(0.0, mWsumLookup(nPerh));
 }
 
 }

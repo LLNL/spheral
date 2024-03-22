@@ -77,7 +77,7 @@ template<int Dimension, typename RealType>
 bool
 collinear(const RealType* a, const RealType* b, const RealType* c, const RealType tol) {
   RealType ab[Dimension], ac[Dimension], abmag = 0.0, acmag = 0.0;
-  for (unsigned j = 0; j != Dimension; ++j) {
+  for (auto j = 0u; j < Dimension; ++j) {
     ab[j] = b[j] - a[j];
     ac[j] = c[j] - a[j];
     abmag += ab[j]*ab[j];
@@ -86,7 +86,7 @@ collinear(const RealType* a, const RealType* b, const RealType* c, const RealTyp
   if (abmag < tol or acmag < tol) return true;
   abmag = sqrt(abmag);
   acmag = sqrt(acmag);
-  for (unsigned j = 0; j != Dimension; ++j) {
+  for (auto j = 0u; j < Dimension; ++j) {
     ab[j] /= abmag;
     ac[j] /= acmag;
   }
@@ -148,10 +148,10 @@ struct FuzzyPoint2LessThan {
   UintType fuzz;
   FuzzyPoint2LessThan(const UintType ifuzz = 1): fuzz(ifuzz) {}
   bool operator()(const Point2<UintType>& p1, const Point2<UintType>& p2) const {
-    return (p1.x + fuzz < p2.x        ? true :
-            p1.x        > p2.x + fuzz ? false :
-            p1.y + fuzz < p2.y        ? true :
-            p1.y        > p2.y + fuzz ? false :
+    return (p1.x + fuzz < p2.x ? true :
+            p2.x + fuzz < p1.x ? true :
+            p1.y + fuzz < p2.y ? true :
+            p2.y + fuzz < p1.y ? true :
             false);
   }
   bool operator()(const std::pair<Point2<UintType>, unsigned>& p1,
@@ -238,13 +238,14 @@ convexHull_2d(const std::vector<RealType>& points,
   }
 
   // Check if the input points are collinear.
-  bool collinear = true;
-  CHECK(n > 2);
-  i = 2;
-  while (collinear and i != (int)n) {
-    collinear = geometry::collinear<2,RealType>(&points[0], &points[2*j], &points[2*i], dx);
-    ++i;
-  }
+  bool collinear =  false;
+  // bool collinear = true;
+  // CHECK(n > 2);
+  // i = 2;
+  // while (collinear and i != (int)n) {
+  //   collinear = geometry::collinear<2,RealType>(&points[0], &points[2*j], &points[2*i], 1e-15);
+  //   ++i;
+  // }
   
   // Hash the input points and sort them by x coordinate, remembering their original indices
   // in the input set.  We also ensure that only unique (using a fuzzy comparison) points

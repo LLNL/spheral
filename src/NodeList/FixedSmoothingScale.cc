@@ -70,11 +70,9 @@ template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
 newSmoothingScale(const SymTensor& H,
-                  const Vector& /*pos*/,
+                  const FieldList<Dimension, Vector>& /*pos*/,
                   const Scalar /*zerothMoment*/,
                   const Vector& /*firstMoment*/,
-                  const SymTensor& /*secondMomentEta*/,
-                  const SymTensor& /*secondMomentLab*/,
                   const TableKernel<Dimension>& /*W*/,
                   const Scalar /*hmin*/,
                   const Scalar /*hmax*/,
@@ -93,11 +91,9 @@ template<typename Dimension>
 typename Dimension::SymTensor
 FixedSmoothingScale<Dimension>::
 idealSmoothingScale(const SymTensor& H,
-                    const Vector& /*pos*/,
+                    const FieldList<Dimension, Vector>& /*pos*/,
                     const Scalar /*zerothMoment*/,
                     const Vector& /*firstMoment*/,
-                    const SymTensor& /*secondMomentEta*/,
-                    const SymTensor& /*secondMomentLab*/,
                     const TableKernel<Dimension>& /*W*/,
                     const Scalar /*hmin*/,
                     const Scalar /*hmax*/,

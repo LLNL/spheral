@@ -392,8 +392,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   auto  massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
-  auto  massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
-  auto  massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -414,8 +412,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
   CHECK(massFirstMoment.size() == numNodeLists);
-  CHECK(massSecondMomentEta.size() == numNodeLists);
-  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
 
   // The set of interacting node pairs.
@@ -439,7 +435,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     // Thread private  scratch variables.
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-    Scalar WSPHi, WSPHj, WASPHi, WASPHj;
+    Scalar WSPHi, WSPHj;
     Vector gradWi, gradWj, gradWQi, gradWQj, gradWGi, gradWGj;
     Tensor QPiij, QPiji;
     SymTensor sigmai, sigmaj, sigmarhoi, sigmarhoj;
@@ -460,8 +456,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
-    auto massSecondMomentEta_thread = massSecondMomentEta.threadCopy(threadStack);
-    auto massSecondMomentLab_thread = massSecondMomentLab.threadCopy(threadStack);
     auto DSDt_thread = DSDt.threadCopy(threadStack);
 
 #pragma omp for
@@ -505,9 +499,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta_thread(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab_thread(nodeListi, i);
-
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
       const auto  mj = mass(nodeListj, j);
@@ -541,8 +532,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
-      auto& massSecondMomentEtaj = massSecondMomentEta_thread(nodeListj, j);
-      auto& massSecondMomentLabj = massSecondMomentLab_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -588,20 +577,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       }
       WSPHi = W.kernelValueSPH(etaMagi);
       WSPHj = W.kernelValueSPH(etaMagj);
-      WASPHi = W.kernelValueASPH(etaMagi, nPerh);
-      WASPHj = W.kernelValueASPH(etaMagj, nPerh);
 
       // Moments of the node distribution -- used for the ideal H calculation.
       const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto rijdyad = rij.selfdyad();
       weightedNeighborSumi +=     fweightij*WSPHi;
       weightedNeighborSumj += 1.0/fweightij*WSPHj;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
-      massSecondMomentEtai +=     fweightij*WASPHi*etai.selfdyad();
-      massSecondMomentEtaj += 1.0/fweightij*WASPHj*etaj.selfdyad();
-      massSecondMomentLabi +=     fweightij*WASPHi*rijdyad;
-      massSecondMomentLabj += 1.0/fweightij*WASPHj*rijdyad;
 
       // Contribution to the sum density (only if the same material).
       if (nodeListi == nodeListj) {
@@ -753,8 +735,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
       auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
 
       // Add the self-contribution to density sum.
@@ -811,11 +791,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                                                             hminratio,
                                                             nPerh);
       Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       ri,
+                                                       position,
                                                        weightedNeighborSumi,
                                                        massFirstMomenti,
-                                                       massSecondMomentEtai,
-                                                       massSecondMomentLabi,
                                                        W,
                                                        hmin,
                                                        hmax,
