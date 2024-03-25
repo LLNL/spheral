@@ -114,6 +114,8 @@ private:
   mutable std::vector<Facet> mFacets; // for now, just create this when we need it
 };
 
+std::ostream& operator<<(std::ostream& os, const Box1d& box);
+
 }
 
 #include "Box1dInline.hh"
