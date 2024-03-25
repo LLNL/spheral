@@ -18,7 +18,9 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/allReduce.hh"
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 
 #include "Utilities/DBC.hh"
 

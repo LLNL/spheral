@@ -18,7 +18,9 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 #include "Utilities/DBC.hh"
 
 #include <cstdio>
@@ -556,7 +558,9 @@ dumpTree(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
+#ifdef USE_MPI
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+#endif
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -633,7 +637,9 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
+#ifdef USE_MPI
   if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+#endif
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {

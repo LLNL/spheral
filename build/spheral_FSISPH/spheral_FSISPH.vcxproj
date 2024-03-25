@@ -31,7 +31,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0A7C9E40-2802-420D-9867-6DEB977B078E}</ProjectGuid>
+    <ProjectGuid>{06F53870-D69A-45F4-86BB-2079ACF8B906}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -287,27 +287,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\DataOutput\RestartRegistrar.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\FSIFieldNames.cc" />
+    <ClCompile Include="..\..\src\FSISPH\SlideSurface.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\DataOutput\registerWithRestart.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\Restart.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartHandle.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartRegistrar.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartRegistrarInline.hh">
-      <FileType>Document</FileType>
-    </None>
+    <CustomBuild Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\FSISPH\SlideSurfaceInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

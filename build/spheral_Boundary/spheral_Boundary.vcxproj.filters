@@ -10,6 +10,9 @@
     <Filter Include="Inst Files\Source Files">
       <UniqueIdentifier>{3985b720-1b51-4f78-a4ae-c6cc1630dded}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{285373dd-9335-4a44-982d-33ad0e8bbe12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Boundary\AxisBoundaryRZ.cc">
@@ -51,10 +54,14 @@
     <ClCompile Include="..\..\src\Boundary\RigidBoundaryInst.cc.3.cc">
       <Filter>Inst Files\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Boundary\FacetedVolumeBoundary.cc">
       <Filter>Inst Files\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Boundary\PeriodicBoundaryInst.cc.3.cc">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

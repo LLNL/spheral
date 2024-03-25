@@ -5,7 +5,9 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 
 #include <vector>
 #include <algorithm>

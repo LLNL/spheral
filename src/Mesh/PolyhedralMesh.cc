@@ -11,7 +11,9 @@
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/timingUtilities.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 
 using namespace boost;
 

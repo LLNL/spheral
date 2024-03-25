@@ -18,7 +18,9 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "DataBase/State.hh"
+#ifdef USE_MPI
 #include "Distributed/Communicator.hh"
+#endif
 #include "Utilities/allReduce.hh"
 
 using std::unordered_map;
@@ -99,7 +101,9 @@ weibullFlawDistributionBenzAsphaug(double volume,
         CHECK(rho(i) > 0.0);
         volume += mass(i)/rho(i);
       }
+#ifdef USE_MPI
       volume = allReduce(volume, MPI_SUM, Communicator::communicator());
+#endif
     }
     volume = std::max(volume, 1e-100);
     CHECK(volume > 0.0);
@@ -168,11 +172,13 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
     // Prepare some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
+#ifdef USE_MPI
     minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
     maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
     totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
     epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
     sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+#endif
     if (procID == 0) {
       cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
            << "                                    Max num flaws per node: " << maxNumFlaws << endl

@@ -31,7 +31,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0A7C9E40-2802-420D-9867-6DEB977B078E}</ProjectGuid>
+    <ProjectGuid>{DA903328-CECD-49A3-9442-16301537744C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -287,27 +287,218 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\DataOutput\RestartRegistrar.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeMFMDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeMFMDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeSPHVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeSPHVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeSumVolumeInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\computeSumVolumeInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\DataOutput\registerWithRestart.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\Restart.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartHandle.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartRegistrar.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\DataOutput\RestartRegistrarInline.hh">
-      <FileType>Document</FileType>
-    </None>
+    <CustomBuild Include="..\..\src\GSPH\computeMFMDensityInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\computeSPHVolumeInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\computeSumVolumeInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\GenericRiemannHydroInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\GSPHHydroBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\MFMHydroBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\LimiterBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\SuperbeeLimiterInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\MinModLimiterInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\VanAlbaLimiterInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\Limiters\OspreLimiterInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\WaveSpeedBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\AcousticWaveSpeedInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\DavisWaveSpeedInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\WaveSpeeds\EinfeldtWaveSpeedInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\RiemannSolverBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\HLLCInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
