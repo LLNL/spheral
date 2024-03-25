@@ -66,7 +66,7 @@ if (ENABLE_MPI)
       )
 
   install(FILES       mpi_mpi4py.py
-          DESTINATION Spheral
+          DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
           RENAME      mpi.py
           )
 
@@ -77,7 +77,7 @@ else()
   # MPI parallel off
   #----------------------------------------------------------------------------
   install(FILES       fakempi.py
-          DESTINATION Spheral
+          DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
           RENAME      mpi.py
           )
 
