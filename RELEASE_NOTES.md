@@ -11,7 +11,7 @@ Notable changes include:
       State and StateDerivatives object).
 
   * Build changes / improvements:
-    * 
+    * Improved the target export functionality.
 
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
