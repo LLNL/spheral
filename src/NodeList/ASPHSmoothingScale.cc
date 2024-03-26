@@ -11,6 +11,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/bisectRoot.hh"
+#include "Utilities/removeElements.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
@@ -250,13 +251,64 @@ reflectHull(const Dim<1>::FacetedVolume& hull0) {
 //------------------------------------------------------------------------------
 template<typename FacetedVolume>
 inline
+FacetedVolume
+invHull(const FacetedVolume& hull0) {
+  auto verts = hull0.vertices();  // make a copy of the initial vertices
+  const auto n = verts.size();
+  for (auto i = 0u; i < n; ++i) {
+    verts[i] = verts[i].unitVector() * safeInv(verts[i].magnitude());
+  }
+  return FacetedVolume(verts);
+}
+
+//------------------------------------------------------------------------------
+// Compute the second moment of a FacetedVolume about the origin
+//------------------------------------------------------------------------------
+// 1D
+inline
+Dim<1>::SymTensor
+computeSecondMoment(const Dim<1>::FacetedVolume& hull) {
+  return Dim<1>::SymTensor::one;
+}
+
+// 2D
+inline
+Dim<2>::SymTensor
+computeSecondMoment(const Dim<2>::FacetedVolume& hull) {
+  Dim<2>::SymTensor result;
+  const auto& facets = hull.facets();
+  auto areaSum = 0.0;
+  for (const auto& f: facets) {
+    const auto cent = (f.point1() + f.point2())/3.0;            // should be 1/3
+    const auto area = 0.5*(f.point1().cross(f.point2()).z());   // should be 1/2
+    CHECK2(area >= 0.0, area << " " << f.point1() << " " << f.point2());
+    areaSum += area*area;
+    result += area*area * cent.selfdyad();
+  }
+  result *= safeInv(areaSum);
+  return result;
+}
+
+// 3D
+inline
+Dim<3>::SymTensor
+computeSecondMoment(const Dim<3>::FacetedVolume& hull) {
+  Dim<3>::SymTensor result;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Extract the hull vertices back in non-inverse space
+//------------------------------------------------------------------------------
+template<typename FacetedVolume>
+inline
 std::vector<typename FacetedVolume::Vector>
 inverseHullVertices(const FacetedVolume& hull) {
   const auto& verts0 = hull.vertices();
   std::vector<typename FacetedVolume::Vector> result;
   for (const auto& v: verts0) {
     CHECK(v.magnitude2() > 0.0);
-    result.push_back(1.0/v.magnitude() * v.unitVector());
+    result.push_back(1.0/sqrt(v.magnitude()) * v.unitVector());
   }
   return result;
 }
@@ -406,33 +458,93 @@ idealSmoothingScale(const SymTensor& H,
   REQUIRE(H.Determinant() > 0.0);
   REQUIRE(zerothMoment >= 0.0);
 
+  const auto etamax = W.kernelExtent();
+
   // Build the inverse coordinates for all neighbors.
   const auto neighbors = connectivityMap.connectivityForNode(nodeListi, i);
   const auto numNodeLists = neighbors.size();
   const auto& posi = pos(nodeListi, i);
+  vector<Vector> coords = {Vector::zero};
   vector<Vector> invCoords = {Vector::zero};
   for (auto nodeListj = 0u; nodeListj < numNodeLists; ++nodeListj) {
     for (const auto j: neighbors[nodeListj]) {
       const auto rji = pos(nodeListj, j) - posi;
       const auto rjiMag = rji.magnitude();
       CHECK(rjiMag > 0.0);
-      invCoords.push_back(1.0/rjiMag * rji.unitVector());
+      coords.push_back(rji);
+      invCoords.push_back(safeInv(rjiMag) * rji.unitVector());
     }
   }
 
-  // Construct the convex hull of the inverse coordinates.
-  const auto hull0 = FacetedVolume(invCoords);
-
-  // Now build a hull again with the starting hull points reflected through the position of i
-  const auto hull1 = reflectHull(hull0);
-
-  // Extract the hull coordinates (back in non-inverse world)
-  const auto vertices = inverseHullVertices(hull1);
-
-  // Now we can build the second moment from these vertices
+  // Build progressive hulls working our way inward (in inverse coordinates)
   SymTensor psi;
-  for (const auto& v: vertices) {
-    psi += v.selfdyad();
+  auto done = false;
+  while (not done) {
+    CHECK(coords.size() == invCoords.size());
+
+    // Build the hull of the current inverse coordinates
+    const auto hull0 = FacetedVolume(invCoords);
+
+    // Build a hull again with the starting hull points reflected through the position of i
+    const auto hull1 = reflectHull(hull0);
+
+    // And the hull back in normal (non-inverse) coordinates
+    const auto hull = invHull(hull1);
+    const auto vertices = hull.vertices();
+
+    // Get the second moment contribution from this hull
+    const auto psi_local = computeSecondMoment(hull);
+    psi += psi_local;
+
+    if (psi.yy() > 1.1*(psi.xx())) {
+      std::cerr << "---> " << psi << " " << i << " " << posi << "\n" << hull << std::endl;
+    }
+
+    // // Extract the hull coordinates (back in non-inverse world)
+    // const auto vertices = inverseHullVertices(hull1);
+
+    // // BLAGO
+    // {
+    //   if (hull0.vertices().size() != 4) {
+    //     std::cerr << i << " " << posi << " " << H << std::endl
+    //               << "     " << hull0 << std::endl
+    //               << "     ";
+    //     for (const auto v: vertices) std::cerr << v << " ";
+    //     std::cerr << std::endl;
+    //   }
+    // }
+    // // BLAGO
+
+    // // Build the second-moment of these vertices
+    // SymTensor psi_local;
+    // auto eta_local = 0.0;
+    // for (const auto& v: vertices) {
+    //   psi_local += v.selfdyad();
+    //   eta_local += (H*v).magnitude();
+    // }
+    // eta_local /= vertices.size();
+
+    // // Increment the total weight and psi
+    // const auto Whull = W.kernelValueSPH(eta_local);
+    // psi += Whull * psi_local;
+
+    // Remove these coordinates from the inverse set
+    vector<size_t> ids;
+    const auto n = coords.size();
+    for (const auto& vinv: hull0.vertices()) {
+      auto k = 0u;
+      while (k < n and (not fuzzyEqual((vinv - invCoords[k]).magnitude2(), 0.0))) ++k;
+      CHECK(k < n);
+      ids.push_back(k);
+    }
+    std::sort(ids.begin(), ids.end());
+    removeElements(coords, ids);
+    removeElements(invCoords, ids);
+
+    // Check if we're effectively done
+    // done = ((coords.size() < (1u << Dimension::nDim)) or
+    //         eta_local > 0.5*etamax);
+    done = true;
   }
 
   // Find the desired shape for the new H tensor
