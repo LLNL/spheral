@@ -38,7 +38,7 @@ if (NOT EXISTS "${SPHERAL_BLT_DIR}/SetupBLT.cmake")
             "${SPHERAL_BLT_DIR} is not present.\n"
             "call cmake with -DSPHERAL_BLT_DIR=/your/installation/of/blt\n")
 endif()
-
+set(BLT_EXPORT_THIRDPARTY ON CACHE BOOL "")
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 #-------------------------------------------------------------------------------

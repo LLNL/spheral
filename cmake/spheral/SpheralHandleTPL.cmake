@@ -92,5 +92,5 @@ function(Spheral_Handle_TPL lib_name TPL_CMAKE_DIR)
       EXPORT spheral_cxx-targets
       DESTINATION lib/cmake)
   endif()
-  set_target_properties(${lib_name} PROPERTIES EXPORT_NAME spheral::${lib_name})
+  blt_export_tpl_targets(EXPORT ${lib_name} NAMESPACE spheral)
 endfunction()
