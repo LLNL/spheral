@@ -270,11 +270,9 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       const auto jNodeList = mNodePairList[k].j_list;
       const auto i = mNodePairList[k].i_node;
       const auto j = mNodePairList[k].j_node;
-      if ((flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) and
-          !mExcludePairs(iNodeList, i, jNodeList, j)) {
+      if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0)
         culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
                                                      old2new(jNodeList, j), jNodeList));
-      }
     }
 #pragma omp critical
     {
@@ -921,9 +919,14 @@ computeConnectivity() {
 
                     // We don't include self-interactions.
                     if ((iNodeList != jNodeList) or (i != j)) {
-                      neighbors[jNodeList].push_back(j);
-                      if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej)) nodePairs_private.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
-                      if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+
+                      // Exclude specified pairs.
+                      if (!mExcludePairs(iNodeList, i, jNodeList, j))
+                      {
+                        neighbors[jNodeList].push_back(j);
+                        if (calculatePairInteraction(iNodeList, i, jNodeList, j, firstGhostNodej)) nodePairs_private.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+                        if (domainDecompIndependent) keys[jNodeList].push_back(pair<int, Key>(j, mKeys(jNodeList, j)));
+                      }
                     }
                   }
                 }
