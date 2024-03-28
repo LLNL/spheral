@@ -298,7 +298,7 @@ setMasterList(const GeomPlane<Dimension>& enterPlane,
     while (remainingDaughters.size() > 0) {
       newDaughters = vector<Cell*>();
       ++ilevel;
-      cellSize = mBoxLength/(1U << ilevel);
+      cellSize = this->cellSize(ilevel);
     
       // Walk the candidates.
       for (typename vector<Cell*>::const_iterator itr = remainingDaughters.begin();
