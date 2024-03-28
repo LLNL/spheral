@@ -15,10 +15,11 @@ local repository. This will allow us to skip setting up a linux system with
 external packages, gives us pre-built TPLs and allows us to edit a cloned 
 repository from our local machines IDE/text editor.bash::
 
-  > docker dev create --base-image ghcr.io/llnl/spheral <path_to_local_repo>
+  > rm <path_to_local_repo>/compose-dev.yaml
+  > docker dev create --base-image ghcr.io/llnl/spheral --name <name_your_env> --path <path_to_local_repo> -o <path_to_local_repo>
 
-This will generate a docker environment with a random name. A name can be 
-specified with the ``--name`` option.
+.. note::
+   You need to have **Docker Desktop**, **VSCode** and the **VSCode Dev Environment Extension** installed for this to work. You do not need to use VSCode to access the container, but the extension seems to do some of the lifting for us when setting up the volume to our local repo.
 
 **Output** ::
 
