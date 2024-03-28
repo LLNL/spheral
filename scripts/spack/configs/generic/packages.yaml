@@ -101,13 +101,8 @@ packages:
     - spec: fontconfig@2.13.1
       prefix: /usr
     buildable: false
-  # netlib-lapack:
-  #   externals:
-  #   - spec: netlib-lapack@3.9.0
-  #     prefix: /usr
-  #   buildable: false
-  liblapack64-dev:
+  netlib-lapack:
     externals:
-    - spec: liblapack64-dev@3.9.0
+    - spec: netlib-lapack@3.9.0
       prefix: /usr
     buildable: false
