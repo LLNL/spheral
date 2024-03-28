@@ -233,7 +233,7 @@ function(spheral_add_pybind11_library package_name)
   target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
   install(TARGETS     ${MODULE_NAME}
-          DESTINATION Spheral
+          DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
           )
 
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed

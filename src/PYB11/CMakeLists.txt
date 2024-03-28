@@ -76,10 +76,7 @@ set(PYB11_python_targets
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py
   )
 
-install(FILES       ${PYB11_python_targets}
-        DESTINATION Spheral
-        )
+spheral_install_python_files(${PYB11_python_targets})
 
 install(FILES       Spheral.pth 
-        DESTINATION .
-        )
+        DESTINATION ${SPHERAL_SITE_PACKAGES_PATH})
