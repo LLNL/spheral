@@ -56,9 +56,11 @@ public:
   // Return a new H, with limiting based on the old value.
   virtual SymTensor
   newSmoothingScale(const SymTensor& H,
-                    const FieldList<Dimension, Vector>& pos,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -71,9 +73,11 @@ public:
   // Determine an "ideal" H for the given moments.
   virtual SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const FieldList<Dimension, Vector>& pos,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const Vector& firstMoment,
+                      const SymTensor& secondMomentEta,
+                      const SymTensor& secondMomentLab,
                       const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,

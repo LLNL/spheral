@@ -125,7 +125,6 @@ commandLine(order = 5,
             gradhCorrection = True,
             correctVelocityGradient = True,
 
-            useVoronoiOutput = True,
             clearDirectories = False,
             vizDerivs = False,
             restoreCycle = -1,
@@ -484,15 +483,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-if useVoronoiOutput:
-    import SpheralVoronoiSiloDump
-    vizMethod = SpheralVoronoiSiloDump.dumpPhysicsState
-else:
-    import SpheralPointmeshSiloDump
-    vizMethod = SpheralPointmeshSiloDump.dumpPhysicsState
-    #import SpheralVisitDump
-    #vizMethod = SpheralVisitDump.dumpPhysicsState
-
 control = SpheralController(integrator,
                             kernel = WT,
                             volumeType = volumeType,
@@ -500,7 +490,6 @@ control = SpheralController(integrator,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizMethod = vizMethod,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,

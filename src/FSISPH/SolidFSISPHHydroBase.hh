@@ -60,31 +60,31 @@ public:
 
   // Constructors.
   SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                       DataBase<Dimension>& dataBase,
-                       ArtificialViscosity<Dimension>& Q,
-                       SlideSurface<Dimension>& slide,
-                       const TableKernel<Dimension>& W,
-                       const double cfl,
-                       const double surfaceForceCoefficient,
-                       const double densityStabilizationCoefficient,
-                       const double specificThermalEnergyDiffusionCoefficient,
-                       const double xsphCoefficient,
-                       const InterfaceMethod interfaceMethod,
-                       const KernelAveragingMethod kernelAveragingMethod,
-                       const std::vector<int> sumDensityNodeLists,
-                       const bool useVelocityMagnitudeForDt,
-                       const bool compatibleEnergyEvolution,
-                       const bool evolveTotalEnergy,
-                       const bool linearCorrectGradients,
-                       const bool planeStrain,
-                       const double interfacePmin,
-                       const double interfaceNeighborAngleThreshold,
-                       const FSIMassDensityMethod densityUpdate,
-                       const HEvolutionType HUpdate,
-                       const double epsTensile,
-                       const double nTensile,
-                       const Vector& xmin,
-                       const Vector& xmax);
+                    DataBase<Dimension>& dataBase,
+                    ArtificialViscosity<Dimension>& Q,
+                    SlideSurface<Dimension>& slide,
+                    const TableKernel<Dimension>& W,
+                    const double cfl,
+                    const double surfaceForceCoefficient,
+                    const double densityStabilizationCoefficient,
+                    const double specificThermalEnergyDiffusionCoefficient,
+                    const double xsphCoefficient,
+                    const InterfaceMethod interfaceMethod,
+                    const KernelAveragingMethod kernelAveragingMethod,
+                    const std::vector<int> sumDensityNodeLists,
+                    const bool useVelocityMagnitudeForDt,
+                    const bool compatibleEnergyEvolution,
+                    const bool evolveTotalEnergy,
+                    const bool linearCorrectGradients,
+                    const bool planeStrain,
+                    const double interfacePmin,
+                    const double interfaceNeighborAngleThreshold,
+                    const FSIMassDensityMethod densityUpdate,
+                    const HEvolutionType HUpdate,
+                    const double epsTensile,
+                    const double nTensile,
+                    const Vector& xmin,
+                    const Vector& xmax);
 
   virtual ~SolidFSISPHHydroBase();
 
@@ -253,6 +253,8 @@ public:
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, Vector>&    massFirstMoment() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
 
   const FieldList<Dimension, int>& interfaceFlags() const;
   const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
@@ -337,6 +339,8 @@ private:
   FieldList<Dimension, Scalar>    mNormalization;
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, Vector>    mMassFirstMoment;
+  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs

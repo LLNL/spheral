@@ -633,6 +633,22 @@ massFirstMoment() const {
   return mMassFirstMoment;
 }
 
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+massSecondMomentEta() const {
+  return mMassSecondMomentEta;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SolidFSISPHHydroBase<Dimension>::
+massSecondMomentLab() const {
+  return mMassSecondMomentLab;
+}
+
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Vector>&

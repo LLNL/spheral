@@ -35,15 +35,16 @@ iterateIdealH(DataBase<Dimension>& dataBase,
               const bool sphericalStart,
               const bool fixDeterminant) {
 
-  using Scalar = typename Dimension::Scalar;
-  using Vector = typename Dimension::Vector;
-  using SymTensor = typename Dimension::SymTensor;
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::SymTensor SymTensor;
+
+  const auto etaMax = W.kernelExtent();
 
   // Start the timing.
   const auto t0 = clock();
 
   // Extract the state we care about.
-  const auto etaMax = W.kernelExtent();
   const auto pos = dataBase.fluidPosition();
   auto m = dataBase.fluidMass();
   auto rho = dataBase.fluidMassDensity();
@@ -140,6 +141,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H1.copyFields();
     auto zerothMoment = dataBase.newFluidFieldList(0.0, "zerothMoment");
     auto firstMoment = dataBase.newFluidFieldList(Vector::zero, "firstMoment");
+    auto secondMomentEta = dataBase.newFluidFieldList(SymTensor::zero, "secondMomentEta");
+    auto secondMomentLab = dataBase.newFluidFieldList(SymTensor::zero, "secondMomentLab");
 
     // Get the new connectivity.
     dataBase.updateConnectivityMap(false, false, false);
@@ -153,10 +156,13 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       typename SpheralThreads<Dimension>::FieldListStack threadStack;
       auto zerothMoment_thread = zerothMoment.threadCopy(threadStack);
       auto firstMoment_thread = firstMoment.threadCopy(threadStack);
+      auto secondMomentEta_thread = secondMomentEta.threadCopy(threadStack);
+      auto secondMomentLab_thread = secondMomentLab.threadCopy(threadStack);
 
       int i, j, nodeListi, nodeListj;
       Scalar ri, rj, mRZi, mRZj, etaMagi, etaMagj;
       Vector xij, etai, etaj;
+      SymTensor xijdyad;
 
 #pragma omp for
       for (auto k = 0u; k < npairs; ++k) {
@@ -178,6 +184,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto  rhoj = rho(nodeListj, j);
 
           xij = posi - posj;
+          xijdyad = xij.selfdyad();
           etai = Hi*xij;
           etaj = Hj*xij;
           etaMagi = etai.magnitude();
@@ -213,10 +220,15 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto WSPHj = W.kernelValueSPH(etaMagj);
 
           // Increment the moments
-          zerothMoment_thread(nodeListi, i)    += fweightij     * WSPHi  * fispherical;
-          zerothMoment_thread(nodeListj, j)    += 1.0/fweightij * WSPHj  * fjspherical;
-          firstMoment_thread(nodeListi, i)     -=     fweightij * WSPHi  * etai;
-          firstMoment_thread(nodeListj, j)     += 1.0/fweightij * WSPHj  * etaj;
+          zerothMoment_thread(nodeListi, i)    += fweightij     * WSPHi * fispherical;
+          zerothMoment_thread(nodeListj, j)    += 1.0/fweightij * WSPHj * fjspherical;
+          firstMoment_thread(nodeListi, i)     -=     fweightij * WSPHi * etai;
+          firstMoment_thread(nodeListj, j)     += 1.0/fweightij * WSPHj * etaj;
+          secondMomentEta_thread(nodeListi, i) +=     fweightij * WSPHi * WSPHi * etai.unitVector().selfdyad();
+          secondMomentEta_thread(nodeListj, j) += 1.0/fweightij * WSPHj * WSPHj * etaj.unitVector().selfdyad();
+          secondMomentLab_thread(nodeListi, i) +=     fweightij * WSPHi * WSPHi * xijdyad;
+          secondMomentLab_thread(nodeListj, j) += 1.0/fweightij * WSPHj * WSPHj * xijdyad;
+
         }
       }
 
@@ -239,9 +251,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
         if (flagNodeDone(nodeListi, i) == 0) {
           zerothMoment(nodeListi, i) = Dimension::rootnu(zerothMoment(nodeListi, i));
           H1(nodeListi, i) = smoothingScaleMethod.newSmoothingScale(H(nodeListi, i),
-                                                                    pos,
+                                                                    pos(nodeListi, i),
                                                                     zerothMoment(nodeListi, i),
                                                                     firstMoment(nodeListi, i),
+                                                                    secondMomentEta(nodeListi, i),
+                                                                    secondMomentLab(nodeListi, i),
                                                                     W,
                                                                     hmin,
                                                                     hmax,

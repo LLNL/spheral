@@ -27,12 +27,12 @@ class SPHHydroBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using Scalar = typename Dimension::Scalar;
-  using Vector = typename Dimension::Vector;
-  using Tensor = typename Dimension::Tensor;
-  using SymTensor = typename Dimension::SymTensor;
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
 
-  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
+  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
   SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
@@ -199,6 +199,8 @@ public:
   const FieldList<Dimension, Scalar>&    normalization() const;
   const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
   const FieldList<Dimension, Vector>&    massFirstMoment() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
+  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
@@ -271,6 +273,8 @@ protected:
 
   FieldList<Dimension, Scalar>    mWeightedNeighborSum;
   FieldList<Dimension, Vector>    mMassFirstMoment;
+  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;

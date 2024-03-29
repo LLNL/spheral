@@ -33,7 +33,7 @@ commandLine(seed = "lattice",
 
             rho1 = 1.0,
             eps1 = 0.0,
-            smallPressure = False,
+            P1 = 0.0,
             vshear = 1.0,
             vy = -1.0,
 
@@ -105,9 +105,9 @@ commandLine(seed = "lattice",
             gradhCorrection = True,
             correctVelocityGradient = True,
 
-            useVoronoiOutput = False,
             clearDirectories = False,
             vizDerivs = False,
+            vizGhosts = False,
             checkRestart = False,
             redistributeStep = 500,
             restoreCycle = None,
@@ -120,9 +120,6 @@ commandLine(seed = "lattice",
 
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
-if smallPressure:
-   P0 = 1.0e-6
-   eps1 = P0/((gamma - 1.0)*rho1)
 
 hydroType = hydroType.upper()
 
@@ -210,8 +207,8 @@ if restoreCycle is None:
     n1 = generator1.globalNumNodes()
 
     if mpi.procs > 1:
-        from VoronoiDistributeNodes import distributeNodes2d
-        #from PeanoHilbertDistributeNodes import distributeNodes2d
+        #from VoronoiDistributeNodes import distributeNodes2d
+        from PeanoHilbertDistributeNodes import distributeNodes2d
     else:
         from DistributeNodes import distributeNodes2d
     distributeNodes2d((nodes1, generator1))
@@ -220,7 +217,7 @@ if restoreCycle is None:
     output("mpi.reduce(nodes1.numInternalNodes, mpi.SUM)")
 
     # Set node specific thermal energies
-    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, eps1))
+    nodes1.specificThermalEnergy(ScalarField("tmp", nodes1, P1/((gamma - 1.0)*rho1)))
 
     # Set node velocities
     pos = nodes1.positions()
@@ -345,10 +342,12 @@ xPlane1 = Plane(Vector(*xmax), Vector(-1.0, 0.0))
 yPlane0 = Plane(Vector(*xmin), Vector( 0.0, 1.0))
 yPlane1 = Plane(Vector(*xmax), Vector( 0.0,-1.0))
 xbc = PeriodicBoundary(xPlane0, xPlane1)
+xbc0 = ReflectingBoundary(xPlane0)
+xbc1 = ReflectingBoundary(xPlane1)
 ybc0 = ReflectingBoundary(yPlane0)
 ybc1 = ReflectingBoundary(yPlane1)
 for p in packages:
-    for bc in (xbc, ybc0, ybc1):
+    for bc in (xbc0, xbc1, ybc0, ybc1):
         p.appendBoundary(bc)
 
 #-------------------------------------------------------------------------------
@@ -364,6 +363,7 @@ integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
+integrator.cullGhostNodes = False
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
 if hourglass:
@@ -379,19 +379,24 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
+if vizGhosts:
+   from SpheralPointmeshSiloDump import dumpPhysicsState
+else:
+   dumpPhysicsState = None
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             redistributeStep = redistributeStep,
+                            vizMethod = dumpPhysicsState,
                             vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            skipInitialPeriodicWork = (hydroType == "SVPH"),
-                            SPH = True,)
+                            vizGhosts = vizGhosts,
+                            skipInitialPeriodicWork = (hydroType == "SVPH"))
 output("control")
 
 # Smooth the initial conditions.

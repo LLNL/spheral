@@ -19,10 +19,10 @@ class SPHSmoothingScale: public SmoothingScaleBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using Scalar = typename Dimension::Scalar;
-  using Vector = typename Dimension::Vector;
-  using Tensor = typename Dimension::Tensor;
-  using SymTensor = typename Dimension::SymTensor;
+  typedef typename Dimension::Scalar Scalar;
+  typedef typename Dimension::Vector Vector;
+  typedef typename Dimension::Tensor Tensor;
+  typedef typename Dimension::SymTensor SymTensor;
 
   // Constructors, destructor.
   explicit SPHSmoothingScale();
@@ -45,9 +45,11 @@ public:
   virtual
   SymTensor
   newSmoothingScale(const SymTensor& H,
-                    const FieldList<Dimension, Vector>& pos,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -61,9 +63,11 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const FieldList<Dimension, Vector>& pos,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const Vector& firstMoment,
+                      const SymTensor& secondMomentEta,
+                      const SymTensor& secondMomentLab,
                       const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,

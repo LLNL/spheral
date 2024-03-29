@@ -95,7 +95,7 @@ def computePsi(coords, H, WT, nPerh):
 #-------------------------------------------------------------------------------
 # Compute a new H based on the current second-moment (psi) and H
 #-------------------------------------------------------------------------------
-def newH(H0, Wsum, psiLab, psiEta, WT, nPerh, asph):
+def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
     H0inv = H0.Inverse()
     eigenLab = psiLab.eigenVectors()
     eigenEta = psiEta.eigenVectors()
@@ -116,22 +116,12 @@ def newH(H0, Wsum, psiLab, psiEta, WT, nPerh, asph):
         T = SymTensor(min(4.0, max(0.25, eigenT.eigenValues[0])), 0.0,
                       0.0, min(4.0, max(0.25, eigenT.eigenValues[1])))
         T.rotationalTransform(eigenT.eigenVectors)
-    H1inv = (T*H0inv).Symmetric()
+    H1inv = (T.sqrt()*H0inv*T.sqrt()).Symmetric()
     print("     nperheff : ", nperheff)
     print("            T : ", T)
     print("        H0inv : ", H0inv)
     print("        H1inv : ", H1inv)
 
-    # # Share the SPH volume change estimate by the ratio of the eigenvalue scaling
-    # nPerhSPH = WT.equivalentNodesPerSmoothingScale(sqrt(Wsum))
-    # fscale = nPerh/nPerhSPH / sqrt(fscale)
-    # T[0] *= fscale*sqrt(fnu[0]/fnu[1])
-    # T[2] *= fscale*sqrt(fnu[1]/fnu[0])
-    # print("          T after SPH scaling: ", T)
-
-    # T.rotationalTransform(eigenEta.eigenVectors)
-    # print("         T final: ", T)
-    # H1inv = (T*H0inv).Symmetric()
     return H1inv.Inverse()
 
 # def newH(H0, coords, inv_coords, WT, nPerh, asph):
@@ -230,9 +220,22 @@ plotEta.set_title("$\eta$ frame")
 #-------------------------------------------------------------------------------
 for iter in range(iterations):
     print("Iteration ", iter)
-    #H = asph.idealSmoothingScale(H, Vector(0,0), 0.0, psi, WT, 1e-10, 1e10, 1e-10, nPerh, ConnectivityMap(), 0, 0)
     Wsum, psiLab, psiEta = computePsi(coords, H, WT, nPerh)
-    H = newH(H, Wsum, psiLab, psiEta, WT, nPerh, asph)
+    #H = newH(H, Wsum, psiLab, psiEta, WT, nPerh)
+    H = asph.idealSmoothingScale(H = H,
+                                 pos = Vector(),
+                                 zerothMoment = sqrt(Wsum),
+                                 firstMoment = Vector(),
+                                 secondMomentEta = psiEta,
+                                 secondMomentLab = psiEta,
+                                 W = WT,
+                                 hmin = 1e-10,
+                                 hmax = 1e10,
+                                 hminratio = 1e-10,
+                                 nPerh = nPerh,
+                                 connectivityMap = ConnectivityMap(),
+                                 nodeListi = 0,
+                                 i = 0)
     evals = H.eigenValues()
     aspectRatio = evals.maxElement()/evals.minElement()
     output("     H.Inverse(), aspectRatio")

@@ -397,6 +397,22 @@ massFirstMoment() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SPHHydroBase<Dimension>::
+massSecondMomentEta() const {
+  return mMassSecondMomentEta;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SPHHydroBase<Dimension>::
+massSecondMomentLab() const {
+  return mMassSecondMomentLab;
+}
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 XSPHWeightSum() const {

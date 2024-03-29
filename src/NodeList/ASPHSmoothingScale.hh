@@ -10,6 +10,7 @@
 
 #include "SmoothingScaleBase.hh"
 #include "Geometry/Dimension.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 
 namespace Spheral {
 
@@ -22,10 +23,13 @@ public:
   using Vector = typename Dimension::Vector;
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
-  using FacetedVolume = typename Dimension::FacetedVolume;
+  using InterpolatorType = CubicHermiteInterpolator;
 
   // Constructors, destructor.
-  ASPHSmoothingScale();
+  ASPHSmoothingScale(const TableKernel<Dimension>& W,
+                     const Scalar targetNperh,
+                     const size_t numPoints = 0u);     // numPoints == 0 ==> use same number of points as TableKernel
+  explicit ASPHSmoothingScale();
   ASPHSmoothingScale(const ASPHSmoothingScale& rhs);
   ASPHSmoothingScale& operator=(const ASPHSmoothingScale& rhs);
   virtual ~ASPHSmoothingScale();
@@ -45,9 +49,11 @@ public:
   virtual
   SymTensor
   newSmoothingScale(const SymTensor& H,
-                    const FieldList<Dimension, Vector>& pos,
+                    const Vector& pos,
                     const Scalar zerothMoment,
                     const Vector& firstMoment,
+                    const SymTensor& secondMomentEta,
+                    const SymTensor& secondMomentLab,
                     const TableKernel<Dimension>& W,
                     const Scalar hmin,
                     const Scalar hmax,
@@ -61,9 +67,11 @@ public:
   virtual
   SymTensor
   idealSmoothingScale(const SymTensor& H,
-                      const FieldList<Dimension, Vector>& pos,
+                      const Vector& pos,
                       const Scalar zerothMoment,
                       const Vector& firstMoment,
+                      const SymTensor& secondMomentEta,
+                      const SymTensor& secondMomentLab,
                       const TableKernel<Dimension>& W,
                       const Scalar hmin,
                       const Scalar hmax,
@@ -82,6 +90,23 @@ public:
                       const Scalar hmax,
                       const Scalar hminratio,
                       const Scalar nPerh) const override;
+
+  // Return the equivalent number of nodes per smoothing scale implied by the given
+  // sum of kernel values, using the second moment ASPH algorithm
+  Scalar equivalentNodesPerSmoothingScale(const Scalar lambdaPsi) const;
+  Scalar equivalentLambdaPsi(const Scalar nPerh) const;
+
+  // Access the internal data
+  Scalar targetNperh() const                         { return mTargetNperh; }
+  Scalar minNperh() const                            { return mMinNperh; }
+  Scalar maxNperh() const                            { return mMaxNperh; }
+  const InterpolatorType& nPerhInterpolator() const  { return mNperhLookup; }
+  const InterpolatorType& WsumInterpolator() const   { return mWsumLookup; }
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  Scalar mTargetNperh, mMinNperh, mMaxNperh;
+  InterpolatorType mNperhLookup, mWsumLookup;
 };
 
 // We explicitly specialize the time derivatives.

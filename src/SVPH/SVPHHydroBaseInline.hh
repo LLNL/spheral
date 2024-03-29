@@ -285,6 +285,22 @@ massFirstMoment() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SVPHHydroBase<Dimension>::
+massSecondMomentEta() const {
+  return mMassSecondMomentEta;
+}
+
+template<typename Dimension>
+inline
+const FieldList<Dimension, typename Dimension::SymTensor>&
+SVPHHydroBase<Dimension>::
+massSecondMomentLab() const {
+  return mMassSecondMomentLab;
+}
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::Vector>&
 SVPHHydroBase<Dimension>::
 XSVPHDeltaV() const {
