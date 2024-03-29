@@ -109,10 +109,6 @@ def build_deps(args):
   for s in spec_list:
     print("** SPEC : {0}".format(s))
 
-  spack_config_dir_opt=""
-  if "SYS_TYPE" not in os.environ.keys():
-    spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, "scripts/spack/configs/x86_64"))
-
   spack_upstream_opt=""
   if os.path.isdir(args.upstream_dir) and not args.no_upstream:
     spack_upstream_opt="--upstream {0}".format(args.upstream_dir)
@@ -124,16 +120,41 @@ def build_deps(args):
   # We use uberenv to set up our spack instance with our respective package.yaml files
   # config.yaml and custom spack packages recipes.
   print("** Running uberenv...")
+
   prefix_opt="--prefix=" + args.spheral_spack_dir
   uberenv_project_json_opt="--project-json={0}".format(uberenv_project_json)
 
   print("** Spheral Spack Dir : {0}".format(args.spheral_spack_dir))
-  sexe("python3 {0} --setup-only {1} {2} {3} {4} {5}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True)
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
   os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
+
+  spheral_config_dir="scripts/spack/configs/"
+  spack_config_dir_opt=""
+  if "SYS_TYPE" not in os.environ.keys():
+    # We need to install spack without any configuration files so we can use
+    # spack arch to determine the OS of the system and later to use spack find
+    # for generating external package files on external systems.
+    if sexe("python3 {0} --setup-only {1} {2} {3} {4}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True): sys.exit(1)
+
+    spack_arch_os = sexe("{0} arch -o".format(spack_cmd), ret_output=True)[1].strip()
+    print("INFO : Detected Operating System :{0}".format(spack_arch_os))
+
+    spheral_config_dir += spack_arch_os
+
+    spack_config_dir_opt="--spack-config-dir={0}".format(os.path.join(project_dir, spheral_config_dir))
+  else:
+    spheral_config_dir += os.environ["SYS_TYPE"]
+
+
+  # Setup spack w/ Uberenv and the appropriate external package/compiler configs.
+  if sexe("python3 {0} --setup-only {1} {2} {3} {4} {5}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True): sys.exit(1)
+
+  # Uberenv doesn't copy the concretizer.yaml options...
+  if os.path.exists(spheral_config_dir+"/concretizer.yaml"):
+    sexe("cp {0}/concretizer.yaml {1}".format(spheral_config_dir, os.path.join(args.spheral_spack_dir, "spack/etc/spack/defaults")), echo=True)
 
   # Optionally add a parallel job number for spack builds
   if args.spack_jobs:
@@ -149,12 +170,19 @@ def build_deps(args):
   # Loop through the specs we want TPLs for and build/install/get them as necessary.
   if not args.init_only:
       for s in spec_list:
+
         print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
         os.environ["SPEC"] = s
         os.environ["LC_ALL"] = "en_US.UTF-8"
+
         if not args.no_spec:
             if sexe("{0} spec --fresh -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
-        if sexe("{0} dev-build --fresh --quiet --deprecated -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+
+        # Install only the dependencies for Spheral
+        if sexe("{0} install --fail-fast --fresh --deprecated --only dependencies {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+
+        # Using dev-build we can have spack generate an init-config with the local source files for spheral.
+        if sexe("{0} dev-build --fresh --deprecated -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
       if not args.no_clean:
         sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
