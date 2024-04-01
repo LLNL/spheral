@@ -75,6 +75,10 @@ public:
   Field<Dimension, int>& particleTypes();
   const Field<Dimension, int>& particleTypes() const;
 
+  // The mask field.
+  Field<Dimension, int>& mask();
+  const Field<Dimension, int>& mask() const;
+
   // The strength model this solid is using.
   const StrengthModel<Dimension>& strengthModel() const;
 
@@ -94,6 +98,7 @@ private:
   Field<Dimension, SymTensor> mDamage;
   Field<Dimension, int> mFragmentIDs;
   Field<Dimension, int> mParticleTypes;
+  Field<Dimension, int> mMask;
 
   // Pointer to the associated strength object.
   StrengthModel<Dimension>& mStrength;

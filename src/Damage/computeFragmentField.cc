@@ -90,6 +90,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                      const double linkRadius,
                      const Field<Dimension, typename Dimension::Scalar>& density,
                      const Field<Dimension, typename Dimension::SymTensor>& damage,
+                     const Field<Dimension, int>& mask,
                      const double densityThreshold,
                      const double damageThreshold,
                      const bool assignDustToFragments) {
@@ -151,7 +152,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   // Simultaneously remove them from the set of globalNodesRemaining.
   int numDustNodes = 0;
   for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
-    if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold) {
+    if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold || mask(i) > 0.0) {
       result(i) = maxGlobalID + 1;
       ++numDustNodes;
       vector<int>::iterator removeItr = find(globalNodesRemaining.begin(),
