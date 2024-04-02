@@ -464,41 +464,45 @@ idealSmoothingScale(const SymTensor& H,
   const auto currentNodesPerSmoothingScale = W.equivalentNodesPerSmoothingScale(zerothMoment);
   CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-  // The (limited) ratio of the desired to current nodes per smoothing scale.
-  const Scalar s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+  // The (limited) ratio of the current to desired nodes per smoothing scale.
+  const Scalar s = min(4.0, max(0.25, currentNodesPerSmoothingScale/nPerh));
   CHECK(s > 0.0);
 
-  // Build the transformation tensor to map us to the new configuration
-  const auto Dpsi = secondMomentEta.Determinant();
-  SymTensor T = (Dpsi > 0.0 ?
-                 secondMomentEta.Inverse().sqrt() :
-                 SymTensor::one);
-  CHECK(T.Determinant() > 0.0);
-  T *= s/Dimension::rootnu(T.Determinant());
-  CHECK(fuzzyEqual(T.Determinant(), Dimension::pownu(s)));
+  // Start with the sqrt of the second moment in eta space
+  auto T = secondMomentEta.sqrt();
+  auto eigenT = T.eigenVectors();
 
-  // Apply limiting to how much T can alter H
-  const auto eigenT = T.eigenVectors();
-  if (eigenT.eigenValues.minElement() < 0.25 or eigenT.eigenValues.maxElement() > 4.0) {
-    T = constructSymTensorWithBoundedDiagonal(eigenT.eigenValues, 0.25, 4.0);
-    T.rotationalTransform(eigenT.eigenVectors);
+  // Ensure we don't have any degeneracies (zero eigen values)
+  const auto Tmax = max(1.0, eigenT.eigenValues.maxElement());
+  auto fscale = 1.0;
+  for (auto k = 0u; k < Dimension::nDim; ++k) {
+    eigenT.eigenValues[k] = max(eigenT.eigenValues[k], 0.01*Tmax);
+    fscale *= eigenT.eigenValues[k];
   }
+  CHECK(fscale > 0.0);
 
-  // Scale the new H
-  const auto Tsqrt = T.sqrt();
-  const auto H1inv = (Tsqrt*H.Inverse()*Tsqrt).Symmetric();
+  // Compute the scaling to get us closer to the target n per h, and build the transformation tensor
+  fscale = 1.0/sqrt(fscale);
+  fscale *= min(4.0, max(0.25, s));  // inverse length, same as H!
+  eigenT.eigenValues *= fscale;
+  T = constructSymTensorWithBoundedDiagonal(eigenT.eigenValues, 0.25, 4.0);
+  T.rotationalTransform(eigenT.eigenVectors);
 
-  // // BLAGO
-  // if (i == 0) {
-  //   std::cerr << " ------> " << pos << " " << H.Inverse() << " " << H1inv << std::endl
-  //             << "    psi: " << secondMomentEta << std::endl
-  //             << "      T: " << T << std::endl
-  //             << " eigenT: " << eigenT << std::endl;
-  // }
-  // // BLAGO
+  // Now update H
+  auto H1 = (T*H).Symmetric();
+
+  // BLAGO
+  if (Process::getRank() == 9 and i == 7) {
+    std::cerr << " ---------> " << pos << " " << H.Inverse() << " " << H1.Inverse() << std::endl
+              << "  nperheff: " << currentNodesPerSmoothingScale << " " << s << std::endl
+              << "       psi: " << secondMomentEta << std::endl
+              << "         T: " << T << std::endl
+              << "    eigenT: " << eigenT.eigenValues << " " << eigenT.eigenVectors << std::endl;
+  }
+  // BLAGO
 
   // That's it
-  return H1inv.Inverse();
+  return H1;
 }
 
 //------------------------------------------------------------------------------
@@ -522,8 +526,6 @@ newSmoothingScale(const SymTensor& H,
                   const ConnectivityMap<Dimension>& connectivityMap,
                   const unsigned nodeListi,
                   const unsigned i) const {
-
-  const double tolerance = 1.0e-5;
 
   // Get the ideal H vote.
   const SymTensor Hideal = idealSmoothingScale(H, 

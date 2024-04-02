@@ -92,7 +92,7 @@ commandLine(order = 5,
             balsaraCorrection = None,
             epsilon2 = None,
             hmin = 0.0001, 
-            hmax = 0.5,
+            hmax = 0.1,
             hminratio = 0.1,
             cfl = 0.25,
             XSPH = False,
@@ -213,7 +213,8 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+#WT = TableKernel(NBSplineKernel(order), 1000)
+WT = TableKernel(WendlandC4Kernel(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -496,7 +497,7 @@ control = SpheralController(integrator,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
                             #skipInitialPeriodicWork = SVPH,
-                            SPH = True,        # Only for iterating H
+                            SPH = not ASPH,        # Only for iterating H
                             )
 output("control")
 

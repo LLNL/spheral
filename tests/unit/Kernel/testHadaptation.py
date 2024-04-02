@@ -106,7 +106,6 @@ def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
     print("     eigenEta : ", eigenEta)
 
     # Extract shape information from the second moment
-    H1inv = SymTensor(H0inv)
     nperheff = WT.equivalentNodesPerSmoothingScale(sqrt(Wsum))
     T = psiEta.sqrt()
     print("     nperheff : ", nperheff)
@@ -255,21 +254,21 @@ plotEta.set_title("$\eta$ frame")
 for iter in range(iterations):
     print("Iteration ", iter)
     Wsum, psiLab, psiEta = computePsi(coords, H, WT, nPerh)
-    H = newH(H, Wsum, psiLab, psiEta, WT, nPerh)
-    # H = asph.idealSmoothingScale(H = H,
-    #                              pos = Vector(),
-    #                              zerothMoment = sqrt(Wsum),
-    #                              firstMoment = Vector(),
-    #                              secondMomentEta = psiEta,
-    #                              secondMomentLab = psiEta,
-    #                              W = WT,
-    #                              hmin = 1e-10,
-    #                              hmax = 1e10,
-    #                              hminratio = 1e-10,
-    #                              nPerh = nPerh,
-    #                              connectivityMap = ConnectivityMap(),
-    #                              nodeListi = 0,
-    #                              i = 0)
+    # H = newH(H, Wsum, psiLab, psiEta, WT, nPerh)
+    H = asph.idealSmoothingScale(H = H,
+                                 pos = Vector(),
+                                 zerothMoment = sqrt(Wsum),
+                                 firstMoment = Vector(),
+                                 secondMomentEta = psiEta,
+                                 secondMomentLab = psiEta,
+                                 W = WT,
+                                 hmin = 1e-10,
+                                 hmax = 1e10,
+                                 hminratio = 1e-10,
+                                 nPerh = nPerh,
+                                 connectivityMap = ConnectivityMap(),
+                                 nodeListi = 0,
+                                 i = 0)
     evals = H.eigenValues()
     aspectRatio = evals.maxElement()/evals.minElement()
     output("     H.Inverse(), aspectRatio")

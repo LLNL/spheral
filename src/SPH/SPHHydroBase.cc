@@ -894,8 +894,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
       massSecondMomentEtai +=     fweightij*WSPHi*WSPHi*etai.unitVector().selfdyad();
       massSecondMomentEtaj += 1.0/fweightij*WSPHj*WSPHj*etaj.unitVector().selfdyad();
-      // if (i == 0 or i == 10) cerr << "[" << i << "]" << " " << WSPHi << " " << etai << " " << ri << " " << rj << " " << Hi << " [" << j << "]" << endl;
-      // if (j == 0 or j == 10) cerr << "[" << j << "]" << " " << WSPHj << " " << etaj << " " << rj << " " << ri << " " << Hj << " [" << i << "]" << endl;
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
