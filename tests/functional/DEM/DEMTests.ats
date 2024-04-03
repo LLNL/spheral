@@ -14,3 +14,6 @@ source("LinearSpringDEM/ImpactingSquares/impactingSquares-3d.py")
 source("LinearSpringDEM/SolidBoundaryCondition/singleParticleBoundaryCollision-3d.py")
 source("LinearSpringDEM/SolidBoundaryCondition/finiteSolidPlanes-3d.py")
 source("LinearSpringDEM/SolidBoundaryCondition/pureTorsion-3d.py")
+
+# test moving solid boundaries
+source("LinearSpringDEM/MovingSolidBoundaries/singleParticleBoundaryCollision-3d.py")
