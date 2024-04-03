@@ -75,7 +75,17 @@ template<typename Dimension>
 void
 SphereSolidBoundary<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
-              State<Dimension>& state) {   
+              State<Dimension>& state) {
+
+  const auto boundaryKey = "SphereSolidBoundary_" + std::to_string(std::abs(this->uniqueIndex()));
+  const auto pointKey = boundaryKey +"_point";
+  const auto clipPointKey = boundaryKey +"_clipPoint";
+  const auto velocityKey = boundaryKey +"_velocity";
+
+  state.enrollAny(pointKey,mCenter);
+  state.enrollAny(clipPointKey,mClipPoint);
+  state.enrollAny(pointKey,mVelocity);
+
 }
 
 template<typename Dimension>
@@ -83,6 +93,7 @@ void
 SphereSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mCenter += multiplier*mVelocity;
+  mClipPoint += multiplier*mVelocity;
 }
 
 
