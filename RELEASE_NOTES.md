@@ -1,3 +1,17 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+
+  * Bug Fixes / improvements:
+
 Version v2024.01.1 -- Release date 2024-02-17
 ==============================================
   * Important Notes:
