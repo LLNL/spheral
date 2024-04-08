@@ -291,6 +291,8 @@
     <ClCompile Include="..\..\src\FSISPH\computeFSISPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\FSISPH\computeHWeightedFSISPHSumMassDensityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.2.cc" />
     <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc" />
     <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc" />
@@ -324,6 +326,14 @@
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
+      <Command>
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+          python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+       </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py">
       <Command>
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2

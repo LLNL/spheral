@@ -311,8 +311,6 @@
     <ClCompile Include="..\..\src\GSPH\Limiters\VanLeerLimiterInst.cc.3.cc" />
     <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.2.cc" />
     <ClCompile Include="..\..\src\GSPH\MFMHydroBaseInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.3.cc" />
     <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\GSPH\Policies\ReplaceWithRatioPolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\GSPH\RiemannSolvers\GHLLCInst.cc.2.cc" />
@@ -375,14 +373,6 @@
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-        </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\GSPH\Policies\PureReplaceFieldListInst.cc.py">
-      <Command>
-           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-           python.exe %(RelativeDir)..\..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
         </Command>
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>

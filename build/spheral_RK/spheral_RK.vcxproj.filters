@@ -21,9 +21,6 @@
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\RK\HullVolumePolicy.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\RK\computeRKVolumesInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -165,9 +162,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\RK\ContinuityVolumePolicyRZ.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\RK\HullVolumePolicy.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\RK\HVolumePolicy.hh">

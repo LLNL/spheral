@@ -21,12 +21,6 @@
     <ClCompile Include="..\..\src\Damage\TensorStrainPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Damage\DamageModelInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,9 +88,6 @@
     <CustomBuild Include="..\..\src\Damage\computeFragmentFieldInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\Damage\DamagedPressurePolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\Damage\DamageModelInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -129,12 +120,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\Damage\DamagedPressurePolicy.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Damage\DamagedSoundSpeedPolicy.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Damage\DamageGradientPolicy.hh">
       <Filter>Header Files</Filter>
     </ClInclude>

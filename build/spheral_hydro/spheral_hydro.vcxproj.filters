@@ -21,12 +21,6 @@
     <ClCompile Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Hydro\PositionPolicyInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\PressurePolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -98,16 +92,10 @@
     <None Include="..\..\src\Hydro\HydroInline.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\Hydro\MashCorrectionPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\Hydro\MeshScaledMassDensityPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicy.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\Hydro\PositionPolicy.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\Hydro\PressurePolicy.hh">
@@ -137,9 +125,6 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\Hydro\NonSymmetricSpecificThermalEnergyPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Hydro\PositionPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\PressurePolicyInst.cc.py">

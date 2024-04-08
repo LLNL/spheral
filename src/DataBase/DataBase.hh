@@ -257,6 +257,7 @@ public:
   FieldList<Dimension, SymTensor> solidDamage() const;
   FieldList<Dimension, int> solidFragmentIDs() const;
   FieldList<Dimension, int> solidParticleTypes() const;
+  FieldList<Dimension, int> solidMask() const;
 
   FieldList<Dimension, Scalar> DEMMass() const;
   FieldList<Dimension, Vector> DEMPosition() const;

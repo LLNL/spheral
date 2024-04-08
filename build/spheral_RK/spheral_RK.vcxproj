@@ -313,7 +313,6 @@
     <ClCompile Include="..\..\src\RK\gradientRKInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\hessianRKInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\hessianRKInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\RK\HullVolumePolicy.cc" />
     <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\HVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\interpolateRKInst.cc.2.cc" />
@@ -503,7 +502,6 @@
     <ClInclude Include="..\..\src\RK\ContinuityVolumePolicyRZ.hh" />
     <ClInclude Include="..\..\src\RK\gradientRK.hh" />
     <ClInclude Include="..\..\src\RK\hessianRK.hh" />
-    <ClInclude Include="..\..\src\RK\HullVolumePolicy.hh" />
     <ClInclude Include="..\..\src\RK\HVolumePolicy.hh" />
     <ClInclude Include="..\..\src\RK\interpolateRK.hh" />
     <ClInclude Include="..\..\src\RK\ReproducingKernel.hh" />

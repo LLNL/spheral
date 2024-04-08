@@ -45,9 +45,6 @@
     <None Include="..\..\src\Strength\SolidNodeListInline.hh">
       <Filter>Header Files\Strength</Filter>
     </None>
-    <None Include="..\..\src\Strength\StrengthSoundSpeedPolicy.hh">
-      <Filter>Header Files\Strength</Filter>
-    </None>
     <None Include="..\..\src\Strength\YieldStrengthPolicy.hh">
       <Filter>Header Files\Strength</Filter>
     </None>
@@ -80,12 +77,6 @@
     <ClCompile Include="..\..\src\Strength\SolidFieldNames.cc">
       <Filter>Source Files\Strength</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.2.cc">
-      <Filter>Source Files\Strength</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.3.cc">
-      <Filter>Source Files\Strength</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Strength\YieldStrengthPolicyInst.cc.2.cc">
       <Filter>Source Files\Strength</Filter>
     </ClCompile>
@@ -104,9 +95,6 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Strength\ShearModulusPolicyInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\Strength\StrengthSoundSpeedPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Strength\YieldStrengthPolicyInst.cc.py">
