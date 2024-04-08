@@ -12,8 +12,10 @@ class SolidBoundaryBase:
   typedef typename %(Dimension)s::Scalar Scalar;
   typedef typename %(Dimension)s::Vector Vector;
   """
-    def pyinit():
+    def pyinit(self):
         "constructor for base class DEM solid boundary conditions"
+
+    uniqueIndex  = PYB11property("int", "uniqueIndex",  "uniqueIndex", doc="unique index for solid boundary")
 
 PYB11inject(SolidBoundaryBaseAbstractMethods, SolidBoundaryBase, pure_virtual=True)
 
@@ -29,7 +31,8 @@ class InfinitePlaneSolidBoundary(SolidBoundaryBase):
     typedef typename %(Dimension)s::Vector Vector;
   """
 
-    def pyinit(point  = "const Vector&", 
+    def pyinit(self,
+               point  = "const Vector&", 
                normal = "const Vector&"):
         "solid planar boundary"
 
@@ -79,7 +82,8 @@ class RectangularPlaneSolidBoundary(SolidBoundaryBase):
     typedef typename %(Dimension)s::Tensor Tensor;
   """
 
-    def pyinit(point  = "const Vector&",
+    def pyinit(self,
+               point  = "const Vector&",
                extent = "const Vector&",
                basis  = "const Tensor&"):
         "solid planar boundary"
@@ -130,7 +134,8 @@ class CircularPlaneSolidBoundary(SolidBoundaryBase):
     typedef typename %(Dimension)s::Vector Vector;
   """
 
-    def pyinit(point  = "const Vector&",
+    def pyinit(self,
+               point  = "const Vector&",
                normal  = "const Vector&",
                extent = "const Scalar"):
         "solid planar boundary"
@@ -181,7 +186,8 @@ class CylinderSolidBoundary(SolidBoundaryBase):
     typedef typename %(Dimension)s::Vector Vector;
   """
 
-    def pyinit(point  = "const Vector&",
+    def pyinit(self,
+               point  = "const Vector&",
                axis  = "const Vector&",
                radius = "const Scalar",
                length = "const Scalar"):
@@ -235,7 +241,8 @@ class SphereSolidBoundary(SolidBoundaryBase):
     typedef typename %(Dimension)s::Vector Vector;
   """
 
-    def pyinit(center  = "const Vector&",
+    def pyinit(self,
+               center  = "const Vector&",
                radius = "const Scalar",
                clipPoint  = "const Vector&",
                clipAxis = "const Vector&"):
@@ -275,3 +282,9 @@ class SphereSolidBoundary(SolidBoundaryBase):
     radius = PYB11property("Scalar", "radius", "radius", doc="radius of sphere")
     clipPoint  = PYB11property("const Vector&", "clipPoint",  "clipPoint", returnpolicy="reference_internal", doc="point on clip plane")
     clipAxis = PYB11property("const Vector&", "clipAxis", "clipAxis", returnpolicy="reference_internal", doc="normal in clip plane")
+
+PYB11inject(SolidBoundaryBaseAbstractMethods, SphereSolidBoundary, virtual=True, pure_virtual=False)
+PYB11inject(SolidBoundaryBaseAbstractMethods, InfinitePlaneSolidBoundary, virtual=True, pure_virtual=False)
+PYB11inject(SolidBoundaryBaseAbstractMethods, RectangularPlaneSolidBoundary, virtual=True, pure_virtual=False)
+PYB11inject(SolidBoundaryBaseAbstractMethods, CircularPlaneSolidBoundary, virtual=True, pure_virtual=False)
+PYB11inject(SolidBoundaryBaseAbstractMethods, CylinderSolidBoundary, virtual=True, pure_virtual=False)

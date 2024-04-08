@@ -6,7 +6,7 @@ template<typename Dimension>
 inline
 void
 SolidBoundaryBase<Dimension>::
-uniqueIndex(const int uId){
+uniqueIndex(int uId){
   mUniqueIndex = uId;
 }
 template<typename Dimension>

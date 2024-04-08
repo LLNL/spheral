@@ -55,7 +55,7 @@ public:
                       const double t,
                       const double dt) = 0;
   
-  void uniqueIndex(const int uId);
+  void uniqueIndex(int uId);
   int uniqueIndex() const;
 
 private:
