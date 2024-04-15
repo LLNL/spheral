@@ -1,13 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// SphereSolidBoundary -- cylinder with finite length solid boundary for DEM
+// ClippedSphereSolidBoundary -- cylinder with finite length solid boundary for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_SphereSolidBoundary_hh__
-#define __Spheral_SphereSolidBoundary_hh__
+#ifndef __Spheral_ClippedSphereSolidBoundary_hh__
+#define __Spheral_ClippedSphereSolidBoundary_hh__
 
-#include "DEM/DEMDimension.hh"
 #include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
 namespace Spheral {
@@ -17,19 +16,21 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class SphereSolidBoundary : public SolidBoundaryBase<Dimension> {
+class ClippedSphereSolidBoundary : public SolidBoundaryBase<Dimension> {
 
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
     typedef typename Dimension::Tensor Tensor;
-    typedef typename DEMDimension<Dimension>::AngularVector RotationType;
+
 public:
   //--------------------------- Public Interface ---------------------------//
-  SphereSolidBoundary(const Vector& center, 
-                      const Scalar  radius,
-                      const RotationType& angularVelocity);
 
-  ~SphereSolidBoundary();
+  ClippedSphereSolidBoundary(const Vector& center, 
+                      const Scalar  radius,
+                      const Vector& clipPoint,
+                      const Vector& clipAxis);
+
+  ~ClippedSphereSolidBoundary();
 
   virtual Vector distance(const Vector& position) const override;
   virtual Vector localVelocity(const Vector& position) const override;
@@ -48,31 +49,36 @@ public:
   Scalar radius() const;
   void radius(Scalar value);
 
+  const Vector& clipPoint() const;
+  void clipPoint(const Vector& value);
+
+  const Vector& clipAxis() const;
+  void clipAxis(const Vector& value);
+
   const Vector& velocity() const;
   void velocity(const Vector& value);
 
-  const RotationType& angularVelocity() const;
-  void angularVelocity(const RotationType& value);
-
+  void setClipIntersectionRadius();
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mCenter;
   Scalar mRadius;
+  Vector mClipPoint;
+  Vector mClipAxis;
+  Scalar mClipIntersectionRadius;
   
   Vector mVelocity;
-
-  RotationType mAngularVelocity;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  SphereSolidBoundary();
-  SphereSolidBoundary(const SphereSolidBoundary&);
-  SphereSolidBoundary& operator=(const SphereSolidBoundary&);
+  ClippedSphereSolidBoundary();
+  ClippedSphereSolidBoundary(const ClippedSphereSolidBoundary&);
+  ClippedSphereSolidBoundary& operator=(const ClippedSphereSolidBoundary&);
 };
 
 }
 
-#include "SphereSolidBoundaryInline.hh"
+#include "ClippedSphereSolidBoundaryInline.hh"
 
 #endif

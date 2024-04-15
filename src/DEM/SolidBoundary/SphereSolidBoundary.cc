@@ -18,17 +18,12 @@ template<typename Dimension>
 SphereSolidBoundary<Dimension>::
 SphereSolidBoundary(const Vector& center,
                     const Scalar  radius,
-                    const Vector& clipPoint,
-                    const Vector& clipAxis):
+                    const RotationType& angularVelocity):
   SolidBoundaryBase<Dimension>(),
   mCenter(center),
   mRadius(radius),
-  mClipPoint(clipPoint),
-  mClipAxis(clipAxis),
-  mClipIntersectionRadius(0.0),
-  mVelocity(Vector::zero){
-    this->setClipIntersectionRadius();
-    mClipAxis = mClipAxis.unitVector();
+  mVelocity(Vector::zero),
+  mAngularVelocity(angularVelocity){
 }
 
 template<typename Dimension>
@@ -41,34 +36,16 @@ template<typename Dimension>
 typename Dimension::Vector
 SphereSolidBoundary<Dimension>::
 distance(const Vector& position) const { 
-
-  // contacting sphere
-  const auto contactPoint = (position - mCenter).unitVector()*mRadius + mCenter;
-  Vector dist = position - contactPoint;
-
-  const auto planeSignedDistance = (contactPoint - mClipPoint).dot(mClipAxis);
-
-  // if contant pt above clip plane check for edge contact
-  if (planeSignedDistance > 0.0){
-
-    // break into perp and in-plane components
-    const auto q = (position-mClipPoint);
-    const auto qnMag =  q.dot(mClipAxis);
-    const auto qn = qnMag * mClipAxis;
-    const auto qr = q - qn;
-
-    // if outside circle enforce planar solid bc
-    dist = min(qr.magnitude() - mClipIntersectionRadius,0.0)*qr.unitVector() + qn;
-
-  }
-  return dist;
+  const auto p = position - mCenter;
+  return p - p.unitVector()*mRadius;
 }
 
 template<typename Dimension>
 typename Dimension::Vector
 SphereSolidBoundary<Dimension>::
 localVelocity(const Vector& position) const { 
-  return mVelocity;
+  const auto rVector = (position - mCenter).unitVector()*mRadius;
+  return mVelocity + DEMDimension<Dimension>::cross(mAngularVelocity,rVector);
 }
 
 template<typename Dimension>
@@ -79,11 +56,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   const auto boundaryKey = "SphereSolidBoundary_" + std::to_string(std::abs(this->uniqueIndex()));
   const auto pointKey = boundaryKey +"_point";
-  const auto clipPointKey = boundaryKey +"_clipPoint";
   const auto velocityKey = boundaryKey +"_velocity";
 
   state.enrollAny(pointKey,mCenter);
-  state.enrollAny(clipPointKey,mClipPoint);
   state.enrollAny(pointKey,mVelocity);
 
 }
@@ -93,17 +68,7 @@ void
 SphereSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mCenter += multiplier*mVelocity;
-  mClipPoint += multiplier*mVelocity;
 }
 
-
-template<typename Dimension>
-void
-SphereSolidBoundary<Dimension>::
-setClipIntersectionRadius() {
-  const auto rcMag = (mClipPoint - mCenter).dot(mClipAxis);
-  mClipIntersectionRadius = (rcMag < mRadius ? std::sqrt(mRadius*mRadius-rcMag*rcMag) : 0.0);
-  mClipPoint = rcMag * mClipAxis + mCenter;
-}
 
 }

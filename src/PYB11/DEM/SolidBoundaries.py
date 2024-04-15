@@ -230,11 +230,64 @@ class CylinderSolidBoundary(SolidBoundaryBase):
 
 
 #-------------------------------------------------------------------------------
-# Cylinder solid boundary. In 2d this would be two planes.
+# Sphere solid boundary. In 2d this would be a circle.
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension")
 @PYB11module("SpheralDEM")
 class SphereSolidBoundary(SolidBoundaryBase):
+
+    PYB11typedefs = """
+    typedef typename %(Dimension)s::Scalar Scalar;
+    typedef typename %(Dimension)s::Vector Vector;
+    typedef typename DEMDimension<%(Dimension)s>::AngularVector RotationType;
+  """
+
+    def pyinit(self,
+               center  = "const Vector&",
+               radius = "const Scalar",
+               angularVelocity  = "const RotationType&"):
+        "solid planar boundary"
+
+    @PYB11virtual 
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state solid bc expects to use and evolve."
+        return "void"
+    
+    @PYB11virtual
+    def update(self,
+               multiplier = "const double",
+               t = "const double",
+               dt = "const double",):
+        "distance vector to bc."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def localVelocity(self,
+                 position = "const Vector&"):
+        "velocity of bc."
+        return "Vector"
+
+    @PYB11virtual
+    @PYB11const
+    def distance(self,
+                 position = "const Vector&"):
+        "distance vector to bc."
+        return "Vector"
+
+    velocity = PYB11property("const Vector&", "velocity",  "velocity", returnpolicy="reference_internal", doc="velocity of plane")
+    center  = PYB11property("const Vector&", "center",  "center", returnpolicy="reference_internal", doc="center of sphere")
+    radius = PYB11property("Scalar", "radius", "radius", doc="radius of sphere")
+    angularVelocity = PYB11property("const RotationType&", "angularVelocity", "angularVelocity",  doc="rotation about center point")
+
+#-------------------------------------------------------------------------------
+# Sphere solid boundary intersected with an infinite plane.
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11module("SpheralDEM")
+class ClippedSphereSolidBoundary(SolidBoundaryBase):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -282,6 +335,7 @@ class SphereSolidBoundary(SolidBoundaryBase):
     radius = PYB11property("Scalar", "radius", "radius", doc="radius of sphere")
     clipPoint  = PYB11property("const Vector&", "clipPoint",  "clipPoint", returnpolicy="reference_internal", doc="point on clip plane")
     clipAxis = PYB11property("const Vector&", "clipAxis", "clipAxis", returnpolicy="reference_internal", doc="normal in clip plane")
+
 
 #PYB11inject(SolidBoundaryBaseAbstractMethods, SphereSolidBoundary, virtual=True, pure_virtual=False)
 #PYB11inject(SolidBoundaryBaseAbstractMethods, InfinitePlaneSolidBoundary, virtual=True, pure_virtual=False)

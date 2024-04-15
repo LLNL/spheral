@@ -11,33 +11,18 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes2d
 
-title("DEM Rotating Drum")
-
-class RotatingDrumBoundary(SphereSolidBoundary2d):
-    def __init__(self,
-                 center,
-                 radius,
-                 omega):
-        SphereSolidBoundary2d.__init__(self,
-                                       center = center,
-                                       radius = radius,
-                                       clipPoint = center + Vector(0.0,radius*1.1),
-                                       clipAxis = Vector(0,1))
-        return
-    
-print("THERE")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(omegaDrum = 0.1,                          # angular velocity of drum
+commandLine(omegaDrum = 0.25,                         # angular velocity of drum
             radiusDrum = 10.0,                        # radius of the drum
             yThresh = 0.2,                            # level to initial fill to
             yClip = 0.0,                              # level to clip at after settling
-            g0 = 1.0,                                 # grav acceleration
+            g0 = 5.0,                                 # grav acceleration
 
             radius = 0.5,                            # particle radius
             normalSpringConstant=10000.0,             # spring constant for LDS model
-            normalRestitutionCoefficient=1.00,        # restitution coefficient to get damping const
+            normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
             tangentialSpringConstant=2857.0,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             dynamicFriction = 1.0,                    # static friction coefficient sliding
@@ -45,14 +30,16 @@ commandLine(omegaDrum = 0.1,                          # angular velocity of drum
             rollingFriction = 1.05,                   # static friction coefficient for rolling
             torsionalFriction = 1.3,                  # static friction coefficient for torsion
             cohesiveTensileStrength = 0.0,            # units of pressure
-            shapeFactor = 0.5,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
+            shapeFactor = 0.1,                        # in [0,1] shape factor from Zhang 2018, 0 - no torsion or rolling
 
             neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
             IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
             stepsPerCollision = 50,                   # replaces CFL for DEM
-            goalTime = 3.0,
+            updateBoundaryFrequency = 10,             # CAREFUL: make sure fast time stepping is off for DEM
+            settleTime = 5.0,                         # time simulated before we start spinning
+            goalTime = 15.0,                          # duration of spin cycle
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
@@ -85,7 +72,6 @@ commandLine(omegaDrum = 0.1,                          # angular velocity of drum
 #-------------------------------------------------------------------------------
 # check for bad inputs
 #-------------------------------------------------------------------------------
-assert mpi.procs == 1 
 assert radius < radiusDrum/2.0
 assert shapeFactor <= 1.0 and shapeFactor >= 0.0
 assert dynamicFriction >= 0.0
@@ -205,23 +191,17 @@ dem = DEM(db,
           torsionalFrictionCoefficient = torsionalFriction,
           cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
-          stepsPerCollision = stepsPerCollision)
+          stepsPerCollision = stepsPerCollision,
+          enableFastTimeStepping = False)
 
 packages = [dem]
 
-# set yup a circle (clip outside circle to deactivate clipping (i know not the best))
-solidWall = RotatingDrumBoundary(center = Vector(0.0, 0.0), 
+solidWall = SphereSolidBoundary(center = Vector(0.0, 0.0), 
                                  radius = radiusDrum,
-                                 omega = 0.0)
+                                 angularVelocity = 0.0)
 
-# solidWall = SphereSolidBoundary(center = Vector(0.0, 0.0),
-#                                        radius = radiusDrum,
-#                                        clipPoint = Vector(0.0,radiusDrum*1.1),
-#                                        clipAxis = Vector(0,1))
-
-print("here")
 dem.appendSolidBoundary(solidWall)
-print("HERE")
+
 #-------------------------------------------------------------------------------
 # Gravity: DEM
 #-------------------------------------------------------------------------------
@@ -251,7 +231,7 @@ integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
-
+integrator.updateBoundaryFrequency = 10
 integrator.cullGhostNodes = False
 
 output("integrator")
@@ -289,5 +269,11 @@ output("control")
 if not steps is None:
     control.step(steps)
 else:
-    control.advance(goalTime, maxSteps)
+    control.advance(settleTime, maxSteps)
 
+solidWall.angularVelocity = omegaDrum
+
+if not steps is None:
+    control.step(steps)
+else:
+    control.advance(settleTime+goalTime, maxSteps)
