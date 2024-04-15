@@ -28,13 +28,8 @@ Notable changes include:
       * user can optional turn off fast time stepping
       
   * Build changes / improvements:
-<<<<<<< HEAD
-    * 
-    
-=======
     * Improved the target export functionality.
 
->>>>>>> develop
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
     * Updating header lists for including Spheral modules in external projects.
