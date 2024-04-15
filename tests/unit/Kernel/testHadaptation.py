@@ -76,38 +76,32 @@ def plotH(H, plot,
     return
 
 #-------------------------------------------------------------------------------
-# Function to measure the second moment tensor psi
+# Function to measure the moments of the local point distribution
 #-------------------------------------------------------------------------------
-def computePsi(coords, H, WT, nPerh):
-    Wsum = 0.0
-    psiLab = SymTensor()
-    psiEta = SymTensor()
+def computeMoments(coords, H, WT, nPerh):
+    zerothMoment = 0.0
+    firstMoment = Vector()
+    secondMoment = SymTensor()
     for vals in coords:
         rji = Vector(*vals)
         eta = H*rji
         WSPHi = WT.kernelValueSPH(eta.magnitude())
-        WASPHi = WT.kernelValueASPH(eta.magnitude(), nPerh)
-        Wsum += WSPHi
-        psiLab += WSPHi**2 * rji.unitVector().selfdyad()
-        psiEta += WSPHi**2 * eta.unitVector().selfdyad()
-    return Wsum, psiLab, psiEta
+        zerothMoment += WSPHi
+        firstMoment += WSPHi * eta
+        secondMoment += WSPHi**2 * eta.unitVector().selfdyad()
+    return zerothMoment, firstMoment, secondMoment
 
 #-------------------------------------------------------------------------------
 # Compute a new H based on the current second-moment (psi) and H
 #-------------------------------------------------------------------------------
-def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
-    H0inv = H0.Inverse()
-    eigenLab = psiLab.eigenVectors()
-    eigenEta = psiEta.eigenVectors()
-    print("         Wsum : ", Wsum)
-    print("       psiLab : ", psiLab)
-    print("       psiEta : ", psiEta)
-    print("     eigenLab : ", eigenLab)
-    print("     eigenEta : ", eigenEta)
+def newH(H0, zerothMoment, firstMoment, secondMoment, WT, nPerh):
+    print(" zerothMoment : ", zerothMoment)
+    print("  firstMoment : ", firstMoment)
+    print(" secondMoment : ", secondMoment)
 
     # Extract shape information from the second moment
-    nperheff = WT.equivalentNodesPerSmoothingScale(sqrt(Wsum))
-    T = psiEta.sqrt()
+    nperheff = WT.equivalentNodesPerSmoothingScale(sqrt(zerothMoment))
+    T = secondMoment.sqrt()
     print("     nperheff : ", nperheff)
     print("           T0 : ", T)
     eigenT = T.eigenVectors()
@@ -127,80 +121,6 @@ def newH(H0, Wsum, psiLab, psiEta, WT, nPerh):
     print("        H0inv : ", H0.Inverse())
     print("        H1inv : ", H1.Inverse())
     return H1
-
-    # assert T.Determinant() > 0.0
-    # T /= sqrt(T.Determinant())
-    # print("           T1 : ", T)
-    # eigenT = T.eigenVectors()
-    #     for j in range(2):
-    #         if eigenT.eigenValues[j] <= 1e-3:
-    #             eigenT.eigenValues[j] = 2.0
-    #     assert eigenT.eigenValues.minElement() > 1e-3
-    #     fa = fscale # * sqrt(eigenT.eigenValues[0]/eigenT.eigenValues[1])
-    #     fb = fscale # * sqrt(eigenT.eigenValues[1]/eigenT.eigenValues[0])
-    #     lambda_a = fa * eigenT.eigenValues[0]
-    #     lambda_b = fb * eigenT.eigenValues[1]
-    #     fsafe = 1.0 # min(4.0, max(0.25, sqrt(lambda_a*lambda_b)))
-    #     T = SymTensor(fsafe*lambda_a, 0.0,
-    #                   0.0, fsafe*lambda_b)
-    #     T.rotationalTransform(eigenT.eigenVectors)
-    # # T *= fscale/sqrt(T.Determinant())
-    # # eigenT = T.eigenVectors()
-    # # if eigenT.eigenValues.minElement() < 0.25 or eigenT.eigenValues.maxElement() > 4.0:
-    # #     T = SymTensor(min(4.0, max(0.25, eigenT.eigenValues[0])), 0.0,
-    # #                   0.0, min(4.0, max(0.25, eigenT.eigenValues[1])))
-    # #     T.rotationalTransform(eigenT.eigenVectors)
-    # H1inv = (T*H0inv).Symmetric()
-    # print("         Tfin : ", T)
-    # print("        H0inv : ", H0inv)
-    # print("        H1inv : ", H1inv)
-
-    # return H1inv.Inverse()
-
-# def newH(H0, coords, inv_coords, WT, nPerh, asph):
-#     H0inv = H0.Inverse()
-
-#     # Compute the inverse hull to find the nearest neighbors
-#     hull0 = Polygon(inv_coords)
-    
-#     # Build a normal space hull using hull0's points and their reflections
-#     verts = [x.unitVector()*safeInv(x.magnitude()) for x in hull0.vertices]
-#     verts += [-x for x in verts]
-#     hull1 = Polygon(verts)
-
-#     # Extract the second-moment from the hull
-#     psi = sum([x.selfdyad() for x in hull1.vertices], SymTensor())
-
-#     # Find the new H shape
-#     D0 = psi.Determinant()
-#     assert D0 > 0.0
-#     psi /= sqrt(D0)
-#     Hnew = psi.sqrt().Inverse()
-#     assert np.isclose(Hnew.Determinant(), 1.0)
-
-#     # Compute the zeroth moment
-#     Wzero = sqrt(sum([WT.kernelValueSPH((H0*Vector(*c)).magnitude()) for c in coords]))
-
-#     # What is the current effect nPerh?
-#     currentNodesPerSmoothingScale = WT.equivalentNodesPerSmoothingScale(Wzero);
-#     assert currentNodesPerSmoothingScale > 0.0
-
-#     # The (limited) ratio of the desired to current nodes per smoothing scale.
-#     s = min(4.0, max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)))
-#     assert s > 0.0
-
-#     # Scale to the desired determinant
-#     Hnew *= sqrt(H0.Determinant())/s
-
-#     print("        Wzero : ", Wzero)
-#     print("        hull0 : ", hull0.vertices)
-#     print("        hull1 : ", hull1.vertices)
-#     print("          psi : ", psi)
-#     print("    psi Eigen : ", psi.eigenVectors())
-#     print("     nPerheff : ", currentNodesPerSmoothingScale)
-#     print("           H0 : ", H0)
-#     print("           H1 : ", Hnew)
-#     return Hnew, hull1
 
 #-------------------------------------------------------------------------------
 # Plot the initial point distribution and H
@@ -253,22 +173,22 @@ plotEta.set_title("$\eta$ frame")
 #-------------------------------------------------------------------------------
 for iter in range(iterations):
     print("Iteration ", iter)
-    Wsum, psiLab, psiEta = computePsi(coords, H, WT, nPerh)
-    # H = newH(H, Wsum, psiLab, psiEta, WT, nPerh)
-    H = asph.idealSmoothingScale(H = H,
-                                 pos = Vector(),
-                                 zerothMoment = sqrt(Wsum),
-                                 firstMoment = Vector(),
-                                 secondMomentEta = psiEta,
-                                 secondMomentLab = psiEta,
-                                 W = WT,
-                                 hmin = 1e-10,
-                                 hmax = 1e10,
-                                 hminratio = 1e-10,
-                                 nPerh = nPerh,
-                                 connectivityMap = ConnectivityMap(),
-                                 nodeListi = 0,
-                                 i = 0)
+    zerothMoment, firstMoment, secondMoment = computeMoments(coords, H, WT, nPerh)
+    H = newH(H, zerothMoment, firstMoment, secondMoment, WT, nPerh)
+    # H = asph.idealSmoothingScale(H = H,
+    #                              pos = Vector(),
+    #                              zerothMoment = sqrt(Wsum),
+    #                              firstMoment = Vector(),
+    #                              secondMomentEta = psiEta,
+    #                              secondMomentLab = psiEta,
+    #                              W = WT,
+    #                              hmin = 1e-10,
+    #                              hmax = 1e10,
+    #                              hminratio = 1e-10,
+    #                              nPerh = nPerh,
+    #                              connectivityMap = ConnectivityMap(),
+    #                              nodeListi = 0,
+    #                              i = 0)
     evals = H.eigenValues()
     aspectRatio = evals.maxElement()/evals.minElement()
     output("     H.Inverse(), aspectRatio")
