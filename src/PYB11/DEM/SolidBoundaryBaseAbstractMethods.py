@@ -7,7 +7,7 @@ from PYB11Generator import *
 class SolidBoundaryBaseAbstractMethods:
 
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"

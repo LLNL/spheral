@@ -67,7 +67,7 @@ distance(const Vector& position) const {
 template<typename Dimension>
 typename Dimension::Vector
 SphereSolidBoundary<Dimension>::
-velocity(const Vector& position) const { 
+localVelocity(const Vector& position) const { 
   return mVelocity;
 }
 

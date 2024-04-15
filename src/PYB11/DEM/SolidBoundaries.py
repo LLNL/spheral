@@ -53,7 +53,7 @@ class InfinitePlaneSolidBoundary(SolidBoundaryBase):
 
     @PYB11virtual
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"
@@ -105,7 +105,7 @@ class RectangularPlaneSolidBoundary(SolidBoundaryBase):
 
     @PYB11virtual
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"
@@ -157,7 +157,7 @@ class CircularPlaneSolidBoundary(SolidBoundaryBase):
 
     @PYB11virtual
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"
@@ -210,7 +210,7 @@ class CylinderSolidBoundary(SolidBoundaryBase):
 
     @PYB11virtual
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"
@@ -265,7 +265,7 @@ class SphereSolidBoundary(SolidBoundaryBase):
 
     @PYB11virtual
     @PYB11const
-    def velocity(self,
+    def localVelocity(self,
                  position = "const Vector&"):
         "velocity of bc."
         return "Vector"
@@ -283,8 +283,8 @@ class SphereSolidBoundary(SolidBoundaryBase):
     clipPoint  = PYB11property("const Vector&", "clipPoint",  "clipPoint", returnpolicy="reference_internal", doc="point on clip plane")
     clipAxis = PYB11property("const Vector&", "clipAxis", "clipAxis", returnpolicy="reference_internal", doc="normal in clip plane")
 
-PYB11inject(SolidBoundaryBaseAbstractMethods, SphereSolidBoundary, virtual=True, pure_virtual=False)
-PYB11inject(SolidBoundaryBaseAbstractMethods, InfinitePlaneSolidBoundary, virtual=True, pure_virtual=False)
-PYB11inject(SolidBoundaryBaseAbstractMethods, RectangularPlaneSolidBoundary, virtual=True, pure_virtual=False)
-PYB11inject(SolidBoundaryBaseAbstractMethods, CircularPlaneSolidBoundary, virtual=True, pure_virtual=False)
-PYB11inject(SolidBoundaryBaseAbstractMethods, CylinderSolidBoundary, virtual=True, pure_virtual=False)
+#PYB11inject(SolidBoundaryBaseAbstractMethods, SphereSolidBoundary, virtual=True, pure_virtual=False)
+#PYB11inject(SolidBoundaryBaseAbstractMethods, InfinitePlaneSolidBoundary, virtual=True, pure_virtual=False)
+#PYB11inject(SolidBoundaryBaseAbstractMethods, RectangularPlaneSolidBoundary, virtual=True, pure_virtual=False)
+#PYB11inject(SolidBoundaryBaseAbstractMethods, CircularPlaneSolidBoundary, virtual=True, pure_virtual=False)
+#PYB11inject(SolidBoundaryBaseAbstractMethods, CylinderSolidBoundary, virtual=True, pure_virtual=False)

@@ -46,7 +46,7 @@ public:
   virtual ~SolidBoundaryBase();
 
   virtual Vector distance(const Vector& position) const = 0;
-  virtual Vector velocity(const Vector& position) const = 0;
+  virtual Vector localVelocity(const Vector& position) const = 0;
 
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) = 0;

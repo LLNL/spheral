@@ -33,7 +33,7 @@ public:
   ~RectangularPlaneSolidBoundary();
 
   virtual Vector distance(const Vector& position) const override;
-  virtual Vector velocity(const Vector& position) const override;
+  virtual Vector localVelocity(const Vector& position) const override;
 
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;

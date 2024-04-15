@@ -40,7 +40,7 @@ distance(const Vector& position) const {
 template<typename Dimension>
 typename Dimension::Vector
 RectangularPlaneSolidBoundary<Dimension>::
-velocity(const Vector& position) const { 
+localVelocity(const Vector& position) const { 
   return mVelocity;
 }
 

@@ -260,7 +260,7 @@ variableTimeStep(const DataBase<Dimension>& dataBase,
     //solid boundary and distance vector to particle i
     const auto& solidBoundary = solidBoundaries[bci];
     const auto rib = solidBoundary->distance(ri);
-    const auto vb = solidBoundary->velocity(ri);
+    const auto vb = solidBoundary->localVelocity(ri);
 
     // Compare closing speed to separation
     const auto vib = vi-vb;
@@ -712,7 +712,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto  deltaTorsib = torsionalDisplacement(nodeListi,i)[contacti];
 
         // velocity of boundary @ ri
-        const auto vb = solidBoundary->velocity(ri);
+        const auto vb = solidBoundary->localVelocity(ri);
 
         // line of action for the contact
         const auto rhatib = rib.unitVector();
