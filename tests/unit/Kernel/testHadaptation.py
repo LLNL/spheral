@@ -3,6 +3,8 @@ from Spheral2d import *
 import numpy as np
 from SpheralTestUtilities import *
 from SpheralMatplotlib import *
+from GenerateNodeDistribution2d import *
+from DistributeNodes import distributeNodes2d
 
 #-------------------------------------------------------------------------------
 # Command line options
@@ -13,6 +15,7 @@ commandLine(Kernel = WendlandC4Kernel,
             fscaleAngle = 0.0,  # degrees
             iterations = 10,
             startCorrect = False,
+            distribution = "lattice",
 )
 assert fscale <= 1.0
 fscaleAngle *= pi/180.0
@@ -28,6 +31,12 @@ etamax = WT.kernelExtent
 asph = ASPHSmoothingScale()
 
 #-------------------------------------------------------------------------------
+# Make a NodeList
+#-------------------------------------------------------------------------------
+eos = GammaLawGas(5.0/3.0, 1.0, CGS())
+nodes = makeFluidNodeList("nodes", eos, nPerh = nPerh)
+
+#-------------------------------------------------------------------------------
 # Generate our test point positions
 #-------------------------------------------------------------------------------
 # First generate the points in the reference frame (eta space)
@@ -35,25 +44,27 @@ nx = int(4.0*etamax*nPerh/fscale)
 if nx % 2 == 0:
     nx += 1
 
-xcoords = 2.0/fscale*np.linspace(-etamax, etamax, nx)
-ycoords = 2.0/fscale*np.linspace(-etamax, etamax, nx)
-X, Y = np.meshgrid(xcoords, ycoords)
-eta_coords = np.column_stack((X.ravel(), Y.ravel()))
+gen = GenerateNodeDistribution2d(nx, nx,
+                                 rho = 1.0,
+                                 distributionType = distribution,
+                                 xmin = (-2.0*etamax, -2.0*etamax),
+                                 xmax = ( 2.0*etamax,  2.0*etamax),
+                                 nNodePerh = nPerh)
+distributeNodes2d((nodes, gen))
 
-# Apply the inverse of the H transformation to map these eta coordinates to the
-# lab frame
-HCinv = SymTensor(fscale, 0.0,
-                  0.0,    1.0)
+# Define a transformation that rotates and compresses these initial eta coordinates
+HtargetInv = SymTensor(fscale, 0.0,
+                       0.0,    1.0)
 R = rotationMatrix(Vector(cos(fscaleAngle), sin(fscaleAngle))).Transpose()
-HCinv.rotationalTransform(R)
-coords = np.copy(eta_coords)
-for i in range(len(coords)):
-    eta_coords[i] = R*Vector(eta_coords[i][0],eta_coords[i][1])
-    coords[i] = HCinv * Vector(coords[i][0], coords[i][1])
-HC = HCinv.Inverse()
+HtargetInv.rotationalTransform(R)
 
-# inverse coordinates (squared)
-inv_coords = [Vector(*c).unitVector()*safeInv(Vector(*c).magnitude()) for c in coords]
+# Distort the point positions
+pos = nodes.positions()
+for i in range(nodes.numInternalNodes):
+    pos[i] = HtargetInv * pos[i]
+
+# Define the target ideal H
+Htarget = HtargetInv.Inverse()
 
 #-------------------------------------------------------------------------------
 # Function for plotting the current H tensor
@@ -64,7 +75,7 @@ def plotH(H, plot,
     etamax = WT.kernelExtent
     Hinv = H.Inverse()
     if etaSpace:
-        Hinv = (HC*Hinv).Symmetric()
+        Hinv = (Htarget * Hinv).Symmetric()
     t = np.linspace(0, 2.0*pi, 180)
     x = np.cos(t)
     y = np.sin(t)
@@ -78,12 +89,24 @@ def plotH(H, plot,
 #-------------------------------------------------------------------------------
 # Function to measure the moments of the local point distribution
 #-------------------------------------------------------------------------------
-def computeMoments(coords, H, WT, nPerh):
+def computeMoments(H, WT, nPerh):
+    neighbor = nodes.neighbor()
+    neighbor.updateNodes()
+    master, coarse, refine = vector_of_int(), vector_of_int(), vector_of_int()
+    neighbor.setMasterList(Vector.zero,
+                           H,
+                           master,
+                           coarse)
+    neighbor.setRefineNeighborList(Vector.zero,
+                                   H,
+                                   coarse,
+                                   refine)
+    pos = nodes.positions()
     zerothMoment = 0.0
     firstMoment = Vector()
     secondMoment = SymTensor()
-    for vals in coords:
-        rji = Vector(*vals)
+    for j in refine:
+        rji = -(pos[j])
         eta = H*rji
         WSPHi = WT.kernelValueSPH(eta.magnitude())
         zerothMoment += WSPHi
@@ -126,19 +149,18 @@ def newH(H0, zerothMoment, firstMoment, secondMoment, WT, nPerh):
 # Plot the initial point distribution and H
 #-------------------------------------------------------------------------------
 if startCorrect:
-    H = SymTensor(HC)
+    H = SymTensor(Htarget)
 else:
-    H = SymTensor(1.0, 0.0,
-                  0.0, 1.0)
-    H *= 2.0   # Make it too small to start
+    H = 2.0*sqrt(Htarget.Determinant()) * SymTensor.one  # Make it too small to start
 print("Initial H tensor (inverse): ", H.Inverse())
 
 # Plot the initial point distribution in lab coordinates
 plotLab = newFigure()
 plotLab.set_box_aspect(1.0)
-plotLab.plot([x[0] for x in coords], [x[1] for x in coords], "ro")
+pos = nodes.positions()
+plotLab.plot([x[0] for x in pos], [x[1] for x in pos], "ro")
 plotH(H, plotLab, "k-")
-plim = max(abs(np.min(coords)), np.max(coords))
+plim = max([x.maxAbsElement() for x in pos])
 plotLab.set_xlim(-plim, plim)
 plotLab.set_ylim(-plim, plim)
 plotLab.set_xlabel(r"$x$")
@@ -148,9 +170,9 @@ plotLab.set_title("Lab frame")
 # Plot in eta space
 plotEta = newFigure()
 plotEta.set_box_aspect(1.0)
-plotEta.plot([x[0] for x in eta_coords], [x[1] for x in eta_coords], "ro")
+plotEta.plot([(Htarget*x)[0] for x in pos], [(Htarget*x)[1] for x in pos], "ro")
 plotH(H, plotEta, "k-", True)
-plim = max(abs(np.min(eta_coords)), np.max(eta_coords))
+plim = max([(Htarget*x).maxAbsElement() for x in pos])
 plotEta.set_xlim(-plim, plim)
 plotEta.set_ylim(-plim, plim)
 plotEta.set_xlabel(r"$\eta_x$")
@@ -173,7 +195,7 @@ plotEta.set_title("$\eta$ frame")
 #-------------------------------------------------------------------------------
 for iter in range(iterations):
     print("Iteration ", iter)
-    zerothMoment, firstMoment, secondMoment = computeMoments(coords, H, WT, nPerh)
+    zerothMoment, firstMoment, secondMoment = computeMoments(H, WT, nPerh)
     H = newH(H, zerothMoment, firstMoment, secondMoment, WT, nPerh)
     # H = asph.idealSmoothingScale(H = H,
     #                              pos = Vector(),
@@ -194,4 +216,7 @@ for iter in range(iterations):
     output("     H.Inverse(), aspectRatio")
     plotH(H, plotLab, "b-")
     plotH(H, plotEta, "b-", True)
-    #plotPolygon(hull, plot=plotHull)
+
+# Plot our final H's in green
+plotH(H, plotLab, "g-")
+plotH(H, plotEta, "g-", True)
