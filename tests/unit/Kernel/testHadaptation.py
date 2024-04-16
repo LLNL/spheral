@@ -16,6 +16,8 @@ commandLine(Kernel = WendlandC4Kernel,
             iterations = 10,
             startCorrect = False,
             distribution = "lattice",
+            xoffset = 0.0,
+            yoffset = 0.0,
 )
 assert fscale <= 1.0
 fscaleAngle *= pi/180.0
@@ -49,6 +51,10 @@ gen = GenerateNodeDistribution2d(nx, nx,
                                  distributionType = distribution,
                                  xmin = (-2.0*etamax, -2.0*etamax),
                                  xmax = ( 2.0*etamax,  2.0*etamax),
+                                 rmin = 0.0,
+                                 rmax = 2.0*etamax,
+                                 theta = 2.0*pi,
+                                 offset = (xoffset, yoffset),
                                  nNodePerh = nPerh)
 distributeNodes2d((nodes, gen))
 
