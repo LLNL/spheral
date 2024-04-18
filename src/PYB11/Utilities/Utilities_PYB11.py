@@ -22,6 +22,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/Functors.hh"',
                   '"Utilities/erff.hh"',
                   '"Utilities/newtonRaphson.hh"',
+                  '"Utilities/bisectRoot.hh"',
                   '"Utilities/simpsonsIntegration.hh"',
                   '"Utilities/globalNodeIDs.hh"',
                   '"Utilities/rotationMatrix.hh"',
@@ -409,6 +410,18 @@ def legendre_p(l = "int",
     "Compute the associated Legendre polynomial P^m_l(x)"
     return "double"
 
+@PYB11cppname("bisectRoot<const PythonBoundFunctors::SpheralFunctor<double, double>>")
+def bisectRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+               xmin = "double",
+               xmax = "double",
+               xaccuracy = ("double", "1.0e-15"),
+               yaccuracy = ("double", "1.0e-10"),
+               maxIterations = ("unsigned", "100u"),
+               verbose = ("bool", "false")):
+    """Bisection root finder.
+Finds a root of 'function' in the range (x1, x2)"""
+    return "double"
+
 @PYB11cppname("newtonRaphson<const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>>")
 def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>&",
                           x1 = "double",
@@ -419,6 +432,7 @@ def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<
     """Newton-Raphson root finder.
 Finds a root of 'function' in the range (x1, x2)"""
     return "double"
+
 @PYB11cppname("simpsonsIntegration<const PythonBoundFunctors::SpheralFunctor<double, double>, double, double>")
 def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
                               x0 = "double",
