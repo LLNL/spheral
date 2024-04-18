@@ -111,26 +111,96 @@ def computeMoments(H, WT, nPerh):
     zerothMoment = 0.0
     firstMoment = Vector()
     secondMoment = SymTensor()
+    correctedSecondMoment = SymTensor()
+
+    # Find the moments to compute the RK correction terms (assuming equal weight for all points)
+    m0, m1, m2 = 0.0, Vector(), SymTensor()
     for j in refine:
-        rji = -(pos[j])
-        eta = H*rji
+        rij = -pos[j]
+        eta = H*rij
+        Wi = WT.kernelValueSPH(eta.magnitude())
+        m0 += Wi
+        m1 += Wi*rij
+        m2 += Wi*rij.selfdyad()
+    A = 1.0/(m0 - m2.Inverse().dot(m1).dot(m1))
+    B = -m2.Inverse().dot(m1)
+
+    # Now find the moments for the ASPH algorithm
+    for j in refine:
+        rij = -pos[j]
+        eta = H*rij
         WSPHi = WT.kernelValueSPH(eta.magnitude())
+        WRKi = A*(1.0 + B.dot(rij))*WSPHi
         zerothMoment += WSPHi
-        firstMoment += WSPHi * eta
-        secondMoment += WSPHi**2 * eta.unitVector().selfdyad()
-    return zerothMoment, firstMoment, secondMoment
+        firstMoment += WRKi * eta
+        secondMoment += WSPHi*WSPHi * eta.unitVector().selfdyad()
+        correctedSecondMoment += WRKi*WRKi * eta.unitVector().selfdyad()
+    xcen = firstMoment*safeInv(zerothMoment)
+    print(f"First approximation to centroid {xcen}")
+
+    # # Define a kernel weighting function including a linear correction
+    # xcenhat = firstMoment.unitVector()
+    # def WSPH(eta, mkernel):
+    #     return WT.kernelValueSPH(eta.magnitude()) + mkernel * eta.unitVector().dot(xcenhat)
+    
+    # # Iterate to find mkernel linear correction factor that gives us zero first moment
+    # class rootFunctor(ScalarScalarFunctor):
+    #     def __init__(mkernel):
+    #         ScalarScalarFunctor.__init__(self)
+    #         self.mkernel = mkernel
+    #         return
+
+    #     def __call__(self, mkernel):
+    #         for j in refine:
+            
+            
+
+    # # Find the centroid
+    # def findCentroid(xcen0):
+    #     Wsum = 0.0
+    #     delta_cen = Vector()
+    #     for j in refine:
+    #         rji = pos[j] - xcen0
+    #         eta = H*rji
+    #         WSPHi = WT.kernelValueSPH(eta.magnitude())
+    #         Wsum += WSPHi
+    #         delta_cen += WSPHi * eta
+    #     delta_cen *= safeInv(Wsum)
+    #     return xcen0 + delta_cen
+
+    # # Iterate until the centroid is consistent
+    # xcen0 = Vector()
+    # iter = 0
+    # while iter < 100 and (xcen - xcen0).magnitude2() > 1.0e-6:
+    #     iter += 1
+    #     xcen0 = xcen
+    #     xcen = findCentroid(xcen)
+    # print(f"Required {iter} iterations to find centroid {xcen}")
+
+    # # Correct the second moment using the first
+    # xcen = firstMoment/zerothMoment
+    # thpt = WT.kernelValueSPH(xcen.magnitude())
+    # correctedSecondMoment = secondMoment - thpt*thpt*xcen.unitVector().selfdyad()
+    # # R = rotationMatrix(firstMoment.unitVector())
+    # # correctedSecondMoment = SymTensor(secondMoment)
+    # # correctedSecondMoment.rotationalTransform(R)
+    # # correctedSecondMoment[0] -= zero2*firstMoment.magnitude2()
+    # # correctedSecondMoment.rotationalTransform(R.Transpose())
+
+    return zerothMoment, firstMoment, secondMoment, correctedSecondMoment
 
 #-------------------------------------------------------------------------------
 # Compute a new H based on the current second-moment (psi) and H
 #-------------------------------------------------------------------------------
-def newH(H0, zerothMoment, firstMoment, secondMoment, WT, nPerh):
-    print(" zerothMoment : ", zerothMoment)
-    print("  firstMoment : ", firstMoment)
-    print(" secondMoment : ", secondMoment)
+def newH(H0, zerothMoment, firstMoment, secondMoment, correctedSecondMoment, WT, nPerh):
+    print("          zerothMoment : ", zerothMoment)
+    print("           firstMoment : ", firstMoment)
+    print("          secondMoment : ", secondMoment)
+    print(" correctedSecondMoment : ", correctedSecondMoment)
 
     # Extract shape information from the second moment
     nperheff = WT.equivalentNodesPerSmoothingScale(sqrt(zerothMoment))
-    T = secondMoment.sqrt()
+    T = correctedSecondMoment.sqrt()
     print("     nperheff : ", nperheff)
     print("           T0 : ", T)
     eigenT = T.eigenVectors()
@@ -201,8 +271,8 @@ plotEta.set_title("$\eta$ frame")
 #-------------------------------------------------------------------------------
 for iter in range(iterations):
     print("Iteration ", iter)
-    zerothMoment, firstMoment, secondMoment = computeMoments(H, WT, nPerh)
-    H = newH(H, zerothMoment, firstMoment, secondMoment, WT, nPerh)
+    zerothMoment, firstMoment, secondMoment, correctedSecondMoment = computeMoments(H, WT, nPerh)
+    H = newH(H, zerothMoment, firstMoment, secondMoment, correctedSecondMoment, WT, nPerh)
     # H = asph.idealSmoothingScale(H = H,
     #                              pos = Vector(),
     #                              zerothMoment = sqrt(Wsum),
