@@ -20,7 +20,7 @@ config:
   install_tree:
     root: $spack/opt/spack
     projections:
-      all: "${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}"
+      all: "{architecture}/{compiler.name}-{compiler.version}/{name}-{version}-{hash}"
     padded_length: 128
 
 # Locations where templates should be found

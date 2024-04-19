@@ -179,10 +179,9 @@ def build_deps(args):
             if sexe("{0} spec --fresh -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Install only the dependencies for Spheral
-        if sexe("{0} install --fail-fast --fresh --deprecated --only dependencies {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
-
+        if sexe("{0} install --fresh --only dependencies {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
         # Using dev-build we can have spack generate an init-config with the local source files for spheral.
-        if sexe("{0} dev-build --fresh --deprecated -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} dev-build --fresh -u initconfig -i {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
 
       if not args.no_clean:
         sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
