@@ -10,6 +10,24 @@ packages:
     externals:
     - spec: cmake@3.23.1
       prefix: /usr/tce/packages/cmake/cmake-3.23.1
+  gmake:
+    version: [4.2.1]
+    buildable: false
+    externals:
+    - spec: gmake@4.2.1
+      prefix: /usr
+  git:
+    version: [2.29.1]
+    buildable: false
+    externals:
+    - spec: git@2.29.1+tcltk
+      prefix: /usr/tce
+  perl:
+    version: [5.26.3]
+    buildable: false
+    externals:
+    - spec: perl@5.26.3
+      prefix: /usr
 
   mvapich2:
     externals:

@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+from spack.package import *
 import socket
 import os
 
@@ -36,48 +36,48 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('mpi', when='+mpi')
     depends_on('cmake@3.10.0:', type='build')
 
-    depends_on('zlib@1.2.11 +shared +pic', type='build')
+    depends_on('zlib@1.3 +shared +pic', type='build')
 
-    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2020.1 +pic', type='build')
+    depends_on('qhull +pic', type='build')
     depends_on('m-aneos@1.0')
-    depends_on('eigen@3.4.0', type='build')
-    depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
-    depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
+    depends_on('eigen', type='build')
+    depends_on('hdf5 ~mpi +hl', type='build', when='~mpi')
+    depends_on('hdf5 +mpi +hl', type='build', when='+mpi')
 
-    depends_on('silo@4.10.2 +hdf5', type='build')
+    depends_on('silo +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
 
-    depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('axom ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
-    depends_on('opensubdiv@3.4.3', type='build')
-    depends_on('polytope@0.7 +python', type='build')
+    depends_on('opensubdiv', type='build')
+    depends_on('polytope +python', type='build')
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
-    depends_on('py-numpy@1.23.4', type='build')
-    depends_on('py-numpy-stl@3.0.0', type='build')
-    depends_on('py-python-utils@2.4.0', type='build')
-    depends_on('py-matplotlib@3.3.4 backend=tkagg +fonts', type='build')
-    depends_on('py-pillow@9.2.0', type='build')
-    depends_on('py-decorator@5.1.1', type='build')
-    depends_on('py-h5py@3.7.0', type='build')
-    depends_on('py-docutils@0.19', type='build')
-    depends_on('py-cython@0.29.32', type='build')
-    depends_on('py-scipy@1.8.1', type='build')
-    depends_on('py-importlib-metadata@4.12.0', type='build')
-    depends_on('py-ats@exit', type='build')
-    depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
+    depends_on('py-numpy', type='build')
+    depends_on('py-numpy-stl', type='build')
+    depends_on('py-python-utils', type='build')
+    depends_on('py-matplotlib backend=tkagg +fonts', type='build')
+    depends_on('py-pillow', type='build')
+    depends_on('py-decorator', type='build')
+    depends_on('py-h5py', type='build')
+    depends_on('py-docutils', type='build')
+    depends_on('py-cython', type='build')
+    depends_on('py-scipy@1.8', type='build')
+    depends_on('py-importlib-metadata', type='build')
+    depends_on('py-ats', type='build')
+    depends_on('py-mpi4py', type='build', when='+mpi')
 
-    depends_on('py-sphinx@5.3.0', type='build')
-    depends_on('py-sphinx-rtd-theme@0.5.1', type='build')
+    depends_on('py-sphinx', type='build')
+    depends_on('py-sphinx-rtd-theme', type='build')
 
     depends_on('netlib-lapack', type='build')
 

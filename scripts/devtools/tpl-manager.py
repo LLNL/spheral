@@ -128,7 +128,7 @@ def build_deps(args):
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
-  os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
+  #os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
 
   spheral_config_dir="scripts/spack/configs/"
@@ -176,13 +176,13 @@ def build_deps(args):
         os.environ["LC_ALL"] = "en_US.UTF-8"
 
         if not args.no_spec:
-            if sexe("{0} spec --fresh -I {1}@develop%{2}".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+            if sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Install only the dependencies for Spheral
-        if sexe("{0} install --fail-fast --fresh --deprecated --only dependencies {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} install --fail-fast --fresh --deprecated --only dependencies {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Using dev-build we can have spack generate an init-config with the local source files for spheral.
-        if sexe("{0} dev-build --fresh --deprecated -u initconfig {2}@develop%{3} 2>&1 | tee -a \"dev-build-{3}-out.txt\"".format(spack_cmd, os.getcwd(), package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} dev-build --reuse-deps --ignore-dependencies --deprecated -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
       if not args.no_clean:
         sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
