@@ -5,7 +5,6 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT SPHERAL_CMAKE_MODULE_PATH)
   set(SPHERAL_CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
@@ -38,7 +37,7 @@ if (NOT EXISTS "${SPHERAL_BLT_DIR}/SetupBLT.cmake")
             "${SPHERAL_BLT_DIR} is not present.\n"
             "call cmake with -DSPHERAL_BLT_DIR=/your/installation/of/blt\n")
 endif()
-set(BLT_EXPORT_THIRDPARTY ON CACHE BOOL "")
+
 include(${SPHERAL_BLT_DIR}/SetupBLT.cmake)
 
 #-------------------------------------------------------------------------------

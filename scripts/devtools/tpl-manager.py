@@ -59,6 +59,9 @@ def parse_args():
   parser.add_argument('--no-spec', action='store_true',
       help='Skip output of the dependency graph.')
 
+  parser.add_argument('--skip-init', action='store_true',
+      help='Skip setting up and configuring Spack.')
+
   return parser.parse_args()
 
 
@@ -89,25 +92,12 @@ def parse_spec_list(file_path):
 #------------------------------
 # Dependencies
 #------------------------------
-def build_deps(args):
+def build_spack(args):
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  print("~~~~~ Building Dependencies")
+  print("~~~~~ Building and Configuring Spack")
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   print("")
   print("{0}".format(project_dir))
-
-
-  # Figure out what specs this script is building TPLs for.
-  spec_list=[]
-  if args.spec_list:
-    spec_list = parse_spec_list(args.spec_list)
-  elif args.spec:
-    spec_list.append(args.spec)
-  else:
-    print("ERROR: Please define --spec or --spec-list, aborting...")
-    sys.exit(1) 
-  for s in spec_list:
-    print("** SPEC : {0}".format(s))
 
   spack_upstream_opt=""
   if os.path.isdir(args.upstream_dir) and not args.no_upstream:
@@ -128,7 +118,7 @@ def build_deps(args):
 
   # We just want to use the spac instance directly to generate our TPLs, we don't want
   # to have the spack instance take over our environment.
-  #os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
+  os.environ["SPACK_DISABLE_LOCAL_CONFIG"] = "1"
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
 
   spheral_config_dir="scripts/spack/configs/"
@@ -156,6 +146,24 @@ def build_deps(args):
   if os.path.exists(spheral_config_dir+"/concretizer.yaml"):
     sexe("cp {0}/concretizer.yaml {1}".format(spheral_config_dir, os.path.join(args.spheral_spack_dir, "spack/etc/spack/defaults")), echo=True)
 
+def build_deps(args):
+  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  print("~~~~~ Building Dependencies")
+  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  print("")
+  print("{0}".format(project_dir))
+  # Figure out what specs this script is building TPLs for.
+  spec_list=[]
+  if args.spec_list:
+    spec_list = parse_spec_list(args.spec_list)
+  elif args.spec:
+    spec_list.append(args.spec)
+  else:
+    print("ERROR: Please define --spec or --spec-list, aborting...")
+    sys.exit(1)
+  for s in spec_list:
+    print("** SPEC : {0}".format(s))
+  spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
   # Optionally add a parallel job number for spack builds
   if args.spack_jobs:
     spack_cmd += " --jobs={0}".format(args.spack_jobs)
@@ -179,18 +187,20 @@ def build_deps(args):
             if sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Install only the dependencies for Spheral
-        if sexe("{0} install --fail-fast --fresh --deprecated --only dependencies {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} install --fail-fast --fresh --only dependencies {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Using dev-build we can have spack generate an init-config with the local source files for spheral.
-        if sexe("{0} dev-build --reuse-deps --ignore-dependencies --deprecated -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} dev-build --reuse-deps --ignore-dependencies -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
       if not args.no_clean:
-        sexe("rm dev-build-* spack-build-* spack-configure-args.txt")
+        sexe("rm spec-info-* tpl-build-* dev-build-* spack-build-* spack-configure-args.txt")
 
 #------------------------------------------------------------------------------
 
 def main():
   args = parse_args()
+  if (not args.skip_init):
+    build_spack(args)
   build_deps(args)
 
 

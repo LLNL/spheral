@@ -19,7 +19,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # -------------------------------------------------------------------------
     # VERSIONS
     # -------------------------------------------------------------------------
-    version('develop', branch='feature/spack', submodules=True)
+    version('develop', branch='develop', submodules=True)
     version('1.0', tag='FSISPH-v1.0', submodules=True)
 
     # -------------------------------------------------------------------------
@@ -36,9 +36,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('mpi', when='+mpi')
     depends_on('cmake@3.10.0:', type='build')
 
-    depends_on('zlib@1.3 +shared +pic', type='build')
-
-    depends_on('boost +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('qhull +pic', type='build')
     depends_on('m-aneos@1.0')
@@ -62,17 +60,12 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
-    depends_on('py-numpy', type='build')
+    depends_on('py-numpy@1.23.4', type='build')
     depends_on('py-numpy-stl', type='build')
-    depends_on('py-python-utils', type='build')
     depends_on('py-matplotlib backend=tkagg +fonts', type='build')
-    depends_on('py-pillow', type='build')
-    depends_on('py-decorator', type='build')
     depends_on('py-h5py', type='build')
     depends_on('py-docutils', type='build')
-    depends_on('py-cython', type='build')
-    depends_on('py-scipy@1.8', type='build')
-    depends_on('py-importlib-metadata', type='build')
+    depends_on('py-scipy', type='build')
     depends_on('py-ats', type='build')
     depends_on('py-mpi4py', type='build', when='+mpi')
 
@@ -104,9 +97,8 @@ class Spheral(CachedCMakePackage, CudaPackage):
           cache_spec = envspec
         else:
           cache_spec = self.spec.compiler.name + "@" + self.spec.compiler.version
-        return "{1}-{2}.cmake".format(
-            hostname,
-            self._get_sys_type(self.spec),
+        return "{0}-{1}.cmake".format(
+            str(self._get_sys_type(self.spec)),
             cache_spec.replace(" ", "_")
         )
 
@@ -159,8 +151,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
-        entries.append(cmake_cache_path('zlib_DIR', spec['zlib'].prefix))
-
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
         entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
@@ -203,3 +193,14 @@ class Spheral(CachedCMakePackage, CudaPackage):
         spec = self.spec
 
         return options
+
+    @property
+    def build_dirname(self):
+        """Directory name to use when building the package."""
+        return "spack-build-%s" % self.pkg.spec.dag_hash(7)
+
+    @property
+    def build_directory(self):
+        """Full-path to the directory to use when building the package."""
+        return os.path.join(self.pkg.stage.path, self.build_dirname)
+
