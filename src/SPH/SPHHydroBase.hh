@@ -14,7 +14,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -35,8 +34,7 @@ public:
   typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
+  SPHHydroBase(DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dimension>& Q,
                const TableKernel<Dimension>& W,
                const TableKernel<Dimension>& WPi,
@@ -50,11 +48,15 @@ public:
                const bool correctVelocityGradient,
                const bool sumMassDensityOverAllNodeLists,
                const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
                const Vector& xmin,
                const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  SPHHydroBase() = delete;
+  SPHHydroBase(const SPHHydroBase&) = delete;
+  SPHHydroBase& operator=(const SPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~SPHHydroBase();
@@ -179,9 +181,6 @@ public:
   const TableKernel<Dimension>& kernel() const;
   const TableKernel<Dimension>& PiKernel() const;
 
-  // The object defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
-
   // The state field lists we're maintaining.
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
@@ -190,17 +189,12 @@ public:
   const FieldList<Dimension, Scalar>&    omegaGradh() const;
   const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, Scalar>&    entropy() const;
-  const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensityCorrection() const;
   const FieldList<Dimension, Scalar>&    viscousWork() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
-  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, Vector>&    massFirstMoment() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
@@ -209,7 +203,6 @@ public:
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const std::vector<Vector>&             pairAccelerations() const;
@@ -238,12 +231,8 @@ protected:
   const TableKernel<Dimension>& mKernel;
   const TableKernel<Dimension>& mPiKernel;
 
-  // The method defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
-
   // A bunch of switches.
   MassDensityType mDensityUpdate;
-  HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
   // Magnitude of the hourglass/parasitic mode filter.
@@ -263,7 +252,6 @@ protected:
   FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
   FieldList<Dimension, Scalar>    mEntropy;
 
-  FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mMassDensityCorrection;
@@ -283,7 +271,6 @@ protected:
   FieldList<Dimension, Vector>    mDvDt;
   FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldList<Dimension, SymTensor> mDHDt;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mM;
@@ -297,13 +284,6 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
   RestartRegistrationType mRestart;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  SPHHydroBase();
-  SPHHydroBase(const SPHHydroBase&);
-  SPHHydroBase& operator=(const SPHHydroBase&);
 };
 
 }

@@ -18,7 +18,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -30,20 +29,19 @@ class SolidCRKSPHHydroBaseRZ: public SolidCRKSPHHydroBase<Dim<2> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef Dim<2> Dimension;
-  typedef Dimension::Scalar Scalar;
-  typedef Dimension::Vector Vector;
-  typedef Dimension::Tensor Tensor;
-  typedef Dimension::SymTensor SymTensor;
-  typedef Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef Dimension::FourthRankTensor FourthRankTensor;
-  typedef Dimension::FifthRankTensor FifthRankTensor;
+  using Dimension = Dim<2>;
+  using Scalar = Dimension::Scalar;
+  using Vector = Dimension::Vector;
+  using Tensor = Dimension::Tensor;
+  using SymTensor = Dimension::SymTensor;
+  using ThirdRankTensor = Dimension::ThirdRankTensor;
+  using FourthRankTensor = Dimension::FourthRankTensor;
+  using FifthRankTensor = Dimension::FifthRankTensor;
 
-  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                         DataBase<Dimension>& dataBase,
+  SolidCRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                          ArtificialViscosity<Dimension>& Q,
                          const RKOrder order,
                          const double filter,
@@ -53,10 +51,14 @@ public:
                          const bool evolveTotalEnergy,
                          const bool XSPH,
                          const MassDensityType densityUpdate,
-                         const HEvolutionType HUpdate,
                          const double epsTensile,
                          const double nTensile,
                          const bool damageRelieveRubble);
+
+  // No default constructor, copying, or assignment.
+  SolidCRKSPHHydroBaseRZ() = delete;
+  SolidCRKSPHHydroBaseRZ(const SolidCRKSPHHydroBaseRZ&) = delete;
+  SolidCRKSPHHydroBaseRZ& operator=(const SolidCRKSPHHydroBaseRZ&) = delete;
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBaseRZ();
@@ -108,13 +110,6 @@ public:
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidCRKSPHHydroBaseRZ"; }
   //****************************************************************************
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  SolidCRKSPHHydroBaseRZ();
-  SolidCRKSPHHydroBaseRZ(const SolidCRKSPHHydroBaseRZ&);
-  SolidCRKSPHHydroBaseRZ& operator=(const SolidCRKSPHHydroBaseRZ&);
 };
 
 }

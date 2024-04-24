@@ -12,7 +12,6 @@
 #include "CRKSPH/CRKSPHHydroBase.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
 #include "Physics/GenericHydro.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/RZNonSymmetricSpecificThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -35,6 +34,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/range.hh"
 #include "Utilities/NodeCoupling.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Geometry/GeometryRegistrar.hh"
@@ -104,8 +104,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 SolidCRKSPHHydroBaseRZ::
-SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                       DataBase<Dimension>& dataBase,
+SolidCRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
                        const RKOrder order,
                        const double filter,
@@ -115,12 +114,10 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                        const bool evolveTotalEnergy,
                        const bool XSPH,
                        const MassDensityType densityUpdate,
-                       const HEvolutionType HUpdate,
                        const double epsTensile,
                        const double nTensile,
                        const bool damageRelieveRubble):
-  SolidCRKSPHHydroBase<Dimension>(smoothingScaleMethod, 
-                                  dataBase,
+  SolidCRKSPHHydroBase<Dimension>(dataBase,
                                   Q,
                                   order,
                                   filter,
@@ -130,7 +127,6 @@ SolidCRKSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod
                                   evolveTotalEnergy,
                                   XSPH,
                                   densityUpdate,
-                                  HUpdate,
                                   epsTensile,
                                   nTensile,
                                   damageRelieveRubble) {
@@ -279,14 +275,12 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // The kernels and such.
   const auto  order = this->correctionOrder();
   const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
-  const auto& WT = WR.kernel();    // Base TableKernel
 
   // A few useful constants we'll use in the following loop.
   //const double tiny = 1.0e-30;
   const auto  compatibleEnergy = this->compatibleEnergyEvolution();
   const auto  XSPH = this->XSPH();
   const auto  damageRelieveRubble = this->damageRelieveRubble();
-  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -329,8 +323,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(corrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
 
-  // const auto& Hfield0 = this->Hfield0();
-
   // Derivative FieldLists.
   auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -338,17 +330,11 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
   auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
-  auto  massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
-  auto  massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -356,23 +342,14 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massFirstMoment.size() == numNodeLists);
-  CHECK(massSecondMomentEta.size() == numNodeLists);
-  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
   if (compatibleEnergy) pairAccelerations.resize(2*npairs + dataBase.numInternalNodes());
-
-  const auto& nodeList = mass[0]->nodeList();
-  const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
   // Build the functor we use to compute the effective coupling between nodes.
   const NodeCoupling coupling;
@@ -382,9 +359,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar etaMagi, etaMagj, fweightij;
     Scalar Wi, Wj;
-    Scalar WSPHi, WSPHj, WASPHi, WASPHj;
     Tensor QPiij, QPiji;
     Vector gradWi, gradWj;
     Vector deltagrad, forceij, forceji;
@@ -400,10 +375,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
     auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
-    auto massSecondMomentEta_thread = massSecondMomentEta.threadCopy(threadStack);
-    auto massSecondMomentLab_thread = massSecondMomentLab.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -427,12 +398,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto  Si = S(nodeListi, i);
       const auto  pTypei = pTypes(nodeListi, i);
       const auto& correctionsi = corrections(nodeListi, i);
-      const auto  Hdeti = Hi.Determinant();
       const auto  weighti = volume(nodeListi, i);  // Change CRKSPH weights here if need be!
-      CONTRACT_VAR(Hdeti);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
-      CHECK(Hdeti > 0.0);
       CHECK(weighti > 0.0);
 
       //auto& DrhoDti = DrhoDt(nodeListi, i);
@@ -444,10 +412,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& effViscousPressurei = effViscousPressure(nodeListi, i);
       auto& viscousWorki = viscousWork(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta_thread(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
@@ -464,12 +428,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto  pTypej = pTypes(nodeListj, j);
       const auto& correctionsj = corrections(nodeListj, j);
       const auto& Sj = S(nodeListj, j);
-      const auto  Hdetj = Hj.Determinant();
       const auto  weightj = volume(nodeListj, j);     // Change CRKSPH weights here if need be!
-      CONTRACT_VAR(Hdetj);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
-      CHECK(Hdetj > 0.0);
       CHECK(weightj > 0.0);
 
       auto& DvDtj = DvDt(nodeListj, j);
@@ -480,18 +441,12 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& effViscousPressurej = effViscousPressure(nodeListj, j);
       auto& viscousWorkj = viscousWork(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
-      auto& weightedNeighborSumj = weightedNeighborSum(nodeListj, j);
-      auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
-      auto& massSecondMomentEtaj = massSecondMomentEta_thread(nodeListj, j);
-      auto& massSecondMomentLabj = massSecondMomentLab_thread(nodeListj, j);
 
       // Node displacement.
       xij = posi - posj;
       vij = vi - vj;
       etai = Hi*xij;
       etaj = Hj*xij;
-      etaMagi = etai.magnitude();
-      etaMagj = etaj.magnitude();
 
       // Flag if this is a contiguous material pair or not.
       const auto sameMatij = true; // nodeListi == nodeListj; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -507,22 +462,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       // Find the damaged pair weighting scaling.
       const auto fDij = coupling(pairs[kk]);
       CHECK(fDij >= 0.0 and fDij <= 1.0);
-
-      // Moments of the node distribution -- used for the ideal H calculation.
-      WSPHi = WT.kernelValueSPH(etaMagi);
-      WSPHj = WT.kernelValueSPH(etaMagj);
-      WASPHi = WT.kernelValueASPH(etaMagi, nPerh);
-      WASPHj = WT.kernelValueASPH(etaMagj, nPerh);
-      fweightij = nodeListi == nodeListj ? 1.0 : mj*rhoi/(mi*rhoj);
-      xijdyad = xij.selfdyad();
-      weightedNeighborSumi +=     fweightij*WSPHi;
-      weightedNeighborSumj += 1.0/fweightij*WSPHj;
-      massFirstMomenti -=     fweightij*WSPHi*etai;
-      massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
-      massSecondMomentEtai +=     fweightij*WASPHi*etai.selfdyad();
-      massSecondMomentEtaj += 1.0/fweightij*WASPHj*etaj.selfdyad();
-      massSecondMomentLabi +=     fweightij*WASPHi*xijdyad;
-      massSecondMomentLabj += 1.0/fweightij*WASPHj*xijdyad;
 
       // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
       std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
@@ -596,10 +535,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto offset = 2*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
+    const auto ni = nodeList.numInternalNodes();
 
     // Check if we can identify a reference density.
     auto rho0 = 0.0;
@@ -610,7 +546,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       // cerr << "BLAGO!" << endl;
     }
 
-    const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
 
@@ -637,16 +572,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDti = DvDt(nodeListi, i);
       auto& DepsDti = DepsDt(nodeListi, i);
-      auto& DvDxi = DvDx(nodeListi, i);
+      // auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massFirstMomenti = massFirstMoment(nodeListi, i);
-      auto& massSecondMomentEtai = massSecondMomentEta(nodeListi, i);
-      auto& massSecondMomentLabi = massSecondMomentLab(nodeListi, i);
-
       auto& DSDti = DSDt(nodeListi, i);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
@@ -674,32 +602,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // If needed finish the total energy derivative.
       if (this->evolveTotalEnergy()) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi));
-
-      // The H tensor evolution.
-      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                            posi,
-                                                            DvDxi,
-                                                            hmin,
-                                                            hmax,
-                                                            hminratio,
-                                                            nPerh);
-      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       posi,
-                                                       weightedNeighborSumi,
-                                                       massFirstMomenti,
-                                                       massSecondMomentEtai,
-                                                       massSecondMomentLabi,
-                                                       WR.kernel(),
-                                                       hmin,
-                                                       hmax,
-                                                       hminratio,
-                                                       nPerh,
-                                                       connectivityMap,
-                                                       nodeListi,
-                                                       i);
 
       // Optionally use damage to ramp down stress on damaged material.
       const auto Di = (damageRelieveRubble ? 
@@ -753,9 +655,7 @@ applyGhostBoundaries(State<Dim<2>>& state,
 
   // Apply ordinary BCs.
   SolidCRKSPHHydroBase<Dim<2>>::applyGhostBoundaries(state, derivs);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

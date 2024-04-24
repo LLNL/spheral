@@ -17,7 +17,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
@@ -30,18 +29,17 @@ class MFMHydroBase: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
 
-  typedef typename GenericRiemannHydro<Dimension>::TimeStepType TimeStepType;
-  typedef typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using TimeStepType = typename GenericRiemannHydro<Dimension>::TimeStepType;
+  using ConstBoundaryIterator = typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
+  MFMHydroBase(DataBase<Dimension>& dataBase,
                RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
                const Scalar epsDiffusionCoeff,
@@ -53,11 +51,16 @@ public:
                const bool correctVelocityGradient,
                const GradientType gradType,
                const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
                const Vector& xmin,
                const Vector& xmax);
+
+
+  // No default constructor, copying, or assignment.
+  MFMHydroBase() = delete;
+  MFMHydroBase(const MFMHydroBase&) = delete;
+  MFMHydroBase& operator=(const MFMHydroBase&) = delete;
 
   // Destructor.
   virtual ~MFMHydroBase();
@@ -135,14 +138,9 @@ public:
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
+
 private:
-
   FieldList<Dimension, Scalar> mDvolumeDt;
-
-  // No default constructor, copying, or assignment.
-  MFMHydroBase();
-  MFMHydroBase(const MFMHydroBase&);
-  MFMHydroBase& operator=(const MFMHydroBase&);
 };
 
 }

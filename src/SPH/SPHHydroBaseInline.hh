@@ -20,24 +20,6 @@ densityUpdate(MassDensityType type) {
 }
 
 //------------------------------------------------------------------------------
-// Choose how we want to update the H tensor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-HEvolutionType
-SPHHydroBase<Dimension>::HEvolution() const {
-  return mHEvolution;
-}
-
-template<typename Dimension>
-inline
-void
-SPHHydroBase<Dimension>::
-HEvolution(HEvolutionType type) {
-  mHEvolution = type;
-}
-
-//------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.
 //------------------------------------------------------------------------------
@@ -254,17 +236,6 @@ PiKernel() const {
 }
 
 //------------------------------------------------------------------------------
-// The object defining how smoothing scales are evolved.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const SmoothingScaleBase<Dimension>&
-SPHHydroBase<Dimension>::
-smoothingScaleMethod() const {
-  return mSmoothingScaleMethod;
-}
-
-//------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -325,14 +296,6 @@ entropy() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SPHHydroBase<Dimension>::
-Hideal() const {
-  return mHideal;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 maxViscousPressure() const {
@@ -377,38 +340,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 normalization() const {
   return mNormalization;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
-weightedNeighborSum() const {
-  return mWeightedNeighborSum;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Vector>&
-SPHHydroBase<Dimension>::
-massFirstMoment() const {
-  return mMassFirstMoment;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SPHHydroBase<Dimension>::
-massSecondMomentEta() const {
-  return mMassSecondMomentEta;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SPHHydroBase<Dimension>::
-massSecondMomentLab() const {
-  return mMassSecondMomentLab;
 }
 
 template<typename Dimension>
@@ -473,14 +404,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SPHHydroBase<Dimension>::
-DHDt() const {
-  return mDHDt;
 }
 
 template<typename Dimension>

@@ -2,8 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NodeList/SPHSmoothingScale.cc"
+#include "SmoothingScale/ASPHSmoothingScale.cc"
 #include "Geometry/Dimension.hh"
 
-template class Spheral::SPHSmoothingScale<Spheral::Dim< %(ndim)s > >;
+namespace Spheral {
+  template class ASPHSmoothingScale<Dim<%(ndim)s>>;
+}
 """

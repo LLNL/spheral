@@ -33,8 +33,7 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                 DataBase<Dimension>& dataBase,
+  SPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                  ArtificialViscosity<Dimension>& Q,
                  const TableKernel<Dimension>& W,
                  const TableKernel<Dimension>& WPi,
@@ -48,7 +47,6 @@ public:
                  const bool correctVelocityGradient,
                  const bool sumMassDensityOverAllNodeLists,
                  const MassDensityType densityUpdate,
-                 const HEvolutionType HUpdate,
                  const double epsTensile,
                  const double nTensile,
                  const Vector& xmin,

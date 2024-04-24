@@ -8,7 +8,6 @@
 #include "SVPH/SVPHCorrectionsPolicy.hh"
 #include "SVPH/SVPHFieldNames.hh"
 #include "computeSumVoronoiCellMassDensityFromFaces.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
@@ -27,7 +26,6 @@
 #include "Hydro/PressurePolicy.hh"
 #include "Hydro/SoundSpeedPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
-#include "SVPH/MeshIdealHPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "ArtificialViscosity/TensorSVPHViscosity.hh"
@@ -38,6 +36,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/range.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Mesh/Mesh.hh"
 #include "Material/EquationOfState.hh"
@@ -66,8 +65,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SVPHFacetedHydroBase<Dimension>::
-SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                     const TableKernel<Dimension>& W,
+SVPHFacetedHydroBase(const TableKernel<Dimension>& W,
                      ArtificialViscosity<Dimension>& Q,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
@@ -76,16 +74,13 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                      const bool linearConsistent,
                      const bool generateVoid,
                      const MassDensityType densityUpdate,
-                     const HEvolutionType HUpdate,
                      const Scalar fcentroidal,
                      const Scalar fcellPressure,
                      const Vector& xmin,
                      const Vector& xmax):
   GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
   mKernel(W),
-  mSmoothingScaleMethod(smoothingScaleMethod),
   mDensityUpdate(densityUpdate),
-  mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mXSVPH(XSVPH),
   mLinearConsistent(linearConsistent),
@@ -103,19 +98,13 @@ SVPHFacetedHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mCellPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
   mSpecificThermalEnergy0(FieldStorageType::CopyFields),
-  mHideal(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mMassDensitySum(FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassFirstMoment(FieldStorageType::CopyFields),
-  mMassSecondMomentEta(FieldStorageType::CopyFields),
-  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mXSVPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
   mDmassDensityDt(FieldStorageType::CopyFields),
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
-  mDHDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
@@ -141,8 +130,6 @@ template<typename Dimension>
 void
 SVPHFacetedHydroBase<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
-  typedef typename Mesh<Dimension>::Zone Zone;
 
   // Create storage for the pressure and sound speed.
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
@@ -182,28 +169,28 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
 
-  // Make a pass through the H tensors and initialize them to the "ideal" value.
-  if (Process::getRank() == 0) cout << "SVPHFacetedHydro initializing H tensors..." << endl;
-  FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
-  const unsigned numNodeLists = H.numFields();
-  for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-    const NodeList<Dimension>& nodeList = H[nodeListi]->nodeList();
-    const unsigned n = nodeList.numInternalNodes();
-    const Scalar hmin = nodeList.hmin();
-    const Scalar hmax = nodeList.hmax();
-    const Scalar hminratio = nodeList.hminratio();
-    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
-    for (unsigned i = 0; i != n; ++i) {
-      const Zone& zonei = mMeshPtr->zone(nodeListi, i);
-      H(nodeListi, i) = mSmoothingScaleMethod.idealSmoothingScale(H(nodeListi, i),
-                                                                  *mMeshPtr,
-                                                                  zonei,
-                                                                  hmin,
-                                                                  hmax,
-                                                                  hminratio,
-                                                                  nPerh);
-    }
-  }
+  // // Make a pass through the H tensors and initialize them to the "ideal" value.
+  // if (Process::getRank() == 0) cout << "SVPHFacetedHydro initializing H tensors..." << endl;
+  // FieldList<Dimension, SymTensor> H = dataBase.globalHfield();
+  // const unsigned numNodeLists = H.numFields();
+  // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
+  //   const NodeList<Dimension>& nodeList = H[nodeListi]->nodeList();
+  //   const unsigned n = nodeList.numInternalNodes();
+  //   const Scalar hmin = nodeList.hmin();
+  //   const Scalar hmax = nodeList.hmax();
+  //   const Scalar hminratio = nodeList.hminratio();
+  //   const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+  //   for (unsigned i = 0; i != n; ++i) {
+  //     const Zone& zonei = mMeshPtr->zone(nodeListi, i);
+  //     H(nodeListi, i) = mSmoothingScaleMethod.idealSmoothingScale(H(nodeListi, i),
+  //                                                                 *mMeshPtr,
+  //                                                                 zonei,
+  //                                                                 hmin,
+  //                                                                 hmax,
+  //                                                                 hminratio,
+  //                                                                 nPerh);
+  //   }
+  // }
 
   // // Compute the SVPH normalization and corrections.
   // computeSVPHCorrectionsOnFaces<Dimension>(dataBase.connectivityMap(),
@@ -235,8 +222,6 @@ SVPHFacetedHydroBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
-  typedef typename State<Dimension>::PolicyPointer PolicyPointer;
-
   // Create the local storage for time step mask, pressure, sound speed, and position weight.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   // dataBase.resizeFluidFieldList(mA, vector<Scalar>(), SVPHFieldNames::A_SVPH);
@@ -264,31 +249,25 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   // Now register away.
-  size_t nodeListi = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr, ++nodeListi) {
+  for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
 
     // Mass.
-    state.enroll((*itr)->mass());
+    state.enroll(fluidNodeListPtr->mass());
 
     // Mass density.
     if (densityUpdate() == MassDensityType::IntegrateDensity) {
-      PolicyPointer rhoPolicy(new IncrementBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
-                                                                           (*itr)->rhoMax()));
-      state.enroll((*itr)->massDensity(), rhoPolicy);
+      state.enroll(fluidNodeListPtr->massDensity(), make_policy<IncrementBoundedState<Dimension, Scalar>>(fluidNodeListPtr->rhoMin(),
+                                                                                                          fluidNodeListPtr->rhoMax()));
+
     } else {
-      PolicyPointer rhoPolicy(new ReplaceBoundedState<Dimension, Scalar>((*itr)->rhoMin(),
-                                                                         (*itr)->rhoMax()));
-      state.enroll((*itr)->massDensity(), rhoPolicy);
+      state.enroll(fluidNodeListPtr->massDensity(), make_policy<ReplaceBoundedState<Dimension, Scalar>>(fluidNodeListPtr->rhoMin(),
+                                                                                                        fluidNodeListPtr->rhoMax()));
     }
 
     // Mesh and volume.
-    PolicyPointer meshPolicy(new MeshPolicy<Dimension>(*this, mXmin, mXmax, 2.0, true, mGenerateVoid, (not mGenerateVoid)));
-    PolicyPointer volumePolicy(new VolumePolicy<Dimension>());
     state.enrollMesh(mMeshPtr);
-    state.enroll(HydroFieldNames::mesh, meshPolicy);
-    state.enroll(*mVolume[nodeListi], volumePolicy);
+    state.enroll(HydroFieldNames::mesh, make_policy<MeshPolicy<Dimension>>(*this, mXmin, mXmax, 2.0, true, mGenerateVoid, (not mGenerateVoid)));
+    state.enroll(*mVolume[nodeListi], make_policy<VolumePolicy<Dimension>>());
 
     // // SVPH corrections.
     // // All of these corrections are computed in the same method/policy, so we register
@@ -299,68 +278,43 @@ registerState(DataBase<Dimension>& dataBase,
     // state.enroll(*mGradB[nodeListi]);
 
     // Register the position update.
-    PolicyPointer positionPolicy(new IncrementState<Dimension, Vector>());
-    state.enroll((*itr)->positions(), positionPolicy);
+    state.enroll(fluidNodeListPtr->positions(), make_policy<IncrementState<Dimension, Vector>>());
 
     // Velocity.
-    PolicyPointer velocityPolicy(new IncrementState<Dimension, Vector>());
-    state.enroll((*itr)->velocity(), velocityPolicy);
-
-    // Are we using the compatible energy evolution scheme?
-    // Register the H tensor.
-    const Scalar hmaxInv = 1.0/(*itr)->hmax();
-    const Scalar hminInv = 1.0/(*itr)->hmin();
-    if (HEvolution() == HEvolutionType::IntegrateH) {
-      PolicyPointer Hpolicy(new IncrementBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
-      state.enroll((*itr)->Hfield(), Hpolicy);
-    } else {
-      CHECK(HEvolution() == HEvolutionType::IdealH);
-      PolicyPointer Hpolicy(new MeshIdealHPolicy<Dimension>(mSmoothingScaleMethod,
-                                                            (*itr)->hmin(),
-                                                            (*itr)->hmax(),
-                                                            (*itr)->hminratio(),
-                                                            (*itr)->nodesPerSmoothingScale()));
-      // PolicyPointer Hpolicy(new ReplaceBoundedState<Dimension, SymTensor, Scalar>(hmaxInv, hminInv));
-      state.enroll((*itr)->Hfield(), Hpolicy);
-    }
+    state.enroll(fluidNodeListPtr->velocity(), make_policy<IncrementState<Dimension, Vector>>());
 
     // Register the time step mask, initialized to 1 so that everything defaults to being
     // checked.
     state.enroll(*mTimeStepMask[nodeListi]);
 
     // Compute and register the pressure and sound speed.
-    PolicyPointer pressurePolicy(new PressurePolicy<Dimension>());
-    PolicyPointer csPolicy(new SoundSpeedPolicy<Dimension>());
-    state.enroll(*mPressure[nodeListi], pressurePolicy);
-    state.enroll(*mSoundSpeed[nodeListi], csPolicy);
+    state.enroll(*mPressure[nodeListi], make_policy<PressurePolicy<Dimension>>());
+    state.enroll(*mSoundSpeed[nodeListi], make_policy<SoundSpeedPolicy<Dimension>>());
 
     // The cell pressure for regularizing.
     if (mfcellPressure > 0.0) {
-      PolicyPointer cellPressurePolicy(new CellPressurePolicy<Dimension>());
-      state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
+      state.enroll(*mCellPressure[nodeListi], make_policy<CellPressurePolicy<Dimension>>());
     } else {
       mCellPressure[nodeListi]->name("Cell" + HydroFieldNames::pressure); // Have to fix from the copy above.
-      PolicyPointer cellPressurePolicy(new CopyState<Dimension, Field<Dimension, Scalar>>(HydroFieldNames::pressure,
-                                                                                          "Cell" + HydroFieldNames::pressure));
-      state.enroll(*mCellPressure[nodeListi], cellPressurePolicy);
+      state.enroll(*mCellPressure[nodeListi], make_policy<CopyState<Dimension, Field<Dimension, Scalar>>>(HydroFieldNames::pressure,
+                                                                                                          "Cell" + HydroFieldNames::pressure));
     }
 
     // Specific thermal energy.
     if (compatibleEnergyEvolution()) {
+      auto meshPolicy = state.policy(HydroFieldNames::mesh);
+      auto velocityPolicy = state.policy(fluidNodeListPtr->velocity());
       meshPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
       velocityPolicy->addDependency(HydroFieldNames::position);
       velocityPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
-      PolicyPointer thermalEnergyPolicy(new CompatibleFaceSpecificThermalEnergyPolicy<Dimension>(this->kernel(), 
-                                                                                                 dataBase,
-                                                                                                 this->boundaryBegin(),
-                                                                                                 this->boundaryEnd()));
-      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
+      state.enroll(fluidNodeListPtr->specificThermalEnergy(), make_policy<CompatibleFaceSpecificThermalEnergyPolicy<Dimension>>(this->kernel(), 
+                                                                                                                                dataBase,
+                                                                                                                                this->boundaryBegin(),
+                                                                                                                                this->boundaryEnd()));
       state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
-      PolicyPointer thermalEnergyPolicy(new IncrementState<Dimension, Scalar>());
-      state.enroll((*itr)->specificThermalEnergy(), thermalEnergyPolicy);
+      state.enroll(fluidNodeListPtr->specificThermalEnergy(), make_policy<IncrementState<Dimension, Scalar>>());
     }
-
   }
 }
 
@@ -373,56 +327,40 @@ SVPHFacetedHydroBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
-  typedef typename StateDerivatives<Dimension>::KeyType Key;
-  const string DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
-  const string DvDtName = HydroFieldNames::hydroAcceleration;
+  const auto DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
+  const auto DvDtName = HydroFieldNames::hydroAcceleration;
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
-  dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
-  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
-  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mXSVPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
   dataBase.resizeFluidFieldList(mDmassDensityDt, 0.0, IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, false);
-  dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mFaceForce, vector<Vector>(), HydroFieldNames::faceForce, false);
   // dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
 
-  size_t i = 0;
-  for (typename DataBase<Dimension>::FluidNodeListIterator itr = dataBase.fluidNodeListBegin();
-       itr != dataBase.fluidNodeListEnd();
-       ++itr, ++i) {
-    derivs.enroll(*mHideal[i]);
+  for (auto [i, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
     derivs.enroll(*mMaxViscousPressure[i]);
     derivs.enroll(*mMassDensitySum[i]);
-    derivs.enroll(*mWeightedNeighborSum[i]);
-    derivs.enroll(*mMassFirstMoment[i]);
-    derivs.enroll(*mMassSecondMomentEta[i]);
-    derivs.enroll(*mMassSecondMomentLab[i]);
     derivs.enroll(*mXSVPHDeltaV[i]);
 
     // These two (the position and velocity updates) may be registered
     // by other physics packages as well, so we need to be careful
     // not to duplicate if so.
-    const Key DxDtKey = State<Dimension>::buildFieldKey(DxDtName, (*itr)->name());
-    const Key DvDtKey = State<Dimension>::buildFieldKey(DvDtName, (*itr)->name());
+    const auto DxDtKey = State<Dimension>::buildFieldKey(DxDtName, fluidNodeListPtr->name());
+    const auto DvDtKey = State<Dimension>::buildFieldKey(DvDtName, fluidNodeListPtr->name());
     if (not derivs.registered(DxDtKey)) derivs.enroll(*mDxDt[i]);
     if (not derivs.registered(DvDtKey)) derivs.enroll(*mDvDt[i]);
 
     derivs.enroll(*mDmassDensityDt[i]);
     derivs.enroll(*mDspecificThermalEnergyDt[i]);
-    derivs.enroll(*mDHDt[i]);
     derivs.enroll(*mDvDx[i]);
     derivs.enroll(*mInternalDvDx[i]);
     derivs.enroll(*mFaceForce[i]);
@@ -523,14 +461,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   FieldList<Dimension, Scalar> DepsDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Tensor> DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   FieldList<Dimension, Tensor> localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  FieldList<Dimension, SymTensor> DHDt = derivatives.fields(IncrementState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
-  FieldList<Dimension, SymTensor> Hideal = derivatives.fields(ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, SymTensor::zero);
   FieldList<Dimension, Scalar> maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   FieldList<Dimension, Vector> XSVPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  FieldList<Dimension, Scalar> weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  FieldList<Dimension, Vector> massFirstMoment = derivatives.fields(HydroFieldNames::massFirstMoment, Vector::zero);
-  FieldList<Dimension, SymTensor> massSecondMomentEta = derivatives.fields(HydroFieldNames::massSecondMomentEta, SymTensor::zero);
-  FieldList<Dimension, SymTensor> massSecondMomentLab = derivatives.fields(HydroFieldNames::massSecondMomentLab, SymTensor::zero);
   FieldList<Dimension, vector<Vector> > faceForce = derivatives.fields(HydroFieldNames::faceForce, vector<Vector>());
   // FieldList<Dimension, vector<Vector> > faceAcceleration = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, vector<Vector>());
   CHECK(rhoSum.size() == numNodeLists);
@@ -540,14 +472,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(XSVPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massFirstMoment.size() == numNodeLists);
-  CHECK(massSecondMomentEta.size() == numNodeLists);
-  CHECK(massSecondMomentLab.size() == numNodeLists);
   CHECK(faceForce.size() == numNodeLists);
   // CHECK(faceAcceleration.size() == numNodeLists);
 
@@ -720,13 +646,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Start our big loop over all FluidNodeLists.
   for (nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     const NodeList<Dimension>& nodeList = *nodeLists[nodeListi];
-    const Scalar hmin = nodeList.hmin();
-    const Scalar hmax = nodeList.hmax();
-    const Scalar hminratio = nodeList.hminratio();
-    const Scalar nPerh = nodeList.nodesPerSmoothingScale();
+    const unsigned n = nodeList.numInternalNodes();
 
     // Iterate over the internal nodes in this NodeList.
-    const unsigned n = nodeList.numInternalNodes();
     for (unsigned i = 0; i != n; ++i) {
       const Zone& zonei = mesh.zone(nodeListi, i);
       const vector<int>& faceIDs = zonei.faceIDs();
@@ -738,7 +660,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const Vector& vi = velocity(nodeListi, i);
       const Scalar& rhoi = massDensity(nodeListi, i);
       const Scalar& Pi = pressure(nodeListi, i);
-      const SymTensor& Hi = H(nodeListi, i);
       const Scalar& Vi = volume(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
@@ -750,8 +671,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       Scalar& DepsDti = DepsDt(nodeListi, i);
       Tensor& DvDxi = DvDx(nodeListi, i);
       Tensor& localDvDxi = localDvDx(nodeListi, i);
-      SymTensor& DHDti = DHDt(nodeListi, i);
-      SymTensor& Hideali = Hideal(nodeListi, i);
       Scalar& maxViscousPressurei = maxViscousPressure(nodeListi, i);
       vector<Vector>& faceForcei = faceForce(nodeListi, i);
 
@@ -795,22 +714,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const Scalar flimitcent = min(1.0, DxDti.magnitude()*dt*safeInv(drcent.magnitude()));
       CHECK(flimitcent >= 0.0 and flimitcent <= 1.0);
       DxDti = (1.0 - mfcentroidal)*DxDti + drcent/dt*flimitcent;
-
-      // The H tensor evolution.
-      DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             ri,
-                                                             DvDxi,
-                                                             hmin,
-                                                             hmax,
-                                                             hminratio,
-                                                             nPerh);
-      Hideali = mSmoothingScaleMethod.idealSmoothingScale(Hi,
-                                                          mesh,
-                                                          zonei,
-                                                          hmin,
-                                                          hmax,
-                                                          hminratio,
-                                                          nPerh);
     }
   }
 
@@ -1177,20 +1080,14 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mCellPressure, pathName + "/cellPressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
-  file.write(mHideal, pathName + "/Hideal");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
-  file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
-  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
-  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  file.write(mDHDt, pathName + "/DHDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
 
@@ -1210,20 +1107,14 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mCellPressure, pathName + "/cellPressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
-  file.read(mHideal, pathName + "/Hideal");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
-  file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
-  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
-  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDmassDensityDt, pathName + "/DmassDensityDt");
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  file.read(mDHDt, pathName + "/DHDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
 

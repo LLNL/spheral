@@ -41,6 +41,7 @@ list(APPEND _packages
   RK
   SPH
   SVPH
+  SmoothingScale
   SolidMaterial
   Strength
   Utilities

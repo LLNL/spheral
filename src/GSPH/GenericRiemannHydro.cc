@@ -6,7 +6,6 @@
 //----------------------------------------------------------------------------//
 
 #include "FileIO/FileIO.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Physics/Physics.hh"
 
 #include "DataBase/DataBase.hh"
@@ -70,32 +69,28 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 GenericRiemannHydro<Dimension>::
-GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-             DataBase<Dimension>& dataBase,
-             RiemannSolverBase<Dimension>& riemannSolver,
-             const TableKernel<Dimension>& W,
-             const Scalar epsDiffusionCoeff,
-             const double cfl,
-             const bool useVelocityMagnitudeForDt,
-             const bool compatibleEnergyEvolution,
-             const bool evolveTotalEnergy,
-             const bool XSPH,
-             const bool correctVelocityGradient,
-             const GradientType gradType,
-             const MassDensityType densityUpdate,
-             const HEvolutionType HUpdate,
-             const double epsTensile,
-             const double nTensile,
-             const Vector& xmin,
-             const Vector& xmax):
+GenericRiemannHydro(DataBase<Dimension>& dataBase,
+                    RiemannSolverBase<Dimension>& riemannSolver,
+                    const TableKernel<Dimension>& W,
+                    const Scalar epsDiffusionCoeff,
+                    const double cfl,
+                    const bool useVelocityMagnitudeForDt,
+                    const bool compatibleEnergyEvolution,
+                    const bool evolveTotalEnergy,
+                    const bool XSPH,
+                    const bool correctVelocityGradient,
+                    const GradientType gradType,
+                    const MassDensityType densityUpdate,
+                    const double epsTensile,
+                    const double nTensile,
+                    const Vector& xmin,
+                    const Vector& xmax):
   Physics<Dimension>(),
   mRestart(registerWithRestart(*this)),
   mRiemannSolver(riemannSolver),
   mKernel(W),
-  mSmoothingScaleMethod(smoothingScaleMethod),
   mGradientType(gradType),
   mDensityUpdate(densityUpdate),
-  mHEvolution(HUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
@@ -111,12 +106,7 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mVolume(FieldStorageType::CopyFields),
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mHideal(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
-  mWeightedNeighborSum(FieldStorageType::CopyFields),
-  mMassFirstMoment(FieldStorageType::CopyFields),
-  mMassSecondMomentEta(FieldStorageType::CopyFields),
-  mMassSecondMomentLab(FieldStorageType::CopyFields),
   mXSPHWeightSum(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
@@ -137,19 +127,13 @@ GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
-  mHideal = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
-  mWeightedNeighborSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::weightedNeighborSum);
-  mMassFirstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
-  mMassSecondMomentEta = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentEta);
-  mMassSecondMomentLab = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMomentLab);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
-  mDHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::H);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,GSPHFieldNames::RiemannPressureGradient);
   mRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
@@ -206,31 +190,9 @@ registerState(DataBase<Dimension>& dataBase,
 
   auto mass = dataBase.fluidMass();
   auto massDensity = dataBase.fluidMassDensity();
-  auto Hfield = dataBase.fluidHfield();
   auto position = dataBase.fluidPosition();
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   auto velocity = dataBase.fluidVelocity();
-
-  // We do the Hfield piecemeal since the limits are potentially per NodeList
-  auto nodeListi = 0u;
-  for (auto itr = dataBase.fluidNodeListBegin();
-       itr < dataBase.fluidNodeListEnd();
-       ++itr, ++nodeListi) {
-    const auto hmaxInv = 1.0/(*itr)->hmax();
-    const auto hminInv = 1.0/(*itr)->hmin();
-    switch (this->HEvolution()) {
-      case HEvolutionType::IntegrateH:
-        state.enroll(*Hfield[nodeListi], std::make_shared<IncrementBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
-        break;
-
-      case HEvolutionType::IdealH:
-        state.enroll(*Hfield[nodeListi], std::make_shared<ReplaceBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
-        break;
-
-       default:
-         VERIFY2(false, "SPH ERROR: Unknown Hevolution option ");
-    }
-  }
 
   // normal state variables
   state.enroll(mTimeStepMask);
@@ -279,17 +241,11 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Create the scratch fields.
   dataBase.resizeFluidFieldList(mNewRiemannDpDx, Vector::zero, ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient, false);
   dataBase.resizeFluidFieldList(mNewRiemannDvDx, Tensor::zero, ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient, false);
-  dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
-  dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
-  dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
-  dataBase.resizeFluidFieldList(mMassSecondMomentEta, SymTensor::zero, HydroFieldNames::massSecondMomentEta, false);
-  dataBase.resizeFluidFieldList(mMassSecondMomentLab, SymTensor::zero, HydroFieldNames::massSecondMomentLab, false);
   dataBase.resizeFluidFieldList(mXSPHWeightSum, 0.0, HydroFieldNames::XSPHWeightSum, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
-  dataBase.resizeFluidFieldList(mDHDt, SymTensor::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::H, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   
@@ -303,16 +259,10 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mNewRiemannDpDx);
   derivs.enroll(mNewRiemannDvDx);
   derivs.enroll(mDvDt);
-  derivs.enroll(mHideal);
   derivs.enroll(mNormalization);
-  derivs.enroll(mWeightedNeighborSum);
-  derivs.enroll(mMassFirstMoment);
-  derivs.enroll(mMassSecondMomentEta);
-  derivs.enroll(mMassSecondMomentLab);
   derivs.enroll(mXSPHWeightSum);
   derivs.enroll(mXSPHDeltaV);
   derivs.enroll(mDspecificThermalEnergyDt);
-  derivs.enroll(mDHDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
@@ -657,12 +607,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
 
-  file.write(mHideal, pathName + "/Hideal");
   file.write(mNormalization, pathName + "/normalization");
-  file.write(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.write(mMassFirstMoment, pathName + "/massFirstMoment");
-  file.write(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
-  file.write(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
@@ -670,7 +615,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  file.write(mDHDt, pathName + "/DHDt");
 
   // spatial derivs
   file.write(mM, pathName + "/M");
@@ -695,12 +639,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
 
-  file.read(mHideal, pathName + "/Hideal");
   file.read(mNormalization, pathName + "/normalization");
-  file.read(mWeightedNeighborSum, pathName + "/weightedNeighborSum");
-  file.read(mMassFirstMoment, pathName + "/massFirstMoment");
-  file.read(mMassSecondMomentEta, pathName + "/massSecondMomentEta");
-  file.read(mMassSecondMomentLab, pathName + "/massSecondMomentLab");
   file.read(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
@@ -708,7 +647,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDxDt, pathName + "/DxDt");
   file.read(mDvDt, pathName + "/DvDt");
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
-  file.read(mDHDt, pathName + "/DHDt");
 
   // spatial derivs
   file.read(mM, pathName + "/M");

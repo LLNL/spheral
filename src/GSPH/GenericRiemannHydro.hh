@@ -25,7 +25,6 @@ enum class GradientType {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
@@ -38,34 +37,37 @@ class GenericRiemannHydro: public Physics<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
 
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  GenericRiemannHydro(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
-               RiemannSolverBase<Dimension>& riemannSolver,
-               const TableKernel<Dimension>& W,
-               const Scalar epsDiffusionCoeff,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool evolveTotalEnergy,
-               const bool XSPH,
-               const bool correctVelocityGradient,
-               const GradientType gradType,
-               const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax);
+  GenericRiemannHydro(DataBase<Dimension>& dataBase,
+                      RiemannSolverBase<Dimension>& riemannSolver,
+                      const TableKernel<Dimension>& W,
+                      const Scalar epsDiffusionCoeff,
+                      const double cfl,
+                      const bool useVelocityMagnitudeForDt,
+                      const bool compatibleEnergyEvolution,
+                      const bool evolveTotalEnergy,
+                      const bool XSPH,
+                      const bool correctVelocityGradient,
+                      const GradientType gradType,
+                      const MassDensityType densityUpdate,
+                      const double epsTensile,
+                      const double nTensile,
+                      const Vector& xmin,
+                      const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  GenericRiemannHydro() = delete;
+  GenericRiemannHydro(const GenericRiemannHydro&) = delete;
+  GenericRiemannHydro& operator=(const GenericRiemannHydro&) = delete;
 
   // Destructor.
   virtual ~GenericRiemannHydro();
@@ -134,19 +136,12 @@ public:
   // Access the stored interpolation kernels.
   const TableKernel<Dimension>& kernel() const;
 
-  // The object defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
-
   GradientType gradientType() const;
   void gradientType(GradientType x);
 
   // Flag for our density update
   MassDensityType densityUpdate() const;
   void densityUpdate(MassDensityType type);
-
-  // Flag to select how we want to evolve the H tensor.
-  HEvolutionType HEvolution() const;
-  void HEvolution(HEvolutionType type);
 
   // setter-getters for our bool switches
   bool compatibleEnergyEvolution() const;
@@ -190,19 +185,13 @@ public:
   const FieldList<Dimension, Scalar>&    volume() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
-  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, Vector>&    massFirstMoment() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentEta() const;
-  const FieldList<Dimension, SymTensor>& massSecondMomentLab() const;
   const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
   const FieldList<Dimension, Tensor>&    M() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   
   const std::vector<Vector>&             pairAccelerations() const;
@@ -229,10 +218,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   RiemannSolverBase<Dimension>& mRiemannSolver;
   const TableKernel<Dimension>& mKernel;
-  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
   GradientType mGradientType;
   MassDensityType mDensityUpdate;
-  HEvolutionType mHEvolution;
   
    // A bunch of switches.
   bool mCompatibleEnergyEvolution;    
@@ -252,13 +239,7 @@ private:
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
 
-  FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mNormalization;
-
-  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, Vector>    mMassFirstMoment;
-  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
-  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
 
   FieldList<Dimension, Scalar>    mXSPHWeightSum;
   FieldList<Dimension, Vector>    mXSPHDeltaV;
@@ -278,11 +259,6 @@ private:
 
   std::vector<Vector>             mPairAccelerations;
   std::vector<Scalar>             mPairDepsDt;
-
-  // No default constructor, copying, or assignment.
-  GenericRiemannHydro();
-  GenericRiemannHydro(const GenericRiemannHydro&);
-  GenericRiemannHydro& operator=(const GenericRiemannHydro&);
 };
 
 }

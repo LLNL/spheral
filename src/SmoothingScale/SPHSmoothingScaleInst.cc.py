@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "NodeList/SmoothingScaleBase.cc"
+#include "SmoothingScale/SPHSmoothingScale.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class SmoothingScaleBase< Dim< %(ndim)s > >;
+  template class SPHSmoothingScale<Dim<%(ndim)s>>;
 }
 """
