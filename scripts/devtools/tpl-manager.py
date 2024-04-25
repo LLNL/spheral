@@ -190,7 +190,7 @@ def build_deps(args):
         if sexe("{0} install --fail-fast --fresh --only dependencies {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
         # Using dev-build we can have spack generate an init-config with the local source files for spheral.
-        if sexe("{0} dev-build --reuse-deps --ignore-dependencies -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+        if sexe("{0} dev-build -i --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
 
       if not args.no_clean:
         sexe("rm spec-info-* tpl-build-* dev-build-* spack-build-* spack-configure-args.txt")
