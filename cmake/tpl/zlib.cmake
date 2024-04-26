@@ -1,10 +1,9 @@
+set(${lib_name}_libs libz.a)
+
 if(APPLE)
   set(SHARED_EXT "dylib")
-else()
-  set(SHARED_EXT "so")
+  set(${lib_name}_libs libz.${SHARED_EXT})
 endif()
-
-set(${lib_name}_libs libz.${SHARED_EXT})
 
 if(ENABLE_STATIC_TPL)
   string(REPLACE ".${SHARED_EXT}" ".a;" ${lib_name}_libs ${${lib_name}_libs})
