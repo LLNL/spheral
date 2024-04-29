@@ -178,9 +178,8 @@ a DataBase, returning the result as a FieldList<int>."""
 
 @PYB11template("Dimension")
 def iterateIdealH(dataBase = "DataBase<%(Dimension)s>&",
+                  smoothingScaleMethod = "SmoothingScaleBase<%(Dimension)s>&",
                   boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
-                  W = "const TableKernel<%(Dimension)s>&",
-                  smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                   maxIterations = ("const int", "100"),
                   tolerance = ("const double", "1.0e-10"),
                   nPerhForIteration = ("const double", "0.0"),

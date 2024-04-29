@@ -24,7 +24,6 @@ class CRKSPHHydroBase(GenericHydro):
 """
 
     def pyinit(self,
-               smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                order = "const RKOrder",
@@ -35,7 +34,6 @@ class CRKSPHHydroBase(GenericHydro):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double"):
         "Constructor"
@@ -142,8 +140,6 @@ mass density, velocity, and specific thermal energy."""
     # Properties
     densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
                                   doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
-    HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution",
-                               doc="Flag to select how we want to evolve the H tensor.")
     correctionOrder = PYB11property("RKOrder", "correctionOrder", "correctionOrder",
                                     doc="Flag to choose CRK Correction Order")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
@@ -152,8 +148,6 @@ mass density, velocity, and specific thermal energy."""
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
-    smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod", returnpolicy="reference_internal",
-                                         doc="The object defining how we evolve smoothing scales.")
     filter = PYB11property("double", "filter", "filter",
                            doc="Fraction of centroidal filtering to apply.")
     epsilonTensile = PYB11property("Scalar", "epsilonTensile", "epsilonTensile",
@@ -166,21 +160,15 @@ mass density, velocity, and specific thermal energy."""
     soundSpeed = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "soundSpeed", returnpolicy="reference_internal")
     specificThermalEnergy0 = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "specificThermalEnergy0", returnpolicy="reference_internal")
     entropy = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "entropy", returnpolicy="reference_internal")
-    Hideal = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "Hideal", returnpolicy="reference_internal")
     maxViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "maxViscousPressure", returnpolicy="reference_internal")
     effectiveViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveViscousPressure", returnpolicy="reference_internal")
     viscousWork = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "viscousWork", returnpolicy="reference_internal")
-    weightedNeighborSum = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "weightedNeighborSum", returnpolicy="reference_internal")
-    massFirstMoment = PYB11property("const FieldList<%(Dimension)s, Vector>&", "massFirstMoment", returnpolicy="reference_internal")
-    massSecondMomentEta = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentEta", returnpolicy="reference_internal")
-    massSecondMomentLab = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "massSecondMomentLab", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
 
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")
     DvDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
     DmassDensityDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DmassDensityDt", returnpolicy="reference_internal")
     DspecificThermalEnergyDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DspecificThermalEnergyDt", returnpolicy="reference_internal")
-    DHDt = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DHDt", returnpolicy="reference_internal")
     DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx", returnpolicy="reference_internal")
     internalDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "internalDvDx", returnpolicy="reference_internal")
     pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")

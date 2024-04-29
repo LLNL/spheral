@@ -17,10 +17,6 @@ PYB11includes += ['"NodeList/NodeListRegistrar.hh"',
                   '"NodeList/FluidNodeList.hh"',
                   '"NodeList/SolidNodeList.hh"',
                   '"NodeList/DEMNodeList.hh"',
-                  '"NodeList/SmoothingScaleBase.hh"',
-                  '"NodeList/FixedSmoothingScale.hh"',
-                  '"NodeList/SPHSmoothingScale.hh"',
-                  '"NodeList/ASPHSmoothingScale.hh"',
                   '"NodeList/generateVoidNodes.hh"',
                   '"NodeList/nthNodalMoment.hh"',
                   '"Material/EquationOfState.hh"',
@@ -55,10 +51,6 @@ from NodeList import NodeList
 from FluidNodeList import FluidNodeList
 from SolidNodeList import SolidNodeList
 from DEMNodeList import DEMNodeList
-from SmoothingScaleBase import SmoothingScaleBase
-from FixedSmoothingScale import FixedSmoothingScale
-from SPHSmoothingScale import SPHSmoothingScale
-from ASPHSmoothingScale import ASPHSmoothingScale
 
 for ndim in dims:
     exec(f'''
@@ -68,11 +60,6 @@ NodeList{ndim}d = PYB11TemplateClass(NodeList, template_parameters="Dim<{ndim}>"
 FluidNodeList{ndim}d = PYB11TemplateClass(FluidNodeList, template_parameters="Dim<{ndim}>")
 SolidNodeList{ndim}d = PYB11TemplateClass(SolidNodeList, template_parameters="Dim<{ndim}>")
 DEMNodeList{ndim}d = PYB11TemplateClass(DEMNodeList, template_parameters="Dim<{ndim}>")
-
-SmoothingScaleBase{ndim}d = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<{ndim}>")
-FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<{ndim}>")
-SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<{ndim}>")
-ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<{ndim}>")
 
 vector_of_NodeList{ndim}d = PYB11_bind_vector("NodeList<Dim<{ndim}>>*", opaque=True, local=False)
 vector_of_FluidNodeList{ndim}d = PYB11_bind_vector("FluidNodeList<Dim<{ndim}>>*", opaque=True, local=False)

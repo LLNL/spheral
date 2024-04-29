@@ -5,8 +5,6 @@
 #include "RK/computeVoronoiVolume.hh"
 #include "RK/ReproducingKernel.hh"
 #include "RK/gradientRK.hh"
-#include "NodeList/ASPHSmoothingScale.hh"
-#include "Utilities/iterateIdealH.hh"
 
 #include <ctime>
 using std::vector;
