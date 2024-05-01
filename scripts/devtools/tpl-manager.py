@@ -66,20 +66,19 @@ def parse_args():
 
 
 # Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=False):
+def sexe(cmd,ret_output=False,echo=True):
     """ Helper for executing shell commands. """
     if echo:
-        print("[exe: {0}]".format(cmd))
+      print("[exe: {0}]".format(cmd))
+    p = subprocess.run(cmd, shell=True,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT,
+                       check=True, text=True)
+    print(p.stdout)
+    if p.stderr != None:
+      print(p.stderr)
     if ret_output:
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        out = p.communicate()[0]
-        out = out.decode('utf8')
-        return p.returncode,out
-    else:
-        return subprocess.call(cmd,shell=True)
+      return p.stdout
 
 
 # Parse the json formatted spec list...
@@ -127,9 +126,9 @@ def build_spack(args):
     # We need to install spack without any configuration files so we can use
     # spack arch to determine the OS of the system and later to use spack find
     # for generating external package files on external systems.
-    if sexe("python3 {0} --setup-only {1} {2} {3} {4}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True): sys.exit(1)
+    sexe("python3 {0} --setup-only {1} {2} {3} {4}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_upstream_opt, uberenv_spack_url_opt))
 
-    spack_arch_os = sexe("{0} arch -o".format(spack_cmd), ret_output=True)[1].strip()
+    spack_arch_os = sexe("{0} arch -o".format(spack_cmd), ret_output=True, echo=False).strip()
     print("INFO : Detected Operating System :{0}".format(spack_arch_os))
 
     spheral_config_dir += spack_arch_os
@@ -140,11 +139,11 @@ def build_spack(args):
 
 
   # Setup spack w/ Uberenv and the appropriate external package/compiler configs.
-  if sexe("python3 {0} --setup-only {1} {2} {3} {4} {5}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt, uberenv_spack_url_opt), echo=True): sys.exit(1)
+  sexe("python3 {0} --setup-only {1} {2} {3} {4} {5}".format(uberenv_path, prefix_opt, uberenv_project_json_opt, spack_config_dir_opt, spack_upstream_opt, uberenv_spack_url_opt))
 
   # Uberenv doesn't copy the concretizer.yaml options...
   if os.path.exists(spheral_config_dir+"/concretizer.yaml"):
-    sexe("cp {0}/concretizer.yaml {1}".format(spheral_config_dir, os.path.join(args.spheral_spack_dir, "spack/etc/spack/defaults")), echo=True)
+    sexe("cp {0}/concretizer.yaml {1}".format(spheral_config_dir, os.path.join(args.spheral_spack_dir, "spack/etc/spack/defaults")))
 
 def build_deps(args):
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -178,22 +177,18 @@ def build_deps(args):
   # Loop through the specs we want TPLs for and build/install/get them as necessary.
   if not args.init_only:
       for s in spec_list:
-
         print("** Building TPL's and generating host-config for {0}%{1} ...".format(package_name,s))
         os.environ["SPEC"] = s
         os.environ["LC_ALL"] = "en_US.UTF-8"
 
         if not args.no_spec:
-            if sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+          sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s))
 
-        # Install only the dependencies for Spheral
-        if sexe("{0} install --fail-fast --fresh --only dependencies {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
-
-        # Using dev-build we can have spack generate an init-config with the local source files for spheral.
-        if sexe("{0} dev-build -i --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"dev-build-{2}-out.txt\"".format(spack_cmd, package_name, s), echo=True) : sys.exit(1)
+        # Install only the dependencies for Spheral and create CMake configure file
+        sexe("{0} install --fail-fast --fresh -u initconfig {1}@develop%{2} dev_path=./ 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s))
 
       if not args.no_clean:
-        sexe("rm spec-info-* tpl-build-* dev-build-* spack-build-* spack-configure-args.txt")
+        sexe("rm -f spec-info-* tpl-build-* spack-build-* spack-configure-args.txt")
 
 #------------------------------------------------------------------------------
 

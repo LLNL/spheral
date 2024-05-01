@@ -82,8 +82,6 @@ if(ENABLE_CUDA)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
 
-option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
-
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
 #-------------------------------------------------------------------------------#

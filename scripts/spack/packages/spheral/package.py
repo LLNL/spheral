@@ -38,22 +38,26 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
+    depends_on('zlib@1.3 +shared +pic', type='build')
+
     depends_on('qhull +pic', type='build')
     depends_on('m-aneos@1.0')
-    depends_on('eigen', type='build')
-    depends_on('hdf5 ~mpi +hl', type='build', when='~mpi')
-    depends_on('hdf5 +mpi +hl', type='build', when='+mpi')
+    depends_on('eigen@3.4.0', type='build')
+    depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
+    depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
 
-    depends_on('silo +hdf5', type='build')
+    depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
 
-    depends_on('axom ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('caliper ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv', type='build')
     depends_on('polytope +python', type='build')
