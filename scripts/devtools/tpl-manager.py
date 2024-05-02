@@ -74,7 +74,8 @@ def sexe(cmd,ret_output=False,echo=True):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.STDOUT,
                        check=True, text=True)
-    print(p.stdout)
+    if echo:
+      print(p.stdout)
     if p.stderr != None:
       print(p.stderr)
     if ret_output:
