@@ -4,6 +4,13 @@ packages:
     # us to run on broadwell as well
     target: [ivybridge]
     compiler: [gcc, clang]
+    providers:
+      awk: [gawk]
+      blas: [openblas, amdblis]
+      lapack: [netlib-lapack]
+      pil: [py-pillow]
+      pkgconfig: [pkg-config]
+      zlib-api: [zlib]
   cmake:
     version: [3.23.1]
     buildable: false

@@ -71,14 +71,11 @@ def sexe(cmd,ret_output=False,echo=True):
     if echo:
       print("[exe: {0}]".format(cmd))
     p = subprocess.run(cmd, shell=True,
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.STDOUT,
+                       capture_output=ret_output,
                        check=True, text=True)
-    if echo:
-      print(p.stdout)
-    if p.stderr != None:
-      print(p.stderr)
     if ret_output:
+      if echo:
+        print(p.stdout)
       return p.stdout
 
 
