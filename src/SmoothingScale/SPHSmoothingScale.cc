@@ -83,6 +83,19 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Register derivatives
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SPHSmoothingScale<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+  SmoothingScaleBase<Dimension>::registerDerivatives(dataBase, derivs);
+  derivs.enroll(mZerothMoment);
+  derivs.enroll(mFirstMoment);
+}
+
+//------------------------------------------------------------------------------
 // Time derivative of the smoothing scale.
 // We depend on a previous package evaluating the velcoity gradient (DvDx)
 //------------------------------------------------------------------------------

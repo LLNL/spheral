@@ -188,11 +188,26 @@ temperature or pressure."""
         "Test if the given Boundary condition is registered."
         return "bool"
 
-    @PYB11returnpolicy("reference_internal")
-    @PYB11const
-    def boundaryConditions(self):
-        "Access the list of boundary conditions."
-        return "const std::vector<Boundary<%(Dimension)s>*>&"
+    # @PYB11returnpolicy("reference_internal")
+    # @PYB11const
+    # def boundaryConditions(self):
+    #     "Access the list of boundary conditions."
+    #     return "const std::vector<Boundary<%(Dimension)s>*>&"
+
+    def appendSubPackage(self, package="Physics<%(Dimension)s>&"):
+        "Add a package to be run after this one"
+        return "void"
+    
+    def prependSubPackage(self, package="Physics<%(Dimension)s>&"):
+        "Add a package to run before this one"
+        return "void"
+
+    #...........................................................................
+    # Properties
+    #"std::vector<Boundary<%(Dimension)s>*>", 
+    boundaryConditions = PYB11property(doc="The set of boundary conditions")
+    postSubPackages = PYB11property(doc="Packages that should be run after this one")
+    preSubPackages = PYB11property(doc="Packages that should be run before this one")
 
 #-------------------------------------------------------------------------------
 # Inject abstract interface

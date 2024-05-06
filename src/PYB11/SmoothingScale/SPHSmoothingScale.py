@@ -35,6 +35,13 @@ call Physics::registerState for instance to create full populated State objects.
         return "void"
 
     @PYB11virtual
+    def registerDerivatives(self,
+                            dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Register the derivatives/change fields for updating state."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(self,
                             time = "const Scalar",

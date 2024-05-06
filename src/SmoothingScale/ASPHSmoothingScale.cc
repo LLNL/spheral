@@ -111,6 +111,20 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Register derivatives
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ASPHSmoothingScale<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+  SmoothingScaleBase<Dimension>::registerDerivatives(dataBase, derivs);
+  derivs.enroll(mZerothMoment);
+  derivs.enroll(mFirstMoment);
+  derivs.enroll(mSecondMoment);
+}
+
+//------------------------------------------------------------------------------
 // Time derivative of the smoothing scale.
 // We depend on a previous package evaluating the velcoity gradient (DvDx)
 //------------------------------------------------------------------------------
@@ -231,9 +245,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Finish up the derivatives now that we've walked all pairs
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
+    // const auto  hmin = nodeList.hmin();
+    // const auto  hmax = nodeList.hmax();
+    // const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();

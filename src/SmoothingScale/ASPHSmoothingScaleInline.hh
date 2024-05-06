@@ -5,6 +5,14 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
+const TableKernel<Dimension>&
+ASPHSmoothingScale<Dimension>::
+WT() const {
+  return mWT;
+}
+
+template<typename Dimension>
+inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 ASPHSmoothingScale<Dimension>::
 zerothMoment() const {
@@ -21,7 +29,7 @@ firstMoment() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::Vector>&
+const FieldList<Dimension, typename Dimension::SymTensor>&
 ASPHSmoothingScale<Dimension>::
 secondMoment() const {
   return mSecondMoment;

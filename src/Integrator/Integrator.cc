@@ -389,7 +389,9 @@ void
 Integrator<Dimension>::
 appendPhysicsPackage(Physics<Dimension>& package) {
   if (!havePhysicsPackage(package)) {
+    for (auto* packagePtr: package.preSubPackages()) this->appendPhysicsPackage(*packagePtr);
     mPhysicsPackages.push_back(&package);
+    for (auto* packagePtr: package.postSubPackages()) this->appendPhysicsPackage(*packagePtr);
   } else {
     cerr << "Warning: attempt to append Physics package " << &package
          << "to Integrator " << this << " which already has it." << endl;

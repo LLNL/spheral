@@ -676,7 +676,7 @@ class SpheralController:
             needHessian |= package.requireReproducingKernelHessian()
             rkUpdateInFinalize |= package.updateReproducingKernelsInFinalize()
             if ords:
-                pbcs = package.boundaryConditions()
+                pbcs = package.boundaryConditions
                 rkbcs += [bc for bc in pbcs if not bc in rkbcs]
                 if index == -1:
                     index = ipack
@@ -750,7 +750,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
 
             # Make a copy of the current set of boundary conditions for this package,
             # and assign priorities to enforce the desired order
-            bcs = list(package.boundaryConditions())
+            bcs = list(package.boundaryConditions)
             priorities = list(range(len(bcs)))
             for i, bc in enumerate(bcs):
                 if isinstance(bc, eval("ConstantBoundary%s" % self.dim)):
@@ -857,11 +857,11 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
         if self.SPH:
-            method = eval("SPHSmoothingScale%s()" % self.dim)
+            method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
         else:
-            method = eval("ASPHSmoothingScale%s()" % self.dim)
-        iterateIdealH = eval("iterateIdealH%s" % self.dim)
-        iterateIdealH(db, bcs, self.kernel, method, maxIdealHIterations, idealHTolerance, 0.0, False, False)
+            method = eval(f"ASPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+        iterateIdealH = eval(f"iterateIdealH{self.dim}")
+        iterateIdealH(db, method, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
         return
 

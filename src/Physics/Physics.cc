@@ -23,7 +23,9 @@ namespace Spheral {
 template<typename Dimension>
 Physics<Dimension>::
 Physics():
-  mBoundaryConditions() {
+  mBoundaryConditions(),
+  mPreSubPackages(),
+  mPostSubPackages() {
 }
 
 //------------------------------------------------------------------------------
@@ -41,12 +43,7 @@ template<typename Dimension>
 void
 Physics<Dimension>::
 appendBoundary(Boundary<Dimension>& boundary) {
-//   if (!haveBoundary(boundary)) {
-    mBoundaryConditions.push_back(&boundary);
-//   } else {
-//     cerr << "Warning: attempt to append Boundary condition " << &boundary
-//          << "to Physics " << this << " which already has it." << endl;
-//   }
+  mBoundaryConditions.push_back(&boundary);
 }
 
 //------------------------------------------------------------------------------
@@ -56,12 +53,7 @@ template<typename Dimension>
 void
 Physics<Dimension>::
 prependBoundary(Boundary<Dimension>& boundary) {
-//   if (!haveBoundary(boundary)) {
-    mBoundaryConditions.insert(mBoundaryConditions.begin(), &boundary);
-//   } else {
-//     cerr << "Warning: attempt to prepend Boundary condition " << &boundary
-//          << "to Physics " << this << " which already has it." << endl;
-//   }
+  mBoundaryConditions.insert(mBoundaryConditions.begin(), &boundary);
 }
 
 //------------------------------------------------------------------------------
@@ -102,6 +94,46 @@ void
 Physics<Dimension>::
 enforceBoundaries(State<Dimension>& /*state*/,
                   StateDerivatives<Dimension>& /*derivs*/) {
+}
+
+//------------------------------------------------------------------------------
+// Add a physics package to be run after this one
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+appendSubPackage(Physics<Dimension>& package) {
+  mPostSubPackages.push_back(&package);
+}
+
+//------------------------------------------------------------------------------
+// Add a physics package to be run before this one
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Physics<Dimension>::
+prependSubPackage(Physics<Dimension>& package) {
+  mPreSubPackages.push_back(&package);
+}
+
+//------------------------------------------------------------------------------
+// The set of packages to be run after this one
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const std::vector<Physics<Dimension>*>&
+Physics<Dimension>::
+postSubPackages() const {
+  return mPostSubPackages;
+}
+
+//------------------------------------------------------------------------------
+// The set of packages to be run before this one
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const std::vector<Physics<Dimension>*>&
+Physics<Dimension>::
+preSubPackages() const {
+  return mPreSubPackages;
 }
 
 //------------------------------------------------------------------------------

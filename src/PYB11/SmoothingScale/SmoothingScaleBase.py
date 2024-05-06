@@ -5,7 +5,7 @@ from PYB11Generator import *
 from Physics import *
 
 @PYB11template("Dimension")
-class SmoothingScaleBase:
+class SmoothingScaleBase(Physics):
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;

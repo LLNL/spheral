@@ -45,6 +45,7 @@ void
 SmoothingScaleBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+
   auto Hfields = dataBase.fluidHfield();
   const auto numFields = Hfields.numFields();
   for (auto k = 0u; k < numFields; ++k) {

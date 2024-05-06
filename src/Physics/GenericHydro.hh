@@ -8,6 +8,7 @@
 
 #include "Physics.hh"
 #include "Geometry/Dimension.hh"
+#include "SmoothingScale/SmoothingScaleBase.hh"
 
 namespace Spheral {
 
@@ -23,11 +24,6 @@ enum class MassDensityType {
   VoronoiCellDensity = 4,
   SumVoronoiCellDensity = 5,
   CorrectedSumDensity = 6,
-};
-
-enum class HEvolutionType {
-  IdealH = 0,
-  IntegrateH = 1,
 };
 
 template<typename Dimension>

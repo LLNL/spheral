@@ -37,6 +37,10 @@ public:
   // Physics::registerState to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
+  // Register the derivatives/change fields for updating state.
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
+                                   StateDerivatives<Dimension>& derivs) override;
+
   // Increment the derivatives.
   virtual 
   void evaluateDerivatives(const Scalar time,
@@ -65,5 +69,7 @@ private:
 };
 
 }
+
+#include "SPHSmoothingScaleInline.hh"
 
 #endif

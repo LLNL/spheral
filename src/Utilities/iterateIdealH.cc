@@ -10,6 +10,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "Geometry/GeometryRegistrar.hh"
 
@@ -38,13 +39,15 @@ iterateIdealH(DataBase<Dimension>& dataBase,
               const bool sphericalStart,
               const bool fixDeterminant) {
 
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
 
   // Start the timing.
   const auto t0 = clock();
 
   // Extract the state we care about.
-  const auto pos = dataBase.fluidPosition();
+  auto pos = dataBase.fluidPosition();
   auto m = dataBase.fluidMass();
   auto rho = dataBase.fluidMassDensity();
   auto H = dataBase.fluidHfield();
@@ -106,6 +109,23 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   State<Dimension> state(dataBase, packages);
   StateDerivatives<Dimension> derivs(dataBase, packages);
 
+  // Since we don't have a hydro there are a few other fields we need regsitered.
+  auto zerothMoment = dataBase.newFluidFieldList(0.0, HydroFieldNames::massZerothMoment);
+  auto firstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
+  auto secondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
+  auto DvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
+  auto DHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
+  auto H1 = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
+  state.enroll(pos);
+  state.enroll(m);
+  state.enroll(rho);
+  derivs.enroll(zerothMoment);
+  derivs.enroll(firstMoment);
+  derivs.enroll(secondMoment);
+  derivs.enroll(DvDx);
+  derivs.enroll(DHDt);
+  derivs.enroll(H1);
+
   // Iterate until we either hit the max iterations or the H's achieve convergence.
   const auto numNodeLists = dataBase.numFluidNodeLists();
   auto maxDeltaH = 2.0*tolerance;
@@ -138,8 +158,8 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     smoothingScaleMethod.evaluateDerivatives(0.0, 1.0, dataBase, state, derivs);
     smoothingScaleMethod.finalizeDerivatives(0.0, 1.0, dataBase, state, derivs);
     
-    // Extract the new ideal H vote
-    auto H1 = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+    // // Extract the new ideal H vote
+    // auto H1 = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
 
     // Set the new H and measure how much it changed
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {

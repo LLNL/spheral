@@ -26,14 +26,14 @@ template<typename Dimension>
 class Physics {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename std::vector<Boundary<Dimension>*>::iterator BoundaryIterator;
-  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
-  typedef typename std::pair<double, std::string> TimeStepType;
+  using BoundaryIterator = typename std::vector<Boundary<Dimension>*>::iterator;
+  using ConstBoundaryIterator = typename std::vector<Boundary<Dimension>*>::const_iterator;
+  using TimeStepType = typename std::pair<double, std::string>;
 
   // Constructors.
   Physics();
@@ -75,7 +75,7 @@ public:
   // Add a Boundary condition.
   void appendBoundary(Boundary<Dimension>& boundary);  // To end of boundary list
   void prependBoundary(Boundary<Dimension>& boundary); // To beginning of boundary list
-  void clearBoundaries();                                             // Remove all boundary conditions
+  void clearBoundaries();                              // Remove all boundary conditions
 
   // Test if the given Boundary condition is registered.
   bool haveBoundary(const Boundary<Dimension>& boundary) const;
@@ -97,6 +97,21 @@ public:
   // Enforce boundary conditions for the physics specific fields.
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs);
+
+  //******************************************************************************//
+  // The following two methods are for adding additional physics package that
+  // should be run before or after this one.  These methods are intended for use
+  // in our Python interface where we can automatically construct packages for the
+  // user for simplicities sake.
+  // Add optional Physics packages that should be inserted in the Physics package list after this one
+  void appendSubPackage(Physics<Dimension>& package);
+
+  // Add optional Physics packages that should be inserted in the Physics package list before this one
+  void prependSubPackage(Physics<Dimension>& package);
+
+  // Access the sets of pre- and post-subpackages
+  const std::vector<Physics<Dimension>*>& postSubPackages() const;
+  const std::vector<Physics<Dimension>*>& preSubPackages() const;
 
   //******************************************************************************//
   // An optional hook to initialize once when the problem is starting up.
@@ -193,6 +208,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<Boundary<Dimension>*> mBoundaryConditions;
+  std::vector<Physics<Dimension>*> mPreSubPackages, mPostSubPackages;
 };
 
 }

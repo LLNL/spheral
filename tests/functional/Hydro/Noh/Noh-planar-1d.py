@@ -414,6 +414,7 @@ if hydroType == "SVPH":
                  xmax = Vector( 100.0))
 elif hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
@@ -650,7 +651,8 @@ control = SpheralController(integrator,
                             restartBaseName = restartBaseName,
                             restartFileConstructor = restartFileConstructor,
                             SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice,
-                            restoreCycle = restoreCycle
+                            restoreCycle = restoreCycle,
+                            SPH = True
                             )
 output("control")
 
