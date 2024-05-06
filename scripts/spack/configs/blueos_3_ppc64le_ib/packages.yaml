@@ -3,8 +3,6 @@ packages:
     target: [ppc64le]
     compiler: [gcc, clang]
     providers:
-      awk: [gawk]
-      blas: [openblas, amdblis]
       lapack: [netlib-lapack]
       pil: [py-pillow]
       pkgconfig: [pkg-config]
