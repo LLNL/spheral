@@ -91,7 +91,7 @@ def parse_spec_list(file_path):
 #------------------------------
 def build_spack(args):
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  print("~~~~~ Building and Configuring Spack")
+  print("~~~~~ Configuring Spack")
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   print("")
   print("{0}".format(project_dir))
