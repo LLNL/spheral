@@ -3,6 +3,7 @@ packages:
     target: [ppc64le]
     compiler: [gcc, clang]
     providers:
+      blas: [netlib-lapack]
       lapack: [netlib-lapack]
       pil: [py-pillow]
       pkgconfig: [pkg-config]
