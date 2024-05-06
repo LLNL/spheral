@@ -161,6 +161,7 @@ def build_deps(args):
   for s in spec_list:
     print("** SPEC : {0}".format(s))
   spack_cmd=os.path.join(args.spheral_spack_dir, "spack/bin/spack")
+  
   # Optionally add a parallel job number for spack builds
   if args.spack_jobs:
     spack_cmd += " --jobs={0}".format(args.spack_jobs)
