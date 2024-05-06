@@ -31,9 +31,15 @@ packages:
     externals:
     - spec: perl@5.26.3
       prefix: /usr
-    
+
   cuda:
-    version: [11.1.0, 11.0.2, 10.1.243, 10.1.168, 9.2.148, 8.0]
+    version:
+    - 11.1.0
+    - 11.0.2
+    - 10.1.243
+    - 10.1.168
+    - 9.2.148
+    - '8.0'
     buildable: false
     externals:
     - spec: cuda@11.1.0~allow-unsupported-compilers
@@ -48,7 +54,7 @@ packages:
       prefix: /usr/tce/packages/cuda/cuda-9.2.148
     - spec: cuda@8.0~allow-unsupported-compilers
       prefix: /usr/tce/packages/cuda/cuda-8.0
-  
+
   spectrum-mpi:
     externals:
     - spec: spectrum-mpi@10.3.1.03rtm0%pgi@19.10
@@ -153,15 +159,15 @@ packages:
       prefix: /usr
     buildable: false
   tcl:
-     externals:
-     - spec: tcl@8.5.19
-       prefix: /usr
-     buildable: false
+    externals:
+    - spec: tcl@8.5.19
+      prefix: /usr
+    buildable: false
   tk:
-     externals:
-     - spec: tk@8.5.19
-       prefix: /usr
-     buildable: false
+    externals:
+    - spec: tk@8.5.19
+      prefix: /usr
+    buildable: false
   fontconfig:
     externals:
     - spec: fontconfig@2.13.1

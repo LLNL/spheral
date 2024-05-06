@@ -40,7 +40,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('zlib@1.3 +shared +pic', type='build')
 
-    depends_on('qhull +pic', type='build')
+    depends_on('qhull@2020.2 +pic', type='build')
     depends_on('m-aneos@1.0')
     depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
