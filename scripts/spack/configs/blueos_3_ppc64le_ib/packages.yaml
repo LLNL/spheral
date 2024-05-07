@@ -87,10 +87,7 @@ packages:
   netlib-lapack:
     buildable: false
     externals:
-      # These have trailing underscores in their symbols
-    - spec: netlib-lapack@3.9.0%gcc@8.3.1.1
-      prefix: /usr/tcetmp/packages/lapack/lapack-3.9.0-P9-gcc-7.3.1/
-    - spec: netlib-lapack@3.9.0%gcc@8.3.1.2
+    - spec: netlib-lapack@3.9.0%gcc@8.3.1
       prefix: /usr/tcetmp/packages/lapack/lapack-3.9.0-P9-gcc-7.3.1/
   autoconf:
     externals:
