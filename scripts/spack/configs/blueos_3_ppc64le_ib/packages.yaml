@@ -7,6 +7,7 @@ packages:
       lapack: [netlib-lapack]
       pkgconfig: [pkg-config]
       pil: [py-pillow]
+      mpi: [spectrum-mpi]
       zlib-api: [zlib]
   cmake:
     version: [3.20.2]
@@ -83,6 +84,14 @@ packages:
     - spec: readline@7.0
       prefix: /collab/usr/gapps/python/build/spack-coralea.3/opt/spack/linux-rhel7-ppc64le/gcc-4.9.3/readline-7.0-owal6z2zh5zotgvdmwow6sgdn6cqfn43
     buildable: false
+  netlib-lapack:
+    buildable: false
+    externals:
+      # These have trailing underscores in their symbols
+    - spec: netlib-lapack@3.9.0%gcc@8.3.1.1
+      prefix: /usr/tcetmp/packages/lapack/lapack-3.9.0-P9-gcc-7.3.1/
+    - spec: netlib-lapack@3.9.0%gcc@8.3.1.2
+      prefix: /usr/tcetmp/packages/lapack/lapack-3.9.0-P9-gcc-7.3.1/
   autoconf:
     externals:
     - spec: autoconf@2.69

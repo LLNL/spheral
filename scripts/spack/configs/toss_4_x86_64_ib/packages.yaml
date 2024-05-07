@@ -5,8 +5,9 @@ packages:
     target: [ivybridge]
     compiler: [gcc, clang]
     providers:
-      blas: [netlib-lapack]
+      blas: [openblas]
       lapack: [netlib-lapack]
+      mpi: [mvapich2]
       pil: [py-pillow]
       pkgconfig: [pkg-config]
       zlib-api: [zlib]
@@ -40,6 +41,9 @@ packages:
     - spec: mvapich2@2.3.6%gcc@10.3.1~cuda~debug~regcache~wrapperrpath ch3_rank_bits=32
         file_systems=lustre,nfs,ufs process_managers=slurm
       prefix: /usr/tce/packages/mvapich2/mvapich2-2.3.6-gcc-10.3.1
+    - spec: mvapich2@2.3.6%clang@14.0.6~alloca~cuda~debug+regcache+wrapperrpath ch3_rank_bits=32
+        fabrics=mrail file_systems=auto process_managers=slurm
+      prefix: /usr/tce/packages/mvapich2/mvapich2-2.3.6-clang-14.0.6
     buildable: false
 
 # ------ SYSTEM LIBS -------
@@ -152,3 +156,8 @@ packages:
     externals:
     - spec: netlib-lapack@3.9.0
       prefix: /usr
+  openblas:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: openblas@0.3.15
