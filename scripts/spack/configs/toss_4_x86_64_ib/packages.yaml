@@ -4,6 +4,8 @@ packages:
     # us to run on broadwell as well
     target: [ivybridge]
     compiler: [gcc, clang]
+    providers:
+      zlib-api: [zlib]
   cmake:
     version: [3.23.1]
     buildable: false
