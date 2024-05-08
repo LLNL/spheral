@@ -1,8 +1,8 @@
 //---------------------------------Spheral++------------------------------------
 // Compute the volume per point based on the Voronoi tessellation.
 //------------------------------------------------------------------------------
-#ifndef __Spheral__computecomputeVoronoiVolume__
-#define __Spheral__computecomputeVoronoiVolume__
+#ifndef __Spheral__computeVoronoiVolume__
+#define __Spheral__computeVoronoiVolume__
 
 #include "Geometry/CellFaceFlag.hh"
 #include "Field/FieldList.hh"

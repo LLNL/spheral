@@ -29,6 +29,7 @@ PYB11includes += ['"RK/RKCoefficients.hh"',
                   '"RK/computeVoronoiVolume.hh"',
                   '"RK/computeOccupancyVolume.hh"',
                   '"RK/computeRKSumVolume.hh"',
+                  '"RK/computeHullVolume.hh"',
                   '"RK/computeHullVolumes.hh"',
                   '"RK/computeHVolumes.hh"',
                   '"RK/computeOccupancyVolume.hh"',
@@ -146,6 +147,18 @@ def computeVoronoiVolume(position = "const FieldList<%(Dimension)s, %(Dimension)
                          cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&",
                          cellFaceFlags = "FieldList<%(Dimension)s, std::vector<CellFaceFlag>>&"):
     "Compute the volume per point based on the Voronoi tessellation-like algorithm."
+    return "void"
+
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+def computeHullVolume(position = "const FieldList<%(Dimension)s, %(Dimension)s::Vector>&",
+                      H = "const FieldList<%(Dimension)s, %(Dimension)s::SymTensor>&",
+                      connectivityMap = "const ConnectivityMap<%(Dimension)s>&",
+                      clipToVoronoi = "const bool",
+                      surfacePoint = "FieldList<%(Dimension)s, int>&",
+                      vol = "FieldList<%(Dimension)s, %(Dimension)s::Scalar>&",
+                      cells = "FieldList<%(Dimension)s, %(Dimension)s::FacetedVolume>&"):
+    "Compute the volume per point based on convex hulls."
     return "void"
 
 #-------------------------------------------------------------------------------
@@ -328,6 +341,7 @@ computeRKVolumes%(ndim)id = PYB11TemplateFunction(computeRKVolumes, template_par
 computeRKSumVolume%(ndim)id = PYB11TemplateFunction(computeRKSumVolume, template_parameters="%(Dimension)s")
 computeOccupancyVolume%(ndim)id = PYB11TemplateFunction(computeOccupancyVolume, template_parameters="%(Dimension)s")
 computeVoronoiVolume%(ndim)id = PYB11TemplateFunction(computeVoronoiVolume, template_parameters="%(Dimension)s", pyname="computeVoronoiVolume")
+computeHullVolume%(ndim)id = PYB11TemplateFunction(computeHullVolume, template_parameters="%(Dimension)s")
 computeHullVolumes%(ndim)id = PYB11TemplateFunction(computeHullVolumes, template_parameters="%(Dimension)s")
 computeHVolumes%(ndim)id = PYB11TemplateFunction(computeHVolumes, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,

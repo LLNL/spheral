@@ -5,6 +5,7 @@ from SpheralTestUtilities import *
 from SpheralMatplotlib import *
 from GenerateNodeDistribution2d import *
 from DistributeNodes import distributeNodes2d
+from triSecondMoment import *
 
 #-------------------------------------------------------------------------------
 # Command line options
@@ -30,7 +31,7 @@ def safeInv(x, fuzz=1e-30):
 #-------------------------------------------------------------------------------
 WT = TableKernel(Kernel())
 etamax = WT.kernelExtent
-asph = ASPHSmoothingScale()
+#asph = ASPHSmoothingScale()
 
 #-------------------------------------------------------------------------------
 # Make a NodeList
@@ -66,11 +67,39 @@ HtargetInv.rotationalTransform(R)
 
 # Distort the point positions
 pos = nodes.positions()
+H = nodes.Hfield()
 for i in range(nodes.numInternalNodes):
     pos[i] = HtargetInv * pos[i]
+    H[i] = (HtargetInv*H[i]).Symmetric()
 
 # Define the target ideal H
 Htarget = HtargetInv.Inverse()
+
+#-------------------------------------------------------------------------------
+# Generate the hull geometry for each point
+#-------------------------------------------------------------------------------
+nodes.neighbor().updateNodes()
+
+db = DataBase()
+db.appendNodeList(nodes)
+db.updateConnectivityMap()
+cm = db.connectivityMap()
+
+surfacePoint = db.newFluidIntFieldList(0, "surface points")
+vol = db.newFluidScalarFieldList(0.0, "volume")
+cells = db.newFluidFacetedVolumeFieldList(Polygon(), "cells")
+computeHullVolume(db.fluidPosition,
+                  db.fluidHfield,
+                  cm,
+                  False,
+                  surfacePoint,
+                  vol,
+                  cells)
+
+# Compute the hull second moments
+secondMomentHull = SymTensorField("hull second moments", nodes)
+for i in range(nodes.numInternalNodes):
+    secondMomentHull[i] = convexPolygonSecondMoment(cells(0,i), cells(0,i).centroid)
 
 #-------------------------------------------------------------------------------
 # Function for plotting the current H tensor
@@ -133,8 +162,10 @@ def computeMoments(H, WT, nPerh):
         WRKi = A*(1.0 + B.dot(rij))*WSPHi
         zerothMoment += WSPHi
         firstMoment += WRKi * eta
-        secondMoment += WSPHi*WSPHi * eta.unitVector().selfdyad()
-        correctedSecondMoment += WRKi*WRKi * eta.unitVector().selfdyad()
+        secondMoment += WSPHi*WSPHi * secondMomentHull(j)
+        correctedSecondMoment += WRKi*WRKi * secondMomentHull(j)
+        # secondMoment += WSPHi*WSPHi * eta.unitVector().selfdyad()
+        # correctedSecondMoment += WRKi*WRKi * eta.unitVector().selfdyad()
     xcen = firstMoment*safeInv(zerothMoment)
     print(f"First approximation to centroid {xcen}")
 
@@ -200,7 +231,7 @@ def newH(H0, zerothMoment, firstMoment, secondMoment, correctedSecondMoment, WT,
 
     # Extract shape information from the second moment
     nperheff = WT.equivalentNodesPerSmoothingScale(sqrt(zerothMoment))
-    T = correctedSecondMoment.sqrt()
+    T = secondMoment.sqrt()
     print("     nperheff : ", nperheff)
     print("           T0 : ", T)
     eigenT = T.eigenVectors()
@@ -235,6 +266,9 @@ plotLab = newFigure()
 plotLab.set_box_aspect(1.0)
 pos = nodes.positions()
 plotLab.plot([x[0] for x in pos], [x[1] for x in pos], "ro")
+plotLab.plot([pos(i).x for i in range(nodes.numInternalNodes) if surfacePoint(0,i)==1],
+             [pos(i).y for i in range(nodes.numInternalNodes) if surfacePoint(0,i)==1],
+             "bo")
 plotH(H, plotLab, "k-")
 plim = max([x.maxAbsElement() for x in pos])
 plotLab.set_xlim(-plim, plim)
@@ -242,6 +276,22 @@ plotLab.set_ylim(-plim, plim)
 plotLab.set_xlabel(r"$x$")
 plotLab.set_ylabel(r"$y$")
 plotLab.set_title("Lab frame")
+plotPolygon(cells(0,0) + pos(0), plot=plotLab)
+for k in range(nodes.numInternalNodes):
+    if surfacePoint(0,k) == 1:
+        print(k, pos(k))
+        p = newFigure()
+        p.set_box_aspect(1.0)
+        p.plot([x[0] for x in pos], [x[1] for x in pos], "ro")
+        p.plot([pos(i).x for i in range(nodes.numInternalNodes) if surfacePoint(0,i)==1],
+               [pos(i).y for i in range(nodes.numInternalNodes) if surfacePoint(0,i)==1],
+               "bo")
+        plotPolygon(cells(0,k) + pos(k), plot=p)
+        p.set_xlim(-plim, plim)
+        p.set_ylim(-plim, plim)
+        p.set_xlabel(r"$x$")
+        p.set_ylabel(r"$y$")
+        p.set_title("Lab frame")
 
 # Plot in eta space
 plotEta = newFigure()

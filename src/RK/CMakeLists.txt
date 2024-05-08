@@ -3,6 +3,7 @@ set(RK_inst
     computeRKSumVolume
     computeOccupancyVolume
     computeHullVolumes
+    computeHullVolume
     computeHVolumes
     HVolumePolicy
     ContinuityVolumePolicy
