@@ -5,8 +5,6 @@ packages:
     providers:
       blas: [netlib-lapack]
       lapack: [netlib-lapack]
-      pkgconfig: [pkg-config]
-      pil: [py-pillow]
       mpi: [spectrum-mpi]
       zlib-api: [zlib]
   cmake:

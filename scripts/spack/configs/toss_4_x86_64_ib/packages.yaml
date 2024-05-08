@@ -5,11 +5,6 @@ packages:
     target: [ivybridge]
     compiler: [gcc, clang]
     providers:
-      blas: [openblas]
-      lapack: [netlib-lapack]
-      mpi: [mvapich2]
-      pil: [py-pillow]
-      pkgconfig: [pkg-config]
       zlib-api: [zlib]
   cmake:
     version: [3.23.1]
