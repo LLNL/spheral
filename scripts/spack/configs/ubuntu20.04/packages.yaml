@@ -5,6 +5,7 @@ packages:
       prefix: /usr
     buildable: false
   all:
+    variants: +pic
     providers:
       mpi: [mpich]
       blas: [openblas]
