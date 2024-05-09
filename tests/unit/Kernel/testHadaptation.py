@@ -279,7 +279,7 @@ plotLab.set_title("Lab frame")
 plotPolygon(cells(0,0) + pos(0), plot=plotLab)
 for k in range(nodes.numInternalNodes):
     if surfacePoint(0,k) == 1:
-        print(k, pos(k))
+        print(k, pos(k), cells(0,k).volume)
         p = newFigure()
         p.set_box_aspect(1.0)
         p.plot([x[0] for x in pos], [x[1] for x in pos], "ro")

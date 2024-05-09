@@ -36,6 +36,7 @@ using std::min;
 using std::max;
 
 namespace bg = boost::geometry;
+// BOOST_GEOMETRY_REGISTER_POINT_2D(Spheral::GeomVector<2>, double, bg::cs::cartesian, x(), y());
 
 // //------------------------------------------------------------------------------
 // // It seems there is a missing specialization for abs(long unsigned int), so 
@@ -49,7 +50,6 @@ namespace bg = boost::geometry;
 // }
 
 namespace Spheral {
-
 
 // namespace {
 
@@ -317,7 +317,7 @@ namespace Spheral {
 // }
 
 // } // end anonymous namespace
-//********************************************************************************
+// //********************************************************************************
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -356,16 +356,20 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
 
     // We'll use the boost::geometry convex_hull method to do the work
     // Copy the input points to a boost geometry we can use
-    bg::model::multi_point<Vector> bpoints(points.begin(), points.end());
+    // using bpoint = bg::model::point<double, 2, bg::cs::cartesian>;
+    bg::model::multi_point<Vector> bagOfPoints(points.begin(), points.end());
+    CHECK(bg::is_valid(bagOfPoints));
 
     // Build the convex hull in boost::geometry
-    bg::model::polygon<Vector> hull;
-    bg::convex_hull(bpoints, hull);
+    bg::model::ring<Vector> complexHull, hull;
+    bg::convex_hull(bagOfPoints, complexHull);   // May have redundant collinear points
+    bg::simplify(complexHull, hull, 1e-6);       // Should be cleaned up
+    CHECK(bg::is_valid(hull));
 
     // Extact the hull information to build our polygon.  This should be CW ring of points
     // from boost::geometry, so we need to invert to get CCW which is our convention.
-    const auto& ring = hull.outer();
-    mVertices.insert(mVertices.end(), ring.rbegin(), ring.rend());
+    // const auto& ring = hull.outer();
+    mVertices.insert(mVertices.end(), hull.rbegin(), hull.rend());
     mVertices.pop_back();  // boost::geometry ring repeats first point at the end to represent a closed ring
 
     // // Find the appropriate renormalization so that we can do the convex hull
