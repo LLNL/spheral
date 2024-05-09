@@ -64,7 +64,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
-    depends_on('py-numpy@1.23.4', type='build')
+    depends_on('py-numpy', type='build')
     depends_on('py-numpy-stl', type='build')
     depends_on('py-pillow', type='build')
     depends_on('py-matplotlib backend=tkagg +fonts', type='build')
