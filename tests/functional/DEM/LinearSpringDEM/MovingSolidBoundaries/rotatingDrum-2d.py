@@ -247,7 +247,6 @@ output("integrator.verbose")
 #-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
-print("POOPSIE")
 from SpheralPointmeshSiloDump import dumpPhysicsState
 control = SpheralController(integrator, WT,
                             iterateInitialH = False,
