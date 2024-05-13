@@ -38,6 +38,7 @@ Notable changes include:
     * DEM
       * fixed bug in solid boundary unique indices that causes particle sticking
       * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
