@@ -54,6 +54,10 @@ public:
   const Vector& velocity() const;
   void velocity(const Vector& value);
 
+  virtual std::string label() const { return "RectangularPlaneSolidBoundary" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mPoint;

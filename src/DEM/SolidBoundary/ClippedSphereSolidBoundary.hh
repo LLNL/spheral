@@ -59,6 +59,10 @@ public:
   void velocity(const Vector& value);
 
   void setClipIntersectionRadius();
+
+  virtual std::string label() const { return "ClippedSphereSolidBoundary" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
 protected:
   //-------------------------- Protected Interface --------------------------//
   Vector mCenter;

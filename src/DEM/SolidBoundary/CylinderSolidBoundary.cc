@@ -4,11 +4,16 @@
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
+#include "FileIO/FileIO.hh"
+
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 
 #include "DEM/SolidBoundary/CylinderSolidBoundary.hh"
+
+#include <string>
+using std::string;
 
 namespace Spheral {
 
@@ -69,6 +74,32 @@ void
 CylinderSolidBoundary<Dimension>::
 update(const double multiplier, const double t, const double dt) {   
   mPoint += multiplier*mVelocity;
+}
+
+//------------------------------------------------------------------------------
+// Restart
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CylinderSolidBoundary<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  file.write(mPoint, pathName + "/point");
+  file.write(mAxis, pathName + "/axis");
+  file.write(mRadius, pathName + "/radius");
+  file.write(mLength, pathName + "/length");
+  file.write(mVelocity, pathName + "/velocity");
+}
+
+
+template<typename Dimension>
+void
+CylinderSolidBoundary<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mPoint, pathName + "/point");
+  file.read(mAxis, pathName + "/axis");
+  file.read(mRadius, pathName + "/radius");
+  file.read(mLength, pathName + "/length");
+  file.read(mVelocity, pathName + "/velocity");
 }
 
 

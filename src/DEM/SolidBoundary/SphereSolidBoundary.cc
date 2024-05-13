@@ -4,6 +4,8 @@
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
+#include "FileIO/FileIO.hh"
+
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -11,6 +13,8 @@
 #include "DEM/SolidBoundary/SphereSolidBoundary.hh"
 
 #include <cmath>
+#include <string>
+using std::string;
 
 namespace Spheral {
 
@@ -70,5 +74,28 @@ update(const double multiplier, const double t, const double dt) {
   mCenter += multiplier*mVelocity;
 }
 
+//------------------------------------------------------------------------------
+// Restart
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SphereSolidBoundary<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  file.write(mAngularVelocity, pathName + "/omega");
+  file.write(mCenter, pathName + "/center");
+  file.write(mRadius, pathName + "/radius");
+  file.write(mVelocity, pathName + "/velocity");
+}
+
+
+template<typename Dimension>
+void
+SphereSolidBoundary<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mAngularVelocity, pathName + "/omega");
+  file.read(mCenter, pathName + "/center");
+  file.read(mRadius, pathName + "/radius");
+  file.read(mVelocity, pathName + "/velocity");
+}
 
 }

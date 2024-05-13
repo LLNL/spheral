@@ -24,6 +24,8 @@
 #ifndef __Spheral_SolidBoundaryBase_hh__
 #define __Spheral_SolidBoundaryBase_hh__
 
+#include "DataOutput/registerWithRestart.hh"
+
 #include <string>
 
 namespace Spheral {
@@ -31,6 +33,7 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
+class FileIO;
 
 template<typename Dimension>
 class SolidBoundaryBase {
@@ -58,9 +61,16 @@ public:
   void uniqueIndex(int uId);
   int uniqueIndex() const;
 
+  // restartability will default to no-op 
+  virtual std::string label() const { return "SolidBoundaryBase" ; }
+  virtual void dumpState(FileIO& file, const std::string& pathName) const {};
+  virtual void restoreState(const FileIO& file, const std::string& pathName) {};
+
 private:
 //--------------------------- Public Interface ---------------------------//
 int mUniqueIndex;
+
+RestartRegistrationType mRestart;
 
 };
 }

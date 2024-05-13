@@ -4,11 +4,16 @@
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
+#include "FileIO/FileIO.hh"
+
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 
 #include "DEM/SolidBoundary/InfinitePlaneSolidBoundary.hh"
+
+#include <string>
+using std::string;
 
 namespace Spheral {
 
@@ -61,5 +66,26 @@ update(const double multiplier, const double t, const double dt) {
   mPoint += multiplier*mVelocity;
 }
 
+//------------------------------------------------------------------------------
+// Restart
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+InfinitePlaneSolidBoundary<Dimension>::
+dumpState(FileIO& file, const string& pathName) const {
+  file.write(mPoint, pathName + "/point");
+  file.write(mNormal, pathName + "/normal");
+  file.write(mVelocity, pathName + "/velocity");
+}
+
+
+template<typename Dimension>
+void
+InfinitePlaneSolidBoundary<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mPoint, pathName + "/point");
+  file.read(mNormal, pathName + "/normal");
+  file.read(mVelocity, pathName + "/velocity");
+}
 
 }
