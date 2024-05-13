@@ -21,6 +21,7 @@ public:
   using Vector = typename Dimension::Vector;
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
+  using FacetedVolume = typename Dimension::FacetedVolume;
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,
@@ -48,11 +49,22 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
+  // Similarly packages might want a hook to do some post-step finalizations.
+  // Really we should rename this post-step finalize.
+  virtual void finalize(const Scalar time, 
+                        const Scalar dt,
+                        DataBase<Dimension>& dataBase, 
+                        State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs) override;
+
   // Access our internal data
-  const TableKernel<Dimension>& WT() const;
-  const FieldList<Dimension, Scalar>& zerothMoment() const;
-  const FieldList<Dimension, Vector>& firstMoment() const;
-  const FieldList<Dimension, SymTensor>& secondMoment() const;
+  const TableKernel<Dimension>&                          WT()            const { return mWT; }
+  const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
+  const FieldList<Dimension, Vector>&                    firstMoment()   const { return mFirstMoment; }
+  const FieldList<Dimension, SymTensor>&                 secondMoment()  const { return mSecondMoment; }
+  const FieldList<Dimension, FacetedVolume>&             cells()         const { return mCells; }
+  const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
+  const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -66,11 +78,13 @@ private:
   const TableKernel<Dimension>& mWT;
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, Vector> mFirstMoment;
-  FieldList<Dimension, SymTensor> mSecondMoment;
+  FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
+
+  // Voronoi stuff
+  FieldList<Dimension, FacetedVolume> mCells;
+  FieldList<Dimension, Vector> mDeltaCentroid;
 };
 
 }
-
-#include "ASPHSmoothingScaleInline.hh"
 
 #endif

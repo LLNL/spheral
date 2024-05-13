@@ -401,7 +401,7 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 if crksph:
     output("hydro.correctionOrder")
 
@@ -497,7 +497,7 @@ control = SpheralController(integrator,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
                             #skipInitialPeriodicWork = SVPH,
-                            SPH = not ASPH,        # Only for iterating H
+                            SPH = not asph,        # Only for iterating H
                             )
 output("control")
 

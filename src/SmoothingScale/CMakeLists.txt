@@ -14,9 +14,7 @@ set(SmoothingScale_headers
     SmoothingScaleBaseInline.hh
     FixedSmoothingScale.hh
     SPHSmoothingScale.hh
-    SPHSmoothingScaleInline.hh
     ASPHSmoothingScale.hh
-    ASPHSmoothingScaleInline.hh
     )
 
 spheral_add_obj_library(SmoothingScale SPHERAL_OBJ_LIBS)

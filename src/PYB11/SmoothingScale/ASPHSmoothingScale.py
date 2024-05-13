@@ -53,6 +53,16 @@ call Physics::registerState for instance to create full populated State objects.
         return "void"
 
     @PYB11virtual
+    def finalize(self,
+                 time = "const Scalar", 
+                 dt = "const Scalar",
+                 dataBase = "DataBase<%(Dimension)s>&", 
+                 state = "State<%(Dimension)s>&",
+                 derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Similarly packages might want a hook to do some post-step finalizations.  Really we should rename this post-step finalize."
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def label(self):
         return "std::string"

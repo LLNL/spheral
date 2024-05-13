@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------------//
 #include "SmoothingScale/SPHSmoothingScale.hh"
 #include "Geometry/Dimension.hh"
+#include "Geometry/GeometryRegistrar.hh"
 #include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
@@ -112,6 +113,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = nodeLists.size();
+  const auto  etaMax = mWT.kernelExtent();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -143,10 +145,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 #pragma omp parallel
   {
     // Thread private scratch variables
-    bool sameMatij;
     int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
-    Vector rij, etai, etaj;
+    Scalar mi, mj, ri, rj, mRZi, mRZj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij, fispherical, fjspherical;
+    Vector xij, etai, etaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
@@ -162,7 +163,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       mi = mass(nodeListi, i);
       rhoi = massDensity(nodeListi, i);
-      const auto& ri = position(nodeListi, i);
+      const auto& xi = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
 
       auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
@@ -171,32 +172,55 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node j
       mj = mass(nodeListj, j);
       rhoj = massDensity(nodeListj, j);
-      const auto& rj = position(nodeListj, j);
+      const auto& xj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
 
       auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
 
-      // Flag if this is a contiguous material pair or not.
-      sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
-
       // Node displacement.
-      rij = ri - rj;
-      etai = Hi*rij;
-      etaj = Hj*rij;
+      xij = xi - xj;
+      etai = Hi*xij;
+      etaj = Hj*xij;
       etaMagi = etai.magnitude();
       etaMagj = etaj.magnitude();
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
-      // Symmetrized kernel weight and gradient.
+      // Compute the node-node weighting
+      fweightij = 1.0;
+      fispherical = 1.0;
+      fjspherical = 1.0;
+      if (nodeListi != nodeListj) {
+        if (GeometryRegistrar::coords() == CoordinateType::RZ) {
+          ri = abs(xi.y());
+          rj = abs(xj.y());
+          mRZi = mi/(2.0*M_PI*ri);
+          mRZj = mj/(2.0*M_PI*rj);
+          fweightij = mRZj*rhoi/(mRZi*rhoj);
+        } else {
+          fweightij = mj*rhoi/(mi*rhoj);
+        }
+      } else if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
+        const auto eii = Hi.xx()*xi.x();
+        const auto eji = Hi.xx()*xj.x();
+        const auto ejj = Hj.xx()*xj.x();
+        const auto eij = Hj.xx()*xi.x();
+        fispherical = (eii > etaMax ? 1.0 :
+                       eii < eji ? 2.0 :
+                       0.0);
+        fjspherical = (ejj > etaMax ? 1.0 :
+                       ejj < eij ? 2.0 :
+                       0.0);
+      }
+
+      // Symmetrized kernel weight
       WSPHi = mWT.kernelValueSPH(etaMagi);
       WSPHj = mWT.kernelValueSPH(etaMagj);
 
       // Moments of the node distribution -- used for the ideal H calculation.
-      fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      massZerothMomenti +=     fweightij*WSPHi;
-      massZerothMomentj += 1.0/fweightij*WSPHj;
+      massZerothMomenti +=     fweightij*WSPHi * fispherical;
+      massZerothMomentj += 1.0/fweightij*WSPHj * fjspherical;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
     } // loop over pairs
@@ -221,10 +245,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto& Hi = H(nodeListi, i);
       const auto& DvDxi = DvDx(nodeListi, i);
 
-      auto& massZerothMomenti = massZerothMoment(nodeListi, i);
-      // const auto& massFirstMomenti = massFirstMoment(nodeListi, i);
-
       // Complete the moments of the node distribution for use in the ideal H calculation.
+      auto& massZerothMomenti = massZerothMoment(nodeListi, i);
       massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
       // Time derivative of H
@@ -238,7 +260,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // The ratio of the desired to current nodes per smoothing scale.
       const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
-      // const Scalar s = min(4.0, max(0.25, min(maxNeighborLimit, nPerh/(currentNodesPerSmoothingScale + 1.0e-30))));
       CHECK(s > 0.0);
 
       // Now determine how to scale the current H to the desired value.

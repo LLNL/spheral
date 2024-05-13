@@ -108,11 +108,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   vector<Physics<Dimension>*> packages = {&smoothingScaleMethod};
   State<Dimension> state(dataBase, packages);
   StateDerivatives<Dimension> derivs(dataBase, packages);
+  smoothingScaleMethod.initializeProblemStartup(dataBase);
 
-  // Since we don't have a hydro there are a few other fields we need regsitered.
+  // Since we don't have a hydro there are a few other fields we need registered.
   auto zerothMoment = dataBase.newFluidFieldList(0.0, HydroFieldNames::massZerothMoment);
   auto firstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
-  auto secondMoment = dataBase.newFluidFieldList(SymTensor::zero, HydroFieldNames::massSecondMoment);
   auto DvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   auto DHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
   auto H1 = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
@@ -121,13 +121,11 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   state.enroll(rho);
   derivs.enroll(zerothMoment);
   derivs.enroll(firstMoment);
-  derivs.enroll(secondMoment);
   derivs.enroll(DvDx);
   derivs.enroll(DHDt);
   derivs.enroll(H1);
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
-  const auto numNodeLists = dataBase.numFluidNodeLists();
   auto maxDeltaH = 2.0*tolerance;
   auto itr = 0;
   while (itr < maxIterations and maxDeltaH > tolerance) {
@@ -136,15 +134,13 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     // flagNodeDone = 0;
 
     // Remove any old ghost node information from the NodeLists.
-    for (auto k = 0u; k < numNodeLists; ++k) {
-      auto nodeListPtr = *(dataBase.fluidNodeListBegin() + k);
+    for (auto* nodeListPtr: range(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
       nodeListPtr->numGhostNodes(0);
       nodeListPtr->neighbor().updateNodes();
     }
 
     // Enforce boundary conditions.
-    for (auto k = 0u; k < boundaries.size(); ++k) {
-      auto boundaryPtr = *(boundaries.begin() + k);
+    for (auto* boundaryPtr: boundaries) {
       boundaryPtr->setAllGhostNodes(dataBase);
       boundaryPtr->applyFieldListGhostBoundary(m);
       boundaryPtr->applyFieldListGhostBoundary(rho);
@@ -152,18 +148,23 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       for (auto* nodeListPtr: range(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) nodeListPtr->neighbor().updateNodes();
     }
 
-    // Call the smoothing scale package to get a new vote on the ideal H
-    smoothingScaleMethod.initialize(0.0, 1.0, dataBase, state, derivs);
-    derivs.Zero();
-    smoothingScaleMethod.evaluateDerivatives(0.0, 1.0, dataBase, state, derivs);
-    smoothingScaleMethod.finalizeDerivatives(0.0, 1.0, dataBase, state, derivs);
-    
-    // // Extract the new ideal H vote
-    // auto H1 = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+    // Update connectivity
+    dataBase.updateConnectivityMap(false, false, false);
 
+    // Some methods update both Hideal and H in the finalize, so we make a copy of the state
+    // to give the methods
+    auto state1 = state;
+    state1.copyState();
+
+    // Call the smoothing scale package to get a new vote on the ideal H
+    smoothingScaleMethod.initialize(0.0, 1.0, dataBase, state1, derivs);
+    derivs.Zero();
+    smoothingScaleMethod.evaluateDerivatives(0.0, 1.0, dataBase, state1, derivs);
+    smoothingScaleMethod.finalizeDerivatives(0.0, 1.0, dataBase, state1, derivs);
+    smoothingScaleMethod.finalize(0.0, 1.0, dataBase, state1, derivs);
+    
     // Set the new H and measure how much it changed
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto nodeListPtr = *(dataBase.fluidNodeListBegin() + nodeListi);
+    for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
       const auto ni = nodeListPtr->numInternalNodes();
 
 #pragma omp parallel for

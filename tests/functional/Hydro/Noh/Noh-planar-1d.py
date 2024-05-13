@@ -652,7 +652,7 @@ control = SpheralController(integrator,
                             restartFileConstructor = restartFileConstructor,
                             SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice,
                             restoreCycle = restoreCycle,
-                            SPH = True
+                            SPH = False
                             )
 output("control")
 

@@ -50,9 +50,9 @@ public:
                            StateDerivatives<Dimension>& derivatives) const override;
 
   // Access our internal data
-  const TableKernel<Dimension>& WT() const;
-  const FieldList<Dimension, Scalar>& zerothMoment() const;
-  const FieldList<Dimension, Vector>& firstMoment() const;
+  const TableKernel<Dimension>&                          WT()            const { return mWT; }
+  const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
+  const FieldList<Dimension, Vector>&                    firstMoment()   const { return mFirstMoment; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -69,7 +69,5 @@ private:
 };
 
 }
-
-#include "SPHSmoothingScaleInline.hh"
 
 #endif
