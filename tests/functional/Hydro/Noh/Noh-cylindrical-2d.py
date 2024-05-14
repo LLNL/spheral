@@ -1,23 +1,23 @@
 #
 # SPH
 #
-#ATS:sph0 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=8)
-#ATS:sph1 = testif(sph0, SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical SPH, nPerh=2.0, restart test", np=8)
+#ATS:sph0 = test(        SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical SPH, nPerh=2.0", np=8)
+#ATS:sph1 = testif(sph0, SELF, "--crksph False --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical SPH, nPerh=2.0, restart test", np=8)
 #
 # CRK (SumVolume)
 #
-#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
-#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
+#ATS:crk0 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (sum vol), nPerh=2.0", np=2)
+#ATS:crk1 = testif(crk0, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --volumeType RKSumVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (sum vol), nPerh=2.0, restart test", np=2)
 #
 # CRK (VoroniVolume)
 #
-#ATS:crk2 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
-#ATS:crk3 = testif(crk2, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
+#ATS:crk2 = test(        SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories True  --steps 50", label="Noh cylindrical CRK (Voronoi vol), nPerh=2.0", np=2)
+#ATS:crk3 = testif(crk2, SELF, "--crksph True --nRadial 20 --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --volumeType RKVoronoiVolume --clearDirectories False --steps 10 --restoreCycle 40 --checkRestart True", label="Noh cylindrical CRK (Voronoi vol) , nPerh=2.0, restart test", np=2)
 #
 # GSPH
 #
-#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
-#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
+#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.0", np=8)
+#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.0, restart test", np=8)
 
 
 #-------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ commandLine(order = 5,
             nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 2.01,
+            nPerh = 4.01,
             rho0 = 1.0,
             eps0 = 0.0,
             smallPressure = False,
@@ -401,7 +401,7 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro._smoothingScaleMethod.HEvolution")
+#output("hydro._smoothingScaleMethod.HEvolution")
 if crksph:
     output("hydro.correctionOrder")
 
