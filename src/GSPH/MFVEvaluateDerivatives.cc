@@ -429,7 +429,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       // this makes ui be vi from the previous timestep. We might need a special update method for hthis
       // We culd also just take care of these in the primary loop and make the node velocity a deriv
       // -----------------------------------------------
-      if(true){
+      //if(true){
         DHDti = smoothingScale.smoothingScaleDerivative(Hi,
                                                       ri,
                                                       DvDxi,
@@ -449,29 +449,29 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
                                                  connectivityMap,  // connectivityMap
                                                  nodeListi,        // nodeListi
                                                  i);               // i
-      }else{
-        //  smoothing scale construction
-        const auto Ngb_target = (Dimension::nDim == 3 ? 32 :
-                                (Dimension::nDim == 2 ? 16 :
-                                                        4));
-        const auto stretchFactor = 0.00;
+      // }else{
+      //   //  smoothing scale construction
+      //   const auto Ngb_target = (Dimension::nDim == 3 ? 32 :
+      //                           (Dimension::nDim == 2 ? 16 :
+      //                                                   4));
+      //   const auto stretchFactor = 0.00;
 
-        // set on construction
-        const auto C = (Dimension::nDim == 3 ? 1.33333*3.1415 :
-                       (Dimension::nDim == 2 ? 3.1415         :
-                                               1.0));
+      //   // set on construction
+      //   const auto C = (Dimension::nDim == 3 ? 1.33333*3.1415 :
+      //                  (Dimension::nDim == 2 ? 3.1415         :
+      //                                          1.0));
         
-        // pass 
-        const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
+      //   // pass 
+      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
         
-        const auto Hstretch  =  ((1.00-stretchFactor)* SymTensor::one +
-                                       stretchFactor * HStretchTensori)*Hi;
+      //   const auto Hstretch  =  ((1.00-stretchFactor)* SymTensor::one +
+      //                                  stretchFactor * HStretchTensori)*Hi;
         
-        const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
-        Hideali = std::min(std::max(scaleFactor,0.8),1.2) * Hstretch;
+      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
+      //   Hideali = std::min(std::max(scaleFactor,0.8),1.2) * Hstretch;
 
-        DHDti = 0.25*(Hideali-Hi)/dt;
-      }
+      //   DHDti = 0.25*(Hideali-Hi)/dt;
+      // }
     } // nodes loop
   }   // nodeLists loop
 }     // eval derivs method 

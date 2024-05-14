@@ -196,7 +196,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Node displacement.
       const auto rij = ri - rj;
       const auto rhatij =rij.unitVector();
-      const auto rMagij = rij.magnitude2();
+      //const auto rMagij = rij.magnitude2();
       const auto vij = vi - vj;
       const auto etai = Hi*rij;
       const auto etaj = Hj*rij;
@@ -352,7 +352,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto  hmax = nodeList.hmax();
     const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-    const auto  kernelExtent = nodeList.neighbor().kernelExtent();
+    //const auto  kernelExtent = nodeList.neighbor().kernelExtent();
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
