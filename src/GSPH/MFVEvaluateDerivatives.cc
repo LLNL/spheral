@@ -489,7 +489,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
                            StateDerivatives<Dimension>& derivatives) const {
 
   const auto tiny = std::numeric_limits<Scalar>::epsilon();
-  const auto epsTensile = this->epsilonTensile();
+  //const auto epsTensile = this->epsilonTensile();
   const auto nodeMotionCoeff = this->nodeMotionCoefficient();
 
   const auto calcSpatialGradients =  (this->gradientType() == GradientType::SPHSameTimeGradient 
@@ -507,11 +507,11 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   const auto  numNodeLists = nodeLists.size();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  const auto  nPerh = nodeLists[0]->nodesPerSmoothingScale();
+  //const auto  nPerh = nodeLists[0]->nodesPerSmoothingScale();
 
   // kernel
   const auto& W = this->kernel();
-  const auto  WnPerh = W(1.0/nPerh, 1.0);
+  //const auto  WnPerh = W(1.0/nPerh, 1.0);
   const auto  W0 = W(0.0, 1.0);
 
   // Get the state and derivative FieldLists. 
