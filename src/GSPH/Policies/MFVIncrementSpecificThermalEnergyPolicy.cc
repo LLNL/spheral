@@ -70,7 +70,7 @@ update(const KeyType& key,
 
   const auto n = m.numInternalElements();
 #pragma omp parallel for
-  for (unsigned i = 0; i != n; ++i) {
+  for (auto i = 0u; i < n; ++i) {
     const auto m1 = m(i)+DmDt(i)*multiplier;
     if (m1 > tiny) eps(i) += (DmepsDt(i) - DmDt(i)*eps(i)) * multiplier * safeInv(m1);
   }
