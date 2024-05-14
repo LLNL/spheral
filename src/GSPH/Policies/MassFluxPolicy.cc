@@ -52,7 +52,6 @@ update(const KeyType& key,
   const auto n = m.numInternalElements();
 #pragma omp parallel for
   for (auto i = 0u; i < n; ++i) {
-    const auto mi = m(i);
     m(i) +=  multiplier*(dmdt(i));
   }
 }
