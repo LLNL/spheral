@@ -84,11 +84,11 @@ MFVHydroBase<Dimension>::
 pairMassFlux() const {
   return mPairMassFlux;
 }
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-MFVHydroBase<Dimension>::
-HStretchTensor() const {
-  return mHStretchTensor;
-}
+// template<typename Dimension>
+// inline
+// const FieldList<Dimension, typename Dimension::SymTensor>&
+// MFVHydroBase<Dimension>::
+// HStretchTensor() const {
+//   return mHStretchTensor;
+// }
 }

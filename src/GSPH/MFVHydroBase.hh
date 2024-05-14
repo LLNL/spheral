@@ -174,7 +174,7 @@ public:
   const FieldList<Dimension,Scalar>& DthermalEnergyDt() const;
   const FieldList<Dimension,Vector>& DmomentumDt() const;
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
-  const FieldList<Dimension,SymTensor>& HStretchTensor() const;
+  //const FieldList<Dimension,SymTensor>& HStretchTensor() const;
 
   const std::vector<Scalar>& pairMassFlux() const;
   
@@ -195,7 +195,7 @@ private:
   FieldList<Dimension, Scalar> mDthermalEnergyDt;
   FieldList<Dimension, Vector> mDmomentumDt;
   FieldList<Dimension, Scalar> mDvolumeDt;
-  FieldList<Dimension, SymTensor> mHStretchTensor;
+  //FieldList<Dimension, SymTensor> mHStretchTensor;
 
   std::vector<Scalar> mPairMassFlux;
   
