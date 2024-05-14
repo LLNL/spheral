@@ -10,6 +10,8 @@ packages:
       mpi: [mpich]
       blas: [netlib-lapack]
       lapack: [netlib-lapack]
+      pkgconfig: [pkg-config]
+      pkgconf: [pkg-config]
 # ------ SYSTEM LIBS -------
   ncurses:
     externals:
@@ -114,10 +116,5 @@ packages:
   fontconfig:
     externals:
     - spec: fontconfig@2.13.1
-      prefix: /usr
-    buildable: false
-  netlib-lapack:
-    externals:
-    - spec: netlib-lapack@3.9.0
       prefix: /usr
     buildable: false
