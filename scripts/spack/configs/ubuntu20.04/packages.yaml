@@ -8,8 +8,8 @@ packages:
     variants: +pic
     providers:
       mpi: [mpich]
-      blas: [openblas]
-      lapack: [openblas]
+      blas: [netlib-lapack]
+      lapack: [netlib-lapack]
 # ------ SYSTEM LIBS -------
   ncurses:
     externals:
@@ -116,18 +116,8 @@ packages:
     - spec: fontconfig@2.13.1
       prefix: /usr
     buildable: false
-  openblas:
-    buildable: false
+  netlib-lapack:
     externals:
-    - spec: openblas@0.3.8
-      prefix: /usr/lib/x86_64-linux-gnu/
-  # netlib-lapack:
-  #   externals:
-  #   - spec: netlib-lapack@3.9.0
-  #     prefix: /usr
-  #   buildable: false
-  liblapack64-dev:
-    externals:
-    - spec: liblapack64-dev@3.9.0
+    - spec: netlib-lapack@3.9.0
       prefix: /usr
     buildable: false
