@@ -11,7 +11,6 @@ set(Kernel_inst
     NBSplineKernel
     QuarticSplineKernel
     QuinticSplineKernel
-    TableKernel
     VolumeIntegrationFunctions
     WendlandC2Kernel
     WendlandC4Kernel
@@ -24,7 +23,26 @@ set(Kernel_sources
     SphericalKernel.cc
     SphericalBiCubicSplineKernel.cc)
 
+
 instantiate(Kernel_inst Kernel_sources)
+
+
+set(ENABLE_1D_OLD ${ENABLE_1D})
+if (NOT ${ENABLE_1D_OLD})
+   set(ENABLE_1D TRUE CACHE BOOL "" FORCE)
+endif()
+
+set(ENABLE_2D_OLD ${ENABLE_2D})
+if (NOT ${ENABLE_2D_OLD})
+   set(ENABLE_2D TRUE CACHE BOOL "" FORCE)
+endif()
+
+#higher dimensional things can depend on the lower dimension TableKernel instantiations
+set(Kernel_inst TableKernel)
+instantiate(Kernel_inst Kernel_sources)
+
+set(ENABLE_1D ${ENABLE_1D_OLD} CACHE BOOL "" FORCE)
+set(ENABLE_2D ${ENABLE_2D_OLD} CACHE BOOL "" FORCE)
 
 set(Kernel_headers
     BSplineKernel.hh
