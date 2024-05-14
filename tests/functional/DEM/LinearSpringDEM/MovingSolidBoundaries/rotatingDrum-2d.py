@@ -1,35 +1,29 @@
-#ATS:DEM3dImpact = test(          SELF, "--clearDirectories True --checkConservation True   --goalTime 1.0", label="DEM impacting squares -- 3-D (parallel)", np=8)
-
-import os, sys, shutil, mpi, random
+import os, shutil, mpi
 from math import *
-from Spheral3d import *
+from Spheral2d import *
 from SpheralTestUtilities import *
 from findLastRestart import *
-from GenerateNodeDistribution3d import *
-from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator3d
-
-sys.path.insert(0, '..')
-from DEMConservationTracker import TrackConservation3d as TrackConservation
+from GenerateNodeDistribution2d import *
+from GenerateDEMfromSPHGenerator import GenerateDEMfromSPHGenerator2d
 
 if mpi.procs > 1:
-    from PeanoHilbertDistributeNodes import distributeNodes3d
+    from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
-    from DistributeNodes import distributeNodes3d
-
-random.seed(0)
-
-title("DEM 3d Impacting Squares")
-# This tests the conservation properties of the DEM package when
-# distribution across multiple processors
+    from DistributeNodes import distributeNodes2d
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(numParticlePerLength = 4,                 # number of particles on a side of the box
-            radius = 0.25,                            # particle radius
-            normalSpringConstant=1000.0,              # spring constant for LDS model
+commandLine(omegaDrum = 0.25,                         # angular velocity of drum
+            radiusDrum = 10.0,                        # radius of the drum
+            yThresh = 0.2,                            # level to initial fill to
+            yClip = 0.0,                              # level to clip at after settling
+            g0 = 5.0,                                 # grav acceleration
+
+            radius = 0.5,                            # particle radius
+            normalSpringConstant=10000.0,             # spring constant for LDS model
             normalRestitutionCoefficient=0.55,        # restitution coefficient to get damping const
-            tangentialSpringConstant=285.70,          # spring constant for LDS model
+            tangentialSpringConstant=2857.0,          # spring constant for LDS model
             tangentialRestitutionCoefficient=0.55,    # restitution coefficient to get damping const
             dynamicFriction = 1.0,                    # static friction coefficient sliding
             staticFriction = 1.0,                     # dynamic friction coefficient sliding
@@ -41,9 +35,11 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             neighborSearchBuffer = 0.1,             # multiplicative buffer to radius for neighbor search algo
 
             # integration
-            IntegratorConstructor = VerletIntegrator,
-            stepsPerCollision = 50,  # replaces CFL for DEM
-            goalTime = 25.0,
+            IntegratorConstructor = VerletIntegrator, # Verlet one integrator to garenteee conservation
+            stepsPerCollision = 50,                   # replaces CFL for DEM
+            updateBoundaryFrequency = 10,             # CAREFUL: make sure fast time stepping is off for DEM
+            settleTime = 5.0,                         # time simulated before we start spinning
+            goalTime = 15.0,                          # duration of spin cycle
             dt = 1e-8,
             dtMin = 1.0e-8, 
             dtMax = 0.1,
@@ -57,23 +53,41 @@ commandLine(numParticlePerLength = 4,                 # number of particles on a
             
             # output control
             vizCycle = None,
-            vizTime = None, 
+            vizTime = 0.1,
             clearDirectories = False,
             restoreCycle = None,
-            restartStep = 10000,
-            redistributeStep = 1000000000,
-            dataDir = "dumps-DEM-impactingSquares-3d",
+            restartStep = 1000,
+            redistributeStep = 500,
+            dataDir = "dumps-DEM-rotating-drum-2d", 
 
-            # ats
-            checkRestart = False,
-            checkConservation = False,             # turn on error checking for momentum conservation
-            conservationErrorThreshold = 2e-14,    # relative error for momentum conservation  
+             # ats parameters
+            boolCheckRestitutionCoefficient=False, # turn on error checking for restitution coefficient
+            boolCheckSlidingFrictionX=False,       # checks sliding friction reduces relative rotation
+            boolCheckSlidingFrictionY=False,       # checks rolling friction reduces relative rotation 
+            boolCheckTorsionalFriction=False,      # checks torsional friction reduces relative rotation
+            restitutionErrorThreshold = 0.02,      # relative error actual restitution vs nominal
+            omegaThreshold = 1e-14,                # theshold for perpendicular components that should stay zero
             )
 
 #-------------------------------------------------------------------------------
+# check for bad inputs
+#-------------------------------------------------------------------------------
+assert radius < radiusDrum/2.0
+assert shapeFactor <= 1.0 and shapeFactor >= 0.0
+assert dynamicFriction >= 0.0
+assert staticFriction >= 0.0
+assert torsionalFriction >= 0.0
+assert rollingFriction >= 0.0
+assert cohesiveTensileStrength >= 0.0
+    
+#-------------------------------------------------------------------------------
 # file things
 #-------------------------------------------------------------------------------
-testName = "DEM-ImpactingSquares-3d"
+testName = "DEM-RotatingDrum-2d"
+
+dataDir = os.path.join(dataDir,
+                  "restitutionCoefficient=%s" % normalRestitutionCoefficient)
+
 restartDir = os.path.join(dataDir, "restarts")
 vizDir = os.path.join(dataDir, "visit")
 restartBaseName = os.path.join(restartDir, testName)
@@ -124,31 +138,33 @@ for nodes in nodeSet:
     output("nodes.nodesPerSmoothingScale")
 
 #-------------------------------------------------------------------------------
-# Set the node properties.
+# Set the node properties. (gen 2 particles visit doesn't like just one)
 #-------------------------------------------------------------------------------
-if restoreCycle is None:
-    generator0 = GenerateNodeDistribution3d(2* numParticlePerLength, numParticlePerLength, numParticlePerLength,
-                                            rho = 1.0, # dummy value
-                                            distributionType = "lattice",
-                                            xmin = (-1.0,  0.0, 0.0),
-                                            xmax = ( 1.0,  1.0, 1.0)) # dummy value
-    
-    # really simple bar shaped particle
-    def DEMParticleGenerator(xi,yi,zi,Hi,mi,Ri):
-        xout = [xi]
-        yout = [yi]
-        zout = [zi]
-        mout = [mi/1.1]
-        Rout = [Ri/1.1]
-        return xout,yout,zout,mout,Rout
+def rejecter(x,y,m,H):
+    xnew,ynew,mnew,Hnew = [],[],[],[]
+    for i in range(len(x)):
+        if y[i] < yThresh and sqrt(x[i]**2+y[i]**2) < radiusDrum - 1.10*radius:
+            xnew.append(x[i])
+            ynew.append(y[i])
+            mnew.append(m[i])
+            Hnew.append(H[i])
 
-    generator1 = GenerateDEMfromSPHGenerator3d(WT,
-                                               generator0,
-                                               particleRadius= 0.5/(numParticlePerLength+1),
-                                               DEMParticleGenerator=DEMParticleGenerator)
+    return xnew,ynew,mnew,Hnew
 
-    distributeNodes3d((nodes1, generator1))
-   
+nx = int(2*radiusDrum / (radius * 1.02))
+ny = nx
+
+generator0 = GenerateNodeDistribution2d(nx, ny,
+                                        rho = 1.0,
+                                        distributionType = "lattice",
+                                        xmin = (-radiusDrum,  -radiusDrum),
+                                        xmax = ( radiusDrum,   radiusDrum),
+                                        rejecter=rejecter)
+
+generator1 = GenerateDEMfromSPHGenerator2d(WT,
+                                           generator0)
+distributeNodes2d((nodes1, generator1))
+ 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -162,7 +178,7 @@ output("db.numFluidNodeLists")
 
 
 #-------------------------------------------------------------------------------
-# PhysicsPackage : DEM
+# Physics Package: DEM
 #-------------------------------------------------------------------------------
 dem = DEM(db,
           normalSpringConstant = normalSpringConstant,
@@ -173,40 +189,38 @@ dem = DEM(db,
           staticFrictionCoefficient = staticFriction,
           rollingFrictionCoefficient = rollingFriction,
           torsionalFrictionCoefficient = torsionalFriction,
-          cohesiveTensileStrength = cohesiveTensileStrength,
+          cohesiveTensileStrength =cohesiveTensileStrength,
           shapeFactor = shapeFactor,
-          stepsPerCollision = stepsPerCollision)
+          stepsPerCollision = stepsPerCollision,
+          enableFastTimeStepping = False)
 
 packages = [dem]
 
+solidWall = SphereSolidBoundary(center = Vector(0.0, 0.0), 
+                                 radius = radiusDrum,
+                                 angularVelocity = 0.0)
+
+dem.appendSolidBoundary(solidWall)
 
 #-------------------------------------------------------------------------------
-# Initial Conditions
+# Gravity: DEM
 #-------------------------------------------------------------------------------
-numNodeLists = db.numNodeLists
-nodeLists = db.nodeLists()
-omega = dem.omega
-for i in range(db.numNodeLists):
-    nodeListi = nodeLists[i]
-    numNodes = nodeListi.numInternalNodes
-    v = nodeListi.velocity()
-    p = nodeListi.positions()
-    for j in range(numNodes):
-        if p[j][0] > 0.0:
-            v[j][0]= -0.1
-            p[j][0]+=0.05/numParticlePerLength
-            p[j][1]+=0.25/numParticlePerLength
-            p[j][2]+=0.10/numParticlePerLength
-            omega[i][j][0]=random.random()-0.5
-            omega[i][j][1]=random.random()-0.5
-            omega[i][j][2]=random.random()-0.5
-        else:
-            v[j][0]=  0.1
+gravity = ConstantAcceleration(a0 = Vector(0.0,-g0),
+                               nodeList = nodes1)
+packages += [gravity]
 
+#-------------------------------------------------------------------------------
+# initial conditions
+#-------------------------------------------------------------------------------
+# velocity = nodes1.velocity()
+# particleRadius = nodes1.particleRadius()
+
+# velocity[0] = Vector(0.0,0.0,-vImpact)
+# particleRadius[0] = radius
+    
 #-------------------------------------------------------------------------------
 # Construct a time integrator, and add the physics packages.
 #-------------------------------------------------------------------------------
-
 integrator = IntegratorConstructor(db)
 for p in packages:
     integrator.appendPhysicsPackage(p)
@@ -217,7 +231,7 @@ integrator.dtGrowth = dtGrowth
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.verbose = dtverbose
 integrator.rigorousBoundaries = rigorousBoundaries
-
+integrator.updateBoundaryFrequency = 10
 integrator.cullGhostNodes = False
 
 output("integrator")
@@ -231,16 +245,6 @@ output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
-# Periodic Work Function: Track conseravation
-#-------------------------------------------------------------------------------
-
-conservation = TrackConservation(db,
-                                  dem,
-                                  verbose=True)
-                                  
-periodicWork = [(conservation.periodicWorkFunction,1)]
-
-#-------------------------------------------------------------------------------
 # Make the problem controller.
 #-------------------------------------------------------------------------------
 from SpheralPointmeshSiloDump import dumpPhysicsState
@@ -249,54 +253,26 @@ control = SpheralController(integrator, WT,
                             initializeDerivatives = True,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            redistributeStep=redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             vizBaseName = vizBaseName,
-                            vizMethod = dumpPhysicsState,
-                            vizGhosts=True,
+                            vizMethod=dumpPhysicsState,
                             vizDir = vizDir,
                             vizStep = vizCycle,
-                            vizTime = vizTime,
-                            SPH = SPH,
-                            periodicWork=periodicWork)
+                            vizTime = vizTime)
 output("control")
-
 
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
-
 if not steps is None:
-    if checkRestart:
-        control.setRestartBaseName(restartBaseName + "_CHECK")
     control.step(steps)
 else:
-    control.advance(goalTime, maxSteps)
+    control.advance(settleTime, maxSteps)
 
-if checkRestart:
-    control.setRestartBaseName(restartBaseName)
-    state0 = State(db, integrator.physicsPackages())
-    state0.copyState()
-    control.loadRestartFile(control.totalSteps)
-    state1 = State(db, integrator.physicsPackages())
-    if not state1 == state0:
-        raise ValueError("The restarted state does not match!")
-    else:
-        print("Restart check PASSED.")
+solidWall.angularVelocity = omegaDrum
 
-if checkConservation:
-# check momentum conservation
-#-------------------------------------------------------------
-    if  conservation.deltaLinearMomentumX() > conservationErrorThreshold:
-        raise ValueError("linear momentum - x conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumX())
-    if  conservation.deltaLinearMomentumY() > conservationErrorThreshold:
-        raise ValueError("linear momentum - y conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumY())
-    if  conservation.deltaLinearMomentumZ() > conservationErrorThreshold:
-        raise ValueError("linear momentum - z conservation error, %g, exceeds bounds" % conservation.deltaLinearMomentumZ())
-    if  conservation.deltaRotationalMomentumX() > conservationErrorThreshold:
-        raise ValueError("rotational momentum - x conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumX())
-    if  conservation.deltaRotationalMomentumY() > conservationErrorThreshold:
-        raise ValueError("rotational momentum - y conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumY())
-    if  conservation.deltaRotationalMomentumZ() > conservationErrorThreshold:
-        raise ValueError("rotational momentum -z conservation error, %g, exceeds bounds" % conservation.deltaRotationalMomentumZ())
+if not steps is None:
+    control.step(steps)
+else:
+    control.advance(settleTime+goalTime, maxSteps)

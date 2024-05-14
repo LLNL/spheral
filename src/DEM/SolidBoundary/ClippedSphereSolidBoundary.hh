@@ -1,12 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// CircularPlaneSolidBoundary -- solid planar boundary for DEM with finite 
-//                               extent and circular shape.
+// ClippedSphereSolidBoundary -- cylinder with finite length solid boundary for DEM
 //
 // J.M. Pearl 2023
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_CircularPlaneSolidBoundary_hh__
-#define __Spheral_CircularPlaneSolidBoundary_hh__
+#ifndef __Spheral_ClippedSphereSolidBoundary_hh__
+#define __Spheral_ClippedSphereSolidBoundary_hh__
 
 #include "DEM/SolidBoundary/SolidBoundaryBase.hh"
 
@@ -17,19 +16,21 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
 
 template<typename Dimension>
-class CircularPlaneSolidBoundary : public SolidBoundaryBase<Dimension> {
+class ClippedSphereSolidBoundary : public SolidBoundaryBase<Dimension> {
 
     typedef typename Dimension::Scalar Scalar;
     typedef typename Dimension::Vector Vector;
+    typedef typename Dimension::Tensor Tensor;
 
 public:
   //--------------------------- Public Interface ---------------------------//
 
-  CircularPlaneSolidBoundary(const Vector& point,
-                      const Vector& normal,
-                      const Scalar& exent);
+  ClippedSphereSolidBoundary(const Vector& center, 
+                      const Scalar  radius,
+                      const Vector& clipPoint,
+                      const Vector& clipAxis);
 
-  ~CircularPlaneSolidBoundary();
+  ~ClippedSphereSolidBoundary();
 
   virtual Vector distance(const Vector& position) const override;
   virtual Vector localVelocity(const Vector& position) const override;
@@ -37,43 +38,51 @@ public:
   virtual void registerState(DataBase<Dimension>& dataBase,
                              State<Dimension>& state) override;
 
+
   virtual void update(const double multiplier,
                       const double time,
                       const double dt) override;
 
-  const Vector& point() const;
-  void point(const Vector& value);
+  const Vector& center() const;
+  void center(const Vector& value);
 
-    const Vector& normal() const;
-  void normal(const Vector& value);
+  Scalar radius() const;
+  void radius(Scalar value);
 
-  Scalar extent() const;
-  void extent(Scalar value);
+  const Vector& clipPoint() const;
+  void clipPoint(const Vector& value);
+
+  const Vector& clipAxis() const;
+  void clipAxis(const Vector& value);
 
   const Vector& velocity() const;
   void velocity(const Vector& value);
 
-  virtual std::string label() const { return "CircularPlaneSolidBoundary" ; }
+  void setClipIntersectionRadius();
+
+  virtual std::string label() const { return "ClippedSphereSolidBoundary" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
-
 protected:
   //-------------------------- Protected Interface --------------------------//
-  Vector mPoint;
-  Vector mNormal;
-  Scalar mExtent;
+  Vector mCenter;
+  Scalar mRadius;
+  Vector mClipPoint;
+  Vector mClipAxis;
+  Scalar mClipIntersectionRadius;
+  
   Vector mVelocity;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // No default constructor, copying, or assignment.
-  CircularPlaneSolidBoundary();
-  CircularPlaneSolidBoundary(const CircularPlaneSolidBoundary&);
-  CircularPlaneSolidBoundary& operator=(const CircularPlaneSolidBoundary&);
+  ClippedSphereSolidBoundary();
+  ClippedSphereSolidBoundary(const ClippedSphereSolidBoundary&);
+  ClippedSphereSolidBoundary& operator=(const ClippedSphereSolidBoundary&);
 };
 
 }
 
-#include "CircularPlaneSolidBoundaryInline.hh"
+#include "ClippedSphereSolidBoundaryInline.hh"
 
 #endif
