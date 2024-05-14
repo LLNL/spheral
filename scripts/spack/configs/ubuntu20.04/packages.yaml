@@ -13,6 +13,7 @@ packages:
       pkgconfig: [pkg-config]
       pkgconf: [pkg-config]
 # ------ SYSTEM LIBS -------
+# FIXME: Currently allowing spack to build cmake and git
   ncurses:
     externals:
     - spec: ncurses@6.2
@@ -22,11 +23,6 @@ packages:
     buildable: false
     externals:
     - spec: perl@5.30.0
-      prefix: /usr
-  cmake:
-    buildable: false
-    externals:
-    - spec: cmake@3.20.4
       prefix: /usr
   readline:
     externals:
