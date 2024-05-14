@@ -59,14 +59,14 @@ update(const KeyType& key,
 
   const auto massKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::mass, nodeListKey);
   const auto momDerivFieldKey = StateBase<Dimension>::buildFieldKey(prefix() + GSPHFieldNames::momentum, nodeListKey);
-  const auto accDerivFieldKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::hydroAcceleration, nodeListKey);
+  //const auto accDerivFieldKey = StateBase<Dimension>::buildFieldKey(HydroFieldNames::hydroAcceleration, nodeListKey);
   
   const auto&  m = state.field(massKey, Scalar());
         auto&  v = state.field(key,     Vector());
 
   const auto&  DmDt = derivs.field(prefix() + massKey, Scalar());
   const auto&  DpDt = derivs.field(momDerivFieldKey,   Vector());
-  const auto&  DvDt = derivs.field(accDerivFieldKey,   Vector());
+  //const auto&  DvDt = derivs.field(accDerivFieldKey,   Vector());
 
   const auto n = m.numInternalElements();
 #pragma omp parallel for
