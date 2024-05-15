@@ -66,6 +66,38 @@ Above we are telling ``tpl-manager`` to build our TPLs with the ``gcc`` that is 
 .. note::
    Spheral minimally requires a C++14 compliant compiler.
 
+ERROR: invalid spack config dir
+===============================
+
+If you are trying to run ``tpl-manager.py`` on an operating system other than Ubuntu20.04, you will
+see an error to the effect of:
+``[ERROR: invalid spack config dir: /<path>/scripts/spack/configs/<OperatingSystem><Version> ]``
+
+We define configuration files for Ubuntu20.04, as well as our common LLNL operating systems.
+You will need to create a set of files for your own system.
+
+The configuration files tell spack where the packages installed in :ref:`Required System Packages`
+are located and what version they are. We have provided a ``generic`` set of config files to 
+help in setting this up for you.
+
+#. Copy the directory ``scripts/spack/configs/generic`` to ``scripts/spack/config/<OperatingSystem><Version>`` (you want to match the name of the directory to the one ``tpl-manager.py`` expects to find).
+
+
+#. For each package within the ``packages.py`` file of your new folder edit the version number to be the same as
+   what is installed on your system. There are a number of ways to retrieve versions for a given package:
+
+   * Most version numbers should be searchable through your package manager, there are however, some system libraries that may not be managed by your package manager.
+
+   * If the package has an executable, often you can run with some form of ``-V`` or ``--version``. e.g. for mpich:``mpiexec --version`` will report the MPI version.
+
+   * For packages that only provide libraries, often the system library will be symlinked to one with the version as the extension. e.g. ``ls -lha /usr/lib/x86_64_gnu-linux/libreadlines.so`` will show it is symlinked to ``libreadlines.so.8.1``.
+
+
+#. Each package requires the ``prefix:`` of the installation be provided. In most cases ``/usr`` is sufficient. Typically packages installed with a package manager will place files in: ``/usr/bin``, ``/usr/share``, ``/usr/lib``, ``/usr/lib64``, sometimes ``/usr/lib/x86_64.../``. Here the common prefix is ``/usr``. 
+
+   * If you are building Spheral on a system where you don't have permissions to run package manager and install to ``/usr``, then you might have installed the system packages somewhere else. In that case, replace the ``prefix:`` path for those given packages as necessary.
+
+
 [ex_running_tpl_manager-end]
 
 [lc_running_tpl_manager-start]

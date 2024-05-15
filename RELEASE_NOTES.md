@@ -1,7 +1,24 @@
-Version vX.Y.Z -- Release date xxxx-xx-xx
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
 ==============================================
   * Important Notes:
-    * 
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+
+  * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
+
+Version v2024.01.1 -- Release date 2024-02-17
+==============================================
+  * Important Notes:
+    * This is a patch release for v2024.01.0.
 
 Notable changes include:
 
@@ -11,10 +28,12 @@ Notable changes include:
       State and StateDerivatives object).
 
   * Build changes / improvements:
-    * 
+    * Improved the target export functionality.
 
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
     * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
 
 Version v2024.01.00 -- Release date 2024-01-19
