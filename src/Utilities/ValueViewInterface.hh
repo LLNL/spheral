@@ -2,6 +2,7 @@
 #define __SPHERAL_VALUEVIEWINTERFACE__
 
 #include "Utilities/SharedPtr.hh"
+#include "chai/ManagedSharedPtr.hpp"
 #include "Field/SphArray.hh"
 #include <memory>
 
@@ -33,10 +34,17 @@ class SPHERALCopyable : public chai::CHAICopyable{
 // in order to set up a forwarding constructor from the Value class ctor
 // that passes in a "new DataObject" type.
 
+#define USE_CMSPTR
+
+
 template<typename T>
+#if defined(USE_CMSPTR)
+using SMART_PTR_TYPE = chai::ManagedSharedPtr<T>;
+#else
 using SMART_PTR_TYPE = Spheral::shared_ptr<T>;
 //using SMART_PTR_TYPE = std::shared_ptr<T>;
 //using SMART_PTR_TYPE = ManagedSmartPtr<T>;
+#endif
 
 template<typename view_type, typename impl_type>
 class SpheralViewInterface : public SMART_PTR_TYPE<impl_type>
@@ -69,7 +77,9 @@ protected:
   using ViewType = typename view_type::ViewType;
 
 public:
+#if !defined(USE_CMSPTR)
   SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
+#endif
   SPHERAL_HOST SpheralValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
 };
 
@@ -102,9 +112,16 @@ protected: \
 
 // Defines a ctor that will take a "new" Data object to create the underlying
 // ManagedSmartPtr.
+#if !defined(USE_CMSPTR)
 #define VIEW_DEFINE_ALLOC_CTOR(view_t) \
 protected: \
   view_t(ImplType* rhs) : Base(SmartPtrType(rhs, [](ImplType *p) { p->free(); } )) {}
+  //view_t(ImplType* rhs) : Base(SmartPtrType(rhs, [](ImplType *p) { p->free(); } )) {}
+#else
+#define VIEW_DEFINE_ALLOC_CTOR(view_t) \
+public: \
+  view_t(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
+#endif
 
 #define VIEW_DEF_CTOR(view_t) \
   view_t() = default;
@@ -113,14 +130,19 @@ protected: \
   view_t(view_t const& rhs) = default;
 
 #define VIEW_ASSIGNEMT_OP() \
-  ViewType& operator=(ViewType const& rhs) = default;
+  SPHERAL_HOST_DEVICE ViewType& operator=(ViewType const& rhs) = default;
 
 #define VIEW_EQ_OP() \
   bool operator==(const ViewType& rhs) const \
     { return sptr_data() == rhs.sptr_data(); }
 
+#if !defined(USE_CMSPTR)
 #define VALUE_DEF_CTOR(value_t) \
   value_t() : Base(new ImplType()) {}
+#else
+#define VALUE_DEF_CTOR(value_t) \
+  value_t() : Base(chai::make_shared<ImplType>()) {}
+#endif
 
 #define VALUE_COPY_CTOR(value_t) \
   value_t(value_t const& rhs) : Base(new ImplType( deepCopy( rhs.SPTR_DATA_REF() ) )) {}

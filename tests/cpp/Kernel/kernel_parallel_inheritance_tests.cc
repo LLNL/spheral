@@ -3,25 +3,21 @@
 #include "Field/SphArray.hh"
 #include "Utilities/ValueViewInterface.hh"
 
-// New macro for this implementation.
-#define SPTR_MOVE_CTOR(type) \
-  type(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
-
 //--------------------------------
 // Impl Interface
 
 template<typename Dim, typename Desc>
 class KernelImpl : public Spheral::SPHERALCopyable<KernelImpl<Dim, Desc>> {
 
-  Desc& asDesc() {
+  SPHERAL_HOST_DEVICE Desc& asDesc() {
     return static_cast<Desc&>(const_cast<KernelImpl<Dim, Desc>&>(*this));
   }
 public:
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "Ki HD doSomething()\n"; asDesc().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("Ki HD doSomething()\n"); asDesc().doSomething(); }
 
   void free() {}
-  KernelImpl& operator=(std::nullptr_t) { return *this; }
-  void shallowCopy(KernelImpl const& rhs) {*this = rhs;}
+  SPHERAL_HOST_DEVICE KernelImpl& operator=(std::nullptr_t) { return *this; }
+  SPHERAL_HOST_DEVICE void shallowCopy(KernelImpl const& rhs) {*this = rhs;}
 
   friend KernelImpl deepCopy(KernelImpl const& rhs) {
     KernelImpl result(rhs);
@@ -34,14 +30,14 @@ template<typename Dim>
 class TableKernelImpl : public KernelImpl<Dim, TableKernelImpl<Dim>> {
 public:
   TableKernelImpl() = default;
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "TKi HD doSomething()\n"; std::cout << "TableKernel doSomething\n"; }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("TKi HD doSomething()\n"); printf("TableKernel doSomething\n"); }
 };
 
 template<typename Dim>
 class OtherKernelImpl : public KernelImpl<Dim, OtherKernelImpl<Dim>> {
 public:
   OtherKernelImpl() = default;
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "OKi HD doSomething()\n"; std::cout << "OtherKernel doSomething\n"; }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("OKi HD doSomething()\n"); printf("OtherKernel doSomething\n"); }
 };
 
 //--------------------------------
@@ -61,9 +57,7 @@ class KernelView :
   VIEW_TYPE_ALIASES( (Kernel<Dim, Desc>), (KernelView<Dim, Desc>), (KernelImpl<Dim, typename Desc::ImplType>) )
   VIEW_DEFINE_ALLOC_CTOR(KernelView)
 public:
-  SPTR_MOVE_CTOR(KernelView)
-
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "Kv HD doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("Kv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -73,9 +67,7 @@ class TableKernelView :
   VIEW_TYPE_ALIASES( (TableKernel<Dim>), (TableKernelView), (TableKernelImpl<Dim>))
   VIEW_DEFINE_ALLOC_CTOR(TableKernelView)
 public:
-  SPTR_MOVE_CTOR(TableKernelView)
-
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "TKv HD doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("TKv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -85,9 +77,7 @@ class OtherKernelView :
   VIEW_TYPE_ALIASES( (OtherKernel<Dim>), (OtherKernelView), (OtherKernelImpl<Dim>))
   VIEW_DEFINE_ALLOC_CTOR(OtherKernelView)
 public:
-  SPTR_MOVE_CTOR(OtherKernelView)
-
-	SPHERAL_HOST_DEVICE void doSomething() { std::cout << "OKv HD doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() { printf("OKv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 //--------------------------------
@@ -103,7 +93,7 @@ public:
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
 
-	SPHERAL_HOST void doSomething() { std::cout << "K H doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST void doSomething() { printf("K H doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -116,7 +106,7 @@ public:
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
 
-	SPHERAL_HOST void doSomething() { std::cout << "TK H doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST void doSomething() { printf("TK H doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -129,7 +119,7 @@ public:
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
 
-	SPHERAL_HOST void doSomething() { std::cout << "OK H doSomething()\n"; this->sptr_data().doSomething(); }
+	SPHERAL_HOST void doSomething() { printf("OK H doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 class Dim1 {};
