@@ -5,7 +5,7 @@
 
 // The list of execution types we want to possibly run these tests over.
 using EXEC_TYPES = ::testing::Types<
-  RAJA::loop_exec
+  RAJA::seq_exec
 #ifdef SPHERAL_ENABLE_CUDA
   ,RAJA::cuda_exec<512>
 #endif

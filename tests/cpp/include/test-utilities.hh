@@ -8,7 +8,7 @@
 #include "config.hh"
 
 using TRS_UINT = RAJA::TypedRangeSegment<unsigned>;
-using LOOP_EXEC_POLICY = RAJA::loop_exec;
+using LOOP_EXEC_POLICY = RAJA::seq_exec;
 
 #define EXEC_IN_SPACE_BEGIN(POL) \
   RAJA::forall<POL>(TRS_UINT(0,1), [=] SPHERAL_HOST_DEVICE (int) {
