@@ -514,7 +514,7 @@ control = SpheralController(integrator,
                             vizDerivs = vizDerivs,
                             #skipInitialPeriodicWork = SVPH,
                             SPH = not asph,        # Only for iterating H
-                            #iterateInitialH = False,
+                            iterateInitialH = False,
                             )
 output("control")
 

@@ -366,37 +366,37 @@ finalize(const Scalar time,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 
-//   // Grab our state
-//   const auto numNodeLists = dataBase.numFluidNodeLists();
-//   const auto& cm = dataBase.connectivityMap();
-//   const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
-//   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-//   const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
-//   auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
-//   auto        Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
+  // Grab our state
+  const auto numNodeLists = dataBase.numFluidNodeLists();
+  const auto& cm = dataBase.connectivityMap();
+  const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  auto        Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
 
-//   // Pair connectivity
-//   const auto& pairs = cm.nodePairList();
-//   const auto  npairs = pairs.size();
+  // Pair connectivity
+  const auto& pairs = cm.nodePairList();
+  const auto  npairs = pairs.size();
 
-//   // Compute the current Voronoi cells
-//   FieldList<Dimension, SymTensor> D;
-//   vector<Boundary<Dimension>*> boundaries(this->boundaryBegin(), this->boundaryEnd());
-//   auto vol = mass/rho;
-//   auto surfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-//   auto etaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), "etaVoidPoints");
-//   FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
-//   computeVoronoiVolume(pos, H, cm, D,
-//                        vector<FacetedVolume>(),          // facetedBoundaries
-//                        vector<vector<FacetedVolume>>(),  // holes
-//                        boundaries,
-//                        FieldList<Dimension, Scalar>(),   // weight
-//                        surfacePoint,
-//                        vol,
-//                        mDeltaCentroid,
-//                        etaVoidPoints,
-//                        mCells,
-//                        cellFaceFlags); 
+  // Compute the current Voronoi cells
+  FieldList<Dimension, SymTensor> D;
+  vector<Boundary<Dimension>*> boundaries(this->boundaryBegin(), this->boundaryEnd());
+  auto vol = mass/rho;
+  auto surfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  auto etaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), "etaVoidPoints");
+  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  computeVoronoiVolume(pos, H, cm, D,
+                       vector<FacetedVolume>(),          // facetedBoundaries
+                       vector<vector<FacetedVolume>>(),  // holes
+                       boundaries,
+                       FieldList<Dimension, Scalar>(),   // weight
+                       surfacePoint,
+                       vol,
+                       mDeltaCentroid,
+                       etaVoidPoints,
+                       mCells,
+                       cellFaceFlags); 
 
 //   // Compute the second moments for the Voronoi cells
 //   for (auto k = 0u; k < numNodeLists; ++k) {
@@ -407,11 +407,11 @@ finalize(const Scalar time,
 //     }
 //   }
 
-//   // Apply boundary conditions to the cell second moment
-//   for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-//     boundaryPtr->applyFieldListGhostBoundary(mCellSecondMoment);
-//     boundaryPtr->finalizeGhostBoundary();
-//   }
+  // Apply boundary conditions to the cells
+  for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->applyFieldListGhostBoundary(mCells);
+    boundaryPtr->finalizeGhostBoundary();
+  }
 
 // //   // Prepare RK correction terms
 // //   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, "m0");
@@ -498,146 +498,154 @@ finalize(const Scalar time,
 // //     }
 // //   }
 
-//   // Sum the net moments at each point
-//   mZerothMoment = 0.0;
-//   mSecondMoment = SymTensor::zero;
-// #pragma omp parallel
-//   {
-//     // Thread private scratch variables
-//     bool sameMatij;
-//     int i, j, nodeListi, nodeListj;
-//     Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, WRKi, WRKj, etaMagi, etaMagj, fweightij;
-//     Vector rij, etai, etaj;
+  // Sum the net moments at each point
+  mZerothMoment = 0.0;
+  mSecondMoment = SymTensor::zero;
+#pragma omp parallel
+  {
+    // Thread private scratch variables
+    bool sameMatij;
+    int i, j, nodeListi, nodeListj;
+    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, WRKi, WRKj, etaMagi, etaMagj, fweightij;
+    Scalar Wi, Wj;
+    Vector rij, etai, etaj;
 
-//     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-//     auto massZerothMoment_thread = mZerothMoment.threadCopy(threadStack);
-//     auto massSecondMoment_thread = mSecondMoment.threadCopy(threadStack);
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto massZerothMoment_thread = mZerothMoment.threadCopy(threadStack);
+    auto massSecondMoment_thread = mSecondMoment.threadCopy(threadStack);
 
-// #pragma omp for
-//     for (auto kk = 0u; kk < npairs; ++kk) {
-//       i = pairs[kk].i_node;
-//       j = pairs[kk].j_node;
-//       nodeListi = pairs[kk].i_list;
-//       nodeListj = pairs[kk].j_list;
+#pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      i = pairs[kk].i_node;
+      j = pairs[kk].j_node;
+      nodeListi = pairs[kk].i_list;
+      nodeListj = pairs[kk].j_list;
 
-//       // State for node i
-//       mi = mass(nodeListi, i);
-//       rhoi = rho(nodeListi, i);
-//       const auto& ri = pos(nodeListi, i);
-//       const auto& Hi = H(nodeListi, i);
-//       auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
-//       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+      // State for node i
+      mi = mass(nodeListi, i);
+      rhoi = rho(nodeListi, i);
+      const auto& ri = pos(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
-//       // Get the state for node j
-//       mj = mass(nodeListj, j);
-//       rhoj = rho(nodeListj, j);
-//       const auto& rj = pos(nodeListj, j);
-//       const auto& Hj = H(nodeListj, j);
-//       auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
-//       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+      // Get the state for node j
+      mj = mass(nodeListj, j);
+      rhoj = rho(nodeListj, j);
+      const auto& rj = pos(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
+      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
-//       // Flag if this is a contiguous material pair or not.
-//       sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
+      // Flag if this is a contiguous material pair or not.
+      sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
 
-//       // Node displacement.
-//       rij = ri - rj;
-//       etai = Hi*rij;
-//       etaj = Hj*rij;
-//       etaMagi = etai.magnitude();
-//       etaMagj = etaj.magnitude();
-//       CHECK(etaMagi >= 0.0);
-//       CHECK(etaMagj >= 0.0);
+      // Node displacement.
+      rij = ri - rj;
+      etai = Hi*rij;
+      etaj = Hj*rij;
+      etaMagi = etai.magnitude();
+      etaMagj = etaj.magnitude();
+      CHECK(etaMagi >= 0.0);
+      CHECK(etaMagj >= 0.0);
 
-//       // Symmetrized kernel weight and gradient.
-//       WSPHi = mWT.kernelValueSPH(etaMagi);
-//       WSPHj = mWT.kernelValueSPH(etaMagj);
-//       // WRKi = WSPHi * A(nodeListi, i)*(1.0 - B(nodeListi, i).dot(rij));
-//       // WRKj = WSPHj * A(nodeListj, j)*(1.0 + B(nodeListj, j).dot(rij));
+      // Symmetrized kernel weight and gradient.
+      WSPHi = mWT.kernelValueSPH(etaMagi);
+      WSPHj = mWT.kernelValueSPH(etaMagj);
+      Wi = mWT.kernelValue(etaMagi, 1.0);
+      Wj = mWT.kernelValue(etaMagj, 1.0);
+      // WRKi = WSPHi * A(nodeListi, i)*(1.0 - B(nodeListi, i).dot(rij));
+      // WRKj = WSPHj * A(nodeListj, j)*(1.0 + B(nodeListj, j).dot(rij));
 
-//       // Increment the moments for the pair
-//       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-//       massZerothMomenti +=     fweightij * WSPHi;
-//       massZerothMomentj += 1.0/fweightij * WSPHj;
-//       massSecondMomenti +=                 WSPHi*WSPHi * mCellSecondMoment(nodeListj, j);
-//       massSecondMomentj += 1.0/fweightij * WSPHj*WSPHj * mCellSecondMoment(nodeListi, i);
-//     }
+      // Increment the moments for the pair
+      fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
+      massZerothMomenti +=     fweightij * WSPHi;
+      massZerothMomentj += 1.0/fweightij * WSPHj;
+      massSecondMomenti +=                 Wi*Wi * polySecondMoment(mCells(nodeListj, j), ri);
+      massSecondMomentj += 1.0/fweightij * Wj*Wj * polySecondMoment(mCells(nodeListi, i), rj);
+    }
 
-//     // Reduce the thread values to the master.
-//     threadReduceFieldLists<Dimension>(threadStack);
-//   }   // OpenMP parallel region
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+  }   // OpenMP parallel region
 
-//   // Apply boundary conditions to the moments
-//   for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-//     boundaryPtr->applyFieldListGhostBoundary(mZerothMoment);
-//     boundaryPtr->applyFieldListGhostBoundary(mSecondMoment);
-//   }
-//   for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
+  // // Apply boundary conditions to the moments
+  // for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+  //   boundaryPtr->applyFieldListGhostBoundary(mZerothMoment);
+  //   boundaryPtr->applyFieldListGhostBoundary(mSecondMoment);
+  // }
+  // for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
-//   // Now we have the moments, so we can loop over the points and set our new H
-//   for (auto k = 0u; k < numNodeLists; ++k) {
-//     const auto& nodeList = mass[k]->nodeList();
-//     const auto  hminInv = safeInvVar(nodeList.hmin());
-//     const auto  hmaxInv = safeInvVar(nodeList.hmax());
-//     const auto  hminratio = nodeList.hminratio();
-//     const auto  nPerh = nodeList.nodesPerSmoothingScale();
-//     const auto  n = nodeList.numInternalNodes();
-// #pragma omp parallel for
-//     for (auto i = 0u; i < n; ++i) {
-//       auto&       Hi = H(k,i);
-//       auto&       Hideali = Hideal(k,i);
-//       auto        massZerothMomenti = mZerothMoment(k,i);
-//       const auto& massSecondMomenti = mSecondMoment(k,i);
+  // Now we have the moments, so we can loop over the points and set our new H
+  const auto W0 = mWT.kernelValue(0.0, 1.0);
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto& nodeList = mass[k]->nodeList();
+    const auto  hminInv = safeInvVar(nodeList.hmin());
+    const auto  hmaxInv = safeInvVar(nodeList.hmax());
+    const auto  hminratio = nodeList.hminratio();
+    const auto  nPerh = nodeList.nodesPerSmoothingScale();
+    const auto  n = nodeList.numInternalNodes();
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
+      const auto& ri = pos(k,i);
+      auto&       Hi = H(k,i);
+      auto&       Hideali = Hideal(k,i);
+      auto        massZerothMomenti = mZerothMoment(k,i);
+      auto&       massSecondMomenti = mSecondMoment(k,i);
   
-//       // Complete the zeroth moment
-//       massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
+      // Complete the zeroth moment
+      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
-//       // Find the new normalized target shape
-//       auto T = massSecondMomenti.sqrt();
-//       {
-//         const auto detT = T.Determinant();
-//         if (fuzzyEqual(detT, 0.0)) {
-//           T = SymTensor::one;
-//         } else {
-//           T /= Dimension::rootnu(detT);
-//         }
-//       }
-//       CHECK(fuzzyEqual(T.Determinant(), 1.0));
-//       T /= Dimension::rootnu(Hi.Determinant());   // T in units of length, now with same volume as the old Hinverse
-//       CHECK(fuzzyEqual(T.Determinant(), 1.0/Hi.Determinant()));
+      // Complete the second moment
+      massSecondMomenti += W0*W0 * polySecondMoment(mCells(k,i), ri);
+
+      // Find the new normalized target shape
+      auto T = massSecondMomenti.sqrt();
+      {
+        const auto detT = T.Determinant();
+        if (fuzzyEqual(detT, 0.0)) {
+          T = SymTensor::one;
+        } else {
+          T /= Dimension::rootnu(detT);
+        }
+      }
+      CHECK(fuzzyEqual(T.Determinant(), 1.0));
+      T /= Dimension::rootnu(Hi.Determinant());   // T in units of length, now with same volume as the old Hinverse
+      CHECK(fuzzyEqual(T.Determinant(), 1.0/Hi.Determinant()));
       
-//       // Determine the current effective number of nodes per smoothing scale.
-//       const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
-//                                                   0.5*nPerh :
-//                                                   mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
-//       CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
+      // Determine the current effective number of nodes per smoothing scale.
+      const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
+                                                  0.5*nPerh :
+                                                  mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
+      CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-//       // The ratio of the desired to current nodes per smoothing scale.
-//       const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
-//       CHECK(s > 0.0);
+      // The ratio of the desired to current nodes per smoothing scale.
+      const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+      CHECK(s > 0.0);
 
-//       // // Determine the desired H determinant using our usual target nperh logic
-//       // auto fscale = 1.0;
-//       // for (auto j = 0u; j < Dimension::nDim; ++j) {
-//       //   eigenT.eigenValues[j] = std::max(eigenT.eigenValues[j], hminratio*Tmax);
-//       //   fscale *= eigenT.eigenValues[j];
-//       // }
-//       // CHECK(fscale > 0.0);
-//       // fscale = 1.0/Dimension::rootnu(fscale);
+      // // Determine the desired H determinant using our usual target nperh logic
+      // auto fscale = 1.0;
+      // for (auto j = 0u; j < Dimension::nDim; ++j) {
+      //   eigenT.eigenValues[j] = std::max(eigenT.eigenValues[j], hminratio*Tmax);
+      //   fscale *= eigenT.eigenValues[j];
+      // }
+      // CHECK(fscale > 0.0);
+      // fscale = 1.0/Dimension::rootnu(fscale);
 
-//       // Now apply the desired volume scaling from the zeroth moment to fscale
-//       const auto a = (s < 1.0 ? 
-//                       0.4*(1.0 + s*s) :
-//                       0.4*(1.0 + 1.0/(s*s*s)));
-//       CHECK(1.0 - a + a*s > 0.0);
-//       T *= std::min(4.0, std::max(0.25, 1.0 - a + a*s));
+      // Now apply the desired volume scaling from the zeroth moment to fscale
+      const auto a = (s < 1.0 ? 
+                      0.4*(1.0 + s*s) :
+                      0.4*(1.0 + 1.0/(s*s*s)));
+      CHECK(1.0 - a + a*s > 0.0);
+      T *= std::min(4.0, std::max(0.25, 1.0 - a + a*s));
 
-//       // Build the new H tensor
-//       // Hi = constructSymTensorWithBoundedDiagonal(fscale*eigenT.eigenValues, hmaxInv, hminInv);
-//       // Hi.rotationalTransform(eigenT.eigenVectors);
-//       Hi = T.Inverse();
-//       Hideali = Hi;                                 // To be consistent with SPH package behaviour
-//     }
-//   }
+      // Build the new H tensor
+      // Hi = constructSymTensorWithBoundedDiagonal(fscale*eigenT.eigenValues, hmaxInv, hminInv);
+      // Hi.rotationalTransform(eigenT.eigenVectors);
+      Hi = T.Inverse();
+      Hideali = Hi;                                 // To be consistent with SPH package behaviour
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
