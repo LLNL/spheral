@@ -327,6 +327,7 @@ if svph:
                  ASPH = asph)
 elif crksph:
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
@@ -513,6 +514,7 @@ control = SpheralController(integrator,
                             vizDerivs = vizDerivs,
                             #skipInitialPeriodicWork = SVPH,
                             SPH = not asph,        # Only for iterating H
+                            #iterateInitialH = False,
                             )
 output("control")
 
