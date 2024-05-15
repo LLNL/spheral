@@ -2,8 +2,8 @@
 #define __Spheral_lvarray_hh__
 
 #include "config.hh"
-#include "LvArray/Array.hpp"
-#include "LvArray/ChaiBuffer.hpp"
+//#include "LvArray/Array.hpp"
+//#include "LvArray/ChaiBuffer.hpp"
 #include "chai/ManagedArray.hpp"
 
 #include <cstdint>
@@ -22,7 +22,7 @@ constexpr uint32_t pow2_ceil(uint32_t v) {
 
 namespace Spheral {
 
-#define SPHERAL_CALLBACK_ENABLED
+//#define SPHERAL_CALLBACK_ENABLED
 #define STD_OUT_LOG
 
 #ifdef STD_OUT_LOG
@@ -237,7 +237,7 @@ public:
     m_size--;
   }
 
-  SPHERAL_HOST_DEVICE size_t capacity() const {return MA::m_elems;}
+  SPHERAL_HOST_DEVICE size_t capacity() const {return MA::size();}
   SPHERAL_HOST_DEVICE size_t size() const {return m_size;}
 
   SPHERAL_HOST_DEVICE DataType& operator[](size_t idx) {return MA::data()[idx]; }
@@ -264,26 +264,26 @@ public:
   template< typename U=ManagedVector< DataType > >
   SPHERAL_HOST
   auto getCallback() {
-#ifdef SPHERAL_CALLBACK_ENABLED
-    std::string const typeString = LvArray::system::demangleType< U >();
-    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
-        std::string const size = LvArray::system::calculateSize(record->m_size);
-        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
-        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
-
-        if (action == chai::Action::ACTION_MOVE){
-          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-        if (action == chai::Action::ACTION_ALLOC){
-          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-        if (action == chai::Action::ACTION_FREE){
-          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-      };
-#else
+//#ifdef SPHERAL_CALLBACK_ENABLED
+//    std::string const typeString = LvArray::system::demangleType< U >();
+//    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+//        std::string const size = LvArray::system::calculateSize(record->m_size);
+//        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+//        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
+//
+//        if (action == chai::Action::ACTION_MOVE){
+//          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//        if (action == chai::Action::ACTION_ALLOC){
+//          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//        if (action == chai::Action::ACTION_FREE){
+//          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//      };
+//#else
     return [](const chai::PointerRecord* , chai::Action , chai::ExecutionSpace ) {};
-#endif
+//#endif
   }
 
 private:
@@ -412,26 +412,26 @@ public:
   template< typename U=ManagedSmartPtr< T > >
   SPHERAL_HOST
   auto getCallback() {
-#ifdef SPHERAL_CALLBACK_ENABLED
-    std::string const typeString = LvArray::system::demangleType< U >();
-    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
-        std::string const size = LvArray::system::calculateSize(record->m_size);
-        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
-        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
-
-        if (action == chai::Action::ACTION_MOVE){
-          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-        if (action == chai::Action::ACTION_ALLOC){
-          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-        if (action == chai::Action::ACTION_FREE){
-          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
-        }
-      };
-#else
+//#ifdef SPHERAL_CALLBACK_ENABLED
+//    std::string const typeString = LvArray::system::demangleType< U >();
+//    return [typeString] (const chai::PointerRecord* record, chai::Action action, chai::ExecutionSpace exec) {
+//        std::string const size = LvArray::system::calculateSize(record->m_size);
+//        std::string const paddedSize = std::string( 9 - size.size(), ' ' ) + size;
+//        char const * const spaceStr = ( exec == chai::CPU ) ? "HOST  " : "DEVICE";
+//
+//        if (action == chai::Action::ACTION_MOVE){
+//          SPHERAL_LOG(Info, "Moved " << paddedSize << " to the " << spaceStr << ": " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//        if (action == chai::Action::ACTION_ALLOC){
+//          SPHERAL_LOG(Info, "Allocated on " << spaceStr << " " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//        if (action == chai::Action::ACTION_FREE){
+//          SPHERAL_LOG(Info, "Deallocated " << paddedSize << " : " << typeString << " @ " <<  record->m_pointers[exec] )
+//        }
+//      };
+//#else
     return [](const chai::PointerRecord* , chai::Action , chai::ExecutionSpace ) {};
-#endif
+//#endif
   }
 protected:
 
@@ -611,11 +611,11 @@ private:
 
 
 
-template<typename DataType>
-using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
-
-template<typename DataType>
-using SphArrayView = LvArray::ArrayView<DataType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
+//template<typename DataType>
+//using SphArray = LvArray::Array<DataType, 1, camp::idx_seq<0>, std::ptrdiff_t, LvArray::ChaiBuffer>;
+//
+//template<typename DataType>
+//using SphArrayView = LvArray::ArrayView<DataType, 1, 0, std::ptrdiff_t, LvArray::ChaiBuffer>;
 
 //template<typename sph_array_t>
 //class SphArrayIterator {
