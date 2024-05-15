@@ -14,8 +14,8 @@
 #include "Geometry/Dimension.hh"
 
 #include <stdint.h>
-#include <unordered_map.hpp>
-#include <unordered_set.hpp>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace Spheral {
 
