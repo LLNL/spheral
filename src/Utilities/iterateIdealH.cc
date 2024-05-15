@@ -105,10 +105,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
   // Prepare the state and derivatives
+  smoothingScaleMethod.initializeProblemStartup(dataBase);
   vector<Physics<Dimension>*> packages = {&smoothingScaleMethod};
   State<Dimension> state(dataBase, packages);
   StateDerivatives<Dimension> derivs(dataBase, packages);
-  smoothingScaleMethod.initializeProblemStartup(dataBase);
 
   // Since we don't have a hydro there are a few other fields we need registered.
   auto zerothMoment = dataBase.newFluidFieldList(0.0, HydroFieldNames::massZerothMoment);
