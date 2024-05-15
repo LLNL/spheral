@@ -342,6 +342,7 @@ finalize(const Scalar time,
          StateDerivatives<Dimension>& derivs) {
 
   // Grab our state
+  const auto numNodeLists = dataBase.numFluidNodeLists();
   const auto& cm = dataBase.connectivityMap();
   const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -364,7 +365,7 @@ finalize(const Scalar time,
                        vector<FacetedVolume>(),          // facetedBoundaries
                        vector<vector<FacetedVolume>>(),  // holes
                        boundaries,
-                       vol,                              // Use volume as weight
+                       FieldList<Dimension, Scalar>(),   // weight
                        surfacePoint,
                        vol,
                        mDeltaCentroid,
@@ -373,7 +374,6 @@ finalize(const Scalar time,
                        cellFaceFlags); 
 
   // Compute the second moments for the Voronoi cells
-  const auto numNodeLists = dataBase.numFluidNodeLists();
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = mCells[k]->numInternalElements();
 #pragma omp parallel for
@@ -383,8 +383,95 @@ finalize(const Scalar time,
   }
 
   // Apply boundary conditions to the cell second moment
-  for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->applyFieldListGhostBoundary(mCellSecondMoment);
-  for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
+  for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->applyFieldListGhostBoundary(mCellSecondMoment);
+    boundaryPtr->finalizeGhostBoundary();
+  }
+
+//   // Prepare RK correction terms
+//   FieldList<Dimension, Scalar> m0 = dataBase.newFluidFieldList(0.0, "m0");
+//   FieldList<Dimension, Vector> m1 = dataBase.newFluidFieldList(Vector::zero, "m1");
+//   FieldList<Dimension, SymTensor> m2 = dataBase.newFluidFieldList(SymTensor::zero, "m2");
+//   FieldList<Dimension, Scalar> A = dataBase.newFluidFieldList(0.0, "A");
+//   FieldList<Dimension, Vector> B = dataBase.newFluidFieldList(Vector::zero, "B");
+// #pragma omp parallel
+//   {
+//     // Thread private scratch variables
+//     bool sameMatij;
+//     int i, j, nodeListi, nodeListj;
+//     Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
+//     Vector rij, etai, etaj;
+
+//     typename SpheralThreads<Dimension>::FieldListStack threadStack;
+//     auto m0_thread = m0.threadCopy(threadStack);
+//     auto m1_thread = m1.threadCopy(threadStack);
+//     auto m2_thread = m2.threadCopy(threadStack);
+
+// #pragma omp for
+//     for (auto kk = 0u; kk < npairs; ++kk) {
+//       i = pairs[kk].i_node;
+//       j = pairs[kk].j_node;
+//       nodeListi = pairs[kk].i_list;
+//       nodeListj = pairs[kk].j_list;
+
+//       // State for node i
+//       mi = mass(nodeListi, i);
+//       rhoi = rho(nodeListi, i);
+//       const auto& ri = pos(nodeListi, i);
+//       const auto& Hi = H(nodeListi, i);
+//       auto& m0i = m0_thread(nodeListi, i);
+//       auto& m1i = m1_thread(nodeListi, i);
+//       auto& m2i = m2_thread(nodeListi, i);
+
+//       // Get the state for node j
+//       mj = mass(nodeListj, j);
+//       rhoj = rho(nodeListj, j);
+//       const auto& rj = pos(nodeListj, j);
+//       const auto& Hj = H(nodeListj, j);
+//       auto& m0j = m0_thread(nodeListj, j);
+//       auto& m1j = m1_thread(nodeListj, j);
+//       auto& m2j = m2_thread(nodeListj, j);
+
+//       // Flag if this is a contiguous material pair or not.
+//       sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
+
+//       // Node displacement.
+//       rij = ri - rj;
+//       etai = Hi*rij;
+//       etaj = Hj*rij;
+//       etaMagi = etai.magnitude();
+//       etaMagj = etaj.magnitude();
+//       CHECK(etaMagi >= 0.0);
+//       CHECK(etaMagj >= 0.0);
+
+//       // Symmetrized kernel weight and gradient.
+//       WSPHi = mWT.kernelValueSPH(etaMagi);
+//       WSPHj = mWT.kernelValueSPH(etaMagj);
+
+//       // Sum the moments
+//       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
+//       m0i +=     fweightij * WSPHi;
+//       m0j += 1.0/fweightij * WSPHj;
+//       m1i +=     fweightij * WSPHi*rij;
+//       m1j -= 1.0/fweightij * WSPHj*rij;
+//       m2i +=     fweightij * WSPHi*rij.selfdyad();
+//       m2j += 1.0/fweightij * WSPHj*rij.selfdyad();
+//     }
+
+//     // Reduce the thread values to the master.
+//     threadReduceFieldLists<Dimension>(threadStack);
+//   }   // OpenMP parallel region
+      
+//   // Compute the corrections
+//   for (auto k = 0u; k < numNodeLists; ++k) {
+//     const auto& nodeList = mass[k]->nodeList();
+//     const auto  n = nodeList.numInternalNodes();
+// #pragma omp parallel for
+//     for (auto i = 0u; i < n; ++i) {
+//       A(k,i) = 1.0/(m0(k,i) - m2(k,i).Inverse().dot(m1(k,i)).dot(m1(k,i)));
+//       B(k,i) = -m2(k,i).Inverse().dot(m1(k,i));
+//     }
+//   }
 
   // Sum the net moments at each point
   mZerothMoment = 0.0;
@@ -394,7 +481,7 @@ finalize(const Scalar time,
     // Thread private scratch variables
     bool sameMatij;
     int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
+    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, WRKi, WRKj, etaMagi, etaMagj, fweightij;
     Vector rij, etai, etaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -439,6 +526,8 @@ finalize(const Scalar time,
       // Symmetrized kernel weight and gradient.
       WSPHi = mWT.kernelValueSPH(etaMagi);
       WSPHj = mWT.kernelValueSPH(etaMagj);
+      // WRKi = WSPHi * A(nodeListi, i)*(1.0 - B(nodeListi, i).dot(rij));
+      // WRKj = WSPHj * A(nodeListj, j)*(1.0 + B(nodeListj, j).dot(rij));
 
       // Increment the moments for the pair
       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
