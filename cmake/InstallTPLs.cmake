@@ -87,8 +87,27 @@ foreach(_comp ${AXOM_COMPONENTS_ENABLED})
   list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
 
+message("-----------------------------------------------------------------------------")
+message("Find Package : RAJA")
+find_package(RAJA REQUIRED NO_DEFAULT_PATH PATHS ${raja_DIR})
+list(APPEND SPHERAL_BLT_DEPENDS RAJA)
+message("-----------------------------------------------------------------------------")
+message("Find Package : umpire")
+find_package(umpire REQUIRED NO_DEFAULT_PATH PATHS ${umpire_DIR})
+message("-----------------------------------------------------------------------------")
+
+# Chai
+set(chai_DIR "${SPHERAL_ROOT_DIR}/extern/chai")
+set(CHAI_ENABLE_RAJA_PLUGIN On CACHE BOOL "")
+set(RAJA_ENABLE_TESTS Off)
+add_subdirectory(${chai_DIR})
+list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
+
+message("-----------------------------------------------------------------------------")
+
+
 # TPLs that must be imported
-list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope camp raja chai umpire lvarray)
+list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope )
 
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)
@@ -128,3 +147,7 @@ foreach(_target axom axom::openmp)
     endforeach()
   endif()
 endforeach()
+
+
+message("-----------------------------------------------------------------------------")
+
