@@ -1,6 +1,7 @@
 spheral_add_test(
   NAME shared_ptr_tests
-  SOURCES shared_ptr_tests.cc
+  SOURCES ManagedSharedPtrTests.cc
+  #SOURCES shared_ptr_tests.cc
   #DEBUG_LINKER
 )
 spheral_add_test(
