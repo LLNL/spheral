@@ -31,8 +31,10 @@ public:
                         const double xmax,
                         const size_t n,
                         const Func& F);
-  QuadraticInterpolatorImpl();
-  ~QuadraticInterpolatorImpl();
+  SPHERAL_HOST_DEVICE
+  QuadraticInterpolatorImpl() = default;
+  SPHERAL_HOST_DEVICE
+  ~QuadraticInterpolatorImpl() = default;
 
   // Alternatively initialize from tabulated values
   void initialize(const double xmin, const double xmax,
@@ -139,7 +141,7 @@ public:
                         const double xmax,
                         const size_t n,
                         const Func& F) :
-    Base( new QuadraticInterpolatorImpl(xmin, xmax, n, F) ) {}
+    Base( chai::make_shared<QuadraticInterpolatorImpl>(xmin, xmax, n, F) ) {}
 
   void initialize(const double xmin, const double xmax, const std::vector<double>& yvals) 
     { sptr_data().initialize(xmin, xmax, yvals); }

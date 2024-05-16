@@ -139,19 +139,27 @@ public: \
 #if !defined(USE_CMSPTR)
 #define VALUE_DEF_CTOR(value_t) \
   value_t() : Base(new ImplType()) {}
-#else
-#define VALUE_DEF_CTOR(value_t) \
-  value_t() : Base(chai::make_shared<ImplType>()) {}
-#endif
-
 #define VALUE_COPY_CTOR(value_t) \
   value_t(value_t const& rhs) : Base(new ImplType( deepCopy( rhs.SPTR_DATA_REF() ) )) {}
-
 #define VALUE_ASSIGNEMT_OP() \
   ValueType& operator=(ValueType const& rhs) { \
     ViewType::operator=( ViewType::ViewType(new ImplType( deepCopy( rhs.SPTR_DATA_REF() )))); \
     return *this; \
   }
+
+#else
+#define VALUE_DEF_CTOR(value_t) \
+  value_t() : Base(chai::make_shared<ImplType>()) {}
+#define VALUE_COPY_CTOR(value_t) \
+  value_t(value_t const& rhs) : Base(chai::make_shared<ImplType>( deepCopy(rhs.SPTR_DATA_REF()) )) {}
+#define VALUE_ASSIGNEMT_OP() \
+  ValueType& operator=(ValueType const& rhs) { \
+    ViewType::operator=( ViewType::ViewType(chai::make_shared<ImplType>( deepCopy( rhs.SPTR_DATA_REF() )))); \
+    return *this; \
+  }
+
+#endif
+
 
 #define VALUE_EQ_OP() \
   bool operator==(const ValueType& rhs) const \

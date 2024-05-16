@@ -10,16 +10,16 @@
 
 namespace Spheral {
 
-//------------------------------------------------------------------------------
-// Default constructor
-//------------------------------------------------------------------------------
-QuadraticInterpolatorImpl::QuadraticInterpolatorImpl():
-  mN1(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mcoeffs() {
-}
+////------------------------------------------------------------------------------
+//// Default constructor
+////------------------------------------------------------------------------------
+//QuadraticInterpolatorImpl::QuadraticInterpolatorImpl():
+//  mN1(),
+//  mXmin(),
+//  mXmax(),
+//  mXstep(),
+//  mcoeffs() {
+//}
 
 //------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
@@ -63,11 +63,11 @@ QuadraticInterpolatorImpl::initialize(const double xmin,
   }
 }
 
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-QuadraticInterpolatorImpl::~QuadraticInterpolatorImpl() {
-}
+////------------------------------------------------------------------------------
+//// Destructor
+////------------------------------------------------------------------------------
+//QuadraticInterpolatorImpl::~QuadraticInterpolatorImpl() {
+//}
 
 ////------------------------------------------------------------------------------
 //// Equivalence

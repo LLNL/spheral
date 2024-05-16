@@ -180,7 +180,7 @@ public:
     _M_pi = temp;
   }
 
-  long _M_get_use_count() const noexcept { _M_pi ? _M_pi->_M_get_use_count() : 0; }
+  long _M_get_use_count() const noexcept { return _M_pi ? _M_pi->_M_get_use_count() : 0; }
 
   friend inline bool
   operator==(__shared_count const& a, __shared_count const& b) noexcept { return a._M_pi == b._M_pi; }
