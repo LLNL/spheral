@@ -35,6 +35,13 @@ call Physics::registerState for instance to create full populated State objects.
         return "void"
 
     @PYB11virtual
+    def registerState(self,
+                      dataBase = "DataBase<%(Dimension)s>&",
+                      state = "State<%(Dimension)s>&"):
+        "Register the state you want carried around (and potentially evolved), as well as the policies for such evolution."
+        return "void"
+
+    @PYB11virtual
     def registerDerivatives(self,
                             dataBase = "DataBase<%(Dimension)s>&",
                             derivs = "StateDerivatives<%(Dimension)s>&"):

@@ -37,6 +37,11 @@ public:
   // Physics::registerState to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
 
+  // Register the state you want carried around (and potentially evolved), as
+  // well as the policies for such evolution.
+  virtual void registerState(DataBase<Dimension>& dataBase,
+                             State<Dimension>& state) override;
+
   // Register the derivatives/change fields for updating state.
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
                                    StateDerivatives<Dimension>& derivs) override;

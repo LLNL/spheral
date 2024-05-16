@@ -159,6 +159,41 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 }
 
 //------------------------------------------------------------------------------
+// Register state
+// Override the normal SmoothingScaleBase version since we only do the idealH
+// update in the finalize step at the end of advancement step (due to expense).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ASPHSmoothingScale<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+
+  const auto Hupdate = this->HEvolution();
+  auto Hfields = dataBase.fluidHfield();
+  const auto numFields = Hfields.numFields();
+  for (auto k = 0u; k < numFields; ++k) {
+    auto& Hfield = *Hfields[k];
+    const auto& nodeList = Hfield.nodeList();
+    const auto hmaxInv = 1.0/nodeList.hmax();
+    const auto hminInv = 1.0/nodeList.hmin();
+    switch (Hupdate) {
+      case HEvolutionType::IntegrateH:
+      case HEvolutionType::IdealH:
+        state.enroll(Hfield, make_policy<IncrementBoundedState<Dimension, SymTensor, Scalar>>(hmaxInv, hminInv));
+        break;
+
+      case HEvolutionType::FixedH:
+        state.enroll(Hfield);
+        break;
+
+       default:
+         VERIFY2(false, "ASPHSmoothingScale ERROR: Unknown Hevolution option ");
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
 // Register derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
