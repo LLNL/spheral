@@ -99,6 +99,7 @@ commandLine(order = 5,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
+            fHourGlass = 0.05,
 
             Cl = None, 
             Cq = None,
@@ -420,6 +421,9 @@ output("hydro.densityUpdate")
 #output("hydro._smoothingScaleMethod.HEvolution")
 if crksph:
     output("hydro.correctionOrder")
+if asph:
+    hydro._smoothingScaleMethod.fHourGlass = fHourGlass
+    output("hydro._smoothingScaleMethod.fHourGlass")
 
 packages = [hydro]
 

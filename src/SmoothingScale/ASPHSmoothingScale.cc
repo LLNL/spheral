@@ -130,8 +130,10 @@ polySecondMoment(const Dim<3>::FacetedVolume& poly,
 template<typename Dimension>
 ASPHSmoothingScale<Dimension>::
 ASPHSmoothingScale(const HEvolutionType HUpdate,
-                   const TableKernel<Dimension>& W):
+                   const TableKernel<Dimension>& W,
+                   const Scalar fHourGlass):
   SmoothingScaleBase<Dimension>(HUpdate),
+  mfHourGlass(fHourGlass),
   mWT(W),
   mZerothMoment(FieldStorageType::CopyFields),
   mFirstMoment(FieldStorageType::CopyFields),
@@ -156,6 +158,47 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.resizeFluidFieldList(mCellSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment + " cells", false);
   dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
   dataBase.resizeFluidFieldList(mDeltaCentroid, Vector::zero, "delta centroid", false);
+}
+
+//------------------------------------------------------------------------------
+// On problem start up (following above), we need initialize the cell geometries
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ASPHSmoothingScale<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+
+  // // Grab our state
+  // const auto numNodeLists = dataBase.numFluidNodeLists();
+  // const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
+  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  // const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  // const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+
+  // // Connectivity
+  // dataBase.updateConnectivityMap(false, false, false);
+  // const auto& cm = dataBase.connectivityMap();
+
+  // // Compute the current Voronoi cells
+  // FieldList<Dimension, SymTensor> D;
+  // vector<Boundary<Dimension>*> boundaries(this->boundaryBegin(), this->boundaryEnd());
+  // auto vol = mass/rho;
+  // auto surfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
+  // auto etaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), "etaVoidPoints");
+  // FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
+  // computeVoronoiVolume(pos, H, cm, D,
+  //                      vector<FacetedVolume>(),          // facetedBoundaries
+  //                      vector<vector<FacetedVolume>>(),  // holes
+  //                      boundaries,
+  //                      FieldList<Dimension, Scalar>(),   // weight
+  //                      surfacePoint,
+  //                      vol,
+  //                      mDeltaCentroid,
+  //                      etaVoidPoints,
+  //                      mCells,
+  //                      cellFaceFlags); 
 }
 
 //------------------------------------------------------------------------------
@@ -225,12 +268,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
   // Get the state and derivative FieldLists.
   // State FieldLists.
   const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   CHECK(position.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
@@ -239,35 +287,35 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DvDx.size() == numNodeLists);
 
   // Derivative FieldLists.
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DHDt = derivs.fields(IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  massZerothMoment = derivs.fields(HydroFieldNames::massZerothMoment, 0.0);
   auto  massFirstMoment = derivs.fields(HydroFieldNames::massFirstMoment, Vector::zero);
-  auto  massSecondMoment = derivs.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(massZerothMoment.size() == numNodeLists);
   CHECK(massFirstMoment.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
 
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  // Check if we're using a compatible discretization for the momentum & energy
+  auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const bool compatibleEnergy = (pairAccelerations.size() == npairs);
+  const bool useHourGlass = (mCells.size() == numNodeLists and mfHourGlass > 0.0);
 
 #pragma omp parallel
   {
     // Thread private scratch variables
     bool sameMatij;
     int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
+    Scalar mi, mj, rhoi, rhoj, Pi, Pj, Pij, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
     Scalar Wi, Wj;
-    Vector rij, etai, etaj;
+    Vector rij, etai, etaj, gradWi, gradWj;
     SymTensor psiij;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
     auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
+    auto DvDt_thread = DvDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -279,22 +327,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       mi = mass(nodeListi, i);
       rhoi = massDensity(nodeListi, i);
+      Pi = P(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
 
       auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
+      auto& DvDti = DvDt_thread(nodeListi, i);
 
       // Get the state for node j
       mj = mass(nodeListj, j);
       rhoj = massDensity(nodeListj, j);
+      Pj = P(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
 
       auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
+      auto& DvDtj = DvDt_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
@@ -311,8 +361,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Symmetrized kernel weight and gradient.
       WSPHi = mWT.kernelValueSPH(etaMagi);
       WSPHj = mWT.kernelValueSPH(etaMagj);
-      Wi = mWT.kernelValue(etaMagi, 1.0);
-      Wj = mWT.kernelValue(etaMagj, 1.0);
+      gradWi = mWT.gradValue(etaMagi, Hi.Determinant()) * Hi*etai*safeInvVar(etaMagi);
+      gradWj = mWT.gradValue(etaMagj, Hj.Determinant()) * Hj*etaj*safeInvVar(etaMagj);
 
       // Moments of the node distribution -- used for the ideal H calculation.
       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
@@ -321,8 +371,22 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massZerothMomentj += 1.0/fweightij*WSPHj;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
-      massSecondMomenti +=     fweightij*Wi*psiij;
-      massSecondMomentj += 1.0/fweightij*Wj*psiij;
+
+      // Add term to fight pairing instability with high-aspect ratio points
+      if (useHourGlass) {
+        const auto centi = mCells(nodeListi, i).centroid();
+        const auto centj = mCells(nodeListj, j).centroid();
+        const auto  cij = centi - centj;
+        const auto  cijMag = cij.magnitude();
+        CHECK(cijMag > 0.0);
+        const auto  chat = cij/cijMag;
+        Pij = mfHourGlass * max(abs(Pi), abs(Pj)) * (1.0 - min(1.0, rij.dot(chat)/cijMag));
+        CHECK(Pij >= 0.0);
+        const auto deltaDvDt = Pij/(rhoi*rhoi)*gradWi + Pij/(rhoj*rhoj)*gradWj;
+        DvDti -= mj*deltaDvDt;
+        DvDtj += mi*deltaDvDt;
+        if (compatibleEnergy) pairAccelerations[kk] -= mj*deltaDvDt;
+      }
     } // loop over pairs
 
     // Reduce the thread values to the master.
@@ -669,6 +733,19 @@ finalize(const Scalar time,
       Hi = T.Inverse();
       Hideali = Hi;                                 // To be consistent with SPH package behaviour
     }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Apply boundary conditions to the physics specific fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ASPHSmoothingScale<Dimension>::
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->applyFieldListGhostBoundary(mCells);
   }
 }
 

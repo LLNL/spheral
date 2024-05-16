@@ -25,7 +25,8 @@ public:
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,
-                     const TableKernel<Dimension>& W);
+                     const TableKernel<Dimension>& W,
+                     const Scalar fHourGlass);
   ASPHSmoothingScale() = delete;
   virtual ~ASPHSmoothingScale() {}
 
@@ -36,6 +37,16 @@ public:
   // It is assumed after this method has been called it is safe to call
   // Physics::registerState to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup
+  // has been called.
+  // This method is called after independent variables have been initialized and put into
+  // the state and derivatives. During this method, the dependent state, such as
+  // temperature and pressure, is initialized so that all the fields in the initial
+  // state and derivatives objects are valid.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
@@ -62,7 +73,12 @@ public:
                         State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs) override;
 
+  // Apply boundary conditions to the physics specific fields.
+  virtual void applyGhostBoundaries(State<Dimension>& state,
+                                    StateDerivatives<Dimension>& derivs) override;
+
   // Access our internal data
+  Scalar                                                 fHourGlass()    const { return mfHourGlass; }
   const TableKernel<Dimension>&                          WT()            const { return mWT; }
   const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
   const FieldList<Dimension, Vector>&                    firstMoment()   const { return mFirstMoment; }
@@ -70,6 +86,9 @@ public:
   const FieldList<Dimension, FacetedVolume>&             cells()         const { return mCells; }
   const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
+
+  // Attributes we can set
+  void fHourGlass(const Scalar x) { mfHourGlass = x; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -80,6 +99,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  Scalar mfHourGlass;
   const TableKernel<Dimension>& mWT;
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, Vector> mFirstMoment;
