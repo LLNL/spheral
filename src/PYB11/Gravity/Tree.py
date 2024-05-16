@@ -16,8 +16,8 @@ class Tree:
   typedef uint64_t CellKey;
   typedef uint32_t LevelKey;
   typedef std::pair<size_t, size_t> NodeID;
-  typedef std::unordered_map<NodeID, std::vector<std::unordered_set<CellKey> > > CompletedCellSet;
-//  typedef std::unordered_map<CellKey, Tree::Cell> TreeLevel;
+  typedef boost::unordered_map<NodeID, std::vector<boost::unordered_set<CellKey> > > CompletedCellSet;
+//  typedef boost::unordered_map<CellKey, Tree::Cell> TreeLevel;
 """
 
     #---------------------------------------------------------------------------
