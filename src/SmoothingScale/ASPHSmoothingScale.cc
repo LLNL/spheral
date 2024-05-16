@@ -311,7 +311,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       auto& massZerothMomenti = massZerothMoment(nodeListi, i);
       // const auto& massFirstMomenti = massFirstMoment(nodeListi, i);
-      const auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      // const auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
       massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
@@ -325,16 +325,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                   mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
       CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-      // Compute a normalized shape using the second moment
-      auto T = massSecondMomenti.sqrt();
-      const auto Tdet = T.Determinant();
-      if (fuzzyEqual(Tdet, 0.0)) {
-        T = SymTensor::one;
-      } else {
-        T /= Dimension::rootnu(Tdet);
-      }
-      CHECK(fuzzyEqual(T.Determinant(), 1.0));
-
       // The ratio of the desired to current nodes per smoothing scale.
       const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
       CHECK(s > 0.0);
@@ -345,8 +335,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                       0.4*(1.0 + s*s) :
                       0.4*(1.0 + 1.0/(s*s*s)));
       CHECK(1.0 - a + a*s > 0.0);
-      Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, T * Dimension::rootnu(Hi.Determinant()) / (1.0 - a + a*s)));
-      // Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
+      Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
     }
   }
   TIME_END("ASPHSmoothingScaleDerivs");
@@ -398,18 +387,18 @@ finalize(const Scalar time,
                        mCells,
                        cellFaceFlags); 
 
-//   // Compute the second moments for the Voronoi cells
-//   for (auto k = 0u; k < numNodeLists; ++k) {
-//     const auto n = mCells[k]->numInternalElements();
-// #pragma omp parallel for
-//     for (auto i = 0u; i < n; ++i) {
-//       mCellSecondMoment(k,i) = polySecondMoment(mCells(k,i), pos(k,i));
-//     }
-//   }
+  // Compute the second moments for the Voronoi cells
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = mCells[k]->numInternalElements();
+#pragma omp parallel for
+    for (auto i = 0u; i < n; ++i) {
+      mCellSecondMoment(k,i) = polySecondMoment(mCells(k,i), pos(k,i)).sqrt();
+    }
+  }
 
-  // Apply boundary conditions to the cells
+  // Apply boundary conditions to the cell second moments
   for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-    boundaryPtr->applyFieldListGhostBoundary(mCells);
+    boundaryPtr->applyFieldListGhostBoundary(mCellSecondMoment);
     boundaryPtr->finalizeGhostBoundary();
   }
 
@@ -552,8 +541,8 @@ finalize(const Scalar time,
       // Symmetrized kernel weight and gradient.
       WSPHi = mWT.kernelValueSPH(etaMagi);
       WSPHj = mWT.kernelValueSPH(etaMagj);
-      Wi = mWT.kernelValue(etaMagi, 1.0);
-      Wj = mWT.kernelValue(etaMagj, 1.0);
+      // Wi = mWT.kernelValue(etaMagi, 1.0);
+      // Wj = mWT.kernelValue(etaMagj, 1.0);
       // WRKi = WSPHi * A(nodeListi, i)*(1.0 - B(nodeListi, i).dot(rij));
       // WRKj = WSPHj * A(nodeListj, j)*(1.0 + B(nodeListj, j).dot(rij));
 
@@ -561,8 +550,8 @@ finalize(const Scalar time,
       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       massZerothMomenti +=     fweightij * WSPHi;
       massZerothMomentj += 1.0/fweightij * WSPHj;
-      massSecondMomenti +=                 Wi*Wi * polySecondMoment(mCells(nodeListj, j), ri);
-      massSecondMomentj += 1.0/fweightij * Wj*Wj * polySecondMoment(mCells(nodeListi, i), rj);
+      massSecondMomenti +=                 WSPHi * mCellSecondMoment(nodeListi, i);
+      massSecondMomentj += 1.0/fweightij * WSPHj * mCellSecondMoment(nodeListj, j);
     }
 
     // Reduce the thread values to the master.
@@ -596,11 +585,11 @@ finalize(const Scalar time,
       // Complete the zeroth moment
       massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
-      // Complete the second moment
-      massSecondMomenti += W0*W0 * polySecondMoment(mCells(k,i), ri);
+      // // Complete the second moment
+      // massSecondMomenti += W0 * polySecondMoment(mCells(k,i), ri).sqrt();
 
       // Find the new normalized target shape
-      auto T = massSecondMomenti.sqrt();
+      auto T = massSecondMomenti; // .sqrt();
       {
         const auto detT = T.Determinant();
         if (fuzzyEqual(detT, 0.0)) {
