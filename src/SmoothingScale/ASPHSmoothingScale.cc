@@ -374,13 +374,13 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       // Add term to fight pairing instability with high-aspect ratio points
       if (useHourGlass) {
-        const auto centi = mCells(nodeListi, i).centroid();
-        const auto centj = mCells(nodeListj, j).centroid();
+        const auto centi = mDeltaCentroid(nodeListi, i); // mCells(nodeListi, i).centroid();
+        const auto centj = mDeltaCentroid(nodeListj, j); // mCells(nodeListj, j).centroid();
         const auto  cij = centi - centj;
         const auto  cijMag = cij.magnitude();
         CHECK(cijMag > 0.0);
         const auto  chat = cij/cijMag;
-        Pij = mfHourGlass * max(abs(Pi), abs(Pj)) * (1.0 - min(1.0, rij.dot(chat)/cijMag));
+        Pij = mfHourGlass * max(abs(Pi), abs(Pj)) * (1.0 - min(1.0, abs(rij.dot(chat))/cijMag));
         CHECK(Pij >= 0.0);
         const auto deltaDvDt = Pij/(rhoi*rhoi)*gradWi + Pij/(rhoj*rhoj)*gradWj;
         DvDti -= mj*deltaDvDt;
@@ -492,6 +492,7 @@ finalize(const Scalar time,
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
       mCellSecondMoment(k,i) = polySecondMoment(mCells(k,i), pos(k,i)).sqrt();
+      mDeltaCentroid(k,i) = mCells(k,i).centroid();
     }
   }
 
@@ -746,6 +747,7 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
     boundaryPtr->applyFieldListGhostBoundary(mCells);
+    boundaryPtr->applyFieldListGhostBoundary(mDeltaCentroid);
   }
 }
 
