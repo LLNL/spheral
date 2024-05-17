@@ -98,12 +98,13 @@ class Spheral(CachedCMakePackage, CudaPackage):
             hostname = hostname.rstrip('1234567890')
 
         envspec = os.environ.get("SPEC")
+        spec = self.spec
         if envspec:
           cache_spec = envspec
         else:
-          cache_spec = self.spec.compiler.name + "@" + self.spec.compiler.version
+          cache_spec = str(spec.compiler.name) + "@" + str(spec.compiler.version)
         return "{0}-{1}.cmake".format(
-            str(self._get_sys_type(self.spec)),
+            str(self._get_sys_type(spec)),
             cache_spec.replace(" ", "_")
         )
 
@@ -207,5 +208,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
     @property
     def build_directory(self):
         """Full-path to the directory to use when building the package."""
-        return os.path.join(self.pkg.stage.path, self.build_dirname)
+        spec = self.spec
+        if spec.satisfies("@develop"):
+            dev_build_dir = "spack-build-" + str(spec.compiler.name) + "-" + str(spec.compiler.version)
+            return os.path.join(self.pkg.stage.source_path, build_dirname)
+        else:
+            return os.path.join(self.pkg.stage.path, self.build_dirname)
 
