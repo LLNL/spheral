@@ -21,7 +21,7 @@ class ASPHSmoothingScale(SmoothingScaleBase):
     def pyinit(self,
                HUpdate = "HEvolutionType",
                W = "const TableKernel<%(Dimension)s>&",
-               fHourGlass = ("double", "0.0")):
+               fHourGlass = ("double", "0.05")):
         "ASPHSmoothingScale constructor"
 
     #...........................................................................

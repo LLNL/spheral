@@ -300,7 +300,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Check if we're using a compatible discretization for the momentum & energy
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const bool compatibleEnergy = (pairAccelerations.size() == npairs);
-  const bool useHourGlass = (mCells.size() == numNodeLists and mfHourGlass > 0.0);
+  // const bool useHourGlass = (mCells.size() == numNodeLists and mfHourGlass > 0.0);
 
 #pragma omp parallel
   {
@@ -372,21 +372,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
 
-      // Add term to fight pairing instability with high-aspect ratio points
-      if (useHourGlass) {
-        const auto centi = mDeltaCentroid(nodeListi, i); // mCells(nodeListi, i).centroid();
-        const auto centj = mDeltaCentroid(nodeListj, j); // mCells(nodeListj, j).centroid();
-        const auto  cij = centi - centj;
-        const auto  cijMag = cij.magnitude();
-        CHECK(cijMag > 0.0);
-        const auto  chat = cij/cijMag;
-        Pij = mfHourGlass * max(abs(Pi), abs(Pj)) * (1.0 - min(1.0, abs(rij.dot(chat))/cijMag));
-        CHECK(Pij >= 0.0);
-        const auto deltaDvDt = Pij/(rhoi*rhoi)*gradWi + Pij/(rhoj*rhoj)*gradWj;
-        DvDti -= mj*deltaDvDt;
-        DvDtj += mi*deltaDvDt;
-        if (compatibleEnergy) pairAccelerations[kk] -= mj*deltaDvDt;
-      }
+      // // Add term to fight pairing instability with high-aspect ratio points
+      // if (useHourGlass) {
+      //   const auto centi = mDeltaCentroid(nodeListi, i); // mCells(nodeListi, i).centroid();
+      //   const auto centj = mDeltaCentroid(nodeListj, j); // mCells(nodeListj, j).centroid();
+      //   const auto  cij = centi - centj;
+      //   const auto  cijMag = cij.magnitude();
+      //   CHECK(cijMag > 0.0);
+      //   const auto  chat = cij/cijMag;
+      //   Pij = mfHourGlass * max(abs(Pi), abs(Pj)) * (1.0 - min(1.0, abs(rij.dot(chat))/cijMag));
+      //   CHECK(Pij >= 0.0);
+      //   const auto deltaDvDt = Pij/(rhoi*rhoi)*gradWi + Pij/(rhoj*rhoj)*gradWj;
+      //   DvDti -= mj*deltaDvDt;
+      //   DvDtj += mi*deltaDvDt;
+      //   if (compatibleEnergy) pairAccelerations[kk] -= mj*deltaDvDt;
+      // }
     } // loop over pairs
 
     // Reduce the thread values to the master.
@@ -457,7 +457,9 @@ finalize(const Scalar time,
   // Grab our state
   const auto numNodeLists = dataBase.numFluidNodeLists();
   const auto& cm = dataBase.connectivityMap();
-  const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
+  auto        pos = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  vel = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
   auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -676,7 +678,7 @@ finalize(const Scalar time,
     const auto  n = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      const auto& ri = pos(k,i);
+      auto&       ri = pos(k,i);
       auto&       Hi = H(k,i);
       auto&       Hideali = Hideal(k,i);
       auto        massZerothMomenti = mZerothMoment(k,i);
@@ -733,6 +735,22 @@ finalize(const Scalar time,
       // Hi.rotationalTransform(eigenT.eigenVectors);
       Hi = T.Inverse();
       Hideali = Hi;                                 // To be consistent with SPH package behaviour
+
+      // If requested, move toward the cell centroid
+      if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
+        const auto& vi = vel(k,i);
+        const auto  ci = cs(k,i);
+        const auto vhat = vi*safeInv(vi.magnitude());   // goes to zero when velocity zero
+        const auto& centi = mDeltaCentroid(k,i); // mCells(nodeListi, i).centroid();
+        auto        dr = mfHourGlass*(centi - ri);
+        dr = dr.dot(vhat) * vhat;
+        // const auto  drmax = mfHourGlass*dt*vi.magnitude();
+        const auto  drmax = mfHourGlass*dt*ci;
+        // const auto  drmax = 0.5*dt*min(ci, vi.magnitude());
+        const auto  drmag = dr.magnitude();
+        dr *= min(1.0, drmax*safeInv(drmag));
+        ri += dr;
+      }
     }
   }
 }
