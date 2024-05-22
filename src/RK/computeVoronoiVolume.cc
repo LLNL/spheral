@@ -358,11 +358,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
-#ifdef USE_MPI
   const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
-#else
-  const auto numGensGlobal = numGens;
-#endif
   const auto haveFacetedBoundaries = facetedBoundaries.size() == numNodeLists;
   const auto haveWeights = weight.size() == numNodeLists;
   const auto haveDamage = false;  // damage.size() == numNodeLists;   // Suspending the idea of forcing surface based on damage
