@@ -196,9 +196,7 @@ finalize(const Scalar /*time*/,
         nD += nD_thread;
       }
     }
-#ifdef USE_MPI
     nD = allReduce(nD, MPI_SUM, Communicator::communicator());
-#endif
     const auto ntot = std::max(1, dataBase.globalNumInternalNodes());
     const auto dfrac = double(nD)/double(ntot);
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...

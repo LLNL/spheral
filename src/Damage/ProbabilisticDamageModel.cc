@@ -121,11 +121,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   for (auto i = 0u; i < mMask.numInternalElements(); ++i) {
     if (mMask[i] == 1) ++nused_local;
   }
-#ifdef USE_MPI
   const size_t nused_global = allReduce(nused_local, MPI_SUM, Communicator::communicator());
-#else
-  const size_t nused_global = nused_local;
-#endif
 
   // Compute the Morton-ordering for hashing with the global seed to seed each
   // point-wise random number generator.
@@ -162,10 +158,8 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
       randomGenerators[i]();                // Recommended to discard first value in sequence
     }
   }
-#ifdef USE_MPI
   mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
   mVmax = allReduce(mVmax, MPI_MAX, Communicator::communicator());
-#endif
 
   // Generate min/max ranges of flaws for each point.
   const auto mInv = 1.0/mmWeibull;
@@ -206,14 +200,12 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 
   // Some diagnostic output.
   if (nused_global > 0) {
-#ifdef USE_MPI
     minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
     maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
     totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
     epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
     epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
     numFlawsRatio = allReduce(numFlawsRatio, MPI_SUM, Communicator::communicator())/nused_global;
-#endif
     if (Process::getRank() == 0) {
       cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
            << " Min, max, max/min volumes: " << mVmin << " " << mVmax << " " << mVmax*safeInv(mVmin) << endl
