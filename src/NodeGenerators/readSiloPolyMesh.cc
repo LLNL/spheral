@@ -3,13 +3,13 @@
 // from a silo file and returns the geometry.
 //------------------------------------------------------------------------------
 #include "Utilities/DBC.hh"
+#include "Utilities/Communicator.hh"
 #include "Geometry/Dimension.hh"
 
 #include "silo.h"
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 #include <vector>

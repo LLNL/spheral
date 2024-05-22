@@ -4,11 +4,11 @@
 //------------------------------------------------------------------------------
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 #include "Boundary/CylindricalBoundary.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Communicator.hh"
 #include "Geometry/Dimension.hh"
 
 

@@ -18,9 +18,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/allReduce.hh"
-#ifdef USE_MPI
-#include "Distributed/Communicator.hh"
-#endif
+#include "Utilities/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
@@ -94,9 +92,7 @@ int
 DataBase<Dimension>::globalNumInternalNodes() const {
   int localResult = numInternalNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -105,9 +101,7 @@ int
 DataBase<Dimension>::globalNumGhostNodes() const {
   int localResult = numGhostNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -116,9 +110,7 @@ int
 DataBase<Dimension>::globalNumNodes() const {
   int localResult = numNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -130,9 +122,7 @@ int
 DataBase<Dimension>::globalNumFluidInternalNodes() const {
   int localResult = numFluidInternalNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -141,9 +131,7 @@ int
 DataBase<Dimension>::globalNumFluidGhostNodes() const {
   int localResult = numFluidGhostNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -152,9 +140,7 @@ int
 DataBase<Dimension>::globalNumFluidNodes() const {
   int localResult = numFluidNodes();
   int result = localResult;
-#ifdef USE_MPI
   result = allReduce(result, MPI_SUM, Communicator::communicator());
-#endif
   return result;
 }
 
@@ -541,17 +527,13 @@ reinitializeNeighbors() const {
   // Find the global result across all processors.
   auto box = 0.0;
   for (auto i = 0; i != Dimension::nDim; ++i) {
-#ifdef USE_MPI
     xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
     xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
-#endif
     box = std::max(box, xmax(i) - xmin(i));
   }
-#ifdef USE_MPI
   havg = allReduce(havg, MPI_SUM, Communicator::communicator());
   ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
   hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
-#endif
   if (ntot > 0) {
     havg /= ntot;
 
@@ -1863,12 +1845,10 @@ boundingBox(typename Dimension::Vector& xmin,
   }
 
   // Now find the global bounds across all processors.
-#ifdef USE_MPI
   for (int i = 0; i != Dimension::nDim; ++i) {
     xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
     xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
   }
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1958,7 +1938,6 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
 				    xminNodes, xmaxNodes,
 				    xminSample, xmaxSample);
 
-#ifdef USE_MPI
   // Now find the global bounds across all processors.
   {
     size_t nlocal = this->numInternalNodes();
@@ -1999,7 +1978,6 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
       radiusSample *= 1.001;
     }
   }
-#endif
 }
 
 //------------------------------------------------------------------------------

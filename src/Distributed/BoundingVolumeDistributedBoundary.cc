@@ -21,7 +21,7 @@
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include <algorithm>
 using std::vector;

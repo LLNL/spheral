@@ -21,9 +21,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
-#ifdef USE_MPI
-#include "Distributed/Communicator.hh"
-#endif
+#include "Utilities/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <cmath>
@@ -217,9 +215,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       mDtMinAcc = min(mDtMinAcc, sqrt(hi/ai.magnitude()));      // Similar to acceleration constraint from TreeGravity
     }
   }
-#ifdef USE_MPI
   mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
-#endif
 }
 
 //------------------------------------------------------------------------------

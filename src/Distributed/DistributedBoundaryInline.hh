@@ -1,7 +1,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "DataBase/DataBase.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 namespace Spheral {
 

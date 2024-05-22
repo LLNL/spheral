@@ -17,9 +17,7 @@
 #include "Utilities/range.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/allReduce.hh"
-#ifdef USE_MPI
-#include "Distributed/Communicator.hh"
-#endif
+#include "Utilities/Communicator.hh"
 #include "Utilities/DBC.hh"
 #include "Integrator.hh"
 
@@ -230,11 +228,7 @@ selectDt(const typename Dimension::Scalar dtMin,
         dt.first >= dtMin and dt.first <= dtMax);
 
   // In the parallel case we need to find the minimum timestep across all processors.
-#ifdef USE_MPI
   const auto globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
-#else
-  const auto globalDt = dt.first;
-#endif
 
   // Are we verbose?
   if (dt.first == globalDt and 

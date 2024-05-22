@@ -4,7 +4,7 @@ if (ENABLE_MPI)
   #----------------------------------------------------------------------------
   # MPI parallel on
   #----------------------------------------------------------------------------
-  set(Distributed_sources Communicator.cc waitAllWithDeadlockDetection.cc)
+  set(Distributed_sources waitAllWithDeadlockDetection.cc)
 
   if (ENABLE_1D)
     list(APPEND Distributed_sources SortAndDivideRedistributeNodes1d.cc)
@@ -37,7 +37,6 @@ if (ENABLE_MPI)
   set(Distributed_headers
       BoundingVolumeDistributedBoundary.hh
       BoundingVolumeDistributedBoundaryInline.hh
-      Communicator.hh
       CompareDomainNodesByPosition.hh
       DistributeByXPosition.hh
       DistributedBoundary.hh

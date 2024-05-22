@@ -9,10 +9,7 @@
 
 #include "Mesh.hh"
 #include "Utilities/DBC.hh"
-#ifdef USE_MPI
-#include "Distributed/Communicator.hh"
-#endif
-
+#include "Utilities/Communicator.hh"
 #include "Utilities/timingUtilities.hh"
 
 using namespace boost;

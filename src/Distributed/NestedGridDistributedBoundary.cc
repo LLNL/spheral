@@ -16,7 +16,7 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
 #include "waitAllWithDeadlockDetection.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include <list>
 #include <algorithm>

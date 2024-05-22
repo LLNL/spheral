@@ -18,13 +18,13 @@
 #include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/KeyTraits.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Communicator.hh"
 
 #include <vector>
 #include <tuple>
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {
@@ -37,13 +37,8 @@ inline
 int
 numGlobalNodes(const NodeList<Dimension>& nodeList) {
   int localResult = nodeList.numInternalNodes();
-#ifdef USE_MPI
-  int result;
-  MPI_Allreduce(&localResult, &result, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+  int result = allReduce(localResult, MPI_SUM, Communicator::communicator());
   CHECK(result >= localResult);
-#else
-  const int result = localResult;
-#endif
   return result;
 }
   

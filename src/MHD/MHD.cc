@@ -34,7 +34,7 @@
 #include "Spasmos/Config.h"
 #include "Spasmos/PyPetsc.h"
 #include "Spasmos/MatFactory.h"
-#include "Distributed/Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include <cstdio>
 #include <cstdlib>

@@ -16,6 +16,7 @@ set(Utilities_inst
 
 set(Utilities_sources
     BuildData.cc
+    Communicator.cc
     DBC.cc
     QuadraticInterpolator.cc
     CubicHermiteInterpolator.cc
@@ -43,6 +44,7 @@ set(Utilities_headers
     setGlobalFlags.hh
     Bessel.hh
     BuildData.hh
+    Communicator.hh
     CounterClockwiseComparator.hh
     DBC.hh
     QuadraticInterpolator.hh

@@ -8,12 +8,12 @@
 #include "Field/Field.hh"
 #include "Kernel/TableKernel.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
-#include "Distributed/Communicator.hh"
 #endif
 
 #include <algorithm>
@@ -1349,11 +1349,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 sumElements() const {
-#ifdef USE_MPI
   return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
-#else
-  return this->localSumElements();
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1364,11 +1360,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 min() const {
-#ifdef USE_MPI
   return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
-#else
-  return this->localMin();
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1379,11 +1371,7 @@ inline
 DataType
 FieldList<Dimension, DataType>::
 max() const {
-#ifdef USE_MPI
   return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
-#else
-  return this->localMax();
-#endif
 }
 
 //------------------------------------------------------------------------------
