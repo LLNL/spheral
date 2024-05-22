@@ -126,9 +126,11 @@ void
 VoronoiCells<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
+  auto cells = state.template fields<FacetedVolume>(HydroFieldNames::cells);
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   for (auto* boundaryPtr: this->boundaryConditions()) {
+    boundaryPtr->applyFieldListGhostBoundary(cells);
     boundaryPtr->applyFieldListGhostBoundary(vol);
     boundaryPtr->applyFieldListGhostBoundary(surfacePoint);
   }
@@ -142,9 +144,11 @@ void
 VoronoiCells<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+  auto cells = state.template fields<FacetedVolume>(HydroFieldNames::cells);
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   for (auto* boundaryPtr: this->boundaryConditions()) {
+    boundaryPtr->enforceFieldListBoundary(cells);
     boundaryPtr->enforceFieldListBoundary(vol);
     boundaryPtr->enforceFieldListBoundary(surfacePoint);
   } 
@@ -210,9 +214,15 @@ finalize(const Scalar time,
     }
   }
   
+  auto& boundaries = this->boundaryConditions();
+  for (auto* bcPtr: boundaries) {
+    bcPtr->applyFieldListGhostBoundary(mVolume);
+    bcPtr->applyFieldListGhostBoundary(mWeight);
+  }
+  for (auto* bcPtr: boundaries) bcPtr->finalizeGhostBoundary();
+
   // Compute the cell data.  Note we are using the fact the state versions of the things
   // we're updating (mSurfacePoint, mCells, etc.) are just pointing at our internal fields.
-  auto& boundaries = this->boundaryConditions();
   computeVoronoiVolume(pos, H, cm, D, mFacetedBoundaries, mFacetedHoles, boundaries, mWeight,
                        mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags);
 }
