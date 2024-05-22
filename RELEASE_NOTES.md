@@ -1,3 +1,17 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+
+  * Bug Fixes / improvements:
+
 Version v2024.01.1 -- Release date 2024-02-17
 ==============================================
   * Important Notes:
@@ -9,15 +23,22 @@ Notable changes include:
     * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
       of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
       State and StateDerivatives object).
-
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
   * Build changes / improvements:
-    * 
+    * Improved the target export functionality.
 
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
     * Updating header lists for including Spheral modules in external projects.
     * Adding effective viscous pressure back to FSISPH.
     * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================

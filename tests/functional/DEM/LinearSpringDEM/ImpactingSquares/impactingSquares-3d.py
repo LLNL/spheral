@@ -16,6 +16,8 @@ if mpi.procs > 1:
 else:
     from DistributeNodes import distributeNodes3d
 
+random.seed(0)
+
 title("DEM 3d Impacting Squares")
 # This tests the conservation properties of the DEM package when
 # distribution across multiple processors

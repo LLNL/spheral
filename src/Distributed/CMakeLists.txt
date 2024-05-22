@@ -64,10 +64,12 @@ if (ENABLE_MPI)
       waitAllWithDeadlockDetection.hh
       )
 
-  install(FILES       mpi_mpi4py.py
-          DESTINATION Spheral
-          RENAME      mpi.py
-          )
+  if (NOT ENABLE_CXXONLY)
+    install(FILES       mpi_mpi4py.py
+            DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
+            RENAME      mpi.py
+            )
+  endif()
 
   spheral_add_obj_library(Distributed SPHERAL_OBJ_LIBS)
 
@@ -75,10 +77,12 @@ else()
   #----------------------------------------------------------------------------
   # MPI parallel off
   #----------------------------------------------------------------------------
-  install(FILES       fakempi.py
-          DESTINATION Spheral
-          RENAME      mpi.py
-          )
+  if (NOT ENABLE_CXXONLY)
+    install(FILES       fakempi.py
+            DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
+            RENAME      mpi.py
+            )
+  endif()
 
 endif()
 
