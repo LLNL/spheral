@@ -143,11 +143,19 @@ generateCylDistributionFromRZ(vector<double>& x,
          (int)globalIDs.size() == ndomain and
          (int)H.size() == ndomain);
   for (int ikey = 0; ikey != nextra; ++ikey) VERIFY((int)extraFields[ikey].size() == ndomain);
+#ifdef USE_MPI
   {
     int nlocal = x.size();
-    int nglobal = allReduce(nlocal, MPI_SUM, Communicator::communicator());
+    int nglobal;
+    if (nProcs > 1) {
+      MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+    }
+    else {
+      nglobal = nlocal;
+    }
     VERIFY(nglobal == ntot);
   }
+#endif
 
 }
 
