@@ -14,7 +14,7 @@
 #include "CompareDomainNodesByPosition.hh"
 #include "Field/FieldList.hh"
 #include "Geometry/EigenStruct.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include <limits>
 using std::vector;

@@ -21,7 +21,7 @@
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/RedistributionRegistrar.hh"
 #include "Utilities/allReduce.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

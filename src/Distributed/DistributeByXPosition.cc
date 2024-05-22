@@ -13,7 +13,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <algorithm>

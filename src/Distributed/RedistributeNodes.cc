@@ -15,7 +15,7 @@
 #include "Utilities/packElement.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/RedistributionRegistrar.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

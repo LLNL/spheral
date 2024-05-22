@@ -6,10 +6,10 @@
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 #include <ctime>
@@ -144,9 +144,7 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
       ++k;
     }
   }
-#ifdef USE_MPI
   Msum = allReduce(Msum, MPI_SUM, Communicator::communicator());
-#endif
 
   // If needed, rescale the masses.
   if (targetMass > 0.0) {

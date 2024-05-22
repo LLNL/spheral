@@ -6,9 +6,7 @@
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/allReduce.hh"
-#ifdef USE_MPI
-#include "Distributed/Communicator.hh"
-#endif
+#include "Utilities/Communicator.hh"
 
 #include <cmath>
 #include <iostream>
@@ -712,11 +710,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-#ifdef USE_MPI
   return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
-#else
-  return this->localSumElements();
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -727,11 +721,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-#ifdef USE_MPI
   return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
-#else
-  return this->localMin();
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -742,11 +732,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-#ifdef USE_MPI
   return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
-#else
-  return this->localMax();
-#endif
 }
 
 //------------------------------------------------------------------------------

@@ -17,11 +17,11 @@ using std::abs;
 #include "Utilities/DBC.hh"
 #include "Utilities/allReduce.hh"
 #include "Utilities/boundingBox.hh"
+#include "Utilities/Communicator.hh"
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #include "Utilities/packElement.hh"
 #endif
 

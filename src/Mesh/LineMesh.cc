@@ -7,11 +7,11 @@
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/allReduce.hh"
+#include "Utilities/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 #include <algorithm>
@@ -56,11 +56,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
                     const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
-#ifdef USE_MPI
   if (allReduce(unsigned(localGenerators.size()), MPI_SUM, Communicator::communicator()) == 0) return;
-#else
-  if (localGenerators.size() == 0) return;
-#endif
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
@@ -287,10 +283,8 @@ boundingSurface() const {
     xmin = std::min(xmin, mNodePositions[i].x());
     xmax = std::max(xmax, mNodePositions[i].x());
   }
-#ifdef USE_MPI
   xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
   xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
-#endif
   return FacetedVolume(Vector(0.5*(xmin + xmax)), 0.5*(xmax - xmin));
 }
 

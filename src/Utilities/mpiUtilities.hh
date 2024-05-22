@@ -9,12 +9,13 @@
 #ifndef __Spheral_mpiUtilities__
 #define __Spheral_mpiUtilities__
 
+#include "Utilities/Communicator.hh"
+
 #ifdef USE_MPI 
 //==============================================================================
 // MPI versions.
 //==============================================================================
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 

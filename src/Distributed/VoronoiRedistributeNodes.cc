@@ -27,7 +27,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Utilities/allReduce.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

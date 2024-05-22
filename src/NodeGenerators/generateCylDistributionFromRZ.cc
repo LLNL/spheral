@@ -4,11 +4,11 @@
 //------------------------------------------------------------------------------
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 #include "Boundary/CylindricalBoundary.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Communicator.hh"
 #include "Geometry/Dimension.hh"
 
 
@@ -143,19 +143,11 @@ generateCylDistributionFromRZ(vector<double>& x,
          (int)globalIDs.size() == ndomain and
          (int)H.size() == ndomain);
   for (int ikey = 0; ikey != nextra; ++ikey) VERIFY((int)extraFields[ikey].size() == ndomain);
-#ifdef USE_MPI
   {
     int nlocal = x.size();
-    int nglobal;
-    if (nProcs > 1) {
-      MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    }
-    else {
-      nglobal = nlocal;
-    }
+    int nglobal = allReduce(nlocal, MPI_SUM, Communicator::communicator());
     VERIFY(nglobal == ntot);
   }
-#endif
 
 }
 

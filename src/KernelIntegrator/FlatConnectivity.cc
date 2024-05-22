@@ -8,7 +8,6 @@
 #include <algorithm>
 #ifdef USE_MPI
 #include "mpi.h"
-#include "Distributed/Communicator.hh"
 #endif
 
 #include "Boundary/ConstantBoundary.hh"
@@ -19,6 +18,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
+#include "Utilities/Communicator.hh"
 
 namespace Spheral {
 

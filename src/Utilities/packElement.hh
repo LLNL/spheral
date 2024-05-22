@@ -13,6 +13,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
 #include "Utilities/uniform_random.hh"
+#include "Utilities/Communicator.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 
@@ -26,7 +27,6 @@
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {

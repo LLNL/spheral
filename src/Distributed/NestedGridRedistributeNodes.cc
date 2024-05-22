@@ -17,7 +17,7 @@
 #include "Neighbor/NestedGridNeighbor.hh"
 #include "Neighbor/GridCellIndex.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Communicator.hh"
+#include "Utilities/Communicator.hh"
 
 #include "Utilities/DBC.hh"
 
