@@ -525,7 +525,6 @@ def dumpPhysicsState(stateThingy,
     FacetedVolume = {2 : Polygon,
                      3 : Polyhedron}[dataBase.nDim]
     if state.fieldNameRegistered(HydroFieldNames.cells):
-        sys.stderr.write("Found cells registered in state!\n")
         assert state.fieldNameRegistered(HydroFieldNames.cellFaceFlags)
         cells = state.facetedVolumeFields(HydroFieldNames.cells)
         cellFaceFlags = state.vector_of_CellFaceFlagFields(HydroFieldNames.cellFaceFlags)
