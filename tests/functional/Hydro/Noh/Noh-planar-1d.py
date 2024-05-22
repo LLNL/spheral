@@ -98,6 +98,7 @@ commandLine(KernelConstructor = NBSplineKernel,
 
             hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM)
             crktype = "default",               # one of ("default", "variant")
+            asph = False,                      # For H update algorithm, applies to all hydros
             gsphReconstructionGradient = RiemannGradient, #one of (RiemannGradient, HydroAccelerationGradient, SPHGradient, MixedGradient, OnlyDvDxGradient)
             evolveTotalEnergy = False,         # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
@@ -505,7 +506,8 @@ else:
                 HUpdate = HUpdate,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                ASPH = asph)
 output("hydro")
 try:
     output("hydro.kernel")
@@ -652,7 +654,7 @@ control = SpheralController(integrator,
                             restartFileConstructor = restartFileConstructor,
                             SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice,
                             restoreCycle = restoreCycle,
-                            SPH = False
+                            SPH = not asph,
                             )
 output("control")
 

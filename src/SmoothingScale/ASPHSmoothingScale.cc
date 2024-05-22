@@ -13,7 +13,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "RK/computeVoronoiVolume.hh"
+#include "Boundary/Boundary.hh"
 #include "FileIO/FileIO.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/range.hh"
@@ -138,9 +138,7 @@ ASPHSmoothingScale(const HEvolutionType HUpdate,
   mZerothMoment(FieldStorageType::CopyFields),
   mFirstMoment(FieldStorageType::CopyFields),
   mSecondMoment(FieldStorageType::CopyFields),
-  mCellSecondMoment(FieldStorageType::CopyFields),
-  mCells(FieldStorageType::CopyFields),
-  mDeltaCentroid(FieldStorageType::CopyFields) {
+  mCellSecondMoment(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -156,8 +154,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.resizeFluidFieldList(mFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
   dataBase.resizeFluidFieldList(mSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
   dataBase.resizeFluidFieldList(mCellSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment + " cells", false);
-  dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
-  dataBase.resizeFluidFieldList(mDeltaCentroid, Vector::zero, "delta centroid", false);
 }
 
 //------------------------------------------------------------------------------
@@ -297,9 +293,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(massZerothMoment.size() == numNodeLists);
   CHECK(massFirstMoment.size() == numNodeLists);
 
-  // Check if we're using a compatible discretization for the momentum & energy
-  auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const bool compatibleEnergy = (pairAccelerations.size() == npairs);
+  // // Check if we're using a compatible discretization for the momentum & energy
+  // auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  // const bool compatibleEnergy = (pairAccelerations.size() == npairs);
   // const bool useHourGlass = (mCells.size() == numNodeLists and mfHourGlass > 0.0);
 
 #pragma omp parallel
@@ -327,24 +323,24 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       mi = mass(nodeListi, i);
       rhoi = massDensity(nodeListi, i);
-      Pi = P(nodeListi, i);
+      // Pi = P(nodeListi, i);
       const auto& ri = position(nodeListi, i);
       const auto& Hi = H(nodeListi, i);
 
       auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
-      auto& DvDti = DvDt_thread(nodeListi, i);
+      // auto& DvDti = DvDt_thread(nodeListi, i);
 
       // Get the state for node j
       mj = mass(nodeListj, j);
       rhoj = massDensity(nodeListj, j);
-      Pj = P(nodeListj, j);
+      // Pj = P(nodeListj, j);
       const auto& rj = position(nodeListj, j);
       const auto& Hj = H(nodeListj, j);
 
       auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
-      auto& DvDtj = DvDt_thread(nodeListj, j);
+      // auto& DvDtj = DvDt_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
@@ -462,6 +458,8 @@ finalize(const Scalar time,
   const auto  cs = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
   const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto  cells = state.fields(HydroFieldNames::cells, FacetedVolume());
+  const auto  surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
   auto        Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
 
@@ -469,32 +467,12 @@ finalize(const Scalar time,
   const auto& pairs = cm.nodePairList();
   const auto  npairs = pairs.size();
 
-  // Compute the current Voronoi cells
-  FieldList<Dimension, SymTensor> D;
-  vector<Boundary<Dimension>*> boundaries(this->boundaryBegin(), this->boundaryEnd());
-  auto vol = mass/rho;
-  auto surfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
-  auto etaVoidPoints = dataBase.newFluidFieldList(vector<Vector>(), "etaVoidPoints");
-  FieldList<Dimension, vector<CellFaceFlag>> cellFaceFlags;
-  computeVoronoiVolume(pos, H, cm, D,
-                       vector<FacetedVolume>(),          // facetedBoundaries
-                       vector<vector<FacetedVolume>>(),  // holes
-                       boundaries,
-                       FieldList<Dimension, Scalar>(),   // weight
-                       surfacePoint,
-                       vol,
-                       mDeltaCentroid,
-                       etaVoidPoints,
-                       mCells,
-                       cellFaceFlags); 
-
   // Compute the second moments for the Voronoi cells
   for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = mCells[k]->numInternalElements();
+    const auto n = cells[k]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      mCellSecondMoment(k,i) = polySecondMoment(mCells(k,i), pos(k,i)).sqrt();
-      mDeltaCentroid(k,i) = mCells(k,i).centroid();
+      mCellSecondMoment(k,i) = polySecondMoment(cells(k,i), pos(k,i)).sqrt();
     }
   }
 
@@ -736,21 +714,21 @@ finalize(const Scalar time,
       Hi = T.Inverse();
       Hideali = Hi;                                 // To be consistent with SPH package behaviour
 
-      // If requested, move toward the cell centroid
-      if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
-        const auto& vi = vel(k,i);
-        const auto  ci = cs(k,i);
-        const auto vhat = vi*safeInv(vi.magnitude());   // goes to zero when velocity zero
-        const auto& centi = mDeltaCentroid(k,i); // mCells(nodeListi, i).centroid();
-        auto        dr = mfHourGlass*(centi - ri);
-        dr = dr.dot(vhat) * vhat;
-        // const auto  drmax = mfHourGlass*dt*vi.magnitude();
-        const auto  drmax = mfHourGlass*dt*ci;
-        // const auto  drmax = 0.5*dt*min(ci, vi.magnitude());
-        const auto  drmag = dr.magnitude();
-        dr *= min(1.0, drmax*safeInv(drmag));
-        ri += dr;
-      }
+      // // If requested, move toward the cell centroid
+      // if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
+      //   const auto& vi = vel(k,i);
+      //   const auto  ci = cs(k,i);
+      //   const auto  vhat = vi*safeInv(vi.magnitude());   // goes to zero when velocity zero
+      //   const auto  centi = cells(k,i).centroid();
+      //   auto        dr = mfHourGlass*(centi - ri);
+      //   dr = dr.dot(vhat) * vhat;
+      //   // const auto  drmax = mfHourGlass*dt*vi.magnitude();
+      //   const auto  drmax = mfHourGlass*dt*ci;
+      //   // const auto  drmax = 0.5*dt*min(ci, vi.magnitude());
+      //   const auto  drmag = dr.magnitude();
+      //   dr *= min(1.0, drmax*safeInv(drmag));
+      //   ri += dr;
+      // }
     }
   }
 }
@@ -763,10 +741,6 @@ void
 ASPHSmoothingScale<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
-  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-    boundaryPtr->applyFieldListGhostBoundary(mCells);
-    boundaryPtr->applyFieldListGhostBoundary(mDeltaCentroid);
-  }
 }
 
 //------------------------------------------------------------------------------

@@ -4,6 +4,7 @@
 from PYB11Generator import *
 
 @PYB11template("Dimension")
+@PYB11holder("std::shared_ptr")
 class ConnectivityMap:
 
     PYB11typedefs = """

@@ -31,7 +31,7 @@ namespace Spheral {
 template<typename Dimension>
 void
 iterateIdealH(DataBase<Dimension>& dataBase,
-              SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+              vector<Physics<Dimension>*>& packages,     // Should include smoothing scale algorithm
               const vector<Boundary<Dimension>*>& boundaries,
               const int maxIterations,
               const double tolerance,
@@ -105,8 +105,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
   // Prepare the state and derivatives
-  smoothingScaleMethod.initializeProblemStartup(dataBase);
-  vector<Physics<Dimension>*> packages = {&smoothingScaleMethod};
+  for (auto* pkg: packages) pkg->initializeProblemStartup(dataBase);
   State<Dimension> state(dataBase, packages);
   StateDerivatives<Dimension> derivs(dataBase, packages);
 
@@ -150,6 +149,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Update connectivity
     dataBase.updateConnectivityMap(false, false, false);
+    state.enrollConnectivityMap(dataBase.connectivityMapPtr(false, false, false));
 
     // Some methods update both Hideal and H in the finalize, so we make a copy of the state
     // to give the methods
@@ -157,11 +157,13 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     state1.copyState();
 
     // Call the smoothing scale package to get a new vote on the ideal H
-    smoothingScaleMethod.initialize(0.0, 1.0, dataBase, state1, derivs);
+    for (auto* pkg: packages) pkg->initialize(0.0, 1.0, dataBase, state1, derivs);
     derivs.Zero();
-    smoothingScaleMethod.evaluateDerivatives(0.0, 1.0, dataBase, state1, derivs);
-    smoothingScaleMethod.finalizeDerivatives(0.0, 1.0, dataBase, state1, derivs);
-    smoothingScaleMethod.finalize(0.0, 1.0, dataBase, state1, derivs);
+    for (auto* pkg: packages) {
+      pkg->evaluateDerivatives(0.0, 1.0, dataBase, state1, derivs);
+      pkg->finalizeDerivatives(0.0, 1.0, dataBase, state1, derivs);
+      pkg->finalize(0.0, 1.0, dataBase, state1, derivs);
+    }
     
     // Set the new H and measure how much it changed
     for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {

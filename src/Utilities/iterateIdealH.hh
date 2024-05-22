@@ -8,7 +8,7 @@
 #include "DataBase/DataBase.hh"
 #include "Boundary/Boundary.hh"
 #include "Kernel/TableKernel.hh"
-#include "SmoothingScale/SmoothingScaleBase.hh"
+#include "Physics/Physics.hh"
 
 #include <vector>
 
@@ -16,7 +16,7 @@ namespace Spheral {
 template<typename Dimension>
 void
 iterateIdealH(DataBase<Dimension>& dataBase,
-              SmoothingScaleBase<Dimension>& smoothingScaleMethod,
+              std::vector<Physics<Dimension>*>& packages,     // Should include the smoothing scale algorithm
               const std::vector<Boundary<Dimension>*>& boundaries,
               const int maxIterations = 100,
               const double tolerance = 1.0e-10,

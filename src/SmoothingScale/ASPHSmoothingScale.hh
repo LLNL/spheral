@@ -77,14 +77,15 @@ public:
   virtual void applyGhostBoundaries(State<Dimension>& state,
                                     StateDerivatives<Dimension>& derivs) override;
 
+  // We require the Voronoi-like cells per point
+  virtual bool requireVoronoiCells() const override                            { return true; }
+
   // Access our internal data
   Scalar                                                 fHourGlass()    const { return mfHourGlass; }
   const TableKernel<Dimension>&                          WT()            const { return mWT; }
   const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
   const FieldList<Dimension, Vector>&                    firstMoment()   const { return mFirstMoment; }
   const FieldList<Dimension, SymTensor>&                 secondMoment()  const { return mSecondMoment; }
-  const FieldList<Dimension, FacetedVolume>&             cells()         const { return mCells; }
-  const FieldList<Dimension, Vector>&                    deltaCentroid() const { return mDeltaCentroid; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
 
   // Attributes we can set
@@ -104,10 +105,6 @@ private:
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, Vector> mFirstMoment;
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
-
-  // Voronoi stuff
-  FieldList<Dimension, FacetedVolume> mCells;
-  FieldList<Dimension, Vector> mDeltaCentroid;
 };
 
 }

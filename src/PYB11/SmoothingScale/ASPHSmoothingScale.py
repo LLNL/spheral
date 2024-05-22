@@ -90,6 +90,12 @@ temperature or pressure."""
 
     @PYB11virtual
     @PYB11const
+    def requireVoronoiCells(self):
+        "Some physics algorithms require the Voronoi cells per point be computed."
+        return "bool"
+
+    @PYB11virtual
+    @PYB11const
     def label(self):
         return "std::string"
 

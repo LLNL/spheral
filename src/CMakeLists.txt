@@ -39,6 +39,7 @@ list(APPEND _packages
   Physics
   Porosity
   RK
+  VoronoiCells
   SPH
   SVPH
   SmoothingScale

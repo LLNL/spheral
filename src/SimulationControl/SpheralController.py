@@ -216,6 +216,16 @@ class SpheralController:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+
+        # Build the connectivity
+        requireConnectivity = max([pkg.requireConnectivity() for pkg in packages])
+        if requireConnectivity:
+            requireGhostConnectivity = max([pkg.requireGhostConnectivity() for pkg in packages])
+            requireOverlapConnectivity = max([pkg.requireOverlapConnectivity() for pkg in packages])
+            requireIntersectionConnectivity = max([pkg.requireIntersectionConnectivity() for pkg in packages])
+            db.updateConnectivityMap(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity)
+            state.enrollConnectivityMap(db.connectivityMapPtr(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity))
+
         for package in packages:
             package.initializeProblemStartupDependencies(db, state, derivs)
         db.reinitializeNeighbors()
@@ -663,6 +673,27 @@ class SpheralController:
         RKCorrections = eval("RKCorrections%s" % self.dim)
         vector_of_Physics = eval("vector_of_Physics%s" % self.dim)
 
+        # Anyone require Voronoi cells?
+        # If so we need the VoronoiCells physics package first
+        voronoibcs = []
+        index = -1
+        for (ipack, package) in enumerate(packages):
+            if package.requireVoronoiCells():
+                pbcs = package.boundaryConditions
+                voronoibcs += [bc for bc in pbcs if not bc in voronoibcs]
+                if index == -1:
+                    index = ipack
+
+        if index >= 0:
+            VC = eval("VoronoiCells" + self.dim)
+            fb = eval("vector_of_FacetedVolume{}()".format(self.dim)) if facetedBoundaries is None else facetedBoundaries
+            self.VoronoiCells = VC(kernelExtent = db.maxKernelExtent,
+                                   facetedBoundaries = fb)
+            for bc in voronoibcs:
+                self.VoronoiCells.appendBoundary(bc)
+            packages.insert(index, self.VoronoiCells)
+            self.integrator.resetPhysicsPackages(packages)
+
         # Are there any packages that require reproducing kernels?
         # If so, insert the RKCorrections package prior to any RK packages
         rkorders = set()
@@ -856,12 +887,16 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         print("SpheralController: Initializing H's...")
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
+        packages = eval(f"vector_of_Physics{self.dim}()")
         if self.SPH:
             method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+            packages.append(method)
         else:
             method = eval(f"ASPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+            packages.append(self.VoronoiCells)
+            packages.append(method)
         iterateIdealH = eval(f"iterateIdealH{self.dim}")
-        iterateIdealH(db, method, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
+        iterateIdealH(db, packages, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
         return
 

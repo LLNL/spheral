@@ -6,8 +6,8 @@ text = """
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template void iterateIdealH<Dim< %(ndim)s > >(DataBase<Dim< %(ndim)s > >&, 
-                                       SmoothingScaleBase<Dim< %(ndim)s > >&,
+  template void iterateIdealH<Dim< %(ndim)s > >(DataBase<Dim<%(ndim)s>>&, 
+                                       std::vector<Physics<Dim<%(ndim)s>>*>&,
                                        const vector<Boundary<Dim< %(ndim)s > >*>&, 
                                        const int,
                                        const double,

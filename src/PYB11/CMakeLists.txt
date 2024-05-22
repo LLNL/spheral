@@ -13,6 +13,7 @@ set (_python_packages
   FileIO
   Utilities
   RK
+  VoronoiCells
   DataBase
   Boundary
   Physics

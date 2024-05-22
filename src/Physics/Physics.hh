@@ -173,37 +173,40 @@ public:
                        StateDerivatives<Dimension>& derivatives);
 
   // Some physics does not require the connectivity be constructed.
-  virtual bool requireConnectivity() const;
+  virtual bool requireConnectivity() const                       { return true; }                // Default TRUE
 
   // Some physics algorithms require ghost connectivity to be constructed.
-  virtual bool requireGhostConnectivity() const;
+  virtual bool requireGhostConnectivity() const                  { return false; }               // Default FALSE
 
   // Some physics algorithms require overlap connectivity.
-  virtual bool requireOverlapConnectivity() const;
+  virtual bool requireOverlapConnectivity() const                { return false; }               // Default FALSE
 
   // Some physics algorithms require intersection connectivity
-  virtual bool requireIntersectionConnectivity() const;
+  virtual bool requireIntersectionConnectivity() const           { return false; }               // Default FALSE
+
+  // Does this package require Voronoi-like cells per point?
+  virtual bool requireVoronoiCells() const                       { return false; }               // Default FALSE
 
   // Does this package require reproducing kernel functions?
-  virtual std::set<RKOrder> requireReproducingKernels() const;
+  virtual std::set<RKOrder> requireReproducingKernels() const    { return std::set<RKOrder>(); } // Default no RK orders
 
   // If using reproducing kernels, do we need the second derivative?
-  virtual bool requireReproducingKernelHessian() const;
+  virtual bool requireReproducingKernelHessian() const           { return false; }               // Default FALSE
 
   // Does this package need an update of reproducing kernels during finalize?
-  virtual bool updateReproducingKernelsInFinalize() const;
+  virtual bool updateReproducingKernelsInFinalize() const        { return false; }               // Default FALSE
   
   // Many physics packages will have their own representations of energy in the
   // system (gravitational potential energy, radiative losses, etc.)
-  virtual Scalar extraEnergy() const;
+  virtual Scalar extraEnergy() const                             { return 0.0; }
 
   // Many physics packages will also have their own representations of momentum in the
   // system (electromagnetic momentum flux density, etc.) 
-  virtual Vector extraMomentum() const;
+  virtual Vector extraMomentum() const                           { return Vector::zero; }
 
   // Register any additional state for visualization.
   virtual void registerAdditionalVisualizationState(DataBase<Dimension>& dataBase,
-                                                    State<Dimension>& state);
+                                                    State<Dimension>& state) {}
 
 private:
   //--------------------------- Private Interface ---------------------------//

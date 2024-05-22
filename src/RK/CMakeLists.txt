@@ -23,8 +23,6 @@ set(RK_inst
     )
 
 set(RK_sources
-    computeVoronoiVolume.cc
-    computeVoronoiVolume1d.cc
     RKFieldNames.cc
     )
 
@@ -55,7 +53,6 @@ set(RK_headers
     computeOccupancyVolume.hh
     computeRKSumVolume.hh
     computeRKVolumes.hh
-    computeVoronoiVolume.hh
     gradientRK.hh
     hessianRK.hh
     interpolateRK.hh
