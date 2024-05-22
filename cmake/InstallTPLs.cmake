@@ -84,6 +84,9 @@ endif()
 foreach(_comp ${AXOM_COMPONENTS_ENABLED})
   list(APPEND SPHERAL_BLT_DEPENDS axom::${_comp})
   get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
+  # strip cuda out so we have control over when cuda is enabled
+  list(REMOVE_DUPLICATES axom_deps)
+  list(REMOVE_ITEM axom_deps cuda)
   list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
 
