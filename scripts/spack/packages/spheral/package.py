@@ -59,20 +59,20 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
-    depends_on('opensubdiv', type='build')
-    depends_on('polytope +python', type='build')
+    depends_on('opensubdiv@3.4.3', type='build')
+    depends_on('polytope@0.7.3 +python', type='build')
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
     depends_on('py-numpy@1.23.4', type='build')
-    depends_on('py-numpy-stl', type='build')
-    depends_on('py-pillow', type='build')
-    depends_on('py-matplotlib backend=tkagg +fonts', type='build')
-    depends_on('py-h5py', type='build')
-    depends_on('py-docutils', type='build')
-    depends_on('py-scipy', type='build')
+    depends_on('py-numpy-stl@3.0.0', type='build')
+    depends_on('py-pillow@10.3.0', type='build')
+    depends_on('py-matplotlib@3.7.4 backend=tkagg +fonts', type='build')
+    depends_on('py-h5py@3.9.0', type='build')
+    depends_on('py-docutils@0.18.1', type='build')
+    depends_on('py-scipy@1.13.0', type='build')
     depends_on('py-ats@exit', type='build')
-    depends_on('py-mpi4py', type='build', when='+mpi')
+    depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
 
     depends_on('py-sphinx', type='build')
     depends_on('py-sphinx-rtd-theme', type='build')
