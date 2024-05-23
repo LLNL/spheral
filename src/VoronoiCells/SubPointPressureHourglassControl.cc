@@ -62,7 +62,24 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
                     const Dim<2>::Scalar  Pi,
                     const Dim<2>::Scalar  rhoi) {
   using Vector = Dim<2>::Vector;
-  return Vector();
+  const auto comi = celli.centroid();
+
+  // Define a function to increment the acceleration for each subcell
+  auto asub = [&](const Vector& v1, const Vector& v2) -> Vector {
+                const auto v12 = v2 - v1;
+                const Vector dA(-v12.y(), v12.x());
+                const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
+                return Psub*dA;
+              };
+
+  // Now we can sum up finite volume contribution to the acceleration for each subvolume.
+  Vector result;
+  const auto& facets = celli.facets();
+  for (auto& f: facets) result += asub(f.point1(), f.point2());
+  const auto Vi = celli.volume();
+  CHECK(Vi > 0.0);
+  result /= rhoi*Vi;
+  return result;
 }
 
 //------------------------------------------------------------------------------

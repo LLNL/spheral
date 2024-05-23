@@ -99,7 +99,7 @@ commandLine(order = 5,
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
-            fHourGlass = 0.05,
+            fhourglass = 0.05,
 
             Cl = None, 
             Cq = None,
@@ -422,7 +422,7 @@ output("hydro.densityUpdate")
 if crksph:
     output("hydro.correctionOrder")
 if asph:
-    hydro._smoothingScaleMethod.fHourGlass = fHourGlass
+    #hydro._smoothingScaleMethod.fHourGlass = fHourGlass
     output("hydro._smoothingScaleMethod.fHourGlass")
 
 packages = [hydro]
@@ -453,6 +453,15 @@ if not (gsph or mfm):
         output("q.quadraticInExpansion")
     except:
         pass
+
+#-------------------------------------------------------------------------------
+# Optionally construct an hourglass control object.
+#-------------------------------------------------------------------------------
+if fhourglass > 0.0:
+    hg = SubPointPressureHourglassControl(fhourglass)
+    output("hg")
+    output("hg.fHG")
+    packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Construct the MMRV physics object.
