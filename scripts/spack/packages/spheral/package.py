@@ -70,7 +70,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-matplotlib@3.7.4 backend=tkagg +fonts', type='build')
     depends_on('py-h5py@3.9.0', type='build')
     depends_on('py-docutils@0.18.1', type='build')
-    depends_on('py-scipy@1.13.0', type='build')
+    depends_on('py-scipy@1.12.0', type='build')
     depends_on('py-ats@exit', type='build')
     depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
 
