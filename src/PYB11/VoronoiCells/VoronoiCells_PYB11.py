@@ -10,11 +10,13 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from VoronoiCells import *
+from SubPointPressureHourglassControl import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"VoronoiCells/VoronoiCells.hh"',
+                  '"VoronoiCells/SubPointPressureHourglassControl.hh"',
                   '"VoronoiCells/IncrementVoronoiCells.hh"',
                   '"VoronoiCells/computeVoronoiVolume.hh"',
                   '"FileIO/FileIO.hh"',
@@ -56,6 +58,7 @@ for ndim in dims:
 computeVoronoiVolume{ndim}d = PYB11TemplateFunction(computeVoronoiVolume, template_parameters="{Dimension}", pyname="computeVoronoiVolume")
 
 VoronoiCells{ndim}d = PYB11TemplateClass(VoronoiCells, template_parameters="{Dimension}")
+SubPointPressureHourglassControl{ndim}d = PYB11TemplateClass(SubPointPressureHourglassControl, template_parameters="{Dimension}")
 ''')
 
     # % {ndim      : ndim,

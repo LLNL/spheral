@@ -85,7 +85,10 @@ update(const KeyType& key,
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == npairs);
+  const auto  nint = mDataBasePtr->numInternalNodes();
+  CHECK(pairAccelerations.size() == npairs or
+        pairAccelerations.size() == (npairs + nint));
+  const bool selfInteraction = (pairAccelerations.size() == (npairs + nint));
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
@@ -135,12 +138,24 @@ update(const KeyType& key,
   }
 
   // Now we can update the energy.
+  auto offset = npairs;
   for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
+
+      // Add the self-contribution if any
+      if (selfInteraction) {
+        const auto& vi = velocity(nodeListi, i);
+        const auto& ai = acceleration(nodeListi, i);
+        const auto  vi12 = vi + ai*hdt;
+        const auto duii = -vi12.dot(pairAccelerations[offset + i]);
+        DepsDt(nodeListi, i) += duii;
+      }
+
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
+    offset += n;
   }
 }
 

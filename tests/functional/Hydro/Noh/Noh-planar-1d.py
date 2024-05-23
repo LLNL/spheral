@@ -136,10 +136,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
+            hourglassControl = 0.0,
             filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -213,6 +210,7 @@ dataDir = os.path.join(dataDirBase,
                        hydroPath,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
+                       "hourglassControl=%s" % hourglassControl,
                        "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter)
 restartDir = os.path.join(dataDir, "restarts")
@@ -576,21 +574,10 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
-if hourglass:
-    mask = db.newFluidIntFieldList(1, "mask")
-    pos = nodes1.positions()
-    for i in range(nodes1.numInternalNodes):
-        if pos[i].x > (x1 - dx):
-            mask[0][i] = 0
-    hg = hourglass(WT,
-                   order = hourglassOrder,
-                   limiter = hourglassLimiter,
-                   fraction = hourglassFraction,
-                   mask = mask)
+if hourglassControl > 0.0:
+    hg = SubPointPressureHourglassControl(hourglassControl)
     output("hg")
-    output("hg.order")
-    output("hg.limiter")
-    output("hg.fraction")
+    output("hg.fHG")
     packages.append(hg)
 
 #-------------------------------------------------------------------------------

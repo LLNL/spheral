@@ -10,9 +10,6 @@
 #include "Field/FieldList.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Physics/Physics.hh"
-#include "boost/unordered_map.hpp"
-
-#include <set>
 
 namespace Spheral {
 

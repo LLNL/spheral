@@ -11,8 +11,6 @@ set(Hydro_inst
     VolumePolicy
     VoronoiMassDensityPolicy
     GammaPolicy
-    SecondMomentHourglassControl
-    ThirdMomentHourglassControl
    )
 
 
@@ -39,17 +37,11 @@ set(Hydro_headers
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PressurePolicy.hh
     RZNonSymmetricSpecificThermalEnergyPolicy.hh
-    SecondMomentHourglassControl.hh
-    SecondMomentHourglassControlInline.hh
     SoundSpeedPolicy.hh
     SpecificFromTotalThermalEnergyPolicy.hh
     SpecificThermalEnergyPolicy.hh
     SumVoronoiMassDensityPolicy.hh
-    ThirdMomentHourglassControl.hh
-    ThirdMomentHourglassControlInline.hh
     VolumePolicy.hh
-    VoronoiHourglassControl.hh
-    VoronoiHourglassControlInline.hh
     VoronoiMassDensityPolicy.hh
     entropyWeightingFunction.hh
     )
