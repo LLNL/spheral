@@ -424,6 +424,14 @@ internalDvDx() const {
 
 template<typename Dimension>
 inline
+const FieldList<Dimension, typename Dimension::Vector>&
+SPHHydroBase<Dimension>::
+gradRho() const {
+  return mGradRho;
+}
+
+template<typename Dimension>
+inline
 const std::vector<typename Dimension::Vector>&
 SPHHydroBase<Dimension>::
 pairAccelerations() const {

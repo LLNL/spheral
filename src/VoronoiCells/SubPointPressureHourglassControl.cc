@@ -27,6 +27,69 @@ using std::vector;
 
 namespace {  // anonymous
 
+template<typename Vector>
+inline
+double
+limiter(const Vector& xi,
+        const Vector& xn,
+        const double  rhoi,
+        const Vector& gradRhoi) {
+  const auto delta = gradRhoi.dot(xn - xi);
+  return (rhoi + delta < 0.0 ?
+          abs(rhoi/delta) :
+          1.0);
+}
+
+//------------------------------------------------------------------------------
+// Center of mass (1D)
+//------------------------------------------------------------------------------
+inline
+Dim<1>::Vector
+centerOfMass(const Dim<1>::FacetedVolume& celli,
+             const Dim<1>::Vector& xi,
+             const Dim<1>::Scalar rhoi,
+             Dim<1>::Vector gradRhoi) {
+  using Vector = Dim<1>::Vector;
+  const auto& x1 = celli.xmin();
+  const auto& x2 = celli.xmax();
+  gradRhoi *= limiter(xi, x1, rhoi, gradRhoi);
+  gradRhoi *= limiter(xi, x2, rhoi, gradRhoi);
+  CHECK(rhoi + gradRhoi.dot(x1 - xi) >= 0.0);
+  CHECK(rhoi + gradRhoi.dot(x2 - xi) >= 0.0);
+  const auto c = xi.x();
+  const auto ab = x1.x() + x2.x() - 2.0*c;
+  const auto m = gradRhoi.x();
+  const Vector result(c + ab*(2.0*m*ab + 3.0*rhoi)/(3.0*(m*ab + 2.0*rhoi)));
+  ENSURE2(result.x() >= x1.x() and result.x() <= x2.x(), result << " not in [" << x1.x() << " " << x2.x() << "] : " << gradRhoi << " " << (rhoi + gradRhoi.dot(x1 - xi)) << " " << (rhoi + gradRhoi.dot(x2 - xi)));
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Center of mass (2D)
+//------------------------------------------------------------------------------
+inline
+Dim<2>::Vector
+centerOfMass(const Dim<2>::FacetedVolume& celli,
+             const Dim<2>::Vector& xi,
+             const Dim<2>::Scalar rhoi,
+             Dim<2>::Vector gradRhoi) {
+  using Vector = Dim<2>::Vector;
+  return Vector();
+}
+
+//------------------------------------------------------------------------------
+// Center of mass (3D)
+//------------------------------------------------------------------------------
+inline
+Dim<3>::Vector
+centerOfMass(const Dim<3>::FacetedVolume& celli,
+             const Dim<3>::Vector& xi,
+             const Dim<3>::Scalar rhoi,
+             Dim<3>::Vector gradRhoi) {
+  using Vector = Dim<3>::Vector;
+  return Vector();
+}
+
 //------------------------------------------------------------------------------
 // Compute the internal acceleration (1D)
 //------------------------------------------------------------------------------
@@ -35,9 +98,10 @@ Dim<1>::Vector
 subCellAcceleration(const Dim<1>::FacetedVolume& celli,
                     const Dim<1>::Vector& xi,
                     const Dim<1>::Scalar  Pi,
-                    const Dim<1>::Scalar  rhoi) {
+                    const Dim<1>::Scalar  rhoi,
+                    const Dim<1>::Vector& gradRhoi) {
   using Vector = Dim<1>::Vector;
-  const auto comi = celli.centroid();
+  const auto comi = centerOfMass(celli, xi, rhoi, gradRhoi); // celli.centroid();
 
   // Define a function to increment the acceleration for each subcell
   auto asub = [&](const Vector& vert) -> Vector {
@@ -60,7 +124,8 @@ Dim<2>::Vector
 subCellAcceleration(const Dim<2>::FacetedVolume& celli,
                     const Dim<2>::Vector& xi,
                     const Dim<2>::Scalar  Pi,
-                    const Dim<2>::Scalar  rhoi) {
+                    const Dim<2>::Scalar  rhoi,
+                    const Dim<2>::Vector& gradRhoi) {
   using Vector = Dim<2>::Vector;
   const auto comi = celli.centroid();
 
@@ -90,7 +155,8 @@ Dim<3>::Vector
 subCellAcceleration(const Dim<3>::FacetedVolume& celli,
                     const Dim<3>::Vector& xi,
                     const Dim<3>::Scalar  Pi,
-                    const Dim<3>::Scalar  rhoi) {
+                    const Dim<3>::Scalar  rhoi,
+                    const Dim<3>::Vector& gradRhoi) {
   using Vector = Dim<3>::Vector;
   return Vector();
 }
@@ -176,11 +242,13 @@ evaluateDerivatives(const Scalar time,
   const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto cells = state.template fields<FacetedVolume>(HydroFieldNames::cells);
+  const auto gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(pos.size() == numNodeLists);
   CHECK(rho.size() == numNodeLists);
   CHECK(P.size() == numNodeLists);
   CHECK(cells.size() == numNodeLists);
+  CHECK(gradRho.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
@@ -211,7 +279,8 @@ evaluateDerivatives(const Scalar time,
       // const auto  mi = mass(k,i);
       const auto  Pi = P(k,i);
       const auto  rhoi = rho(k,i);
-      const auto  deltaDvDti = mfHG * subCellAcceleration(celli, xi, Pi, rhoi);
+      const auto& gradRhoi = gradRho(k,i);
+      const auto  deltaDvDti = mfHG * subCellAcceleration(celli, xi, Pi, rhoi, gradRhoi);
       DvDt(k,i) += deltaDvDti;
       DepsDt(k,i) -= vi.dot(deltaDvDti);
       if (compatibleEnergy) pairAccelerations[offset + i] += deltaDvDti;

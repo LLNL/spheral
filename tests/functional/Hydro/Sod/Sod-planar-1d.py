@@ -97,9 +97,7 @@ commandLine(nx1 = 400,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
-            hourglass = None,
-            hourglassOrder = 1,
-            hourglassLimiter = 1,
+            fhourglass = 0.0,
             filter = 0.00,
             KernelConstructor = NBSplineKernel,
             order = 5,
@@ -476,11 +474,10 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
-if hourglass:
-    hg = hourglass(WT, hourglassOrder, hourglassLimiter)
+if fhourglass > 0.0:
+    hg = SubPointPressureHourglassControl(fhourglass)
     output("hg")
-    output("hg.order")
-    output("hg.limiter")
+    output("hg.fHG")
     packages.append(hg)
 
 #-------------------------------------------------------------------------------
@@ -511,8 +508,6 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")

@@ -123,6 +123,7 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
+  mGradRho(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
@@ -150,6 +151,7 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
+  mGradRho = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
   mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
@@ -343,6 +345,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDspecificThermalEnergyDt, 0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, false);
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
+  dataBase.resizeFluidFieldList(mGradRho, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
   derivs.enroll(mMaxViscousPressure);
@@ -368,6 +371,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
+  derivs.enroll(mGradRho);
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
   derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
@@ -655,6 +659,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
@@ -671,6 +676,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(DepsDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
   CHECK(localDvDx.size() == numNodeLists);
+  CHECK(gradRho.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
@@ -709,6 +715,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
     auto DvDx_thread = DvDx.threadCopy(threadStack);
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
+    auto gradRho_thread = gradRho.threadCopy(threadStack);
     auto M_thread = M.threadCopy(threadStack);
     auto localM_thread = localM.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
@@ -745,6 +752,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DepsDti = DepsDt_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& gradRhoi = gradRho_thread(nodeListi, i);
       auto& Mi = M_thread(nodeListi, i);
       auto& localMi = localM_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
@@ -774,6 +782,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DepsDtj = DepsDt_thread(nodeListj, j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
+      auto& gradRhoj = gradRho_thread(nodeListj, j);
       auto& Mj = M_thread(nodeListj, j);
       auto& localMj = localM_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
@@ -881,6 +890,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
         XSPHDeltaVj += wXSPHij*vij;
       }
 
+      // Mass density gradient
+      if (sameMatij) {
+        gradRhoi += mj*(rhoj - rhoi)*gradWi;
+        gradRhoj += mi*(rhoj - rhoi)*gradWj;  // negatives cancel (rhoji and gradWj)
+      }
+
       // Linear gradient correction term.
       Mi -= mj*rij.dyad(gradWi);
       Mj -= mi*rij.dyad(gradWj);
@@ -924,6 +939,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       auto& DepsDti = DepsDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
+      auto& gradRhoi = gradRho(nodeListi, i);
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
@@ -951,6 +967,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       } else {
         localDvDxi /= rhoi;
       }
+
+      // Finish the mass density gradient
+      gradRhoi /= rhoi;
 
       // Evaluate the continuity equation.
       DrhoDti = -rhoi*DvDxi.Trace();
@@ -1195,6 +1214,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
+  file.write(mGradRho, pathName + "/gradRho");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.write(mMassDensityCorrection, pathName + "/massDensityCorrection");
@@ -1231,6 +1251,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDspecificThermalEnergyDt, pathName + "/DspecificThermalEnergyDt");
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
+  file.read(mGradRho, pathName + "/gradRho");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mM, pathName + "/M");
   file.read(mLocalM, pathName + "/localM");

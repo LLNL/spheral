@@ -205,6 +205,7 @@ public:
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
+  const FieldList<Dimension, Vector>&    gradRho() const;
   const std::vector<Vector>&             pairAccelerations() const;
 
   //****************************************************************************
@@ -273,6 +274,7 @@ protected:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Tensor>    mInternalDvDx;
+  FieldList<Dimension, Vector>    mGradRho;
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
 
