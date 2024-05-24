@@ -57,7 +57,6 @@ class SpheralController:
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
-        self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
 
@@ -887,14 +886,19 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         print("SpheralController: Initializing H's...")
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
+
+        # Find the smoothing scale method
+        method = None
+        for pkg in self.integrator.physicsPackages():
+            if isinstance(pkg, eval(f"SmoothingScaleBase{self.dim}")):
+                method = pkg
+        assert not method is None, "ERROR: SpheralController::iterateIdealH: unable to find H update algorithm"
+                
         packages = eval(f"vector_of_Physics{self.dim}()")
-        if self.SPH:
-            method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
-            packages.append(method)
-        else:
-            method = eval(f"ASPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+        if method.requireVoronoiCells():
             packages.append(self.VoronoiCells)
-            packages.append(method)
+        packages.append(method)
+
         iterateIdealH = eval(f"iterateIdealH{self.dim}")
         iterateIdealH(db, packages, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
