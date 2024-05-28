@@ -20,6 +20,7 @@
 namespace Spheral {
 
 template<typename Value>
+inline
 Value
 allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm) {
   Value tmp = value;
@@ -37,6 +38,7 @@ allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm) {
 
 namespace Spheral {
 
+#ifndef MPI_MIN      // stand-in for all our MPI_* dummy defs
 #define MPI_MIN 1
 #define MPI_MAX 2
 #define MPI_SUM 3
@@ -44,10 +46,12 @@ namespace Spheral {
 #define MPI_LAND 5
 #define MPI_LOR 6
 #define MPI_COMM_WORLD 0
+#endif
 
-template<typename Value>
+template<typename Value, typename OP>
+inline
 Value
-allReduce(const Value& value, const int /*op*/, const int /*comm*/) {
+allReduce(const Value& value, const OP /*op*/, const int /*comm*/) {
   return value;
 }
 
