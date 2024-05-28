@@ -13,6 +13,7 @@
 #include "DataBase/IncrementState.hh"
 #include "FileIO/FileIO.hh"
 #include "Geometry/Dimension.hh"
+#include "Geometry/CellFaceFlag.hh"
 #include "Kernel/TableKernel.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
@@ -242,12 +243,14 @@ evaluateDerivatives(const Scalar time,
   const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto cells = state.template fields<FacetedVolume>(HydroFieldNames::cells);
+  const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, CellFaceFlag());
   const auto gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(pos.size() == numNodeLists);
   CHECK(rho.size() == numNodeLists);
   CHECK(P.size() == numNodeLists);
   CHECK(cells.size() == numNodeLists);
+  CHECK(cellFaceFlags.size() == numNodeLists);
   CHECK(gradRho.size() == numNodeLists);
 
   // Derivative FieldLists.
