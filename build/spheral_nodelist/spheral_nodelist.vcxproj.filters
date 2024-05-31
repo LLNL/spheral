@@ -63,6 +63,9 @@
     <ClCompile Include="..\..\src\NodeList\DEMNodeList.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\DEM\DEMFieldNames.cc" />
+    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.3.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\NodeList\ASPHSmoothingScaleInst.cc.py">
@@ -89,10 +92,6 @@
     <CustomBuild Include="..\..\src\NodeList\SolidNodeListInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\NodeList\DEMNodeListInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
+    <CustomBuild Include="..\..\src\NodeList\DEMNodeListInst.cc.py" />
   </ItemGroup>
 </Project>

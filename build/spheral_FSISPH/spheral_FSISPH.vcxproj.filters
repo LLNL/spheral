@@ -59,10 +59,6 @@
     <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </None>
+    <CustomBuild Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py" />
   </ItemGroup>
 </Project>
