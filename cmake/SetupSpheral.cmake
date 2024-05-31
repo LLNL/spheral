@@ -77,7 +77,7 @@ if(ENABLE_OPENMP)
   list(APPEND SPHERAL_BLT_DEPENDS openmp)
 endif()
 
-if(ENABLE_CUDA)
+if(ENABLE_CUDA AND NOT SPHERAL_HIDE_GPU)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
