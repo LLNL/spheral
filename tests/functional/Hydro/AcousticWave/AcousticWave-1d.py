@@ -11,7 +11,6 @@ from Spheral import ScalarPairScalarFunctor as PairScalarFunctor
 from SpheralTestUtilities import *
 import mpi
 import numpy as np
-from DistributeNodes import distributeNodesInRange1d
 #import matplotlib.pyplot as plt
 
 def smooth(x,window_len=11,window='hanning'):
@@ -36,75 +35,44 @@ title("Acoustic wave propagation test.")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(# problem geometry
-            nx1 = 100,
+commandLine(nx1 = 100,
             x0 = 0.0,
             x1 = 1.0,
 
-            # problem I.C.s
             rho1 = 1.0,
-            #eps1 = 1.0,
+            eps1 = 1.0,
             A = 1.0e-6,
             kfreq = 1.0,
+
             cs2 = 1.0,
             mu = 1.0,
-            gamma1 = 5.0/3.0,
 
-            # Kernel properties
-            KernelConstructor = WendlandC2Kernel,
-            nPerh = 2.5,
-            HUpdate = IntegrateH,
+            nPerh = 3.01,
+
+            Cl = 1.0,
+            Cq = 2.0,
+            linearInExpansion = False,
+            Qlimiter = False,
+            epsilon2 = 1e-30,
             hmin = 1.0e-10,
-            hmax = 0.25,
-            order = 3,
-            
-            #hydros (out different solvers)
-            svph = False,
-            crksph = False,
-            psph = False,
-            fsisph = False,
-            gsph = False,
-            mfm = False,
-
-            # general hydro options
-            solid = False,
+            hmax = 0.1,
+            cfl = 0.25,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4,
             filter = 0.0,
-            densityUpdate = IntegrateDensity,
-            correctVelocityGradient=True,
-            compatibleEnergy = True,
-            evolveTotalEnergy = False,
+            KernelConstructor = WendlandC2Kernel,
+            order = 5,
 
-            # Default SPH options
-            gradhCorrection = True,
-
-            # CRKSPH options
+            svph = False,
+            crksph = False,
+            psph = False,
+            fsisph = False,
+            solid = False,
+            IntegratorConstructor = CheapSynchronousRK2Integrator,
             correctionOrder = LinearOrder,
-
-            # SVPH options
-            linearConsistent = False,
-
-            # MFM/GSPH options
-            WaveSpeedConstructor = DavisWaveSpeed,           # Davis, Einfeldt, Acoustic
-            LimiterConstructor = VanLeerLimiter,             # VanLeer, Opsre, MinMod, VanAlba, Superbee
-            riemannLinearReconstruction = True,              # True - second order, False - first order
-            riemannGradientType = HydroAccelerationGradient, # HydroAccelerationGradient, SPHGradient, RiemannGradient, MixedMethodGradient, SPHSameTimeGradient
-            gsphRiemannSolver = "HLLC",                      # HLLC / ArtificialViscosity
-
-            # Artificial Viscosity
-            Cl = 1.0,
-            Cq = 1.0,
-            linearInExpansion = False,
-            Qlimiter = False,
-            epsilon2 = 1e-30,
-
-            # integrator options
-            IntegratorConstructor = VerletIntegrator,#CheapSynchronousRK2Integrator,
-            cfl = 0.35,
             steps = None,
-            goalTime = 1.0,
+            goalTime = 5.0,
             dt = 1.0e-10,
             dtMin = 1.0e-10, 
             dtMax = 0.1,
@@ -114,17 +82,21 @@ commandLine(# problem geometry
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
-            
-            # outputs
+            HUpdate = IntegrateH,
+            densityUpdate = RigorousSumDensity,
+            compatibleEnergy = True,
+            gradhCorrection = True,
+            linearConsistent = False,
+
             restoreCycle = None,
             restartStep = 10000,
             clearDirectories = True,
             dataDirBase = "dumps-planar-AcousticWave-1d",
             outputFile = "AcousticWave-planar-1d.gnu",
-            normOutputFile = "_asciiDump.dat",
+            normOutputFile = "Limited_asciiDump.dat",
             writeOutputLabel = True,
 
-            graphics = False,#"gnu",
+            graphics = "gnu",
 
             checkReversibility = False,
             )
@@ -137,28 +109,9 @@ elif psph:
     hydroname = "PSPH"
 elif fsisph:
     hydroname = "FSISPH"
-elif mfm:
-    hydroname = "MFM"
-elif gsph:
-    hydroname = "GSPH"
 else:
     hydroname = "SPH"
-
-normOutputFile = str(riemannGradientType)+"_"+normOutputFile
-if LimiterConstructor==VanLeerLimiter:
-    normOutputFile = "vanLeer_"+normOutputFile
-elif LimiterConstructor==VanAlbaLimiter:
-    normOutputFile = "vanalba_"+normOutputFile
-elif LimiterConstructor==OspreLimiter:
-    normOutputFile = "opsre_"+normOutputFile
-elif LimiterConstructor==MinModLimiter:
-    normOutputFile = "MinMod_"+normOutputFile
-elif LimiterConstructor==SuperbeeLimiter:
-    normOutputFile = "Superbee_"+normOutputFile
-normOutputFile = str(densityUpdate)+"_"+normOutputFile
-normOutputFile = hydroname+"_"+gsphRiemannSolver+"_"+normOutputFile
-
-print normOutputFile
+normOutputFile = hydroname+"_"+normOutputFile
 dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nx=%i" % nx1)
@@ -178,15 +131,15 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 # Material properties.
 #-------------------------------------------------------------------------------
-#eos = IsothermalEquationOfStateMKS(cs2, mu)
-eos = GammaLawGasMKS(gamma1, mu)
+eos = IsothermalEquationOfStateMKS(cs2, mu)
+
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
 if KernelConstructor==NBSplineKernel:
-  WT = TableKernel(NBSplineKernel(order), 100000)
+  WT = TableKernel(NBSplineKernel(order), 10000)
 else:
-  WT = TableKernel(KernelConstructor(), 100000)
+  WT = TableKernel(KernelConstructor(), 10000)
 output("WT")
 kernelExtent = WT.kernelExtent
 output("WT")
@@ -211,6 +164,7 @@ output("nodes1.nodesPerSmoothingScale")
 #-------------------------------------------------------------------------------
 # Set the node properties.
 #-------------------------------------------------------------------------------
+from DistributeNodes import distributeNodesInRange1d
 distributeNodesInRange1d([(nodes1, nx1, rho1, (x0, x1))],
                          nPerh = nPerh)
 nNodesThisDomain1 = nodes1.numInternalNodes
@@ -249,15 +203,14 @@ pos = nodes1.positions()
 vel = nodes1.velocity()
 rho = nodes1.massDensity()
 mass = nodes1.mass()
-eps = nodes1.specificThermalEnergy()
 H = nodes1.Hfield()
 dx = (x1 - x0)/nx1
 xi = x0
 for i in range(nodes1.numInternalNodes):
     func0 = MassFunctor(max(0.0, Mi[i] - mi))
     func1 = MassFunctor(Mi[i])
-    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-35, 1.0e-35)
-    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-35, 1.0e-35)
+    xi0 = newtonRaphsonFindRoot(func0, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
+    xi1 = newtonRaphsonFindRoot(func1, xi, xi + 2.0*dx, 1.0e-18, 1.0e-18)
     rhoi0 = rho1*(1.0 + A*sin(twopi*kfreq*(xi0 - x0)/(x1 - x0)))
     rhoi1 = rho1*(1.0 + A*sin(twopi*kfreq*(xi1 - x0)/(x1 - x0)))
     xi = x0 + (x1 - x0)*(rhoi0*xi0 + rhoi1*xi1)/(rhoi0 + rhoi1)
@@ -265,10 +218,6 @@ for i in range(nodes1.numInternalNodes):
     vel[i].x = A*cs*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
     rho[i] = rho1*(1.0 + A*sin(twopi*kfreq*(xi - x0)/(x1 - x0)))
     mass[i] = rho1*((xi1 - xi0) - A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0)))
-    Pi = P1+A*sin(twopi*kfreq*(xi - x0)/(x1 - x0))
-    eps[i] = Pi/((gamma1 - 1.0)*rho[i])
-    print A/(twopi*kfreq)*(cos(twopi*kfreq*xi1) - cos(twopi*kfreq*xi0))
-    print("%3.16e" % mass[i])
     H[i] *= rho[i]/rho1
 # xi0 = 0.0
 # dx0 = (x1 - x0)/nx1
@@ -291,11 +240,7 @@ rhoscale = rho1/rhoscale
 print("Compute analytic rho scaling of %16.12e." % rhoscale)
 for i in range(nodes1.numInternalNodes):
     mass[i] *= rhoscale
-    #print 1.0-rhoscale
-    #print rho[i]
-    #print mass[i]
-#print(mass.max())
-#print(mass.min())
+
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
 #-------------------------------------------------------------------------------
@@ -338,71 +283,21 @@ elif psph:
                  HUpdate = HUpdate,
                  XSPH = XSPH)
 elif fsisph: 
-    if densityUpdate == RigorousSumDensity:
-        sumDensityNodeLists = [nodes1]
-    else:
-        sumDensityNodeLists = []
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   sumDensityNodeLists = sumDensityNodeLists,
+                   sumDensityNodeLists = [nodes1],
                    compatibleEnergyEvolution = compatibleEnergy,          
                    epsTensile = epsilonTensile)
-elif gsph:
-    limiter = LimiterConstructor()
-    waveSpeed = WaveSpeedConstructor()
-    if gsphRiemannSolver == "HLLC":
-        solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
-    elif gsphRiemannSolver == "ArtificialViscosity":
-        solver = SecondOrderArtificialViscosity(Cl,Cq,limiter,waveSpeed,riemannLinearReconstruction)
-    else:
-        raise ValueError, "WRONG!"
-    hydro = GSPH(dataBase = db,
-                riemannSolver = solver,
-                W = WT,
-                cfl=cfl,
-                gradientType = riemannGradientType,
-                compatibleEnergyEvolution = compatibleEnergy,
-                correctVelocityGradient=correctVelocityGradient,
-                evolveTotalEnergy = evolveTotalEnergy,
-                XSPH = XSPH,
-                densityUpdate=densityUpdate,
-                HUpdate = IdealH,
-                epsTensile = epsilonTensile,
-                nTensile = nTensile)
-elif mfm:
-    limiter = LimiterConstructor()
-    waveSpeed = WaveSpeedConstructor()
-    if gsphRiemannSolver == "HLLC":
-        solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
-    elif gsphRiemannSolver == "ArtificialViscosity":
-        solver = SecondOrderArtificialViscosity(Cl,Cq,limiter,waveSpeed,riemannLinearReconstruction)
-    else:
-        raise ValueError, "WRONG!"
-
-    hydro = MFM(dataBase = db,
-                riemannSolver = solver,
-                W = WT,
-                cfl=cfl,
-                gradientType = riemannGradientType,
-                compatibleEnergyEvolution = compatibleEnergy,
-                correctVelocityGradient=correctVelocityGradient,
-                evolveTotalEnergy = evolveTotalEnergy,
-                XSPH = XSPH,
-                densityUpdate=densityUpdate,
-                HUpdate = IdealH,
-                epsTensile = epsilonTensile,
-                nTensile = nTensile)
 else:
-    Q =  MonaghanGingoldViscosity(Cl,Cq,linearInExpansion)
     hydro = SPH(dataBase = db,
-                Q = Q,
+                #Q=MonaghanGingoldViscosity(Cl,Cq),
                 W = WT, 
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
-                correctVelocityGradient=correctVelocityGradient,
+                correctVelocityGradient=False,
                 densityUpdate = densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
@@ -412,17 +307,16 @@ output("hydro")
 #-------------------------------------------------------------------------------
 # Construct the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not (mfm or gsph):
-    q = hydro.Q
-    q.Cl = Cl
-    q.Cq = Cq
-    q.epsilon2 = epsilon2
-    q.limiter = Qlimiter
-    output("q")
-    output("q.Cl")
-    output("q.Cq")
-    output("q.epsilon2")
-    output("q.limiter")
+q = hydro.Q
+q.Cl = Cl
+q.Cq = Cq
+q.epsilon2 = epsilon2
+q.limiter = Qlimiter
+output("q")
+output("q.Cl")
+output("q.Cq")
+output("q.epsilon2")
+output("q.limiter")
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.
@@ -488,7 +382,6 @@ print("Making controller.")
 control = SpheralController(integrator, WT,
                             statsStep = statsStep,
                             restartStep = restartStep,
-                            vizTime=1.0,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
                             periodicWork=[(printTotalEnergy,1)])
@@ -624,11 +517,11 @@ if outputFile != "None":
                                   ("h       ", hprof, hans)]:
             assert len(data) == len(ans)
             error = [data[i] - ans[i] for i in range(len(data))]
-            #Pn = Pnorm.Pnorm(error, xprof)
-            L1 = sum([abs(data[i] - ans[i]) for i in range(len(data))])/len(data)#Pn.pnorm(1, xmin, xmax)
-            L2 = (sum([abs(data[i] - ans[i])**2.0 for i in range(len(data))]))**(1.0/2.0)/len(data)
-            Linf = (sum([abs(data[i] - ans[i])**100.0 for i in range(len(data))]))**(1.0/100.0)/len(data)
-            print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
+            Pn = Pnorm.Pnorm(error, xprof)
+            L1 = Pn.gridpnorm(1, xmin, xmax)
+            L2 = Pn.gridpnorm(2, xmin, xmax)
+            Linf = Pn.gridpnorm("inf", xmin, xmax)
+            print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
             if normOutputFile != "None":
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
             # if name == "Mass Density":
@@ -654,8 +547,8 @@ if outputFile != "None":
         #     pickle.dump(data,f)
 
 
-if compatibleEnergy and abs(Eerror) > 1e-4:
-    raise ValueError, "Energy error outside allowed bounds."
+if compatibleEnergy and abs(Eerror) > 1e-5:
+    raise ValueError("Energy error outside allowed bounds.")
 
 
 

@@ -22,7 +22,7 @@ title("3-D integrated hydro test -- spherical Noh problem")
 #-------------------------------------------------------------------------------
 # Generic problem parameters
 #-------------------------------------------------------------------------------
-commandLine(order = 3,
+commandLine(order = 5,
             seed = "lattice",
 
             nx = 50,
@@ -37,7 +37,7 @@ commandLine(order = 3,
             z1 = 1.0,
             rmin = 0.0,
             rmax = 1.0,
-            nPerh = 1.00,
+            nPerh = 2.01,
             rho0 = 1.0,
             eps0 = 0.0,
             smallPressure = False,

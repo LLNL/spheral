@@ -166,15 +166,11 @@ commandLine(nx1 = 128,
             arCondAlpha = 0.5,
             )
 
-
-
-assert not svph 
 assert not (compatibleEnergy and evolveTotalEnergy)
 assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
 assert not (fsisph and not solid)
 assert not ((mfm or gsph) and (boolReduceViscosity or boolReduceViscosity))
 assert not(boolReduceViscosity and boolCullenViscosity)
-
 
 hydroname = 'SPH'
 useArtificialViscosity=True

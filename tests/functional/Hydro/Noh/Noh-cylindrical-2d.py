@@ -49,8 +49,8 @@ commandLine(seed = "constantDTheta",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
-            nRadial = 100,
-            nTheta = 100,
+            nRadial = 50,
+            nTheta = 50,
             rmin = 0.0,
             rmax = 1.0,
             rho0 = 1.0,
@@ -73,7 +73,6 @@ commandLine(seed = "constantDTheta",
             asph = False,     # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             solid = False,    # If true, use the fluid limit of the solid hydro option
 
-            nodeMotion = NodeMotionType.Lagrangian,
             # general hydro options
             densityUpdate = RigorousSumDensity, # (IntegrateDensity)
             evolveTotalEnergy = False,          # evolve total rather than specific energy
@@ -91,6 +90,9 @@ commandLine(seed = "constantDTheta",
             #CRKSPH options
             correctionOrder = LinearOrder,
             volumeType = RKSumVolume,
+
+            # MFV
+            nodeMotion = NodeMotionType.Lagrangian,
 
             # artificial viscosity
             Cl = None, 
@@ -118,16 +120,16 @@ commandLine(seed = "constantDTheta",
 
             # kernel options
             KernelConstructor = NBSplineKernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
-            nPerh = 1.00,
+            nPerh = 2.01,
             HUpdate = IdealH,
-            order = 3,
+            order = 5,
             hmin = 0.0001, 
             hmax = 0.5,
             hminratio = 0.1,
 
             # integrator options
             IntegratorConstructor = CheapSynchronousRK2Integrator,
-            cfl = 0.07,
+            cfl = 0.25,
             goalTime = 0.6,
             steps = None,
             vizCycle = None,

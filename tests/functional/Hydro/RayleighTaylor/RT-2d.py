@@ -171,12 +171,10 @@ commandLine(nx1 = 100,
             )
 
 
-assert not svph 
 assert not (compatibleEnergy and evolveTotalEnergy)
 assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
 assert not (fsisph and not solid)
 assert not ((mfm or gsph) and (boolReduceViscosity))
-
 
 # Decide on our hydro algorithm.
 hydroname = 'SPH'
