@@ -5,13 +5,10 @@ packages:
       prefix: /usr
     buildable: false
   all:
-    variants: +pic
     providers:
       mpi: [mpich]
       blas: [netlib-lapack]
       lapack: [netlib-lapack]
-      pkgconfig: [pkg-config]
-      pkgconf: [pkg-config]
 # ------ SYSTEM LIBS -------
 # FIXME: Currently allowing spack to build cmake and git
   ncurses:
