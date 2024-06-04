@@ -1,1 +1,1 @@
-spheral_add_pybind11_library(KernelIntegrator)
+spheral_add_pybind11_library(KernelIntegrator SPHERAL_MODULE_LIST)
