@@ -20,9 +20,9 @@ namespace Spheral {
 // SPHERALCopyable class.
 template<typename T>
 class SPHERALCopyable : public chai::CHAICopyable{
-  virtual void free() = 0;
-  SPHERAL_HOST_DEVICE virtual T& operator=(std::nullptr_t) = 0;
-  SPHERAL_HOST_DEVICE virtual void shallowCopy(T const& rhs) = 0;
+  //virtual void free();
+  //SPHERAL_HOST_DEVICE virtual T& operator=(std::nullptr_t) = 0;
+  //SPHERAL_HOST_DEVICE virtual void shallowCopy(T const& rhs) = 0;
 };
   
 // Interface class for View like objects.
