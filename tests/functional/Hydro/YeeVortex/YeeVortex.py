@@ -14,7 +14,6 @@ from findLastRestart import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import * 
-from LlyodsAlgorithm import LlyodsAlgorithm
 import DistributeNodes
 
 class YeeDensity:
@@ -69,7 +68,6 @@ commandLine(
     # Resolution and node seeding.
     nRadial = 64,
     seed = "constantDTheta",
-    numLlyodIters = 4,
 
     # kernel options
     KernelConstructor = WendlandC2Kernel,
@@ -586,41 +584,6 @@ control = SpheralController(integrator, WT,
                             skipInitialPeriodicWork = svph)
 output("control")
 
-if numLlyodIters>0:
-    
-    def inDomain(pos):
-        if pos.magnitude() < rmax:
-            return True
-        else:
-            return False
-
-    LlyodsAlgorithm(db,hydro,inDomain,YeeDensity(xc,yc,gamma,beta,temp_inf),nPerh,numLlyodIters)
-
-    vel = nodes.velocity()
-    eps = nodes.specificThermalEnergy()
-    pos = nodes.positions()
-    rho = nodes.massDensity()
-    mass = nodes.mass()
-    #vol = hydro.volume[0]
-
-    # for i in xrange(nodes.numInternalNodes):
-    #     xi, yi = pos[i]
-    #     xci = (xi-xc)
-    #     yci = (yi-yc)
-    #     r2=xci*xci+yci*yci
-    #     velx = vel_infx-yci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-    #     vely = vel_infy+xci*exp((1.0-r2)*0.5)*beta/(2.0*pi)
-    #     rhoNew = YeeDensityFunc(pos[i])
-    #     mass[i] = rhoNew*mass[i]*rho[i]
-    #     rho[i] = rhoNew
-    #     vel[i] = Vector(velx,vely)
-    #     eps[i] = pow(rho[i],(gamma-1.0))/(gamma-1.0)
-    # packages = integrator.physicsPackages()
-    # state = State2d(db, packages)
-    # integrator.setGhostNodes()
-    # derivs = StateDerivatives2d(db, packages)
-    # integrator.applyGhostBoundaries(state, derivs)
-    # integrator.finalizeGhostBoundaries()
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
