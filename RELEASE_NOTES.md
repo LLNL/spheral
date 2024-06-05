@@ -9,6 +9,14 @@ Notable changes include:
 
   * Build changes / improvements:
     * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+    * Spack version is increased from 0.19 to 0.22.
+    * Spack upstream is updated.
+    * Removed the python 3 module load for the Gitlab CI to fix an issue with pkg-config changing.
+    * Zlib target and TPL cmake file is removed.
+    * PYB11Generator repo is updated.
+    * Spack config and package files inside Spheral are updated to accommodate Spack 0.22.
+      * Package recipes for py-numpy-stl, py-pillow, py-pipreqs, td, and tk are removed.
+      * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
 
   * Bug Fixes / improvements:
 
