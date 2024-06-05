@@ -12,27 +12,7 @@ from KernelIntegral import *
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['<memory>',
-                  '<string>',
-                  '<tuple>',
-                  '<vector>',
-                  '<unordered_map>',
-                  '"Boundary/Boundary.hh"',
-                  '"DataBase/DataBase.hh"',
-                  '"DataBase/State.hh"',
-                  '"Field/FieldList.hh"',
-                  '"Geometry/GeomPlane.hh"',
-                  '"Hydro/HydroFieldNames.hh"',
-                  '"KernelIntegrator/BilinearIndex.hh"',
-                  '"KernelIntegrator/FlatConnectivity.hh"',
-                  '"KernelIntegrator/IntegrationCoefficient.hh"',
-                  '"KernelIntegrator/IntegrationKernel.hh"',
-                  '"KernelIntegrator/KernelIntegral.hh"',
-                  '"KernelIntegrator/KernelIntegrationData.hh"',
-                  '"KernelIntegrator/KernelIntegrator.hh"',
-                  '"KernelIntegrator/ManufacturedSolution.hh"',
-                  '"KernelIntegrator/RKIntegrationKernel.hh"',
-                  '"KernelIntegrator/SPHIntegrationKernel.hh"']
+PYB11includes += ['"KernelIntegrator/KernelIntegral.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
