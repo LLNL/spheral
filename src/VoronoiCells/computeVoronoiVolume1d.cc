@@ -31,7 +31,7 @@ template<>
 void
 computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& H,
-                     const ConnectivityMap<Dim<1> >&,
+                     const ConnectivityMap<Dim<1> >& cm,
                      const FieldList<Dim<1>, Dim<1>::SymTensor>& damage,
                      const std::vector<Dim<1>::FacetedVolume>& facetedBoundaries,
                      const std::vector<std::vector<Dim<1>::FacetedVolume> >& holes,
@@ -88,6 +88,14 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   }
   sort(coords.begin(), coords.end(), ComparePairsByFirstElement<PointCoord>());
 
+  // A local function to check if two points are neighbors
+  std::set<size_t> pairHashes;
+  if (returnCellFaceFlags) {
+    const auto& pairs = cm.nodePairList();
+    for (const auto& p: pairs) pairHashes.insert(p.hash());
+  }
+  auto areNeighbors = [&](const size_t il, const size_t i, const size_t jl, const size_t j) -> bool { return pairHashes.find(NodePairIdxType(i, il, j, jl).hash()) != pairHashes.end(); };
+
 #pragma omp parallel
   {
   // Prepare some scratch variables.
@@ -110,7 +118,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
     if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
 
       // Is there a bounding volume for this NodeList?
-      if (haveFacetedBoundaries > 0) {
+      if (haveFacetedBoundaries) {
         xbound0 = facetedBoundaries[nodeListi].xmin().x();
         xbound1 = facetedBoundaries[nodeListi].xmax().x();
       }
@@ -127,10 +135,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
       if (k == 0) {
         x1 = xbound0 - xi;
         H1 = Hi;
-        if (haveFacetedBoundaries > 0) {
+        if (haveFacetedBoundaries) {
           xmin = xbound0;
-        }
-        else {
+        } else {
           xmin = xi - 0.5 * vol(nodeListi, i);
         }
         surfacePoint(nodeListi, i) |= 1;
@@ -150,20 +157,19 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         xmin = max(xbound0, x1 + xi);
         if (nodeListj1 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj1 + 1));
-          if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0,           // cell face
-                                                                                      nodeListj1,  // other NodeList
-                                                                                      j1));        // other node index
           // cerr << "Surface condition 3: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
+        if (returnCellFaceFlags and areNeighbors(nodeListi, i, nodeListj1, j1)) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(0,           // cell face
+                                                                                                                                   nodeListj1,  // other NodeList
+                                                                                                                                   j1));        // other node index
       }
 
       if (k == ntot - 1) {
         x2 = xbound1 - xi;
         H2 = Hi;
-        if (haveFacetedBoundaries > 0) {
+        if (haveFacetedBoundaries) {
           xmax = xbound1;
-        }
-        else {
+        } else {
           xmax = xi + 0.5 * vol(nodeListi, i);
         }
         surfacePoint(nodeListi, i) |= 1;
@@ -180,11 +186,11 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
         xmax = xi + x2;
         if (nodeListj2 != nodeListi) {
           surfacePoint(nodeListi, i) |= (1 << (nodeListj2 + 1));
-          if (returnCellFaceFlags) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1,           // cell face
-                                                                                      nodeListj2,  // other NodeList
-                                                                                      j2));        // other node index
           // cerr << "Surface condition 6: " << nodeListi << " " << i << " " << surfacePoint(nodeListi, i) << endl;
         }
+        if (returnCellFaceFlags and areNeighbors(nodeListi, i, nodeListj2, j2)) cellFaceFlags(nodeListi, i).push_back(CellFaceFlag(1,           // cell face
+                                                                                                                                   nodeListj2,  // other NodeList
+                                                                                                                                   j2));        // other node index
       }
 
       CHECK(x1 <= 0.0 and x2 >= 0.0);

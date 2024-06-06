@@ -18,13 +18,18 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "Utilities/Timer.hh"
+#include "Utilities/range.hh"
 
 #include <limits>
+#include <unordered_map>
+#include <tuple>
 #include <algorithm>
 
 namespace Spheral {
 
 using std::vector;
+using std::unordered_map;
+using std::tuple;
 
 namespace {  // anonymous
 
@@ -92,29 +97,33 @@ centerOfMass(const Dim<3>::FacetedVolume& celli,
 }
 
 //------------------------------------------------------------------------------
-// Compute the internal acceleration (1D)
+// Compute the internal acceleration due to a single facet (1D)
 //------------------------------------------------------------------------------
 inline
 Dim<1>::Vector
 subCellAcceleration(const Dim<1>::FacetedVolume& celli,
+                    const int cellFace,
+                    const Dim<1>::Vector& comi,
                     const Dim<1>::Vector& xi,
-                    const Dim<1>::Scalar  Pi,
-                    const Dim<1>::Scalar  rhoi,
-                    const Dim<1>::Vector& gradRhoi) {
-  using Vector = Dim<1>::Vector;
-  const auto comi = centerOfMass(celli, xi, rhoi, gradRhoi); // celli.centroid();
+                    const Dim<1>::Scalar  Pi) {
+  REQUIRE(cellFace == 0 or cellFace == 1);
 
-  // Define a function to increment the acceleration for each subcell
-  auto asub = [&](const Vector& vert) -> Vector {
-                const auto dA = (comi - vert).unitVector();
-                const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
-                return Psub*dA;
-              };
+  const auto& vert = cellFace == 0 ? celli.xmin() : celli.xmax();
+  const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
+  const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
+  return Psub * dA;
 
-  // Now we can sum up finite volume contribution to the acceleration for each subvolume
-  const auto Vi = celli.volume();
-  CHECK(Vi > 0.0);
-  return (asub(celli.xmin()) + asub(celli.xmax()))/(rhoi*Vi);
+  // // Define a function to increment the acceleration for each subcell
+  // auto asub = [&](const Vector& vert) -> Vector {
+  //               const auto dA = (comi - vert).unitVector();
+  //               const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
+  //               return Psub*dA;
+  //             };
+
+  // // Now we can sum up finite volume contribution to the acceleration for each subvolume
+  // const auto Vi = celli.volume();
+  // CHECK(Vi > 0.0);
+  // return (asub(celli.xmin()) + asub(celli.xmax()))/(rhoi*Vi);
 }
 
 //------------------------------------------------------------------------------
@@ -123,29 +132,30 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
 inline
 Dim<2>::Vector
 subCellAcceleration(const Dim<2>::FacetedVolume& celli,
+                    const int cellFace,
+                    const Dim<2>::Vector& comi,
                     const Dim<2>::Vector& xi,
-                    const Dim<2>::Scalar  Pi,
-                    const Dim<2>::Scalar  rhoi,
-                    const Dim<2>::Vector& gradRhoi) {
+                    const Dim<2>::Scalar  Pi) {
   using Vector = Dim<2>::Vector;
-  const auto comi = celli.centroid();
+  return Vector();
+  // const auto comi = celli.centroid();
 
-  // Define a function to increment the acceleration for each subcell
-  auto asub = [&](const Vector& v1, const Vector& v2) -> Vector {
-                const auto v12 = v2 - v1;
-                const Vector dA(-v12.y(), v12.x());
-                const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
-                return Psub*dA;
-              };
+  // // Define a function to increment the acceleration for each subcell
+  // auto asub = [&](const Vector& v1, const Vector& v2) -> Vector {
+  //               const auto v12 = v2 - v1;
+  //               const Vector dA(-v12.y(), v12.x());
+  //               const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
+  //               return Psub*dA;
+  //             };
 
-  // Now we can sum up finite volume contribution to the acceleration for each subvolume.
-  Vector result;
-  const auto& facets = celli.facets();
-  for (auto& f: facets) result += asub(f.point1(), f.point2());
-  const auto Vi = celli.volume();
-  CHECK(Vi > 0.0);
-  result /= rhoi*Vi;
-  return result;
+  // // Now we can sum up finite volume contribution to the acceleration for each subvolume.
+  // Vector result;
+  // const auto& facets = celli.facets();
+  // for (auto& f: facets) result += asub(f.point1(), f.point2());
+  // const auto Vi = celli.volume();
+  // CHECK(Vi > 0.0);
+  // result /= rhoi*Vi;
+  // return result;
 }
 
 //------------------------------------------------------------------------------
@@ -154,10 +164,10 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
 inline
 Dim<3>::Vector
 subCellAcceleration(const Dim<3>::FacetedVolume& celli,
+                    const int cellFace,
+                    const Dim<3>::Vector& comi,
                     const Dim<3>::Vector& xi,
-                    const Dim<3>::Scalar  Pi,
-                    const Dim<3>::Scalar  rhoi,
-                    const Dim<3>::Vector& gradRhoi) {
+                    const Dim<3>::Scalar  Pi) {
   using Vector = Dim<3>::Vector;
   return Vector();
 }
@@ -233,7 +243,7 @@ evaluateDerivatives(const Scalar time,
   const auto& pairs = connectivityMap.nodePairList();
   const auto  numNodeLists = nodeLists.size();
   const auto  npairs = pairs.size();
-  const auto  nint = dataBase.numInternalNodes();
+  // const auto  nint = dataBase.numInternalNodes();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -243,7 +253,7 @@ evaluateDerivatives(const Scalar time,
   const auto rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto cells = state.template fields<FacetedVolume>(HydroFieldNames::cells);
-  const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, CellFaceFlag());
+  const auto cellFaceFlags = state.fields(HydroFieldNames::cellFaceFlags, vector<CellFaceFlag>());
   const auto gradRho = derivs.fields(HydroFieldNames::massDensityGradient, Vector::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(pos.size() == numNodeLists);
@@ -262,33 +272,55 @@ evaluateDerivatives(const Scalar time,
 
   // Size up the pair-wise accelerations before we start.
   const auto compatibleEnergy = pairAccelerations.size() > 0u;
+  CHECK((not compatibleEnergy) or pairAccelerations.size() == npairs);
+
+  // Find the mapping between node pairs and pair acceleration index
+  unordered_map<size_t, size_t> pairIndices;
   if (compatibleEnergy) {
-    CHECK(pairAccelerations.size() == npairs or pairAccelerations.size() == npairs + nint);
-    if (pairAccelerations.size() == npairs) {
-      pairAccelerations.resize(npairs + nint);
-      std::fill(pairAccelerations.begin() + npairs, pairAccelerations.end(), Vector::zero);
+    for (auto [kk, pair]: enumerate(pairs)) {
+      pairIndices[pair.hash()] = kk;
     }
   }
 
-  // Walk the points
-  auto offset = npairs;
-  for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = mass[k]->numInternalElements();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      const auto& xi = pos(k,i);
-      const auto& vi = vel(k,i);
-      const auto& celli = cells(k,i);
-      // const auto  mi = mass(k,i);
-      const auto  Pi = P(k,i);
-      const auto  rhoi = rho(k,i);
-      const auto& gradRhoi = gradRho(k,i);
-      const auto  deltaDvDti = mfHG * subCellAcceleration(celli, xi, Pi, rhoi, gradRhoi);
-      DvDt(k,i) += deltaDvDti;
-      DepsDt(k,i) -= vi.dot(deltaDvDti);
-      if (compatibleEnergy) pairAccelerations[offset + i] += deltaDvDti;
+  // Walk the cell face flags, looking for pair interactions
+  {
+    int nodeListi, i, nodeListj, j, cellFace;
+    for (nodeListi = 0; nodeListi < int(numNodeLists); ++nodeListi) {
+      const int n = cellFaceFlags[nodeListi]->numInternalElements();
+      for (i = 0; i < n; ++i) {
+        const auto& celli = cells(nodeListi, i);
+        const auto& xi = pos(nodeListi, i);
+        const auto  Pi = P(nodeListi, i);
+        // const auto  rhoi = P(nodeListi, i);
+        // const auto& gradRhoi = gradRho(nodeListi, i);
+        const auto  comi = celli.centroid(); // centerOfMass(celli, xi, rhoi, gradRhoi);
+        // cerr << i << " " << cellFaceFlags(nodeListi, i).size() << endl;
+        for (const auto& flags: cellFaceFlags(nodeListi,i)) {
+          cellFace = flags.cellFace;
+          nodeListj = flags.nodeListj;
+          j = flags.j;
+          CHECK(nodeListj != -1 or (nodeListj == -1 and j == -1));
+          // cerr << cellFace << " " << nodeListj << " " << j << " : ";
+          if (nodeListj != -1) {    // Avoid external faces (with void)
+            const auto deltaDvDtij = mfHG * subCellAcceleration(celli, cellFace, comi, xi, Pi);
+            DvDt(nodeListi, i) += deltaDvDtij;
+            DvDt(nodeListj, j) -= deltaDvDtij;
+            DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij);
+            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij);
+            if (compatibleEnergy) {
+              const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
+              CHECK2(pairIndices.find(hashij) != pairIndices.end(),
+                     "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij);
+              const auto kk = pairIndices[hashij];
+              const bool flip = (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node);
+              pairAccelerations[kk] += deltaDvDtij * (flip ? -1.0 : 1.0);
+            }
+            // cerr << "[" << i << " " << j << "] : " << deltaDvDtij << " " << DvDt(nodeListi, i) << " " << DvDt(nodeListj, j);
+          }
+          // cerr << endl;
+        }
+      }
     }
-    offset += n;
   }
 
   TIME_END("SubPointHGevalDerivs");
