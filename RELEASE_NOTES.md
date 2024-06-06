@@ -6,6 +6,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features/ API changes:
+    * added MFV hydro from Hopkins 2015 with extension for ALE options
 
   * Build changes / improvements:
     * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
