@@ -214,7 +214,11 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+if KernelConstructor == NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
 kernelExtent = WT.kernelExtent
 output("WT")
 
