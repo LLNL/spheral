@@ -10,6 +10,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from ArithmeticFieldList import *
+from MinMaxFieldList import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -46,6 +47,16 @@ for ndim in dims:
                            ("Dim<%i>::FifthRankTensor" % ndim,  "FifthRankTensor")):
         exec('''
 %(label)sFieldList%(ndim)sd = PYB11TemplateClass(ArithmeticFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
+''' % {"ndim" : ndim,
+       "value" : value,
+       "label" : label})
+
+    #...........................................................................
+    # A few fields can apply the min/max with a scalar additionally
+    for (value, label) in (("double",                     "Scalar"),
+                           ("Dim<%i>::SymTensor" % ndim,  "SymTensor")):
+        exec('''
+%(label)sFieldList%(ndim)sd = PYB11TemplateClass(MinMaxFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})

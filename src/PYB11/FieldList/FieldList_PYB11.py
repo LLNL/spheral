@@ -11,7 +11,6 @@ dims = spheralDimensions()
 
 from FieldListBase import *
 from FieldList import *
-from MinMaxFieldList import *
 from FieldListSet import *
 
 #-------------------------------------------------------------------------------
@@ -57,16 +56,6 @@ FieldListSet%(ndim)sd = PYB11TemplateClass(FieldListSet, template_parameters="Di
                            ("RKCoefficients<Dim<%i>>" % ndim,      "RKCoefficients")):
         exec('''
 %(label)sFieldList%(ndim)sd = PYB11TemplateClass(FieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
-''' % {"ndim" : ndim,
-       "value" : value,
-       "label" : label})
-
-    #...........................................................................
-    # A few fields can apply the min/max with a scalar additionally
-    for (value, label) in (("double",                     "Scalar"),
-                           ("Dim<%i>::SymTensor" % ndim,  "SymTensor")):
-        exec('''
-%(label)sFieldList%(ndim)sd = PYB11TemplateClass(MinMaxFieldList, template_parameters=("Dim<%(ndim)i>", "%(value)s"))
 ''' % {"ndim" : ndim,
        "value" : value,
        "label" : label})
