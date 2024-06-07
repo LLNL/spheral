@@ -477,7 +477,7 @@ operator!=(const Box1d& rhs) const {
 //------------------------------------------------------------------------------
 inline
 std::ostream& operator<<(std::ostream& os, const Box1d& box) {
-  os << "Box(" << box.xmin().x() << " " << box.xmax().x() << "\n";
+  os << "Box(" << box.xmin().x() << " " << box.xmax().x() << ")";
   return os;
 }
 
