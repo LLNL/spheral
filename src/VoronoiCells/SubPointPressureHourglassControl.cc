@@ -106,10 +106,12 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
                     const Dim<1>::Vector& comi,
                     const Dim<1>::Vector& xi,
                     const Dim<1>::Scalar  Pi) {
+  using Vector = Dim<1>::Vector;
   REQUIRE(cellFace == 0 or cellFace == 1);
 
   const auto& vert = cellFace == 0 ? celli.xmin() : celli.xmax();
-  const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
+  const auto  dA = cellFace == 0 ? Vector(1.0) : Vector(-1.0);   // Inward pointing normal since we want -\grad P
+  // const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
   const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
   return Psub * dA;
 
@@ -247,9 +249,9 @@ evaluateDerivatives(const Scalar time,
   TIME_BEGIN("SubPointHGevalDerivs");
 
   // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto& pairs = connectivityMap.nodePairList();
+  const auto& cm = dataBase.connectivityMap();
+  const auto& nodeLists = cm.nodeLists();
+  const auto& pairs = cm.nodePairList();
   const auto  numNodeLists = nodeLists.size();
   const auto  npairs = pairs.size();
   // const auto  nint = dataBase.numInternalNodes();
@@ -311,14 +313,22 @@ evaluateDerivatives(const Scalar time,
           j = flags.j;
           CHECK(nodeListj != -1 or (nodeListj == -1 and j == -1));
           // cerr << cellFace << " " << nodeListj << " " << j << " : ";
-          if (nodeListj != -1) {    // Avoid external faces (with void)
-            const auto deltaDvDtij = mfHG * subCellAcceleration(celli, cellFace, comi, xi, Pi);
-            DvDt(nodeListi, i) += deltaDvDtij;
-            DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij);
-            if (size_t(j) < DvDt[nodeListj]->numInternalElements()) {
-              DvDt(nodeListj, j) -= deltaDvDtij;
-              DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij);
+          if (nodeListj != -1 and    // Avoid external faces (with void)
+              cm.calculatePairInteraction(nodeListi, i, nodeListj, j, nodeLists[nodeListj]->firstGhostNode())) {  // make sure we hit each pair only once
+            const auto& cellj = cells(nodeListj, j);
+            const auto& xj = pos(nodeListj, j);
+            const auto  Pj = P(nodeListj, j);
+            const auto  comj = cellj.centroid();
+            const auto deltaDvDtij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi) +
+                                             subCellAcceleration(celli, cellFace, comj, xj, Pj));
+            if (j >= nodeLists[nodeListj]->firstGhostNode()) {
+              cerr << " --> " << i << " " << j << " : " << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj)
+                   << " : " << celli << " " << cellj << endl;
             }
+            DvDt(nodeListi, i) += deltaDvDtij;
+            DvDt(nodeListj, j) -= deltaDvDtij;
+            DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij);
+            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij);
             if (compatibleEnergy) {
               const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
               CHECK2(pairIndices.find(hashij) != pairIndices.end(),
