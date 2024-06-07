@@ -7,8 +7,8 @@
 //
 // Created by JMO, Mon May 20 16:04:51 PDT 2024
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_IncrementState_hh__
-#define __Spheral_IncrementState_hh__
+#ifndef __Spheral_IncrementVoronoiCells_hh__
+#define __Spheral_IncrementVoronoiCells_hh__
 
 #include "DataBase/UpdatePolicyBase.hh"
 
