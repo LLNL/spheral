@@ -66,13 +66,10 @@ public:
                                    const State<Dimension>& state,
                                    StateDerivatives<Dimension>& derivatives) const override;
   
-  // Similarly packages might want a hook to do some post-step finalizations.
-  // Really we should rename this post-step finalize.
-  virtual void finalize(const Scalar time, 
-                        const Scalar dt,
-                        DataBase<Dimension>& dataBase, 
-                        State<Dimension>& state,
-                        StateDerivatives<Dimension>& derivs) override;
+  // Optional hook to be called at the beginning of a time step.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
 
   // Vote on a time step.
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 

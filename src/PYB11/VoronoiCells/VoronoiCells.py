@@ -62,12 +62,10 @@ temperature or pressure."""
         return "void"
 
     @PYB11virtual
-    def finalize(time = "const Scalar",
-                 dt = "const Scalar",
-                 dataBase = "DataBase<%(Dimension)s>&",
-                 state = "State<%(Dimension)s>&",
-                 derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Finalize at the end of a step."
+    def preStepInitialize(dataBase = "const DataBase<%(Dimension)s>&",
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Initialize at the beginning of a step."
         return "void"
 
     @PYB11virtual 

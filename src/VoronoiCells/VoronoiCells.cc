@@ -88,7 +88,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDeltaCentroid, Vector::zero, "delta centroid", false);
 
   // Use our finalize method to compute the cell geometry
-  this->finalize(0.0, 1.0, dataBase, state, derivs);
+  this->preStepInitialize(dataBase, state, derivs);
 
   // Propagate our state to constant any ghost nodes
   for (auto* boundaryPtr: this->boundaryConditions()) boundaryPtr->initializeProblemStartup(false);
@@ -181,18 +181,16 @@ evaluateDerivatives(const Scalar /*time*/,
 }
 
 //------------------------------------------------------------------------------
-// Finalize at the end of a physics cycle.
+// Initialize at the start of a physics cycle.
 // This is when we do the expensive operation of computing the Voronoi cell
 // geometry from scratch.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 VoronoiCells<Dimension>::
-finalize(const Scalar time, 
-         const Scalar dt,
-         DataBase<Dimension>& dataBase, 
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
 
   // State we need to compute the Voronoi cells
   const auto& cm = state.connectivityMap();
