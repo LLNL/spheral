@@ -137,7 +137,16 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
                     const Dim<2>::Vector& xi,
                     const Dim<2>::Scalar  Pi) {
   using Vector = Dim<2>::Vector;
-  return Vector();
+  const auto& facets = celli.facets();
+  REQUIRE(size_t(cellFace) < facets.size());
+  const auto& f = facets[cellFace];
+  const auto& v1 = f.point1();
+  const auto& v2 = f.point2();
+  const auto v12 = v2 - v1;
+  const Vector dA(-v12.y(), v12.x());
+  const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
+  return Psub*dA;
+
   // const auto comi = celli.centroid();
 
   // // Define a function to increment the acceleration for each subcell
@@ -244,6 +253,7 @@ evaluateDerivatives(const Scalar time,
   const auto  numNodeLists = nodeLists.size();
   const auto  npairs = pairs.size();
   // const auto  nint = dataBase.numInternalNodes();
+  CONTRACT_VAR(npairs);
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -304,13 +314,16 @@ evaluateDerivatives(const Scalar time,
           if (nodeListj != -1) {    // Avoid external faces (with void)
             const auto deltaDvDtij = mfHG * subCellAcceleration(celli, cellFace, comi, xi, Pi);
             DvDt(nodeListi, i) += deltaDvDtij;
-            DvDt(nodeListj, j) -= deltaDvDtij;
             DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij);
-            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij);
+            if (size_t(j) < DvDt[nodeListj]->numInternalElements()) {
+              DvDt(nodeListj, j) -= deltaDvDtij;
+              DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij);
+            }
             if (compatibleEnergy) {
               const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
               CHECK2(pairIndices.find(hashij) != pairIndices.end(),
-                     "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij);
+                     "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij
+                     << " --- " << DvDt[nodeListi]->numInternalElements() << " " << DvDt[nodeListi]->numGhostElements());
               const auto kk = pairIndices[hashij];
               const bool flip = (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node);
               pairAccelerations[kk] += deltaDvDtij * (flip ? -1.0 : 1.0);
