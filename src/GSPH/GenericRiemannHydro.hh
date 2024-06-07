@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
 // GenericRiemannHydro --  pure virtual class for hydros using a Riemann
-//                        solver
+//                         solver
 //
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
@@ -20,7 +20,15 @@ enum class GradientType {
   HydroAccelerationGradient = 1,
   SPHGradient = 2,
   MixedMethodGradient = 3,
-  SPHSameTimeGradient = 4
+  SPHSameTimeGradient = 4,
+  SPHUncorrectedGradient = 5,
+  NoGradient = 6
+};
+
+enum class GSPHEvolutionType {
+  IdealH = 0,
+  IntegrateH = 1,
+  constantNeighborCount = 2
 };
 
 template<typename Dimension> class State;
@@ -206,6 +214,7 @@ public:
   const std::vector<Vector>&             pairAccelerations() const;
   const std::vector<Scalar>&             pairDepsDt() const;
 
+  const FieldList<Dimension, Vector>&    DrhoDx() const;
   const FieldList<Dimension, Vector>&    riemannDpDx() const;
   const FieldList<Dimension, Tensor>&    riemannDvDx() const;
   const FieldList<Dimension, Vector>&    newRiemannDpDx() const;
@@ -232,7 +241,7 @@ private:
   MassDensityType mDensityUpdate;
   HEvolutionType mHEvolution;
   
-   // A bunch of switches.
+  // A bunch of switches.
   bool mCompatibleEnergyEvolution;    
   bool mEvolveTotalEnergy;           
   bool mXSPH;
@@ -266,6 +275,7 @@ private:
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDHDt;
 
+  FieldList<Dimension, Vector>    mDrhoDx;
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Vector>    mRiemannDpDx;
   FieldList<Dimension, Tensor>    mRiemannDvDx;
