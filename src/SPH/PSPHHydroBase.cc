@@ -15,7 +15,10 @@
 #include "DataBase/IncrementState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/applyPolicyToFieldList.hh"
 #include "Hydro/GammaPolicy.hh"
+#include "Hydro/PressurePolicy.hh"
+#include "Hydro/SoundSpeedPolicy.hh"
 #include "Mesh/generateMesh.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
@@ -109,6 +112,23 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
 template<typename Dimension>
 PSPHHydroBase<Dimension>::
 ~PSPHHydroBase() {
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PSPHHydroBase<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+
+  // The SPH class tries to update these using the policies, but since PSPH
+  // handles them differently we have to override that behavior here and do
+  // it differently.
+  applyPolicyToFieldList(this->mPressure, make_policy<PressurePolicy<Dimension>>(), state, derivs);
+  applyPolicyToFieldList(this->mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>(), state, derivs);
 }
 
 //------------------------------------------------------------------------------

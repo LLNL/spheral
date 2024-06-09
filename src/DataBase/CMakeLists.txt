@@ -25,6 +25,7 @@ set(DataBase_headers
     IncrementStateInline.hh
     IncrementBoundedState.hh
     IncrementBoundedStateInline.hh
+    MaxReplaceState.hh
     PureReplaceState.hh
     PureReplaceStateInline.hh
     ReplaceState.hh
@@ -39,6 +40,8 @@ set(DataBase_headers
     StateDerivatives.hh
     StateDerivativesInline.hh
     StateInline.hh
+    applyPolicyToFieldList.hh
+    updateStateFields.hh
     )
 
 spheral_add_obj_library(DataBase SPHERAL_OBJ_LIBS)

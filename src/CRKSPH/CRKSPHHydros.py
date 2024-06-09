@@ -86,13 +86,16 @@ def CRKSPH(dataBase,
     if nsolid > 0:
         kwargs.update({"damageRelieveRubble" : damageRelieveRubble})
 
-    if GeometryRegistrar.coords() == CoordinateType.RZ:
-        kwargs.update({"etaMinAxis" : etaMinAxis})
-
     # Build the thing.
     result = constructor(**kwargs)
     result.Q = Q
     result._smoothingScaleMethod = smoothingScaleMethod
+
+    # If we're using area-weighted RZ, we need to reflect from the axis
+    if GeometryRegistrar.coords() == CoordinateType.RZ:
+        result.zaxisBC = AxisBoundaryRZ(etaMinAxis)
+        result.appendBoundary(result.zaxisBC)
+
     return result
 
 #-------------------------------------------------------------------------------
