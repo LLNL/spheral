@@ -8,16 +8,6 @@
 
 namespace Spheral {
 
-// New macro for this implementation.
-#define SPTR_FWD_CTOR(type) \
-  type(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
-
-#define UPCAST_CONVERSION_OP(parent_t) \
-  operator parent_t() const {return parent_t(this->sptr());}
-
-#define POINTER_SYNTAX_OPERATORS() \
-  SPHERAL_HOST_DEVICE ImplType& operator*() const { return SPTR_DATA_REF(); } \
-  SPHERAL_HOST_DEVICE ImplType* operator->() const { return &SPTR_DATA_REF(); }
 
 namespace impl {
 
@@ -63,16 +53,7 @@ class F;
 
 class FB;
 
-class FBV : protected SpheralViewInterface<FBV, impl::FB> {
-  VIEW_TYPE_ALIASES((FB), (FBV), (impl::FB))
-  VIEW_DEFINE_ALLOC_CTOR(FBV)
-
-public:
-  VIEW_DEF_CTOR(FBV) 
-  POINTER_SYNTAX_OPERATORS()
-
-  void shallowCopy(FBV const& rhs) {*this = rhs;}
-};
+VIEW_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (impl::FB))
 
 // Because the underlying impl type is pure virtual we can not allow
 // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
@@ -80,7 +61,6 @@ public:
 // they must be constructed from F type objects directly...
 class FB : public SpheralValueInterface<FBV> {
   VALUE_TYPE_ALIASES((FBV))
-  //SPTR_FWD_CTOR(FB)
 public:
   FB() = delete;
   FB(FB const&) = delete;
@@ -90,17 +70,9 @@ public:
 
 
 template<typename T>
-class FV : public SpheralViewInterface<FV<T>, impl::F<T>> {
-  VIEW_TYPE_ALIASES((F<T>), (FV), (impl::F<T>))
-  VIEW_DEFINE_ALLOC_CTOR(FV)
-public:
-  VIEW_DEF_CTOR(FV) 
+VIEW_INTERFACE_METACLASS_DECLARATION_BEGIN((F<T>), (FV), (impl::F<T>))
   UPCAST_CONVERSION_OP(FBV)
-
-  POINTER_SYNTAX_OPERATORS()
-
-  void shallowCopy(FV const& rhs) {*this = rhs;}
-};
+VIEW_INTERFACE_METACLASS_DECLARATION_END()
 
 
 template<typename T>

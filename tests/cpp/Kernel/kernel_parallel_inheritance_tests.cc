@@ -7,39 +7,39 @@
 //--------------------------------
 // Impl Interface
 
+namespace impl {
+
 template<typename Dim, typename Desc>
-class KernelImpl : public Spheral::SPHERALCopyable<KernelImpl<Dim, Desc>> {
+class Kernel : public Spheral::SPHERALCopyable<Kernel<Dim, Desc>> {
 
   SPHERAL_HOST_DEVICE Desc& asDesc() {
-    return static_cast<Desc&>(const_cast<KernelImpl<Dim, Desc>&>(*this));
+    return static_cast<Desc&>(const_cast<Kernel<Dim, Desc>&>(*this));
   }
 public:
 	SPHERAL_HOST_DEVICE void doSomething() { printf("Ki HD doSomething()\n"); asDesc().doSomething(); }
 
-  //void free() {}
-  //SPHERAL_HOST_DEVICE KernelImpl& operator=(std::nullptr_t) { return *this; }
-  //SPHERAL_HOST_DEVICE void shallowCopy(KernelImpl const& rhs) {*this = rhs;}
-
-  friend KernelImpl deepCopy(KernelImpl const& rhs) {
-    KernelImpl result(rhs);
+  friend Kernel deepCopy(Kernel const& rhs) {
+    Kernel result(rhs);
     return result;
   }
 
 };
 
 template<typename Dim>
-class TableKernelImpl : public KernelImpl<Dim, TableKernelImpl<Dim>> {
+class TableKernel : public Kernel<Dim, TableKernel<Dim>> {
 public:
-  TableKernelImpl() = default;
+  TableKernel() = default;
 	SPHERAL_HOST_DEVICE void doSomething() { printf("TKi HD doSomething()\n"); printf("TableKernel doSomething\n"); }
 };
 
 template<typename Dim>
-class OtherKernelImpl : public KernelImpl<Dim, OtherKernelImpl<Dim>> {
+class OtherKernel : public Kernel<Dim, OtherKernel<Dim>> {
 public:
-  OtherKernelImpl() = default;
+  OtherKernel() = default;
 	SPHERAL_HOST_DEVICE void doSomething() { printf("OKi HD doSomething()\n"); printf("OtherKernel doSomething\n"); }
 };
+
+} // namespace impl
 
 //--------------------------------
 // View Interface
@@ -52,34 +52,13 @@ template<typename Dim>
 class OtherKernel;
 
 template<typename Dim, typename Desc>
-class KernelView :
-	public Spheral::SpheralViewInterface< KernelView<Dim, Desc>, KernelImpl<Dim, typename Desc::ImplType> >
-{
-  VIEW_TYPE_ALIASES( (Kernel<Dim, Desc>), (KernelView<Dim, Desc>), (KernelImpl<Dim, typename Desc::ImplType>) )
-  VIEW_DEFINE_ALLOC_CTOR(KernelView)
-public:
-	SPHERAL_HOST_DEVICE void doSomething() const { printf("Kv HD doSomething()\n"); this->sptr_data().doSomething(); }
-};
+VIEW_INTERFACE_METACLASS_DECLARATION( (Kernel<Dim, Desc>), (KernelView), (impl::Kernel<Dim, typename Desc::ImplType>) )
 
 template<typename Dim>
-class TableKernelView : 
-	public Spheral::SpheralViewInterface<TableKernelView<Dim>,TableKernelImpl<Dim>>
-{
-  VIEW_TYPE_ALIASES( (TableKernel<Dim>), (TableKernelView), (TableKernelImpl<Dim>))
-  VIEW_DEFINE_ALLOC_CTOR(TableKernelView)
-public:
-	SPHERAL_HOST_DEVICE void doSomething() const { printf("TKv HD doSomething()\n"); this->sptr_data().doSomething(); }
-};
+VIEW_INTERFACE_METACLASS_DECLARATION( (TableKernel<Dim>), (TableKernelView), (impl::TableKernel<Dim>))
 
 template<typename Dim>
-class OtherKernelView : 
-	public Spheral::SpheralViewInterface<OtherKernelView<Dim>,OtherKernelImpl<Dim>>
-{
-  VIEW_TYPE_ALIASES( (OtherKernel<Dim>), (OtherKernelView), (OtherKernelImpl<Dim>))
-  VIEW_DEFINE_ALLOC_CTOR(OtherKernelView)
-public:
-	SPHERAL_HOST_DEVICE void doSomething() const { printf("OKv HD doSomething()\n"); this->sptr_data().doSomething(); }
-};
+VIEW_INTERFACE_METACLASS_DECLARATION( (OtherKernel<Dim>), (OtherKernelView), (impl::OtherKernel<Dim>))
 
 //--------------------------------
 // Value Interface
@@ -93,6 +72,7 @@ public:
   VALUE_COPY_CTOR(Kernel)
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
+  ViewType operator&() { return toView(); }
 
 	SPHERAL_HOST void doSomething() { printf("K H doSomething()\n"); this->sptr_data().doSomething(); }
 };
@@ -106,6 +86,7 @@ public:
   VALUE_COPY_CTOR(TableKernel)
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
+  ViewType operator&() { return toView(); }
 
 	SPHERAL_HOST void doSomething() { printf("TK H doSomething()\n"); this->sptr_data().doSomething(); }
 };
@@ -119,6 +100,7 @@ public:
   VALUE_COPY_CTOR(OtherKernel)
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
+  ViewType operator&() { return toView(); }
 
 	SPHERAL_HOST void doSomething() { printf("OK H doSomething()\n"); this->sptr_data().doSomething(); }
 };
@@ -138,11 +120,11 @@ TYPED_TEST_CASE(KernelParallelInterface, EXEC_TYPES);
 TEST(KernelParallelImpl, Impl)
 {
 
-  TableKernelImpl<Dim1> tk_impl;
+  impl::TableKernel<Dim1> tk_impl;
   
   tk_impl.doSomething();
 
-  KernelImpl<Dim1, TableKernelImpl<Dim1>> k_impl;
+  impl::Kernel<Dim1, impl::TableKernel<Dim1>> k_impl;
   
   k_impl.doSomething();
 
@@ -156,10 +138,10 @@ GPU_TYPED_TEST(KernelParallelInterface, TableKernelInterface)
   
   tk.doSomething();
 
-  TableKernelView<Dim1> tkv = tk.toView();
+  TableKernelView<Dim1> tkv = &tk;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    tkv.doSomething();
+    tkv->doSomething();
   EXEC_IN_SPACE_END()
 }
 
@@ -171,26 +153,26 @@ GPU_TYPED_TEST(KernelParallelInterface, KernelInterface)
   
   k.doSomething();
 
-  KernelView<Dim1, TableKernel<Dim1>> kv = k.toView();
+  KernelView<Dim1, TableKernel<Dim1>> kv = &k;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv.doSomething();
+  kv->doSomething();
   EXEC_IN_SPACE_END()
 
-  KernelView<Dim1, TableKernelView<Dim1>> kv_tkv = k.toView();
+  KernelView<Dim1, TableKernelView<Dim1>> kv_tkv = &k;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv_tkv.doSomething();
+  kv_tkv->doSomething();
   EXEC_IN_SPACE_END()
 
   Kernel<Dim1, TableKernelView<Dim1>> k_tkv;
 
-  k_tkv.doSomething();
+  k_tkv->doSomething();
 
-  KernelView<Dim1, TableKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
+  KernelView<Dim1, TableKernelView<Dim1>> kv_tkv2 = &k_tkv;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv_tkv2.doSomething();
+  kv_tkv2->doSomething();
   EXEC_IN_SPACE_END()
   
 }
@@ -201,28 +183,28 @@ GPU_TYPED_TEST(KernelParallelInterface, OtherKernelInterface)
 
   Kernel<Dim1, OtherKernel<Dim1>> k;
   
-  k.doSomething();
+  k->doSomething();
 
-  KernelView<Dim1, OtherKernel<Dim1>> kv = k.toView();
+  KernelView<Dim1, OtherKernel<Dim1>> kv = &k;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv.doSomething();
+  kv->doSomething();
   EXEC_IN_SPACE_END()
 
-  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv = k.toView();
+  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv = &k;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv_tkv.doSomething();
+  kv_tkv->doSomething();
   EXEC_IN_SPACE_END()
 
   Kernel<Dim1, OtherKernelView<Dim1>> k_tkv;
 
-  k_tkv.doSomething();
+  k_tkv->doSomething();
 
-  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
+  KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv2 = &k_tkv;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  kv_tkv2.doSomething();
+  kv_tkv2->doSomething();
   EXEC_IN_SPACE_END()
   
 }
