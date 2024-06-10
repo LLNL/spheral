@@ -54,8 +54,6 @@ public:
 
 // We need to forward declare child classes for use in conversion functions.
 template<typename T>
-class FV;
-template<typename T>
 class F;
 
 class FB;
@@ -70,14 +68,16 @@ public:
   //VIEW_ASSIGNEMT_OP()
   SPHERAL_HOST_DEVICE FBV& operator=(FBV const&) = default;
 
-  SPHERAL_HOST_DEVICE FBV& operator=(std::nullptr_t) {return *this; }
+  SPHERAL_HOST_DEVICE ImplType& operator*() const { return SPTR_DATA_REF(); }
+  SPHERAL_HOST_DEVICE ImplType* operator->() const { return &SPTR_DATA_REF(); }
+
   void shallowCopy(FBV const& rhs) {*this = rhs;}
 
-  SPHERAL_HOST_DEVICE size_t getHash() const { return sptr_data().getHash(); }
+  //SPHERAL_HOST_DEVICE size_t getHash() const { return sptr_data().getHash(); }
 
-  // We want to forward the pure virtual interface here.
-  SPHERAL_HOST_DEVICE size_t size() const {return sptr_data().size(); }
-  void resize(size_t sz) { sptr_data().resize(sz); }
+  //// We want to forward the pure virtual interface here.
+  //SPHERAL_HOST_DEVICE size_t size() const {return sptr_data().size(); }
+  //void resize(size_t sz) { sptr_data().resize(sz); }
 };
 
 // Because the underlying impl type is pure virtual we can not allow
@@ -102,15 +102,12 @@ class FV : public Spheral::SpheralViewInterface<FV<T>, Fi<T>> {
 public:
   VIEW_DEF_CTOR(FV)
 
-  SPHERAL_HOST_DEVICE FV& operator=(std::nullptr_t) {return *this; }
+  SPHERAL_HOST_DEVICE ImplType& operator*() { return SPTR_DATA_REF(); }
+  SPHERAL_HOST_DEVICE ImplType* operator->() { return &SPTR_DATA_REF(); }
+
   void shallowCopy(FV const& rhs) {*this = rhs;}
-
-  SPHERAL_HOST_DEVICE T* data() {return SPTR_DATA_REF().data(); }
-  SPHERAL_HOST_DEVICE T& operator()(size_t idx) { return this->sptr_data().operator()(idx); }
-  SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
-
-  SPHERAL_HOST_DEVICE size_t getHash() const { return this->sptr_data().getHash(); }
 };
+
 
 template<typename T>
 class F : public Spheral::SpheralValueInterface<FV<T>> {
@@ -122,11 +119,20 @@ public:
   VALUE_ASSIGNEMT_OP()
   VALUE_TOVIEW_OP()
 
+  ViewType operator&() { return toView(); }
+
   // Ctor 
   F(size_t h, size_t sz) : Base(chai::make_shared<Fi<T>>(h, sz)) {}
   ~F() { this->sptr()->m_data.free(); }
 
   void resize(size_t sz) { this->sptr_data().resize(sz); } 
+
+  // Moved from View Interface
+  SPHERAL_HOST_DEVICE T* data() {return SPTR_DATA_REF().data(); }
+  SPHERAL_HOST_DEVICE T& operator()(size_t idx) { return this->sptr_data().operator()(idx); }
+  SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
+
+  SPHERAL_HOST_DEVICE size_t getHash() const { return this->sptr_data().getHash(); }
 };
 
 }// namespace Spheral
@@ -148,30 +154,29 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
 
   Spheral::F<double> f(2, 200);
 
-  auto f_v = f.toView();
+  auto f_v = &f;
   Spheral::FBV fb_v = (Spheral::FBV)f_v;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     printf("--- GPU BEGIN ---\n");
-    printf("%ld, %ld\n", fb_v.getHash(), fb_v.size());
+    printf("%ld, %ld\n", fb_v->getHash(), fb_v->size());
     printf("--- GPU END ---\n");
   EXEC_IN_SPACE_END()
 
-  std::cout << "fb_v : " << fb_v.getHash() << " , " << std::endl;
-  std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
+  std::cout << "fb_v : " << fb_v->getHash() << " , " << std::endl;
+  std::cout << "f_v  : " << f_v->getHash()   << " , " << f_v->data()   << " , " << (*f_v).size() << std::endl;
   std::cout << "f    : " << f.getHash()     << " , " << f.data()     << " , " << f.size()   << std::endl;
   
-  fb_v.resize(1123);
+  fb_v->resize(1123);
   
   std::cout << "f    : " << f.getHash()     << " , " << f.data()     << " , " << f.size()   << std::endl;
-  std::cout << "f_v  : " << f_v.getHash()   << " , " << f_v.data()   << " , " << f_v.size() << std::endl;
+  std::cout << "f_v  : " << f_v->getHash()   << " , " << f_v->data()   << " , " << f_v->size() << std::endl;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     printf("--- GPU BEGIN ---\n");
-    printf("%ld, %ld\n", fb_v.getHash(), fb_v.size());
+    printf("%ld, %ld\n", fb_v->getHash(), fb_v->size());
     printf("--- GPU END ---\n");
   EXEC_IN_SPACE_END()
-
   
   Spheral::F<double> f0(0, 0);
   Spheral::F<double> f1(1, 1);
@@ -184,25 +189,25 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   Spheral::ManagedVector<Spheral::FV<double>>  vec_fv;
   vec_fv.reserve(5);
 
-  vec_fbv.push_back(  (Spheral::FBV)f0.toView()  );
-  vec_fbv.push_back(  (Spheral::FBV)f1.toView()  );
-  vec_fbv.push_back(  (Spheral::FBV)f2.toView()  );
-  vec_fbv.push_back(  (Spheral::FBV)f3.toView()  );
-  vec_fbv.push_back(  (Spheral::FBV)f4.toView()  );
+  vec_fbv.push_back(  (Spheral::FBV)(&f0)  );
+  vec_fbv.push_back(  (Spheral::FBV)(&f1)  );
+  vec_fbv.push_back(  (Spheral::FBV)(&f2)  );
+  vec_fbv.push_back(  (Spheral::FBV)(&f3)  );
+  vec_fbv.push_back(  (Spheral::FBV)(&f4)  );
 
-  vec_fv.push_back(  f0.toView()  );
-  vec_fv.push_back(  f1.toView()  );
-  vec_fv.push_back(  f2.toView()  );
-  vec_fv.push_back(  f3.toView()  );
-  vec_fv.push_back(  f4.toView()  );
+  vec_fv.push_back( &f0 );
+  vec_fv.push_back( &f1 );
+  vec_fv.push_back( &f2 );
+  vec_fv.push_back( &f3 );
+  vec_fv.push_back( &f4 );
 
   SPHERAL_ASSERT_EQ(vec_fbv.size(), vec_fv.size());
-  for(int i = 0; i < vec_fbv.size(); i++) SPHERAL_ASSERT_EQ(vec_fbv[i].size(), vec_fv[i].size());
+  for(int i = 0; i < vec_fbv.size(); i++) SPHERAL_ASSERT_EQ(vec_fbv[i]->size(), (*vec_fv[i]).size());
   std::cout << "Arr  Map Sz : " << chai::ArrayManager::getInstance()->getPointerMap().size() << std::endl;
 
   for(int i = 0; i < vec_fbv.size(); i++)
   {
-    auto& elem = vec_fbv[i];
+    auto& elem = *vec_fbv[i];
 
     printf("%ld, %ld\n", elem.getHash(), elem.size());
     size_t sz = elem.size();
@@ -222,12 +227,13 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
     printf("%ld\n", vec_fv.size());
     for(int i = 0; i < vec_fbv.size(); i++)
     {
-      auto& elem_b = vec_fbv[i];
-      auto& elem_v = vec_fv[i];
+      auto& elem_b = *vec_fbv[i];
+      auto& elem_v = *vec_fv[i];
+      //elem_v.resize(120);
 
       printf("%ld, %ld\n", elem_b.getHash(), elem_b.size());
       printf("%p\n", &elem_v(0));
-      for(size_t j = 0; j < elem_v.size(); j++) { printf("%f, ",vec_fv[i](j));} 
+      for(size_t j = 0; j < elem_v.size(); j++) { printf("%f, ",vec_fv[i]->operator()(j));} 
       printf("\n");
     }
     printf("--- GPU END ---\n");
