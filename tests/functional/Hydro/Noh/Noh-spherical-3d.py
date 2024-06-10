@@ -56,6 +56,7 @@ commandLine(order = 5,
             fsisph = False,
             gsph = False,
             mfm = False,
+            mfv = False,
 
             asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
             boolReduceViscosity = False,
@@ -151,8 +152,10 @@ elif fsisph:
     hydroname = "FSISPH"
 elif gsph:
     hydroname = "GSPH"
-elif gsph:
+elif mfm:
     hydroname = "MFM"
+elif mfv:
+    hydroname = "MFV"
 else:
     hydroname = "SPH"
 if asph:
@@ -334,6 +337,23 @@ elif mfm:
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+elif mfv:
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,waveSpeed,True)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = RiemannGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
@@ -367,7 +387,7 @@ output("hydro.kernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.HEvolution")
-if not (gsph or fsisph):
+if not (gsph or mfm or mfv or fsisph):
     output("hydro.PiKernel")
 if not fsisph:
     output("hydro.densityUpdate")
@@ -377,7 +397,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not (gsph or mfm):
+if not (gsph or mfm or mfv):
     q = hydro.Q
     if Cl:
         q.Cl = Cl

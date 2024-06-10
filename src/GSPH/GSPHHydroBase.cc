@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- A Riemann-solver-based implementation of SPH. Compared to 
+//                  MFM/MFV this approach requires a larger neighbor set. 2.5
+//                  nodes per kernel extent instead of 2-2.25 for MFM/MFV but
+//                  does perform better on certain tests (Noh implosion)
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
@@ -103,9 +106,11 @@ GSPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 GSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHinitializeStartup");
-  GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
+  GenericRiemannHydro<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
   TIME_END("GSPHinitializeStartup");
 }
 
@@ -205,11 +210,8 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHinitialize");
-
   GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
-
   TIME_END("GSPHinitialize");
-  
 }
 
 //------------------------------------------------------------------------------
@@ -237,9 +239,7 @@ GSPHHydroBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHghostBounds");
-
   GenericRiemannHydro<Dimension>::applyGhostBoundaries(state,derivs);
-
   TIME_END("GSPHghostBounds");
 }
 
@@ -252,9 +252,7 @@ GSPHHydroBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHenforceBounds");
-
   GenericRiemannHydro<Dimension>::enforceBoundaries(state,derivs);
-
   TIME_END("GSPHenforceBounds");
 }
 

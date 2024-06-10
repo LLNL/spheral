@@ -148,9 +148,18 @@ SolidCRKSPHHydroBaseRZ::
 //------------------------------------------------------------------------------
 void
 SolidCRKSPHHydroBaseRZ::
-initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
-
+initializeProblemStartup(DataBase<Dim<2>>& dataBase) {
   GeometryRegistrar::coords(CoordinateType::RZ);
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+void
+SolidCRKSPHHydroBaseRZ::
+initializeProblemStartupDependencies(DataBase<Dim<2>>& dataBase,
+                                     State<Dim<2>>& state,
+                                     StateDerivatives<Dim<2>>& derivs) {
 
   // Correct the mass to mass/r.
   auto mass = dataBase.fluidMass();
@@ -165,7 +174,7 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   }
 
   // Call the ancestor.
-  SolidCRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+  SolidCRKSPHHydroBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // Convert back to mass.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

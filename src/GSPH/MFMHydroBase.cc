@@ -87,7 +87,6 @@ MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
     
     mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
 
-
 }
 
 //------------------------------------------------------------------------------
@@ -104,8 +103,10 @@ MFMHydroBase<Dimension>::
 template<typename Dimension>
 void
 MFMHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  GenericRiemannHydro<Dimension>::initializeProblemStartup(dataBase);
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+  GenericRiemannHydro<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------
@@ -196,7 +197,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 }
 
 //------------------------------------------------------------------------------

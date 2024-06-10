@@ -19,6 +19,7 @@ if (NOT ENABLE_CXXONLY)
   # Find the appropriate Python
   find_package(Python3 COMPONENTS Interpreter Development)
   set(PYTHON_EXE ${Python3_EXECUTABLE})
+  set(SPHERAL_SITE_PACKAGES_PATH "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   list(APPEND SPHERAL_BLT_DEPENDS Python3::Python)
 
   # Set the PYB11Generator path

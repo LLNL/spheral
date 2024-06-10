@@ -233,29 +233,6 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// One time initializations at problem set up.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-PalphaPorosity<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
-  // Base initialization
-  PorosityModel<Dimension>::initializeProblemStartup(dataBase);
-
-  // Get some state from the DataBase we're gonna need
-  const auto  rhoFL = dataBase.fluidMassDensity();
-  const auto  epsFL = dataBase.fluidSpecificThermalEnergy();
-  const auto& rho = **rhoFL.fieldForNodeList(mNodeList);
-  const auto& eps = **epsFL.fieldForNodeList(mNodeList);
-
-  // We also need the partial derivatives of the pressure.
-  Field<Dimension, Scalar> P("tmp pressure", mNodeList);
-  const auto& eos = mNodeList.equationOfState();
-  eos.setPressureAndDerivs(P, mdPdU, mdPdR, rho, eps);
-}
-
-//------------------------------------------------------------------------------
 // Dump the current state to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>

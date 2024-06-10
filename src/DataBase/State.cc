@@ -195,9 +195,7 @@ update(StateDerivatives<Dimension>& derivs,
 
     // Walk the remaining state to be completed.
     vector<KeyType> stateToRemove;
-    for (auto& fieldKey_KeysAndPolicies: stateToBeCompleted) {
-      const KeyType& fieldKey = fieldKey_KeysAndPolicies.first;
-      const set<KeyType>& remainingKeys = stateToBeCompleted[fieldKey];
+    for (auto& [fieldKey, remainingKeys]: stateToBeCompleted) { // (fieldKey, set<full_fieldKeys>)
 
       // Walk the remaining individual keys for this fieldKey.
       for (auto& key: remainingKeys) {

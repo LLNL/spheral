@@ -1,12 +1,55 @@
 Version vYYYY.MM.p -- Release date YYYY-MM-DD
 ==============================================
   * Important Notes:
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features/ API changes:
+    * added MFV hydro from Hopkins 2015 with extension for ALE options
+
+  * Build changes / improvements:
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+
+  * Bug Fixes / improvements:
+
+Version v2024.01.1 -- Release date 2024-02-17
+==============================================
+  * Important Notes:
+    * This is a patch release for v2024.01.0.
+
+Notable changes include:
+
+  * New features/ API changes:
+    * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
+      of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
+      State and StateDerivatives object).
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
+  * Build changes / improvements:
+    * Improved the target export functionality.
+
+  * Bug Fixes / improvements:
+    * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
+    * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
+
+Version v2024.01.00 -- Release date 2024-01-19
+==============================================
+  * Important Notes:
     * The PolyClipper, BLT, and PYB11Generator submodules have been modified. Be sure to recursively update the submodules.  
 
 Notable changes include:
 
   * New features/ API changes:
-    * Adding P-alpha porosity model
+    * Adding P-alpha porosity model.
     * Updating treatment of various state variables in the presence of porosity.
     * Introduced a new common base class for porosity physics (PorosityModel), which PalphaPorosity and StrainPorosity share.
     * Revamped interaction UpdatePolicies with FieldLists:
@@ -15,25 +58,25 @@ Notable changes include:
     * Adding more Shadow Python interfaces wrapping our C++ classes, in particular PalphaPorosity and StrainPorosity.
     * EquationOfState now requires instances to provide \partial P/\partial \rho and \partial P/\partial \epsilon.  All current equations of state have been updated accordingly.
     * Tillotson and Gruneisen EOSs implementations updated a bit in the revamping.
-    * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book)
+    * Added more material options to MaterialPropertiesLib.py (mostly from Melosh's 89 book).
 
   * Build changes / improvements:
-    * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use
+    * Spheral now provides First Class CMake support (using the BLT nomenclature). Spheral and its dependencies are now exported to simplify importing the project. To import Spheral into another project using CMake, use:
       ```
       find_package(Spheral_CXX <path_to_spheral_installation>)
       ```
     * CMake variables have a more consistent naming convention. Unused variables are removed.
-    * Added ENABLE_DEV_BUILD option to improve build times during code development
-    * Upped our required C++ standard to 17
+    * Added ENABLE_DEV_BUILD option to improve build times during code development.
+    * Upped our required C++ standard to 17.
 
   * Bug Fixes / improvements:
     * Fixed melt behavior in Steinberg-Guinan strength model, which was ignoring melt for damaged material.
     * Fixed range of dimensionless melt temperature for Johnson-Cook strength.
-    * FSISPH new features and modifications to method 
-      * NOTE constructor inputs have changed
-      * strength implementation modified
-      * new features added including plane strain option and settable minP for interfaces
-      * new, more rigorous, interface and free surface tracking
+    * FSISPH new features and modifications to method. 
+      * NOTE constructor inputs have changed.
+      * strength implementation modified.
+      * new features added including plane strain option and settable minP for interfaces.
+      * new, more rigorous, interface and free surface tracking.
     * Fixed initialization of longitudinal sound speed and Youngs modulus for damage models.
     * Corrected some minor bugs/inconsistencies in the Tillotson EOS.
     * lcats updated to work with current TOSS4 machine configurations.
@@ -167,3 +210,15 @@ Notable changes include:
     * CullenDehnen segfault fix.
 
 **Full Changelog**: https://github.com/LLNL/spheral/compare/2022.2.0-pre-spack...v2022.6.0
+
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features/ API changes:
+
+  * Build changes / improvements:
+
+  * Bug Fixes / improvements:

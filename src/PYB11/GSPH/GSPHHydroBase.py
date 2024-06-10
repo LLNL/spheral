@@ -7,6 +7,7 @@ from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
+@PYB11dynamic_attr
 class GSPHHydroBase(GenericRiemannHydro):
 
     PYB11typedefs = """
@@ -41,8 +42,14 @@ class GSPHHydroBase(GenericRiemannHydro):
     # Virtual methods
 
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
 
     @PYB11virtual 
