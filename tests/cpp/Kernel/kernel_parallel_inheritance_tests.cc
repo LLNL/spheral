@@ -1,4 +1,5 @@
 #include "test-utilities.hh"
+#include "test-basic-exec-policies.hh"
 
 #include "Field/SphArray.hh"
 #include "Utilities/ValueViewInterface.hh"
@@ -15,9 +16,9 @@ class KernelImpl : public Spheral::SPHERALCopyable<KernelImpl<Dim, Desc>> {
 public:
 	SPHERAL_HOST_DEVICE void doSomething() { printf("Ki HD doSomething()\n"); asDesc().doSomething(); }
 
-  void free() {}
-  SPHERAL_HOST_DEVICE KernelImpl& operator=(std::nullptr_t) { return *this; }
-  SPHERAL_HOST_DEVICE void shallowCopy(KernelImpl const& rhs) {*this = rhs;}
+  //void free() {}
+  //SPHERAL_HOST_DEVICE KernelImpl& operator=(std::nullptr_t) { return *this; }
+  //SPHERAL_HOST_DEVICE void shallowCopy(KernelImpl const& rhs) {*this = rhs;}
 
   friend KernelImpl deepCopy(KernelImpl const& rhs) {
     KernelImpl result(rhs);
@@ -57,7 +58,7 @@ class KernelView :
   VIEW_TYPE_ALIASES( (Kernel<Dim, Desc>), (KernelView<Dim, Desc>), (KernelImpl<Dim, typename Desc::ImplType>) )
   VIEW_DEFINE_ALLOC_CTOR(KernelView)
 public:
-	SPHERAL_HOST_DEVICE void doSomething() { printf("Kv HD doSomething()\n"); this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() const { printf("Kv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -67,7 +68,7 @@ class TableKernelView :
   VIEW_TYPE_ALIASES( (TableKernel<Dim>), (TableKernelView), (TableKernelImpl<Dim>))
   VIEW_DEFINE_ALLOC_CTOR(TableKernelView)
 public:
-	SPHERAL_HOST_DEVICE void doSomething() { printf("TKv HD doSomething()\n"); this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() const { printf("TKv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 template<typename Dim>
@@ -77,7 +78,7 @@ class OtherKernelView :
   VIEW_TYPE_ALIASES( (OtherKernel<Dim>), (OtherKernelView), (OtherKernelImpl<Dim>))
   VIEW_DEFINE_ALLOC_CTOR(OtherKernelView)
 public:
-	SPHERAL_HOST_DEVICE void doSomething() { printf("OKv HD doSomething()\n"); this->sptr_data().doSomething(); }
+	SPHERAL_HOST_DEVICE void doSomething() const { printf("OKv HD doSomething()\n"); this->sptr_data().doSomething(); }
 };
 
 //--------------------------------
@@ -124,8 +125,17 @@ public:
 
 class Dim1 {};
 
+//
+// Setting up G Test for QuadraticInterpolator
+template<typename T>
+class KernelParallelInterface : public::testing::Test {};
 
-TEST(KernelParallelInterface, Impl)
+// All QuadraticInterpolatorTets cases will run over each type in EXEC_TYPES.
+TYPED_TEST_CASE(KernelParallelInterface, EXEC_TYPES);
+
+
+
+TEST(KernelParallelImpl, Impl)
 {
 
   TableKernelImpl<Dim1> tk_impl;
@@ -138,8 +148,9 @@ TEST(KernelParallelInterface, Impl)
 
 }
 
-TEST(KernelParallelInterface, TableKernelInterface)
+GPU_TYPED_TEST(KernelParallelInterface, TableKernelInterface)
 {
+  using WORK_EXEC_POLICY = TypeParam;
 
   TableKernel<Dim1> tk;
   
@@ -147,11 +158,14 @@ TEST(KernelParallelInterface, TableKernelInterface)
 
   TableKernelView<Dim1> tkv = tk.toView();
 
-  tkv.doSomething();
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
+    tkv.doSomething();
+  EXEC_IN_SPACE_END()
 }
 
-TEST(KernelParallelInterface, KernelInterface)
+GPU_TYPED_TEST(KernelParallelInterface, KernelInterface)
 {
+  using WORK_EXEC_POLICY = TypeParam;
 
   Kernel<Dim1, TableKernel<Dim1>> k;
   
@@ -159,11 +173,15 @@ TEST(KernelParallelInterface, KernelInterface)
 
   KernelView<Dim1, TableKernel<Dim1>> kv = k.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv.doSomething();
+  EXEC_IN_SPACE_END()
 
   KernelView<Dim1, TableKernelView<Dim1>> kv_tkv = k.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv_tkv.doSomething();
+  EXEC_IN_SPACE_END()
 
   Kernel<Dim1, TableKernelView<Dim1>> k_tkv;
 
@@ -171,12 +189,15 @@ TEST(KernelParallelInterface, KernelInterface)
 
   KernelView<Dim1, TableKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv_tkv2.doSomething();
+  EXEC_IN_SPACE_END()
   
 }
 
-TEST(KernelParallelInterface, OtherKernelInterface)
+GPU_TYPED_TEST(KernelParallelInterface, OtherKernelInterface)
 {
+  using WORK_EXEC_POLICY = TypeParam;
 
   Kernel<Dim1, OtherKernel<Dim1>> k;
   
@@ -184,11 +205,15 @@ TEST(KernelParallelInterface, OtherKernelInterface)
 
   KernelView<Dim1, OtherKernel<Dim1>> kv = k.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv.doSomething();
+  EXEC_IN_SPACE_END()
 
   KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv = k.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv_tkv.doSomething();
+  EXEC_IN_SPACE_END()
 
   Kernel<Dim1, OtherKernelView<Dim1>> k_tkv;
 
@@ -196,6 +221,8 @@ TEST(KernelParallelInterface, OtherKernelInterface)
 
   KernelView<Dim1, OtherKernelView<Dim1>> kv_tkv2 = k_tkv.toView();
 
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   kv_tkv2.doSomething();
+  EXEC_IN_SPACE_END()
   
 }
