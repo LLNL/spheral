@@ -9,6 +9,10 @@
 namespace Spheral {
 
 
+//-----------------------------------------------------------------------------
+// Implementation of Existing Class in Spheral...
+//-----------------------------------------------------------------------------
+
 namespace impl {
 
 class FB : chai::CHAIPoly{
@@ -47,55 +51,72 @@ public:
 
 } // namespace impl
 
-// We need to forward declare child classes for use in conversion functions.
+
+
+//-----------------------------------------------------------------------------
+// Interface to support porting to the GPU.
+//-----------------------------------------------------------------------------
+
+// We need to forward declare value classes for view interface definitions.
 template<typename T>
 class F;
 class FB;
 
+// Define Metaclass macros for Value/View relationships
 #define FBV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (impl::FB), (code))
 #define FB__(code)  VALUE_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (code))
 
 #define FV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((F<T>), (FV), (impl::F<T>), (code))
 #define F__(code) VALUE_INTERFACE_METACLASS_DECLARATION((F), (FV<T>), (code))
 
+
+// --- Interface definitions ---
+
 class FBV__(
   DEFAULT()
 );
 
-// Because the underlying impl type is pure virtual we can not allow
-// construction of FB class with default Ctor, Copy Ctor or assignment Op. 
-// We can only construct a FB object from an existing smart_ptr type so 
-// they must be constructed from F type objects directly...
+// This class instantiation exsists only to fulfil type information
+// queries that might arise : e.g. `typename FB::ViewType`
 class FB__(
+  // Because the underlying impl type is an abstract virtual we can not allow
+  // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
   DELETED_INTERFACE(FB)
 );
 
 
 template<typename T>
 class FV__(
+  // Field inherits from FieldBase so we would like to be able to implicitly
+  // upcast a fieldview object to a fieldbaseview.
   UPCAST_CONVERSION_OP(FBV)
 );
-
 
 template<typename T>
 class F__(
 public:
+  // Define Default semantic value type operations for def Ctor, Copy Ctor
+  // and assignment op.
   VALUE_DEF_CTOR(F)
   VALUE_COPY_CTOR(F)
   VALUE_ASSIGNEMT_OP()
 
-  // Ctor 
+  // Custom Ctor, note we need to create the underlying implementation 
+  // object on ctor of value interfaces.
   F(size_t h, size_t sz) : Base(chai::make_shared<ImplType>(h, sz)) {}
+
+  // Value semantics dictate that we free underlying data upon destruction.
   ~F() { this->sptr()->m_data.free(); }
 
+  // HOST only interface
   void resize(size_t sz) { this->sptr_data().resize(sz); } 
 
-  // Moved from View Interface
-  SPHERAL_HOST_DEVICE T* data() {return SPTR_DATA_REF().data(); }
-  SPHERAL_HOST_DEVICE T& operator()(size_t idx) { return this->sptr_data().operator()(idx); }
-  SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
+  // Moved from old View Interface pattern.
+  T* data() {return SPTR_DATA_REF().data(); }
+  T& operator()(size_t idx) { return this->sptr_data().operator()(idx); }
+  size_t size() const { return this->sptr_data().size(); }
 
-  SPHERAL_HOST_DEVICE size_t getHash() const { return this->sptr_data().getHash(); }
+  size_t getHash() const { return this->sptr_data().getHash(); }
 );
   
 
