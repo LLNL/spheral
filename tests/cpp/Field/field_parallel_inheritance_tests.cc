@@ -13,14 +13,18 @@ namespace Spheral {
   type(SmartPtrType&& rhs) : Base(std::forward<SmartPtrType>(rhs)) {}
 
 #define UPCAST_CONVERSION_OP(parent_t) \
-  explicit operator parent_t() const {return parent_t(this->sptr());}
+  operator parent_t() const {return parent_t(this->sptr());}
 
+#define POINTER_SYNTAX_OPERATORS() \
+  SPHERAL_HOST_DEVICE ImplType& operator*() const { return SPTR_DATA_REF(); } \
+  SPHERAL_HOST_DEVICE ImplType* operator->() const { return &SPTR_DATA_REF(); }
 
-class FBi : chai::CHAIPoly{
+namespace impl {
+
+class FB : chai::CHAIPoly{
   public:
-    SPHERAL_HOST_DEVICE FBi() {}
-    FBi(size_t h) : hash(h) {}
-
+    SPHERAL_HOST_DEVICE FB() {}
+    FB(size_t h) : hash(h) {}
 
     SPHERAL_HOST_DEVICE size_t getHash() const { return hash; }
 
@@ -31,19 +35,19 @@ class FBi : chai::CHAIPoly{
 };
 
 template<typename T>
-class Fi : public FBi, Spheral::SPHERALCopyable<Fi<T>>{
+class F : public FB, SPHERALCopyable<F<T>>{
 public:
-  Spheral::ManagedVector<T> m_data;
+  ManagedVector<T> m_data;
 
-  SPHERAL_HOST_DEVICE Fi() : FBi() {}
-  Fi(size_t h, size_t sz) : FBi(h), m_data(sz) {}
+  SPHERAL_HOST_DEVICE F() : FB() {}
+  F(size_t h, size_t sz) : FB(h), m_data(sz) {}
 
   SPHERAL_HOST_DEVICE T* data() { return &m_data[0]; }
   SPHERAL_HOST_DEVICE T& operator()(size_t idx) { return m_data[idx]; }
 
-  friend Fi deepCopy(Fi const& rhs) {
-    Fi result(rhs);
-    result.m_data = Spheral::deepCopy(rhs.m_data);
+  friend F deepCopy(F const& rhs) {
+    F result(rhs);
+    result.m_data = deepCopy(rhs.m_data);
     return result;
   }
 
@@ -51,6 +55,7 @@ public:
   SPHERAL_HOST_DEVICE virtual size_t size() override { return m_data.size(); }
 };
 
+} // namespace impl
 
 // We need to forward declare child classes for use in conversion functions.
 template<typename T>
@@ -58,33 +63,22 @@ class F;
 
 class FB;
 
-class FBV : protected Spheral::SpheralViewInterface<FBV, FBi> {
-  VIEW_TYPE_ALIASES((FB), (FBV), (FBi))
+class FBV : protected SpheralViewInterface<FBV, impl::FB> {
+  VIEW_TYPE_ALIASES((FB), (FBV), (impl::FB))
   VIEW_DEFINE_ALLOC_CTOR(FBV)
 
 public:
-  VIEW_DEF_CTOR(FBV)
-  VIEW_COPY_CTOR(FBV)
-  //VIEW_ASSIGNEMT_OP()
-  SPHERAL_HOST_DEVICE FBV& operator=(FBV const&) = default;
-
-  SPHERAL_HOST_DEVICE ImplType& operator*() const { return SPTR_DATA_REF(); }
-  SPHERAL_HOST_DEVICE ImplType* operator->() const { return &SPTR_DATA_REF(); }
+  VIEW_DEF_CTOR(FBV) 
+  POINTER_SYNTAX_OPERATORS()
 
   void shallowCopy(FBV const& rhs) {*this = rhs;}
-
-  //SPHERAL_HOST_DEVICE size_t getHash() const { return sptr_data().getHash(); }
-
-  //// We want to forward the pure virtual interface here.
-  //SPHERAL_HOST_DEVICE size_t size() const {return sptr_data().size(); }
-  //void resize(size_t sz) { sptr_data().resize(sz); }
 };
 
 // Because the underlying impl type is pure virtual we can not allow
 // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
 // We can only construct a FB object from an existing smart_ptr type so 
 // they must be constructed from F type objects directly...
-class FB : public Spheral::SpheralValueInterface<FBV> {
+class FB : public SpheralValueInterface<FBV> {
   VALUE_TYPE_ALIASES((FBV))
   //SPTR_FWD_CTOR(FB)
 public:
@@ -96,21 +90,21 @@ public:
 
 
 template<typename T>
-class FV : public Spheral::SpheralViewInterface<FV<T>, Fi<T>> {
-  VIEW_TYPE_ALIASES((F<T>), (FV), (Fi<T>))
+class FV : public SpheralViewInterface<FV<T>, impl::F<T>> {
+  VIEW_TYPE_ALIASES((F<T>), (FV), (impl::F<T>))
   VIEW_DEFINE_ALLOC_CTOR(FV)
 public:
-  VIEW_DEF_CTOR(FV)
+  VIEW_DEF_CTOR(FV) 
+  UPCAST_CONVERSION_OP(FBV)
 
-  SPHERAL_HOST_DEVICE ImplType& operator*() { return SPTR_DATA_REF(); }
-  SPHERAL_HOST_DEVICE ImplType* operator->() { return &SPTR_DATA_REF(); }
+  POINTER_SYNTAX_OPERATORS()
 
   void shallowCopy(FV const& rhs) {*this = rhs;}
 };
 
 
 template<typename T>
-class F : public Spheral::SpheralValueInterface<FV<T>> {
+class F : public SpheralValueInterface<FV<T>> {
   VALUE_TYPE_ALIASES((FV<T>))
 
 public:
@@ -122,7 +116,7 @@ public:
   ViewType operator&() { return toView(); }
 
   // Ctor 
-  F(size_t h, size_t sz) : Base(chai::make_shared<Fi<T>>(h, sz)) {}
+  F(size_t h, size_t sz) : Base(chai::make_shared<ImplType>(h, sz)) {}
   ~F() { this->sptr()->m_data.free(); }
 
   void resize(size_t sz) { this->sptr_data().resize(sz); } 
@@ -137,6 +131,12 @@ public:
 
 }// namespace Spheral
 
+
+
+//-----------------------------------------------------------------------------
+// TEST SUITE
+//-----------------------------------------------------------------------------
+
 // Setting up G Test for QuadraticInterpolator
 template<typename T>
 class FieldParallelInheritanceTypedTest : public::testing::Test {};
@@ -144,18 +144,20 @@ class FieldParallelInheritanceTypedTest : public::testing::Test {};
 // All QuadraticInterpolatorTets cases will run over each type in EXEC_TYPES.
 TYPED_TEST_CASE(FieldParallelInheritanceTypedTest, EXEC_TYPES);
 
-
 //TEST(FieldParallelInheritance, AccessPattern)
 GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
 {
   {
 
+  // --------------------------------------------------------------------------
+  // Field Access 
+  
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::F<double> f(2, 200);
 
   auto f_v = &f;
-  Spheral::FBV fb_v = (Spheral::FBV)f_v;
+  Spheral::FB::ViewType fb_v = f_v;
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     printf("--- GPU BEGIN ---\n");
@@ -177,23 +179,26 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
     printf("%ld, %ld\n", fb_v->getHash(), fb_v->size());
     printf("--- GPU END ---\n");
   EXEC_IN_SPACE_END()
+  // --------------------------------------------------------------------------
   
+  // --------------------------------------------------------------------------
+  // Arrays of Fields
   Spheral::F<double> f0(0, 0);
   Spheral::F<double> f1(1, 1);
   Spheral::F<double> f2(2, 2);
   Spheral::F<double> f3(3, 3);
   Spheral::F<double> f4(4, 4);
 
-  Spheral::ManagedVector<Spheral::FBV> vec_fbv;
+  Spheral::ManagedVector<Spheral::FB::ViewType> vec_fbv;
   vec_fbv.reserve(5);
-  Spheral::ManagedVector<Spheral::FV<double>>  vec_fv;
+  Spheral::ManagedVector<Spheral::F<double>::ViewType>  vec_fv;
   vec_fv.reserve(5);
 
-  vec_fbv.push_back(  (Spheral::FBV)(&f0)  );
-  vec_fbv.push_back(  (Spheral::FBV)(&f1)  );
-  vec_fbv.push_back(  (Spheral::FBV)(&f2)  );
-  vec_fbv.push_back(  (Spheral::FBV)(&f3)  );
-  vec_fbv.push_back(  (Spheral::FBV)(&f4)  );
+  vec_fbv.push_back( &f0 );
+  vec_fbv.push_back( &f1 );
+  vec_fbv.push_back( &f2 );
+  vec_fbv.push_back( &f3 );
+  vec_fbv.push_back( &f4 );
 
   vec_fv.push_back( &f0 );
   vec_fv.push_back( &f1 );
@@ -221,7 +226,6 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   for(size_t i = 0; i < f3.size(); i++) { f3(i) = f3.getHash(); }
   for(size_t i = 0; i < f4.size(); i++) { f4(i) = f4.getHash(); }
 
-
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     printf("--- GPU BEGIN ---\n");
     printf("%ld\n", vec_fv.size());
@@ -229,7 +233,6 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
     {
       auto& elem_b = *vec_fbv[i];
       auto& elem_v = *vec_fv[i];
-      //elem_v.resize(120);
 
       printf("%ld, %ld\n", elem_b.getHash(), elem_b.size());
       printf("%p\n", &elem_v(0));
@@ -247,6 +250,7 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   std::cout << f2.size() << std::endl;
   std::cout << f3.size() << std::endl;
   std::cout << f4.size() << std::endl;
+  // --------------------------------------------------------------------------
 
   }
   std::cout << "Sptr Map Sz : " << chai::SharedPtrManager::getInstance()->getPointerMap().size() << std::endl;
