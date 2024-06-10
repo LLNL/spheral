@@ -50,42 +50,39 @@ public:
 // We need to forward declare child classes for use in conversion functions.
 template<typename T>
 class F;
-
 class FB;
 
-VIEW_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (impl::FB))
+#define FBV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (impl::FB), (code))
+#define FB__(code)  VALUE_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (code))
+
+#define FV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((F<T>), (FV), (impl::F<T>), (code))
+#define F__(code) VALUE_INTERFACE_METACLASS_DECLARATION((F), (FV<T>), (code))
+
+class FBV__(
+  DEFAULT()
+);
 
 // Because the underlying impl type is pure virtual we can not allow
 // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
 // We can only construct a FB object from an existing smart_ptr type so 
 // they must be constructed from F type objects directly...
-class FB : public SpheralValueInterface<FBV> {
-  VALUE_TYPE_ALIASES((FBV))
-public:
-  FB() = delete;
-  FB(FB const&) = delete;
-  FB& operator=(FB const&) = delete;
-};
-
+class FB__(
+  DELETED_INTERFACE(FB)
+);
 
 
 template<typename T>
-VIEW_INTERFACE_METACLASS_DECLARATION_BEGIN((F<T>), (FV), (impl::F<T>))
+class FV__(
   UPCAST_CONVERSION_OP(FBV)
-VIEW_INTERFACE_METACLASS_DECLARATION_END()
+);
 
 
 template<typename T>
-class F : public SpheralValueInterface<FV<T>> {
-  VALUE_TYPE_ALIASES((FV<T>))
-
+class F__(
 public:
   VALUE_DEF_CTOR(F)
   VALUE_COPY_CTOR(F)
   VALUE_ASSIGNEMT_OP()
-  VALUE_TOVIEW_OP()
-
-  ViewType operator&() { return toView(); }
 
   // Ctor 
   F(size_t h, size_t sz) : Base(chai::make_shared<ImplType>(h, sz)) {}
@@ -99,7 +96,8 @@ public:
   SPHERAL_HOST_DEVICE size_t size() const { return this->sptr_data().size(); }
 
   SPHERAL_HOST_DEVICE size_t getHash() const { return this->sptr_data().getHash(); }
-};
+);
+  
 
 }// namespace Spheral
 

@@ -135,16 +135,18 @@ protected: \
   VIEW_SHALLOW_COPY(UNPACK view_t) \
 
 #define VIEW_INTERFACE_METACLASS_DECLARATION_BEGIN(value_t, view_t, impl_t) \
-class UNPACK view_t : public Spheral::SpheralViewInterface< UNPACK impl_t> { \
+UNPACK view_t : public Spheral::SpheralViewInterface< UNPACK impl_t> { \
   VIEW_INTERFACE_METACLASS((UNPACK value_t), (UNPACK view_t), (UNPACK impl_t)) \
   POINTER_SYNTAX_OPERATORS()
 
 #define VIEW_INTERFACE_METACLASS_DECLARATION_END() \
 };
 
-#define VIEW_INTERFACE_METACLASS_DECLARATION(value_t, view_t, impl_t) \
+#define VIEW_INTERFACE_METACLASS_DECLARATION(value_t, view_t, impl_t, code) \
   VIEW_INTERFACE_METACLASS_DECLARATION_BEGIN((UNPACK value_t), (UNPACK view_t), (UNPACK impl_t)) \
-  VIEW_INTERFACE_METACLASS_DECLARATION_END() \
+  UNPACK code \
+}
+
 
 
 #define VALUE_TYPE_ALIASES(view_t) \
@@ -203,6 +205,42 @@ public: \
     ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterface::sptr_data())) ) ); \
     return *this; \
   }
+
+
+#define VALUE_INTERFACE_METACLASS(view_t) \
+public: \
+  using ViewType = UNPACK view_t; \
+  using ValueType = typename ViewType::ValueType; \
+  using ImplType = typename ViewType::ImplType; \
+protected: \
+  using Base = Spheral::SpheralValueInterface<ViewType>; \
+  using ViewInterface = typename ViewType::ViewInterface; \
+  using SmartPtrType = typename ViewType::SmartPtrType; \
+public: \
+  VALUE_TOVIEW_OP() \
+  ViewType operator&() { return toView(); }\
+
+
+#define VALUE_INTERFACE_METACLASS_DECLARATION_BEGIN(value_t, view_t) \
+UNPACK value_t : public Spheral::SpheralValueInterface<UNPACK view_t> { \
+  VALUE_INTERFACE_METACLASS((UNPACK view_t)) \
+
+
+#define VALUE_INTERFACE_METACLASS_DECLARATION_END() \
+};
+
+#define VALUE_INTERFACE_METACLASS_DECLARATION(value_t, view_t, code) \
+  VALUE_INTERFACE_METACLASS_DECLARATION_BEGIN((UNPACK value_t), (UNPACK view_t)) \
+  UNPACK code \
+}
+
+#define DELETED_INTERFACE(type) \
+public: \
+  type() = delete; \
+  type(type const&) = delete; \
+  type& operator=(type const&) = delete; \
+
+#define DEFAULT() ;
 
 // It is assumed that the Base type is defined with from inheriting 
 // SpheralViewInterface or by explicitly defining : 
