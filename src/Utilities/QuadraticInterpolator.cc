@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// QuadraticInterpolatorImpl
+// QuadraticInterpolator
 //
 // Encapsulates the algorithm and data for parabolic interpolation in 1D
 // Assumes the results is interpolated as y_interp = a + b*x + c*x^2
@@ -9,11 +9,12 @@
 #include "QuadraticInterpolator.hh"
 
 namespace Spheral {
+namespace impl {
 
 ////------------------------------------------------------------------------------
 //// Default constructor
 ////------------------------------------------------------------------------------
-//QuadraticInterpolatorImpl::QuadraticInterpolatorImpl():
+//QuadraticInterpolator::QuadraticInterpolator():
 //  mN1(),
 //  mXmin(),
 //  mXmax(),
@@ -25,13 +26,13 @@ namespace Spheral {
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
 void
-QuadraticInterpolatorImpl::initialize(const double xmin,
+QuadraticInterpolator::initialize(const double xmin,
                                   const double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
-  VERIFY2(n > 2, "QuadraticInterpolatorImpl::initialize requires at least 3 unique values to fit");
-  VERIFY2(n % 2 == 1, "QuadraticInterpolatorImpl::initialize requires an odd number of tabulated values");
-  VERIFY2(xmax > xmin, "QuadraticInterpolatorImpl::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 2, "QuadraticInterpolator::initialize requires at least 3 unique values to fit");
+  VERIFY2(n % 2 == 1, "QuadraticInterpolator::initialize requires an odd number of tabulated values");
+  VERIFY2(xmax > xmin, "QuadraticInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
   mN1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
   mXmin = xmin;
@@ -66,16 +67,17 @@ QuadraticInterpolatorImpl::initialize(const double xmin,
 ////------------------------------------------------------------------------------
 //// Destructor
 ////------------------------------------------------------------------------------
-//QuadraticInterpolatorImpl::~QuadraticInterpolatorImpl() {
+//QuadraticInterpolator::~QuadraticInterpolator() {
 //}
 
 ////------------------------------------------------------------------------------
 //// Equivalence
 ////------------------------------------------------------------------------------
 //bool
-//QuadraticInterpolatorImpl::
-//operator==(const QuadraticInterpolatorImpl& rhs) const {
+//QuadraticInterpolator::
+//operator==(const QuadraticInterpolator& rhs) const {
 //
 //}
 
+} // namespace impl
 } // namespace Spheral

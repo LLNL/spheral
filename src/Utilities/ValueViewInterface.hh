@@ -131,7 +131,7 @@ protected: \
   using SmartPtrType = typename Base::SmartPtrType; \
   friend class UNPACK value_t; \
   VIEW_DEFINE_ALLOC_CTOR(view_t) \
-  VIEW_DEF_CTOR(view_t) \
+  SPHERAL_HOST_DEVICE VIEW_DEF_CTOR(view_t) \
   VIEW_SHALLOW_COPY(UNPACK view_t) \
 
 #define VIEW_INTERFACE_METACLASS_DECLARATION_BEGIN(value_t, view_t, impl_t) \

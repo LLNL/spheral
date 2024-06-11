@@ -51,59 +51,55 @@ class TableKernel;
 template<typename Dim>
 class OtherKernel;
 
+#define KernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (Kernel<Dim, Desc>), (KernelView), (impl::Kernel<Dim, typename Desc::ImplType>), (code))
+#define TableKernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (TableKernel<Dim>), (TableKernelView), (impl::TableKernel<Dim>), (code))
+#define OtherKernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (OtherKernel<Dim>), (OtherKernelView), (impl::OtherKernel<Dim>), (code))
+
+#define Kernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((Kernel), (KernelView<Dim, Desc>), (code))
+#define TableKernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((TableKernel), (TableKernelView<Dim>), (code))
+#define OtherKernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((OtherKernel), (OtherKernelView<Dim>), (code))
+
 template<typename Dim, typename Desc>
-VIEW_INTERFACE_METACLASS_DECLARATION( (Kernel<Dim, Desc>), (KernelView), (impl::Kernel<Dim, typename Desc::ImplType>) )
+class KernelView__( DEFAULT() );
 
 template<typename Dim>
-VIEW_INTERFACE_METACLASS_DECLARATION( (TableKernel<Dim>), (TableKernelView), (impl::TableKernel<Dim>))
+class TableKernelView__( DEFAULT() );
 
 template<typename Dim>
-VIEW_INTERFACE_METACLASS_DECLARATION( (OtherKernel<Dim>), (OtherKernelView), (impl::OtherKernel<Dim>))
+class OtherKernelView__( DEFAULT() );
 
 //--------------------------------
 // Value Interface
 
 template<typename Dim, typename Desc>
-class Kernel : public Spheral::SpheralValueInterface<KernelView<Dim, Desc>>
-{
-  VALUE_TYPE_ALIASES((KernelView<Dim, Desc>))
+class Kernel__(
 public:
   VALUE_DEF_CTOR(Kernel)
   VALUE_COPY_CTOR(Kernel)
   VALUE_ASSIGNEMT_OP()
-  VALUE_TOVIEW_OP()
-  ViewType operator&() { return toView(); }
 
-	SPHERAL_HOST void doSomething() { printf("K H doSomething()\n"); this->sptr_data().doSomething(); }
-};
+	void doSomething() { printf("K H doSomething()\n"); this->sptr_data().doSomething(); }
+);
 
 template<typename Dim>
-class TableKernel : public Spheral::SpheralValueInterface<TableKernelView<Dim>>
-{
-  VALUE_TYPE_ALIASES((TableKernelView<Dim>))
+class TableKernel__(
 public:
   VALUE_DEF_CTOR(TableKernel)
   VALUE_COPY_CTOR(TableKernel)
   VALUE_ASSIGNEMT_OP()
-  VALUE_TOVIEW_OP()
-  ViewType operator&() { return toView(); }
 
-	SPHERAL_HOST void doSomething() { printf("TK H doSomething()\n"); this->sptr_data().doSomething(); }
-};
+	void doSomething() { printf("TK H doSomething()\n"); this->sptr_data().doSomething(); }
+);
 
 template<typename Dim>
-class OtherKernel : public Spheral::SpheralValueInterface<OtherKernelView<Dim>>
-{
-  VALUE_TYPE_ALIASES((OtherKernelView<Dim>))
+class OtherKernel__(
 public:
   VALUE_DEF_CTOR(OtherKernel)
   VALUE_COPY_CTOR(OtherKernel)
   VALUE_ASSIGNEMT_OP()
-  VALUE_TOVIEW_OP()
-  ViewType operator&() { return toView(); }
 
-	SPHERAL_HOST void doSomething() { printf("OK H doSomething()\n"); this->sptr_data().doSomething(); }
-};
+	void doSomething() { printf("OK H doSomething()\n"); this->sptr_data().doSomething(); }
+);
 
 class Dim1 {};
 
