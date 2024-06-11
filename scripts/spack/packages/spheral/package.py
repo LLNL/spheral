@@ -34,7 +34,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # DEPENDS
     # -------------------------------------------------------------------------
     depends_on('mpi', when='+mpi')
-    depends_on('cmake@3.18.0:', type='build')
+    depends_on('cmake@3.21.0:', type='build')
 
     depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
@@ -49,25 +49,17 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.9.1 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.9.1 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi')
 
-    depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('raja@2024.02.0 +cuda cuda_arch=70', when='+cuda')
+    depends_on('umpire  +cuda cuda_arch=70', when='+cuda')
 
-    depends_on('lvarray@develop +umpire +chai ~tests +cuda cuda_arch=70', when='+cuda')
-    depends_on('raja@2022.10.4 +desul +shared +cuda cuda_arch=70', when='+cuda')
-    depends_on('camp+openmp+cuda cuda_arch=70', when='+cuda')
-    depends_on('chai@2022.03.0+raja+shared+openmp+cuda cuda_arch=70', when='+cuda')
-    depends_on('umpire@2022.03.0~shared+cuda cuda_arch=70', when='+cuda')
+    depends_on('raja@2024.02.0', when='~cuda')
+    depends_on('umpire', when='~cuda')
 
-    depends_on('lvarray@develop +umpire +chai ~tests', when='~cuda')
-    depends_on('raja@2022.10.4 +desul +shared', when='~cuda')
-    depends_on('camp+openmp~cuda', when='~cuda')
-    depends_on('chai@2022.03.0+raja+shared+openmp', when='~cuda')
-    depends_on('umpire@2022.03.0~shared', when='~cuda')
+    depends_on('axom@0.9.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
+    depends_on('axom@0.9.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
     depends_on('caliper@2.8.0 ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
     depends_on('adiak ~shared', type='build')
@@ -196,17 +188,11 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_option('raja_BUILD', False))
         entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))
 
-        entries.append(cmake_cache_option('chai_BUILD', False))
-        entries.append(cmake_cache_path('chai_DIR', spec['chai'].prefix))
-
         entries.append(cmake_cache_option('umpire_BUILD', False))
         entries.append(cmake_cache_path('umpire_DIR', spec['umpire'].prefix))
 
         entries.append(cmake_cache_option('camp_BUILD', False))
         entries.append(cmake_cache_path('camp_DIR', spec['camp'].prefix))
-
-        entries.append(cmake_cache_option('lvarray_BUILD', False))
-        entries.append(cmake_cache_path('lvarray_DIR', spec['lvarray'].prefix))
 
         entries.append(cmake_cache_option('ENABLE_MPI', '+mpi' in spec))
         if "+mpi" in spec:
