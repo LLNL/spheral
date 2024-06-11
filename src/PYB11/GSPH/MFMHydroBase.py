@@ -7,6 +7,7 @@ from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
+@PYB11dynamic_attr
 class MFMHydroBase(GenericRiemannHydro):
 
     PYB11typedefs = """
