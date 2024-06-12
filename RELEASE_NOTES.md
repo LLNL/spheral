@@ -7,6 +7,7 @@ Notable changes include:
 
   * New features/ API changes:
     * added MFV hydro from Hopkins 2015 with extension for ALE options
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH
 
   * Build changes / improvements:
     * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
