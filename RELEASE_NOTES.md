@@ -6,8 +6,13 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features/ API changes:
+    * added MFV hydro from Hopkins 2015 with extension for ALE options
 
   * Build changes / improvements:
+    * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
+      * CMake interface for adding PYBind11 target libraries is modified to more closely match how C++ libraries are created.
+      * Multiple Spheral Python modules / CMake targets can be specified for a single directory.
+      * KernelIntegrator and FieldList directories are divided into 2 modules / targets.
     * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
 
   * Bug Fixes / improvements:
