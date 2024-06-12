@@ -12,6 +12,7 @@ dims = spheralDimensions()
 from GenericRiemannHydro import *
 from GSPHHydroBase import *
 from MFMHydroBase import *
+from MFVHydroBase import *
 from WaveSpeeds import *
 from Limiters import *
 from RiemannSolvers import *
@@ -22,6 +23,7 @@ from RiemannSolvers import *
 PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
                   '"GSPH/GSPHHydroBase.hh"',
                   '"GSPH/MFMHydroBase.hh"',
+                  '"GSPH/MFVHydroBase.hh"',
                   '"GSPH/WaveSpeeds/WaveSpeedBase.hh"',
                   '"GSPH/WaveSpeeds/AcousticWaveSpeed.hh"',
                   '"GSPH/WaveSpeeds/DavisWaveSpeed.hh"',
@@ -32,9 +34,10 @@ PYB11includes += ['"GSPH/GenericRiemannHydro.hh"',
                   '"GSPH/Limiters/VanAlbaLimiter.hh"',
                   '"GSPH/Limiters/SuperbeeLimiter.hh"',
                   '"GSPH/Limiters/OspreLimiter.hh"',
+                  '"GSPH/Limiters/BarthJespersenLimiter.hh"',
                   '"GSPH/RiemannSolvers/RiemannSolverBase.hh"',
                   '"GSPH/RiemannSolvers/HLLC.hh"',
-                  '"GSPH/RiemannSolvers/GHLLC.hh"',
+                  '"GSPH/RiemannSolvers/SecondOrderArtificialViscosity.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -49,7 +52,15 @@ GradientType = PYB11enum(("RiemannGradient",
                           "HydroAccelerationGradient",
                           "SPHGradient",
                           "MixedMethodGradient",
-                          "SPHSameTimeGradient"), export_values = True)
+                          "SPHSameTimeGradient",
+                          "SPHUncorrectedGradient",
+                          "NoGradient"), export_values = True)
+
+NodeMotionType = PYB11enum(("Lagrangian",
+                            "Eulerian",
+                            "Fician",
+                            "XSPH",
+                            "BackgroundPressure"), export_values = False)
 
 #-------------------------------------------------------------------------------
 # Instantiate our types
@@ -59,6 +70,7 @@ for ndim in dims:
 GenericRiemannHydro%(ndim)id = PYB11TemplateClass(GenericRiemannHydro, template_parameters="%(Dimension)s")
 GSPHHydroBase%(ndim)id = PYB11TemplateClass(GSPHHydroBase, template_parameters="%(Dimension)s")
 MFMHydroBase%(ndim)id = PYB11TemplateClass(MFMHydroBase, template_parameters="%(Dimension)s")
+MFVHydroBase%(ndim)id = PYB11TemplateClass(MFVHydroBase, template_parameters="%(Dimension)s")
 WaveSpeedBase%(ndim)id = PYB11TemplateClass(WaveSpeedBase, template_parameters="%(Dimension)s")
 AcousticWaveSpeed%(ndim)id = PYB11TemplateClass(AcousticWaveSpeed, template_parameters="%(Dimension)s")
 DavisWaveSpeed%(ndim)id = PYB11TemplateClass(DavisWaveSpeed, template_parameters="%(Dimension)s")
@@ -69,9 +81,10 @@ VanLeerLimiter%(ndim)id = PYB11TemplateClass(VanLeerLimiter, template_parameters
 VanAlbaLimiter%(ndim)id = PYB11TemplateClass(VanAlbaLimiter, template_parameters="%(Dimension)s")
 SuperbeeLimiter%(ndim)id = PYB11TemplateClass(SuperbeeLimiter, template_parameters="%(Dimension)s")
 OspreLimiter%(ndim)id = PYB11TemplateClass(OspreLimiter, template_parameters="%(Dimension)s")
+BarthJespersenLimiter%(ndim)id = PYB11TemplateClass(BarthJespersenLimiter, template_parameters="%(Dimension)s")
 RiemannSolverBase%(ndim)id = PYB11TemplateClass(RiemannSolverBase, template_parameters="%(Dimension)s")
 HLLC%(ndim)id = PYB11TemplateClass(HLLC, template_parameters="%(Dimension)s")
-GHLLC%(ndim)id = PYB11TemplateClass(GHLLC, template_parameters="%(Dimension)s")
+SecondOrderArtificialViscosity%(ndim)id = PYB11TemplateClass(SecondOrderArtificialViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

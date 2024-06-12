@@ -190,7 +190,7 @@ initialize(const typename Dimension::Scalar time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs); 
+  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 }
 
 //------------------------------------------------------------------------------

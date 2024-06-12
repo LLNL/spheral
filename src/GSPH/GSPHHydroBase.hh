@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- A Riemann-solver-based implementation of SPH. Compared to 
+//                  MFM/MFV this approach requires a larger neighbor set. 2.5
+//                  nodes per kernel extent instead of 2-2.25 for MFM/MFV but
+//                  does perform better on certain tests (Noh implosion)
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
