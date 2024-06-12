@@ -4,10 +4,10 @@ template<typename Dimension>
 void
 MFVHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
-                      const typename Dimension::Scalar dt,
-                      const DataBase<Dimension>& dataBase,
-                      const State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivatives) const {
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
   this->firstDerivativesLoop(time,dt,dataBase,state,derivatives);
   this->secondDerivativesLoop(time,dt,dataBase,state,derivatives);
   //this->setH(time,dt,dataBase,state,derivatves)
@@ -22,10 +22,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
                       const typename Dimension::Scalar dt,
                       const DataBase<Dimension>& dataBase,
                       const State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivatives) const {
+                      StateDerivatives<Dimension>& derivatives) const {
 
   const auto& riemannSolver = this->riemannSolver();
-  const auto& smoothingScale = this->smoothingScaleMethod();
   
   // A few useful constants we'll use in the following loop.
   const auto tiny = std::numeric_limits<Scalar>::epsilon();
@@ -86,11 +85,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto  DEDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
   auto  DpDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   //auto  HStretchTensor = derivatives.fields("HStretchTensor", SymTensor::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
@@ -106,11 +101,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(DEDt.size() == numNodeLists);
   CHECK(DpDt.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   //CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
   //CHECK(HStretchTensor.size() == numNodeLists);
   CHECK(newRiemannDpDx.size() == numNodeLists);
   CHECK(newRiemannDvDx.size() == numNodeLists);
@@ -130,8 +121,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     Vector vstar;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    //auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    //auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto DvolDt_thread = DvolDt.threadCopy(threadStack);
     auto DmDt_thread = DmDt.threadCopy(threadStack);
     auto DEDt_thread = DEDt.threadCopy(threadStack);
@@ -187,8 +176,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi, i);
       auto& newRiemannDvDxi = newRiemannDvDx_thread(nodeListi, i);
       auto& DvDxi = DvDx_thread(nodeListi, i);
-      //auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
-      //auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi,i);
       const auto& gradRhoi = DrhoDx(nodeListi, i);
       const auto& Mi = M(nodeListi,i);
@@ -220,8 +207,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj,j);
       auto& newRiemannDvDxj = newRiemannDvDx_thread(nodeListj,j);
       auto& DvDxj = DvDx_thread(nodeListj, j);
-      //auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
-      //auto& massSecondMomentj = massSecondMoment(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj,j);
       const auto& gradRhoj = DrhoDx(nodeListj, j);
       const auto& Mj = M(nodeListj,j);
@@ -386,10 +371,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
     //const auto  kernelExtent = nodeList.neighbor().kernelExtent();
     const auto  ni = nodeList.numInternalNodes();
 
@@ -397,7 +378,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
+      // const auto& ri = position(nodeListi, i);
       const auto& voli = volume(nodeListi,i);
       //const auto& ui = nodalVelocity(nodeListi,i);
       //const auto& vi = velocity(nodeListi,i);
@@ -410,12 +391,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       //auto& normi = normalization(nodeListi, i);
       //auto& DxDti = DxDt(nodeListi, i);
       auto& DvolDti = DvolDt(nodeListi, i);
-      auto& DvDxi = DvDx(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
+      // auto& DvDxi = DvDx(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      const auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      const auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       //const auto& HStretchTensori = HStretchTensor(nodeListi, i);
 
       XSPHDeltaVi /= Dimension::rootnu(Hdeti);
@@ -423,55 +400,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
       // If needed finish the total energy derivative.
       //if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
-
-      // -----------------------------------------------
-      // TODO:
-      // this makes ui be vi from the previous timestep. We might need a special update method for hthis
-      // We culd also just take care of these in the primary loop and make the node velocity a deriv
-      // -----------------------------------------------
-      //if(true){
-        DHDti = smoothingScale.smoothingScaleDerivative(Hi,
-                                                      ri,
-                                                      DvDxi,
-                                                      hmin,
-                                                      hmax,
-                                                      hminratio,
-                                                      nPerh);
-        Hideali = smoothingScale.newSmoothingScale(Hi,                 // Hi
-                                                 ri,                   // ri
-                                                 weightedNeighborSumi, // ?
-                                                 massSecondMomenti,    // Hstretch tensor
-                                                 W,         //  W
-                                                 hmin,      // hmin
-                                                 hmax,      // hmax
-                                                 hminratio, // hminratio
-                                                 nPerh,     // Ngb
-                                                 connectivityMap,  // connectivityMap
-                                                 nodeListi,        // nodeListi
-                                                 i);               // i
-      // }else{
-      //   //  smoothing scale construction
-      //   const auto Ngb_target = (Dimension::nDim == 3 ? 32 :
-      //                           (Dimension::nDim == 2 ? 16 :
-      //                                                   4));
-      //   const auto stretchFactor = 0.00;
-
-      //   // set on construction
-      //   const auto C = (Dimension::nDim == 3 ? 1.33333*3.1415 :
-      //                  (Dimension::nDim == 2 ? 3.1415         :
-      //                                          1.0));
-        
-      //   // pass 
-      //   const auto Ngb = C /(Hdeti*voli) * pow(kernelExtent,Dimension::nDim);
-        
-      //   const auto Hstretch  =  ((1.00-stretchFactor)* SymTensor::one +
-      //                                  stretchFactor * HStretchTensori)*Hi;
-        
-      //   const auto scaleFactor = (1.0+0.5*(Ngb - Ngb_target)/Ngb_target);
-      //   Hideali = std::min(std::max(scaleFactor,0.8),1.2) * Hstretch;
-
-      //   DHDti = 0.25*(Hideali-Hi)/dt;
-      // }
     } // nodes loop
   }   // nodeLists loop
 }     // eval derivs method 
@@ -536,8 +464,6 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   auto  DrhoDx = derivatives.fields(GSPHFieldNames::densityGradient, Vector::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
   //auto  HStretchTensor = derivatives.fields("HStretchTensor", SymTensor::zero);
   auto  normalization = derivatives.fields(HydroFieldNames::normalization, 0.0);
   
@@ -546,8 +472,6 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   CHECK(DxDt.size() == numNodeLists);
   CHECK(newRiemannDpDx.size() == numNodeLists);
   CHECK(newRiemannDvDx.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists)
-  CHECK(weightedNeighborSum.size() == numNodeLists)
   CHECK(normalization.size() == numNodeLists)
   //CHECK(HStretchTensor.size() == numNodeLists)
 
@@ -563,8 +487,6 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
     auto newRiemannDpDx_thread = newRiemannDpDx.threadCopy(threadStack);
     auto newRiemannDvDx_thread = newRiemannDvDx.threadCopy(threadStack);
     auto DxDt_thread = DxDt.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     //auto HStretchTensor_thread = HStretchTensor.threadCopy(threadStack);
     auto normalization_thread = normalization.threadCopy(threadStack);
 
@@ -589,8 +511,6 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
 
       auto& DxDti = DxDt_thread(nodeListi,i);
       //auto& HStretchTensori = HStretchTensor_thread(nodeListi,i);
-      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi,i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
       auto& normi = normalization(nodeListi,i);
       auto& DrhoDxi = DrhoDx_thread(nodeListi, i);
       auto& newRiemannDpDxi = newRiemannDpDx_thread(nodeListi, i);
@@ -611,8 +531,6 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
 
       auto& DxDtj = DxDt_thread(nodeListj,j);
       //auto& HStretchTensorj = HStretchTensor_thread(nodeListj,j);
-      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj,j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& normj = normalization(nodeListj,j);
       auto& DrhoDxj = DrhoDx_thread(nodeListj, j);
       auto& newRiemannDpDxj = newRiemannDpDx_thread(nodeListj, j);
@@ -642,16 +560,8 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
       const auto gradPsii = voli*gradWi;
       const auto gradPsij = volj*gradWj;
 
-      weightedNeighborSumi += std::abs(gWi);
-      weightedNeighborSumj += std::abs(gWj);
-
       //HStretchTensori -= voli*rij.selfdyad()*gWi*rMagij;
       //HStretchTensorj -= volj*rij.selfdyad()*gWj*rMagij;
-
-      const auto rij2 = rij.magnitude2();
-      const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      massSecondMomenti += gradWi.magnitude2()*thpt;
-      massSecondMomentj += gradWj.magnitude2()*thpt;
 
       // gradients
       Mi -= rij.dyad(gradPsii);
@@ -711,16 +621,12 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
 
       auto& DxDti = DxDt(nodeListi,i);
       auto& Mi = M(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi,i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi,i);
       //auto& HStretchTensori = HStretchTensor(nodeListi,i);
       auto& normi = normalization(nodeListi, i);
       const auto Mdeti = std::abs(Mi.Determinant());
 
       normi += voli*Hdeti*W0;
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
       //HStretchTensori /= Dimension::rootnu(max(HStretchTensori.Determinant(),tiny));
-      massSecondMomenti /= Hdeti*Hdeti;
 
       const auto enoughNeighbors =  numNeighborsi > Dimension::pownu(2);
       const auto goodM =  (Mdeti > 1e-2 and enoughNeighbors);                   

@@ -225,6 +225,13 @@ registerState(DataBase<Dimension>& dataBase,
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   auto velocity = dataBase.fluidVelocity();
 
+  auto positionPolicy = make_policy<IncrementState<Dimension, Vector>>();
+  auto pressurePolicy = make_policy<PressurePolicy<Dimension>>();
+  auto csPolicy = make_policy<SoundSpeedPolicy<Dimension>>();
+  auto pressureGradientPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
+  auto velocityGradientPolicy = make_policy<PureReplaceState<Dimension,Tensor>>();
+  auto velocityPolicy = make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,HydroFieldNames::specificThermalEnergy},true);
+
   // normal state variables
   state.enroll(mTimeStepMask);
   state.enroll(mVolume);
@@ -245,13 +252,13 @@ registerState(DataBase<Dimension>& dataBase,
 
   // conditional for energy method
   if (mCompatibleEnergyEvolution) {
-    auto thermalEnergyPolicy = make_shared<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
+    auto thermalEnergyPolicy = make_policy<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }else if (mEvolveTotalEnergy) {
-    auto thermalEnergyPolicy = make_shared<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
+    auto thermalEnergyPolicy = make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>();
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   } else {
-    auto thermalEnergyPolicy = make_shared<IncrementState<Dimension, Scalar>>();
+    auto thermalEnergyPolicy = make_policy<IncrementState<Dimension, Scalar>>();
     state.enroll(specificThermalEnergy, thermalEnergyPolicy);
   }
   

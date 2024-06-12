@@ -1,1 +1,1 @@
-spheral_add_pybind11_library(VoronoiCells)
+spheral_add_pybind11_library(VoronoiCells SPHERAL_MODULE_LIST)
