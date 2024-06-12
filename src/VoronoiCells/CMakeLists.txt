@@ -2,6 +2,7 @@ include_directories(.)
 set(VoronoiCells_inst
   VoronoiCells
   IncrementVoronoiCells
+  UpdateVoronoiCells
   SubPointPressureHourglassControl
 )
 

@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------//
 #include "VoronoiCells/VoronoiCells.hh"
 #include "VoronoiCells/computeVoronoiVolume.hh"
-#include "VoronoiCells/IncrementVoronoiCells.hh"
+#include "VoronoiCells/UpdateVoronoiCells.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
@@ -104,8 +104,14 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   state.enroll(mVolume);
   state.enroll(mSurfacePoint);
-  state.enroll(mCells, make_policy<IncrementVoronoiCells<Dimension>>());
   state.enroll(mCellFaceFlags);
+  state.enroll(mCells, make_policy<UpdateVoronoiCells<Dimension>>(mVolume,
+                                                                  mWeight,
+                                                                  mDeltaCentroid,
+                                                                  mEtaVoidPoints,
+                                                                  this->boundaryConditions(),
+                                                                  mFacetedBoundaries,
+                                                                  mFacetedHoles));
 }
 
 //------------------------------------------------------------------------------

@@ -322,8 +322,9 @@ evaluateDerivatives(const Scalar time,
             const auto deltaDvDtij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi) +
                                              subCellAcceleration(celli, cellFace, comj, xj, Pj));
             if (j >= nodeLists[nodeListj]->firstGhostNode()) {
-              cerr << " --> " << i << " " << j << " : " << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj)
-                   << " : " << celli << " " << cellj << endl;
+              cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : "
+                   << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : " 
+                   << celli << " " << cellj << endl;
             }
             DvDt(nodeListi, i) += deltaDvDtij;
             DvDt(nodeListj, j) -= deltaDvDtij;
