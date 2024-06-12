@@ -6,8 +6,13 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features/ API changes:
+    * added MFV hydro from Hopkins 2015 with extension for ALE options
 
   * Build changes / improvements:
+    * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
+      * CMake interface for adding PYBind11 target libraries is modified to more closely match how C++ libraries are created.
+      * Multiple Spheral Python modules / CMake targets can be specified for a single directory.
+      * KernelIntegrator and FieldList directories are divided into 2 modules / targets.
     * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
 
   * Bug Fixes / improvements:
@@ -26,7 +31,10 @@ Notable changes include:
     * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
       of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
       State and StateDerivatives object).
-
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
   * Build changes / improvements:
     * Improved the target export functionality.
 
@@ -35,6 +43,10 @@ Notable changes include:
     * Updating header lists for including Spheral modules in external projects.
     * Adding effective viscous pressure back to FSISPH.
     * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================

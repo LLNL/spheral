@@ -1,1 +1,1 @@
-spheral_add_pybind11_library(Field)
+spheral_add_pybind11_library(Field SPHERAL_MODULE_LIST)

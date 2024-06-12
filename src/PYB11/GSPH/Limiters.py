@@ -177,4 +177,32 @@ class OspreLimiter(LimiterBase):
         "slope limiter from flux limiter."
         return "Scalar"
 
+#-------------------------------------------------------------------------------
+# Barth Jespersen limiter
+#-------------------------------------------------------------------------------
+@PYB11template("Dimension")
+@PYB11module("SpheralGSPH")
+class BarthJespersenLimiter(LimiterBase):
+
+    PYB11typedefs = """
+  typedef typename %(Dimension)s::Scalar Scalar;
+  """
+
+    def pyinit():
+        "Barth Jespersen slope limiter constructor"
+
+    @PYB11virtual
+    @PYB11const
+    def slopeLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
+    @PYB11virtual
+    @PYB11const
+    def fluxLimiter(self,
+                     x = "const Scalar"):
+        "slope limiter from flux limiter."
+        return "Scalar"
+
 
