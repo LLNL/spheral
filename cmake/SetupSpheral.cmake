@@ -77,7 +77,7 @@ if(ENABLE_OPENMP)
 endif()
 
 if(ENABLE_CUDA)
-  #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
+  set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()

@@ -77,7 +77,7 @@ if(NOT ENABLE_DEV_BUILD)
 
   set(CXX_sources spheralCXX.cc)
   # Must use quotes when passing lists as inputs for functions
-  spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
+  spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS2}")
 endif()
 
 # This calls LLNLSpheralInstallObjs.cmake
