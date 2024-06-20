@@ -8,11 +8,11 @@ packages:
       mpi: [spectrum-mpi]
       zlib-api: [zlib]
   cmake:
-    version: [3.20.2]
+    version: [3.21.1]
     buildable: false
     externals:
-    - spec: cmake@3.20.2
-      prefix: /usr/tce/packages/cmake/cmake-3.20.2
+    - spec: cmake@3.21.1
+      prefix: /usr/tce/packages/cmake/cmake-3.21.1
   gmake:
     version: [4.2.1]
     buildable: false

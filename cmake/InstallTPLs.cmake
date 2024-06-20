@@ -67,26 +67,27 @@ endif()
 #-----------------------------------------------------------------------------------
 
 # Use find_package to get axom (which brings in fmt) and patch fmt
-find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
-if(axom_FOUND)
-  list(APPEND SPHERAL_BLT_DEPENDS axom)
-  # Add fmt library to external library list
-  set(fmt_name fmt)
-  # Newer Axom versions call fmt target axom::fmt
-  if(NOT TARGET fmt)
-    set(fmt_name axom::fmt)
-  endif()
-  list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
-  # BLT Macro for doing this
-  blt_convert_to_system_includes(TARGET ${fmt_name})
-endif()
-# This is a hack to handle transitive issues that come
-# from using object libraries with newer version of axom
-foreach(_comp ${AXOM_COMPONENTS_ENABLED})
-  list(APPEND SPHERAL_BLT_DEPENDS axom::${_comp})
-  get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
-  list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
-endforeach()
+find_package(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
+list(APPEND SPHERAL_BLT_DEPENDS axom axom::fmt)
+#if(axom_FOUND)
+#  list(APPEND SPHERAL_BLT_DEPENDS axom)
+#  # Add fmt library to external library list
+#  set(fmt_name fmt)
+#  # Newer Axom versions call fmt target axom::fmt
+#  if(NOT TARGET fmt)
+#    set(fmt_name axom::fmt)
+#  endif()
+#  list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
+#  # BLT Macro for doing this
+#  blt_convert_to_system_includes(TARGET ${fmt_name})
+#endif()
+## This is a hack to handle transitive issues that come
+## from using object libraries with newer version of axom
+#foreach(_comp ${AXOM_COMPONENTS_ENABLED})
+#  list(APPEND SPHERAL_BLT_DEPENDS axom::${_comp})
+#  get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
+#  list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
+#endforeach()
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
@@ -109,24 +110,24 @@ if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
 
-# Copied from serac, needed to bypass generator expression issue during export
-set(_props)
-if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0" )
-  list(APPEND _props INTERFACE_LINK_OPTIONS)
-endif()
-list(APPEND _props INTERFACE_COMPILE_OPTIONS)
-foreach(_target axom axom::openmp)
-  if(TARGET ${_target})
-    message(STATUS "Removing OpenMP Flags from target[${_target}]")
-    foreach(_prop ${_props})
-      get_target_property(_flags ${_target} ${_prop})
-      if ( _flags )
-	string( REPLACE "${OpenMP_CXX_FLAGS}" ""
-	  correct_flags "${_flags}" )
-	string( REPLACE "${OpenMP_Fortran_FLAGS}" ""
-	  correct_flags "${correct_flags}" )
-	set_target_properties( ${_target} PROPERTIES ${_prop} "${correct_flags}" )
-      endif()
-    endforeach()
-  endif()
-endforeach()
+## Copied from serac, needed to bypass generator expression issue during export
+#set(_props)
+#if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0" )
+#  list(APPEND _props INTERFACE_LINK_OPTIONS)
+#endif()
+#list(APPEND _props INTERFACE_COMPILE_OPTIONS)
+#foreach(_target axom axom::openmp)
+#  if(TARGET ${_target})
+#    message(STATUS "Removing OpenMP Flags from target[${_target}]")
+#    foreach(_prop ${_props})
+#      get_target_property(_flags ${_target} ${_prop})
+#      if ( _flags )
+#	string( REPLACE "${OpenMP_CXX_FLAGS}" ""
+#	  correct_flags "${_flags}" )
+#	string( REPLACE "${OpenMP_Fortran_FLAGS}" ""
+#	  correct_flags "${correct_flags}" )
+#	set_target_properties( ${_target} PROPERTIES ${_prop} "${correct_flags}" )
+#      endif()
+#    endforeach()
+#  endif()
+#endforeach()
