@@ -5,7 +5,6 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT SPHERAL_CMAKE_MODULE_PATH)
   set(SPHERAL_CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
@@ -83,8 +82,6 @@ if(ENABLE_CUDA)
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
-
-option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
