@@ -10,7 +10,7 @@
 #include <string>
 #include <exception>
 #include <cmath>
-#include "Process.hh"
+#include "Distributed/Process.hh"
 
 #ifndef DBC_FUNCTIONS_HH
 #define DBC_FUNCTIONS_HH

@@ -12,7 +12,6 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/allReduce.hh"
 
 #include "PlanarBoundary.hh"
 

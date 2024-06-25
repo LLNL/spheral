@@ -297,10 +297,10 @@ boundingSurface() const {
     for (domainID = 0; domainID != numDomains; ++domainID) {
       buffer = localBuffer;
       bufSize = localBuffer.size();
-      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, domainID, Communicator::communicator());
+      MPI_Bcast(&bufSize, 1, MPI_UNSIGNED, domainID);
       if (bufSize > 0) {
         buffer.resize(bufSize);
-        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID, Communicator::communicator());
+        MPI_Bcast(&buffer.front(), bufSize, MPI_CHAR, domainID);
         bufItr = buffer.begin();
         unpackElement(globalVertexPositions, bufItr, buffer.end());
         unpackElement(nfacets, bufItr, buffer.end());

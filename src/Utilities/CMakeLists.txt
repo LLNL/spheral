@@ -19,10 +19,8 @@ set(Utilities_sources
     DBC.cc
     QuadraticInterpolator.cc
     CubicHermiteInterpolator.cc
-    Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
-    RegisterMPIDataTypes.cc
     RedistributionRegistrar.cc
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
@@ -70,20 +68,16 @@ set(Utilities_headers
     OpenMP_wrapper.hh
     PairComparisons.hh
     PeanoHilbertTransform.hh
-    Process.hh
     RedistributionNotification.hh
     RedistributionNotificationHandle.hh
     RedistributionRegistrar.hh
     RedistributionRegistrarInline.hh
-    RegisterMPIDataTypes.hh
-    RegisterMPIDataTypesInline.hh
     SafeIndexMap.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh
-    allReduce.hh
     bisectRoot.hh
     bisectSearch.hh
     boundPointWithinBox.hh
@@ -107,7 +101,6 @@ set(Utilities_headers
     log2.hh
     medianPosition.hh
     mortonOrderIndices.hh
-    mpiUtilities.hh
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
@@ -127,7 +120,6 @@ set(Utilities_headers
     removeElements.hh
     rotationMatrix.hh
     safeInv.hh
-    scan.hh
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
     size_t_bits.hh
