@@ -7,6 +7,7 @@ Notable changes include:
 
   * New features/ API changes:
     * added MFV hydro from Hopkins 2015 with extension for ALE options
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH
 
   * Build changes / improvements:
     * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
@@ -24,6 +25,9 @@ Notable changes include:
       * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
 
   * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
 
 Version v2024.01.1 -- Release date 2024-02-17
 ==============================================
