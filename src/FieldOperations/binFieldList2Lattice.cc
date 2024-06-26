@@ -315,8 +315,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   BEGIN_CONTRACT_SCOPE
   // Check that everyone agrees about the size.
   {
-    int bufSizeMin = allReduce(bufSize, SPHERAL_MPI_MIN);
-    CHECK(bufSizeMin == bufSize);
+    CHECK(bufSize == allReduce(bufSize, SPHERAL_MPI_MIN));
   }
   END_CONTRACT_SCOPE
 
