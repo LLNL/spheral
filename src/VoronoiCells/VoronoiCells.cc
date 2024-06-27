@@ -59,7 +59,7 @@ void
 VoronoiCells<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  mWeight = dataBase.newFluidFieldList(0.0, "Voronoi weight");
+  // mWeight = dataBase.newFluidFieldList(0.0, "Voronoi weight");
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
   mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
@@ -80,7 +80,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 
   // Ensure our state is sized correctly
   dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
-  dataBase.resizeFluidFieldList(mWeight, 0.0, "Voronoi weight", false);
+  // dataBase.resizeFluidFieldList(mWeight, 0.0, "Voronoi weight", false);
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
   dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
@@ -105,13 +105,14 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(mVolume);
   state.enroll(mSurfacePoint);
   state.enroll(mCellFaceFlags);
-  state.enroll(mCells, make_policy<UpdateVoronoiCells<Dimension>>(mVolume,
-                                                                  mWeight,
-                                                                  mDeltaCentroid,
-                                                                  mEtaVoidPoints,
-                                                                  this->boundaryConditions(),
-                                                                  mFacetedBoundaries,
-                                                                  mFacetedHoles));
+  state.enroll(mCells);
+  // state.enroll(mCells, make_policy<UpdateVoronoiCells<Dimension>>(mVolume,
+  //                                                                 mWeight,
+  //                                                                 mDeltaCentroid,
+  //                                                                 mEtaVoidPoints,
+  //                                                                 this->boundaryConditions(),
+  //                                                                 mFacetedBoundaries,
+  //                                                                 mFacetedHoles));
 }
 
 //------------------------------------------------------------------------------
@@ -214,14 +215,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto i = 0u; i < n; ++i) {
       CHECK(rho(k,i) > 0.0);
       mVolume(k,i) = mass(k,i)/rho(k,i);
-      mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
+      // mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
     }
   }
   
   auto& boundaries = this->boundaryConditions();
   for (auto* bcPtr: boundaries) {
     bcPtr->applyFieldListGhostBoundary(mVolume);
-    bcPtr->applyFieldListGhostBoundary(mWeight);
+    // bcPtr->applyFieldListGhostBoundary(mWeight);
   }
   for (auto* bcPtr: boundaries) bcPtr->finalizeGhostBoundary();
 
@@ -229,6 +230,21 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   // we're updating (mSurfacePoint, mCells, etc.) are just pointing at our internal fields.
   computeVoronoiVolume(pos, H, cm, D, mFacetedBoundaries, mFacetedHoles, boundaries, mWeight,
                        mSurfacePoint, mVolume, mDeltaCentroid, mEtaVoidPoints, mCells, mCellFaceFlags);
+}
+
+//------------------------------------------------------------------------------
+// Provide a hook to be called after the state has been updated and 
+// boundary conditions have been enforced.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+VoronoiCells<Dimension>::
+postStateUpdate(const Scalar time,
+                const Scalar dt,
+                const DataBase<Dimension>& dataBase, 
+                State<Dimension>& state,
+                StateDerivatives<Dimension>& derivs) {
+  this->preStepInitialize(dataBase, state, derivs);
 }
 
 //------------------------------------------------------------------------------

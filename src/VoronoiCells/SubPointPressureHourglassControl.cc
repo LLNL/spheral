@@ -321,11 +321,12 @@ evaluateDerivatives(const Scalar time,
             const auto  comj = cellj.centroid();
             const auto deltaDvDtij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi) +
                                              subCellAcceleration(celli, cellFace, comj, xj, Pj));
-            if (j >= nodeLists[nodeListj]->firstGhostNode()) {
-              cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : "
-                   << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : " 
-                   << celli << " " << cellj << endl;
-            }
+            // const bool barf = (Process::getRank() == 0 and j >= nodeLists[nodeListj]->firstGhostNode());
+            // if (barf) {
+            //   cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : " << comi << " " << comj << " : "
+            //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : " 
+            //        << celli << " " << cellj << endl;
+            // }
             DvDt(nodeListi, i) += deltaDvDtij;
             DvDt(nodeListj, j) -= deltaDvDtij;
             DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij);

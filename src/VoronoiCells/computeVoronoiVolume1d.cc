@@ -115,6 +115,7 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
   for (auto k = 0u; k < ntot; ++k) {
     const auto nodeListi = coords[k].second.first;
     const auto i = coords[k].second.second;
+    // const bool barf = i == 0;
     if (i < nodeListPtrs[nodeListi]->firstGhostNode()) {
 
       // Is there a bounding volume for this NodeList?
@@ -246,9 +247,9 @@ computeVoronoiVolume(const FieldList<Dim<1>, Dim<1>::Vector>& position,
            (surfacePoint(nodeListi, i) & 1) == 0,
            "(" << nodeListi << " " << i << ") " << xi << " " << surfacePoint(nodeListi, i) << " " << etaVoidPoints(nodeListi, i).size());
 
-    // cerr << "  " << i << " " << vol(nodeListi, i) << " " << surfacePoint(nodeListi, i) << " "
-    //      << " ---- " << position(nodeListj1, j1).x() << " " << position(nodeListi, i) << " " << position(nodeListj2, j2).x() 
-    //      << endl;
+    // if (barf) cerr << "  " << i << " " << vol(nodeListi, i) << " " << surfacePoint(nodeListi, i) << " "
+    //                << " ---- " << position(nodeListj1, j1).x() << " " << position(nodeListi, i) << " " << position(nodeListj2, j2).x() 
+    //                << endl;
 
   }
 

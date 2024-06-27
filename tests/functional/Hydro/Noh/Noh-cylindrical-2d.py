@@ -161,12 +161,6 @@ commandLine(seed = "constantDTheta",
             rigorousBoundaries = False,
             dtverbose = False,
 
-            densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
-            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
-            compatibleEnergy = True,
-            gradhCorrection = True,
-            correctVelocityGradient = True,
-
             # output options
             useVoronoiOutput = True,
             clearDirectories = False,
@@ -231,6 +225,7 @@ dataDir = os.path.join(dataDir,
                        "compatibleEnergy=%s" % compatibleEnergy,
                        "Cullen=%s" % boolCullenViscosity,
                        "filter=%f" % filter,
+                       "fhourglass=%f" % fhourglass,
                        "%s" % nodeMotion,
                        "nrad=%i_ntheta=%i" % (nRadial, nTheta))
 restartDir = os.path.join(dataDir, "restarts")

@@ -102,6 +102,15 @@ temperature or pressure."""
         return "void"
 
     @PYB11virtual
+    def postStateUpdate(time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        return "void"
+
+    @PYB11virtual
     def addFacetedBoundary(bound = "const FacetedVolume&",
                            holes = "const std::vector<FacetedVolume>&"):
         "Add a faceted boundary (optionally with holes)"

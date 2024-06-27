@@ -96,13 +96,13 @@ update(const KeyType& key,
     for (auto i = 0u; i < n; ++i) {
       CHECK(rho(k,i) > 0.0);
       mVolume(k,i) = mass(k,i)/rho(k,i);
-      mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
+      // mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
     }
   }
   
   for (auto* bcPtr: mBoundaries) {
     bcPtr->applyFieldListGhostBoundary(mVolume);
-    bcPtr->applyFieldListGhostBoundary(mWeight);
+    // bcPtr->applyFieldListGhostBoundary(mWeight);
   }
   for (auto* bcPtr: mBoundaries) bcPtr->finalizeGhostBoundary();
 

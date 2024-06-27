@@ -93,7 +93,15 @@ public:
   virtual void enforceBoundaries(State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
   
-  // Add a faceted boundary
+  // Provide a hook to be called after the state has been updated and 
+  // boundary conditions have been enforced.
+  virtual void postStateUpdate(const Scalar time, 
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase, 
+                               State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives) override;
+
+ // Add a faceted boundary
   virtual void addFacetedBoundary(const FacetedVolume& bound,
                                   const std::vector<FacetedVolume>& holes);
   
