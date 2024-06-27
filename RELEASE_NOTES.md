@@ -1,13 +1,13 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2024.06.0 -- Release date 2024-06-27
 ==============================================
   * Important Notes:
     * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
 
 Notable changes include:
 
-  * New features/ API changes:
-    * added MFV hydro from Hopkins 2015 with extension for ALE options
-    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH
+  * New features / API changes:
+    * Added MFV hydro from Hopkins 2015 with extension for ALE options.
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH.
 
   * Build changes / improvements:
     * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
