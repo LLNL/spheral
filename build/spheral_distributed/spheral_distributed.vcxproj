@@ -170,7 +170,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Distributed\Communicator.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.2.cc" />
@@ -182,9 +181,6 @@
     <ClCompile Include="..\..\src\Distributed\waitAllWithDeadlockDetection.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Distributed\Communicator.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Distributed\CompareDomainNodesByPosition.hh">
       <FileType>Document</FileType>
     </None>

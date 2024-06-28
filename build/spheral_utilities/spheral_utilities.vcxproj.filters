@@ -108,6 +108,9 @@
     <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\Communicator.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Utilities\allReduce.hh">
@@ -358,6 +361,9 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Utilities\range.hh">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Utilities\Communicator.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

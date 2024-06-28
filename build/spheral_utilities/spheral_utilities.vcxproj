@@ -292,6 +292,7 @@
     <ClCompile Include="..\..\src\Utilities\boundingBoxInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\boundingBoxInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\buildMessage.cc" />
+    <ClCompile Include="..\..\src\Utilities\Communicator.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\DBC.cc" />
@@ -573,6 +574,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\Utilities\Communicator.hh" />
     <ClInclude Include="..\..\src\Utilities\DamagedNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\DamageGradientNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\DomainNode.hh" />
