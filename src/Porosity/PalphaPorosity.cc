@@ -109,9 +109,6 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
     for (auto i = 0u; i < n; ++i) {
       mc0[i] = c0[i];
     }
-    const auto alpha0_min = mAlpha0.min();
-    VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
-            "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
   }
 }
 

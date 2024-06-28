@@ -22,7 +22,8 @@ def CRKSPH(dataBase,
            damageRelieveRubble = False,
            ASPH = False,
            etaMinAxis = 0.1,
-           crktype = "default"):
+           crktype = "default",
+           smoothingScaleMethod = None):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -62,10 +63,11 @@ def CRKSPH(dataBase,
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+    if smoothingScaleMethod is None:
+        if ASPH:
+            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+        else:
+            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     # Build the constructor arguments
     kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
