@@ -20,6 +20,7 @@ class Polytope(CMakePackage):
     depends_on('python@3: +zlib +shared', type=('build', 'run'), when='+python')
     depends_on('py-decorator', type=('build', 'run'), when='+python')
     depends_on('boost', type=('build', 'run'))
+    patch('polytope_cxx.patch', when='^boost@1.82:')
 
     parallel = False      # Should be able to remove this at some point
 

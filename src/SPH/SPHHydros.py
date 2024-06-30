@@ -29,7 +29,8 @@ def SPH(W,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         etaMinAxis = 0.1,
-        ASPH = False):
+        ASPH = False,
+        smoothingScaleMethod = None):
 
     # Check if we're running solid or fluid hydro
     nfluid = dataBase.numFluidNodeLists
@@ -86,16 +87,11 @@ def SPH(W,
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
     # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
-    # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+    if smoothingScaleMethod is None:
+        if ASPH:
+            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+        else:
+            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin

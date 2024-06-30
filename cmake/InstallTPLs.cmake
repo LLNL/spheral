@@ -19,6 +19,7 @@ if (NOT ENABLE_CXXONLY)
   # Find the appropriate Python
   find_package(Python3 COMPONENTS Interpreter Development)
   set(PYTHON_EXE ${Python3_EXECUTABLE})
+  set(SPHERAL_SITE_PACKAGES_PATH "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   list(APPEND SPHERAL_BLT_DEPENDS Python3::Python)
 
   # Set the PYB11Generator path
@@ -88,7 +89,7 @@ foreach(_comp ${AXOM_COMPONENTS_ENABLED})
 endforeach()
 
 # TPLs that must be imported
-list(APPEND SPHERAL_EXTERN_LIBS zlib boost eigen qhull silo hdf5 polytope)
+list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
 
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)
@@ -107,6 +108,7 @@ endforeach()
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
+
 # Copied from serac, needed to bypass generator expression issue during export
 set(_props)
 if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0" )
