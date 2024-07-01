@@ -79,7 +79,7 @@ def main():
   cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True)[1].split()[-1]
 
   cmake_extra_args=""
-  if args.D:
+  if args.D and args.D != ['']:
     cmake_extra_args="-D"+" -D".join(args.D)
   
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
