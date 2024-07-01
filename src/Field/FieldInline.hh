@@ -5,8 +5,8 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/allReduce.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/allReduce.hh"
+#include "Distributed/Communicator.hh"
 
 #include <cmath>
 #include <iostream>
@@ -710,7 +710,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-  return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
+  return allReduce(this->localSumElements(), SPHERAL_MPI_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -721,7 +721,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-  return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
+  return allReduce(this->localMin(), SPHERAL_MPI_MIN);
 }
 
 //------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-  return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
+  return allReduce(this->localMax(), SPHERAL_MPI_MAX);
 }
 
 //------------------------------------------------------------------------------

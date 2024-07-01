@@ -6,9 +6,6 @@
 #include "FlatConnectivity.hh"
 
 #include <algorithm>
-#ifdef USE_MPI
-#include "mpi.h"
-#endif
 
 #include "Boundary/ConstantBoundary.hh"
 #include "Boundary/InflowOutflowBoundary.hh"
@@ -16,6 +13,7 @@
 #include "DataBase/State.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/Communicator.hh"
@@ -329,17 +327,12 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
   
   // Get global indices manually
-#ifdef USE_MPI
-  int globalScan = 0;
-  MPI_Scan(&mNumInternalLocalNodes, &globalScan, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+  int globalScan = scan(mNumInternalLocalNodes, SPHERAL_MPI_SUM);
   VERIFY(globalScan >= mNumInternalLocalNodes);
   mFirstGlobalIndex = globalScan - mNumInternalLocalNodes;
   mLastGlobalIndex = globalScan - 1;
-  MPI_Allreduce(&mNumInternalLocalNodes, &mNumGlobalNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+  mNumGlobalNodes = allReduce(mNumInternalLocalNodes, SPHERAL_MPI_SUM);
   VERIFY(mNumGlobalNodes >= mNumInternalLocalNodes);
-#else
-  mNumGlobalNodes = mNumInternalLocalNodes;
-#endif
   VERIFY(mNumGlobalNodes == numGlobalNodesDB);
   // std::cout << Process::getRank() << "\t" << mNumInternalLocalNodes << "\t" << mNumGlobalNodes << "\t" << mFirstGlobalIndex << "\t" << mLastGlobalIndex << std::endl;
   

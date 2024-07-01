@@ -12,13 +12,13 @@
 #include "DataBase/StateDerivatives.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packElement.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <cstdio>
@@ -320,9 +320,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
-
 #ifdef USE_MPI
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_MPI_SUM);
+
   // Wait until all our sends are complete.
   if (not sendRequests.empty()) {
     vector<MPI_Status> sendStatus(sendRequests.size());
@@ -556,7 +556,7 @@ dumpTree(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -633,7 +633,7 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
