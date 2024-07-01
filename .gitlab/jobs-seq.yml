@@ -1,6 +1,9 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
+toss_gcc_~mpi_tpls:
+  extends: [.gcc_~mpi, .tpls, .toss_resource1]
+  
 toss_gcc_~mpi_build:
   extends: [.gcc_~mpi, .build_and_test, .toss_resource1]
   
@@ -9,6 +12,9 @@ toss_gcc_~mpi_test:
   needs: [toss_gcc_~mpi_build]
 
 
+blueos_cuda_11_gcc_~mpi_tpls:
+  extends: [.blueos_resource2, .cuda_11_gcc_~mpi, .tpls]
+
 blueos_cuda_11_gcc_~mpi_build:
   extends: [.blueos_resource2, .cuda_11_gcc_~mpi, .build_and_test]
 
@@ -16,6 +22,9 @@ blueos_cuda_11_gcc_~mpi_test:
   extends: [.blueos_resource2, .cuda_11_gcc_~mpi, .run_ats]
   needs: [blueos_cuda_11_gcc_~mpi_build]
 
+
+blueos_gcc_~mpi_Debug_tpls:
+  extends: [.blueos_resource1, .gcc_~mpi_Debug, .tpls]
 
 blueos_gcc_~mpi_Debug_build:
   extends: [.blueos_resource1, .gcc_~mpi_Debug, .build_and_test]

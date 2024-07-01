@@ -23,6 +23,8 @@ def parse_args():
   parser = argparse.ArgumentParser()
 
   # Control stage flow
+  parser.add_argument('--tpls-only', action='store_true',
+      help='Only build the tpls and generate the host-config.')
   parser.add_argument('--build-only', action='store_true',
       help='Only build the project from a spack generated host-config.')
   parser.add_argument('--host-config', type=str, default="",
@@ -78,7 +80,8 @@ def main():
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
+  if not args.tpls_only:
+      if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
 
 if __name__ == "__main__":
   main()
