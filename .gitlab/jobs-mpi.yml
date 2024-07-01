@@ -6,6 +6,7 @@ toss_gcc_mvapich2_cxxonly_tpls:
 
 toss_gcc_mvapich2_cxxonly_build:
   extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
+  needs: [toss_gcc_mvapich2_cxxonly_tpls]
 
 
 
@@ -14,6 +15,7 @@ toss_gcc_mvapich2_tpls:
 
 toss_gcc_mvapich2_build:
   extends: [.toss_resource2, .gcc_mvapich2, .build_and_test]
+  needs: [toss_gcc_mvapich2_tpls]
 
 toss_gcc_mvapich2_test:
   extends: [.toss_resource2, .gcc_mvapich2, .run_ats]
@@ -26,6 +28,7 @@ toss_clang_mvapich2_tpls:
 
 toss_clang_mvapich2_build:
   extends: [.toss_resource1, .clang_mvapich2, .build_and_test]
+  needs: [toss_clang_mvapich2_tpls]
 
 toss_clang_mvapich2_test:
   extends: [.toss_resource2, .clang_mvapich2, .run_ats]
@@ -43,6 +46,7 @@ blueos_gcc_spectrum_tpls:
 
 blueos_gcc_spectrum_build:
   extends: [.blueos_resource1, .gcc_spectrum, .build_and_test]
+  needs: [blueos_gcc_spectrum_tpls]
 
 blueos_gcc_spectrum_test:
   extends: [.blueos_resource1, .gcc_spectrum, .run_ats]
@@ -55,6 +59,7 @@ blueos_cuda_11_gcc_spectrum_tpls:
 
 blueos_cuda_11_gcc_spectrum_build:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .build_and_test]
+  needs: [blueos_cuda_11_gcc_spectrum_tpls]
 
 blueos_cuda_11_gcc_spectrum_test:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_ats]

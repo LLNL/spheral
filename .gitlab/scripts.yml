@@ -4,7 +4,7 @@
 
 
 .tpls:
-  stage: build_and_install
+  stage: tpls
   script:
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
     - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
