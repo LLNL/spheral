@@ -16,18 +16,35 @@
 //------------------------------------------------------------------------------
 
 #include <mpi.h>
+#include "Communicator.hh"
 
 namespace Spheral {
 
+#define SPHERAL_MPI_MIN MPI_MIN
+#define SPHERAL_MPI_MAX MPI_MAX
+#define SPHERAL_MPI_SUM MPI_SUM
+#define SPHERAL_MPI_PROD MPI_PROD
+#define SPHERAL_MPI_LAND MPI_LAND
+#define SPHERAL_MPI_LOR MPI_LOR
+
 template<typename Value>
 Value
-allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm) {
+allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
   MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
 }
 
+template<typename Value>
+Value
+scan(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
+  Value tmp = value;
+  Value result;
+  MPI_Scan(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
+  return result;
+}
+  
 }
 
 #else
@@ -37,17 +54,22 @@ allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm) {
 
 namespace Spheral {
 
-#define MPI_MIN 1
-#define MPI_MAX 2
-#define MPI_SUM 3
-#define MPI_PROD 4
-#define MPI_LAND 5
-#define MPI_LOR 6
-#define MPI_COMM_WORLD 0
+#define SPHERAL_MPI_MIN 1
+#define SPHERAL_MPI_MAX 2
+#define SPHERAL_MPI_SUM 3
+#define SPHERAL_MPI_PROD 4
+#define SPHERAL_MPI_LAND 5
+#define SPHERAL_MPI_LOR 6
 
 template<typename Value>
 Value
-allReduce(const Value& value, const int /*op*/, const int /*comm*/) {
+allReduce(const Value& value, const int /*op*/, const int comm = 0) {
+  return value;
+}
+
+template<typename Value>
+Value
+scan(const Value& value, const int /*op*/, const int comm = 0) {
   return value;
 }
 

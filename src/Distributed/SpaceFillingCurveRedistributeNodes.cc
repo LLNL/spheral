@@ -20,8 +20,8 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/RedistributionRegistrar.hh"
-#include "Utilities/allReduce.hh"
-#include "Utilities/Communicator.hh"
+#include "allReduce.hh"
+#include "Communicator.hh"
 
 #include "Utilities/DBC.hh"
 
@@ -208,7 +208,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(count.size() == uniqueIndices.size());
       CHECK(work.size() == uniqueIndices.size());
     }
-    maxCount = allReduce(maxCount, MPI_MAX, Communicator::communicator());
+    maxCount = allReduce(maxCount, SPHERAL_MPI_MAX);
     if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
 
     //   // DEBUG
@@ -446,7 +446,7 @@ numIndicesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimen
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  result = allReduce(result, SPHERAL_MPI_SUM);
 
   return result;
 }
@@ -478,7 +478,7 @@ workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>:
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  result = allReduce(result, SPHERAL_MPI_SUM);
 
   return result;
 }
@@ -518,8 +518,8 @@ workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dim
   }
 
   // Globally reduce that sucker.
-  workInRange = allReduce(workInRange, MPI_SUM, Communicator::communicator());
-  countInRange = allReduce(countInRange, MPI_SUM, Communicator::communicator());
+  workInRange = allReduce(workInRange, SPHERAL_MPI_SUM);
+  countInRange = allReduce(countInRange, SPHERAL_MPI_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -563,7 +563,7 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
   }
 
   // Get the global answer.
-  result = allReduce(result, MPI_MIN, Communicator::communicator());
+  result = allReduce(result, SPHERAL_MPI_MIN);
 
   // That's it.
   ENSURE(result <= maxIndex);

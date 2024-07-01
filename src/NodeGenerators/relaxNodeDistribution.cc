@@ -5,12 +5,7 @@
 #include "relaxNodeDistribution.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
-#include "Utilities/allReduce.hh"
-#include "Utilities/Communicator.hh"
-
-#ifdef USE_MPI
-#include <mpi.h>
-#endif
+#include "Distributed/allReduce.hh"
 
 #include <ctime>
 using std::vector;
@@ -144,7 +139,7 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
       ++k;
     }
   }
-  Msum = allReduce(Msum, MPI_SUM, Communicator::communicator());
+  Msum = allReduce(Msum, SPHERAL_MPI_SUM);
 
   // If needed, rescale the masses.
   if (targetMass > 0.0) {

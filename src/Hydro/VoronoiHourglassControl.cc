@@ -13,8 +13,8 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "CRKSPH/computeCRKSPHCorrections.hh"
 #include "FieldOperations/monotonicallyLimitedGradient.hh"
-#include "Utilities/Communicator.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/Communicator.hh"
+#include "Distributed/allReduce.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
@@ -247,8 +247,8 @@ finalize(const typename Dimension::Scalar time,
     }
   }
   CHECK(rhoZones.size() == mesh.numZones());
-  rhoMin = allReduce(rhoMin, MPI_MIN, Communicator::communicator());
-  rhoMax = allReduce(rhoMax, MPI_MAX, Communicator::communicator());
+  rhoMin = allReduce(rhoMin, SPHERAL_MPI_MIN);
+  rhoMax = allReduce(rhoMax, SPHERAL_MPI_MAX);
 
   // Compute the CRKSPH limited gradient of the density if we're doing first order.
   if (mOrder > 0) {
