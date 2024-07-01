@@ -14,7 +14,10 @@
     - echo $SPEC
 
     - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --tpls-only
-
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
 
 .build:
   stage: build_and_install
