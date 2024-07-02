@@ -24,7 +24,7 @@
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
-    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build "$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build $EXTRA_CMAKE_ARGS
     #- CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
     #- echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
     #- echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
