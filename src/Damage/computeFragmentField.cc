@@ -5,7 +5,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 #include <vector>
 #include <algorithm>

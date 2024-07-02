@@ -18,7 +18,7 @@
 #include "Boundary/mapPositionThroughPlanes.hh"
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeomPlane.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <cstdio>

@@ -12,7 +12,7 @@
 #include "NodeList/NodeList.hh"
 #include "Geometry/EigenStruct.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Utilities/Communicator.hh"
+#include "Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

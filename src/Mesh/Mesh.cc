@@ -18,7 +18,7 @@ using std::abs;
 #include "Utilities/DBC.hh"
 #include "Distributed/allReduce.hh"
 #include "Utilities/boundingBox.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "NodeList/NodeList.hh"
 
 #ifdef USE_MPI

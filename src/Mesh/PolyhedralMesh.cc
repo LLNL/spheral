@@ -11,7 +11,7 @@
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/timingUtilities.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 using namespace boost;
 

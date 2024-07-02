@@ -18,7 +18,7 @@
 #include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/KeyTraits.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 #include <vector>
 #include <tuple>

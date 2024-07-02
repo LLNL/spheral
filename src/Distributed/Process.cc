@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "Process.hh"
-#include "Utilities/Communicator.hh"
+#include "Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>

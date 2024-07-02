@@ -14,7 +14,7 @@
 #include "Distributed/allReduce.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/PairComparisons.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <cstdio>

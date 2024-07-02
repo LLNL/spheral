@@ -21,7 +21,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Field/Field.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
 #include <cmath>

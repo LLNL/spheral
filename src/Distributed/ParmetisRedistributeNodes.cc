@@ -16,7 +16,7 @@
 #include "Field/NodeIterators.hh"
 #include "NodeList/NodeList.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Utilities/Communicator.hh"
+#include "Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

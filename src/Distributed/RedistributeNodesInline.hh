@@ -1,5 +1,5 @@
 #include "Utilities/DomainNode.hh"
-#include "Utilities/Communicator.hh"
+#include "Communicator.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {

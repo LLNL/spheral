@@ -5,7 +5,7 @@
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 #include <vector>
 #include <tuple>

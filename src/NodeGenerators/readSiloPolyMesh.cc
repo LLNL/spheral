@@ -3,7 +3,7 @@
 // from a silo file and returns the geometry.
 //------------------------------------------------------------------------------
 #include "Utilities/DBC.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "Geometry/Dimension.hh"
 
 #include "silo.h"

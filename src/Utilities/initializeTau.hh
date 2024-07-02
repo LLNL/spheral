@@ -1,6 +1,6 @@
 // This is a simple little method we use to initialize the Tau profiling package.
 #include "TAU.h"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>

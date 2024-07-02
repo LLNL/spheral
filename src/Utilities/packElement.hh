@@ -13,7 +13,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
 #include "Utilities/uniform_random.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 

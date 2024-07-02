@@ -5,7 +5,7 @@
 // Created by JMO, Mon Aug 27 16:57:11 PDT 2001
 //----------------------------------------------------------------------------//
 #include "DistributedBoundary.hh"
-#include "Utilities/Communicator.hh"
+#include "Communicator.hh"
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/Field.hh"

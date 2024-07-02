@@ -16,7 +16,7 @@
 #include "Distributed/allReduce.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Utilities/Communicator.hh"
+#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 
