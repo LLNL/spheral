@@ -219,9 +219,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_MPI_SUM);
-  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, SPHERAL_MPI_MAX);
-  mOldMaxVelocity = allReduce(mOldMaxVelocity, SPHERAL_MPI_MAX);
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
+  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, SPHERAL_OP_MAX);
+  mOldMaxVelocity = allReduce(mOldMaxVelocity, SPHERAL_OP_MAX);
 
 #ifdef USE_MPI
   // Wait until all our sends are complete.

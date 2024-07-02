@@ -247,8 +247,8 @@ finalize(const typename Dimension::Scalar time,
     }
   }
   CHECK(rhoZones.size() == mesh.numZones());
-  rhoMin = allReduce(rhoMin, SPHERAL_MPI_MIN);
-  rhoMax = allReduce(rhoMax, SPHERAL_MPI_MAX);
+  rhoMin = allReduce(rhoMin, SPHERAL_OP_MIN);
+  rhoMax = allReduce(rhoMax, SPHERAL_OP_MAX);
 
   // Compute the CRKSPH limited gradient of the density if we're doing first order.
   if (mOrder > 0) {

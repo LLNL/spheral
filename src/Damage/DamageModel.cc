@@ -196,7 +196,7 @@ finalize(const Scalar /*time*/,
         nD += nD_thread;
       }
     }
-    nD = allReduce(nD, SPHERAL_MPI_SUM);
+    nD = allReduce(nD, SPHERAL_OP_SUM);
     const auto ntot = std::max(1, dataBase.globalNumInternalNodes());
     const auto dfrac = double(nD)/double(ntot);
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...

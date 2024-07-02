@@ -321,7 +321,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   }
 
 #ifdef USE_MPI
-  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_MPI_SUM);
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
 
   // Wait until all our sends are complete.
   if (not sendRequests.empty()) {
@@ -556,7 +556,7 @@ dumpTree(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -633,7 +633,7 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mTree.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {

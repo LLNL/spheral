@@ -208,7 +208,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(count.size() == uniqueIndices.size());
       CHECK(work.size() == uniqueIndices.size());
     }
-    maxCount = allReduce(maxCount, SPHERAL_MPI_MAX);
+    maxCount = allReduce(maxCount, SPHERAL_OP_MAX);
     if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
 
     //   // DEBUG
@@ -446,7 +446,7 @@ numIndicesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimen
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
 
   return result;
 }
@@ -478,7 +478,7 @@ workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>:
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
 
   return result;
 }
@@ -518,8 +518,8 @@ workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dim
   }
 
   // Globally reduce that sucker.
-  workInRange = allReduce(workInRange, SPHERAL_MPI_SUM);
-  countInRange = allReduce(countInRange, SPHERAL_MPI_SUM);
+  workInRange = allReduce(workInRange, SPHERAL_OP_SUM);
+  countInRange = allReduce(countInRange, SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -563,7 +563,7 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
   }
 
   // Get the global answer.
-  result = allReduce(result, SPHERAL_MPI_MIN);
+  result = allReduce(result, SPHERAL_OP_MIN);
 
   // That's it.
   ENSURE(result <= maxIndex);

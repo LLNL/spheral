@@ -525,7 +525,7 @@ dumpTree(const Tree& tree,
   std::stringstream ss;
   CellKey ix, iy, iz;
   unsigned nlevels = tree.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -607,7 +607,7 @@ dumpTreeStatistics(const Tree& tree,
                    const bool globalTree) const {
   std::stringstream ss;
   unsigned nlevels = tree.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {

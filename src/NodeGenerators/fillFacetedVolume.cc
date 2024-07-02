@@ -220,7 +220,7 @@ fillFacetedVolume10(const Dim<3>::FacetedVolume& outerBoundary0,
   }
 
   // If we didn't find anything, fall back to sampling on the surface.
-  if (allReduce(result.size(), SPHERAL_MPI_SUM) == 0U) {
+  if (allReduce(result.size(), SPHERAL_OP_SUM) == 0U) {
     if (Process::getRank() == 0) {
       cerr << "Falling back to surface points..." << endl;
       const size_t nexpect = size_t(std::max(1, std::min(int(verts.size()), int(outerBoundary.volume()/(dx*dx*dx) + 0.5))));

@@ -710,7 +710,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-  return allReduce(this->localSumElements(), SPHERAL_MPI_SUM);
+  return allReduce(this->localSumElements(), SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -721,7 +721,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-  return allReduce(this->localMin(), SPHERAL_MPI_MIN);
+  return allReduce(this->localMin(), SPHERAL_OP_MIN);
 }
 
 //------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-  return allReduce(this->localMax(), SPHERAL_MPI_MAX);
+  return allReduce(this->localMax(), SPHERAL_OP_MAX);
 }
 
 //------------------------------------------------------------------------------

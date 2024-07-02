@@ -74,7 +74,7 @@ dumpTree(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mLevels.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -151,7 +151,7 @@ dumpTreeStatistics(const bool globalTree) const {
   const unsigned rank = Process::getRank();
 #endif
   unsigned nlevels = mLevels.size();
-  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_MPI_MAX);
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
