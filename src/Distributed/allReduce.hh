@@ -31,7 +31,7 @@ namespace Spheral {
 template<typename Value>
 constexpr Value
 allReduce(const Value& value, const MPI_Op op,
-          const Communicator comm = Communicator::communicator()) {
+          const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
   MPI_Allreduce(&tmp, &result, 1,
@@ -42,7 +42,7 @@ allReduce(const Value& value, const MPI_Op op,
 template<typename Value>
 constexpr Value
 scan(const Value& value, const MPI_Op op,
-     const Communicator comm = Communicator::communicator()) {
+     const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
   MPI_Scan(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
@@ -63,15 +63,13 @@ scan(const Value& value, const MPI_Op op,
 
 template<typename Value>
 constexpr Value
-allReduce(const Value& value, const int /*op*/,
-          const Communicator comm = Communicator::communicator()) {
+allReduce(const Value& value, const int /*op*/, const int comm = 0) {
   return value;
 }
 
 template<typename Value>
 constexpr Value
-scan(const Value& value, const int /*op*/,
-     const Communicator comm = Communicator::communicator()) {
+scan(const Value& value, const int /*op*/, const int comm = 0) {
   return value;
 }
 
