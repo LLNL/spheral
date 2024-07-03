@@ -28,9 +28,8 @@ namespace Spheral {
 #define SPHERAL_OP_LAND MPI_LAND
 #define SPHERAL_OP_LOR MPI_LOR
 
-constexpr
 template<typename Value>
-Value
+constexpr Value
 allReduce(const Value& value, const MPI_Op op,
           const Communicator comm = Communicator::communicator()) {
   Value tmp = value;
@@ -40,9 +39,8 @@ allReduce(const Value& value, const MPI_Op op,
   return result;
 }
 
-constexpr
 template<typename Value>
-Value
+constexpr Value
 scan(const Value& value, const MPI_Op op,
      const Communicator comm = Communicator::communicator()) {
   Value tmp = value;
@@ -63,17 +61,15 @@ scan(const Value& value, const MPI_Op op,
 #define SPHERAL_OP_LAND 5
 #define SPHERAL_OP_LOR 6
 
-constexpr
 template<typename Value>
-Value
+constexpr Value
 allReduce(const Value& value, const int /*op*/,
           const Communicator comm = Communicator::communicator()) {
   return value;
 }
 
-constexpr
 template<typename Value>
-Value
+constexpr Value
 scan(const Value& value, const int /*op*/,
      const Communicator comm = Communicator::communicator()) {
   return value;
