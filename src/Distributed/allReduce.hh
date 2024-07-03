@@ -9,16 +9,17 @@
 #define __Spheral_allReduce__
 
 #include "Utilities/DataTypeTraits.hh"
+#include "Communicator.hh"
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
+namespace Spheral {
 #ifdef USE_MPI
 //------------------------------------------------------------------------------
 // MPI version
 //------------------------------------------------------------------------------
-
-#include <mpi.h>
-#include "Communicator.hh"
-
-namespace Spheral {
 
 #define SPHERAL_OP_MIN MPI_MIN
 #define SPHERAL_OP_MAX MPI_MAX
@@ -27,32 +28,33 @@ namespace Spheral {
 #define SPHERAL_OP_LAND MPI_LAND
 #define SPHERAL_OP_LOR MPI_LOR
 
+constexpr
 template<typename Value>
 Value
-allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
+allReduce(const Value& value, const MPI_Op op,
+          const Communicator comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
-  MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
+  MPI_Allreduce(&tmp, &result, 1,
+                DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
 }
 
+constexpr
 template<typename Value>
 Value
-scan(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
+scan(const Value& value, const MPI_Op op,
+     const Communicator comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
   MPI_Scan(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
-}
-  
 }
 
 #else
 //------------------------------------------------------------------------------
 // Non-MPI version
 //------------------------------------------------------------------------------
-
-namespace Spheral {
 
 #define SPHERAL_OP_MIN 1
 #define SPHERAL_OP_MAX 2
@@ -61,20 +63,23 @@ namespace Spheral {
 #define SPHERAL_OP_LAND 5
 #define SPHERAL_OP_LOR 6
 
+constexpr
 template<typename Value>
 Value
-allReduce(const Value& value, const int /*op*/, const int comm = 0) {
+allReduce(const Value& value, const int /*op*/,
+          const Communicator comm = Communicator::communicator()) {
   return value;
 }
 
+constexpr
 template<typename Value>
 Value
-scan(const Value& value, const int /*op*/, const int comm = 0) {
+scan(const Value& value, const int /*op*/,
+     const Communicator comm = Communicator::communicator()) {
   return value;
-}
-
 }
 
 #endif
+}
 #endif
 
