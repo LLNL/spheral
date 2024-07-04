@@ -22,6 +22,7 @@ echo $INSTALL_DIR
 echo $SCRIPT_DIR
 echo $BUILD_ALLOC
 
+rm -rf $INSTALL_DIR
 mkdir -p $INSTALL_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --spec=none --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls
@@ -31,7 +32,7 @@ spack bootstrap add --trust local-sources $PWD/resources/metadata/sources
 spack bootstrap add --trust local-binaries $PWD/resources/metadata/binaries
 spack mirror add spheral-mirror $PWD/resources/mirror
 spack mirror add spheral-cache $PWD/resources
-spack buildcache update-index -d $PWD/resources
+spack buildcache update-index $PWD/resources/mirror
 
 $BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
 
