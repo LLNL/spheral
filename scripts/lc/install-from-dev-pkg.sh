@@ -30,8 +30,8 @@ mkdir -p $INSTALL_DIR
 source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
 spack bootstrap add --trust local-sources $PWD/resources/metadata/sources
 spack bootstrap add --trust local-binaries $PWD/resources/metadata/binaries
-spack mirror add spheral-mirror $PWD/resources/mirror
-spack mirror add spheral-cache $PWD/resources
+spack mirror add --unsigned spheral-mirror $PWD/resources/mirror
+spack mirror add --unsigned spheral-cache $PWD/resources
 spack buildcache update-index $PWD/resources/mirror
 
 $BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC

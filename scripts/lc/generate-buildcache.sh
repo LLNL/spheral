@@ -38,11 +38,9 @@ spack add $SPHERAL_SPEC
 spack concretize --fresh -f
 
 spack mirror create -a -d $RESOURCE_DIR/mirror --exclude-specs "llnlspheral spheral"
-spack mirror set --unsigned $RESOURCE_DIR/mirror
-
 spack buildcache push -auf $RESOURCE_DIR/mirror $(spack find --format /{hash})
 
 spack bootstrap mirror --binary-packages $RESOURCE_DIR
 
-tar -czvf $DEV_PKG_DIR.tar.gz -C $INSTALL_DIR $DEV_PKG_NAME
+tar -czf $DEV_PKG_DIR.tar.gz -C $INSTALL_DIR $DEV_PKG_NAME
 
