@@ -18,7 +18,7 @@ variables:
 stages:
   #  - build_and_install
   #  - run_ats
-  #  - update_tpls
+  - update_tpls
   - generate_buildcache
   - install_production
   - update_permissions
