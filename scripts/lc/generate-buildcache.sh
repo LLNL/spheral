@@ -35,7 +35,7 @@ spack env rm -y -f $INSTALL_DIR
 spack env create -d $INSTALL_DIR
 spack env activate $INSTALL_DIR
 spack add $SPHERAL_SPEC
-spack concretize --fresh -f
+spack concretize -f --fresh --deprecated
 
 spack mirror create -a -d $RESOURCE_DIR/mirror --exclude-specs "llnlspheral spheral"
 spack buildcache push -auf $RESOURCE_DIR/mirror $(spack find --format /{hash})
