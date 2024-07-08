@@ -13,6 +13,7 @@
 #include <mpi.h>
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/packElement.hh"
+#include "Distributed/Communicator.hh"
 #endif
 
 #include <algorithm>
