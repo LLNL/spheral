@@ -36,6 +36,7 @@ spack mirror add --unsigned spheral-mirror $PWD/resources/mirror
 spack mirror add --unsigned spheral-cache $PWD/resources
 spack buildcache update-index $PWD/resources/mirror
 
+$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
 $BUILD_ALLOC spack install --fresh --deprecated --no-check-signature -u initconfig "$SPACK_PKG_NAME@develop%$SPEC dev_path=$PWD"
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
