@@ -1,9 +1,9 @@
 // This is a simple little method we use to initialize the Tau profiling package.
 #include "TAU.h"
-#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {

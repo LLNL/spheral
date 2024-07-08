@@ -5,13 +5,13 @@
 #include "NodeList/NodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "Distributed/Communicator.hh"
 
 #include <vector>
 #include <tuple>
 
 #ifdef USE_MPI
 #include <mpi.h>
+#include "Distributed/Communicator.hh"
 #endif
 
 namespace Spheral {

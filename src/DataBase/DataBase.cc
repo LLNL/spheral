@@ -92,7 +92,7 @@ int
 DataBase<Dimension>::globalNumInternalNodes() const {
   int localResult = numInternalNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -101,7 +101,7 @@ int
 DataBase<Dimension>::globalNumGhostNodes() const {
   int localResult = numGhostNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -110,7 +110,7 @@ int
 DataBase<Dimension>::globalNumNodes() const {
   int localResult = numNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -122,7 +122,7 @@ int
 DataBase<Dimension>::globalNumFluidInternalNodes() const {
   int localResult = numFluidInternalNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -131,7 +131,7 @@ int
 DataBase<Dimension>::globalNumFluidGhostNodes() const {
   int localResult = numFluidGhostNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -140,7 +140,7 @@ int
 DataBase<Dimension>::globalNumFluidNodes() const {
   int localResult = numFluidNodes();
   int result = localResult;
-  result = allReduce(result, SPHERAL_MPI_SUM);
+  result = allReduce(result, SPHERAL_OP_SUM);
   return result;
 }
 
@@ -527,13 +527,13 @@ reinitializeNeighbors() const {
   // Find the global result across all processors.
   auto box = 0.0;
   for (auto i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), SPHERAL_MPI_MIN);
-    xmax(i) = allReduce(xmax(i), SPHERAL_MPI_MAX);
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
     box = std::max(box, xmax(i) - xmin(i));
   }
-  havg = allReduce(havg, SPHERAL_MPI_SUM);
-  ntot = allReduce(ntot, SPHERAL_MPI_SUM);
-  hmax = allReduce(hmax, SPHERAL_MPI_MAX);
+  havg = allReduce(havg, SPHERAL_OP_SUM);
+  ntot = allReduce(ntot, SPHERAL_OP_SUM);
+  hmax = allReduce(hmax, SPHERAL_OP_MAX);
   if (ntot > 0) {
     havg /= ntot;
 
@@ -1846,8 +1846,8 @@ boundingBox(typename Dimension::Vector& xmin,
 
   // Now find the global bounds across all processors.
   for (int i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), SPHERAL_MPI_MIN);
-    xmax(i) = allReduce(xmax(i), SPHERAL_MPI_MAX);
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 
@@ -1944,15 +1944,15 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
     size_t nlocal = this->numInternalNodes();
     centroid *= nlocal;
     for (int i = 0; i != Dimension::nDim; ++i) {
-      xminNodes(i) = allReduce(xminNodes(i), SPHERAL_MPI_MIN);
-      xmaxNodes(i) = allReduce(xmaxNodes(i), SPHERAL_MPI_MAX);
-      xminSample(i) = allReduce(xminSample(i), SPHERAL_MPI_MIN);
-      xmaxSample(i) = allReduce(xmaxSample(i), SPHERAL_MPI_MAX);
-      centroid(i) = allReduce(centroid(i), SPHERAL_MPI_SUM);
+      xminNodes(i) = allReduce(xminNodes(i), SPHERAL_OP_MIN);
+      xmaxNodes(i) = allReduce(xmaxNodes(i), SPHERAL_OP_MAX);
+      xminSample(i) = allReduce(xminSample(i), SPHERAL_OP_MIN);
+      xmaxSample(i) = allReduce(xmaxSample(i), SPHERAL_OP_MAX);
+      centroid(i) = allReduce(centroid(i), SPHERAL_OP_SUM);
     }
 
     // Fix up the centroid and radii.
-    size_t nglobal = allReduce((uint64_t) nlocal, SPHERAL_MPI_SUM);
+    size_t nglobal = allReduce((uint64_t) nlocal, SPHERAL_OP_SUM);
     if (nglobal > 0) {
       centroid /= nglobal;
       radiusNodes = 0.0;
@@ -1972,8 +1972,8 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
 	  radiusSample = max(radiusSample, drMag + 2.0*hi);
 	}
       }
-      radiusNodes = allReduce(radiusNodes, SPHERAL_MPI_MAX);
-      radiusSample = allReduce(radiusSample, SPHERAL_MPI_MAX);
+      radiusNodes = allReduce(radiusNodes, SPHERAL_OP_MAX);
+      radiusSample = allReduce(radiusSample, SPHERAL_OP_MAX);
       const Vector delta = 0.001*(xmaxSample - xminSample);
       radiusNodes *= 1.001;
       radiusSample *= 1.001;

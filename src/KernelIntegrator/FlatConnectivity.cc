@@ -16,7 +16,6 @@
 #include "Distributed/allReduce.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 
@@ -327,11 +326,11 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
   
   // Get global indices manually
-  int globalScan = scan(mNumInternalLocalNodes, SPHERAL_MPI_SUM);
+  int globalScan = scan(mNumInternalLocalNodes, SPHERAL_OP_SUM);
   VERIFY(globalScan >= mNumInternalLocalNodes);
   mFirstGlobalIndex = globalScan - mNumInternalLocalNodes;
   mLastGlobalIndex = globalScan - 1;
-  mNumGlobalNodes = allReduce(mNumInternalLocalNodes, SPHERAL_MPI_SUM);
+  mNumGlobalNodes = allReduce(mNumInternalLocalNodes, SPHERAL_OP_SUM);
   VERIFY(mNumGlobalNodes >= mNumInternalLocalNodes);
   VERIFY(mNumGlobalNodes == numGlobalNodesDB);
   // std::cout << Process::getRank() << "\t" << mNumInternalLocalNodes << "\t" << mNumGlobalNodes << "\t" << mFirstGlobalIndex << "\t" << mLastGlobalIndex << std::endl;
