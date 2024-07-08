@@ -18,6 +18,7 @@
 #include "Utilities/testBoxIntersection.hh"
 #include "Distributed/allReduce.hh"
 #include "Distributed/BoundingVolumeDistributedBoundary.hh"
+#include "Distributed/Communicator.hh"
 
 #include "Utilities/DBC.hh"
 

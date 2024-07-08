@@ -21,11 +21,11 @@
 #include "Geometry/MathTraits.hh"
 
 #include "Utilities/DBC.hh"
-#include "Distributed/Communicator.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
 #include "Distributed/TreeDistributedBoundary.hh"
+#include "Distributed/Communicator.hh"
 #endif
 
 #include <vector>
