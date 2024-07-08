@@ -275,7 +275,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H.assignFields(H1);
 
     // Globally reduce the max H change.
-    maxDeltaH = allReduce(maxDeltaH, SPHERAL_MPI_MAX);
+    maxDeltaH = allReduce(maxDeltaH, SPHERAL_OP_MAX);
 
     // Output the statitics.
     if (Process::getRank() == 0 && maxIterations > 1)

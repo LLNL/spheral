@@ -9,42 +9,44 @@
 #define __Spheral_allReduce__
 
 #include "Utilities/DataTypeTraits.hh"
+#include "Communicator.hh"
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
+namespace Spheral {
 #ifdef USE_MPI
 //------------------------------------------------------------------------------
 // MPI version
 //------------------------------------------------------------------------------
 
-#include <mpi.h>
-#include "Communicator.hh"
-
-namespace Spheral {
-
-#define SPHERAL_MPI_MIN MPI_MIN
-#define SPHERAL_MPI_MAX MPI_MAX
-#define SPHERAL_MPI_SUM MPI_SUM
-#define SPHERAL_MPI_PROD MPI_PROD
-#define SPHERAL_MPI_LAND MPI_LAND
-#define SPHERAL_MPI_LOR MPI_LOR
+#define SPHERAL_OP_MIN MPI_MIN
+#define SPHERAL_OP_MAX MPI_MAX
+#define SPHERAL_OP_SUM MPI_SUM
+#define SPHERAL_OP_PROD MPI_PROD
+#define SPHERAL_OP_LAND MPI_LAND
+#define SPHERAL_OP_LOR MPI_LOR
 
 template<typename Value>
-Value
-allReduce(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
+constexpr Value
+allReduce(const Value& value, const MPI_Op op,
+          const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
-  MPI_Allreduce(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
+  MPI_Allreduce(&tmp, &result, 1,
+                DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
 }
 
 template<typename Value>
-Value
-scan(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::communicator()) {
+constexpr Value
+scan(const Value& value, const MPI_Op op,
+     const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
   MPI_Scan(&tmp, &result, 1, DataTypeTraits<Value>::MpiDataType(), op, comm);
   return result;
-}
-  
 }
 
 #else
@@ -52,29 +54,26 @@ scan(const Value& value, const MPI_Op op, const MPI_Comm comm = Communicator::co
 // Non-MPI version
 //------------------------------------------------------------------------------
 
-namespace Spheral {
-
-#define SPHERAL_MPI_MIN 1
-#define SPHERAL_MPI_MAX 2
-#define SPHERAL_MPI_SUM 3
-#define SPHERAL_MPI_PROD 4
-#define SPHERAL_MPI_LAND 5
-#define SPHERAL_MPI_LOR 6
+#define SPHERAL_OP_MIN 1
+#define SPHERAL_OP_MAX 2
+#define SPHERAL_OP_SUM 3
+#define SPHERAL_OP_PROD 4
+#define SPHERAL_OP_LAND 5
+#define SPHERAL_OP_LOR 6
 
 template<typename Value>
-Value
+constexpr Value
 allReduce(const Value& value, const int /*op*/, const int comm = 0) {
   return value;
 }
 
 template<typename Value>
-Value
+constexpr Value
 scan(const Value& value, const int /*op*/, const int comm = 0) {
   return value;
 }
 
-}
-
 #endif
+}
 #endif
 

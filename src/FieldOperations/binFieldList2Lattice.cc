@@ -226,8 +226,8 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   result = vector<Value>(ntotal, DataTypeTraits<Value>::zero());
 
   // Check that everyone agrees about the size.
-  CHECK(bufSize == allReduce(bufSize, SPHERAL_MPI_MIN));
-  CHECK(bufSize == allReduce(bufSize, SPHERAL_MPI_MAX));
+  CHECK(bufSize == allReduce(bufSize, SPHERAL_OP_MIN));
+  CHECK(bufSize == allReduce(bufSize, SPHERAL_OP_MAX));
 
   // Sum up everyone's contribution.
   for (auto sendProc = 0u; sendProc != numProcs; ++sendProc) {
@@ -314,7 +314,7 @@ binFieldList2Lattice(const FieldList<Dimension, Value>& fieldList,
   BEGIN_CONTRACT_SCOPE
   // Check that everyone agrees about the size.
   {
-    CHECK(bufSize == allReduce(bufSize, SPHERAL_MPI_MIN));
+    CHECK(bufSize == allReduce(bufSize, SPHERAL_OP_MIN));
   }
   END_CONTRACT_SCOPE
 

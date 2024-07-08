@@ -108,8 +108,8 @@ weibullFlawDistributionOwen(const unsigned seed,
         Vmax = max(Vmax, Vi);
       }
     }
-    Vmin = allReduce(Vmin*volumeMultiplier, SPHERAL_MPI_MIN);
-    Vmax = allReduce(Vmax*volumeMultiplier, SPHERAL_MPI_MAX);
+    Vmin = allReduce(Vmin*volumeMultiplier, SPHERAL_OP_MIN);
+    Vmax = allReduce(Vmax*volumeMultiplier, SPHERAL_OP_MAX);
     CHECK(Vmin > 0.0);
     CHECK(Vmax >= Vmin);
 
@@ -157,12 +157,12 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
     if (nglobal > 0) {
-      minNumFlaws = allReduce(minNumFlaws, SPHERAL_MPI_MIN);
-      maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_MPI_MAX);
-      totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_MPI_SUM);
-      epsMin = allReduce(epsMin, SPHERAL_MPI_MIN);
-      epsMax = allReduce(epsMax, SPHERAL_MPI_MAX);
-      sumFlaws = allReduce(sumFlaws, SPHERAL_MPI_SUM);
+      minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+      maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+      totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+      epsMin = allReduce(epsMin, SPHERAL_OP_MIN);
+      epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+      sumFlaws = allReduce(sumFlaws, SPHERAL_OP_SUM);
     }
     if (procID == 0) {
       cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl

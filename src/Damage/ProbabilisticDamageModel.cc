@@ -121,7 +121,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   for (auto i = 0u; i < mMask.numInternalElements(); ++i) {
     if (mMask[i] == 1) ++nused_local;
   }
-  const size_t nused_global = allReduce(nused_local, SPHERAL_MPI_SUM);
+  const size_t nused_global = allReduce(nused_local, SPHERAL_OP_SUM);
 
   // Compute the Morton-ordering for hashing with the global seed to seed each
   // point-wise random number generator.
@@ -158,8 +158,8 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
       randomGenerators[i]();                // Recommended to discard first value in sequence
     }
   }
-  mVmin = allReduce(mVmin, SPHERAL_MPI_MIN);
-  mVmax = allReduce(mVmax, SPHERAL_MPI_MAX);
+  mVmin = allReduce(mVmin, SPHERAL_OP_MIN);
+  mVmax = allReduce(mVmax, SPHERAL_OP_MAX);
 
   // Generate min/max ranges of flaws for each point.
   const auto mInv = 1.0/mmWeibull;
@@ -200,12 +200,12 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 
   // Some diagnostic output.
   if (nused_global > 0) {
-    minNumFlaws = allReduce(minNumFlaws, SPHERAL_MPI_MIN);
-    maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_MPI_MAX);
-    totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_MPI_SUM);
-    epsMin = allReduce(epsMin, SPHERAL_MPI_MIN);
-    epsMax = allReduce(epsMax, SPHERAL_MPI_MAX);
-    numFlawsRatio = allReduce(numFlawsRatio, SPHERAL_MPI_SUM)/nused_global;
+    minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+    maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+    totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+    epsMin = allReduce(epsMin, SPHERAL_OP_MIN);
+    epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+    numFlawsRatio = allReduce(numFlawsRatio, SPHERAL_OP_SUM)/nused_global;
     if (Process::getRank() == 0) {
       cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
            << " Min, max, max/min volumes: " << mVmin << " " << mVmax << " " << mVmax*safeInv(mVmin) << endl

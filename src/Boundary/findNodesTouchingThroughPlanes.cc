@@ -50,7 +50,7 @@ findNodesTouchingThroughPlanes(const NodeList<Dimension>& nodeList,
       const auto  hmaxi = 1.0/Hi.eigenValues().minElement();
       if (hmaxi > hmax and std::min(exitPlane.minimumDistance(ri), enterPlane.minimumDistance(ri)) < kernelExtent*hmaxi) hmax = hmaxi;
     }
-    hmax = allReduce(hmax, SPHERAL_MPI_MAX);
+    hmax = allReduce(hmax, SPHERAL_OP_MAX);
 
     // Now find all points within this range of the exit plane.
     if (hmax > 0.0) {

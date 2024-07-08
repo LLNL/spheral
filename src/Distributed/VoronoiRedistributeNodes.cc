@@ -387,7 +387,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
   // Now we can get the node distribution description.
   vector<DomainNode<Dimension> > nodeDistribution = this->currentDomainDecomposition(dataBase, globalIDs, workField);
   const size_t numNodes = nodeDistribution.size();
-  const size_t numNodesGlobal = allReduce((uint64_t) numNodes, SPHERAL_MPI_SUM);
+  const size_t numNodesGlobal = allReduce((uint64_t) numNodes, SPHERAL_OP_SUM);
   const size_t avgNumNodes = numNodesGlobal/numProcs;
   CHECK(numNodes > 0);
 
@@ -867,8 +867,8 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
       sort(distances.begin(), distances.end(), ComparePairsBySecondElement<PairType>());
 
       // Find the global range of distances from the generator.
-      double rmin = allReduce((distances.size() > 0 ? distances.front().second : DBL_MAX), SPHERAL_MPI_MIN);
-      double rmax = allReduce((distances.size() > 0 ? distances.back().second  : 0.0),     SPHERAL_MPI_MAX);
+      double rmin = allReduce((distances.size() > 0 ? distances.front().second : DBL_MAX), SPHERAL_OP_MIN);
+      double rmax = allReduce((distances.size() > 0 ? distances.back().second  : 0.0),     SPHERAL_OP_MAX);
 
       // Bisect for the appropriate radius to reject nodes.
       const double worktol = max(1.0e-10, 0.01*targetWork);
@@ -883,7 +883,7 @@ cullGeneratorNodesByWork(const vector<typename Dimension::Vector>& generators,
           localWork += nodes[itr->first].work;
           ++itr;
         }
-        currentWork = allReduce(localWork, SPHERAL_MPI_SUM);
+        currentWork = allReduce(localWork, SPHERAL_OP_SUM);
         if (currentWork < targetWork) {
           rmin = rreject;
         } else {

@@ -215,7 +215,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       mDtMinAcc = min(mDtMinAcc, sqrt(hi/ai.magnitude()));      // Similar to acceleration constraint from TreeGravity
     }
   }
-  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_MPI_SUM);
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------

@@ -103,8 +103,8 @@ globalBoundingBox(const Field<Dimension, typename Dimension::Vector>& positions,
 
   // Now find the global bounds across all processors.
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), SPHERAL_MPI_MIN);
-    xmax(i) = allReduce(xmax(i), SPHERAL_MPI_MAX);
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 
@@ -134,8 +134,8 @@ globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positi
 
   // Now find the global bounds across all processors.
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), SPHERAL_MPI_MIN);
-    xmax(i) = allReduce(xmax(i), SPHERAL_MPI_MAX);
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 

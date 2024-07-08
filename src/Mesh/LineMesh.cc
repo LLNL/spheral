@@ -56,7 +56,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
                     const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
-  if (allReduce(unsigned(localGenerators.size()), SPHERAL_MPI_SUM) == 0) return;
+  if (allReduce(unsigned(localGenerators.size()), SPHERAL_OP_SUM) == 0) return;
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
@@ -283,8 +283,8 @@ boundingSurface() const {
     xmin = std::min(xmin, mNodePositions[i].x());
     xmax = std::max(xmax, mNodePositions[i].x());
   }
-  xmin = allReduce(xmin, SPHERAL_MPI_MIN);
-  xmax = allReduce(xmax, SPHERAL_MPI_MAX);
+  xmin = allReduce(xmin, SPHERAL_OP_MIN);
+  xmax = allReduce(xmax, SPHERAL_OP_MAX);
   return FacetedVolume(Vector(0.5*(xmin + xmax)), 0.5*(xmax - xmin));
 }
 

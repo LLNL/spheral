@@ -139,7 +139,7 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
       ++k;
     }
   }
-  Msum = allReduce(Msum, SPHERAL_MPI_SUM);
+  Msum = allReduce(Msum, SPHERAL_OP_SUM);
 
   // If needed, rescale the masses.
   if (targetMass > 0.0) {
