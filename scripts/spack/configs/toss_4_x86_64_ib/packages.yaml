@@ -10,6 +10,7 @@ packages:
       mpi: [mvapich2]
       pkgconfig: [pkg-config]
       pil: [py-pillow]
+      jpeg: [libjpeg]
       zlib-api: [zlib]
   cmake:
     version: [3.23.1]
