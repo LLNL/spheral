@@ -37,7 +37,9 @@ spack mirror add --unsigned spheral-cache $PWD/resources
 spack buildcache update-index $PWD/resources/mirror
 
 $BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
-$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature -u initconfig "$SPACK_PKG_NAME@develop%$SPEC dev_path=$PWD"
+
+$BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls --spec $SPEC
+#$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature -u initconfig "$SPACK_PKG_NAME@develop%$SPEC dev_path=$PWD"
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
 $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
