@@ -6,6 +6,7 @@ Version v2024.06.1 -- Release date 2024-07-09
 
   * Bug Fixes / improvements:
     * CD pipeline hotfix for installing release builds on LC machines.
+    * Fixes an issue with the use of the axom::quest::SignedDistance interface. 
 
 Version v2024.06.0 -- Release date 2024-06-27
 ==============================================
