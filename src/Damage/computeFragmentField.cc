@@ -70,8 +70,9 @@ globalReduceToUniqueElements(vector<int>& x) {
   reduceToUniqueElements(x);
   BEGIN_CONTRACT_SCOPE
   {
-    int tmp = x.size();
-    ENSURE(allReduce(tmp, SPHERAL_OP_SUM) == tmp*numProcs);
+    int tmp = (int)x.size();
+    int sum = allReduce(tmp, SPHERAL_OP_SUM);
+    ENSURE(sum == tmp*numProcs);
   }
   END_CONTRACT_SCOPE
 #endif
@@ -187,7 +188,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     BEGIN_CONTRACT_SCOPE
     {
       int tmp = localNode ? 1 : 0;
-      CHECK(allReduce(tmp, SPHERAL_OP_SUM) == 1);
+      int sum = allReduce(tmp, SPHERAL_OP_SUM);
+      CHECK(sum == 1);
     }
     END_CONTRACT_SCOPE
     int tmp = numProcs;
