@@ -102,7 +102,6 @@ message("-----------------------------------------------------------------------
 # Chai
 set(chai_DIR "${SPHERAL_ROOT_DIR}/extern/chai")
 set(CHAI_ENABLE_RAJA_PLUGIN On CACHE BOOL "")
-set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
 add_subdirectory(${chai_DIR})
 list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
 

@@ -24,17 +24,17 @@
 .gcc_spectrum:
   variables:
     SPEC: 'gcc@$GCC_VERSION^spectrum-mpi'
-      #EXTRA_CMAKE_ARGS: ''
+    #EXTRA_CMAKE_ARGS:
 
 .clang_mvapich2:
   variables:
     SPEC: 'clang@$CLANG_VERSION^mvapich2'
-      #EXTRA_CMAKE_ARGS: ''
+    #EXTRA_CMAKE_ARGS:
 
 .cuda_11_gcc_~mpi:
   variables:
     SPEC: 'gcc@$GCC_VERSION+cuda~mpi cuda_arch=70'
-      #EXTRA_CMAKE_ARGS: ''
+    #EXTRA_CMAKE_ARGS:
 
 .cuda_11_gcc_spectrum:
   variables:
@@ -44,6 +44,6 @@
 .oneapi_2022_1_mvapich2:
   variables:
     SPEC: 'oneapi@2022.1^mvapich2'
-      #EXTRA_CMAKE_ARGS: ''
+    #EXTRA_CMAKE_ARGS:
 
 
