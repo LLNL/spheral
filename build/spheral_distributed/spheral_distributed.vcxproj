@@ -170,12 +170,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Distributed\Communicator.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\DistributedBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\NestedGridDistributedBoundaryInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Distributed\Process.cc" />
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\RedistributeNodesInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Distributed\RegisterMPIDataTypes.cc" />
     <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Distributed\waitAllWithDeadlockDetection.cc" />
@@ -242,6 +245,13 @@ python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(Re
     <None Include="..\..\src\Distributed\waitAllWithDeadlockDetection.hh">
       <FileType>Document</FileType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Distributed\allReduce.hh" />
+    <ClInclude Include="..\..\src\Distributed\Communicator.hh" />
+    <ClInclude Include="..\..\src\Distributed\Process.hh" />
+    <ClInclude Include="..\..\src\Distributed\RegisterMPIDataTypes.hh" />
+    <ClInclude Include="..\..\src\Distributed\RegisterMPIDataTypesInline.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

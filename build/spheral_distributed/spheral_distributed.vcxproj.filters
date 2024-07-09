@@ -39,6 +39,15 @@
     <ClCompile Include="..\..\src\Distributed\waitAllWithDeadlockDetection.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Distributed\Communicator.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Distributed\Process.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Distributed\RegisterMPIDataTypes.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Distributed\CompareDomainNodesByPosition.hh">
@@ -88,5 +97,22 @@
     <CustomBuild Include="..\..\src\Distributed\TreeDistributedBoundaryInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Distributed\Process.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Distributed\allReduce.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Distributed\Communicator.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Distributed\RegisterMPIDataTypes.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Distributed\RegisterMPIDataTypesInline.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

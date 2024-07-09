@@ -292,7 +292,6 @@
     <ClCompile Include="..\..\src\Utilities\boundingBoxInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\boundingBoxInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\buildMessage.cc" />
-    <ClCompile Include="..\..\src\Utilities\Communicator.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.3.cc" />
     <ClCompile Include="..\..\src\Utilities\DBC.cc" />
@@ -322,17 +321,12 @@
     <ClCompile Include="..\..\src\Utilities\pointInPolyhedron.cc" />
     <ClCompile Include="..\..\src\Utilities\pointOnPolygon.cc" />
     <ClCompile Include="..\..\src\Utilities\pointOnPolyhedron.cc" />
-    <ClCompile Include="..\..\src\Utilities\Process.cc" />
     <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc" />
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc" />
-    <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc" />
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc" />
     <ClCompile Include="..\..\src\Utilities\uniform_random.cc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Utilities\allReduce.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Utilities\Bessel.hh">
       <FileType>Document</FileType>
     </None>
@@ -454,9 +448,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\Utilities\mpiUtilities.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Utilities\newtonRaphson.hh">
       <FileType>Document</FileType>
     </None>
@@ -515,9 +506,6 @@
     <None Include="..\..\src\Utilities\pointOnPolyhedron.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\Utilities\Process.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\Utilities\RedistributionNotification.hh">
       <FileType>Document</FileType>
     </None>
@@ -528,9 +516,6 @@
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Utilities\RedistributionRegistrarInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\..\src\Utilities\RegisterMPIDataTypes.hh">
       <FileType>Document</FileType>
     </None>
     <None Include="..\..\src\Utilities\registerWithRedistribution.hh">
@@ -574,7 +559,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\Utilities\Communicator.hh" />
     <ClInclude Include="..\..\src\Utilities\DamagedNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\DamageGradientNodeCoupling.hh" />
     <ClInclude Include="..\..\src\Utilities\DomainNode.hh" />

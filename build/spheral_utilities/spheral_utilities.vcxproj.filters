@@ -90,13 +90,7 @@
     <ClCompile Include="..\..\src\Utilities\pointOnPolyhedron.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\Process.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Utilities\RedistributionRegistrar.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\RegisterMPIDataTypes.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Utilities\segmentIntersectEdges.cc">
@@ -108,14 +102,8 @@
     <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Utilities\Communicator.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Utilities\allReduce.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
     <None Include="..\..\src\Utilities\Bessel.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
@@ -197,9 +185,6 @@
     <None Include="..\..\src\Utilities\mortonOrderIndices.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
-    <None Include="..\..\src\Utilities\mpiUtilities.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
     <None Include="..\..\src\Utilities\newtonRaphson.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
@@ -242,9 +227,6 @@
     <None Include="..\..\src\Utilities\pointOnPolyhedron.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
-    <None Include="..\..\src\Utilities\Process.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
     <None Include="..\..\src\Utilities\RedistributionNotification.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
@@ -255,9 +237,6 @@
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\RedistributionRegistrarInline.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </None>
-    <None Include="..\..\src\Utilities\RegisterMPIDataTypes.hh">
       <Filter>Header Files\Utilities</Filter>
     </None>
     <None Include="..\..\src\Utilities\registerWithRedistribution.hh">
@@ -361,9 +340,6 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Utilities\range.hh">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Utilities\Communicator.hh">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
