@@ -139,7 +139,13 @@ generateCylDistributionFromRZ(vector<double>& x,
          (int)globalIDs.size() == ndomain and
          (int)H.size() == ndomain);
   for (int ikey = 0; ikey != nextra; ++ikey) VERIFY((int)extraFields[ikey].size() == ndomain);
-  int nglobal = allReduce(x.size(), SPHERAL_OP_SUM);
+  int nglobal;
+  if (nProcs > 1) {
+    nglobal = allReduce(x.size(), SPHERAL_OP_SUM);
+  }
+  else {
+    nglobal = x.size();
+  }
   VERIFY(nglobal == ntot);
 
 }
