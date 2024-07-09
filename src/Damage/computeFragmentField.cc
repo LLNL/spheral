@@ -68,13 +68,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     copy(otherX.begin(), otherX.end(), back_inserter(x));
   }
   reduceToUniqueElements(x);
-  BEGIN_CONTRACT_SCOPE
-  {
-    int tmp = (int)x.size();
-    int sum = allReduce(tmp, SPHERAL_OP_SUM);
-    ENSURE(sum == tmp*numProcs);
-  }
-  END_CONTRACT_SCOPE
+  ENSURE(allReduce((int)x.size(), SPHERAL_OP_SUM) == (int)x.size()*numProcs);
 #endif
 }
 
@@ -185,13 +179,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                                                  gIDs.end(),
                                                  globalMinID);
     localNode = (ilocalItr != gIDs.end());
-    BEGIN_CONTRACT_SCOPE
-    {
-      int tmp = localNode ? 1 : 0;
-      int sum = allReduce(tmp, SPHERAL_OP_SUM);
-      CHECK(sum == 1);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(localNode ? 1 : 0, SPHERAL_OP_SUM) == 1);
     int tmp = numProcs;
     if (localNode) {
       CHECK(ilocalItr != gIDs.end());
@@ -201,11 +189,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
     nodeDomain = allReduce(tmp, SPHERAL_OP_MIN);
     CHECK(nodeDomain >= 0 && nodeDomain < numProcs);
-    BEGIN_CONTRACT_SCOPE
-    {
-      CHECK(allReduce(nodeDomain, SPHERAL_OP_SUM) == numProcs*nodeDomain);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(nodeDomain, SPHERAL_OP_SUM) == numProcs*nodeDomain);
 #endif
 
     // Get the position and H for this node.
@@ -254,12 +238,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
     CHECK(fragID >= 0 && fragID < numFragments);
 #ifdef USE_MPI
-    BEGIN_CONTRACT_SCOPE
-    {
-      CHECK(allReduce(fragID, SPHERAL_OP_SUM) == numProcs*fragID);
-      CHECK(allReduce(numFragments, SPHERAL_OP_SUM) == numProcs*numFragments);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(fragID, SPHERAL_OP_SUM) == numProcs*fragID);
+    CHECK(allReduce(numFragments, SPHERAL_OP_SUM) == numProcs*numFragments);
 #endif
 
     // Remove the known maxGlobalID from the stack of fragment IDs.
@@ -347,7 +327,6 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       }
     }
 #ifdef USE_MPI
-    // LDO: Can the first reduce call be moved outside of the for loop?
     for (int i = 0; i != numFragments - 1; ++i) {
       double mtmp = mfrag[i];
       Vector rtmp = rfrag[i];
