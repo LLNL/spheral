@@ -984,9 +984,7 @@ buildAxomData() const {
   mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
   mSurfaceMeshQueryPtr->generateIndex();
   mSignedDistancePtr = new AxDistance(mSurfaceMeshPtr,
-                                      true,               // is_watertight
-                                      25,                 // max_objects
-                                      10);                // max_levels
+                                      true);               // is_watertight
 }
 
 //------------------------------------------------------------------------------
