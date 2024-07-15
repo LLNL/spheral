@@ -1,3 +1,19 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+
+  * Build changes / improvements:
+    * CHAI added as a submodule of Spheral for co-developing features necessary for GPU port.
+    * RAJA & Umpire added as first level dependencies.
+    * Axom updated to v0.9.0.
+    * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
+
+  * Bug Fixes / improvements:
+
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
 
@@ -242,7 +258,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 
 Notable changes include:
 
-  * New features/ API changes:
+  * New features / API changes:
 
   * Build changes / improvements:
 
