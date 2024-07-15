@@ -184,7 +184,7 @@ def build_deps(args):
           sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s))
 
         # Install only the dependencies for Spheral and create CMake configure file
-        sexe("{0} dev-build -q --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s))
+        if "Error: " in sexe("{0} dev-build -q --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), ret_output=True): sys.exit(1)
 
       if not args.no_clean:
         sexe("rm -f spec-info-* tpl-build-* spack-build-* spack-configure-args.txt")
