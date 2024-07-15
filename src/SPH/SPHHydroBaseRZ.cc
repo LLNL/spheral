@@ -392,15 +392,16 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto etaj = Hj*xij;
       const auto etaMagi = etai.magnitude();
       const auto etaMagj = etaj.magnitude();
-      const auto etaUnit = etai*safeInvVar(etaMagi);
+      const auto etaiUnit = etai*safeInvVar(etaMagi);
+      const auto etajUnit = etaj*safeInvVar(etaMagj);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
-      gradWi = gWi*Hi*etaUnit;
-      gradWj = gWj*Hj*etaUnit;
+      gradWi = gWi*Hi*etaiUnit;
+      gradWj = gWj*Hj*etajUnit;
       if (oneKernel) {
         WQi = Wi;
         WQj = Wj;
@@ -409,8 +410,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       } else {
         WQ.kernelAndGradValue(etaMagi, Hdeti, WQi, gWQi);
         WQ.kernelAndGradValue(etaMagj, Hdetj, WQj, gWQj);
-        gradWQi = gWQi*Hi*etaUnit;
-        gradWQj = gWQj*Hj*etaUnit;
+        gradWQi = gWQi*Hi*etaiUnit;
+        gradWQj = gWQj*Hj*etajUnit;
       }
 
       // Zero'th and second moment of the node distribution -- used for the

@@ -1,12 +1,23 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2024.06.1 -- Release date 2024-07-09
+==============================================
+
+  * Important Notes:
+    * This is a patch release for v2024.06.0.
+
+  * Bug Fixes / improvements:
+    * CD pipeline hotfix for installing release builds on LC machines.
+    * Fixes an issue with the use of the axom::quest::SignedDistance interface. 
+
+Version v2024.06.0 -- Release date 2024-06-27
 ==============================================
   * Important Notes:
     * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
 
 Notable changes include:
 
-  * New features/ API changes:
-    * added MFV hydro from Hopkins 2015 with extension for ALE options
+  * New features / API changes:
+    * Added MFV hydro from Hopkins 2015 with extension for ALE options.
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH.
 
   * Build changes / improvements:
     * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
@@ -24,6 +35,9 @@ Notable changes include:
       * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
 
   * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
 
 Version v2024.01.1 -- Release date 2024-02-17
 ==============================================

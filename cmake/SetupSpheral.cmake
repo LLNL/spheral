@@ -26,6 +26,7 @@ set(Python3_EXECUTABLE ${python_DIR}/bin/python3)
 
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
+set(BLT_DOCS_TARGET_NAME "blt_docs" CACHE STRING "")
 
 if(NOT SPHERAL_BLT_DIR) 
   set (SPHERAL_BLT_REL_DIR "${SPHERAL_ROOT_DIR}/cmake/blt" CACHE PATH "")
