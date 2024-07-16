@@ -43,21 +43,17 @@ def parse_args():
 
 
 # Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=False):
+def sexe(cmd,ret_output=False,echo=True):
     """ Helper for executing shell commands. """
     if echo:
-        print("[exe: {0}]".format(cmd))
+      print("[exe: {0}]".format(cmd))
+    p = subprocess.run(cmd, shell=True,
+                       capture_output=ret_output,
+                       check=True, text=True)
     if ret_output:
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        out = p.communicate()[0]
-        out = out.decode('utf8')
-        return p.returncode,out
-    else:
-        return subprocess.call(cmd,shell=True)
-
+      if echo:
+        print(p.stdout)
+      return p.stdout
 
 #------------------------------------------------------------------------------
 
