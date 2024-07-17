@@ -1,0 +1,5 @@
+#-------------------------------------------------------------------------------
+# This file contains the performance tests for Spheral
+#-------------------------------------------------------------------------------
+
+source("functional/Hydro/Noh/Noh-cylindrical-2d.py")
