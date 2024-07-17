@@ -49,10 +49,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
-    depends_on('conduit +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
-    depends_on('conduit +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.9.1 +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.9.1 +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit@0.9.1 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.9.1 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
 
     depends_on('raja@2024.02.0 +cuda cuda_arch=70', when='+cuda')
     depends_on('umpire  +cuda cuda_arch=70', when='+cuda')
