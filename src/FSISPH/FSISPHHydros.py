@@ -4,32 +4,34 @@ from spheralDimensions import spheralDimensions
 dims = spheralDimensions()
 
 def FSISPH(dataBase,
-        W,
-        Q = None,
-        slides=None,
-        cfl = 0.35,
-        surfaceForceCoefficient=0.0,
-        densityStabilizationCoefficient=0.1, 
-        specificThermalEnergyDiffusionCoefficient=0.1, 
-        xsphCoefficient=0.0,
-        interfaceMethod=HLLCInterface, 
-        kernelAveragingMethod = NeverAverageKernels,      
-        sumDensityNodeLists=[],
-        useVelocityMagnitudeForDt = False,
-        compatibleEnergyEvolution = True,
-        evolveTotalEnergy = False,
-        linearCorrectGradients = True,
-        planeStrain = False,
-        interfacePmin = 0.0,
-        interfaceNeighborAngleThreshold=0.707,
-        HUpdate = IdealH,
-        densityUpdate = FSISumMassDensity,
-        epsTensile = 0.0,
-        nTensile = 4.0,
-        xmin = (-1e100, -1e100, -1e100),
-        xmax = ( 1e100,  1e100,  1e100),
-        ASPH = False,
-        RZ = False):
+           W,
+           Q = None,
+           slides=None,
+           cfl = 0.35,
+           surfaceForceCoefficient=0.0,
+           densityStabilizationCoefficient=0.1, 
+           specificThermalEnergyDiffusionCoefficient=0.1, 
+           xsphCoefficient=0.0,
+           interfaceMethod=HLLCInterface, 
+           kernelAveragingMethod = NeverAverageKernels,      
+           sumDensityNodeLists=[],
+           useVelocityMagnitudeForDt = False,
+           compatibleEnergyEvolution = True,
+           evolveTotalEnergy = False,
+           linearCorrectGradients = True,
+           planeStrain = False,
+           interfacePmin = 0.0,
+           interfaceNeighborAngleThreshold=0.707,
+           HUpdate = IdealH,
+           densityUpdate = FSISumMassDensity,
+           epsTensile = 0.0,
+           nTensile = 4.0,
+           xmin = (-1e100, -1e100, -1e100),
+           xmax = ( 1e100,  1e100,  1e100),
+           ASPH = False,
+           RZ = False,
+           smoothingScaleMethod = None):
+
     ######################################################################
     # some of these parameters are inactive and possible on there was out.
     # strengthInDamage and damageRelieveRubble are old switches and are not
@@ -86,10 +88,11 @@ def FSISPH(dataBase,
         slides = eval("SlideSurface%id(dataBase,contactTypes)" % ndim)
 
     # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
+    if smoothingScaleMethod is None:
+        if ASPH:
+            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
+        else:
+            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin

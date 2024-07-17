@@ -1,12 +1,23 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2024.06.1 -- Release date 2024-07-09
+==============================================
+
+  * Important Notes:
+    * This is a patch release for v2024.06.0.
+
+  * Bug Fixes / improvements:
+    * CD pipeline hotfix for installing release builds on LC machines.
+    * Fixes an issue with the use of the axom::quest::SignedDistance interface. 
+
+Version v2024.06.0 -- Release date 2024-06-27
 ==============================================
   * Important Notes:
     * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
 
 Notable changes include:
 
-  * New features/ API changes:
-    * added MFV hydro from Hopkins 2015 with extension for ALE options
+  * New features / API changes:
+    * Added MFV hydro from Hopkins 2015 with extension for ALE options.
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH.
 
   * Build changes / improvements:
     * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
@@ -14,8 +25,19 @@ Notable changes include:
       * Multiple Spheral Python modules / CMake targets can be specified for a single directory.
       * KernelIntegrator and FieldList directories are divided into 2 modules / targets.
     * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+    * Spack version is increased from 0.19 to 0.22.
+    * Spack upstream is updated.
+    * Removed the python 3 module load for the Gitlab CI to fix an issue with pkg-config changing.
+    * Zlib target and TPL cmake file is removed.
+    * PYB11Generator repo is updated.
+    * Spack config and package files inside Spheral are updated to accommodate Spack 0.22.
+      * Package recipes for py-numpy-stl, py-pillow, py-pipreqs, td, and tk are removed.
+      * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
 
   * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
 
 Version v2024.01.1 -- Release date 2024-02-17
 ==============================================

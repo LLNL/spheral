@@ -4,13 +4,23 @@ packages:
     - spec: mpich@3.3.2
       prefix: /usr
     buildable: false
-
+  all:
+    providers:
+      mpi: [mpich]
+      blas: [netlib-lapack]
+      lapack: [netlib-lapack]
 # ------ SYSTEM LIBS -------
+# FIXME: Currently allowing spack to build cmake and git
   ncurses:
     externals:
     - spec: ncurses@6.2
       prefix: /usr
     buildable: false
+  perl:
+    buildable: false
+    externals:
+    - spec: perl@5.30.0
+      prefix: /usr
   readline:
     externals:
     - spec: readline@8.0
@@ -99,15 +109,5 @@ packages:
   fontconfig:
     externals:
     - spec: fontconfig@2.13.1
-      prefix: /usr
-    buildable: false
-  # netlib-lapack:
-  #   externals:
-  #   - spec: netlib-lapack@3.9.0
-  #     prefix: /usr
-  #   buildable: false
-  liblapack64-dev:
-    externals:
-    - spec: liblapack64-dev@3.9.0
       prefix: /usr
     buildable: false
