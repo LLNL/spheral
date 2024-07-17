@@ -1,3 +1,7 @@
+include:
+  - project: 'lc-templates/id_tokens'
+    file: 'id_tokens.yml'
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
