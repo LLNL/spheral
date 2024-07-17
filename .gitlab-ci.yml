@@ -25,6 +25,8 @@ stages:
   - cleanup
 
 include:
+  - project: lc-templates/id_tokens
+    file: id_tokens.yml
   - local: .gitlab/os.yml
   - local: .gitlab/machines.yml
   - local: .gitlab/scripts.yml
