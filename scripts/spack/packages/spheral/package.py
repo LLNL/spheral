@@ -175,6 +175,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
     
         entries.append(cmake_cache_path('conduit_DIR', spec['conduit'].prefix))
 
+        entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))
+
+        entries.append(cmake_cache_path('umpire_DIR', spec['umpire'].prefix))
+
         entries.append(cmake_cache_path('axom_DIR', spec['axom'].prefix))
 
         entries.append(cmake_cache_path('silo_DIR', spec['silo'].prefix))
