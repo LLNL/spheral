@@ -70,19 +70,6 @@ endif()
 find_package(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 list(APPEND SPHERAL_BLT_DEPENDS axom )
 
-#if(axom_FOUND)
-#  list(APPEND SPHERAL_BLT_DEPENDS axom)
-#  # Add fmt library to external library list
-#  set(fmt_name fmt)
-#  # Newer Axom versions call fmt target axom::fmt
-#  if(NOT TARGET fmt)
-#    set(fmt_name axom::fmt)
-#  endif()
-#  list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
-#  # BLT Macro for doing this
-#  blt_convert_to_system_includes(TARGET ${fmt_name})
-#endif()
-
 # This is a hack to handle transitive issues that come
 # from using object libraries with newer version of axom
 foreach(_comp ${AXOM_COMPONENTS_ENABLED})
