@@ -64,9 +64,18 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
+namespace Spheral {
 inline void spheral_adiak_init() {
   adiak::init((void*) &Communicator::communicator());
-  adiak::collect_all();
+}
+
+enum adiak_categories {
+unset = 0,
+all,
+general,
+performance,
+control
+};
 }
 """
 
@@ -753,3 +762,14 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
                   planes = "const std::vector<GeomPlane<Dim<3>>>&"):
     "Return the volume of the clipped region."
     return "double"
+
+#...............................................................................
+for (value, label) in (("int", "Int"),
+                       ("unsigned", "Unsigned"),
+                       ("long", "Long"),
+                       ("double", "Scalar"),
+                       ("std::string", "String")):
+    exec("""
+adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
+adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
+""" % {"label" : label, "value" : value})
