@@ -67,7 +67,7 @@ endif()
 #-----------------------------------------------------------------------------------
 
 # Use find_package to get axom (which brings in fmt) and patch fmt
-find_package(axom REQUIRED QUIET NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
+find_package(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 if(axom_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS axom)
   # Add fmt library to external library list
@@ -87,6 +87,12 @@ foreach(_comp ${AXOM_COMPONENTS_ENABLED})
   get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
   list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
+
+# Use find_package to get adiak
+find_package(adiak REQUIRED NO_DEFAULT_PATH PATHS ${adiak_DIR}/lib/cmake/adiak)
+if(adiak_FOUND)
+  list(APPEND SPHERAL_BLT_DEPENDS adiak::adiak)
+endif()
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)

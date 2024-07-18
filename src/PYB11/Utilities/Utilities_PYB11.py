@@ -56,13 +56,18 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
+                  '"Distributed/Communicator.hh"',
+                  '"adiak.hpp"',
                   '<algorithm>']
 
 #-------------------------------------------------------------------------------
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
-
+inline void spheral_adiak_init() {
+  adiak::init((void*) &Communicator::communicator());
+  adiak::collect_all();
+}
 """
 
 #-------------------------------------------------------------------------------
@@ -91,6 +96,7 @@ from BiQuadraticInterpolator import *
 from BiCubicInterpolator import *
 from uniform_random import *
 from BuildData import *
+from Adiak import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
