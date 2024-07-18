@@ -41,7 +41,7 @@ allReduce(const Value& value, const MPI_Op op,
 
 template<typename Value>
 constexpr Value
-scan(const Value& value, const MPI_Op op,
+distScan(const Value& value, const MPI_Op op,
      const MPI_Comm comm = Communicator::communicator()) {
   Value tmp = value;
   Value result;
@@ -63,13 +63,13 @@ scan(const Value& value, const MPI_Op op,
 
 template<typename Value>
 constexpr Value
-allReduce(const Value& value, const int /*op*/, const int comm = 0) {
+allReduce(const Value& value, const int /*op*/, const int) {
   return value;
 }
 
 template<typename Value>
 constexpr Value
-scan(const Value& value, const int /*op*/, const int comm = 0) {
+distScan(const Value& value, const int /*op*/, const int) {
   return value;
 }
 
