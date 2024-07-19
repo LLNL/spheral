@@ -13,7 +13,7 @@
 #include "NodeList/NodeList.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packElement.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/FastMath.hh"
 #include "Boundary/mapPositionThroughPlanes.hh"
 #include "Geometry/Dimension.hh"
@@ -525,7 +525,7 @@ dumpTree(const Tree& tree,
   std::stringstream ss;
   CellKey ix, iy, iz;
   unsigned nlevels = tree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {
@@ -607,7 +607,7 @@ dumpTreeStatistics(const Tree& tree,
                    const bool globalTree) const {
   std::stringstream ss;
   unsigned nlevels = tree.size();
-  if (globalTree) nlevels = allReduce(nlevels, MPI_MAX, Communicator::communicator());
+  if (globalTree) nlevels = allReduce(nlevels, SPHERAL_OP_MAX);
 
   ss << "Tree : nlevels = " << nlevels << "\n";
   for (unsigned ilevel = 0; ilevel != nlevels; ++ilevel) {

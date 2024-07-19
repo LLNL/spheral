@@ -219,11 +219,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-#ifdef USE_MPI
-  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
-  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, MPI_MAX, Communicator::communicator());
-  mOldMaxVelocity = allReduce(mOldMaxVelocity, MPI_MAX, Communicator::communicator());
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
+  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, SPHERAL_OP_MAX);
+  mOldMaxVelocity = allReduce(mOldMaxVelocity, SPHERAL_OP_MAX);
 
+#ifdef USE_MPI
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
   MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));

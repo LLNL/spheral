@@ -11,7 +11,7 @@
 #include "Field/FieldBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Geometry/GeometryRegistrar.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/planarReflectingOperator.hh"
 #include "Utilities/DBC.hh"
 
@@ -133,7 +133,7 @@ updateGhostNodes(NodeList<Dimension>& nodeList) {
       const auto xd = mPlane.signedDistance(pos[i]);
       xmin = std::min(xmin, xd);
     }
-    xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
+    xmin = allReduce(xmin, SPHERAL_OP_MIN);
     // CHECK(xmin >= 0.0);
 
     // Offset the current ghost points appropriately.
@@ -309,8 +309,8 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
     for (const auto i: nodeIDs) {
       vinflow += vel[i].dot(nhat);
     }
-    vinflow = (allReduce(vinflow, MPI_SUM, Communicator::communicator())/
-               std::max(1.0e-30, allReduce(double(nodeIDs.size()), MPI_SUM, Communicator::communicator())));  // Negative implies outflow
+    vinflow = (allReduce(vinflow, SPHERAL_OP_SUM)/
+               std::max(1.0e-30, allReduce(double(nodeIDs.size()), SPHERAL_OP_SUM)));  // Negative implies outflow
 
     // Figure out a timestep limit such that we don't move more than the ghost
     // node thickness.
@@ -320,8 +320,8 @@ InflowOutflowBoundary<Dimension>::initializeProblemStartup(const bool /*final*/)
       xmin = std::min(xmin, xd);
       xmax = std::max(xmax, xd);
     }
-    xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-    xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
+    xmin = allReduce(xmin, SPHERAL_OP_MIN);
+    xmax = allReduce(xmax, SPHERAL_OP_MAX);
     mXmin[nodeList.name()] = xmin;
     mDT = std::min(mDT, std::abs(xmax - xmin)/std::max(1e-30, std::abs(vinflow)));   // Protect from negative outflow velocity
     // cerr << "Timestep constraint: " << mDT << endl;
@@ -458,7 +458,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
       nodeList.neighbor().updateNodes();
     }
   }
-  altered = (allReduce((altered ? 1 : 0), MPI_MAX, Communicator::communicator()) == 1);
+  altered = (allReduce((altered ? 1 : 0), SPHERAL_OP_MAX) == 1);
 
   // If any NodeLists were altered, recompute the boundary conditions.
   if (altered) {

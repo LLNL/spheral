@@ -16,7 +16,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/range.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 #include "Integrator.hh"
@@ -228,7 +228,7 @@ selectDt(const typename Dimension::Scalar dtMin,
         dt.first >= dtMin and dt.first <= dtMax);
 
   // In the parallel case we need to find the minimum timestep across all processors.
-  const auto globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
+  const auto globalDt = allReduce(dt.first, SPHERAL_OP_MIN);
 
   // Are we verbose?
   if (dt.first == globalDt and 
