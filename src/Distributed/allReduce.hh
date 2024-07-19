@@ -63,13 +63,13 @@ distScan(const Value& value, const MPI_Op op,
 
 template<typename Value>
 constexpr Value
-allReduce(const Value& value, const int /*op*/, const int) {
+allReduce(const Value& value, const int /*op*/, const int = 0) {
   return value;
 }
 
 template<typename Value>
 constexpr Value
-distScan(const Value& value, const int /*op*/, const int) {
+distScan(const Value& value, const int /*op*/, const int = 0) {
   return value;
 }
 
