@@ -5,7 +5,7 @@ import sys, subprocess, argparse
 # If the number of failed tests exceeds this value, ATS is not rerun
 max_test_failures = 10
 # Number of times to rerun the ATS tests
-max_reruns = 2
+max_reruns = 1
 
 # Helper function for executing commands stolen from uberenv
 def sexe(cmd,ret_output=False,echo=True):
