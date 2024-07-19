@@ -33,9 +33,8 @@
     - cd $CI_BUILD_DIR && cat job-name.txt
 
     - cat build_gitlab/install/spheral-lcatstest
-    - $TEST_ALLOC ./build_gitlab/install/spheral-lcatstest --logs test-logs build_gitlab/install/$ATS_FILE --timelimit="45m"
+    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/run_ats.py --test-alloc $TEST_ALLOC --ats-file $ATS_FILE --ci-build-dir $CI_BUILD_DIR
     - cp -r test-logs $CI_PROJECT_DIR
-    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/report_results.py
   artifacts:
     when: always
     paths:
