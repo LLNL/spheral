@@ -38,7 +38,6 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Utilities/mortonOrderIndices.hh"
-#include "Utilities/allReduce.hh"
 #include "Utilities/uniform_random.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine

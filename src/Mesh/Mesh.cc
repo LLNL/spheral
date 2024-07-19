@@ -15,7 +15,7 @@ using std::abs;
 #include "MeshConstructionUtilities.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/DBC.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/boundingBox.hh"
 #include "Distributed/Communicator.hh"
 #include "NodeList/NodeList.hh"
@@ -54,8 +54,7 @@ reduceToMaxString(const string& x,
                   const unsigned rank,
                   const unsigned numDomains) {
   unsigned badRank = allReduce((x.size() == 0 ? numDomains : rank),
-                               MPI_MIN,
-                               Communicator::communicator());
+                               SPHERAL_OP_MIN);
   if (badRank == numDomains) {
     return "";
   } else {
@@ -474,7 +473,7 @@ removeZonesByMask(const vector<unsigned>& zoneMask) {
   removeElements(mSharedFaces, killDomains);
 
   // // Any pre-existing parallel info is now invalid.
-  // if (allReduce(mNeighborDomains.size(), MPI_MAX, Communicator::communicator()) > 0) {
+  // if (allReduce(mNeighborDomains.size(), SPHERAL_OP_MAX) > 0) {
   //   mNeighborDomains = vector<unsigned>();
   //   mSharedNodes = vector<vector<unsigned> >();
   //   mSharedFaces = vector<vector<unsigned> >();
@@ -749,8 +748,8 @@ generateDomainInfo() {
   // bit perfect consistency across processors.
   Vector boxInv;
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i) - dxhash, SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i) + dxhash, SPHERAL_OP_MAX);
     boxInv(i) = safeInv(xmax(i) - xmin(i));
   }
 
@@ -1039,8 +1038,8 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     // bit perfect consistency across processors.
     Vector boxInv;
     for (unsigned i = 0; i != Dimension::nDim; ++i) {
-      xmin(i) = allReduce(xmin(i) - dxhash, MPI_MIN, Communicator::communicator());
-      xmax(i) = allReduce(xmax(i) + dxhash, MPI_MAX, Communicator::communicator());
+      xmin(i) = allReduce(xmin(i) - dxhash, SPHERAL_OP_MIN);
+      xmax(i) = allReduce(xmax(i) + dxhash, SPHERAL_OP_MAX);
       boxInv(i) = safeInv(xmax(i) - xmin(i));
     }
 
@@ -1449,8 +1448,8 @@ boundingBox(typename Dimension::Vector& xmin,
   Spheral::boundingBox(mNodePositions, xmin, xmax);
 #ifdef USE_MPI
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 #endif
 }

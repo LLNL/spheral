@@ -9,7 +9,7 @@
 
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 #include "MeshConstructionUtilities.hh"
@@ -369,7 +369,7 @@ minimumScale() const {
       result = std::min(result, (face.position() - zonePosition).magnitude2());
     }
   }
-  result = allReduce(0.5*sqrt(result), MPI_MIN, Communicator::communicator());
+  result = allReduce(0.5*sqrt(result), SPHERAL_OP_MIN);
 
   // That's it.
   ENSURE(result > 0.0);
@@ -389,7 +389,7 @@ minimumScale() const {
     result = std::min(result, std::abs(mNodePositions[mZones[i].mNodeIDs[0]].x() - 
                                        mNodePositions[mZones[i].mNodeIDs[1]].x()));
   }
-  result = allReduce(0.5*result, MPI_MIN, Communicator::communicator());
+  result = allReduce(0.5*result, SPHERAL_OP_MIN);
 
   // That's it.
   ENSURE(result > 0.0);
