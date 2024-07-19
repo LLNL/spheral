@@ -7,7 +7,7 @@
 //----------------------------------------------------------------------------//
 
 #include "RegisterMPIDataTypes.hh"
-#include "DataTypeTraits.hh"
+#include "Utilities/DataTypeTraits.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

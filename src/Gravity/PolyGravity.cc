@@ -15,7 +15,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/packElement.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/PairComparisons.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -215,7 +215,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       mDtMinAcc = min(mDtMinAcc, sqrt(hi/ai.magnitude()));      // Similar to acceleration constraint from TreeGravity
     }
   }
-  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
