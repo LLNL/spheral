@@ -26,7 +26,7 @@ def parse_args():
   parser = argparse.ArgumentParser()
 
   # Spec args
-  parser.add_argument('--test-alloc', type=str,
+  parser.add_argument('--test-alloc', type=str, nargs="+",
                       help='Allocation command for the machine.')
   parser.add_argument('--ats-file', type=str,
                       help='ATS test file to run.')
@@ -55,6 +55,7 @@ def report_results(output_dir):
 
 #------------------------------------------------------------------------------
 
+# Run the tests and check if any failed
 def run_and_report(run_command, ci_output, num_runs=0):
     if (num_runs > max_reruns):
         print("Exceeded number of ATS reruns")
@@ -89,7 +90,8 @@ def run_ats_test(args):
         print(f"{lcats_test} does not exists")
         sys.exit(1)        
     ats_configs = ' --timelimit="45m"'
-    run_command = f"{args.test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_config}"
+    test_alloc = " ".join(args.test_alloc)
+    run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_config}"
     ci_output = os.path.join(args.ci_build_dir, "test-logs")
     run_and_report(run_command, ci_output)
         
