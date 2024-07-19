@@ -56,13 +56,27 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
+                  '"Distributed/Communicator.hh"',
+                  '"adiak.hpp"',
                   '<algorithm>']
 
 #-------------------------------------------------------------------------------
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
+namespace Spheral {
+inline void spheral_adiak_init() {
+  adiak::init((void*) &Communicator::communicator());
+}
 
+enum adiak_categories {
+unset = 0,
+all,
+general,
+performance,
+control
+};
+}
 """
 
 #-------------------------------------------------------------------------------
@@ -91,6 +105,7 @@ from BiQuadraticInterpolator import *
 from BiCubicInterpolator import *
 from uniform_random import *
 from BuildData import *
+from Adiak import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -747,3 +762,14 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
                   planes = "const std::vector<GeomPlane<Dim<3>>>&"):
     "Return the volume of the clipped region."
     return "double"
+
+#...............................................................................
+for (value, label) in (("int", "Int"),
+                       ("unsigned", "Unsigned"),
+                       ("long", "Long"),
+                       ("double", "Scalar"),
+                       ("std::string", "String")):
+    exec("""
+adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
+adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
+""" % {"label" : label, "value" : value})

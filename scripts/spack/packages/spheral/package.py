@@ -57,7 +57,9 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
     depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
 
-    depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('caliper@2.8.0 ~shared +adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on('adiak~shared+mpi', type='build', when='+mpi')
+    depends_on('adiak~shared~mpi', type='build', when='~mpi')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope@0.7.3 +python', type='build')
@@ -154,6 +156,8 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         # TPL locations
         entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+
+        entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 

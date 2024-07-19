@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export CALI_CONFIG_FILE=@CMAKE_INSTALL_PREFIX@/scripts/caliper.config
+export CALI_CONFIG_PROFILE=aggregate-report
+@CMAKE_INSTALL_PREFIX@/spheral @CMAKE_INSTALL_PREFIX@/scripts/lcats --atsExe @CMAKE_INSTALL_PREFIX@/.venv/bin/ats --keep -e @CMAKE_INSTALL_PREFIX@/spheral @SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@ "$@"
