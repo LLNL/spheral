@@ -1,3 +1,22 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features/ API changes:
+    * MPI variables are now wrapped as
+      ```
+      SPHERAL_OP_SUM, SPHERAL_OP_MAX, SPHERAL_OP_MIN
+      ```
+
+  * Build changes / improvements:
+    * Distributed source directory must always be built now
+
+  * Bug Fixes / improvements:
+    * Wrappers for MPI calls are simplified and improved
+
+
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
 

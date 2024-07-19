@@ -326,7 +326,7 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
   
   // Get global indices manually
-  int globalScan = scan(mNumInternalLocalNodes, SPHERAL_OP_SUM);
+  int globalScan = distScan(mNumInternalLocalNodes, SPHERAL_OP_SUM);
   VERIFY(globalScan >= mNumInternalLocalNodes);
   mFirstGlobalIndex = globalScan - mNumInternalLocalNodes;
   mLastGlobalIndex = globalScan - 1;
