@@ -7,7 +7,7 @@
 #include "Field/FieldList.hh"
 #include "NodeList/NodeList.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/pointOnPolygon.hh"
 #include "Utilities/FastMath.hh"
 #include "Utilities/range.hh"
