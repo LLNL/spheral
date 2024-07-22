@@ -68,7 +68,10 @@ def run_and_report(run_command, ci_output, num_runs):
     sexe(run_command)
     tests_passed = report_results(ci_output)
     if (tests_passed == 0):
-        sys.exit(0)
+        if (num_runs == 0):
+            sys.exit(0)
+        else:
+            sys.exit(80)
     elif (tests_passed >= max_test_failures):
         print("Too many test failures, not rerunning ATS")
         sys.exit(1)
@@ -80,6 +83,7 @@ def run_and_report(run_command, ci_output, num_runs):
                 print(f"{ats_cont_file} not found, ATS cannot be rerun")
                 sys.exit(1)
             rerun_command = f"{run_command} {ats_cont_file}"
+        print("Rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
 #------------------------------------------------------------------------------
@@ -93,13 +97,13 @@ def run_ats_test(args):
     lcats_test = os.path.join(build_gl_dir, "spheral-lcatstest")
     if (not os.path.exists(lcats_test)):
         print(f"{lcats_test} does not exists")
-        sys.exit(1)        
+        sys.exit(1)
     ats_configs = ' --timelimit="45m"'
     test_alloc = " ".join(args.test_alloc)
     run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_configs}"
     ci_output = os.path.join(args.ci_build_dir, "test-logs")
     run_and_report(run_command, ci_output, 0)
-        
+
 #------------------------------------------------------------------------------
 
 def main():

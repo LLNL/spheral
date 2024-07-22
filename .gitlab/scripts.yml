@@ -40,6 +40,9 @@
     paths:
       - ci-dir.txt
       - test-logs/
+  allow_failure:
+    exit_codes:
+      - 80
 
 # ------------------------------------------------------------------------------
 # Shared TPL scripts.
