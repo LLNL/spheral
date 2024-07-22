@@ -4,18 +4,21 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 
 Notable changes include:
 
-  * New features/ API changes:
+  * New features / API changes:
     * MPI variables are now wrapped as
       ```
       SPHERAL_OP_SUM, SPHERAL_OP_MAX, SPHERAL_OP_MIN
       ```
+    * CHAI added as a submodule of Spheral for co-developing features necessary for GPU port.
+    * RAJA & Umpire added as first level dependencies.
+    * Axom updated to v0.9.0.
+    * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved
-
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
@@ -261,7 +264,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 
 Notable changes include:
 
-  * New features/ API changes:
+  * New features / API changes:
 
   * Build changes / improvements:
 
