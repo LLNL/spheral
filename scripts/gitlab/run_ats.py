@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, subprocess, argparse
+import sys, subprocess, argparse, os
 
 # If the number of failed tests exceeds this value, ATS is not rerun
 max_test_failures = 10
