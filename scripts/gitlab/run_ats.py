@@ -69,7 +69,7 @@ def run_and_report(run_command, ci_output, num_runs):
     tests_passed = report_results(ci_output)
     if (tests_passed == 0):
         sys.exit(0)
-    elif (test_passed >= max_test_failures):
+    elif (tests_passed >= max_test_failures):
         print("Too many test failures, not rerunning ATS")
         sys.exit(1)
     else:
