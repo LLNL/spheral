@@ -56,7 +56,7 @@ def report_results(output_dir):
 #------------------------------------------------------------------------------
 
 # Run the tests and check if any failed
-def run_and_report(run_command, ci_output, num_runs=0):
+def run_and_report(run_command, ci_output, num_runs):
     if (num_runs > max_reruns):
         print("Exceeded number of ATS reruns")
         sys.exit(1)
@@ -81,7 +81,7 @@ def run_and_report(run_command, ci_output, num_runs=0):
 
 def run_ats_test(args):
     build_gl_dir = os.path.join(args.ci_build_dir, "build_gitlab", "install")
-    ats_file = os.path.join(build_gl_dir,  args.ats_file)
+    ats_file = os.path.join(build_gl_dir, args.ats_file)
     if (not os.path.exists(ats_file)):
         print(f"{ats_file} does not exists")
         sys.exit(1)
@@ -91,9 +91,9 @@ def run_ats_test(args):
         sys.exit(1)        
     ats_configs = ' --timelimit="45m"'
     test_alloc = " ".join(args.test_alloc)
-    run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_config}"
+    run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_configs}"
     ci_output = os.path.join(args.ci_build_dir, "test-logs")
-    run_and_report(run_command, ci_output)
+    run_and_report(run_command, ci_output, 0)
         
 #------------------------------------------------------------------------------
 
