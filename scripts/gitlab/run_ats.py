@@ -32,6 +32,10 @@ def parse_args():
                       help='ATS test file to run.')
   parser.add_argument('--ci-build-dir', type=str,
                       help='CI build directory.')
+  parser.add_argument('--ci-install-dir', type=str,
+                      default="build_gitlab/install",
+                      help="Location of Spheral installation "+\
+                      "relative to --ci-build-dir")
   return parser.parse_args()
 
 #------------------------------------------------------------------------------
@@ -42,7 +46,8 @@ def report_results(output_dir):
     if (not os.path.exists(ats_py)):
         print(f"{ats_py} does not exists")
         sys.exit(1)
-    exec(compile(open(ats_py).read(), ats_py, 'exec'))
+    exec(compile(open(ats_py).read(), ats_py, 'exec'), globals())
+    state = globals()["state"]
     failed_tests = [t for t in state['testlist'] if t['status'] in [FAILED,TIMEDOUT] ]
     if len(failed_tests) > 0:
         print(f"ATS failed {len(failed_tests)} tests.")
@@ -80,7 +85,7 @@ def run_and_report(run_command, ci_output, num_runs):
 #------------------------------------------------------------------------------
 
 def run_ats_test(args):
-    build_gl_dir = os.path.join(args.ci_build_dir, "build_gitlab", "install")
+    build_gl_dir = os.path.join(args.ci_build_dir, args.ci_install_dir)
     ats_file = os.path.join(build_gl_dir, args.ats_file)
     if (not os.path.exists(ats_file)):
         print(f"{ats_file} does not exists")
