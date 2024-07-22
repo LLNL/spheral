@@ -331,51 +331,58 @@ evaluateDerivatives(const Scalar time,
     for (nodeListi = 0; nodeListi < int(numNodeLists); ++nodeListi) {
       const int n = cellFaceFlags[nodeListi]->numInternalElements();
       for (i = 0; i < n; ++i) {
-        // const bool barf = Process::getRank() == 0 and i == 0;
+        // const bool barf = Process::getRank() == 0 and i == 100;
         const auto& celli = cells(nodeListi, i);
         const auto& xi = pos(nodeListi, i);
         const auto  Pi = P(nodeListi, i);
         const auto  mi = mass(nodeListi, i);
-        // const auto  rhoi = P(nodeListi, i);
+        const auto  rhoi = rho(nodeListi, i);
         // const auto& gradRhoi = gradRho(nodeListi, i);
         const auto  comi = celli.centroid(); // centerOfMass(celli, xi, rhoi, gradRhoi);
-        // if (barf) cerr << i << " " << cellFaceFlags(nodeListi, i).size() << endl;
+        // if (barf) cerr << i << " " << xi << " " << cellFaceFlags(nodeListi, i).size() << endl;
         for (const auto& flags: cellFaceFlags(nodeListi,i)) {
           cellFace = flags.cellFace;
           nodeListj = flags.nodeListj;
           j = flags.j;
           CHECK(nodeListj != -1 or (nodeListj == -1 and j == -1));
+          // const bool 2barf = i == 100 or j == 100;
           // if (barf) cerr << cellFace << " " << nodeListj << " " << j << " : ";
-          if (nodeListj != -1 and    // Avoid external faces (with void)
+          if (nodeListj != -1 and     // Avoid external faces (with void)
               cm.calculatePairInteraction(nodeListi, i, nodeListj, j, nodeLists[nodeListj]->firstGhostNode())) {  // make sure we hit each pair only once
             const auto& cellj = cells(nodeListj, j);
             const auto& xj = pos(nodeListj, j);
             const auto  Pj = P(nodeListj, j);
             const auto  mj = mass(nodeListj, j);
+            const auto  rhoj = rho(nodeListj, j);
             const auto  comj = cellj.centroid();
-            const auto deltaDvDtij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi) +
-                                             subCellAcceleration(celli, cellFace, comj, xj, Pj));
+            const auto  aij =  mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi)/rhoi +
+                                       subCellAcceleration(celli, cellFace, comj, xj, Pj)*mj/(mi*rhoj));
+            const auto  aji = -aij*mi/mj;
+            // const auto aij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi)/mi +
+            //                          subCellAcceleration(celli, cellFace, comj, xj, Pj)/mj);
+            // const auto aji = -aij * mi/mj;
             // const bool barf = (Process::getRank() == 0 and j >= nodeLists[nodeListj]->firstGhostNode());
             // if (barf) {
             //   cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : " << comi << " " << comj << " : "
             //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : " 
             //        << celli << " " << cellj << endl;
             // }
-            DvDt(nodeListi, i) += deltaDvDtij/mi;
-            DvDt(nodeListj, j) -= deltaDvDtij/mj;
-            DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(deltaDvDtij/mi);
-            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(deltaDvDtij/mj);
+            DvDt(nodeListi, i) += aij;
+            DvDt(nodeListj, j) += aji;
+            DepsDt(nodeListi, i) += vel(nodeListi, i).dot(aij);
+            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(aji);
             if (compatibleEnergy) {
               const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
               CHECK2(pairIndices.find(hashij) != pairIndices.end(),
                      "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij
                      << " --- " << DvDt[nodeListi]->numInternalElements() << " " << DvDt[nodeListi]->numGhostElements());
               const auto kk = pairIndices[hashij];
+              CHECK((nodeListi == pairs[kk].i_list and i == pairs[kk].i_node) or
+                    (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node));
               const bool flip = (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node);
-              pairAccelerations[kk] += deltaDvDtij * (flip ? -1.0 : 1.0);
+              pairAccelerations[kk] -= (flip ? aij : aji);
             }
-            // if (barf) cerr << "[" << i << " " << j << "] : " << deltaDvDtij << " " << deltaDvDtij.dot(comi - xi) << " : " << DvDt(nodeListi, i) << " " << 
-                        DvDt(nodeListj, j);
+            // if (barf) cerr << "[" << i << " " << j << "] : " << aij << " " << aij.dot(comi - xi) << " : " << DvDt(nodeListi, i) << " " << DvDt(nodeListj, j);
           }
           // if (barf) cerr << endl;
         }
