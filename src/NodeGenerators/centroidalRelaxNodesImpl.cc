@@ -119,8 +119,8 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         ntot += n;
         for (auto i = 0U; i != n; ++i) avgneighbors += cm.numNeighborsForNode(nodeListi, i);
       }
-      ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
-      avgneighbors = allReduce(avgneighbors, MPI_SUM, Communicator::communicator())/ntot;
+      ntot = allReduce(ntot, SPHERAL_OP_SUM);
+      avgneighbors = allReduce(avgneighbors, SPHERAL_OP_SUM)/ntot;
       if (Process::getRank() == 0) cerr << "Avergage number of neighbors per node: " << avgneighbors << " " << ntot << endl;
     } // BLAGO
 
@@ -185,9 +185,9 @@ centroidalRelaxNodesImpl(DataBase<Dimension>& db,
         if (vol(nodeListi, i) > 0.0) mass(nodeListi, i) = rhof(nodeListi,i)*vol(nodeListi,i);
       }
     }
-    avgdelta = (allReduce(avgdelta, MPI_SUM, Communicator::communicator())/
-                allReduce(db.numInternalNodes(), MPI_SUM, Communicator::communicator()));
-    maxdelta = allReduce(maxdelta, MPI_MAX, Communicator::communicator());
+    avgdelta = (allReduce(avgdelta, SPHERAL_OP_SUM)/
+                allReduce(db.numInternalNodes(), SPHERAL_OP_SUM));
+    maxdelta = allReduce(maxdelta, SPHERAL_OP_MAX);
     if (Process::getRank() == 0) cerr << "centroidalRelaxNodes iteration " << iter
                                       << ", avg delta frac " << avgdelta 
                                       << ", max delta frac " << maxdelta 

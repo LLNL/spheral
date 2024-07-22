@@ -5,7 +5,7 @@
 #include "iterateIdealH.hh"
 #include "Field/FieldList.hh"
 #include "NodeList/SmoothingScaleBase.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Geometry/GeometryRegistrar.hh"
 
@@ -275,7 +275,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     H.assignFields(H1);
 
     // Globally reduce the max H change.
-    maxDeltaH = allReduce(maxDeltaH, MPI_MAX, Communicator::communicator());
+    maxDeltaH = allReduce(maxDeltaH, SPHERAL_OP_MAX);
 
     // Output the statitics.
     if (Process::getRank() == 0)

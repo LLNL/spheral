@@ -19,7 +19,7 @@
 #include "Strength/SolidFieldNames.hh"
 #include "DataBase/State.hh"
 #include "Distributed/Communicator.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 
 using std::unordered_map;
 using std::vector;
@@ -99,7 +99,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
         CHECK(rho(i) > 0.0);
         volume += mass(i)/rho(i);
       }
-      volume = allReduce(volume, MPI_SUM, Communicator::communicator());
+      volume = allReduce(volume, SPHERAL_OP_SUM);
     }
     volume = std::max(volume, 1e-100);
     CHECK(volume > 0.0);
@@ -168,11 +168,11 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
     // Prepare some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
-    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
-    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
-    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
-    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+    minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+    maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+    totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+    epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+    sumFlaws = allReduce(sumFlaws, SPHERAL_OP_SUM);
     if (procID == 0) {
       cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
            << "                                    Max num flaws per node: " << maxNumFlaws << endl

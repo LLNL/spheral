@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include "Geometry/Dimension.hh"
 #include "Geometry/PolyClipperUtilities.hh"
-#include "RegisterMPIDataTypes.hh"
+#include "Distributed/RegisterMPIDataTypes.hh"
 #include "Utilities/DomainNode.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"

@@ -10,13 +10,8 @@
 // Created by JMO, Sun Jan 31 19:53:36 PST 2010
 //----------------------------------------------------------------------------//
 #include "DataBase/DataBase.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Geometry/Dimension.hh"
-#include "Distributed/Communicator.hh"
-
-#ifdef USE_MPI
-#include <mpi.h>
-#endif
 
 #include <vector>
 #include <algorithm>
@@ -108,8 +103,8 @@ globalBoundingBox(const Field<Dimension, typename Dimension::Vector>& positions,
 
   // Now find the global bounds across all processors.
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 
@@ -139,8 +134,8 @@ globalBoundingBox(const FieldList<Dimension, typename Dimension::Vector>& positi
 
   // Now find the global bounds across all processors.
   for (unsigned i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 
