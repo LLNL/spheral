@@ -5,6 +5,13 @@ spheral_add_test(
   #DEBUG_LINKER
 )
 
+# This test is based off a basic implementation of Utilities/QuadraticInterpolator.
+spheral_add_test(
+  NAME value_view_metaclass_basic_class_tests
+  SOURCES value_view_metaclass_basic_class_tests.cc
+  #DEBUG_LINKER
+)
+
 # This tests demonstrates CRTP as seen in Kernel.
 spheral_add_test(
   NAME value_view_crtp_pattern_tests
