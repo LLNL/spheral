@@ -12,6 +12,11 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${SPHERAL_CMAKE_MODULE_PATH}")
 
 #-------------------------------------------------------------------------------
+# Add Spheral CMake Macros for tests and executables
+#-------------------------------------------------------------------------------
+include(SpheralMacros)
+
+#-------------------------------------------------------------------------------
 # Set Compiler Flags / Options
 #-------------------------------------------------------------------------------
 include(Compilers)
@@ -82,6 +87,7 @@ if(ENABLE_CUDA)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
+  set(SPHERAL_ENABLE_CUDA On)
 endif()
 
 #-------------------------------------------------------------------------------#
@@ -137,6 +143,9 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
+configure_file(src/config.hh.in
+  ${PROJECT_BINARY_DIR}/src/config.hh)
+
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 
 #-------------------------------------------------------------------------------
@@ -150,6 +159,7 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
 
   # A macro to preserve directory structure when installing files
