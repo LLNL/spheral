@@ -3,23 +3,17 @@
 #                                   Spheral_Handle_Ext
 #----------------------------------------------------------------------------------------
 
-# -------------------------------------------
-# VARIABLES THAT NEED TO BE PREVIOUSLY DEFINED
-# -------------------------------------------
-# <lib_name>_DIR        : REQUIRED : The installation location of the TPL
-# <lib_name>_INCLUDES   : OPTIONAL : Specific includes for the TPL
-
 # ----------------------
 # INPUT-OUTPUT VARIABLES
 # ----------------------
-# <lib_name>     : REQUIRED : The name of the target TPL
-# TPL_CMAKE_DIR  : REQUIRED : Directory containing files for each TPL
-#                             listing their library names
+# <lib_name>      : REQUIRED : name of target TPL
+# <libname>       : REQUIRED : library name to change extension
+# APPLE           : REQUIRED : flag for Mac OSX
 
 # -----------------------
-# OUTPUT VARIABLES TO USE - Made available implicitly after function call
+# OUTPUT VARIABLES TO USE
 # -----------------------
-# <lib_name> : Exportable target for the TPL
+# <lib_name>_libs : list of library names with modified extension
 #----------------------------------------------------------------------------------------
 
 function(Spheral_Handle_Ext lib_name libname APPLE)

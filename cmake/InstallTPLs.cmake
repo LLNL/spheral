@@ -10,6 +10,7 @@ set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleExt.cmake)
 
 #-----------------------------------------------------------------------------------
 # Submodules
