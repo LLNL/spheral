@@ -1,8 +1,8 @@
 #include "test-utilities.hh"
 #include "test-basic-exec-policies.hh"
 
-#include "Field/SphArray.hh"
 #include "Utilities/ValueViewInterface.hh"
+#include "Utilities/ManagedVector.hh"
 
 //--------------------------------
 // Impl Interface

@@ -1,7 +1,7 @@
 #include "test-utilities.hh"
 #include "test-basic-exec-policies.hh"
 
-#include "Field/SphArray.hh"
+#include "Utilities/ManagedVector.hh"
 #include "chai/managed_ptr.hpp"
 
 using MVDouble = Spheral::ManagedVector<double>;

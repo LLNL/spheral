@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 
 #include "Utilities/ValueViewInterface.hh"
+#include "Utilities/ManagedVector.hh"
 
 namespace Spheral {
 

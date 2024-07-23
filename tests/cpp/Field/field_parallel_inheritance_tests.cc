@@ -2,8 +2,8 @@
 #include "test-basic-exec-policies.hh"
 
 
-#include "Field/SphArray.hh"
 #include "Utilities/ValueViewInterface.hh"
+#include "Utilities/ManagedVector.hh"
 #include <memory>
 
 namespace Spheral {
