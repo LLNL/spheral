@@ -3,7 +3,6 @@
 
 //#include "Utilities/SharedPtr.hh"
 #include "chai/ManagedSharedPtr.hpp"
-#include "Field/SphArray.hh"
 #include <memory>
 
 namespace Spheral {

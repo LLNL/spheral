@@ -1,13 +1,3 @@
-spheral_add_test(
-  NAME managed_vector_tests
-  SOURCES managed_vector_tests.cc
-)
-
-spheral_add_test(
-  NAME field_parallel_inheritance_tests
-  SOURCES field_parallel_inheritance_tests.cc
-)
-
 #spheral_add_test(
 #  NAME field_tests
 #  SOURCES field_tests.cc

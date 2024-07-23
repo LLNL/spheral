@@ -5,6 +5,12 @@ spheral_add_test(
   DEBUG_LINKER
 )
 
+spheral_add_test(
+  NAME managed_vector_tests
+  SOURCES managed_vector_tests.cc
+)
+
+
 add_subdirectory(ValueViewInterface)
 
 
