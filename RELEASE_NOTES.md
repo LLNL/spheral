@@ -13,12 +13,13 @@ Notable changes include:
     * RAJA & Umpire added as first level dependencies.
     * Axom updated to v0.9.0.
     * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
+    * Failed ATS runs are automatically retested once in the Gitlab CI.
 
   * Build changes / improvements:
-    * Distributed source directory must always be built now
+    * Distributed source directory must always be built now.
 
   * Bug Fixes / improvements:
-    * Wrappers for MPI calls are simplified and improved
+    * Wrappers for MPI calls are simplified and improved.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
