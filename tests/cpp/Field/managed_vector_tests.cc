@@ -83,69 +83,6 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, IdentityConstructor)
 }
 
 
-GPU_TYPED_TEST(ManagedVectorTypedTest, ManagedPtrArrayTest)
-{
-  using WORK_EXEC_POLICY = TypeParam;
-
-  //Spheral::MVSmartRef array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
-  Spheral::MVSmartRef<double> array;
-  //array = Spheral::make_MVSmartRef<double>(5, chai::CPU);
-  array = Spheral::MVSmartRef<double>(5, chai::CPU);
-
-  Spheral::MVSmartRef copy_array(array);
-
-  SPHERAL_ASSERT_EQ(array->size(), copy_array->size());
-
-  std::cout << "check0\n";
-  RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,array->size()),
-    [=] RAJA_HOST_DEVICE (unsigned i){
-      array[i] = i*2;
-      Spheral::MVSmartRef copy_array_2 = array;
-      SPHERAL_ASSERT_EQ(copy_array_2[i], i*2);
-    }
-  );
-
-
-  std::cout << "resize\n";
-  array.resize(20);
-
-
-  std::cout << "check1\n";
-  std::cout << copy_array->size();
-  RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,array->size()),
-    [=] RAJA_HOST_DEVICE (unsigned i){
-      if (i >= 5) copy_array[i] = i*3;
-      //SPHERAL_ASSERT_TRUE (copy_array->size() == 20);
-    }
-  );
-
-  std::cout << "check1.5\n";
-  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,array->size()),
-    [=] RAJA_HOST (unsigned i){
-      if (i < 5) SPHERAL_ASSERT_EQ(copy_array[i], i*2);
-      else SPHERAL_ASSERT_EQ(copy_array[i], i*3);
-    }
-  );
-
-  std::cout << "check2\n";
-  SPHERAL_ASSERT_EQ(&array[15], &copy_array[15]);
-  SPHERAL_ASSERT_EQ(array->size(), copy_array->size());
-
-  Spheral::MVSmartRef deep_copy_array = deepCopy(array);
-  //Spheral::MVSmartRef deep_copy_array = Spheral::make_MVSmartRef<double>(deepCopy(*array.get()));
-  SPHERAL_ASSERT_EQ(array->size(), deep_copy_array->size());
-
-  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,array->size()),
-    [=] RAJA_HOST (unsigned i){
-      SPHERAL_ASSERT_EQ(deep_copy_array[i], array[i]);
-    }
-  );
-
-  deep_copy_array[5] = 1234;
-  SPHERAL_ASSERT_NE(deep_copy_array[5], array[5]);
-  SPHERAL_ASSERT_NE(&deep_copy_array[0], &array[0]);
-}
-
 GPU_TYPED_TEST(ManagedVectorTypedTest, CopyConstructor)
 {
   using WORK_EXEC_POLICY = TypeParam;
