@@ -33,13 +33,13 @@ function(spheral_add_obj_library package_name obj_list_name)
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS} 
       SHARED      TRUE)
   else()
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS} 
       OBJECT      TRUE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
@@ -54,9 +54,6 @@ function(spheral_add_obj_library package_name obj_list_name)
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
   set_property(GLOBAL APPEND PROPERTY ${obj_list_name} Spheral_${package_name})
-  if(ENABLE_CUDA)
-    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-  endif()
 
 endfunction()
 
@@ -94,20 +91,32 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS}
       SHARED      TRUE)
   else()
     # Build static spheral C++ library
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS}
       SHARED      FALSE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
+
+
+  ## This cleans up library targets created with object libs. It is turned off as it triggers
+  ## a failure on Werror and pedantic builds.
+  #set(_properties COMPILE_DEFINITIONS LINK_LIBRARIES LINK_OPTIONS INTERFACE_LINK_OPTIONS COMPILE_OPTIONS INTERFACE_COMPILE_OPTIONS)
+  #foreach(_prop ${_properties})
+  #  get_target_property(temp_prop Spheral_${package_name} ${_prop})
+  #  list(REMOVE_DUPLICATES temp_prop)
+  #  set_target_properties(Spheral_${package_name} PROPERTIES ${_prop} "${temp_prop}")
+  #endforeach()
+
+  #set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 
   # Convert package name to lower-case for export target name
   string(TOLOWER ${package_name} lower_case_package)
@@ -227,16 +236,15 @@ function(spheral_add_pybind11_library package_name module_list_name)
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} ${SPHERAL_DEPENDS}
+                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS}
                             PYTHONPATH      ${PYTHON_ENV_STR}
                             INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${${package_name}_INCLUDES} ${PYBIND11_ROOT_DIR}/include
-                            COMPILE_OPTIONS ${SPHERAL_PYB11_TARGET_FLAGS}
+                            COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${SPHERAL_PYB11_TARGET_FLAGS}>"
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             INSTALL         OFF
                             )
   target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
-  target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
   install(TARGETS     ${MODULE_NAME}
           DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral

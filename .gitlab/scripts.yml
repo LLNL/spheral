@@ -2,8 +2,9 @@
 # CI Job Scripts
 # ------------------------------------------------------------------------------
 
-.build:
-  stage: build_and_install
+
+.tpls:
+  stage: tpls
   script:
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
     - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
@@ -12,7 +13,18 @@
     - cd $CI_BUILD_DIR
     - echo $SPEC
 
-    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --extra-cmake-args="$EXTRA_CMAKE_ARGS"
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --tpls-only
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
+
+.build:
+  stage: build_and_install
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build $EXTRA_CMAKE_ARGS
 
 .build_and_test:
   extends: [.build]
