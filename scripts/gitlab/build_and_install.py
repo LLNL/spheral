@@ -23,6 +23,8 @@ def parse_args():
   parser = argparse.ArgumentParser()
 
   # Control stage flow
+  parser.add_argument('--tpls-only', action='store_true',
+      help='Only build the tpls and generate the host-config.')
   parser.add_argument('--build-only', action='store_true',
       help='Only build the project from a spack generated host-config.')
   parser.add_argument('--host-config', type=str, default="",
@@ -41,21 +43,17 @@ def parse_args():
 
 
 # Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=False):
+def sexe(cmd,ret_output=False,echo=True):
     """ Helper for executing shell commands. """
     if echo:
-        print("[exe: {0}]".format(cmd))
+      print("[exe: {0}]".format(cmd))
+    p = subprocess.run(cmd, shell=True,
+                       capture_output=ret_output,
+                       check=True, text=True)
     if ret_output:
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        out = p.communicate()[0]
-        out = out.decode('utf8')
-        return p.returncode,out
-    else:
-        return subprocess.call(cmd,shell=True)
-
+      if echo:
+        print(p.stdout)
+      return p.stdout
 
 #------------------------------------------------------------------------------
 
@@ -78,7 +76,8 @@ def main():
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
+  if not args.tpls_only:
+      if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
 
 if __name__ == "__main__":
   main()
