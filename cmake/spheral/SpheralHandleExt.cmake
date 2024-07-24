@@ -7,7 +7,6 @@
 # INPUT-OUTPUT VARIABLES
 # ----------------------
 # <lib_name>      : REQUIRED : name of target TPL
-# <libname>       : REQUIRED : library name to change extension
 # APPLE           : REQUIRED : flag for Mac OSX
 
 # -----------------------
@@ -16,11 +15,16 @@
 # <lib_name>_libs : list of library names with modified extension
 #----------------------------------------------------------------------------------------
 
-function(Spheral_Handle_Ext lib_name libname APPLE)
+function(Spheral_Handle_Ext lib_name APPLE)
 
   if(APPLE)
     set(SHARED_EXT "dylib")
-    set(${lib_name}_libs ${libname}.${SHARED_EXT})
+  else()
+    set(SHARED_EXT "so")
+  endif()
+
+  if(ENABLE_STATIC_TPL)
+    string(REPLACE ".${SHARED_EXT}" ".a;" ${lib_name}_libs ${${lib_name}_libs})
   endif()
 
 endfunction()

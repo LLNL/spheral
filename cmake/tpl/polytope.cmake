@@ -1,3 +1,6 @@
 set(${lib_name}_libs libpolytope.a)
 
-Spheral_Handle_Ext(${lib_name} libpolytope APPLE)
+if(APPLE)
+  set(${lib_name}_libs libpolytope.dylib)
+endif()
+Spheral_Handle_Ext(${lib_name} APPLE)
