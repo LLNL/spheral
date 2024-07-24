@@ -11,6 +11,7 @@ dims = spheralDimensions()
 
 from SVPHFieldNames import *
 from SVPHFacetedHydroBase import *
+from TensorSVPHViscosity import *
 
 #-------------------------------------------------------------------------------
 # Includes
@@ -20,6 +21,7 @@ PYB11includes += ['"SVPH/SVPHFieldNames.hh"',
                   '"SVPH/gradientFieldListSVPH.hh"',
                   '"SVPH/SVPHHydroBase.hh"',
                   '"SVPH/SVPHFacetedHydroBase.hh"',
+                  '"SVPH/TensorSVPHViscosity.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
@@ -60,6 +62,7 @@ def gradientFieldListSVPH(fieldList = "const FieldList<%(Dimension)s, %(DataType
 for ndim in dims:
     exec('''
 SVPHFacetedHydroBase%(ndim)id = PYB11TemplateClass(SVPHFacetedHydroBase, template_parameters="%(Dimension)s")
+TensorSVPHViscosity%(ndim)id = PYB11TemplateClass(TensorSVPHViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 
