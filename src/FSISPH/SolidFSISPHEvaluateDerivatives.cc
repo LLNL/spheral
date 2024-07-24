@@ -408,6 +408,12 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const auto pminActivei = (Pi < pLimiti);
       const auto pminActivej = (Pj < pLimitj);
       
+      // determine our pairwise pmin value
+      auto minPij = min(Pdi,Pdj);
+      minPij = (differentMatij ? max(interfacePmin,minPij) : minPij );
+      minPij = (pminActivei ? max(Pdi,minPij) : minPij);
+      minPij = (pminActivej ? max(Pdj,minPij) : minPij);
+
       // decoupling criteria 
       const auto isExpandingi = (gradWiMi).dot(vij) < 0.0;
       const auto isExpandingj = (gradWjMj).dot(vij) < 0.0;
@@ -433,7 +439,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       const int controlNodeMaski = interfaceFlagMap[0][interfaceFlagsi];
       const int controlNodeMaskj = interfaceFlagMap[0][interfaceFlagsj];
 
-      const auto AijMij = fSij*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
+      const auto AijMij = sameMatMask*(voli*volj)*(gradWjMj+gradWiMi); // surface area vector
 
       const auto alignment = (interfaceFlagsi == 5 or interfaceFlagsj == 5 ? 
                               0.0:
@@ -522,8 +528,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
           //const auto Seffj = (sameMatij ? 1.0 : 0.0 ) * Sj;
           //const auto Seffi = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Si;
           //const auto Seffj = (min(Pi,Pj) < 0.0 or differentMatij ? maxfDij : 1.0)  * Sj;
-          const auto Peffi =  fDij*min(Pdi,0.0) + max(Pdi,0.0);
-          const auto Peffj =  fDij*min(Pdj,0.0) + max(Pdj,0.0);
+          const auto Peffi = max(Pdi,minPij);
+          const auto Peffj = max(Pdj,minPij);
+          //const auto Peffi =  fDij*min(Pdi,0.0) + max(Pdi,0.0);
+          //const auto Peffj =  fDij*min(Pdj,0.0) + max(Pdj,0.0);
           //const auto Seffi = maxfDij * Si; //(damageReduceStress ? fDij : 1.0) * Si;
           //const auto Seffj = maxfDij * Sj; //(damageReduceStress ? fDij : 1.0) * Sj;
           //const auto Peffi = (differentMatij ? max(Pdi,interfacePmin) : Pdi);
@@ -571,6 +579,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         auto vstar = 0.5*(vi+vj);
 
         linearReconstruction(ri,rj,Pdi,Pdj,DPDxi,DPDxj,PLineari,PLinearj);
+        
         if (constructInterface){
           // components
           const auto ui = vi.dot(rhatij);
@@ -594,7 +603,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
           // interface velocity
           const auto ustar = weightUi*ui + weightUj*uj + (constructHLLC ? (PLinearj - PLineari)*CiCjInv: 0.0); // - 0.1*((Seffj - Seffi).dot(rhatij)).dot(rhatij)*CsiCsjInv  : 0.0); 
-          const auto wstar = weightWi*wi + weightWj*wj - 0.1*(constructHLLC ? (Seffj - Seffi).dot(rhatij)*CsiCsjInv : Vector::zero);
+          const auto wstar = weightWi*wi + weightWj*wj;// - 0.1*(constructHLLC ? (Sj - Si).dot(rhatij)*CsiCsjInv : Vector::zero);
           vstar = fDij * vstar + (1.0-fDij)*(ustar*rhatij + wstar);
         }
 
@@ -606,8 +615,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
         // local velocity gradient for DSDt
         if (sameMatij){
-          localDvDxi -=  2.0*fDij*volj*((vi-vstar).dyad(gradWi));
-          localDvDxj -=  2.0*fDij*voli*((vstar-vj).dyad(gradWj)); 
+          localDvDxi -=  fDij*volj*((vi-vj).dyad(gradWi));
+          localDvDxj -=  fDij*voli*((vi-vj).dyad(gradWj)); 
         }
         // diffuse to stabilize things
         if (stabilizeDensity and (ci>tiny and cj>tiny)){
@@ -726,8 +735,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       interfaceFractioni += psi;
 
       if ( interfaceFlagsi > 0 ){
-        const double proxWeighti = 100*(1.0 - interfaceFlagsi % 2);
-        newInterfaceNormalsi = (newInterfaceNormalsi + proxWeighti * psi * interfaceAreaVectorsi).unitVector();
+        //const double proxWeighti = 100*(1.0 - interfaceFlagsi % 2);
+        //newInterfaceNormalsi = (newInterfaceNormalsi + proxWeighti * psi * interfaceAreaVectorsi).unitVector();
+        newInterfaceNormalsi = (newInterfaceNormalsi + psi * interfaceAreaVectorsi).unitVector();
         newInterfaceSmoothnessi = newInterfaceSmoothnessi/max(interfaceSmoothnessNormalizationi,tiny);
       } else {
         newInterfaceNormalsi = Vector::zero;
