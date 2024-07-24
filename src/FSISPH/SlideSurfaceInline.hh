@@ -132,12 +132,14 @@ SlideSurface<Dimension>::
 pairwiseInterfaceSmoothness(const typename Dimension::Scalar smoothnessi,
                             const typename Dimension::Scalar smoothnessj) const {
 
-    const auto ssMax = std::max(smoothnessi,smoothnessj);
-    const auto ssMin = std::min(smoothnessi,smoothnessj);
+    const auto ssij = (smoothnessi + smoothnessj)*0.5;
+    return ( 1.0 - 10.0*std::min(std::max(0.95-(ssij),0.0),0.10) );
+    //const auto ssMax = std::max(smoothnessi,smoothnessj);
+    //const auto ssMin = std::min(smoothnessi,smoothnessj);
 
-    const auto ssijMax = ( 1.0 -  10.0*std::min(std::max(0.97-ssMax,0.0),0.10) ); // ramps down 0.97->0.87
-    const auto ssijMin = ( 1.0 -   5.0*std::min(std::max(0.90-ssMin,0.0),0.20) );  // ramps down 0.90->0.70
-    return ssijMax*ssijMin;      
+    //const auto ssijMax = ( 1.0 -  10.0*std::min(std::max(0.97-ssMax,0.0),0.10) ); // ramps down 0.97->0.87
+    //const auto ssijMin = ( 1.0 -   5.0*std::min(std::max(0.90-ssMin,0.0),0.20) );  // ramps down 0.90->0.70
+    //return ssijMax*ssijMin;      
 
 }
 
