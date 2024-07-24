@@ -122,10 +122,21 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Create storage for the pressure and sound speed.
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
+  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
 
-  // Initialize the pressure and sound speed.
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
+//------------------------------------------------------------------------------
+// Second stage of problem start up: initialize values
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SVPHHydroBase<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
+
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
 
   // Construct the mesh and volumes.
   NodeList<Dimension> voidNodes("internal void", 0, 0);
@@ -148,7 +159,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
      2.0,               // voidThreshold
      *mMeshPtr,
      voidNodes);
-  mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
   for (unsigned nodeListi = 0; nodeListi != dataBase.numFluidNodeLists(); ++nodeListi) {
     const unsigned n = mVolume[nodeListi]->numInternalElements();
     const unsigned offset = mMeshPtr->offset(nodeListi);

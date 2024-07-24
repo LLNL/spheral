@@ -1,3 +1,94 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+    * MPI variables are now wrapped as
+      ```
+      SPHERAL_OP_SUM, SPHERAL_OP_MAX, SPHERAL_OP_MIN
+      ```
+    * CHAI added as a submodule of Spheral for co-developing features necessary for GPU port.
+    * RAJA & Umpire added as first level dependencies.
+    * Axom updated to v0.9.0.
+    * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
+
+  * Build changes / improvements:
+    * Distributed source directory must always be built now
+
+  * Bug Fixes / improvements:
+    * Wrappers for MPI calls are simplified and improved
+
+Version v2024.06.1 -- Release date 2024-07-09
+==============================================
+
+  * Important Notes:
+    * This is a patch release for v2024.06.0.
+
+  * Bug Fixes / improvements:
+    * CD pipeline hotfix for installing release builds on LC machines.
+    * Fixes an issue with the use of the axom::quest::SignedDistance interface. 
+
+Version v2024.06.0 -- Release date 2024-06-27
+==============================================
+  * Important Notes:
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features / API changes:
+    * Added MFV hydro from Hopkins 2015 with extension for ALE options.
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH.
+
+  * Build changes / improvements:
+    * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
+      * CMake interface for adding PYBind11 target libraries is modified to more closely match how C++ libraries are created.
+      * Multiple Spheral Python modules / CMake targets can be specified for a single directory.
+      * KernelIntegrator and FieldList directories are divided into 2 modules / targets.
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+    * Spack version is increased from 0.19 to 0.22.
+    * Spack upstream is updated.
+    * Removed the python 3 module load for the Gitlab CI to fix an issue with pkg-config changing.
+    * Zlib target and TPL cmake file is removed.
+    * PYB11Generator repo is updated.
+    * Spack config and package files inside Spheral are updated to accommodate Spack 0.22.
+      * Package recipes for py-numpy-stl, py-pillow, py-pipreqs, td, and tk are removed.
+      * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
+
+  * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
+
+Version v2024.01.1 -- Release date 2024-02-17
+==============================================
+  * Important Notes:
+    * This is a patch release for v2024.01.0.
+
+Notable changes include:
+
+  * New features/ API changes:
+    * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
+      of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
+      State and StateDerivatives object).
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
+  * Build changes / improvements:
+    * Improved the target export functionality.
+
+  * Bug Fixes / improvements:
+    * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
+    * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
+
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
   * Important Notes:
@@ -173,7 +264,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 
 Notable changes include:
 
-  * New features/ API changes:
+  * New features / API changes:
 
   * Build changes / improvements:
 

@@ -47,8 +47,6 @@ import mpi
 
 from Spheral import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
-from SpheralController import *
 
 #-------------------------------------------------------------------------------
 # Identify ourselves!
@@ -84,7 +82,7 @@ commandLine(geometry = "2d",         # one of (2d, 3d, RZ)
             fsisph = False,
 
             # general hydro options
-            asph = False,                         # Only for H evolution, not hydro algorithm
+            asph = True,                         # Only for H evolution, not hydro algorithm
             HUpdate = IdealH,
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,

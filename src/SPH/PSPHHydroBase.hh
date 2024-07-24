@@ -62,6 +62,14 @@ public:
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
+
   // Pre-step initializations.
   virtual 
   void preStepInitialize(const DataBase<Dimension>& dataBase, 

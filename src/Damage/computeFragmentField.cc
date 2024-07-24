@@ -68,14 +68,7 @@ globalReduceToUniqueElements(vector<int>& x) {
     copy(otherX.begin(), otherX.end(), back_inserter(x));
   }
   reduceToUniqueElements(x);
-  BEGIN_CONTRACT_SCOPE
-  {
-    int tmp = x.size();
-    int sum;
-    MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    ENSURE(sum == (int)x.size()*numProcs);
-  }
-  END_CONTRACT_SCOPE
+  ENSURE(allReduce((int)x.size(), SPHERAL_OP_SUM) == (int)x.size()*numProcs);
 #endif
 }
 
@@ -132,12 +125,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                                                          gIDs.end());
   int maxGlobalID = 0;
   if (maxGlobalItr != gIDs.end()) maxGlobalID = *maxGlobalItr;
-#ifdef USE_MPI
-  {
-    int tmp = maxGlobalID;
-    MPI_Allreduce(&tmp, &maxGlobalID, 1, MPI_INT, MPI_MAX, Communicator::communicator());
-  }
-#endif
+  maxGlobalID = allReduce(maxGlobalID, SPHERAL_OP_MAX);
   maxGlobalID += 1;
   CHECK(maxGlobalID >= numGlobalNodesRemaining);
 
@@ -161,12 +149,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   }
 
   // Reduce the count of remaining nodes by the number of dust nodes.
-#ifdef USE_MPI
-  {
-    int tmp = numDustNodes;
-    MPI_Allreduce(&tmp, &numDustNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-  }
-#endif
+  numDustNodes = allReduce(numDustNodes, SPHERAL_OP_SUM);
   CHECK(numDustNodes >= 0 && numDustNodes <= numGlobalNodesRemaining);
   numGlobalNodesRemaining -= numDustNodes;
   CHECK(numGlobalNodesRemaining >= 0);
@@ -184,12 +167,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                                                            globalNodesRemaining.end());
     int globalMinID = maxGlobalID;
     if (globalMinItr != globalNodesRemaining.end()) globalMinID = *globalMinItr;
-#ifdef USE_MPI
-    {
-      int tmp = globalMinID;
-      MPI_Allreduce(&tmp, &globalMinID, 1, MPI_INT, MPI_MIN, Communicator::communicator());
-    }
-#endif
+    globalMinID = allReduce(globalMinID, SPHERAL_OP_MIN);
     CHECK(globalMinID < maxGlobalID);
 
     // Is this node on this domain?
@@ -201,14 +179,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
                                                  gIDs.end(),
                                                  globalMinID);
     localNode = (ilocalItr != gIDs.end());
-    BEGIN_CONTRACT_SCOPE
-    {
-      int tmp = localNode ? 1 : 0;
-      int sum;
-      MPI_Allreduce(&tmp, &sum, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-      CHECK(sum == 1);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(localNode ? 1 : 0, SPHERAL_OP_SUM) == 1);
     int tmp = numProcs;
     if (localNode) {
       CHECK(ilocalItr != gIDs.end());
@@ -216,15 +187,9 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       tmp = procID;
       CHECK(result(ilocal) == maxGlobalID);
     }
-    MPI_Allreduce(&tmp, &nodeDomain, 1, MPI_INT, MPI_MIN, Communicator::communicator());
+    nodeDomain = allReduce(tmp, SPHERAL_OP_MIN);
     CHECK(nodeDomain >= 0 && nodeDomain < numProcs);
-    BEGIN_CONTRACT_SCOPE
-    {
-      int tmp;
-      MPI_Allreduce(&nodeDomain, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-      CHECK(tmp == numProcs*nodeDomain);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(nodeDomain, SPHERAL_OP_SUM) == numProcs*nodeDomain);
 #endif
 
     // Get the position and H for this node.
@@ -273,15 +238,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
     }
     CHECK(fragID >= 0 && fragID < numFragments);
 #ifdef USE_MPI
-    BEGIN_CONTRACT_SCOPE
-    {
-      int tmp;
-      MPI_Allreduce(&fragID, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-      CHECK(tmp == numProcs*fragID);
-      MPI_Allreduce(&numFragments, &tmp, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-      CHECK(tmp == numProcs*numFragments);
-    }
-    END_CONTRACT_SCOPE
+    CHECK(allReduce(fragID, SPHERAL_OP_SUM) == numProcs*fragID);
+    CHECK(allReduce(numFragments, SPHERAL_OP_SUM) == numProcs*numFragments);
 #endif
 
     // Remove the known maxGlobalID from the stack of fragment IDs.
@@ -317,13 +275,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
       if (removeItr != globalNodesRemaining.end())
         globalNodesRemaining.erase(removeItr);
     }
-    numGlobalNodesRemaining = globalNodesRemaining.size();
-#ifdef USE_MPI
-    {
-      int tmp = numGlobalNodesRemaining;
-      MPI_Allreduce(&tmp, &numGlobalNodesRemaining, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    }
-#endif
+    numGlobalNodesRemaining = allReduce(globalNodesRemaining.size(), SPHERAL_OP_SUM);
 
     BEGIN_CONTRACT_SCOPE
     {

@@ -1117,10 +1117,10 @@ computeConnectivity() {
   }
 
   // {
-  //   tpre = allReduce(unsigned(tpre), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
-  //   tmaster = allReduce(unsigned(tmaster), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
-  //   trefine = allReduce(unsigned(trefine), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
-  //   twalk = allReduce(unsigned(twalk), MPI_SUM, Communicator::communicator()) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   tpre = allReduce(unsigned(tpre), SPHERAL_OP_SUM) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   tmaster = allReduce(unsigned(tmaster), SPHERAL_OP_SUM) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   trefine = allReduce(unsigned(trefine), SPHERAL_OP_SUM) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
+  //   twalk = allReduce(unsigned(twalk), SPHERAL_OP_SUM) / Process::getTotalNumberOfProcesses() / CLOCKS_PER_SEC;
   //   if (Process::getRank() == 0) {
   //     std::cerr << "ConnectivityMap timings (pre, master, refine, walk) = " << tpre << " " << tmaster << " " << trefine << " " << twalk << std::endl;
   //   }

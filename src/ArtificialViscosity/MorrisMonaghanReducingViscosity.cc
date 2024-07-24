@@ -129,8 +129,8 @@ template<typename Dimension>
 void
 MorrisMonaghanReducingViscosity<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
-  FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
-  FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
+  auto& rvQ = myq.CqMultiplier();
+  auto& rvL = myq.ClMultiplier();
   rvQ = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousCqMultiplier);  // This will override the Q initializer intializing these to unity.
   rvL = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousClMultiplier);
   mDrvAlphaDtQ = dataBase.newFluidFieldList(0.0, IncrementBoundedState<Dimension, Scalar>::prefix() + HydroFieldNames::ArtificialViscousCqMultiplier);
@@ -145,10 +145,10 @@ void
 MorrisMonaghanReducingViscosity<Dimension>::
 registerState(DataBase<Dimension>& /*dataBase*/,
               State<Dimension>& state) {
-  FieldList<Dimension, Scalar>& rvQ = myq.CqMultiplier();
-  FieldList<Dimension, Scalar>& rvL = myq.ClMultiplier();
-  state.enroll(rvQ, std::make_shared<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
-  state.enroll(rvL, std::make_shared<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
+  auto& rvQ = myq.CqMultiplier();
+  auto& rvL = myq.ClMultiplier();
+  state.enroll(rvQ, make_policy<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
+  state.enroll(rvL, make_policy<IncrementBoundedState<Dimension, Scalar>>(maMin,maMax));
 }
     
 //------------------------------------------------------------------------------

@@ -33,13 +33,13 @@ function(spheral_add_obj_library package_name obj_list_name)
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS} 
       SHARED      TRUE)
   else()
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS} 
       OBJECT      TRUE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PUBLIC ${SPHERAL_SUBMOD_INCLUDES})
@@ -54,9 +54,6 @@ function(spheral_add_obj_library package_name obj_list_name)
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
   set_property(GLOBAL APPEND PROPERTY ${obj_list_name} Spheral_${package_name})
-  if(ENABLE_CUDA)
-    set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-  endif()
 
 endfunction()
 
@@ -94,20 +91,32 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS}
       SHARED      TRUE)
   else()
     # Build static spheral C++ library
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
-      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS}
+      DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS}
       SHARED      FALSE)
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
   if(ENABLE_CUDA)
     set_target_properties(Spheral_${package_name} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
   endif()
+
+
+  ## This cleans up library targets created with object libs. It is turned off as it triggers
+  ## a failure on Werror and pedantic builds.
+  #set(_properties COMPILE_DEFINITIONS LINK_LIBRARIES LINK_OPTIONS INTERFACE_LINK_OPTIONS COMPILE_OPTIONS INTERFACE_COMPILE_OPTIONS)
+  #foreach(_prop ${_properties})
+  #  get_target_property(temp_prop Spheral_${package_name} ${_prop})
+  #  list(REMOVE_DUPLICATES temp_prop)
+  #  set_target_properties(Spheral_${package_name} PROPERTIES ${_prop} "${temp_prop}")
+  #endforeach()
+
+  #set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 
   # Convert package name to lower-case for export target name
   string(TOLOWER ${package_name} lower_case_package)
@@ -123,26 +132,35 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   set_target_properties(Spheral_${package_name} PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endfunction()
 
+#----------------------------------------------------------------------------------------
+#                                   spheral_add_pybin11_library_package
+#----------------------------------------------------------------------------------------
+# -------------------------------------------
+# VARIABLES THAT NEED TO BE PREVIOUSLY DEFINED
+# -------------------------------------------
+# SPHERAL_BLT_DEPENDS    : REQUIRED : List of external dependencies
+# EXTRA_PYB11_SPHERAL_ENV_VARS : OPTIONAL : Additional directories containing python filed, used by LLNLSpheral
+# <package_name>_headers : OPTIONAL : List of necessary headers to include
+# <package_name>_sources : OPTIONAL : List of necessary source files to include
+# SPHERAL_SUBMOD_DEPENDS : REQUIRED : List of submodule dependencies
+# ----------------------
+# INPUT-OUTPUT VARIABLES
+# ----------------------
+# package_name     : REQUIRED : Desired package name
+# module_list_name : REQUIRED : The NAME of the global variable that is the list of
+#                               Spheral python modules (not the list itself)
+# INCLUDES : OPTIONAL : Target specific includes
+# DEPENDS : OPTIONAL : Target specific dependencies
+# SOURCE : OPTIONAL : Target specific sources
+# -----------------------
+# OUTPUT VARIABLES TO USE - Made available implicitly after function call
+# -----------------------
+# Spheral<package_name> : Target for a given Spheral python module
+# Spheral<package_name>_src : Target for the PYB11Generated source code for a given Spheral module
+# <module_list_name> : List of Spheral python modules, appended with current module name
+#----------------------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------------
-# spheral_add_pybind11_library
-#     - Generate the python friendly Spheral package lib
-#
-# Args:
-#   package_name : *name* of spheral package to make into a library
-#   INCLUDES     : optional, any additional include paths
-#   SOURCES      : optional, any additional source files to compile into the library
-#   DEPENDS      : optional, extra dependencies
-# 
-# Variables that must be set before calling spheral_add_obj_library:
-#     spheral_depends
-#         - List of targets the library depends on
-#     SPHERAL_BLT_DEPENDS
-#         - List of blt/libs the library depends on
-#
-#-----------------------------------------------------------------------------------
-
-function(spheral_add_pybind11_library package_name)
+function(spheral_add_pybind11_library package_name module_list_name)
 
   # Define our arguments
   set(options )
@@ -205,8 +223,6 @@ function(spheral_add_pybind11_library package_name)
 
   # Get the TPL dependencies
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
-  get_property(spheral_tpl_includes GLOBAL PROPERTY spheral_tpl_includes)
-  get_property(spheral_tpl_libraries GLOBAL PROPERTY spheral_tpl_libraries)
   # If building shared libraries, use the SPHERAL_OBJ_LIBS global list
   # Note, LLNLSpheral has appended any local targets to this list as well
   if(ENABLE_DEV_BUILD)
@@ -220,22 +236,20 @@ function(spheral_add_pybind11_library package_name)
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${SPHERAL_BLT_DEPENDS} ${SPHERAL_CXX_DEPENDS} ${EXTRA_CXX_DEPENDS} ${SPHERAL_DEPENDS}
+                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS}
                             PYTHONPATH      ${PYTHON_ENV_STR}
-                            INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${SPHERAL_INCLUDES} ${${package_name}_INCLUDES} ${spheral_tpl_includes} ${PYBIND11_ROOT_DIR}/include 
-                            LINKS           ${spheral_tpl_libraries}
-                            COMPILE_OPTIONS ${SPHERAL_PYB11_TARGET_FLAGS}
+                            INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${${package_name}_INCLUDES} ${PYBIND11_ROOT_DIR}/include
+                            COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${SPHERAL_PYB11_TARGET_FLAGS}>"
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             INSTALL         OFF
                             )
   target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
-  target_compile_options(${MODULE_NAME} PRIVATE ${SPHERAL_PYB11_TARGET_FLAGS})
 
   install(TARGETS     ${MODULE_NAME}
-          DESTINATION Spheral
+          DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
           )
-
+  set_property(GLOBAL APPEND PROPERTY ${module_list_name} ${package_name})
   # Set the r-path of the C++ lib such that it is independent of the build dir when installed
   set_target_properties(${MODULE_NAME} PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 

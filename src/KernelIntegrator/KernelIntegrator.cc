@@ -6,10 +6,6 @@
 #include "KernelIntegrator.hh"
 
 #include "Hydro/HydroFieldNames.hh"
-#include "Utilities/Process.hh"
-
-// // For debugging, can remove later
-// #include "Utilities/Process.hh"
 
 namespace Spheral {
 

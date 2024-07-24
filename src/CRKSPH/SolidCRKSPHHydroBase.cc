@@ -25,6 +25,7 @@
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
@@ -161,20 +162,17 @@ SolidCRKSPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 SolidCRKSPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
   // Call the ancestor.
-  CRKSPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+  CRKSPHHydroBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // Set the moduli.
-  size_t nodeListi = 0;
-  for (auto itr = dataBase.solidNodeListBegin();
-       itr < dataBase.solidNodeListEnd();
-       ++itr, ++nodeListi) {
-    (*itr)->bulkModulus(*mBulkModulus[nodeListi]);
-    (*itr)->shearModulus(*mShearModulus[nodeListi]);
-    (*itr)->yieldStrength(*mYieldStrength[nodeListi]);
-  }
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
 
   // Copy the initial H field to apply to nodes as they become damaged.
   const auto H = dataBase.fluidHfield();

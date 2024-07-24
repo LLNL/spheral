@@ -46,11 +46,6 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
-        return "void"
-
     @PYB11virtual 
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):

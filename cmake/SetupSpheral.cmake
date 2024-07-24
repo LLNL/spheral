@@ -5,7 +5,6 @@ include(ExternalProject)
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
-set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT SPHERAL_CMAKE_MODULE_PATH)
   set(SPHERAL_CMAKE_MODULE_PATH "${SPHERAL_ROOT_DIR}/cmake")
@@ -27,6 +26,7 @@ set(Python3_EXECUTABLE ${python_DIR}/bin/python3)
 
 set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
+set(BLT_DOCS_TARGET_NAME "blt_docs" CACHE STRING "")
 
 if(NOT SPHERAL_BLT_DIR) 
   set (SPHERAL_BLT_REL_DIR "${SPHERAL_ROOT_DIR}/cmake/blt" CACHE PATH "")
@@ -70,20 +70,19 @@ endif()
 
 if(ENABLE_MPI)
   set(BLT_MPI_COMPILE_FLAGS -DUSE_MPI -DMPICH_SKIP_MPICXX -ULAM_WANT_MPI2CPP -DOMPI_SKIP_MPICXX)
-  list(APPEND SPHERAL_BLT_DEPENDS mpi)
+  list(APPEND SPHERAL_CXX_DEPENDS mpi)
 endif()
 
 if(ENABLE_OPENMP)
-  list(APPEND SPHERAL_BLT_DEPENDS openmp)
+  list(APPEND SPHERAL_CXX_DEPENDS openmp)
 endif()
 
 if(ENABLE_CUDA)
-  #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
+  set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --extended-lambda -Xcudafe --display_error_number")
+  #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
-
-option(BOOST_HEADER_ONLY "only use the header only components of Boost" OFF)
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified

@@ -1,5 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// GSPHHydroBase -- The Godunov SPH hydrodynamic package for Spheral++.
+// GSPHHydroBase -- A Riemann-solver-based implementation of SPH. Compared to 
+//                  MFM/MFV this approach requires a larger neighbor set. 2.5
+//                  nodes per kernel extent instead of 2-2.25 for MFM/MFV but
+//                  does perform better on certain tests (Noh implosion)
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
@@ -60,9 +63,13 @@ public:
   // Destructor.
   virtual ~GSPHHydroBase();
 
-  // Tasks we do once on problem startup.
-  virtual
-  void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  // A second optional method to be called on startup, after Physics::initializeProblemStartup has
+  // been called.
+  // One use for this hook is to fill in dependendent state using the State object, such as
+  // temperature or pressure.
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Register the state Hydro expects to use and evolve.
   virtual 

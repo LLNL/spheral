@@ -153,33 +153,32 @@ GradyKippTensorDamageBenzAsphaug is constructed with the following arguments:
             if weibull_kwargs["mask"] is None:
                 weibull_kwargs["mask"] = IntField("mask", damage_kwargs["nodeList"], 1)
 
-            # Build the flaw distribution.
-            damage_kwargs["flaws"] = weibullFlawDistributionBenzAsphaug(**weibull_kwargs)
+            # Preserve the input for constructing the flaws
+            self.weibull_kwargs = weibull_kwargs
 
             # Invoke the parent constructor.
             TensorDamageModel.__init__(self, **damage_kwargs)
             return
 
+        ########################################################################
+        def initializeProblemStartupDependencies(self,
+                                                 dataBase,
+                                                 state,
+                                                 derivs):
+            # Set the flaws
+            self.weibull_kwargs["state"] = state
+            self.flaws = weibullFlawDistributionBenzAsphaug(**self.weibull_kwargs)
+
+            TensorDamageModel.initializeProblemStartupDependencies(self,
+                                                                   dataBase,
+                                                                   state,
+                                                                   derivs)
+
+            return
+
+        ########################################################################
         def label(self):
             return "GradyKippTensorDamageBenzAsphaug"
-
-        # def dumpState(self,
-        #                file,
-        #                pathName):
-        #     TensorDamageModel.dumpState(self, file, pathName)
-        #     #file.writeObject(self.kWeibull, pathName + "/kWeibull")
-        #     #file.writeObject(self.mWeibull, pathName + "/mWeibull")
-        #     #file.writeObject(self.seed, pathName + "/seed")
-        #     return
-
-        # def restoreState(self,
-        #                   file,
-        #                   pathName):
-        #     TensorDamageModel.restoreState(self, file, pathName)
-        #     #self.kWeibull = file.readObject(pathName + "/kWeibull")
-        #     #self.mWeibull = file.readObject(pathName + "/mWeibull")
-        #     #self.seed = file.readObject(pathName + "/seed")
-        #     return
 
     return GradyKippTensorDamageBenzAsphaug
 
@@ -324,34 +323,33 @@ GradyKippTensorDamageOwen is constructed with the following arguments:
             if weibull_kwargs["mask"] is None:
                 weibull_kwargs["mask"] = IntField("mask", damage_kwargs["nodeList"], 1)
 
-            # Build the flaw distribution.
-            damage_kwargs["flaws"] = weibullFlawDistributionOwen(**weibull_kwargs)
+            # Preserve the input for constructing the flaws, and build dummy flaws for now
+            self.weibull_kwargs = weibull_kwargs
 
             # Invoke the parent constructor.
             TensorDamageModel.__init__(self, **damage_kwargs)
 
             return
 
+        ########################################################################
+        def initializeProblemStartupDependencies(self,
+                                                 dataBase,
+                                                 state,
+                                                 derivs):
+            # Set the flaws
+            self.weibull_kwargs["state"] = state
+            self.flaws = weibullFlawDistributionOwen(**self.weibull_kwargs)
+
+            TensorDamageModel.initializeProblemStartupDependencies(self,
+                                                                   dataBase,
+                                                                   state,
+                                                                   derivs)
+
+            return
+
+        ########################################################################
         def label(self):
             return "GradyKippTensorDamageOwen"
-
-        # def dumpState(self,
-        #                file,
-        #                pathName):
-        #     TensorDamageModel.dumpState(self, file, pathName)
-        #     # file.writeObject(self.kWeibull, pathName + "/kWeibull")
-        #     # file.writeObject(self.mWeibull, pathName + "/mWeibull")
-        #     # file.writeObject(self.seed, pathName + "/seed")
-        #     return
-
-        # def restoreState(self,
-        #                   file,
-        #                   pathName):
-        #     TensorDamageModel.restoreState(self, file, pathName)
-        #     # self.kWeibull = file.readObject(pathName + "/kWeibull")
-        #     # self.mWeibull = file.readObject(pathName + "/mWeibull")
-        #     # self.seed = file.readObject(pathName + "/seed")
-        #     return
 
     return GradyKippTensorDamageOwen
 

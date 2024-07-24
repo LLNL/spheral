@@ -73,5 +73,5 @@ if (ENABLE_TIMER)
 endif()
 
 if (ENABLE_MPI)
-    add_definitions(-DUSE_MPI=1)
+  add_definitions(-DUSE_MPI=1)
 endif()

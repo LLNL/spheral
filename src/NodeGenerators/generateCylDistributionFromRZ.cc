@@ -2,14 +2,11 @@
 // Helper method for the GenerateCylindricalNodeDistribution3d node generator
 // to generate the spun node distribution.
 //------------------------------------------------------------------------------
-#ifdef USE_MPI
-#include <mpi.h>
-#endif
 
 #include "Boundary/CylindricalBoundary.hh"
 #include "Utilities/DBC.hh"
 #include "Geometry/Dimension.hh"
-#include "Distributed/Communicator.hh"
+#include "Distributed/allReduce.hh"
 
 #include <vector>
 #include <algorithm>
@@ -142,19 +139,11 @@ generateCylDistributionFromRZ(vector<double>& x,
          (int)globalIDs.size() == ndomain and
          (int)H.size() == ndomain);
   for (int ikey = 0; ikey != nextra; ++ikey) VERIFY((int)extraFields[ikey].size() == ndomain);
-#ifdef USE_MPI
-  {
-    int nlocal = x.size();
-    int nglobal;
-    if (nProcs > 1) {
-      MPI_Allreduce(&nlocal, &nglobal, 1, MPI_INT, MPI_SUM, Communicator::communicator());
-    }
-    else {
-      nglobal = nlocal;
-    }
-    VERIFY(nglobal == ntot);
+  int nglobal = x.size();
+  if (nProcs > 1) {
+    nglobal = allReduce(x.size(), SPHERAL_OP_SUM);
   }
-#endif
+  VERIFY(nglobal == ntot);
 
 }
 

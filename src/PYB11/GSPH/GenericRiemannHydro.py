@@ -7,6 +7,7 @@ from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
+@PYB11dynamic_attr
 class GenericRiemannHydro(Physics):
 
     PYB11typedefs = """
@@ -50,8 +51,14 @@ class GenericRiemannHydro(Physics):
         return "TimeStepType"
 
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
 
     @PYB11virtual 
@@ -140,7 +147,7 @@ class GenericRiemannHydro(Physics):
     cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
     specificThermalEnergyDiffusionCoefficient = PYB11property("Scalar", "specificThermalEnergyDiffusionCoefficient", "specificThermalEnergyDiffusionCoefficient", 
                                           doc="coefficient used to diffuse specificThermalEnergy amongst like nodes.")
-    riemannSolver = PYB11property("RiemannSolverBase<%(Dimension)s>&", "riemannSolver",returnpolicy="reference_internal",doc="The object defining the interface state construction.")
+    riemannSolver = PYB11property("RiemannSolverBase<%(Dimension)s>&", "riemannSolver", doc="The object defining the interface state construction.")
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
     gradientType = PYB11property("GradientType", "gradientType", "gradientType",
                                  doc="Enum to selecting different gradients we can use")
@@ -172,6 +179,7 @@ class GenericRiemannHydro(Physics):
 
     timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
     pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
+    volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",             returnpolicy="reference_internal")
     soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
     Hideal =                       PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
     normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")

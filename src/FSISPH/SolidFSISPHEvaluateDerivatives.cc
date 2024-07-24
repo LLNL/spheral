@@ -146,7 +146,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effectiveViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
@@ -178,7 +178,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
-  CHECK(effectiveViscousPressure.size() == numNodeLists);
+  CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(weightedNeighborSum.size() == numNodeLists);
@@ -224,7 +224,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
-    auto effectiveViscousPressure_thread = effectiveViscousPressure.threadCopy(threadStack);
+    auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
+    
 #pragma omp for
     for (auto kk = 0u; kk < numPairs; ++kk) {
       
@@ -277,7 +278,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
       auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
-      auto& effectiveViscousPressurei = effectiveViscousPressure_thread(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
       auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
       auto& newInterfaceAreaVectorsi = newInterfaceAreaVectors_thread(nodeListi,i);
       auto& newInterfaceNormalsi = newInterfaceNormals_thread(nodeListi,i);
@@ -330,7 +331,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
       auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
-      auto& effectiveViscousPressurej = effectiveViscousPressure_thread(nodeListj, j);
+      auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
       auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
       auto& newInterfaceAreaVectorsj = newInterfaceAreaVectors_thread(nodeListj,j);
       auto& newInterfaceNormalsj = newInterfaceNormals_thread(nodeListj,j);
@@ -511,12 +512,12 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
         // save our max pressure from the AV for each node
         {
-        const auto maxQPiij =  rhoi*rhoj * QPiij.diagonalElements().maxAbsElement();
-        const auto maxQPiji =  rhoi*rhoj * QPiij.diagonalElements().maxAbsElement();
-        maxViscousPressurei = max(maxViscousPressurei, maxQPiij);
-        maxViscousPressurej = max(maxViscousPressurej, maxQPiji);
-        effectiveViscousPressurei += maxQPiij * volj*Wi;
-        effectiveViscousPressurej += maxQPiji * voli*Wj;
+          const auto Qi = rhoi*rhoj * QPiij.diagonalElements().maxAbsElement();
+          const auto Qj = rhoi*rhoj * QPiji.diagonalElements().maxAbsElement();
+          maxViscousPressurei = max(maxViscousPressurei, Qi);
+          maxViscousPressurej = max(maxViscousPressurej, Qj);
+          effViscousPressurei += volj * Qi * Wi;
+          effViscousPressurej += voli * Qj * Wj;
         }
         // stress tensor
         //{

@@ -17,6 +17,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/VolumePolicy.hh"
 #include "Hydro/VoronoiMassDensityPolicy.hh"
 #include "Hydro/SumVoronoiMassDensityPolicy.hh"
@@ -180,12 +181,15 @@ SPHHydroBase<Dimension>::
 template<typename Dimension>
 void
 SPHHydroBase<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHinitializeStartup");
-  // Initialize the pressure and sound speed.
-  dataBase.fluidPressure(mPressure);
-  dataBase.fluidSoundSpeed(mSoundSpeed);
+
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
+
   // dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.
@@ -839,15 +843,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto etaj = Hj*rij;
       const auto etaMagi = etai.magnitude();
       const auto etaMagj = etaj.magnitude();
-      const auto etaUnit = etai*safeInvVar(etaMagi);
+      const auto etaiUnit = etai*safeInvVar(etaMagi);
+      const auto etajUnit = etaj*safeInvVar(etaMagj);
       CHECK(etaMagi >= 0.0);
       CHECK(etaMagj >= 0.0);
 
       // Symmetrized kernel weight and gradient.
       W.kernelAndGradValue(etaMagi, Hdeti, Wi, gWi);
       W.kernelAndGradValue(etaMagj, Hdetj, Wj, gWj);
-      gradWi = gWi*Hi*etaUnit;
-      gradWj = gWj*Hj*etaUnit;
+      gradWi = gWi*Hi*etaiUnit;
+      gradWj = gWj*Hj*etajUnit;
       if (oneKernel) {
         WQi = Wi;
         WQj = Wj;
@@ -856,8 +861,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       } else {
         WQ.kernelAndGradValue(etaMagi, Hdeti, WQi, gWQi);
         WQ.kernelAndGradValue(etaMagj, Hdetj, WQj, gWQj);
-        gradWQi = gWQi*Hi*etaUnit;
-        gradWQj = gWQj*Hj*etaUnit;
+        gradWQi = gWQi*Hi*etaiUnit;
+        gradWQj = gWQj*Hj*etajUnit;
       }
 
       // Zero'th and second moment of the node distribution -- used for the

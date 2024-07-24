@@ -92,6 +92,7 @@ source("functional/Gravity/ApproximatePolyhedralGravityModel.py")
 
 # Strength tests.
 #source("functional/Strength/PlateImpact/PlateImpact-1d.py")
+source("functional/Strength/TaylorImpact/TaylorImpact.py")
 source("functional/Strength/CollidingPlates/CollidingPlates-1d.py")
 source("functional/Strength/DiametralCompression/DiametralCompression.py")
 source("functional/Strength/Verney/Verney-spherical.py")

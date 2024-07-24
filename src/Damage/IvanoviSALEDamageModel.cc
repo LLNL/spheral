@@ -32,12 +32,12 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Utilities/mortonOrderIndices.hh"
-#include "Utilities/allReduce.hh"
 #include "Utilities/uniform_random.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
@@ -249,30 +249,22 @@ enforceBoundaries(State<Dimension>& state,
 }
 
 //------------------------------------------------------------------------------
-// Stuff to do on problem startup
+// On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 IvanoviSALEDamageModel<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
-  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
-  const auto& nodes = this->nodeList();
-  const auto& rho = nodes.massDensity();
-  const auto& eps = nodes.specificThermalEnergy();
-  const auto& D = nodes.damage();
-  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
-  nodes.equationOfState().setPressure(P, rho, eps);
-  if (nodes.strengthModel().providesBulkModulus()) {
-    nodes.strengthModel().bulkModulus(K, rho, eps);
-  } else {
-    nodes.equationOfState().setBulkModulus(K, rho, eps);
-  }
-  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
-
-  // Set the initial values for Youngs modulus and the longitudinal sound speed
-  nodes.YoungsModulus(mYoungsModulus, K, mu);
-  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+  updateStateFields(SolidFieldNames::YoungsModulus, state, derivs);
+  updateStateFields(SolidFieldNames::longitudinalSoundSpeed, state, derivs);
 }
 
 //------------------------------------------------------------------------------

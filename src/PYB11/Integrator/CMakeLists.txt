@@ -1,1 +1,1 @@
-spheral_add_pybind11_library(Integrator)
+spheral_add_pybind11_library(Integrator SPHERAL_MODULE_LIST)

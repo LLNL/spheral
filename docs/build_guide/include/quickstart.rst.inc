@@ -12,9 +12,6 @@ Update and install necessary package dependencies.
   sudo apt upgrade
   sudo apt install build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev liblapack-dev libbz2-dev locales python python3 unzip libtool wget curl tk-dev
 
-.. warning::
-   For alternative Linux distros your mileage may vary, ensure you are installing compatible packages to the ones listed above.
-
 [ex_update_sys-section-end]
 
 ..
@@ -46,6 +43,12 @@ Build our TPL dependencies from source with the Spheral tpl-management tool (``t
 
 .. note::
   This command will generate a ``.cmake`` file with the naming convention ``<system-type>-<compiler-spec>``. The following commands will refer to this format as ``<host-config>`` for generalization across operating systems and architectures. You will need to substitute the correct format in the following commands. 
+
+.. warning::
+   For operating systems other than Ubuntu 20.04 you should get an error to the effect of:
+   ``[ERROR: invalid spack config dir: /<path>/scripts/spack/configs/<OperatingSystem><Version> ]``
+   You will **need** to follow the steps outlined in :ref:`ERROR: invalid spack config dir` before proceeding with this quickstart guide.
+
 
 [ex_tpl-section-end]
 

@@ -104,10 +104,19 @@ CRKSPHHydroBaseRZ::
 //------------------------------------------------------------------------------
 void
 CRKSPHHydroBaseRZ::
-initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
-  
+initializeProblemStartup(DataBase<Dim<2>>& dataBase) {
   GeometryRegistrar::coords(CoordinateType::RZ);
+}
 
+//------------------------------------------------------------------------------
+// On problem start up some dependent state needs to be calculated
+//------------------------------------------------------------------------------
+void
+CRKSPHHydroBaseRZ::
+initializeProblemStartupDependencies(DataBase<Dim<2>>& dataBase,
+                                     State<Dim<2>>& state,
+                                     StateDerivatives<Dim<2>>& derivs) {
+  
   // Correct the mass to mass/r.
   auto mass = dataBase.fluidMass();
   const auto pos = dataBase.fluidPosition();
@@ -121,7 +130,7 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
   }
 
   // Do general initializations.
-  CRKSPHHydroBase<Dim<2> >::initializeProblemStartup(dataBase);
+  CRKSPHHydroBase<Dim<2> >::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // Convert back to mass.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -138,8 +147,8 @@ initializeProblemStartup(DataBase<Dim<2> >& dataBase) {
 //------------------------------------------------------------------------------
 void
 CRKSPHHydroBaseRZ::
-registerState(DataBase<Dim<2> >& dataBase,
-              State<Dim<2> >& state) {
+registerState(DataBase<Dim<2>>& dataBase,
+              State<Dim<2>>& state) {
 
   // The base class does most of it.
   CRKSPHHydroBase<Dim<2> >::registerState(dataBase, state);

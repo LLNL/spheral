@@ -1,11 +1,4 @@
-#find_package(Sphinx)
-set(SPHINX_FOUND true)
-if (NOT DEFINED SPHINX_EXEC)
-  set(SPHINX_EXEC "${sphinx_DIR}/bin/sphinx-build" CACHE STRING "Path to sphinx documentation generator")
-endif()
-message("-- Sphinx ${SPHINX_EXEC}")
- 
-if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
+if(ENABLE_DOCS)
   if(NOT DEFINED SPHINX_THEME)
     set(SPHINX_THEME sphinx_rtd_theme)
   endif()
@@ -28,8 +21,8 @@ if(ENABLE_DOCS AND NOT SPHINX_EXEC STREQUAL "SPHINX_EXEC-NOTFOUND")
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
-  add_custom_target(Spheral_docs ALL
-    ${CMAKE_COMMAND} -E env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m sphinx
+  add_custom_target(docs ALL
+    env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m sphinx
     -q -b html
     -c "${BINARY_BUILD_DIR}"
     -d "${SPHINX_CACHE_DIR}"

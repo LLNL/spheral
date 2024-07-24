@@ -58,8 +58,7 @@ class DEMBase(Physics):
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the DEM before we start a derivative evaluation."
-        return "void"
-                       
+        return "void"                
 
     @PYB11virtual
     @PYB11const
@@ -105,19 +104,13 @@ class DEMBase(Physics):
         return "void"
 
     @PYB11const
-    def numSolidBoundaries(self):
-        "return the number of solid boundaries being tracked"
-        return "unsigned int"
-
-    @PYB11const
     def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
         "is this boundary being tracked?"
         return "bool"
-
-    @PYB11const
-    def getSolidBoundaryUniqueIndex(x="const int"):
-        "Unique index for neighborIndices pairFieldList (returns -x-1)"
-        return "int"
+    
+    def removeSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
+        "remove the specified solid boundary"
+        return "void"
 
     #...........................................................................
     # Properties
@@ -145,6 +138,8 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    newSolidBoundaryIndex = PYB11property("int", "newSolidBoundaryIndex", doc="index of the most recent solid bc added to the package")
+    numSolidBoundaries = PYB11property("unsigned int", "numSolidBoundaries", doc="number of solid boundaries")
     numContacts = PYB11property("unsigned int", "numContacts", doc="Total number of contacts")
     numParticleParticleContacts = PYB11property("unsigned int", "numParticleParticleContacts", doc="Number of interactions with other dem particles")
     numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")

@@ -23,12 +23,13 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/ReplaceState.hh"
+#include "DataBase/updateStateFields.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Utilities/mortonOrderIndices.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/uniform_random.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
@@ -100,7 +101,7 @@ ProbabilisticDamageModel<Dimension>::
 }
 
 //------------------------------------------------------------------------------
-// initializeProblemStartup
+// initializeProblemStartupDependencies
 //
 // After all initial state has been initialize (node positions, masses, etc),
 // but before we try to run any physics cycles.  This is when we initialize a
@@ -109,7 +110,9 @@ ProbabilisticDamageModel<Dimension>::
 template<typename Dimension>
 void
 ProbabilisticDamageModel<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
 
   // How many points are actually being damaged?
   // We have to be careful to use an unsigned size_t here due to overflow
@@ -118,7 +121,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   for (auto i = 0u; i < mMask.numInternalElements(); ++i) {
     if (mMask[i] == 1) ++nused_local;
   }
-  const size_t nused_global = allReduce(nused_local, MPI_SUM, Communicator::communicator());
+  const size_t nused_global = allReduce(nused_local, SPHERAL_OP_SUM);
 
   // Compute the Morton-ordering for hashing with the global seed to seed each
   // point-wise random number generator.
@@ -131,8 +134,11 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Compute the initial volumes and random seeds for each node.  We hash the
   // morton index of each point with the global seed value to create unique
   // but reproducible seeds for each points random number generator.
-  const auto& mass = nodes.mass();
-  const auto& rho = nodes.massDensity();
+  auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodes.name()); };
+  const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+  const auto& rho = (state.registered(buildKey(SolidFieldNames::porositySolidDensity)) ?
+                     state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                     state.field(buildKey(HydroFieldNames::massDensity), 0.0));
   const auto  nlocal = nodes.numInternalNodes();
   vector<uniform_random> randomGenerators(nlocal);
 #pragma omp parallel for
@@ -152,8 +158,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
       randomGenerators[i]();                // Recommended to discard first value in sequence
     }
   }
-  mVmin = allReduce(mVmin, MPI_MIN, Communicator::communicator());
-  mVmax = allReduce(mVmax, MPI_MAX, Communicator::communicator());
+  mVmin = allReduce(mVmin, SPHERAL_OP_MIN);
+  mVmax = allReduce(mVmax, SPHERAL_OP_MAX);
 
   // Generate min/max ranges of flaws for each point.
   const auto mInv = 1.0/mmWeibull;
@@ -194,12 +200,12 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 
   // Some diagnostic output.
   if (nused_global > 0) {
-    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
-    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
-    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
-    epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
-    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-    numFlawsRatio = allReduce(numFlawsRatio, MPI_SUM, Communicator::communicator())/nused_global;
+    minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+    maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+    totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+    epsMin = allReduce(epsMin, SPHERAL_OP_MIN);
+    epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+    numFlawsRatio = allReduce(numFlawsRatio, SPHERAL_OP_SUM)/nused_global;
     if (Process::getRank() == 0) {
       cerr << "ProbabilisticDamageModel for " << nodes.name() << ":" << endl
            << " Min, max, max/min volumes: " << mVmin << " " << mVmax << " " << mVmax*safeInv(mVmin) << endl
@@ -213,21 +219,13 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     }
   }
 
-  // We need a bunch of state to set the Youngs modulus and longitudinal sound speed
-  const auto& eps = nodes.specificThermalEnergy();
-  const auto& D = nodes.damage();
-  Field<Dimension, Scalar> P("P", nodes), K("K", nodes), mu("mu", nodes);
-  nodes.equationOfState().setPressure(P, rho, eps);
-  if (nodes.strengthModel().providesBulkModulus()) {
-    nodes.strengthModel().bulkModulus(K, rho, eps);
-  } else {
-    nodes.equationOfState().setBulkModulus(K, rho, eps);
-  }
-  nodes.strengthModel().shearModulus(mu, rho, eps, P, D);
-
-  // Set the initial values for Youngs modulus and the longitudinal sound speed
-  nodes.YoungsModulus(mYoungsModulus, K, mu);
-  nodes.longitudinalSoundSpeed(mLongitudinalSoundSpeed, rho, K, mu);
+  // Set the moduli.
+  updateStateFields(HydroFieldNames::pressure, state, derivs);
+  updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
+  updateStateFields(SolidFieldNames::shearModulus, state, derivs);
+  updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+  updateStateFields(SolidFieldNames::YoungsModulus, state, derivs);
+  updateStateFields(SolidFieldNames::longitudinalSoundSpeed, state, derivs);
 }
 
 //------------------------------------------------------------------------------

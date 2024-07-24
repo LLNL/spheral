@@ -62,10 +62,15 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "register the surface normals w/ the database"
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
-
 
     @PYB11virtual
     def initialize(time = "const Scalar",
@@ -148,6 +153,7 @@ mass density, velocity, and specific thermal energy."""
     M =                            PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "M",                    returnpolicy="reference_internal")
     localM =                       PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
     maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
+    effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure",   returnpolicy="reference_internal")
     normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
     weightedNeighborSum =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
     massSecondMoment =             PYB11property("const FieldList<%(Dimension)s, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")

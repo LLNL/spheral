@@ -15,9 +15,11 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "DataBase/DataBase.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
+#include "DataBase/State.hh"
 #include "Distributed/Communicator.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 
 using std::unordered_map;
 using std::vector;
@@ -45,6 +47,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
                                    const double kWeibull,
                                    const double mWeibull,
                                    const FluidNodeList<Dimension>& nodeList,
+                                   const State<Dimension>& state,
                                    const int minFlawsPerNode,
                                    const int minTotalFlaws,
                                    const Field<Dimension, int>& mask) {
@@ -58,8 +61,6 @@ weibullFlawDistributionBenzAsphaug(double volume,
   REQUIRE(minTotalFlaws > 0);
   REQUIRE(mask.nodeListPtr() == &nodeList);
 
-  typedef typename Dimension::Scalar Scalar;
-
   // Prepare the result.
   Field<Dimension, vector<double> > flaws("Weibull flaw distribution",
                                           nodeList);
@@ -70,7 +71,9 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
   // Prepare a table to faciliate looking local IDs from global.
   unordered_map<unsigned, unsigned> global2local;
-  for (unsigned i = 0; i != nodeList.numInternalNodes(); ++i) global2local[globalIDs(i)] = i;
+  const auto nlocal = nodeList.numInternalNodes();
+#pragma omp parallel for
+  for (auto i = 0u; i < nlocal; i++) global2local[globalIDs(i)] = i;
   CHECK(global2local.size() == nodeList.numInternalNodes());
 
   // Prepare an int per *each* node, so that each process can keep track of how many
@@ -84,15 +87,19 @@ weibullFlawDistributionBenzAsphaug(double volume,
   if (n > 0) {
 
     // If the user did not speicify a volume, we compute it from the information
-    // in the NodeList.
+    // in the State.
     if (volume == 0.0) {
-      const Field<Dimension, Scalar>& mass = nodeList.mass();
-      const Field<Dimension, Scalar>& rho = nodeList.massDensity();
-      for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
+      auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeList.name()); };
+      const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+      const auto& rho = (state.registered(buildKey(SolidFieldNames::porositySolidDensity)) ?
+                         state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                         state.field(buildKey(HydroFieldNames::massDensity), 0.0));
+#pragma omp parallel for
+      for (auto i = 0u; i < nlocal; i++) {
         CHECK(rho(i) > 0.0);
         volume += mass(i)/rho(i);
       }
-      volume = allReduce(volume, MPI_SUM, Communicator::communicator());
+      volume = allReduce(volume, SPHERAL_OP_SUM);
     }
     volume = std::max(volume, 1e-100);
     CHECK(volume > 0.0);
@@ -148,7 +155,7 @@ weibullFlawDistributionBenzAsphaug(double volume,
     unsigned totalNumFlaws = 0;
     double epsMax = 0.0;
     double sumFlaws = 0.0;
-    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i < nodeList.numInternalNodes(); ++i) {
       minNumFlaws = min(minNumFlaws, unsigned(flaws(i).size()));
       maxNumFlaws = max(maxNumFlaws, unsigned(flaws(i).size()));
       totalNumFlaws += flaws(i).size();
@@ -161,11 +168,11 @@ weibullFlawDistributionBenzAsphaug(double volume,
 
     // Prepare some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
-    minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
-    maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
-    totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
-    epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-    sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+    minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+    maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+    totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+    epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+    sumFlaws = allReduce(sumFlaws, SPHERAL_OP_SUM);
     if (procID == 0) {
       cerr << "weibullFlawDistributionBenzAsphaug: Min num flaws per node: " << minNumFlaws << endl
            << "                                    Max num flaws per node: " << maxNumFlaws << endl

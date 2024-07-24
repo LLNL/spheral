@@ -1,3 +1,4 @@
+# When Python targets are created, they add the module name to SPHERAL_MODULE_LIST
 set (_python_packages
   CXXTypes
   CXXTests
@@ -65,7 +66,9 @@ foreach(_python_package ${_python_packages})
   add_subdirectory(${_python_package})
 endforeach()
 
-string(REPLACE ";" " " PYTHONPKGS "${_python_packages}")
+# This global list is filled in each spheral_add_pybind11_library call
+get_property(SPHERAL_MODULE_LIST GLOBAL PROPERTY SPHERAL_MODULE_LIST)
+string(REPLACE ";" " " PYTHONPKGS "${SPHERAL_MODULE_LIST}")
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralCompiledPackages.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py)
@@ -76,10 +79,7 @@ set(PYB11_python_targets
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py
   )
 
-install(FILES       ${PYB11_python_targets}
-        DESTINATION Spheral
-        )
+spheral_install_python_files(${PYB11_python_targets})
 
 install(FILES       Spheral.pth 
-        DESTINATION .
-        )
+        DESTINATION ${SPHERAL_SITE_PACKAGES_PATH})

@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from spack import *
+from spack.package import *
 import socket
 import os
 
@@ -19,7 +19,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # -------------------------------------------------------------------------
     # VERSIONS
     # -------------------------------------------------------------------------
-    version('develop', branch='feature/spack', submodules=True)
+    version('develop', branch='develop', submodules=True)
     version('1.0', tag='FSISPH-v1.0', submodules=True)
 
     # -------------------------------------------------------------------------
@@ -34,13 +34,13 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # DEPENDS
     # -------------------------------------------------------------------------
     depends_on('mpi', when='+mpi')
-    depends_on('cmake@3.10.0:', type='build')
-
-    depends_on('zlib@1.2.11 +shared +pic', type='build')
+    depends_on('cmake@3.21.0:', type='build')
 
     depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('qhull@2020.1 +pic', type='build')
+    depends_on('zlib@1.3 +shared +pic', type='build')
+
+    depends_on('qhull@2020.2 +pic', type='build')
     depends_on('m-aneos@1.0')
     depends_on('eigen@3.4.0', type='build')
     depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
@@ -49,35 +49,41 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.8.2 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit@0.8.2 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit@0.9.1 +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
+    depends_on('conduit@0.9.1 +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
+    depends_on('conduit@0.9.1 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.9.1 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
 
-    depends_on('axom@0.7.0 ~shared +mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='+mpi')
-    depends_on('axom@0.7.0 ~shared ~mpi +hdf5 -lua -examples -python -fortran -umpire -raja', type='build', when='~mpi')
+    depends_on('raja@2024.02.0 +cuda cuda_arch=70', when='+cuda')
+    depends_on('umpire  +cuda cuda_arch=70', when='+cuda')
+
+    depends_on('raja@2024.02.0 ~cuda', when='~cuda')
+    depends_on('umpire  ~cuda', when='~cuda')
+
+    depends_on('axom@0.9.0 ~shared +cuda +mpi +hdf5 -lua -examples -python -fortran', type='build', when='+mpi+cuda')
+    depends_on('axom@0.9.0 ~shared +cuda ~mpi +hdf5 -lua -examples -python -fortran', type='build', when='~mpi+cuda')
+    depends_on('axom@0.9.0 ~shared ~cuda +mpi +hdf5 -lua -examples -python -fortran', type='build', when='+mpi~cuda')
+    depends_on('axom@0.9.0 ~shared ~cuda ~mpi +hdf5 -lua -examples -python -fortran', type='build', when='~mpi~cuda')
 
     depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
-    depends_on('polytope@0.7 +python', type='build')
+    depends_on('polytope@0.7.3 +python', type='build')
 
     extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
 
     depends_on('py-numpy@1.23.4', type='build')
     depends_on('py-numpy-stl@3.0.0', type='build')
-    depends_on('py-python-utils@2.4.0', type='build')
-    depends_on('py-matplotlib@3.3.4 backend=tkagg +fonts', type='build')
-    depends_on('py-pillow@9.2.0', type='build')
-    depends_on('py-decorator@5.1.1', type='build')
-    depends_on('py-h5py@3.7.0', type='build')
-    depends_on('py-docutils@0.19', type='build')
-    depends_on('py-cython@0.29.32', type='build')
-    depends_on('py-scipy@1.8.1', type='build')
-    depends_on('py-importlib-metadata@4.12.0', type='build')
+    depends_on('py-pillow@9.5.0', type='build')
+    depends_on('py-matplotlib@3.7.4 backend=tkagg +fonts', type='build')
+    depends_on('py-h5py@3.9.0', type='build')
+    depends_on('py-docutils@0.18.1', type='build')
+    depends_on('py-scipy@1.12.0', type='build')
     depends_on('py-ats@exit', type='build')
-    depends_on('py-mpi4py@3.1.4', type='build', when='+mpi')
+    depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
 
-    depends_on('py-sphinx@5.3.0', type='build')
-    depends_on('py-sphinx-rtd-theme@0.5.1', type='build')
+    depends_on('py-sphinx', type='build')
+    depends_on('py-sphinx-rtd-theme', type='build')
 
     depends_on('netlib-lapack', type='build')
 
@@ -100,13 +106,13 @@ class Spheral(CachedCMakePackage, CudaPackage):
             hostname = hostname.rstrip('1234567890')
 
         envspec = os.environ.get("SPEC")
+        spec = self.spec
         if envspec:
           cache_spec = envspec
         else:
-          cache_spec = self.spec.compiler.name + "@" + self.spec.compiler.version
-        return "{1}-{2}.cmake".format(
-            hostname,
-            self._get_sys_type(self.spec),
+          cache_spec = str(spec.compiler.name) + "@" + str(spec.compiler.version)
+        return "{0}-{1}.cmake".format(
+            str(self._get_sys_type(spec)),
             cache_spec.replace(" ", "_")
         )
 
@@ -159,8 +165,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
-        entries.append(cmake_cache_path('zlib_DIR', spec['zlib'].prefix))
-
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
         entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
@@ -170,6 +174,10 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_path('hdf5_DIR', spec['hdf5'].prefix))
     
         entries.append(cmake_cache_path('conduit_DIR', spec['conduit'].prefix))
+
+        entries.append(cmake_cache_path('raja_DIR', spec['raja'].prefix))
+
+        entries.append(cmake_cache_path('umpire_DIR', spec['umpire'].prefix))
 
         entries.append(cmake_cache_path('axom_DIR', spec['axom'].prefix))
 
@@ -203,3 +211,19 @@ class Spheral(CachedCMakePackage, CudaPackage):
         spec = self.spec
 
         return options
+
+    @property
+    def build_dirname(self):
+        """Directory name to use when building the package."""
+        return "spack-build-%s" % self.pkg.spec.dag_hash(7)
+
+    @property
+    def build_directory(self):
+        """Full-path to the directory to use when building the package."""
+        spec = self.spec
+        if spec.satisfies("@develop"):
+            dev_build_dir = "spack-build-" + str(spec.compiler.name) + "-" + str(spec.compiler.version)
+            return os.path.join(self.pkg.stage.source_path, build_dirname)
+        else:
+            return os.path.join(self.pkg.stage.path, self.build_dirname)
+

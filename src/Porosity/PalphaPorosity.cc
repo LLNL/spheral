@@ -109,9 +109,6 @@ PalphaPorosity(const SolidNodeList<Dimension>& nodeList,
     for (auto i = 0u; i < n; ++i) {
       mc0[i] = c0[i];
     }
-    const auto alpha0_min = mAlpha0.min();
-    VERIFY2((1.0 <= mAlphae) and (mAlphae <= mAlphat) and (mAlphat <= alpha0_min),
-            "PalphaPorosity input ERROR : require 1.0 <= alphae <= alphat <= alpha0, (alphae, alphat, alpha0) = " << mAlphae << ", " << mAlphat << ", " << alpha0_min);
   }
 }
 
@@ -230,29 +227,6 @@ registerState(DataBase<Dimension>& dataBase,
   // We need the pressure derivatives
   state.enroll(mdPdU);
   state.enroll(mdPdR);
-}
-
-//------------------------------------------------------------------------------
-// One time initializations at problem set up.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-PalphaPorosity<Dimension>::
-initializeProblemStartup(DataBase<Dimension>& dataBase) {
-
-  // Base initialization
-  PorosityModel<Dimension>::initializeProblemStartup(dataBase);
-
-  // Get some state from the DataBase we're gonna need
-  const auto  rhoFL = dataBase.fluidMassDensity();
-  const auto  epsFL = dataBase.fluidSpecificThermalEnergy();
-  const auto& rho = **rhoFL.fieldForNodeList(mNodeList);
-  const auto& eps = **epsFL.fieldForNodeList(mNodeList);
-
-  // We also need the partial derivatives of the pressure.
-  Field<Dimension, Scalar> P("tmp pressure", mNodeList);
-  const auto& eos = mNodeList.equationOfState();
-  eos.setPressureAndDerivs(P, mdPdU, mdPdR, rho, eps);
 }
 
 //------------------------------------------------------------------------------

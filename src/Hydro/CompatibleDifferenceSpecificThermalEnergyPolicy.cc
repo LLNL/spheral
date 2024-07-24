@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// CompatibleDifferenceSpecificThermalEnergyPolicy -- An implementation of UpdatePolicyBase 
-// specialized for the updating the specific thermal energy as a dependent 
-// quantity.
+// CompatibleDifferenceSpecificThermalEnergyPolicy -- An implementation of 
+// UpdatePolicyBase specialized for the updating the specific thermal energy 
+// as a dependent quantity.
 // 
 // This version is specialized for materials with different properties. A 
 // compatible energy discretization in which pairwise work allows for opposite
 // sign pair-wise work. DepsDti and  DepsDtj are used as weights and the 
-// difference between the conservative  and consistent formulations is added 
+// difference between the conservative and consistent formulations is added 
 // back in.
 //----------------------------------------------------------------------------//
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"

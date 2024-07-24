@@ -32,6 +32,15 @@ required of descendant classes."""
                flaws = "const FlawStorageType&"):
         "Constructor"
 
+    def pyinit1(self,
+                nodeList = "SolidNodeList<%(Dimension)s>&",
+                strainAlgorithm = "const TensorStrainAlgorithm",
+                damageCouplingAlgorithm  = "const DamageCouplingAlgorithm",
+                kernel = "const TableKernel<%(Dimension)s>&",
+                crackGrowthMultiplier = "const double",
+                criticalDamageThreshold = "const double",
+                damageInCompression = "const bool"):
+        "Constructor"
     #...........................................................................
     # Virtual methods
     @PYB11virtual 
@@ -84,9 +93,14 @@ required of descendant classes."""
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self,
-                                 dataBase = "DataBase<%(Dimension)s>&"):
-        "An optional hook to initialize once when the problem is starting up."
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
 
     #...........................................................................
@@ -104,7 +118,7 @@ required of descendant classes."""
     # Properties
     youngsModulus = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
     longitudinalSoundSpeed = PYB11property("const Field<%(Dimension)s, Scalar>&", returnpolicy="reference_internal")
-    flaws = PYB11property("const FlawStorageType&", returnpolicy="reference_internal",
+    flaws = PYB11property("const FlawStorageType&", "flaws", "flaws", returnpolicy="reference_internal",
                           doc="The raw set of flaw activation strains per point")
     sumActivationEnergiesPerNode = PYB11property("Field<%(Dimension)s, Scalar>", 
                                                  doc="Compute a Field with the sum of the activation energies per node.")

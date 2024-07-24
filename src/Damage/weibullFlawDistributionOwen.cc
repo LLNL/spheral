@@ -8,9 +8,11 @@
 #include "NodeList/FluidNodeList.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
-#include "DataBase/DataBase.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Strength/SolidFieldNames.hh"
+#include "DataBase/State.hh"
 #include "Distributed/Communicator.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 
 #include <boost/functional/hash.hpp>  // hash_combine
 
@@ -44,6 +46,7 @@ weibullFlawDistributionOwen(const unsigned seed,
                             const double kWeibull,
                             const double mWeibull,
                             const FluidNodeList<Dimension>& nodeList,
+                            const State<Dimension>& state,
                             const int minFlawsPerNode,
                             const double volumeMultiplier,
                             const Field<Dimension, int>& mask) {
@@ -54,7 +57,6 @@ weibullFlawDistributionOwen(const unsigned seed,
   REQUIRE(minFlawsPerNode > 0);
   REQUIRE(mask.nodeListPtr() == &nodeList);
 
-  typedef typename Dimension::Scalar Scalar;
   typedef KeyTraits::Key Key;
 
   // Prepare the result.
@@ -66,17 +68,20 @@ weibullFlawDistributionOwen(const unsigned seed,
   db.appendNodeList(const_cast<FluidNodeList<Dimension>&>(nodeList));
   FieldList<Dimension, Key> keyList = mortonOrderIndices(db);
   const auto nglobal = db.globalNumInternalNodes();
+  const auto nlocal = nodeList.numInternalNodes();
 
   // Is there anything to do?
   if (nglobal > 0) {
-    const auto nlocal = nodeList.numInternalNodes();
 
     // Identify the rank and number of domains.
     const auto procID = Process::getRank();
 
     // State for this NodeList.
-    const Field<Dimension, Scalar>& mass = nodeList.mass();
-    const Field<Dimension, Scalar>& rho = nodeList.massDensity();
+    auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeList.name()); };
+    const auto& mass = state.field(buildKey(HydroFieldNames::mass), 0.0);
+    const auto& rho = (state.registered(buildKey(SolidFieldNames::porositySolidDensity)) ?
+                       state.field(buildKey(SolidFieldNames::porositySolidDensity), 0.0) :
+                       state.field(buildKey(HydroFieldNames::massDensity), 0.0));
 
     // Construct a random number generator for each point.
     // Note we hash with the ordering key to generate a unique but reproducible sequence for each point.
@@ -96,15 +101,15 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Find the minimum and maximum node volumes.
     double Vmin = std::numeric_limits<double>::max(), 
            Vmax = std::numeric_limits<double>::min();
-    for (auto i = 0u; i != nodeList.numInternalNodes(); ++i) {
+    for (auto i = 0u; i < nlocal; i++) {
       if (mask(i) == 1) {
         const double Vi = mass(i)/rho(i);
         Vmin = min(Vmin, Vi);
         Vmax = max(Vmax, Vi);
       }
     }
-    Vmin = allReduce(Vmin*volumeMultiplier, MPI_MIN, Communicator::communicator());
-    Vmax = allReduce(Vmax*volumeMultiplier, MPI_MAX, Communicator::communicator());
+    Vmin = allReduce(Vmin*volumeMultiplier, SPHERAL_OP_MIN);
+    Vmax = allReduce(Vmax*volumeMultiplier, SPHERAL_OP_MAX);
     CHECK(Vmin > 0.0);
     CHECK(Vmax >= Vmin);
 
@@ -118,8 +123,8 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Generate the flaws on each node indepedently.
     const double mInv = 1.0/mWeibull;
     unsigned minNumFlaws = std::numeric_limits<int>::max();
-    unsigned maxNumFlaws = 0;
-    unsigned totalNumFlaws = 0;
+    unsigned maxNumFlaws = 0u;
+    unsigned totalNumFlaws = 0u;
     double epsMin = std::numeric_limits<double>::max();
     double epsMax = std::numeric_limits<double>::min();
     double sumFlaws = 0.0;
@@ -152,12 +157,12 @@ weibullFlawDistributionOwen(const unsigned seed,
     // Some diagnostic output.
     const auto nused = std::max(1, mask.sumElements());
     if (nglobal > 0) {
-      minNumFlaws = allReduce(minNumFlaws, MPI_MIN, Communicator::communicator());
-      maxNumFlaws = allReduce(maxNumFlaws, MPI_MAX, Communicator::communicator());
-      totalNumFlaws = allReduce(totalNumFlaws, MPI_SUM, Communicator::communicator());
-      epsMin = allReduce(epsMin, MPI_MIN, Communicator::communicator());
-      epsMax = allReduce(epsMax, MPI_MAX, Communicator::communicator());
-      sumFlaws = allReduce(sumFlaws, MPI_SUM, Communicator::communicator());
+      minNumFlaws = allReduce(minNumFlaws, SPHERAL_OP_MIN);
+      maxNumFlaws = allReduce(maxNumFlaws, SPHERAL_OP_MAX);
+      totalNumFlaws = allReduce(totalNumFlaws, SPHERAL_OP_SUM);
+      epsMin = allReduce(epsMin, SPHERAL_OP_MIN);
+      epsMax = allReduce(epsMax, SPHERAL_OP_MAX);
+      sumFlaws = allReduce(sumFlaws, SPHERAL_OP_SUM);
     }
     if (procID == 0) {
       cerr << "weibullFlawDistributionOwen: Min num flaws per node: " << minNumFlaws << endl
@@ -172,7 +177,7 @@ weibullFlawDistributionOwen(const unsigned seed,
     // That's it.
     BEGIN_CONTRACT_SCOPE
     {
-      for (int i = 0; i != (int)nodeList.numInternalNodes(); ++i) {
+      for (auto i = 0u; i < nlocal; ++i) {
         if (mask(i) == 1) {
           for (vector<double>::const_iterator itr = flaws(i).begin() + 1;
                itr != flaws(i).end();

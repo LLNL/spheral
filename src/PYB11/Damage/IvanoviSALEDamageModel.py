@@ -96,9 +96,14 @@ Lundborg, N. (1967). The strength-size relation of granite. International Journa
         return "void"
 
     @PYB11virtual
-    def initializeProblemStartup(self,
-                                 dataBase = "DataBase<%(Dimension)s>&"):
-        "An optional hook to initialize once when the problem is starting up."
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
 
     #...........................................................................

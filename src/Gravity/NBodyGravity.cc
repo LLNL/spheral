@@ -219,11 +219,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     }
   }
 
-#ifdef USE_MPI
-  mExtraEnergy = allReduce(mExtraEnergy, MPI_SUM, Communicator::communicator());
-  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, MPI_MAX, Communicator::communicator());
-  mOldMaxVelocity = allReduce(mOldMaxVelocity, MPI_MAX, Communicator::communicator());
+  mExtraEnergy = allReduce(mExtraEnergy, SPHERAL_OP_SUM);
+  mOldMaxAcceleration = allReduce(mOldMaxAcceleration, SPHERAL_OP_MAX);
+  mOldMaxVelocity = allReduce(mOldMaxVelocity, SPHERAL_OP_MAX);
 
+#ifdef USE_MPI
   // Wait until all our sends are complete.
   vector<MPI_Status> sendStatus(sendRequests.size());
   MPI_Waitall(sendRequests.size(), &(*sendRequests.begin()), &(*sendStatus.begin()));
@@ -245,12 +245,18 @@ initializeProblemStartup(DataBase<Dimension>& db) {
   mPotential.copyFields();
   mPotential0.copyFields();
   mVel02.copyFields();
+}
 
-  // We need to make a dry run through setting derivatives and such
-  // to set our initial vote on the time step.
+//------------------------------------------------------------------------------
+// Do start of the problem type tasks.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void 
+NBodyGravity<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& db,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   vector<Physics<Dimension>*> packages(1, this);
-  State<Dimension> state(db, packages);
-  StateDerivatives<Dimension> derivs(db, packages);
   this->initialize(0.0, 1.0, db, state, derivs);
   this->evaluateDerivatives(0.0, 1.0, db, state, derivs);
 }
