@@ -67,6 +67,7 @@
 .update_tpls:
   stage: update_tpls
   script:
+    - echo "TEST"
 #    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
 
 .toss_update_permissions:
