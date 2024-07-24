@@ -41,6 +41,7 @@
 .run_ats:
   stage: run_ats
   variables:
+    FF_ENABLE_BASH_EXIT_CODE_CHECK: 1
     FF_USE_NEW_BASH_EVAL_STRATEGY: 1
   script:
     - set +e

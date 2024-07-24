@@ -1031,6 +1031,7 @@ if (d_debug==1):
 
 #os.system(finalCommandToRun) # [SD] Problem was execv & the way it took the args split up was breaking the filter, and cmd failed.
 # Tested on rzgenie (pdebug), rztopaz (pbatch), and bgq (pdebug)
+
 from subprocess import check_call
 try:
     check_call( finalCommandToRun,shell=True )
