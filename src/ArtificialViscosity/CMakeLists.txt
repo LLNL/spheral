@@ -7,7 +7,6 @@ set(ArtificialViscosity_inst
     IncrementCullenMultipliers
     MonaghanGingoldViscosity
     MorrisMonaghanReducingViscosity
-    TensorSVPHViscosity
     TensorCRKSPHViscosity
     TensorMonaghanGingoldViscosity
     VonNeumanViscosity
@@ -46,7 +45,6 @@ set(ArtificialViscosity_headers
     RadialViscosity.hh
     TensorCRKSPHViscosity.hh
     TensorMonaghanGingoldViscosity.hh
-    TensorSVPHViscosity.hh
     VonNeumanViscosity.hh
     )
 

@@ -8,6 +8,7 @@ set(SVPH_inst
     SVPHFacetedHydroBase
     SVPHCorrectionsPolicy
     SVPHMassDensityPolicy
+    TensorSVPHViscosity
     CompatibleFaceSpecificThermalEnergyPolicy
     MeshIdealHPolicy
     SpecificThermalEnergyVolumePolicy
@@ -33,6 +34,7 @@ set(SVPH_headers
     SVPHHydroBaseInline.hh
     SVPHMassDensityPolicy.hh
     SpecificThermalEnergyVolumePolicy.hh
+    TensorSVPHViscosity.hh
     computeSVPHCorrections.hh
     computeSVPHCorrectionsOnFaces.hh
     computeSumVoronoiCellMassDensityFromFaces.hh
