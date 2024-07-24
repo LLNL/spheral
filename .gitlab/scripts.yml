@@ -40,6 +40,8 @@
 
 .run_ats:
   stage: run_ats
+  variables:
+    FF_USE_NEW_BASH_EVAL_STRATEGY: 1
   script:
     - set +e
     - CI_BUILD_DIR=$(cat ci-dir.txt)
