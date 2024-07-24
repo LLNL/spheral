@@ -1938,7 +1938,7 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
 				    xminNodes, xmaxNodes,
 				    xminSample, xmaxSample);
 
-#if USE_MPI
+#ifdef USE_MPI
   // Now find the global bounds across all processors.
   {
     size_t nlocal = this->numInternalNodes();
