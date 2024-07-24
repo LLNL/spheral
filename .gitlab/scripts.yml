@@ -46,7 +46,7 @@
     - cd $CI_BUILD_DIR && cat job-name.txt
 
     - cat build_gitlab/install/spheral-lcatstest
-    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/run_ats.py --test-alloc "$TEST_ALLOC" --ats-file $ATS_FILE --ci-build-dir $CI_BUILD_DIR || exit_code = $?
+    - ./build_gitlab/install/spheral $SCRIPT_DIR/gitlab/run_ats.py --test-alloc "$TEST_ALLOC" --ats-file $ATS_FILE --ci-build-dir $CI_BUILD_DIR || exit_code=$?
     - cp -r test-logs $CI_PROJECT_DIR
     - exit $exit_code
   artifacts:

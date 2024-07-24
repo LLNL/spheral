@@ -16,14 +16,14 @@ variables:
     - SPHERAL_REV_STR="$SPHERAL_REV"
 
 stages:
-#  - tpls
-#  - build_and_install
+  - tpls
+  - build_and_install
   - run_ats
-#  - update_tpls
-#  - generate_buildcache
-#  - install_production
-#  - update_permissions
-#  - cleanup
+  - update_tpls
+  - generate_buildcache
+  - install_production
+  - update_permissions
+  - cleanup
 
 include:
   - project: lc-templates/id_tokens
@@ -33,5 +33,5 @@ include:
   - local: .gitlab/scripts.yml
   - local: .gitlab/specs.yml
   - local: .gitlab/jobs-mpi.yml
-  # - local: .gitlab/jobs-seq.yml
-  # - local: .gitlab/jobs-prod.yml
+  - local: .gitlab/jobs-seq.yml
+  - local: .gitlab/jobs-prod.yml
