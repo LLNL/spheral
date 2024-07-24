@@ -16,6 +16,7 @@ Notable changes include:
 
   * Build changes / improvements:
     * Distributed source directory must always be built now
+    * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH)
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved
