@@ -69,7 +69,6 @@ def createBsubFile(inCommand, inAllOptions):
     FILE.write("\n\n")
     FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-    FILE.write("setenv UNIQUE_KULL_TEST_SUBDIR " + uniqueKullSubdir + '\n')
 
     FILE.write(""+ '\n')
     FILE.write("date"+ '\n')
@@ -119,7 +118,6 @@ def createMsubFile(inCommand, inAllOptions):
 
     FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-    FILE.write("setenv UNIQUE_KULL_TEST_SUBDIR " + uniqueKullSubdir + '\n')
 
     FILE.write(""+ '\n')
     FILE.write("date"+ '\n')
@@ -166,7 +164,6 @@ def createSbatchFile(inCommand, inAllOptions):
     # LLNL specific
     FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-    FILE.write("setenv UNIQUE_KULL_TEST_SUBDIR " + uniqueKullSubdir + '\n')
 
     FILE.write(""+ '\n')
     FILE.write("date"+ '\n')
@@ -619,17 +616,6 @@ msubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
 bsubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
 
 
-# All test output should be placed in the KullTest
-kullTestSubDir = "KullTest"
-
-# unique test string combines system, time and uuid
-# the whole uuid4 is overkill, just take first 8 characters
-from uuid import uuid4
-uniqueSubDir =  SYS_TYPE + "_" + ezatsStartTime + "_" + str(uuid4())[0:8]
-
-uniqueKullSubdir = os.path.join(kullTestSubDir, uniqueSubDir)
-
-
 #---------------------------------------------------------------------------
 # options affecting machine settings
 #---------------------------------------------------------------------------
@@ -698,7 +684,6 @@ parser.add_option( "--testpath", action="store", type="string", dest="testpath",
 parser.add_option( "--debug-build", action="store_true", dest="debugbuild", default=False,
                    help="assume we are testing a debug build and should skip expensive (level>=100) tests.")
 
-#parser.disable_interspersed_args()  # doesn't work for this "atsWrap -b -e bin/kull test.ats "
 (options, args) = parser.parse_args(sys.argv[:])
 
 # If running in SLURM, use defaults of less nodes and pdebug partition
@@ -757,20 +742,8 @@ if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
 
     sys.exit(0)
 
-#atsArgs= string.join(atsArgs) # note: lose user-intended grouping here
-tmpstring=" "   # moving to python3 I had to work around the oneliner above. 
-print(type(tmpstring))  # normally you don't need a tmp for things like this...
-print("type of atsArgs var")
-print(type(atsArgs))
-atsArgsStr= tmpstring.join(atsArgs) # note: lose user-intended grouping here
-print(atsArgsStr) #Should be the joined list of args (space with args)
-print("value of atsArgs var before assignment of atsArgsStr")
-print(atsArgs)  # should be the unmodified list
-atsArgs=atsArgsStr
-print("type of atsArgs var before assignment of atsArgsStr")
-print(type(atsArgs))
-print("value of atsArgs var after assignment of atsArgsStr")
-print(atsArgs)  # should be the unmodified list as string
+# Convert array of strings to a string with spaces for delimiters
+atsArgs = " ".join(str(x) for x in atsArgs)
 
 #---------------------------------------------------------------------------
 # Added this section to allow ezats to determine an appropriate filesystem
@@ -826,92 +799,6 @@ def checkFileSystem(path, timeout=30):
 
     return timeoutFunction( timeout, False, canWriteToFileSystem, path )
 
-
-def getUniqueTestPath():
-
-        # Helper function that verifies a temporary file can be created on file system.
-        # Will also catch if file system hung.
-
-        filesystems = {}
-
-        # SCF LLNL machines
-        # BG/Q -- seq entry must be before the rzuseq entry, or rzuseq will match 'seq' and try to use 'lscratch1'.
-        for name in ['seq']:
-            filesystems[name] = ['/p/lscratch1']
-
-        for name in ['zin', 'max']:
-            filesystems[name] = ['/p/lscratch2', '/p/lustre1', '/p/lscratch1']
-
-        for name in ['jade', 'agate', 'mica', 'magma', 'ruby']:
-            filesystems[name] = ['/p/lustre2', '/p/lustre1']
-
-        for name in ['sierra', 'tron']:
-            filesystems[name] = [ '/p/gpfs1' ]
-
-        # RZ LLNL machines
-        for name in ['rzgenie']:
-            filesystems[name] = [ '/p/lustre1' ]
-
-        for name in ['rztopaz']:
-            filesystems[name] = [ '/p/lustre1' ]
-
-        for name in ['rzansel', 'lassen']:
-            filesystems[name] = [ '/p/gpfs1' ]
-
-        for name in ['rzwhippet']:
-            filesystems[name] = [ '/p/lustre1' ]
-
-        # Don't use NFS filesystems with BG/Q, terrible latency issues.
-
-        # Sandia machines
-        filesystems['chama'] = ['/fscratch','/gscratch']
-        filesystems['glory'] = ['/fscratch','/gscratch']
-        filesystems['uno']   = ['/fscratch','/gscratch']
-
-        # Cielo
-        filesystems['nid'] = ['/scratch5', '/scratch4']
-
-        # Check which file system to use for this machine.
-        from platform import node
-        nodeName = node()
-
-        assert 'USER' in os.environ, "ezats: No environment variable 'USER' found."
-
-        filesystem = None
-        for name in list(filesystems.keys()):
-            if name in nodeName:
-                filesystem = filesystems[name]
-        assert filesystem, "ezats: Could not find file system entry for '%s'" % nodeName
-
-        print("ezats: Searching for a filesystem to use...")
-        print("ezats: If this process hangs, you need to manually specify a file system to use via: ezats --testpath=\"/my/output/path\"")
-
-        # Try to access file system, if no response within 4 seconds, try next file system.
-        fileSystemOK = False
-
-        for entry in filesystem:
-            thePath = os.path.join( entry, os.environ['USER'], kullTestSubDir, uniqueSubDir )
-            print("Checking filesystem path ", thePath)
-            fileSystemOK = checkFileSystem( thePath )
-            if not fileSystemOK:
-                print("ezats: Could not write to filesystem location '%s', trying next file system." % thePath)
-            else:
-                fileSystemOK = True
-                filesystem = thePath
-                break
-
-        assert fileSystemOK, "ezats: Could not locate a write accessable file system, aborting..."
-
-        print("Found and verified file system location: %s" % filesystem)
-
-        return filesystem
-
-if options.testpath:
-    options.testpath = os.path.abspath(options.testpath)
-    assert checkFileSystem(options.testpath), "ezats: Unable to create/access test path location: %s" % options.testpath
-else:
-    options.testpath = getUniqueTestPath()
-
 #---------------------------------------------------------------------------
 
 #----------------------------------------------------------
@@ -919,16 +806,6 @@ else:
 #----------------------------------------------------------
 
 print("Note:  the srun message 'error: ioctl(TIOCGWINSZ)' can be ignored.  \n[It means the process is trying to do something that requires a tty \nbut it's not doing either a read or write.]\n")
-
-#----------------------------------------------------------
-# if batch, add allInteractive flag
-#-----------------------------------------------------------
-
-#if os.environ.has_key('MACHINE_TYPE'):
-#    print "Note:  setenv MACHINE_TYPE ",  os.environ['MACHINE_TYPE']
-#if os.environ.has_key('BATCH_TYPE'):
-#    print "Note:  setenv BATCH_TYPE ",  os.environ['BATCH_TYPE']
-#print
 
 #----------------------------------------------------------
 # get args to add  - added threaded option to the ezatsArgs or it would be passed to ats
@@ -1079,12 +956,9 @@ else:
     if machineSettings.options.name in ['rzwhippet_flux']:
        os.environ["MACHINE_TYPE"] = "flux00"
     os.environ["BATCH_TYPE"] = "None"
-    os.environ["UNIQUE_KULL_TEST_SUBDIR"] = uniqueKullSubdir
 
     if platform.processor() == 'ppc64':
         numProcsLine = ""
-        # informs srun-wrapper.sh to not use kull's forkserver as ATS will run it
-        os.environ["KULLINATS"] = "yes"
     else:
         numProcsLine = " -n %d" % ( machineSettings.options.numNodes* cpu_count() )
 
@@ -1100,8 +974,6 @@ else:
     if machineSettings.options.name in ['chama', 'glory']:
         HERT_WC_ID = ' --account=' + machineSettings.options.wcid
 
-    print(finalCommandToRun)
-
     if machineSettings.options.name in ['rzwhippet_flux']:
         finalCommandToRun= "flux alloc --exclusive "  \
                                + " " + allocTime \
@@ -1111,7 +983,6 @@ else:
                                + numProcsLine + " " \
                                + finalCommandToRun
                                # +  " -p " + machineSettings.options.partition  + " " 
-        print (finalCommandToRun)
     # Threaded tests under ats should NOT use salloc
     elif not options.threaded and 'blue' not in os.environ['SYS_TYPE']:
         finalCommandToRun= "salloc  --exclusive "  \
@@ -1124,16 +995,7 @@ else:
                                + finalCommandToRun
     else:
         finalCommandToRun += " --numNodes="+ str(machineSettings.options.numNodes)
-
-    print(finalCommandToRun)
     #sys.exit()
-
-if (d_debug==1):
-    print("whichAts= ", whichAts)
-    print("finalCommandToRun after= ", finalCommandToRun)
-
-
-#----------------------------------------------------------
 
 if (d_debug==1):
     print("whichAts= ", whichAts)
@@ -1170,7 +1032,6 @@ if (d_debug==1):
 #os.system(finalCommandToRun) # [SD] Problem was execv & the way it took the args split up was breaking the filter, and cmd failed.
 # Tested on rzgenie (pdebug), rztopaz (pbatch), and bgq (pdebug)
 from subprocess import check_call
-print("Running: ", finalCommandToRun)
 try:
     check_call( finalCommandToRun,shell=True )
 except Exception as e:

@@ -1,38 +1,38 @@
 # ------------------------------------------------------------------------------
 # BUILD JOBS
 
-toss_gcc_mvapich2_cxxonly_tpls:
-  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .tpls]
+# toss_gcc_mvapich2_cxxonly_tpls:
+#   extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .tpls]
 
-toss_gcc_mvapich2_cxxonly_build:
-  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
-  needs: [toss_gcc_mvapich2_cxxonly_tpls]
+# toss_gcc_mvapich2_cxxonly_build:
+#   extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
+#   needs: [toss_gcc_mvapich2_cxxonly_tpls]
 
 
 
-toss_gcc_mvapich2_tpls:
-  extends: [.toss_resource2, .gcc_mvapich2, .tpls]
+# toss_gcc_mvapich2_tpls:
+#   extends: [.toss_resource2, .gcc_mvapich2, .tpls]
 
-toss_gcc_mvapich2_build:
-  extends: [.toss_resource2, .gcc_mvapich2, .build_and_test]
-  needs: [toss_gcc_mvapich2_tpls]
+# toss_gcc_mvapich2_build:
+#   extends: [.toss_resource2, .gcc_mvapich2, .build_and_test]
+#   needs: [toss_gcc_mvapich2_tpls]
 
 toss_gcc_mvapich2_test:
   extends: [.toss_resource2, .gcc_mvapich2, .run_ats]
-  needs: [toss_gcc_mvapich2_build]
+  #needs: [toss_gcc_mvapich2_build]
 
 
 
-toss_clang_mvapich2_tpls:
-  extends: [.toss_resource1, .clang_mvapich2, .tpls]
+# toss_clang_mvapich2_tpls:
+#   extends: [.toss_resource1, .clang_mvapich2, .tpls]
 
-toss_clang_mvapich2_build:
-  extends: [.toss_resource1, .clang_mvapich2, .build_and_test]
-  needs: [toss_clang_mvapich2_tpls]
+# toss_clang_mvapich2_build:
+#   extends: [.toss_resource1, .clang_mvapich2, .build_and_test]
+#   needs: [toss_clang_mvapich2_tpls]
 
-toss_clang_mvapich2_test:
-  extends: [.toss_resource2, .clang_mvapich2, .run_ats]
-  needs: [toss_clang_mvapich2_build]
+# toss_clang_mvapich2_test:
+#   extends: [.toss_resource2, .clang_mvapich2, .run_ats]
+#   needs: [toss_clang_mvapich2_build]
 
 
 
