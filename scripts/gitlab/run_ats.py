@@ -107,7 +107,6 @@ def run_ats_test(args):
 #------------------------------------------------------------------------------
 
 def main():
-    sys.exit(80)
     args = parse_args()
     run_ats_test(args)
 
