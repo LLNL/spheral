@@ -10,8 +10,7 @@
 
 #include "Field/FieldList.hh"
 #include "Physics/Physics.hh"
-
-#include <set>
+#include "DataOutput/registerWithRestart.hh"
 
 namespace Spheral {
 
@@ -41,6 +40,9 @@ public:
   virtual ~SubPointPressureHourglassControl();
 
   //******************************************************************************//
+  // Stuff to do once on problem startup
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+
   // Evaluate derivatives
   virtual void evaluateDerivatives(const Scalar time,
                                    const Scalar dt,
@@ -69,17 +71,28 @@ public:
   virtual bool requireVoronoiCells() const override { return true; }
 
   // Access parameters
-  Scalar fHG() const        { return mfHG; }
-  void fHG(const Scalar x)  { mfHG = x; }
+  Scalar fHG() const                                   { return mfHG; }
+  void fHG(const Scalar x)                             { mfHG = x; }
+  const FieldList<Dimension, Vector>&    DvDt() const  { return mDvDt; }
+
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual void dumpState(FileIO& file, const std::string& pathName) const;
+  virtual void restoreState(const FileIO& file, const std::string& pathName);
+  //****************************************************************************
 
   // No default constructor, copying, or assignment.
-  // SubPointPressureHourglassControl() = delete;
+  SubPointPressureHourglassControl() = delete;
   SubPointPressureHourglassControl(const SubPointPressureHourglassControl&) = delete;
   SubPointPressureHourglassControl& operator=(const SubPointPressureHourglassControl&) = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mfHG;
+  FieldList<Dimension, Vector>    mDvDt;
+
+  // The restart registration.
+  RestartRegistrationType mRestart;
 };
 
 }

@@ -1,3 +1,4 @@
+
 //---------------------------------Spheral++----------------------------------//
 // SubPointPressureHourglassControl
 //
@@ -17,6 +18,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
+#include "FileIO/FileIO.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/range.hh"
 
@@ -24,12 +26,15 @@
 #include <unordered_map>
 #include <tuple>
 #include <algorithm>
+#include <sstream>
 
 namespace Spheral {
 
 using std::vector;
 using std::unordered_map;
 using std::tuple;
+using std::string;
+using std::to_string;
 
 namespace {  // anonymous
 
@@ -110,10 +115,13 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
   REQUIRE(cellFace == 0 or cellFace == 1);
 
   const auto& vert = cellFace == 0 ? celli.xmin() : celli.xmax();
-  const auto  dA = cellFace == 0 ? Vector(1.0) : Vector(-1.0);   // Inward pointing normal since we want -\grad P
+  const auto  fA = cellFace == 0 ? Vector(1.0) : Vector(-1.0);   // Inward pointing normal since we want -\grad P
   // const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
-  const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
-  return Psub * dA;
+  const auto dA0 = vert.x() - comi.x();
+  const auto dA1 = vert.x() - xi.x();
+  const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
+  // const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
+  return Psub*fA;
 
   // // Define a function to increment the acceleration for each subcell
   // auto asub = [&](const Vector& vert) -> Vector {
@@ -145,9 +153,12 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
   const auto& v1 = f.point1();
   const auto& v2 = f.point2();
   const auto v12 = v2 - v1;
-  const Vector dA(-v12.y(), v12.x());
-  const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
-  return Psub*dA;
+  const auto dA0 = ((v1 - comi).cross(v2 - comi)).z();
+  const auto dA1 = ((v1 - xi).cross(v2 - xi)).z();
+  const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
+  const Vector fA(-v12.y(), v12.x());
+  // const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
+  return Psub*fA;
 
   // const auto comi = celli.centroid();
 
@@ -191,7 +202,9 @@ subCellAcceleration(const Dim<3>::FacetedVolume& celli,
 template<typename Dimension>
 SubPointPressureHourglassControl<Dimension>::
 SubPointPressureHourglassControl(const Scalar fHG):
-  mfHG(fHG) {
+  mfHG(fHG),
+  mDvDt(FieldStorageType::CopyFields),
+  mRestart(registerWithRestart(*this)) {
 }
 
 //------------------------------------------------------------------------------
@@ -200,6 +213,16 @@ SubPointPressureHourglassControl(const Scalar fHG):
 template<typename Dimension>
 SubPointPressureHourglassControl<Dimension>::
 ~SubPointPressureHourglassControl() {
+}
+
+//------------------------------------------------------------------------------
+// On problem start up, we need to initialize our internal data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SubPointPressureHourglassControl<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::ahgAcceleration);
 }
 
 //------------------------------------------------------------------------------
@@ -213,26 +236,48 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// No derivatives to register
+// Register the derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 SubPointPressureHourglassControl<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  derivs.enroll(mDvDt);
 }
 
 //------------------------------------------------------------------------------
-// No time step vote
+// Vote on the time step
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename SubPointPressureHourglassControl<Dimension>::TimeStepType
 SubPointPressureHourglassControl<Dimension>::
-dt(const DataBase<Dimension>& /*dataBase*/, 
-   const State<Dimension>& /*state*/,
-   const StateDerivatives<Dimension>& /*derivs*/,
-   const Scalar /*currentTime*/) const {
-  return std::make_pair(std::numeric_limits<double>::max(), std::string("SubPointPressureHourglassControl: no vote"));
+dt(const DataBase<Dimension>& dataBase, 
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   const Scalar currentTime) const {
+  auto dtMin = std::numeric_limits<Scalar>::max();
+  size_t nodeListMin = 0u;
+  size_t iMin = 0u;
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto DvDt = derivs.fields(HydroFieldNames::ahgAcceleration, Vector::zero);
+  const auto numNodeLists = DvDt.size();
+  CHECK(H.size() == numNodeLists);
+  for (auto k = 0u; k < numNodeLists; ++k) {
+    const auto n = H[k]->numInternalElements();
+    for (auto i = 0u; i < n; ++i) {
+      const auto ahat = DvDt(k,i).unitVector();
+      const auto hi = 1.0/(H(k,i).dot(ahat)).magnitude();
+      const auto dti = hi*safeInvVar(DvDt(k,i).magnitude(), 1.0e-10);
+      if (dti < dtMin) {
+        dtMin = dti;
+        nodeListMin = k;
+        iMin = i;
+      }
+    }
+  }
+  dtMin = 0.5*sqrt(dtMin)*safeInvVar(mfHG);
+  return std::make_pair(dtMin, std::string("SubPointPressureHourglassControl on point (" + to_string(nodeListMin) + " " + to_string(iMin) + ")"));
 }
 
 //------------------------------------------------------------------------------
@@ -276,7 +321,7 @@ evaluateDerivatives(const Scalar time,
   CHECK(gradRho.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DvDt = derivs.fields(HydroFieldNames::ahgAcceleration, Vector::zero);
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   CHECK(DvDt.size() == numNodeLists);
@@ -358,18 +403,21 @@ evaluateDerivatives(const Scalar time,
             const auto  aij =  mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi)/rhoi +
                                        subCellAcceleration(celli, cellFace, comj, xj, Pj)*mj/(mi*rhoj));
             const auto  aji = -aij*mi/mj;
+            CHECK2(fuzzyGreaterThanOrEqual(subCellAcceleration(celli, cellFace, comi, xi, Pi).dot(comi - xi), 0.0, 1.0e-5), 
+                   subCellAcceleration(celli, cellFace, comi, xi, Pi)/rhoi << " " << xi << " " << comi << " : " << cellFace << " " << celli << " " << Pi << " : " << subCellAcceleration(celli, cellFace, comi, xi, Pi).dot(comi - xi)/rhoi);
             // const auto aij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi)/mi +
             //                          subCellAcceleration(celli, cellFace, comj, xj, Pj)/mj);
             // const auto aji = -aij * mi/mj;
-            // const bool barf = (Process::getRank() == 0 and j >= nodeLists[nodeListj]->firstGhostNode());
+            // const bool barf = j >= nodeLists[nodeListj]->firstGhostNode();
             // if (barf) {
             //   cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : " << comi << " " << comj << " : "
-            //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : " 
-            //        << celli << " " << cellj << endl;
+            //        << celli << " " << cellj << " : " 
+            //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << "\n";
             // }
             DvDt(nodeListi, i) += aij;
             DvDt(nodeListj, j) += aji;
             DepsDt(nodeListi, i) += vel(nodeListi, i).dot(aij);
+
             DepsDt(nodeListj, j) += vel(nodeListj, j).dot(aji);
             if (compatibleEnergy) {
               const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
@@ -390,7 +438,46 @@ evaluateDerivatives(const Scalar time,
     }
   }
 
+  // // Scan the accelerations to build our timestep vote
+  // mDtMin = std::numeric_limits<double>::max();
+  // const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  // CHECK(H.size() == numNodeLists);
+  // for (auto k = 0u; k < numNodeLists; ++k) {
+  //   const auto n = H[k]->numInternalElements();
+  //   for (auto i = 0u; i < n; ++i) {
+  //     const auto ahat = DvDt(k,i).unitVector();
+  //     const auto hi = 1.0/(H(k,i).dot(ahat)).magnitude();
+  //     const auto dti = hi*safeInvVar(DvDt(k,i).magnitude(), 1.0e-10);
+  //     if (dti < mDtMin) {
+  //       mDtMin = dti;
+  //       mNodeListMin = k;
+  //       mImin = i;
+  //     }
+  //   }
+  // }
+  // mDtMin = 0.01*sqrt(mDtMin);
+
   TIME_END("SubPointHGevalDerivs");
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SubPointPressureHourglassControl<Dimension>::
+dumpState(FileIO& file, const std::string& pathName) const {
+  file.write(mDvDt, pathName + "/DvDt");
+}
+
+//------------------------------------------------------------------------------
+// Restore the state from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+SubPointPressureHourglassControl<Dimension>::
+restoreState(const FileIO& file, const string& pathName) {
+  file.read(mDvDt, pathName + "/DvDt");
 }
 
 } // end namespace Spheral

@@ -13,6 +13,7 @@ class HydroFieldNames:
     velocityGradient = PYB11readonly(static=True, returnpolicy="copy")
     internalVelocityGradient = PYB11readonly(static=True, returnpolicy="copy")
     hydroAcceleration = PYB11readonly(static=True, returnpolicy="copy")
+    ahgAcceleration = PYB11readonly(static=True, returnpolicy="copy")
     massDensity = PYB11readonly(static=True, returnpolicy="copy")
     normalization = PYB11readonly(static=True, returnpolicy="copy")
     specificThermalEnergy = PYB11readonly(static=True, returnpolicy="copy")

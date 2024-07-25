@@ -41,6 +41,7 @@ commandLine(nx1 = 20,
             dtMin = 1.0e-5, 
             dtMax = None,
             dtGrowth = 2.0,
+            dtverbose = False,
             maxSteps = None,
             statsStep = 1,
             smoothIters = 0,
@@ -251,19 +252,21 @@ for p in packages:
 # Construct a predictor corrector integrator, and add the one physics package.
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
-output("integrator")
 for p in packages:
     integrator.appendPhysicsPackage(p)
 integrator.lastDt = dt
-output("integrator.lastDt")
 if dtMin:
     integrator.dtMin = dtMin
-    output("integrator.dtMin")
 if dtMax:
     integrator.dtMax = dtMax
-    output("integrator.dtMax")
 integrator.dtGrowth = dtGrowth
+integrator.verbose = dtverbose
+output("integrator")
+output("integrator.lastDt")
+output("integrator.dtMin")
+output("integrator.dtMax")
 output("integrator.dtGrowth")
+output("integrator.verbose")
 
 #-------------------------------------------------------------------------------
 # Track the history of the motion of select points
@@ -296,6 +299,9 @@ if steps is None:
         control.advance(goalTime, maxSteps)
 else:
     control.step(steps)
+
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print("Total energy error: %g" % Eerror)
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
