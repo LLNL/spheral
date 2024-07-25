@@ -4,6 +4,8 @@
 # (using the ATS) before pushing changes to that public repot!
 #-------------------------------------------------------------------------------
 
+glue(svph = False)
+
 # Geometry unit tests
 source("unit/Geometry/testVector.py")
 source("unit/Geometry/testTensor.py")
