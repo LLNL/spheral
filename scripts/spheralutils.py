@@ -9,8 +9,8 @@ def sexe(cmd,ret_output=False,echo=True):
         print("[exe: {0}]".format(cmd))
 
     # If we want to return the output as string a print to stdout
-    # in real-time we need to let subprocess print as normal to 
-    # PIPE and STDOUT. We then need to read it back ourselves and 
+    # in real-time we need to let subprocess print as normal to
+    # PIPE and STDOUT. We then need to read it back ourselves and
     # append to an ouput string of our own making. There is no way
     # to do this with subprocess currently.
     if ret_output:
@@ -19,24 +19,22 @@ def sexe(cmd,ret_output=False,echo=True):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT,
                              encoding='utf8')
-      out = "";
-      while True:
-          realtime_output = p.stdout.readline()
+        out = "";
+        while True:
+            realtime_output = p.stdout.readline()
 
-          if realtime_output == '' and p.poll() is not None:
-              break
+            if realtime_output == '' and p.poll() is not None:
+                break
 
-          if realtime_output:
-              print(realtime_output.strip(), flush=True)
-              out += realtime_output
+            if realtime_output:
+                print(realtime_output.strip(), flush=True)
+                out += realtime_output
 
-      if echo:
-          print(out)
-      return out
-    
-    # If we do not need to return the output as a string, run() 
-    # will suffice.
+        if echo:
+            print(out)
+        return out
     else:
+        # If we do not need to return the output as a string, run()
+        # will suffice.
         p = subprocess.run(cmd, shell=True,
                            check=True, text=True)
-
