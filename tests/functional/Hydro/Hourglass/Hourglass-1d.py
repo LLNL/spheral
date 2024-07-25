@@ -275,8 +275,9 @@ def samplefunc(nodes, indices):
     i = indices[0]
     pos = nodes.positions()
     vel = nodes.velocity()
-    DvDt = hydro.DvDt
-    return pos[i].x, vel[i].x, DvDt(0,i).x
+    DvDt_hydro = hydro.DvDt
+    DvDt_hg = hg.DvDt
+    return pos[i].x, vel[i].x, DvDt_hydro(0,i).x, DvDt_hg(0,i).x
 
 histories = [NodeHistory(nodes1, [i], samplefunc, "/dev/null") for i in range(nx1)]
 
@@ -312,7 +313,11 @@ EPlot = plotEHistory(control.conserve)
 a = hydro.DvDt
 aplot = plotFieldList(a,
                       yFunction = "%s.x",
-                      winTitle = "Acceleration")
+                      winTitle = "Acceleration (Hydro)")
+ahg = hg.DvDt
+ahgplot = plotFieldList(ahg,
+                        yFunction = "%s.x",
+                        winTitle = "Acceleration (Anti-hourglass)")
 
 def computeNearestNeighborDistance():
     result = ScalarField("nearest neighbor distance", nodes1, 1e10)
@@ -353,9 +358,13 @@ v0hist = plotit(histories[0].timeHistory, [s[1] for s in histories[0].sampleHist
                 xlabel = "time",
                 ylabel = "vel")
 a0hist = plotit(histories[0].timeHistory, [s[2] for s in histories[0].sampleHistory],
-                title = "Node 0 acceleration",
+                title = "Node 0 acceleration (hydro)",
                 xlabel = "time",
                 ylabel = "accel")
+hg0hist = plotit(histories[0].timeHistory, [s[3] for s in histories[0].sampleHistory],
+                 title = "Node 0 acceleration (anti-HG)",
+                 xlabel = "time",
+                 ylabel = "accel")
 
 plots = [(rhoPlot, "Hourglass-1d-rho.png"),
          (velPlot, "Hourglass-1d-vel.png"),

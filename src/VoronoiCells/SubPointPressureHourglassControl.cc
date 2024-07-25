@@ -119,7 +119,8 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
   // const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
   const auto dA0 = vert.x() - comi.x();
   const auto dA1 = vert.x() - xi.x();
-  const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
+  const auto Psub = abs(Pi) * (1.0 - dA1*safeInv(dA0));
+  // const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
   // const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
   return Psub*fA;
 
@@ -428,7 +429,7 @@ evaluateDerivatives(const Scalar time,
               CHECK((nodeListi == pairs[kk].i_list and i == pairs[kk].i_node) or
                     (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node));
               const bool flip = (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node);
-              pairAccelerations[kk] -= (flip ? aij : aji);
+              pairAccelerations[kk] += (flip ? aji : aij);
             }
             // if (barf) cerr << "[" << i << " " << j << "] : " << aij << " " << aij.dot(comi - xi) << " : " << DvDt(nodeListi, i) << " " << DvDt(nodeListj, j);
           }

@@ -25,6 +25,11 @@ class SubPointPressureHourglassControl(Physics):
         return
 
     @PYB11virtual
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        return "void"
+
+    @PYB11virtual
     @PYB11const
     def requireVoronoiCells(self):
         "Some physics algorithms require the Voronoi cells per point be computed."
@@ -33,8 +38,10 @@ class SubPointPressureHourglassControl(Physics):
     #...........................................................................
     # Properties
     fHG = PYB11property("Scalar", "fHG", "fHG", doc="The fractional multiplier on the hourglass force")           
+    DvDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
 PYB11inject(PhysicsAbstractMethods, SubPointPressureHourglassControl)
+PYB11inject(RestartMethods, SubPointPressureHourglassControl)
