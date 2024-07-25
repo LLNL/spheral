@@ -97,7 +97,7 @@ def run_ats_test(args):
     venv_bin = os.path.join(build_gl_dir, ".venv", "bin")
     python_exec = os.path.join(venv_bin, "python")
     if (not os.path.exists(python_exec)):
-        print(f"{python_exec} does not exists}")
+        print(f"{python_exec} does not exists")
         sys.exit(1)
     lcats_exec = os.path.join(build_gl_dir, "scripts", "lcats")
     if (not os.path.exists(lcats_exec)):
