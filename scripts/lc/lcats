@@ -668,9 +668,7 @@ parser.add_option( '--timelimit', dest='timelimit', default=30,
                    help='Set the default time limit on each test. The value may be given as a digit followed by an s, m, or h to give the time in seconds, minutes (the default), or hours.')
 
 # The P2 version is a sym-link to the latest python 2 version of ATS.  There's a P3 when we're ready for Python3
-#parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P2/bin/ats", help="Sets which ats to use.")
 parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
-#parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.111/bin/ats", help="Sets which ats to use.")
 
 parser.add_option( "--addOp", action="store", type="string", dest="extraEzatsArgs", default='',
                   help="Adds extra job scheduler option to ezats.")
@@ -1029,9 +1027,6 @@ if (d_debug==1):
     print("atsExe= ", options.atsExe)
     print("atsArgs= ", argsToUse)
 
-#os.system(finalCommandToRun) # [SD] Problem was execv & the way it took the args split up was breaking the filter, and cmd failed.
-# Tested on rzgenie (pdebug), rztopaz (pbatch), and bgq (pdebug)
-
 from subprocess import check_call
 try:
     check_call( finalCommandToRun,shell=True )
@@ -1039,18 +1034,4 @@ except Exception as e:
     print("Caught - non-zero exit status 3 - thrown by final command", e)
     print("Tests appear to execute correctly...but this output is here to keep an eye on this.")
 
-#  [SD] This was the former call before adding threaded option
-#import os
-#if not machineSettings.options.batch:
-#   os.execv("/usr/bin/" + argsToUse[0], argsToUse)  # (path,args)
-#else:
-#   os.execv(argsToUse[0], argsToUse)  # (path,args)
-
-
-# Tried RunCmd & that isn't working either - it's resulting in salloc controlling terminal errors.
-#from Shell import RunCmd
-#def run(cmd):
-#    print 'running %s'%cmd
-#    print 'Set echoOutput to false to avoid seeing the queue contents repeatedly'
-#    return RunCmd(cmd, echoOutput=0, echoCmd=True)[1]
 

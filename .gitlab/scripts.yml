@@ -21,6 +21,8 @@
 
 .build:
   stage: build_and_install
+  variables:
+    GIT_STRATEGY: none
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
@@ -71,6 +73,8 @@
 
 .toss_update_permissions:
   stage: update_permissions
+  variables:
+    GIT_STRATEGY: none
   script:
     - ml load mpifileutils
     - srun -N 1 -p $PARTITION -n 20 -t 10 dchmod --mode go+rx $UPSTREAM_DIR
@@ -129,6 +133,8 @@
 
 .prod_permissions:
   stage: update_permissions
+  variables:
+    GIT_STRATEGY: none
   script:
     - INSTALL_DIR=$(cat install-dir.txt)
 
@@ -149,6 +155,8 @@
 # and never fill the sphapp workspace storage.
 .clean_dirs:
   stage: cleanup
+  variables:
+    GIT_STRATEGY: none
   script:
     - ml load mpifileutils
     - cd $SPHERAL_BUILDS_DIR

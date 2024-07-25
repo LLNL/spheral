@@ -4,7 +4,9 @@ from string import digits
 import os
 import sys
 import argparse
-import subprocess
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
 
 #------------------------------------------------------------------------------
 
@@ -40,20 +42,6 @@ def parse_args():
       help='CMake args to pass to the build stage in the host-config-build script.')
 
   return parser.parse_args()
-
-
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=True):
-    """ Helper for executing shell commands. """
-    if echo:
-      print("[exe: {0}]".format(cmd))
-    p = subprocess.run(cmd, shell=True,
-                       capture_output=ret_output,
-                       check=True, text=True)
-    if ret_output:
-      if echo:
-        print(p.stdout)
-      return p.stdout
 
 #------------------------------------------------------------------------------
 

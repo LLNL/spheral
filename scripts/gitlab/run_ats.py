@@ -2,41 +2,31 @@
 
 import sys, subprocess, argparse, os
 
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
+
 # If the number of failed tests exceeds this value, ATS is not rerun
 max_test_failures = 10
 # Number of times to rerun the ATS tests
 max_reruns = 1
 
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=True):
-    """ Helper for executing shell commands. """
-    if echo:
-      print("[exe: {0}]".format(cmd))
-    p = subprocess.run(cmd, shell=True,
-                       capture_output=ret_output,
-                       check=True, text=True)
-    if ret_output:
-      if echo:
-        print(p.stdout)
-      return p.stdout
-
 #------------------------------------------------------------------------------
 
 def parse_args():
-  parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-  # Spec args
-  parser.add_argument('--test-alloc', type=str, nargs="+",
-                      help='Allocation command for the machine.')
-  parser.add_argument('--ats-file', type=str,
-                      help='ATS test file to run.')
-  parser.add_argument('--ci-build-dir', type=str,
-                      help='CI build directory.')
-  parser.add_argument('--ci-install-dir', type=str,
-                      default="build_gitlab/install",
-                      help="Location of Spheral installation "+\
-                      "relative to --ci-build-dir")
-  return parser.parse_args()
+    # Spec args
+    parser.add_argument('--test-alloc', type=str, nargs="+",
+                        help='Allocation command for the machine.')
+    parser.add_argument('--ats-file', type=str,
+                        help='ATS test file to run.')
+    parser.add_argument('--ci-build-dir', type=str,
+                        help='CI build directory.')
+    parser.add_argument('--ci-install-dir', type=str,
+                        default="build_gitlab/install",
+                        help="Location of Spheral installation "+\
+                        "relative to --ci-build-dir")
+    return parser.parse_args()
 
 #------------------------------------------------------------------------------
 
@@ -68,6 +58,8 @@ def run_and_report(run_command, ci_output, num_runs):
     sexe(run_command)
     tests_passed = report_results(ci_output)
     if (tests_passed == 0):
+        if (run_nums > 0):
+            print("WARNING: Some tests were run multiple times")
         sys.exit(0)
         # This should be added back in once Jacamar can handle exit codes properly
         # if (num_runs == 0):
@@ -85,7 +77,7 @@ def run_and_report(run_command, ci_output, num_runs):
                 print(f"{ats_cont_file} not found, ATS cannot be rerun")
                 sys.exit(1)
             rerun_command = f"{run_command} {ats_cont_file}"
-        print("Rerunning ATS")
+        print("WARNING: Test failure, rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
 #------------------------------------------------------------------------------
@@ -110,7 +102,6 @@ def run_ats_test(args):
 def main():
     args = parse_args()
     run_ats_test(args)
-
 
 if __name__ == "__main__":
   main()

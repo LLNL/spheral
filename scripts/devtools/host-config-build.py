@@ -3,7 +3,9 @@
 import os
 import sys
 import argparse
-import subprocess
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
 
 source_dir=os.getcwd()
 
@@ -35,24 +37,6 @@ def parse_args():
   parser.add_argument('-D', action='append', default=[])
 
   return parser.parse_args()
-
-
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=False):
-    """ Helper for executing shell commands. """
-    if echo:
-        print("[exe: {0}]".format(cmd))
-    if ret_output:
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        out = p.communicate()[0]
-        out = out.decode('utf8')
-        return p.returncode,out
-    else:
-        return subprocess.call(cmd,shell=True)
-
 
 def main():
   args = parse_args()
