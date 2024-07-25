@@ -94,13 +94,24 @@ def run_ats_test(args):
     if (not os.path.exists(ats_file)):
         print(f"{ats_file} does not exists")
         sys.exit(1)
-    lcats_test = os.path.join(build_gl_dir, "spheral-lcatstest")
-    if (not os.path.exists(lcats_test)):
-        print(f"{lcats_test} does not exists")
+    venv_bin = os.path.join(build_gl_dir, ".venv", "bin")
+    python_exec = os.path.join(venv_bin, "python")
+    if (not os.path.exists(python_exec)):
+        print(f"{python_exec} does not exists}")
         sys.exit(1)
+    lcats_exec = os.path.join(build_gl_dir, "scripts", "lcats")
+    if (not os.path.exists(lcats_exec)):
+        print(f"{lcats_exec} does not exists")
+        sys.exit(1)
+    ats_exec = os.path.join(venv_bin, "ats")
+    if (not os.path.exists(ats_exec)):
+        print(f"{ats_exec} does not exists")
+        sys.exit(1)
+    python_command = python_exec + " -B"
+    lcats_command = python_command + " " + lcats_exec + " --atsExe " + ats_exec + " -e " + python_command
     ats_configs = ' --timelimit="45m"'
     test_alloc = " ".join(args.test_alloc)
-    run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_configs}"
+    run_command = f"{test_alloc} {lcats_command} --logs test-logs {ats_file} {ats_configs}"
     ci_output = os.path.join(args.ci_build_dir, "test-logs")
     run_and_report(run_command, ci_output, 0)
 

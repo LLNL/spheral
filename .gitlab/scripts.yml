@@ -13,7 +13,7 @@
     - cd $CI_BUILD_DIR
     - echo $SPEC
 
-# - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --tpls-only
+    - $BUILD_ALLOC ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --tpls-only
   artifacts:
     paths:
       - ci-dir.txt
@@ -24,7 +24,7 @@
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
-#    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build $EXTRA_CMAKE_ARGS
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build $EXTRA_CMAKE_ARGS
 
 .build_and_test:
   extends: [.build]
@@ -32,7 +32,7 @@
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
-#    - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
+    - ./build_gitlab/install/spheral -c "import $SPHERAL_MODULE"
   artifacts:
     paths:
       - ci-dir.txt
@@ -47,7 +47,7 @@
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
-#    - cat build_gitlab/install/spheral-lcatstest
+    - cat build_gitlab/install/spheral-lcatstest
     - ./build_gitlab/install/.venv/bin/python -B $SCRIPT_DIR/gitlab/run_ats.py --test-alloc "$TEST_ALLOC" --ats-file $ATS_FILE --ci-build-dir $CI_BUILD_DIR || exit_code=$?
 #    - cp -r test-logs $CI_PROJECT_DIR
     - exit $exit_code
@@ -67,8 +67,7 @@
 .update_tpls:
   stage: update_tpls
   script:
-    - echo "TEST"
-#    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
+    - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
 
 .toss_update_permissions:
   stage: update_permissions
