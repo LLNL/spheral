@@ -60,7 +60,7 @@ def main():
     install_dir=args.install_dir
   build_dir=build_dir+"/build"
   # Pull the cmake command to use out of our host config.
-  cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True)[1].split()[-1]
+  cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True).split()[-1]
 
   cmake_extra_args=""
   if args.D and args.D != ['']:
@@ -107,7 +107,7 @@ def main():
     print("~~~~~ Building Spheral")
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-    build_result = sexe("{0} {1} --build . -j 48 --target install".format(ml_cmd, cmake_cmd), echo=True)
+    build_result = sexe("{0} {1} --build . -j 48 --target install".format(ml_cmd, cmake_cmd), echo=True, ret_output=True)
 
     # If our build or install failed, run again to get our first error.
     if build_result != 0:
