@@ -41,16 +41,15 @@
 .run_ats:
   stage: run_ats
   variables:
+    GIT_STRATEGY: none
     FF_ENABLE_BASH_EXIT_CODE_CHECK: 1
     FF_USE_NEW_BASH_EVAL_STRATEGY: 1
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
-    - cat build_gitlab/install/spheral-lcatstest
     - ./build_gitlab/install/.venv/bin/python -B $SCRIPT_DIR/gitlab/run_ats.py --test-alloc "$TEST_ALLOC" --ats-file $ATS_FILE --ci-build-dir $CI_BUILD_DIR || exit_code=$?
-    - export BUILD_FAILURE_EXIT_CODE=$exit_code
-#    - cp -r test-logs $CI_PROJECT_DIR
+    - cp -r test-logs $CI_PROJECT_DIR
     - exit $exit_code
   artifacts:
     when: always

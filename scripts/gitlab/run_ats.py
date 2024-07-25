@@ -68,10 +68,12 @@ def run_and_report(run_command, ci_output, num_runs):
     sexe(run_command)
     tests_passed = report_results(ci_output)
     if (tests_passed == 0):
-        if (num_runs == 0):
-            sys.exit(0)
-        else:
-            sys.exit(80)
+        sys.exit(0)
+        # This should be added back in once Jacamar can handle exit codes properly
+        # if (num_runs == 0):
+        #     sys.exit(0)
+        # else:
+        #     sys.exit(80)
     elif (tests_passed >= max_test_failures):
         print("Too many test failures, not rerunning ATS")
         sys.exit(1)
@@ -118,7 +120,6 @@ def run_ats_test(args):
 #------------------------------------------------------------------------------
 
 def main():
-    sys.exit(80)
     args = parse_args()
     run_ats_test(args)
 
