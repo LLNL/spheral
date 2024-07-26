@@ -47,7 +47,7 @@ def main():
     hostconfig_path=args.host_config
   else:
     hostconfig_path=os.path.abspath(args.host_config)
-    
+
 
   # Set up our directory structure paths.
   if not args.build_dir:
@@ -60,7 +60,7 @@ def main():
     install_dir=args.install_dir
   build_dir=build_dir+"/build"
   # Pull the cmake command to use out of our host config.
-  cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=True).split()[-1]
+  cmake_cmd=sexe("grep 'CMake executable' \"{0}\"".format(hostconfig_path), ret_output=True, echo=False).split()[-1]
 
   cmake_extra_args=""
   if args.D and args.D != ['']:
@@ -107,15 +107,7 @@ def main():
     print("~~~~~ Building Spheral")
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-    build_result = sexe("{0} {1} --build . -j 48 --target install".format(ml_cmd, cmake_cmd), echo=True, ret_output=True)
-
-    # If our build or install failed, run again to get our first error.
-    if build_result != 0:
-      print(build_result)
-      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      print("Compilation failed")
-      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      sys.exit(1)
+    sexe("{0} {1} --build . -j 48 --target install".format(ml_cmd, cmake_cmd), echo=True, ret_output=False)
 
 if __name__ == "__main__":
   main()
