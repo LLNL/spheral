@@ -4,7 +4,7 @@
 //
 // Created by J. Michael Owen, Sat Aug 31 13:31:51 PDT 2013
 //----------------------------------------------------------------------------//
-#include "TensorSVPHViscosity.hh"
+#include "SVPH/TensorSVPHViscosity.hh"
 #include "DataOutput/Restart.hh"
 #include "Boundary/Boundary.hh"
 #include "Geometry/EigenStruct.hh"
