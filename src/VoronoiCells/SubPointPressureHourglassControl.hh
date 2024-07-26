@@ -89,7 +89,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   Scalar mfHG;
-  FieldList<Dimension, Vector>    mDvDt;
+  mutable FieldList<Dimension, Vector> mDvDt;
 
   // The restart registration.
   RestartRegistrationType mRestart;

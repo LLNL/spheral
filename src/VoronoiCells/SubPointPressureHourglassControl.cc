@@ -114,11 +114,11 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
   using Vector = Dim<1>::Vector;
   REQUIRE(cellFace == 0 or cellFace == 1);
 
-  const auto& vert = cellFace == 0 ? celli.xmin() : celli.xmax();
-  const auto  fA = cellFace == 0 ? Vector(1.0) : Vector(-1.0);   // Inward pointing normal since we want -\grad P
+  const auto vertx = cellFace == 0 ? celli.xmin().x() : celli.xmax().x();
+  const auto fA = cellFace == 0 ? Vector(1.0) : Vector(-1.0);   // Inward pointing normal since we want -\grad P
   // const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
-  const auto dA0 = vert.x() - comi.x();
-  const auto dA1 = vert.x() - xi.x();
+  const auto dA0 = vertx - comi.x();
+  const auto dA1 = vertx - xi.x();
   const auto Psub = abs(Pi) * (1.0 - dA1*safeInv(dA0));
   // const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
   // const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
@@ -244,7 +244,7 @@ void
 SubPointPressureHourglassControl<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
-  derivs.enroll(mDvDt);
+  // derivs.enroll(mDvDt);
 }
 
 //------------------------------------------------------------------------------
@@ -261,15 +261,14 @@ dt(const DataBase<Dimension>& dataBase,
   size_t nodeListMin = 0u;
   size_t iMin = 0u;
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto DvDt = derivs.fields(HydroFieldNames::ahgAcceleration, Vector::zero);
-  const auto numNodeLists = DvDt.size();
+  const auto numNodeLists = mDvDt.size();
   CHECK(H.size() == numNodeLists);
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto n = H[k]->numInternalElements();
     for (auto i = 0u; i < n; ++i) {
-      const auto ahat = DvDt(k,i).unitVector();
+      const auto ahat = mDvDt(k,i).unitVector();
       const auto hi = 1.0/(H(k,i).dot(ahat)).magnitude();
-      const auto dti = hi*safeInvVar(DvDt(k,i).magnitude(), 1.0e-10);
+      const auto dti = hi*safeInvVar(mDvDt(k,i).magnitude(), 1.0e-10);
       if (dti < dtMin) {
         dtMin = dti;
         nodeListMin = k;
@@ -322,7 +321,7 @@ evaluateDerivatives(const Scalar time,
   CHECK(gradRho.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DvDt = derivs.fields(HydroFieldNames::ahgAcceleration, Vector::zero);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   CHECK(DvDt.size() == numNodeLists);
@@ -372,6 +371,7 @@ evaluateDerivatives(const Scalar time,
   // }
 
   // Walk the cell face flags, looking for pair interactions
+  mDvDt = Vector::zero;
   {
     int nodeListi, i, nodeListj, j, cellFace;
     for (nodeListi = 0; nodeListi < int(numNodeLists); ++nodeListi) {
@@ -412,14 +412,16 @@ evaluateDerivatives(const Scalar time,
             // const bool barf = j >= nodeLists[nodeListj]->firstGhostNode();
             // if (barf) {
             //   cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : " << comi << " " << comj << " : "
-            //        << celli << " " << cellj << " : " 
+            //        << celli << " " << cellj << " : "
+            //        << aij << " " << aji << " : "
             //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << "\n";
             // }
             DvDt(nodeListi, i) += aij;
             DvDt(nodeListj, j) += aji;
-            DepsDt(nodeListi, i) += vel(nodeListi, i).dot(aij);
-
-            DepsDt(nodeListj, j) += vel(nodeListj, j).dot(aji);
+            mDvDt(nodeListi, i) += aij;
+            mDvDt(nodeListj, j) += aji;
+            DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(aij);
+            DepsDt(nodeListj, j) -= vel(nodeListj, j).dot(aji);
             if (compatibleEnergy) {
               const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
               CHECK2(pairIndices.find(hashij) != pairIndices.end(),
