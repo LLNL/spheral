@@ -1,7 +1,6 @@
 include_directories(.)
 
 set(GSPH_inst
-    computeSPHVolume
     computeSumVolume
     computeMFMDensity
     initializeGradients
@@ -33,7 +32,6 @@ set(GSPH_sources
     GSPHFieldNames.cc)
 
 set(GSPH_headers
-    computeSPHVolume.hh
     computeSumVolume.hh
     computeMFMDensity.hh
     initializeGradients.hh

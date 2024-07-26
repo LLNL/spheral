@@ -13,9 +13,9 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
-#include "GSPH/computeSPHVolume.hh"
 #include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 
+#include "Hydro/computeSPHVolume.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
