@@ -9,7 +9,6 @@ set(GSPH_inst
     MFMHydroBase
     MFVHydroBase
     Policies/MassFluxPolicy
-    Policies/ReplaceWithRatioPolicy
     Policies/MFVIncrementVelocityPolicy
     Policies/MFVIncrementSpecificThermalEnergyPolicy
     Policies/CompatibleMFVSpecificThermalEnergyPolicy
@@ -41,7 +40,6 @@ set(GSPH_headers
     MFMHydroBase.hh
     MFVHydroBase.hh
     Policies/MassFluxPolicy.hh
-    Policies/ReplaceWithRatioPolicy.hh
     Policies/MFVIncrementVelocityPolicy.hh
     Policies/MFVIncrementSpecificThermalEnergyPolicy.hh
     Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh

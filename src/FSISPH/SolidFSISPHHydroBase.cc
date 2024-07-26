@@ -13,8 +13,6 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
-
 #include "Hydro/computeSPHVolume.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
@@ -39,6 +37,7 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/PureReplaceState.hh"
 #include "DataBase/updateStateFields.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"

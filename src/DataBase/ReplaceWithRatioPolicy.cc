@@ -5,7 +5,7 @@
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Field/Field.hh"

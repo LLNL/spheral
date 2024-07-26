@@ -20,6 +20,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -30,7 +31,6 @@
 
 #include "GSPH/GSPHHydroBase.hh"
 #include "GSPH/GSPHFieldNames.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
