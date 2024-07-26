@@ -7,7 +7,7 @@
 #ifndef TensorSVPHViscosity_HH
 #define TensorSVPHViscosity_HH
 
-#include "ArtificalViscosity/ArtificialViscosity.hh"
+#include "ArtificialViscosity/ArtificialViscosity.hh"
 
 namespace Spheral {
 
