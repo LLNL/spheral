@@ -58,7 +58,7 @@ def run_and_report(run_command, ci_output, num_runs):
     sexe(run_command)
     tests_passed = report_results(ci_output)
     if (tests_passed == 0):
-        if (run_nums > 0):
+        if (num_runs > 0):
             print("WARNING: Some tests were run multiple times")
         sys.exit(0)
         # This should be added back in once Jacamar can handle exit codes properly
