@@ -16,6 +16,7 @@ Notable changes include:
 
   * Build changes / improvements:
     * Distributed source directory must always be built now
+    * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH)
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved
