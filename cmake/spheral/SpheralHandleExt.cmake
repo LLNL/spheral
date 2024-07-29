@@ -4,14 +4,14 @@
 #----------------------------------------------------------------------------------------
 
 # ----------------------
-# INPUT-OUTPUT VARIABLES
+# INPUT VARIABLES
 # ----------------------
 # <lib_name>      : REQUIRED : name of target TPL
 # APPLE           : REQUIRED : flag for Mac OSX
 
-# -----------------------
-# OUTPUT VARIABLES TO USE
-# -----------------------
+# ----------------------
+# OUTPUT VARIABLES
+# ----------------------
 # <lib_name>_libs : list of library names with modified extension
 #----------------------------------------------------------------------------------------
 
