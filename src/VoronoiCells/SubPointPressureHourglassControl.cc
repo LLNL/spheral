@@ -201,8 +201,16 @@ subCellAcceleration(const Dim<3>::FacetedVolume& celli,
                     const Dim<3>::Vector& comi,
                     const Dim<3>::Vector& xi,
                     const Dim<3>::Scalar  Pi) {
-  using Vector = Dim<3>::Vector;
-  return Vector();
+  const auto& facets = celli.facets();
+  REQUIRE(size_t(cellFace) < facets.size());
+  const auto& f = facets[cellFace];
+  const auto  fA = f.area();
+  const auto  nhat = -f.normal();  // Inward pointing
+  const auto  p0 = f.point(0u);
+  const auto  dV0 = (comi - p0).dot(nhat) * fA;    // 3* actually
+  const auto  dV1 = (xi   - p0).dot(nhat) * fA;    // 3* actually
+  const auto  Psub = abs(Pi) * (dV0*safeInvVar(dV1) - 1.0);
+  return Psub*fA * nhat;
 }
 
 }            // anonymous
@@ -212,8 +220,10 @@ subCellAcceleration(const Dim<3>::FacetedVolume& celli,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 SubPointPressureHourglassControl<Dimension>::
-SubPointPressureHourglassControl(const Scalar fHG):
+SubPointPressureHourglassControl(const Scalar fHG,
+                                 const Scalar xfilter):
   mfHG(fHG),
+  mxfilter(xfilter),
   mDvDt(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
 }
@@ -449,8 +459,8 @@ evaluateDerivatives(const Scalar time,
           // if (barf) cerr << endl;
         }
 
-        // // Optionally add direct filtering to the position update
-        // DxDt(nodeListi, i) += min(1.0, mfHG) * (celli.centroid() - xi);
+        // Optionally add direct filtering to the position update
+        DxDt(nodeListi, i) += mxfilter * (celli.centroid() - xi)*safeInv(dt);
       }
     }
   }

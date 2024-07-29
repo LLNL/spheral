@@ -20,7 +20,8 @@ class SubPointPressureHourglassControl(Physics):
 """
     
     def pyinit(self,
-               fHG = "Scalar"):
+               fHG = "Scalar",
+               xfilter = ("Scalar", 0.0)):
         "SubPointPressureHourglassControl constructor"
         return
 
@@ -38,6 +39,7 @@ class SubPointPressureHourglassControl(Physics):
     #...........................................................................
     # Properties
     fHG = PYB11property("Scalar", "fHG", "fHG", doc="The fractional multiplier on the hourglass force")           
+    xfilter = PYB11property("Scalar", "xfilter", "xfilter", doc="The fractional multiplier on the hourglass centroidal position filter")           
     DvDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DvDt", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------

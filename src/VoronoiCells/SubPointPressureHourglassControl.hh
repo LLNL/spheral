@@ -34,7 +34,8 @@ public:
   using TimeStepType = typename std::pair<double, std::string>;
 
   // Constructor
-  SubPointPressureHourglassControl(const Scalar fHG);
+  SubPointPressureHourglassControl(const Scalar fHG,
+                                   const Scalar xfilter);
 
   // Destructor.
   virtual ~SubPointPressureHourglassControl();
@@ -72,7 +73,9 @@ public:
 
   // Access parameters
   Scalar fHG() const                                   { return mfHG; }
+  Scalar xfilter() const                               { return mxfilter; }
   void fHG(const Scalar x)                             { mfHG = x; }
+  void xfilter(const Scalar x)                         { mxfilter = x; }
   const FieldList<Dimension, Vector>&    DvDt() const  { return mDvDt; }
 
   //****************************************************************************
@@ -88,7 +91,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mfHG;
+  Scalar mfHG, mxfilter;
   mutable FieldList<Dimension, Vector> mDvDt;
 
   // The restart registration.
