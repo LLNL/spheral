@@ -19,6 +19,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "FileIO/FileIO.hh"
+#include "Utilities/FastMath.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/range.hh"
 
@@ -29,6 +30,8 @@
 #include <sstream>
 
 namespace Spheral {
+
+using FastMath::pow2;
 
 using std::vector;
 using std::unordered_map;
@@ -119,7 +122,7 @@ subCellAcceleration(const Dim<1>::FacetedVolume& celli,
   // const auto dA = (comi - vert).unitVector();   // Inward pointing normal since we want -\grad P
   const auto dA0 = vertx - comi.x();
   const auto dA1 = vertx - xi.x();
-  const auto Psub = abs(Pi) * (1.0 - dA1*safeInv(dA0));
+  const auto Psub = abs(Pi) * (dA0*safeInvVar(dA1) - 1.0);
   // const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
   // const auto Psub = abs(Pi * (vert.x() - comi.x())/(vert.x() - xi.x()));
   return Psub*fA;
@@ -156,7 +159,14 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
   const auto v12 = v2 - v1;
   const auto dA0 = ((v1 - comi).cross(v2 - comi)).z();
   const auto dA1 = ((v1 - xi).cross(v2 - xi)).z();
-  const auto Psub = abs(Pi) * max(-1.0, min(1.0, 1.0 - dA1*safeInv(dA0)));
+  const auto Psub = abs(Pi) * (dA0*safeInvVar(dA1) - 1.0);
+  // const auto Psub = abs(Pi) * (dA0 > dA1 ?
+  //                              dA0*safeInvVar(dA1):
+  //                             -dA1*safeInvVar(dA0));
+  // const auto Psub = abs(Pi) * (dA0 > dA1 ?
+  //                              dA0*safeInvVar(dA1) - 1.0 :
+  //                              1.0 - dA1*safeInvVar(dA0));
+  // const auto Psub = abs(Pi)*(1.0 - dA1*safeInvVar(dA0));
   const Vector fA(-v12.y(), v12.x());
   // const auto Psub = abs(Pi * ((v1 - comi).cross(v2 - comi)).z()*safeInv(((v1 - xi).cross(v2 - xi)).z()));
   return Psub*fA;
@@ -323,6 +333,7 @@ evaluateDerivatives(const Scalar time,
   // Derivative FieldLists.
   auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
   auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
@@ -437,6 +448,9 @@ evaluateDerivatives(const Scalar time,
           }
           // if (barf) cerr << endl;
         }
+
+        // // Optionally add direct filtering to the position update
+        // DxDt(nodeListi, i) += min(1.0, mfHG) * (celli.centroid() - xi);
       }
     }
   }

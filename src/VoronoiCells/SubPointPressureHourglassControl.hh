@@ -54,7 +54,7 @@ public:
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase, 
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const override;
+                          const Scalar time) const override;
 
   // Register the state
   virtual void registerState(DataBase<Dimension>& dataBase,
