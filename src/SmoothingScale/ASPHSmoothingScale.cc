@@ -630,8 +630,8 @@ finalize(const Scalar time,
       fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
       massZerothMomenti +=     fweightij * WSPHi;
       massZerothMomentj += 1.0/fweightij * WSPHj;
-      massSecondMomenti +=                 WSPHi * mCellSecondMoment(nodeListi, i);
-      massSecondMomentj += 1.0/fweightij * WSPHj * mCellSecondMoment(nodeListj, j);
+      massSecondMomenti +=                 WSPHi * mCellSecondMoment(nodeListj, j);
+      massSecondMomentj += 1.0/fweightij * WSPHj * mCellSecondMoment(nodeListi, i);
     }
 
     // Reduce the thread values to the master.
