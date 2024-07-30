@@ -132,7 +132,7 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
-            fhourglass = 0.05,
+            fhourglass = 0.0,
 
             # kernel options
             KernelConstructor = WendlandC4Kernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
