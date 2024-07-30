@@ -4,7 +4,9 @@ from string import digits
 import os
 import sys
 import argparse
-import subprocess
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
 
 #------------------------------------------------------------------------------
 
@@ -41,20 +43,6 @@ def parse_args():
 
   return parser.parse_args()
 
-
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=True):
-    """ Helper for executing shell commands. """
-    if echo:
-      print("[exe: {0}]".format(cmd))
-    p = subprocess.run(cmd, shell=True,
-                       capture_output=ret_output,
-                       check=True, text=True)
-    if ret_output:
-      if echo:
-        print(p.stdout)
-      return p.stdout
-
 #------------------------------------------------------------------------------
 
 def main():
@@ -68,7 +56,7 @@ def main():
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
-    hostconfig="{1}-{2}.cmake".format(host, sys_type, (args.spec).replace(" ","_"))
+    hostconfig="{0}-{1}.cmake".format(sys_type, (args.spec).replace(" ","_"))
     sexe("cp {0} gitlab.cmake".format(hostconfig))
     hostconfig_path=os.path.join(os.getcwd(), "gitlab.cmake")
   else:
@@ -77,7 +65,7 @@ def main():
   print(hostconfig)
 
   if not args.tpls_only:
-      if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
+      sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args))
 
 if __name__ == "__main__":
   main()
