@@ -4,7 +4,9 @@ from string import digits
 import os
 import sys
 import argparse
-import subprocess
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
 
 #------------------------------------------------------------------------------
 
@@ -23,6 +25,8 @@ def parse_args():
   parser = argparse.ArgumentParser()
 
   # Control stage flow
+  parser.add_argument('--tpls-only', action='store_true',
+      help='Only build the tpls and generate the host-config.')
   parser.add_argument('--build-only', action='store_true',
       help='Only build the project from a spack generated host-config.')
   parser.add_argument('--host-config', type=str, default="",
@@ -39,24 +43,6 @@ def parse_args():
 
   return parser.parse_args()
 
-
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=False):
-    """ Helper for executing shell commands. """
-    if echo:
-        print("[exe: {0}]".format(cmd))
-    if ret_output:
-        p = subprocess.Popen(cmd,
-                             shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
-        out = p.communicate()[0]
-        out = out.decode('utf8')
-        return p.returncode,out
-    else:
-        return subprocess.call(cmd,shell=True)
-
-
 #------------------------------------------------------------------------------
 
 def main():
@@ -70,7 +56,7 @@ def main():
 
   # Get the host-config name and path.
   if not args.build_only and not args.host_config:
-    hostconfig="{1}-{2}.cmake".format(host, sys_type, (args.spec).replace(" ","_"))
+    hostconfig="{0}-{1}.cmake".format(sys_type, (args.spec).replace(" ","_"))
     sexe("cp {0} gitlab.cmake".format(hostconfig))
     hostconfig_path=os.path.join(os.getcwd(), "gitlab.cmake")
   else:
@@ -78,7 +64,8 @@ def main():
     hostconfig_path=args.host_config
   print(hostconfig)
 
-  if sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args)) : sys.exit(1)
+  if not args.tpls_only:
+      sexe("{0} --host-config=\"{1}\" --lc-modules=\"{2}\" --build {3}".format(host_congfig_build_cmd, hostconfig_path, args.lc_modules, args.extra_cmake_args))
 
 if __name__ == "__main__":
   main()

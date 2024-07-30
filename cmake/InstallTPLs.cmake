@@ -20,7 +20,7 @@ if (NOT ENABLE_CXXONLY)
   find_package(Python3 COMPONENTS Interpreter Development)
   set(PYTHON_EXE ${Python3_EXECUTABLE})
   set(SPHERAL_SITE_PACKAGES_PATH "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
-  list(APPEND SPHERAL_BLT_DEPENDS Python3::Python)
+  list(APPEND SPHERAL_CXX_DEPENDS Python3::Python)
 
   # Set the PYB11Generator path
   if (NOT PYB11GENERATOR_ROOT_DIR)
@@ -31,7 +31,7 @@ if (NOT ENABLE_CXXONLY)
     set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
   endif()
   include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
-  list(APPEND SPHERAL_BLT_DEPENDS pybind11_headers)
+  list(APPEND SPHERAL_CXX_DEPENDS pybind11_headers)
   install(TARGETS pybind11_headers
     EXPORT spheral_cxx-targets
     DESTINATION lib/cmake)
@@ -68,31 +68,51 @@ endif()
 
 # Use find_package to get axom (which brings in fmt) and patch fmt
 find_package(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
-if(axom_FOUND)
-  list(APPEND SPHERAL_BLT_DEPENDS axom)
-  # Add fmt library to external library list
-  set(fmt_name fmt)
-  # Newer Axom versions call fmt target axom::fmt
-  if(NOT TARGET fmt)
-    set(fmt_name axom::fmt)
-  endif()
-  list(APPEND SPHERAL_BLT_DEPENDS ${fmt_name})
-  # BLT Macro for doing this
-  blt_convert_to_system_includes(TARGET ${fmt_name})
-endif()
+list(APPEND SPHERAL_BLT_DEPENDS axom )
+
 # This is a hack to handle transitive issues that come
 # from using object libraries with newer version of axom
 foreach(_comp ${AXOM_COMPONENTS_ENABLED})
-  list(APPEND SPHERAL_BLT_DEPENDS axom::${_comp})
   get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
+  blt_convert_to_system_includes(TARGET ${axom_deps})
   list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
 
+message("-----------------------------------------------------------------------------")
 # Use find_package to get adiak
 find_package(adiak REQUIRED NO_DEFAULT_PATH PATHS ${adiak_DIR}/lib/cmake/adiak)
 if(adiak_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS adiak::adiak)
+  message("Found Adiak External Package")
 endif()
+message("-----------------------------------------------------------------------------")
+find_package(RAJA REQUIRED NO_DEFAULT_PATH PATHS ${raja_DIR})
+if (RAJA_FOUND) 
+  message("Found RAJA External Package.")
+endif()
+message("-----------------------------------------------------------------------------")
+find_package(umpire REQUIRED NO_DEFAULT_PATH PATHS ${umpire_DIR})
+if (umpire_FOUND) 
+  message("Found umpire External Package.")
+endif()
+message("-----------------------------------------------------------------------------")
+
+# Chai
+if(chai_DIR AND USE_EXTERNAL_CHAI)
+  find_package(chai REQUIRED NO_DEFAULT_PATH PATHS ${chai_DIR})
+  if (chai_FOUND) 
+    message("Found chai External Package.")
+  endif()
+else()
+  message("Using chai Submodule.")
+  set(chai_DIR "${SPHERAL_ROOT_DIR}/extern/chai")
+  set(CHAI_ENABLE_RAJA_PLUGIN On CACHE BOOL "")
+  add_subdirectory(${chai_DIR})
+endif()
+
+list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
+
+message("-----------------------------------------------------------------------------")
 
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
@@ -105,6 +125,7 @@ blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS caliper IF ENABLE_TIMER)
 foreach(lib ${SPHERAL_EXTERN_LIBS})
   if(NOT TARGET ${lib})
     Spheral_Handle_TPL(${lib} ${TPL_SPHERAL_CMAKE_DIR})
+    blt_convert_to_system_includes(TARGET ${lib})
   endif()
   list(APPEND SPHERAL_BLT_DEPENDS ${lib})
 endforeach()
@@ -114,25 +135,3 @@ endforeach()
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
-
-# Copied from serac, needed to bypass generator expression issue during export
-set(_props)
-if( ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0" )
-  list(APPEND _props INTERFACE_LINK_OPTIONS)
-endif()
-list(APPEND _props INTERFACE_COMPILE_OPTIONS)
-foreach(_target axom axom::openmp)
-  if(TARGET ${_target})
-    message(STATUS "Removing OpenMP Flags from target[${_target}]")
-    foreach(_prop ${_props})
-      get_target_property(_flags ${_target} ${_prop})
-      if ( _flags )
-	string( REPLACE "${OpenMP_CXX_FLAGS}" ""
-	  correct_flags "${_flags}" )
-	string( REPLACE "${OpenMP_Fortran_FLAGS}" ""
-	  correct_flags "${correct_flags}" )
-	set_target_properties( ${_target} PROPERTIES ${_prop} "${correct_flags}" )
-      endif()
-    endforeach()
-  endif()
-endforeach()
