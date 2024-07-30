@@ -311,7 +311,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
     auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
-    auto DvDt_thread = DvDt.threadCopy(threadStack);
+    // auto DvDt_thread = DvDt.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {

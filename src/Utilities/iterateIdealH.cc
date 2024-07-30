@@ -186,7 +186,10 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto phimax = phi.maxElement();
           const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
           if (deltaHi <= tolerance) flagNodeDone(nodeListi, i) = 1;
-          maxDeltaH = max(maxDeltaH, deltaHi);
+#pragma omp critical
+          {
+            maxDeltaH = max(maxDeltaH, deltaHi);
+          }
 
           // Assign the new H
           H(nodeListi, i) = H1(nodeListi, i);
