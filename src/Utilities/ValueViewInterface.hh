@@ -2,6 +2,8 @@
 #define __SPHERAL_VALUEVIEWINTERFACE__
 
 //#include "Utilities/SharedPtr.hh"
+#include "ManagedVector.hh"
+#include "config.hh"
 #include "chai/ManagedSharedPtr.hpp"
 #include <memory>
 
@@ -18,11 +20,7 @@ namespace Spheral {
 // classes that need to be automatically copied by another CHAICopyable or
 // SPHERALCopyable class.
 template<typename T>
-class SPHERALCopyable : public chai::CHAICopyable{
-  //virtual void free();
-  //SPHERAL_HOST_DEVICE virtual T& operator=(std::nullptr_t) = 0;
-  //SPHERAL_HOST_DEVICE virtual void shallowCopy(T const& rhs) = 0;
-};
+class SPHERALCopyable : public chai::CHAICopyable{};
   
 // Interface class for View like objects.
 //
@@ -33,26 +31,40 @@ class SPHERALCopyable : public chai::CHAICopyable{
 // in order to set up a forwarding constructor from the Value class ctor
 // that passes in a "new DataObject" type.
 
-#define USE_CMSPTR
-
-
-template<typename T>
-#if defined(USE_CMSPTR)
-using SMART_PTR_TYPE = chai::ManagedSharedPtr<T>;
+#if defined(SPHERAL_ENABLE_SCIP)
+#define SCIP_IMPL_BEGIN namespace impl {
+#define SCIP_IMPL_END } // namespace impl
 #else
-//using SMART_PTR_TYPE = Spheral::shared_ptr<T>;
-using SMART_PTR_TYPE = std::shared_ptr<T>;
-//using SMART_PTR_TYPE = ManagedSmartPtr<T>;
+#define SCIP_IMPL_BEGIN
+#define SCIP_IMPL_END
 #endif
 
+namespace util {
+
+template<typename T>
+#if defined(SPHERAL_ENABLE_SCIP)
+using shared_ptr = chai::ManagedSharedPtr<T>;
+#else
+using shared_ptr = std::shared_ptr<T>;
+#endif
+
+template<typename T>
+#if defined(SPHERAL_ENABLE_SCIP)
+using vector = ManagedVector<T>;
+#else
+using vector = std::vector<T>;
+#endif
+
+}// namespace util
+
 template<typename impl_type>
-class SpheralViewInterface : public SMART_PTR_TYPE<impl_type>
+class SpheralViewInterface : public util::shared_ptr<impl_type>
 {
 private:
   using m_ImplType = impl_type;
 
 public:
-  using SmartPtrType = SMART_PTR_TYPE<m_ImplType>;
+  using SmartPtrType = util::shared_ptr<m_ImplType>;
   SPHERAL_HOST_DEVICE SmartPtrType & sptr() { return *this; }
   SPHERAL_HOST_DEVICE SmartPtrType const& sptr() const { return *this; }
 
@@ -76,7 +88,7 @@ protected:
   using ViewType = typename view_type::ViewType;
 
 public:
-#if !defined(USE_CMSPTR)
+#if !defined(SPHERAL_ENABLE_SCIP)
   SPHERAL_HOST SpheralValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
 #endif
   SPHERAL_HOST SpheralValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
@@ -90,7 +102,7 @@ public:
 
 // Defines a ctor that will take a "new" Data object to create the underlying
 // ManagedSmartPtr.
-#if !defined(USE_CMSPTR)
+#if !defined(SPHERAL_ENABLE_SCIP)
 #define VIEW_DEFINE_ALLOC_CTOR(view_t) \
 protected: \
   view_t(ImplType* rhs) : Base(SmartPtrType(rhs, [](ImplType *p) { p->free(); } )) {}
@@ -167,7 +179,7 @@ public: \
   SPHERAL_HOST_DEVICE ImplType& operator*() const { return SPTR_DATA_REF(); } \
   SPHERAL_HOST_DEVICE ImplType* operator->() const { return &SPTR_DATA_REF(); }
 
-#if !defined(USE_CMSPTR)
+#if !defined(SPHERAL_ENABLE_SCIP)
 #define VALUE_DEF_CTOR(value_t) \
   value_t() : Base(new ImplType()) {}
 #define VALUE_COPY_CTOR(value_t) \

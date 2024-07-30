@@ -9,8 +9,6 @@
 #include "Utilities/ManagedVector.hh"
 
 namespace impl {
-// The Data class needs to be CHAICopyable in order to trigger nested copies for Copyable 
-// members within.
 
 class QInt : public Spheral::SPHERALCopyable<QInt>{
 public:
@@ -19,7 +17,7 @@ public:
   SPHERAL_HOST_DEVICE QInt(QInt const& rhs) = default;
   SPHERAL_HOST_DEVICE QInt& operator=(QInt const& rhs) = default;
 
-  using CoeffsType = Spheral::ManagedVector<double>;
+  using CoeffsType = Spheral::util::vector<double>;
 
   double mXmin, mXmax, mXstep;
   CoeffsType mcoeffs;
@@ -88,6 +86,7 @@ public:
   SPHERAL_HOST void editData(size_t min) const { return sptr_data().editData(min); }
   SPHERAL_HOST CoeffsType coeffs() const { return deepCopy(sptr_data().coeffs()); }
 };
+
 
 // Setting up G Test for QuadraticInterpolator
 template<typename T>

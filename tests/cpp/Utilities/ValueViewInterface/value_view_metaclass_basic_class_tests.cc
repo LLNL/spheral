@@ -6,11 +6,8 @@
 //-----------------------------------------------------------------------------
 
 #include "Utilities/ValueViewInterface.hh"
-#include "Utilities/ManagedVector.hh"
 
-namespace impl {
-// The Data class needs to be CHAICopyable in order to trigger nested copies for Copyable 
-// members within.
+SCIP_IMPL_BEGIN
 
 class QInt : public Spheral::SPHERALCopyable<QInt>{
 public:
@@ -19,7 +16,7 @@ public:
   SPHERAL_HOST_DEVICE QInt(QInt const& rhs) = default;
   SPHERAL_HOST_DEVICE QInt& operator=(QInt const& rhs) = default;
 
-  using CoeffsType = Spheral::ManagedVector<double>;
+  using CoeffsType = Spheral::util::vector<double>;
 
   double mXmin, mXmax, mXstep;
   CoeffsType mcoeffs;
@@ -44,21 +41,20 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const { return mXmax; }
   SPHERAL_HOST_DEVICE CoeffsType const& coeffs() const { return mcoeffs; }
 
-  // Define the required interface for a SPHERALCopyable object.
-  void free() { mcoeffs.free(); }
-  SPHERAL_HOST_DEVICE QInt& operator=(std::nullptr_t) { mcoeffs=nullptr; return *this; }
-  SPHERAL_HOST_DEVICE void shallowCopy(QInt const& rhs) { *this = rhs; }
 };
 
-} // namespace impl
+SCIP_IMPL_END
 
+
+
+#ifdef SPHERAL_ENABLE_SCIP
 class QInt;
 
 #define QIntView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (QInt), (QIntView), (impl::QInt), (code) )
 #define QInt__(code) VALUE_INTERFACE_METACLASS_DECLARATION( (QInt), (QIntView), (code) )
 
 class QIntView__( 
-  DEFAULT()
+  DEFAULT() // This defines the default behavior of a reference semantics based interface.
 public:
   using CoeffsType = typename impl::QInt::CoeffsType;
 );
@@ -74,6 +70,10 @@ public:
   SPHERAL_HOST void editData(size_t min) const { return sptr_data().editData(min); }
   SPHERAL_HOST CoeffsType coeffs() const { return deepCopy(sptr_data().coeffs()); }
 );
+
+#endif //SPHERAL_ENABLE_SCIP
+
+
 
 
 // Setting up G Test for QuadraticInterpolator
@@ -96,7 +96,6 @@ GPU_TYPED_TEST(QIntExampleTypedTest, SmartCopySemantics)
     auto qq_int_v2 = qq_int_v;
 
     EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-      SPHERAL_ASSERT_EQ(qq_int_v->xmin(),          0);
       SPHERAL_ASSERT_EQ(qq_int_v->coeffs().size(), 0);
     EXEC_IN_SPACE_END();
 

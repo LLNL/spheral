@@ -16,6 +16,15 @@ else()
   add_definitions("-DDEBUG=0")
 endif()
 
+if (SPHERAL_ENABLE_SCIP)
+  message("-- Semantic Class Interface Pattern (SCIP) : Enabled")
+  message("------ WARNING ------")
+  message("-- SCIP is an experimental implementation necessary for the GPU port. Use with caution!")
+  message("---------------------")
+else()
+  message("-- Semantic Class Interface Pattern (SCIP) : Disabled")
+endif()
+
 # The DBC flag
 if (DBC_MODE STREQUAL "All")
   message("-- DBC (design by contract) set to All")
