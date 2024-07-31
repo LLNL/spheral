@@ -28,6 +28,10 @@
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
     - $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config gitlab.cmake --build $EXTRA_CMAKE_ARGS
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
 
 .build_and_test:
   extends: [.build]
