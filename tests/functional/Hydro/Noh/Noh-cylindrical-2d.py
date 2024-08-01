@@ -503,9 +503,10 @@ if not (gsph or mfm or mfv):
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
 if fhourglass > 0.0:
-    hg = SubPointPressureHourglassControl(fhourglass)
+    hg = SubPointPressureHourglassControl(fhourglass, filter)
     output("hg")
     output("hg.fHG")
+    output("hg.xfilter")
     packages.append(hg)
 
 #-------------------------------------------------------------------------------
