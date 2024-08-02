@@ -1,5 +1,0 @@
-"""
-Spheral config data
-"""
-
-SpheralEnableSVPH = @SPHERAL_ENABLE_SVPH_TRUE_OR_FALSE@

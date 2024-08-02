@@ -1,11 +1,3 @@
-set(SPHERAL_ENABLE_SVPH_TRUE_OR_FALSE )
-
-if(SPHERAL_ENABLE_SVPH)
-  set(SPHERAL_ENABLE_SVPH_TRUE_OR_FALSE True)
-else()
-  set(SPHERAL_ENABLE_SVPH_TRUE_OR_FALSE False)
-endif()
-
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfig.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfig.py)

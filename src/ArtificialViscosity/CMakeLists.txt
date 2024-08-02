@@ -7,15 +7,12 @@ set(ArtificialViscosity_inst
     IncrementCullenMultipliers
     MonaghanGingoldViscosity
     MorrisMonaghanReducingViscosity
+    TensorSVPHViscosity
     TensorCRKSPHViscosity
     TensorMonaghanGingoldViscosity
     VonNeumanViscosity
    )
 
-if(SPHERAL_ENABLE_SVPH)
-  list(APPEND ArtificialViscosity_inst
-       TensorSVPHViscosity)
-endif()
 
 set(ArtificialViscosity_sources )
 
@@ -49,13 +46,9 @@ set(ArtificialViscosity_headers
     RadialViscosity.hh
     TensorCRKSPHViscosity.hh
     TensorMonaghanGingoldViscosity.hh
+    TensorSVPHViscosity.hh
     VonNeumanViscosity.hh
     )
-
-if(SPHERAL_ENABLE_SVPH)
-  list(APPEND ArtificialViscosity_headers
-       TensorSVPHViscosity.hh)
-endif()
 
 spheral_add_obj_library(ArtificialViscosity SPHERAL_OBJ_LIBS)
 
