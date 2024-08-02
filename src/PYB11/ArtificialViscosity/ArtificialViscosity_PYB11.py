@@ -5,6 +5,7 @@ Provides the artificial viscosity algorithms for use with the hydrodynamics meth
 """
 
 from PYB11Generator import *
+from SpheralConfig import *
 from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
@@ -19,11 +20,13 @@ PYB11includes += ['"ArtificialViscosity/ArtificialViscosity.hh"',
                   '"ArtificialViscosity/CullenDehnenViscosity.hh"',
                   '"ArtificialViscosity/TensorMonaghanGingoldViscosity.hh"',
                   '"ArtificialViscosity/FiniteVolumeViscosity.hh"',
-                  '"ArtificialViscosity/TensorSVPHViscosity.hh"',
                   '"ArtificialViscosity/TensorCRKSPHViscosity.hh"',
                   '"ArtificialViscosity/VonNeumanViscosity.hh"',
                   '"ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"',
                   '"FileIO/FileIO.hh"']
+
+if SpheralEnableSVPH:
+    PYB11includes.append('"ArtificialViscosity/TensorSVPHViscosity.hh"')
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -40,9 +43,11 @@ from LimitedMonaghanGingoldViscosity import *
 from MorrisMonaghanReducingViscosity import *
 from CullenDehnenViscosity import *
 from FiniteVolumeViscosity import *
-from TensorSVPHViscosity import *
 from TensorCRKSPHViscosity import *
 from VonNeumanViscosity import *
+
+if SpheralEnableSVPH:
+    from TensorSVPHViscosity import *
 
 for ndim in dims:
     exec('''
@@ -53,8 +58,13 @@ LimitedMonaghanGingoldViscosity%(ndim)id = PYB11TemplateClass(LimitedMonaghanGin
 MorrisMonaghanReducingViscosity%(ndim)id = PYB11TemplateClass(MorrisMonaghanReducingViscosity, template_parameters="%(Dimension)s")
 CullenDehnenViscosity%(ndim)id = PYB11TemplateClass(CullenDehnenViscosity, template_parameters="%(Dimension)s")
 FiniteVolumeViscosity%(ndim)id = PYB11TemplateClass(FiniteVolumeViscosity, template_parameters="%(Dimension)s")
-TensorSVPHViscosity%(ndim)id = PYB11TemplateClass(TensorSVPHViscosity, template_parameters="%(Dimension)s")
 TensorCRKSPHViscosity%(ndim)id = PYB11TemplateClass(TensorCRKSPHViscosity, template_parameters="%(Dimension)s")
 VonNeumanViscosity%(ndim)id = PYB11TemplateClass(VonNeumanViscosity, template_parameters="%(Dimension)s")
+''' % {"ndim"      : ndim,
+       "Dimension" : ("Dim<" + str(ndim) +">")})
+
+    if SpheralEnableSVPH:
+        exec('''
+TensorSVPHViscosity%(ndim)id = PYB11TemplateClass(TensorSVPHViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})
