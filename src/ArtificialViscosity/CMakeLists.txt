@@ -12,6 +12,10 @@ set(ArtificialViscosity_inst
     VonNeumanViscosity
    )
 
+if(SPHERAL_ENABLE_SVPH)
+  list(APPEND ArtificialViscosity_inst
+       TensorSVPHViscosity)
+endif()
 
 set(ArtificialViscosity_sources )
 
@@ -47,6 +51,11 @@ set(ArtificialViscosity_headers
     TensorMonaghanGingoldViscosity.hh
     VonNeumanViscosity.hh
     )
+
+if(SPHERAL_ENABLE_SVPH)
+  list(APPEND ArtificialViscosity_headers
+       TensorSVPHViscosity.hh)
+endif()
 
 spheral_add_obj_library(ArtificialViscosity SPHERAL_OBJ_LIBS)
 
