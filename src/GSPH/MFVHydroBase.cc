@@ -41,6 +41,7 @@
 #include "DataBase/PureReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -52,7 +53,6 @@
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
 #include "GSPH/Policies/MassFluxPolicy.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/Policies/MFVIncrementSpecificThermalEnergyPolicy.hh"
 #include "GSPH/Policies/MFVIncrementVelocityPolicy.hh"
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"

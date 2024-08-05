@@ -11,6 +11,10 @@
 
 namespace Spheral {
 
+// Forward declarations.
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+
 template<typename Dimension, typename ValueType>
 class ReplaceWithRatioPolicy: public FieldUpdatePolicy<Dimension> {
 public:

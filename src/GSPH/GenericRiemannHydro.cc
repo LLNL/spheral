@@ -19,6 +19,7 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/updateStateFields.hh"
 
+#include "Hydro/computeSPHVolume.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
@@ -35,7 +36,6 @@
 
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/GenericRiemannHydro.hh"
-#include "GSPH/computeSPHVolume.hh"
 #include "GSPH/initializeGradients.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 

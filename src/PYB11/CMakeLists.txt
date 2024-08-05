@@ -24,7 +24,6 @@ set (_python_packages
   SPH
   CRKSPH
   DEM
-  GSPH
   FSISPH
   ArtificialViscosity
   Mesh
@@ -59,6 +58,10 @@ endif()
 
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND _python_packages GSPH)
 endif()
 
 if (SPHERAL_ENABLE_SVPH)
