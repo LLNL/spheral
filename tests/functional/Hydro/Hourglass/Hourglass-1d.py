@@ -233,12 +233,11 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
-if fhourglass > 0.0 or xhourglass > 0.0:
-    hg = SubPointPressureHourglassControl(fhourglass, xhourglass)
-    output("hg")
-    output("hg.fHG")
-    output("hg.xfilter")
-    packages.append(hg)
+hg = SubPointPressureHourglassControl(fhourglass, xhourglass)
+output("hg")
+output("hg.fHG")
+output("hg.xfilter")
+packages.append(hg)
 
 #-------------------------------------------------------------------------------
 # Create boundary conditions.

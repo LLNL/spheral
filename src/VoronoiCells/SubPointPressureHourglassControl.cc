@@ -152,14 +152,20 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
                     const Dim<2>::Scalar  Pi) {
   const auto& facets = celli.facets();
   REQUIRE(size_t(cellFace) < facets.size());
+  auto  Atot = 0.0;
+  for (const auto& f: facets) Atot += f.area();
   const auto& f = facets[cellFace];
-  const auto  fA = f.area();
-  const auto  nhat = -f.normal();  // Inward pointing
+  const auto  nA = -f.normal();  // Inward pointing area normal (has magnitude of facet area)
+  // const auto Aref = Atot/6u;
+  // const auto  nAref = Aref * nA.unitVector();
   const auto& p0 = f.point1();
-  const auto  dV0 = (comi - p0).dot(nhat) * fA;    // 2* actually
-  const auto  dV1 = (xi   - p0).dot(nhat) * fA;    // 2* actually
-  const auto  Psub = abs(Pi) * (dV0*safeInvVar(dV1) - 1.0);
-  return Psub*fA * nhat;
+  const auto  dV0 = (comi - p0).dot(nA);    // 2* actually
+  const auto  dV1 = (xi   - p0).dot(nA);    // 2* actually
+  const auto  Psub = abs(Pi) * FastMath::pow4(dV0*safeInvVar(dV1) - 1.0);
+  // const auto  dV0 = (comi - p0).dot(nA);    // 2* actually
+  // const auto  dV1 = (xi   - p0).dot(nA);    // 2* actually
+  // const auto  Psub = abs(Pi) * (dV0*safeInvVar(dV1) - 1.0);
+  return Psub*nA;
 
   // const auto comi = celli.centroid();
 
@@ -404,7 +410,7 @@ evaluateDerivatives(const Scalar time,
             nodeListj = flags.nodeListj;
             j = flags.j;
             CHECK(nodeListj != -1 or (nodeListj == -1 and j == -1));
-            // const bool 2barf = i == 100 or j == 100;
+            // const bool barf = (Process::getRank() == 0 and (i == 8 or j == 8));
             // if (barf) cerr << cellFace << " " << nodeListj << " " << j << " : ";
             if (nodeListj != -1 and     // Avoid external faces (with void)
                 cm.calculatePairInteraction(nodeListi, i, nodeListj, j, nodeLists[nodeListj]->firstGhostNode())) {  // make sure we hit each pair only once
@@ -422,12 +428,13 @@ evaluateDerivatives(const Scalar time,
               // const auto aij = mfHG * (subCellAcceleration(celli, cellFace, comi, xi, Pi)/mi +
               //                          subCellAcceleration(celli, cellFace, comj, xj, Pj)/mj);
               // const auto aji = -aij * mi/mj;
-              // const bool barf = j >= nodeLists[nodeListj]->firstGhostNode();
+              // const bool barf = (Process::getRank() == 0 and (i == 8 or j == 8));
               // if (barf) {
               //   cerr << " --> " << i << " " << j << " : " << xi << " " << xj << " : " << comi << " " << comj << " : "
-              //        << celli << " " << cellj << " : "
+              //        // << celli << " " << cellj << " : "
               //        << aij << " " << aji << " : "
-              //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << "\n";
+              //        << subCellAcceleration(celli, cellFace, comi, xi, Pi) << " " << subCellAcceleration(celli, cellFace, comj, xj, Pj) << " : "
+              //        << aij.dot(comi - xi) << " " << aji.dot(comj - xj) << "\n";
               // }
               DvDt(nodeListi, i) += aij;
               DvDt(nodeListj, j) += aji;
