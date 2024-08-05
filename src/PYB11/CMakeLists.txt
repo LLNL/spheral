@@ -23,7 +23,6 @@ set (_python_packages
   FieldOperations
   SPH
   CRKSPH
-  SVPH
   DEM
   FSISPH
   ArtificialViscosity
@@ -59,6 +58,10 @@ endif()
 
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _python_packages SVPH)
 endif()
 
 if (SPHERAL_ENABLE_GSPH)

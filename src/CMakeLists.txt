@@ -39,7 +39,6 @@ list(APPEND _packages
   Porosity
   RK
   SPH
-  SVPH
   SolidMaterial
   Strength
   Utilities
@@ -55,6 +54,10 @@ endif()
 
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _packages SVPH)
 endif()
 
 if (SPHERAL_ENABLE_GSPH)

@@ -4,6 +4,7 @@
 # (using the ATS) before pushing changes to that public repo!
 #-------------------------------------------------------------------------------
 
+glue(svph = False)
 glue(gsph = False)
 
 # Geometry unit tests
