@@ -20,8 +20,8 @@ Notable changes include:
     * Distributed source directory must always be built now.
     * Git strategies in the Gitlab CI are fixed so a clone only occurs on the first stage for each job, instead of for all stages for each job.
     * New Gitlab CI pipeline cleanup strategy deletes job directories immediately upon successful completion.
-    * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
     * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH).
+    * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.

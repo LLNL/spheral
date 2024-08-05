@@ -56,12 +56,12 @@ if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _packages Gravity)
 endif()
 
-if (SPHERAL_ENABLE_SVPH)
-  list(APPEND _packages SVPH)
-endif()
-
 if (SPHERAL_ENABLE_GSPH)
   list(APPEND _packages GSPH)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _packages SVPH)
 endif()
 
 if(NOT ENABLE_CXXONLY)

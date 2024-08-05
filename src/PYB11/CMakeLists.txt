@@ -60,12 +60,12 @@ if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
 endif()
 
-if (SPHERAL_ENABLE_SVPH)
-  list(APPEND _python_packages SVPH)
-endif()
-
 if (SPHERAL_ENABLE_GSPH)
   list(APPEND _python_packages GSPH)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _python_packages SVPH)
 endif()
 
 foreach(_python_package ${_python_packages})
