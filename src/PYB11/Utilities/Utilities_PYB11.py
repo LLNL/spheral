@@ -56,6 +56,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
+                  '"Utilities/Timer.hh"',
                   '"Distributed/Communicator.hh"',
                   '"adiak.hpp"',
                   '<algorithm>']
@@ -67,6 +68,8 @@ PYB11preamble += """
 namespace Spheral {
 inline void spheral_adiak_init() {
   adiak::init((void*) &Communicator::communicator());
+  // Always collect default adiak information
+  adiak::collect_all();
 }
 
 enum adiak_categories {
@@ -77,6 +80,17 @@ performance,
 control
 };
 }
+"""
+
+PYB11modulepreamble = """
+TIME_BEGIN("main");
+Spheral::spheral_adiak_init();
+
+auto atexit = py::module_::import("atexit");
+atexit.attr("register")(py::cpp_function([]() {
+   TIME_END("main");
+   adiak::fini();
+}));
 """
 
 #-------------------------------------------------------------------------------

@@ -46,6 +46,11 @@ if (NOT ENABLE_CXXONLY)
     "${CMAKE_CURRENT_BINARY_DIR}/perftest.sh"
   )
 
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
+  )
+
   install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
@@ -55,7 +60,12 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
       "${CMAKE_CURRENT_SOURCE_DIR}/performance/caliper.config"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
-    )
+  )
+
+  install(FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
+  )
 
   install(CODE "execute_process( \
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh \ 

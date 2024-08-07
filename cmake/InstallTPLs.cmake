@@ -86,6 +86,15 @@ if(adiak_FOUND)
   message("Found Adiak External Package")
 endif()
 message("-----------------------------------------------------------------------------")
+# Use find_package to get caliper
+if (ENABLE_TIMER)
+  find_package(caliper REQUIRED NO_DEFAULT_PATH PATHS ${caliper_DIR}/share/cmake/caliper)
+  if(caliper_FOUND)
+    list(APPEND SPHERAL_BLT_DEPENDS caliper)
+    message("Found Caliper External Package")
+  endif()
+endif()
+message("-----------------------------------------------------------------------------")
 find_package(RAJA REQUIRED NO_DEFAULT_PATH PATHS ${raja_DIR})
 if (RAJA_FOUND) 
   message("Found RAJA External Package.")
@@ -119,7 +128,6 @@ list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
 
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)
-blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS caliper IF ENABLE_TIMER)
 
 # Create and install target library for each external library
 foreach(lib ${SPHERAL_EXTERN_LIBS})

@@ -30,6 +30,6 @@ cp --symbolic-link scripts/perftest.sh spheral-perftest &> /dev/null
 cd - > /dev/null 
 
 echo "Byte-compiling packages in install path ..."
-@CMAKE_INSTALL_PREFIX@/spheral -m compileall @CMAKE_INSTALL_PREFIX@/.venv/@SPHERAL_SITE_PACKAGES_PATH@
+@CMAKE_INSTALL_PREFIX@/spheral -m compileall -q @CMAKE_INSTALL_PREFIX@/.venv/@SPHERAL_SITE_PACKAGES_PATH@
 
 echo "Done."

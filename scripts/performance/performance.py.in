@@ -1,0 +1,18 @@
+#!/user/bin/env python3
+
+import sys, os
+caliper_loc = "@caliper_DIR@"
+sys.path.append(os.path.join(caliper_loc, "../../../lib64/caliper"))
+
+import caliperreader as cr
+
+# Put some filler functions here
+def compare_times(manager):
+    filtered = [test for test in manager.testlist if test.status is PASSED]
+    for t in filtered:
+        print(t)
+
+onExit(compare_times)
+glue(keep=True)
+source("functional/Hydro/Noh/Noh-cylindrical-2d.py")
+

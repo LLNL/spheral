@@ -3,7 +3,7 @@
 #
 # This module reproduces the pyMPI interface using mpi4py.
 #-------------------------------------------------------------------------------
-import sys
+import sys, os
 from SpheralTestUtilities import globalFrame
 
 # NOTE: this logic for disabling recv_mprobe seems to be necessary with newer
@@ -11,6 +11,13 @@ from SpheralTestUtilities import globalFrame
 # as supported, but seem to be broken.
 import mpi4py
 mpi4py.rc.recv_mprobe = False
+if (@MPI_TIMER_VAR@):
+    cal_run1 = os.getenv("CALI_CONFIG_PROFILE")
+    cal_run2 = os.getenv("CALI_CONFIG")
+    if (cal_run1 or cal_run2):
+        print("WARNING: Relying on Caliper to call MPI Finalize")
+        mpi4py.rc.finalize = False
+
 
 # Now go on as usual...
 from mpi4py import MPI
