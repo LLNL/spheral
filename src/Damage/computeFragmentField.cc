@@ -93,6 +93,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   REQUIRE(nodes.numGhostNodes() == 0);
   REQUIRE(density.nodeListPtr() == &nodes);
   REQUIRE(damage.nodeListPtr() == &nodes);
+  const auto haveMask = mask.numInternalElements() == nodes.numInternalNodes();
 
 #ifdef USE_MPI
   // Get the rank and total number of processors.
@@ -138,7 +139,8 @@ computeFragmentField(const NodeList<Dimension>& nodes,
   // Simultaneously remove them from the set of globalNodesRemaining.
   int numDustNodes = 0;
   for (auto i = 0u; i != nodes.numInternalNodes(); ++i) {
-    if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold || mask(i) > 0) {
+    int maski = haveMask ? mask(i) : -1;
+    if (damage(i).Trace() > damageThreshold || density(i) < densityThreshold || maski > 0) {
       result(i) = maxGlobalID + 1;
       ++numDustNodes;
       vector<int>::iterator removeItr = find(globalNodesRemaining.begin(),

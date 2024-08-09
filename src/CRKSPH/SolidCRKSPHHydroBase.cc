@@ -221,10 +221,6 @@ registerState(DataBase<Dimension>& dataBase,
   auto pTypes = dataBase.solidParticleTypes();
   state.enroll(pTypes);
 
-  // Register the mask.
-  auto mask = dataBase.solidMask();
-  state.enroll(mask);
-
   // And finally the intial plastic strain.
   mPlasticStrain0 = ps;
   mPlasticStrain0.copyFields();
@@ -675,7 +671,6 @@ applyGhostBoundaries(State<Dimension>& state,
   auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  auto mask = state.fields(SolidFieldNames::mask, int(0));
 
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -686,7 +681,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
-    (*boundaryItr)->applyFieldListGhostBoundary(mask);
   }
 }
 
@@ -709,7 +703,6 @@ enforceBoundaries(State<Dimension>& state,
   auto Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  auto mask = state.fields(SolidFieldNames::mask, int(0));
 
   for (auto boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -720,7 +713,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
-    (*boundaryItr)->enforceFieldListBoundary(mask);
   }
 }
 
