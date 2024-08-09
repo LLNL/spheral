@@ -115,25 +115,6 @@ particleTypes() const {
 }
 
 //------------------------------------------------------------------------------
-// Access the mask field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-Field<Dimension, int>&
-SolidNodeList<Dimension>::
-mask() {
-  return mMask;
-}
-
-template<typename Dimension>
-inline
-const Field<Dimension, int>&
-SolidNodeList<Dimension>::
-mask() const {
-  return mMask;
-}
-
-//------------------------------------------------------------------------------
 // Access the strength model this solid node list is using.
 //------------------------------------------------------------------------------
 template<typename Dimension>
