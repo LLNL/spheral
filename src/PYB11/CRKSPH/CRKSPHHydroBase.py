@@ -158,7 +158,6 @@ mass density, velocity, and specific thermal energy."""
     timeStepMask = PYB11property("const FieldList<%(Dimension)s, int>&", "timeStepMask", returnpolicy="reference_internal")
     pressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "pressure", returnpolicy="reference_internal")
     soundSpeed = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "soundSpeed", returnpolicy="reference_internal")
-    specificThermalEnergy0 = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "specificThermalEnergy0", returnpolicy="reference_internal")
     entropy = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "entropy", returnpolicy="reference_internal")
     maxViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "maxViscousPressure", returnpolicy="reference_internal")
     effectiveViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveViscousPressure", returnpolicy="reference_internal")

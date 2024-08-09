@@ -254,14 +254,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHFacetedHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SVPHFacetedHydroBase<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
 }
@@ -352,14 +344,6 @@ internalDvDx() const {
 // SVPHFacetedHydroBase<Dimension>::
 // faceAcceleration() const {
 //   return mFaceAcceleration;
-// }
-
-// template<typename Dimension>
-// inline
-// const FieldList<Dimension, std::vector<typename Dimension::Scalar> >&
-// SVPHFacetedHydroBase<Dimension>::
-// faceSpecificThermalEnergy0() const {
-//   return mFaceSpecificThermalEnergy0;
 // }
 
 template<typename Dimension>

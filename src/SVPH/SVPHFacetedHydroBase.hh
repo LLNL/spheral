@@ -174,7 +174,6 @@ public:
   const FieldList<Dimension, Scalar>&    cellPressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
@@ -187,7 +186,6 @@ public:
   // const FieldList<Dimension, std::vector<Scalar> >& faceMass() const;
   // const FieldList<Dimension, std::vector<Vector> >& faceVelocity() const;
   // const FieldList<Dimension, std::vector<Vector> >& faceAcceleration() const;
-  // const FieldList<Dimension, std::vector<Scalar> >& faceSpecificThermalEnergy0() const;
   const FieldList<Dimension, std::vector<Vector> >& faceForce() const;
 
   //****************************************************************************
@@ -222,7 +220,6 @@ protected:
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mCellPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mMassDensitySum;
@@ -241,7 +238,6 @@ protected:
   // FieldList<Dimension, std::vector<Scalar> >    mFaceMass;
   // FieldList<Dimension, std::vector<Vector> >    mFaceVelocity;
   // FieldList<Dimension, std::vector<Vector> >    mFaceAcceleration;
-  // FieldList<Dimension, std::vector<Scalar> >    mFaceSpecificThermalEnergy0;
   FieldList<Dimension, std::vector<Vector> >    mFaceForce;
 
 private:

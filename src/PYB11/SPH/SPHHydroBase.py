@@ -157,7 +157,6 @@ boundary conditions."""
     soundSpeed =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "soundSpeed",           returnpolicy="reference_internal")
     volume =                       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "volume",               returnpolicy="reference_internal")
     omegaGradh =                   PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "omegaGradh",           returnpolicy="reference_internal")
-    specificThermalEnergy0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "specificThermalEnergy0",returnpolicy="reference_internal")
     entropy =                      PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "entropy",              returnpolicy="reference_internal")
     maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
     effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")

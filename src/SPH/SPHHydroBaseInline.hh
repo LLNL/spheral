@@ -282,14 +282,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SPHHydroBase<Dimension>::
 entropy() const {
   return mEntropy;
 }

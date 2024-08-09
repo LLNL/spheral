@@ -164,7 +164,6 @@ public:
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
@@ -207,7 +206,6 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
 
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mMassDensitySum;

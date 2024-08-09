@@ -159,7 +159,6 @@ public:
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, Scalar>&    entropy() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
@@ -194,7 +193,6 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
   FieldList<Dimension, Scalar>    mEntropy;
 
   FieldList<Dimension, Scalar>    mMaxViscousPressure;

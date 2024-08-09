@@ -90,7 +90,6 @@ CRKSPHHydroBase(DataBase<Dimension>& dataBase,
   mTimeStepMask(FieldStorageType::CopyFields),
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mEffViscousPressure(FieldStorageType::CopyFields),
@@ -109,7 +108,6 @@ CRKSPHHydroBase(DataBase<Dimension>& dataBase,
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
-  mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
@@ -167,17 +165,6 @@ registerState(DataBase<Dimension>& dataBase,
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "CRKSPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
-  // If we're using the compatibile energy discretization, prepare to maintain a copy
-  // of the thermal energy.
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  auto nodeListi = 0u;
-  if (mCompatibleEnergyEvolution) {
-    for (auto itr = dataBase.fluidNodeListBegin(); itr < dataBase.fluidNodeListEnd(); ++itr, ++nodeListi) {
-      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
-    }
-  }
-
   // Now register away.
   // Mass.
   auto mass = dataBase.fluidMass();
@@ -212,7 +199,6 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, make_policy<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
     state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy},
                                                                           true));
-    state.enroll(mSpecificThermalEnergy0);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
@@ -380,18 +366,12 @@ applyGhostBoundaries(State<Dimension>& state,
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   auto entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
-
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
     boundaryPtr->applyFieldListGhostBoundary(specificThermalEnergy);
     boundaryPtr->applyFieldListGhostBoundary(velocity);
     boundaryPtr->applyFieldListGhostBoundary(pressure);
     boundaryPtr->applyFieldListGhostBoundary(soundSpeed);
     boundaryPtr->applyFieldListGhostBoundary(entropy);
-    if (compatibleEnergyEvolution()) boundaryPtr->applyFieldListGhostBoundary(specificThermalEnergy0);
   }
 }
 
@@ -412,18 +392,12 @@ enforceBoundaries(State<Dimension>& state,
   auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   auto entropy = state.fields(HydroFieldNames::entropy, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
-
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
     boundaryPtr->enforceFieldListBoundary(specificThermalEnergy);
     boundaryPtr->enforceFieldListBoundary(velocity);
     boundaryPtr->enforceFieldListBoundary(pressure);
     boundaryPtr->enforceFieldListBoundary(soundSpeed);
     boundaryPtr->enforceFieldListBoundary(entropy);
-    if (compatibleEnergyEvolution()) boundaryPtr->enforceFieldListBoundary(specificThermalEnergy0);
   }
 }
 
@@ -447,7 +421,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
-  file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mEntropy, pathName + "/entropy");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mEffViscousPressure, pathName + "/effViscousPressure");
@@ -472,7 +445,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
-  file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mEntropy, pathName + "/entropy");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mEffViscousPressure, pathName + "/effViscousPressure");

@@ -79,7 +79,6 @@ SVPHHydroBase(const TableKernel<Dimension>& W,
   mPressure(FieldStorageType::Copy),
   mSoundSpeed(FieldStorageType::Copy),
   mVolume(FieldStorageType::Copy),
-  mSpecificThermalEnergy0(FieldStorageType::Copy),
   mMaxViscousPressure(FieldStorageType::Copy),
   mMassDensitySum(FieldStorageType::Copy),
   mXSVPHDeltaV(FieldStorageType::Copy),
@@ -184,16 +183,6 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.fluidPressure(mPressure);
   dataBase.fluidSoundSpeed(mSoundSpeed);
 
-  // If we're using the compatibile energy discretization, prepare to maintain a copy
-  // of the thermal energy.
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  if (mCompatibleEnergyEvolution) {
-    for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
-      *mSpecificThermalEnergy0[nodeListi] = fluidNodeListPtr->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
-    }
-  }
-
   // Now register away.
   for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
 
@@ -229,7 +218,6 @@ registerState(DataBase<Dimension>& dataBase,
       state.enroll(fluidNodeListPtr->specificThermalEnergy(), make_policy<NonSymmetricSpecificThermalEnergyPolicy<Dimension>>(dataBase));
       state.enroll(fluidNodeListPtr->velocity(), make_policy<IncrementState<Dimension, Vector>>(HydroFieldNames::position,
                                                                                                 HydroFieldNames::specificThermalEnergy));
-      state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
       state.enroll(fluidNodeListPtr->specificThermalEnergy(), make_policy<IncrementState<Dimension, Scalar>>());
       state.enroll(fluidNodeListPtr->velocity(), make_policy<IncrementState<Dimension, Vector>>());
@@ -774,12 +762,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(SVPHFieldNames::A_SVPH, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
-
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -791,7 +773,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(A);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
   }
 }
 
@@ -814,9 +795,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> A = state.fields(SVPHFieldNames::A_SVPH, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
        ++boundaryItr) {
@@ -828,7 +806,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(soundSpeed);
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(A);
-    if (compatibleEnergyEvolution()) (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
   }
 }
 
@@ -843,7 +820,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mVolume, pathName + "/volume");
-  file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
@@ -868,7 +844,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mVolume, pathName + "/volume");
-  file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 

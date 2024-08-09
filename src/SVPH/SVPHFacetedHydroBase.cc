@@ -97,7 +97,6 @@ SVPHFacetedHydroBase(const TableKernel<Dimension>& W,
   mPressure(FieldStorageType::CopyFields),
   mCellPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mMassDensitySum(FieldStorageType::CopyFields),
   mXSVPHDeltaV(FieldStorageType::CopyFields),
@@ -237,17 +236,6 @@ registerState(DataBase<Dimension>& dataBase,
     mCellPressure = mPressure;
   }
 
-  // If we're using the compatible energy discretization we need to copy initial state and
-  // fill in the opposite node properties across faces.
-  if (mCompatibleEnergyEvolution) {
-    const FieldList<Dimension, Scalar> mass = dataBase.fluidMass();
-    const FieldList<Dimension, Vector> velocity = dataBase.fluidVelocity();
-    const FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-    mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
-    mSpecificThermalEnergy0.copyFields();
-    dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
-  }
-
   // Now register away.
   for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
 
@@ -311,7 +299,6 @@ registerState(DataBase<Dimension>& dataBase,
                                                                                                                                 dataBase,
                                                                                                                                 this->boundaryBegin(),
                                                                                                                                 this->boundaryEnd()));
-      state.enroll(*mSpecificThermalEnergy0[nodeListi]);
     } else {
       state.enroll(fluidNodeListPtr->specificThermalEnergy(), make_policy<IncrementState<Dimension, Scalar>>());
     }
@@ -391,14 +378,6 @@ initialize(const typename Dimension::Scalar time,
                time, 
                dt,
                this->kernel());
-
-  // // Copy the starting specific thermal energy for compatible mode.
-  // if (mCompatibleEnergyEvolution) {
-  //   const FieldList<Dimension, Scalar> specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-  //   mSpecificThermalEnergy0.assignFields(dataBase.fluidSpecificThermalEnergy());
-  //   mSpecificThermalEnergy0.copyFields();
-  //   dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0, HydroFieldNames::specificThermalEnergy + "0", false);
-  // }
 }
 
 //------------------------------------------------------------------------------
@@ -995,12 +974,9 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> cellPressure = state.fields("Cell" + HydroFieldNames::pressure, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
   FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
-    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
     CHECK(derivs.fieldNameRegistered(HydroFieldNames::hydroAcceleration));
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
     DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   }
 
@@ -1016,7 +992,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->applyFieldListGhostBoundary(cellPressure);
     if (compatibleEnergyEvolution()) {
-      (*boundaryItr)->applyFieldListGhostBoundary(specificThermalEnergy0);
       (*boundaryItr)->applyFieldListGhostBoundary(DvDt);
     }
   }
@@ -1041,12 +1016,9 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   FieldList<Dimension, Scalar> cellPressure = state.fields("Cell" + HydroFieldNames::pressure, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
   FieldList<Dimension, Vector> DvDt;
   if (compatibleEnergyEvolution()) {
-    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
     CHECK(derivs.fieldNameRegistered(HydroFieldNames::hydroAcceleration));
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
     DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   }
 
@@ -1062,7 +1034,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(volume);
     (*boundaryItr)->enforceFieldListBoundary(cellPressure);
     if (compatibleEnergyEvolution()) {
-      (*boundaryItr)->enforceFieldListBoundary(specificThermalEnergy0);
       (*boundaryItr)->enforceFieldListBoundary(DvDt);
     }
   }
@@ -1079,7 +1050,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mCellPressure, pathName + "/cellPressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
-  file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
@@ -1106,7 +1076,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mCellPressure, pathName + "/cellPressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
-  file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");

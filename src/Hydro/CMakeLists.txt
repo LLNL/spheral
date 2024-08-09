@@ -32,7 +32,6 @@ set(Hydro_headers
     EntropyPolicy.hh
     GammaPolicy.hh
     HydroFieldNames.hh
-    HydroInline.hh
     CompatibleDifferenceSpecificThermalEnergyPolicy.hh
     NonSymmetricSpecificThermalEnergyPolicy.hh
     PressurePolicy.hh

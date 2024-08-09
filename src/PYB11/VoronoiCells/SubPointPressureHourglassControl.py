@@ -21,7 +21,7 @@ class SubPointPressureHourglassControl(Physics):
     
     def pyinit(self,
                fHG = "Scalar",
-               xfilter = ("Scalar", 0.0)):
+               xfilter = ("Scalar", "0.0")):
         "SubPointPressureHourglassControl constructor"
         return
 

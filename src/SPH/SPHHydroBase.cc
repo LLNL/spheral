@@ -107,7 +107,6 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
   mOmegaGradh(FieldStorageType::CopyFields),
-  mSpecificThermalEnergy0(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mEffViscousPressure(FieldStorageType::CopyFields),
@@ -135,7 +134,6 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(1.0, HydroFieldNames::omegaGradh);
-  mSpecificThermalEnergy0 = dataBase.newFluidFieldList(0.0, HydroFieldNames::specificThermalEnergy + "0");
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
@@ -244,20 +242,6 @@ registerState(DataBase<Dimension>& dataBase,
   VERIFY2(not (mCompatibleEnergyEvolution and mEvolveTotalEnergy),
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
-  // If we're using the compatibile energy discretization, prepare to maintain a copy
-  // of the thermal energy.
-  dataBase.resizeFluidFieldList(mSpecificThermalEnergy0, 0.0);
-  // dataBase.resizeFluidFieldList(mEntropy, 0.0, HydroFieldNames::entropy, false);
-  auto nodeListi = 0u;
-  if (mCompatibleEnergyEvolution) {
-    for (auto itr = dataBase.fluidNodeListBegin();
-         itr < dataBase.fluidNodeListEnd();
-         ++itr, ++nodeListi) {
-      *mSpecificThermalEnergy0[nodeListi] = (*itr)->specificThermalEnergy();
-      (*mSpecificThermalEnergy0[nodeListi]).name(HydroFieldNames::specificThermalEnergy + "0");
-    }
-  }
-
   // Now register away.
   // Mass.
   auto mass = dataBase.fluidMass();
@@ -277,30 +261,26 @@ registerState(DataBase<Dimension>& dataBase,
   auto position = dataBase.fluidPosition();
   state.enroll(position, make_policy<IncrementState<Dimension, Vector>>());
 
-  // Are we using the compatible energy evolution scheme?
-  // We register energy and velocity differently based on this choice.
-  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  // Register the velocity
+  // We make this dependent on the thermal energy in case we're using the compatible energy update
   auto velocity = dataBase.fluidVelocity();
+  state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
+                                                                         HydroFieldNames::specificThermalEnergy},
+                                                                        true));  // Use all DvDt sources (wildcard)
+
+  // Register the specific thermal energy.
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   if (mCompatibleEnergyEvolution) {
     state.enroll(specificThermalEnergy, make_policy<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy},
-                                                                          true));  // Use all DvDt sources (wildcard)
-    state.enroll(mSpecificThermalEnergy0);
 
   } else if (mEvolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
     // total energy policy.
     state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
-                                                                           HydroFieldNames::specificThermalEnergy},
-                                                                          true));  // Use all DvDt sources (wildcard)
 
   } else {
     // Otherwise we're just time-evolving the specific energy.
     state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position},
-                                                                          true));  // Use all DvDt sources (wildcard)
   }
 
   // Register the time step mask, initialized to 1 so that everything defaults to being
@@ -1036,11 +1016,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    CHECK(state.fieldNameRegistered(HydroFieldNames::specificThermalEnergy + "0"));
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
 
   // FieldList<Dimension, Scalar> volume;
   // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
@@ -1058,9 +1033,6 @@ applyGhostBoundaries(State<Dimension>& state,
     boundaryPtr->applyFieldListGhostBoundary(pressure);
     boundaryPtr->applyFieldListGhostBoundary(soundSpeed);
     boundaryPtr->applyFieldListGhostBoundary(omega);
-    if (compatibleEnergyEvolution()) {
-      boundaryPtr->applyFieldListGhostBoundary(specificThermalEnergy0);
-    }
     // if (updateVolume) boundaryPtr->applyFieldListGhostBoundary(volume);
   }
   TIME_END("SPHghostBounds");
@@ -1085,11 +1057,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
 
-  FieldList<Dimension, Scalar> specificThermalEnergy0;
-  if (compatibleEnergyEvolution()) {
-    specificThermalEnergy0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", 0.0);
-  }
-
   // FieldList<Dimension, Scalar> volume;
   // const bool updateVolume = (this->densityUpdate() == MassDensityType::VoronoiCellDensity or
   //                            this->densityUpdate() == MassDensityType::SumVoronoiCellDensity);
@@ -1106,9 +1073,6 @@ enforceBoundaries(State<Dimension>& state,
     boundaryPtr->enforceFieldListBoundary(pressure);
     boundaryPtr->enforceFieldListBoundary(soundSpeed);
     boundaryPtr->enforceFieldListBoundary(omega);
-    if (compatibleEnergyEvolution()) {
-      boundaryPtr->enforceFieldListBoundary(specificThermalEnergy0);
-    }
     // if (updateVolume) boundaryPtr->enforceFieldListBoundary(volume);
   }
   TIME_END("SPHenforceBounds");
@@ -1200,7 +1164,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mVolume, pathName + "/volume");
-  file.write(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   // file.write(mEntropy, pathName + "/entropy");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mNormalization, pathName + "/normalization");
@@ -1238,7 +1201,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mVolume, pathName + "/volume");
-  file.read(mSpecificThermalEnergy0, pathName + "/specificThermalEnergy0");
   // file.read(mEntropy, pathName + "/entropy");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mNormalization, pathName + "/normalization");

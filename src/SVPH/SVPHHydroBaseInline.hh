@@ -210,14 +210,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SVPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SVPHHydroBase<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
 }
