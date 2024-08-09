@@ -23,7 +23,6 @@ set (_python_packages
   FieldOperations
   SPH
   CRKSPH
-  SVPH
   DEM
   GSPH
   FSISPH
@@ -60,6 +59,10 @@ endif()
 
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _python_packages SVPH)
 endif()
 
 foreach(_python_package ${_python_packages})
