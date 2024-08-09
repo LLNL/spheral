@@ -278,7 +278,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     maxDeltaH = allReduce(maxDeltaH, SPHERAL_OP_MAX);
 
     // Output the statitics.
-    if (Process::getRank() == 0)
+    if (Process::getRank() == 0 && maxIterations > 1)
       cerr << "iterateIdealH: (iteration, deltaH) = ("
            << itr << ", "
            << maxDeltaH << ")"
@@ -347,7 +347,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
   // Report the final timing.
   const auto t1 = clock();
-  if (Process::getRank() == 0)
+  if (Process::getRank() == 0 && maxIterations > 1)
     cerr << "iterateIdealH: required a total of "
          << (t1 - t0)/CLOCKS_PER_SEC
          << " seconds."

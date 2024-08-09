@@ -3,11 +3,12 @@
 //
 // Created by JMO, Tue Oct 12 23:07:22 PDT 2010
 //----------------------------------------------------------------------------//
-#include "boost/unordered_map.hpp"
-#include "boost/functional/hash.hpp"
+#include <map>
+#include <unordered_map>
+#include <functional>
 #include "boost/bimap.hpp"
 using namespace boost;
-using ::boost::unordered_map;
+using ::std::unordered_map;
 using std::min;
 using std::max;
 using std::abs;
@@ -756,7 +757,7 @@ generateDomainInfo() {
   // Hash the node positions.  We want these sorted by key as well
   // to make testing if a key is present fast.
   vector<Key> nodeHashes;
-  boost::unordered_map<Key, unsigned> key2nodeID;
+  std::map<Key, unsigned> key2nodeID;
   nodeHashes.reserve(numNodes());
   for (unsigned i = 0; i != numNodes(); ++i) {
     nodeHashes.push_back(hashPosition(mNodePositions[i], xmin, xmax, boxInv));
@@ -855,7 +856,7 @@ generateDomainInfo() {
 
   // Determine which process owns each shared node.  We use the convention that the process
   // with the lowest rank wins.
-  boost::unordered_map<unsigned, unsigned> nodeOwner;
+  std::unordered_map<unsigned, unsigned> nodeOwner;
   for (unsigned k = 0; k != mNeighborDomains.size(); ++k) {
     for (unsigned j = 0; j != mSharedNodes[k].size(); ++j) {
       CHECK(k < mSharedNodes.size() and j < mSharedNodes[k].size());

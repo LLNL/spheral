@@ -36,3 +36,4 @@ const std::string Spheral::SolidFieldNames::fDSjutzi = "f deviatoric stress fact
 const std::string Spheral::SolidFieldNames::fragmentIDs = "fragment index";
 const std::string Spheral::SolidFieldNames::particleTypes = "particle type";
 const std::string Spheral::SolidFieldNames::meltSpecificEnergy = "melt specific energy";
+const std::string Spheral::SolidFieldNames::mask = "mask";

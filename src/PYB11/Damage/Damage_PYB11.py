@@ -101,6 +101,7 @@ def computeFragmentField(nodeList = "const NodeList<%(Dimension)s>&",
                          linkRadius = "const double",
                          density = "const Field<%(Dimension)s, double>&",
                          damage = "const Field<%(Dimension)s, typename %(Dimension)s::SymTensor>&",
+                         mask = "const Field<%(Dimension)s, int>&",
                          densityThreshold = "const double",
                          damageThreshold = "const double",
                          assignDustToFragments = "const bool"):
