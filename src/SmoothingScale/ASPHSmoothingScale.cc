@@ -15,6 +15,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Boundary/Boundary.hh"
 #include "FileIO/FileIO.hh"
+#include "Utilities/FastMath.hh"
 #include "Utilities/GeometricUtilities.hh"
 #include "Utilities/range.hh"
 #include "Utilities/Timer.hh"
@@ -28,6 +29,7 @@ using std::min;
 using std::max;
 using std::abs;
 using std::vector;
+using FastMath::pow2;
 
 namespace {
 
@@ -96,7 +98,7 @@ polySecondMoment(const Dim<1>::FacetedVolume& poly,
   return Dim<1>::SymTensor(1);
 }
 
-// 2D -- we can use the knowledge that the vertices in a 
+// 2D
 inline
 Dim<2>::SymTensor
 polySecondMoment(const Dim<2>::FacetedVolume& poly,
@@ -118,8 +120,34 @@ inline
 Dim<3>::SymTensor
 polySecondMoment(const Dim<3>::FacetedVolume& poly,
                  const Dim<3>::Vector& center) {
-  VERIFY2(false, "Implement me!");
-  return Dim<3>::SymTensor();
+  using Scalar = Dim<3>::Scalar;
+  using Vector = Dim<3>::Vector;
+  using SymTensor = Dim<3>::SymTensor;
+  SymTensor result;
+  std::vector<std::array<Vector, 3>> tris;
+  Vector v1, v2, v3;
+  Scalar thpt, x1, x2, x3, y1, y2, y3, z1, z2, z3;
+  const auto& facets = poly.facets();
+  for (const auto& f: facets) {
+    f.decompose(tris);
+    for (const auto& tri: tris) {
+      v1 = tri[0] - center;
+      v2 = tri[1] - center;
+      v3 = tri[2] - center;
+      x1 = v1.x(); y1 = v1.y(); z1 = v1.z();
+      x2 = v2.x(); y2 = v2.y(); z2 = v2.z();
+      x3 = v3.x(); y3 = v3.y(); z3 = v3.z();
+      thpt = std::abs(x3*y2*z1 - x2*y3*z1 - x3*y1*z2 + x1*y3*z2 + x2*y1*z3 - x1*y2*z3);
+      result[0] += thpt * pow2(x1 + x2) + x3*(x1 + x2 + x3);                                              // xx
+      result[1] += thpt * 0.5*(x1*(2.0*y1 + y2 + y3) + x2*(y1 + 2.0*y2 + y3) + x3*(y1 + y2 + 2.0*y3));    // xy
+      result[2] += thpt * 0.5*(x1*(2.0*z1 + z2 + z3) + x2*(z1 + 2.0*z2 + z3) + x3*(z1 + z2 + 2.0*z3));    // xz
+      result[3] += thpt * pow2(y1 + y2) + y3*(y1 + y2 + y3);                                              // yy
+      result[4] += thpt * 0.5*(y1*(2.0*z1 + z2 + z3) + y2*(z1 + 2.0*z2 + z3) + y3*(z1 + z2 + 2.0*z3));    // yz
+      result[5] += thpt * pow2(z1 + z2) + z3*(z1 + z2 + z3);                                              // zz
+    }
+  }
+  result /= 60.0;
+  return result;
 }
 
 }
@@ -303,8 +331,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     // Thread private scratch variables
     bool sameMatij;
     int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, Pi, Pj, Pij, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
-    Scalar Wi, Wj;
+    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
     Vector rij, etai, etaj, gradWi, gradWj;
     SymTensor psiij;
 
@@ -575,8 +602,7 @@ finalize(const Scalar time,
     // Thread private scratch variables
     bool sameMatij;
     int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, WRKi, WRKj, etaMagi, etaMagj, fweightij;
-    Scalar Wi, Wj;
+    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
     Vector rij, etai, etaj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -646,17 +672,16 @@ finalize(const Scalar time,
   // for (auto* boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Now we have the moments, so we can loop over the points and set our new H
-  const auto W0 = mWT.kernelValue(0.0, 1.0);
+  // const auto W0 = mWT.kernelValue(0.0, 1.0);
   for (auto k = 0u; k < numNodeLists; ++k) {
     const auto& nodeList = mass[k]->nodeList();
-    const auto  hminInv = safeInvVar(nodeList.hmin());
-    const auto  hmaxInv = safeInvVar(nodeList.hmax());
-    const auto  hminratio = nodeList.hminratio();
+    // const auto  hminInv = safeInvVar(nodeList.hmin());
+    // const auto  hmaxInv = safeInvVar(nodeList.hmax());
+    // const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
     const auto  n = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
-      auto&       ri = pos(k,i);
       auto&       Hi = H(k,i);
       auto&       Hideali = Hideal(k,i);
       auto        massZerothMomenti = mZerothMoment(k,i);
