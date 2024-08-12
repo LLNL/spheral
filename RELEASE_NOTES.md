@@ -13,12 +13,17 @@ Notable changes include:
     * RAJA & Umpire added as first level dependencies.
     * Axom updated to v0.9.0.
     * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
+    * Failed ATS runs are automatically retested once in the Gitlab CI.
+    * Python execute command is centralized in scripts/spheralutils.py now.
 
   * Build changes / improvements:
-    * Distributed source directory must always be built now
+    * Distributed source directory must always be built now.
+    * Git strategies in the Gitlab CI are fixed so a clone only occurs on the first stage for each job, instead of for all stages for each job.
+    * New Gitlab CI pipeline cleanup strategy deletes job directories immediately upon successful completion.
+    * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
 
   * Bug Fixes / improvements:
-    * Wrappers for MPI calls are simplified and improved
+    * Wrappers for MPI calls are simplified and improved.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================

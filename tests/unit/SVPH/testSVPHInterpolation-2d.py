@@ -1,4 +1,4 @@
-#ATS:test(SELF, "--linearConsistent True --graphics False", label="SVPH interpolation test -- 2-D (serial)")
+#ATS:test(SELF, "--linearConsistent True --graphics False", label="SVPH interpolation test -- 2-D (serial), svph=True")
 #-------------------------------------------------------------------------------
 # A set of tests to compare how different meshless methods interpolate fields.
 #-------------------------------------------------------------------------------
