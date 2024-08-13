@@ -57,6 +57,7 @@ set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state packa
 
 option(SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION "Enable the artificial conduction package" ON)
 option(SPHERAL_ENABLE_EXTERNAL_FORCE "Enable the external force package" ON)
+option(SPHERAL_ENABLE_FSISPH "Enable the FSISPH package" ON)
 option(SPHERAL_ENABLE_GRAVITY "Enable the gravity package" ON)
 option(SPHERAL_ENABLE_SVPH "Enable the SVPH package" ON)
 
