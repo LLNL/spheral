@@ -222,6 +222,7 @@ class SpheralController:
             requireGhostConnectivity = max([pkg.requireGhostConnectivity() for pkg in packages])
             requireOverlapConnectivity = max([pkg.requireOverlapConnectivity() for pkg in packages])
             requireIntersectionConnectivity = max([pkg.requireIntersectionConnectivity() for pkg in packages])
+            db.reinitializeNeighbors()
             db.updateConnectivityMap(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity)
             state.enrollConnectivityMap(db.connectivityMapPtr(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity))
 
