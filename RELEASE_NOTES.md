@@ -24,6 +24,7 @@ Notable changes include:
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.
+    * Time step estimate due to velocity divergence in RZ space has been fixed.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
