@@ -5,7 +5,6 @@
 //----------------------------------------------------------------------------//
 
 #include "Hydro/computeSPHVolume.hh"
-#include "Field/Field.hh"
 #include "Field/FieldList.hh"
 
 #include <limits>
