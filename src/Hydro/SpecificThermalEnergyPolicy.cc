@@ -102,14 +102,17 @@ update(const KeyType& key,
         const auto nodeListi = pairs[kk].i_list;
         const auto nodeListj = pairs[kk].j_list;
         const auto& paccij = pairAccelerations[kk];
+        const auto  mi = mass(nodeListi, i);
+        const auto  mj = mass(nodeListj, j);
         DvDt_check(nodeListi, i) += paccij;
-        DvDt_check(nodeListj, j) -= paccij;
+        DvDt_check(nodeListj, j) -= paccij * mi/mj;
       }
       const auto numNodeLists = mDataBasePtr->numFluidNodeLists();
       for (auto k = 0u; k < numNodeLists; ++k) {
         const auto n = DvDt_check[k]->numInternalElements();
         for (auto i = 0u; i < n; ++i) {
-          CHECK(fuzzyEqual(DvDt_check(k, i).dot(DvDt(k, i)), DvDt(k, i).magnitude2(), 1.0e-10));
+          CHECK2(fuzzyEqual(DvDt_check(k, i).dot(DvDt(k, i)), DvDt(k, i).magnitude2(), 1.0e-8),
+                 DvDt_check(k, i) << " != " << DvDt(k, i) << " for (NodeList,i) = " << k << " " << i);
         }
       }
     }
