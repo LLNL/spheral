@@ -892,7 +892,9 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         for pkg in self.integrator.physicsPackages():
             if isinstance(pkg, eval(f"SmoothingScaleBase{self.dim}")):
                 method = pkg
-        assert not method is None, "ERROR: SpheralController::iterateIdealH: unable to find H update algorithm"
+        if method is None:
+            print("SpheralController::iterateIdealH no H update algorithm provided -- assuming standard SPH")
+            method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
                 
         packages = eval(f"vector_of_Physics{self.dim}()")
         if method.requireVoronoiCells():
