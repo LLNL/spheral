@@ -34,6 +34,7 @@ struct HydroFieldNames {
   static const std::string massSecondMoment;
   static const std::string weightedNeighborSum;
   static const std::string pressure;
+  static const std::string damagedPressure;
   static const std::string partialPpartialEps;
   static const std::string partialPpartialRho;
   static const std::string temperature;
