@@ -320,7 +320,7 @@ if not Cq is None:
 output("hydro")
 output("  hydro.cfl")
 output("  hydro.useVelocityMagnitudeForDt")
-output("  hydro.HEvolution")
+output("  hydro._smoothingScaleMethod.HEvolution")
 output("  hydro.Q")
 output("  hydro.Q.Cl")
 output("  hydro.Q.Cq")

@@ -249,15 +249,15 @@ assert numCellFaceFlags > 0
 if ranfrac == 0.0:
     if testDim == "1d":
         assert numVoidFaceFlags == 2
-        assert numCellFaceFlags == 2
+        assert numCellFaceFlags == 2*nx1
         assert numSurfacePoints == 2
     elif testDim == "2d":
         assert numVoidFaceFlags == 4*nx1
-        assert numCellFaceFlags == 4*nx1
+        assert numCellFaceFlags == 4*nx1*nx1
         assert numSurfacePoints == 4*(nx1 - 1)
     else:
         assert numVoidFaceFlags == 6*nx1**2
-        assert numCellFaceFlags == 6*nx1**2
+        assert numCellFaceFlags == 6*nx1**3
         assert numSurfacePoints == 6*(nx1 - 2)**2 + 12*(nx1 - 2) + 8
 
 # The cell face flag sum range should be in [-ndim, 0] even with randomization

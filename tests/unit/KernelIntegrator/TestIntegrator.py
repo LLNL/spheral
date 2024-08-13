@@ -244,12 +244,10 @@ if randomizeNodes:
 #-------------------------------------------------------------------------------
 # Iterate h
 #-------------------------------------------------------------------------------
-bounds = vector_of_Boundary()
-method = SPHSmoothingScale()
+method = SPHSmoothingScale(IdealH, WT)
 iterateIdealH(dataBase,
-              bounds,
-              WT,
-              method,
+              [method],
+              [],
               100, # max h iterations
               1.e-4) # h tolerance
 dataBase.updateConnectivityMap(True, useOverlap) # need ghost and overlap connectivity
