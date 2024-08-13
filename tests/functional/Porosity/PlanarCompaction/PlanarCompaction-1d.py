@@ -292,6 +292,7 @@ else:
 #-------------------------------------------------------------------------------
 if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
