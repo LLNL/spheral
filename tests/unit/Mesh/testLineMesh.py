@@ -309,13 +309,11 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
             bc.finalizeGhostBoundary()
         db = DataBase()
         db.appendNodeList(self.nodes)
-        vecbound = vector_of_Boundary()
-        for bc in bclist:
-            vecbound.append(bc)
         WT = TableKernel(BSplineKernel(), 1000)
-        smooth = SPHSmoothingScale()
-        iterateIdealH(db, vecbound, WT, smooth,
-                      tolerance = 1.0e-4)
+        smooth = SPHSmoothingScale(IdealH, WT)
+        iterateIdealH(db,
+                      vector_of_Physics([smooth]),
+                      vector_of_Boundary(bclist))
         return
 
     #---------------------------------------------------------------------------
@@ -393,12 +391,11 @@ class UniformGapLineMeshTests(unittest.TestCase, LineMeshGenericTests):
             bc.finalizeGhostBoundary()
         db = DataBase()
         db.appendNodeList(self.nodes)
-        vecbound = vector_of_Boundary()
-        for bc in bclist:
-            vecbound.append(bc)
         WT = TableKernel(BSplineKernel(), 1000)
-        smooth = SPHSmoothingScale()
-        iterateIdealH(db, vecbound, WT, smooth)
+        smooth = SPHSmoothingScale(IdealH, WT)
+        iterateIdealH(db,
+                      vector_of_Physics([smooth]),
+                      vector_of_Boundary(bclist))
         return
 
     #---------------------------------------------------------------------------
@@ -472,12 +469,11 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
             bc.finalizeGhostBoundary()
         db = DataBase()
         db.appendNodeList(self.nodes)
-        vecbound = vector_of_Boundary()
-        for bc in bclist:
-            vecbound.append(bc)
         WT = TableKernel(BSplineKernel(), 1000)
-        smooth = SPHSmoothingScale()
-        iterateIdealH(db, vecbound, WT, smooth)
+        smooth = SPHSmoothingScale(IdealH, WT)
+        iterateIdealH(db,
+                      vector_of_Physics([smooth]),
+                      vector_of_Boundary(bclist))
         return
 
     #---------------------------------------------------------------------------

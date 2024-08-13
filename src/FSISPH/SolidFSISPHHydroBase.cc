@@ -740,6 +740,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mLocalM, pathName + "/localM");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
+  file.write(mNormalization, pathName + "/normalization");
   file.write(mInterfaceFlags, pathName + "/interfaceFlags");
   file.write(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
   file.write(mInterfaceNormals, pathName + "/interfaceNormals");

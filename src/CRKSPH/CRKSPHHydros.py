@@ -83,7 +83,6 @@ def CRKSPH(dataBase,
     # Build the thing.
     result = constructor(**kwargs)
     result.Q = Q
-    result._smoothingScaleMethod = smoothingScaleMethod
 
     # Smoothing scale update
     if smoothingScaleMethod is None:

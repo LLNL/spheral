@@ -44,12 +44,6 @@ def GSPH(dataBase,
 
     Constructor = eval("GSPHHydroBase%id" % ndim)
 
-    # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
         slopeLimiter = eval("VanLeerLimiter%id()" % (ndim))
@@ -141,8 +135,7 @@ def MFM(dataBase,
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
 
-    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "riemannSolver" : riemannSolver,
               "W" : W,
               "epsDiffusionCoeff" : specificThermalEnergyDiffusionCoefficient,

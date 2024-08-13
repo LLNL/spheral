@@ -345,6 +345,7 @@ if svph:
                  xmax = Vector( 100.0))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
