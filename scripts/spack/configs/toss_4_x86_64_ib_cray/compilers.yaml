@@ -1,0 +1,274 @@
+compilers::
+- compiler:
+    spec: cce@=12.0.3
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-12.0.3/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-12.0.3/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-12.0.3/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-12.0.3/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: cce@=13.0.2
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-13.0.2/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-13.0.2/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-13.0.2/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-13.0.2/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: cce@=14.0.3
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-14.0.3/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-14.0.3/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-14.0.3/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-14.0.3/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: cce@=15.0.1
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-15.0.1/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-15.0.1/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-15.0.1/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-15.0.1/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: cce@=16.0.1
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-16.0.1/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-16.0.1/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-16.0.1/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-16.0.1/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: cce@=17.0.0
+    paths:
+      cc: /usr/tce/packages/cce-tce/cce-17.0.0/bin/craycc
+      cxx: /usr/tce/packages/cce-tce/cce-17.0.0/bin/crayCC
+      f77: /usr/tce/packages/cce-tce/cce-17.0.0/bin/crayftn
+      fc: /usr/tce/packages/cce-tce/cce-17.0.0/bin/crayftn
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: clang@=13.0.1
+    paths:
+      cc: /usr/bin/clang
+      cxx: /usr/bin/clang++
+      f77: /usr/bin/gfortran
+      fc: /usr/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=8.5.0
+    paths:
+      cc: /usr/bin/gcc
+      cxx: /usr/bin/g++
+      f77: /usr/bin/gfortran
+      fc: /usr/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=10.3.1
+    paths:
+      cc: /usr/tce/packages/gcc-tce/gcc-10.3.1/bin/gcc
+      cxx: /usr/tce/packages/gcc-tce/gcc-10.3.1/bin/g++
+      f77: /usr/tce/packages/gcc-tce/gcc-10.3.1/bin/gfortran
+      fc: /usr/tce/packages/gcc-tce/gcc-10.3.1/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=11.2.0
+    paths:
+      cc: /opt/cray/pe/gcc/11.2.0/bin/gcc
+      cxx: /opt/cray/pe/gcc/11.2.0/bin/g++
+      f77: /opt/cray/pe/gcc/11.2.0/bin/gfortran
+      fc: /opt/cray/pe/gcc/11.2.0/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: gcc@=12.1.1
+    paths:
+      cc: /opt/cray/pe/gcc/12.1.1/bin/gcc
+      cxx: /opt/cray/pe/gcc/12.1.1/bin/g++
+      f77: /opt/cray/pe/gcc/12.1.1/bin/gfortran
+      fc: /opt/cray/pe/gcc/12.1.1/bin/gfortran
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.2.3
+    paths:
+      cc: /opt/rocm-5.2.3/llvm/bin/amdclang
+      cxx: /opt/rocm-5.2.3/llvm/bin/amdclang++
+      f77: /opt/rocm-5.2.3/llvm/bin/amdflang
+      fc: /opt/rocm-5.2.3/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.3.0
+    paths:
+      cc: /opt/rocm-5.3.0/llvm/bin/amdclang
+      cxx: /opt/rocm-5.3.0/llvm/bin/amdclang++
+      f77: /opt/rocm-5.3.0/llvm/bin/amdflang
+      fc: /opt/rocm-5.3.0/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.4.1
+    paths:
+      cc: /opt/rocm-5.4.1/llvm/bin/amdclang
+      cxx: /opt/rocm-5.4.1/llvm/bin/amdclang++
+      f77: /opt/rocm-5.4.1/llvm/bin/amdflang
+      fc: /opt/rocm-5.4.1/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.4.3
+    paths:
+      cc: /opt/rocm-5.4.3/llvm/bin/amdclang
+      cxx: /opt/rocm-5.4.3/llvm/bin/amdclang++
+      f77: /opt/rocm-5.4.3/llvm/bin/amdflang
+      fc: /opt/rocm-5.4.3/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.5.1
+    paths:
+      cc: /opt/rocm-5.5.1/llvm/bin/amdclang
+      cxx: /opt/rocm-5.5.1/llvm/bin/amdclang++
+      f77: /opt/rocm-5.5.1/llvm/bin/amdflang
+      fc: /opt/rocm-5.5.1/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.6.1
+    paths:
+      cc: /opt/rocm-5.6.1/llvm/bin/amdclang
+      cxx: /opt/rocm-5.6.1/llvm/bin/amdclang++
+      f77: /opt/rocm-5.6.1/llvm/bin/amdflang
+      fc: /opt/rocm-5.6.1/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.7.0
+    paths:
+      cc: /opt/rocm-5.7.0/llvm/bin/amdclang
+      cxx: /opt/rocm-5.7.0/llvm/bin/amdclang++
+      f77: /opt/rocm-5.7.0/llvm/bin/amdflang
+      fc: /opt/rocm-5.7.0/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@=5.7.1
+    paths:
+      cc: /opt/rocm-5.7.1/llvm/bin/amdclang
+      cxx: /opt/rocm-5.7.1/llvm/bin/amdclang++
+      f77: /opt/rocm-5.7.1/llvm/bin/amdflang
+      fc: /opt/rocm-5.7.1/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@6.1.1
+    paths:
+      cc: /opt/rocm-6.1.1/llvm/bin/amdclang
+      cxx: /opt/rocm-6.1.1/llvm/bin/amdclang++
+      f77: /opt/rocm-6.1.1/llvm/bin/amdflang
+      fc: /opt/rocm-6.1.1/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
+- compiler:
+    spec: rocmcc@6.2.0
+    paths:
+      cc: /opt/rocm-6.2.0/llvm/bin/amdclang
+      cxx: /opt/rocm-6.2.0/llvm/bin/amdclang++
+      f77: /opt/rocm-6.2.0/llvm/bin/amdflang
+      fc: /opt/rocm-6.2.0/llvm/bin/amdflang
+    flags: {}
+    operating_system: rhel8
+    target: x86_64
+    modules: []
+    environment: {}
+    extra_rpaths: []
