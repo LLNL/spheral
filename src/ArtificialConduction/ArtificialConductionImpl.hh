@@ -4,6 +4,10 @@
 //
 // Created by CDR, 9/24/2014
 //----------------------------------------------------------------------------//
+
+#ifndef ArtificialConductionImpl_HH
+#define ArtificialConductionImpl_HH
+
 #include <stdio.h>
 #include "ArtificialConduction/ArtificialConduction.hh"
 #include "ArtificialConduction/ArtificialConductionPolicy.hh"
@@ -373,3 +377,5 @@ dt(const DataBase<Dimension>& dataBase,
 }
 
 }
+
+#endif

@@ -13,7 +13,7 @@
 #include "ArtificialConduction/ArtificialConductionDecl.hh"
 
 #if !defined(SPHERAL_ENABLE_INSTANTIATIONS)
-#include "ArtificialConduction/ArtificialConductionImpl.cc"
+#include "ArtificialConduction/ArtificialConductionImpl.hh"
 #endif
 
 #endif

@@ -5,8 +5,8 @@
 // Created by CDR, 9/24/2014
 //----------------------------------------------------------------------------//
 
-#ifndef ArtificialConduction_HH
-#define ArtificialConduction_HH
+#ifndef ArtificialConductionDecl_HH
+#define ArtificialConductionDecl_HH
 
 #include "Physics/Physics.hh"
 #include "RK/RKCorrectionParams.hh"

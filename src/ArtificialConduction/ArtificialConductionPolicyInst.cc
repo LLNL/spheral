@@ -1,5 +1,10 @@
+//------------------------------------------------------------------------------
+// Explict instantiation.
+//------------------------------------------------------------------------------
+
 #include "Spheral/config.hh"
-#include "ArtificialConduction/ArtificialConductionPolicy.hh"
+#include "ArtificialConduction/ArtificialConductionPolicyDecl.hh"
+#include "ArtificialConduction/ArtificialConductionPolicyImpl.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

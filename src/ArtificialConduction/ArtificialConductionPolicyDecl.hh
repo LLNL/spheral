@@ -5,8 +5,8 @@
 // Created by CDR, 9/30/2014
 //----------------------------------------------------------------------------//
 
-#ifndef __ArtificialConductionPolicy_hh__
-#define __ArtificialConductionPolicy_hh__
+#ifndef __ArtificialConductionPolicyDecl_hh__
+#define __ArtificialConductionPolicyDecl_hh__
 
 #include <string>
 #include "DataBase/FieldUpdatePolicy.hh"

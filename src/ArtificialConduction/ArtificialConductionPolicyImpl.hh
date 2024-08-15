@@ -2,7 +2,10 @@
 // ArtificialConductionPolicy -- Override the default energy policy in the
 // presence of artificial conduction.
 //----------------------------------------------------------------------------//
-#include "ArtificialConductionPolicy.hh"
+
+#ifndef __ArtificialConductionPolicyImpl_hh__
+#define __ArtificialConductionPolicyImpl_hh__
+
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -102,3 +105,4 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
 }
 
+#endif
