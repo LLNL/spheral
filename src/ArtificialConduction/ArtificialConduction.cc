@@ -15,6 +15,10 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
 
+#if defined(SPHERAL_ENABLE_INSTANTIATIONS)
+#include "Geometry/Dimension.hh"
+#endif
+
 namespace Spheral {
 
 using std::vector;
@@ -371,5 +375,19 @@ dt(const DataBase<Dimension>& dataBase,
 
   return result;
 }
+
+#if defined(SPHERAL_ENABLE_INSTANTIATIONS)
+#if defined(SPHERAL_ENABLE_1D)
+template class ArtificialConduction< Dim< 1 > >;
+#endif
+
+#if defined(SPHERAL_ENABLE_2D)
+template class ArtificialConduction< Dim< 2 > >;
+#endif
+
+#if defined(SPHERAL_ENABLE_3D)
+template class ArtificialConduction< Dim< 3 > >;
+#endif
+#endif
 
 }

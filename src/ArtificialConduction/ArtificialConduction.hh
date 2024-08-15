@@ -8,6 +8,7 @@
 #ifndef ArtificialConduction_HH
 #define ArtificialConduction_HH
 
+#include "Spheral/config.hh"
 #include "Physics/Physics.hh"
 #include "RK/RKCorrectionParams.hh"
 
@@ -80,5 +81,9 @@ private:
 };
 
 }
+
+#if !defined(SPHERAL_ENABLE_INSTANTIATIONS)
+#include "ArtificialConduction/ArtificialConduction.cc"
+#endif
 
 #endif

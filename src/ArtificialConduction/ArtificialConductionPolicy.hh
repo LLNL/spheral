@@ -9,6 +9,7 @@
 #define __ArtificialConductionPolicy_hh__
 
 #include <string>
+#include "Spheral/config.hh"
 #include "DataBase/FieldUpdatePolicy.hh"
 
 namespace Spheral {
@@ -67,5 +68,9 @@ private:
 };
 
 }
+
+#if !defined(SPHERAL_ENABLE_INSTANTIATIONS)
+#include "ArtificialConduction/ArtificialConductionPolicy.cc"
+#endif
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef SPHERAL_BUILD_DATA_HPP
 #define SPHERAL_BUILD_DATA_HPP
 
-#include "config.hh"
+#include "Spheral/config.hh"
 #include <string>
 
 namespace Spheral {
