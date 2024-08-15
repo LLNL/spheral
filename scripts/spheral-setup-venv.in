@@ -22,11 +22,9 @@ cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
 chmod u+x scripts/atstest.sh
 chmod u+x scripts/lcatstest.sh
-chmod u+x scripts/perftest.sh
 cp --symbolic-link scripts/spheral-env.sh spheral &> /dev/null
 cp --symbolic-link scripts/atstest.sh spheral-atstest &> /dev/null
 cp --symbolic-link scripts/lcatstest.sh spheral-lcatstest &> /dev/null
-cp --symbolic-link scripts/perftest.sh spheral-perftest &> /dev/null
 cd - > /dev/null 
 
 echo "Byte-compiling packages in install path ..."

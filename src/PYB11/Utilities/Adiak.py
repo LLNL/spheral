@@ -3,16 +3,8 @@
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 
-# This is defined in the Utilities_PYB11.py preamble
-@PYB11cppname("Spheral::spheral_adiak_init")
-def adiak_init():
-    "Initialize Adiak and run collect_all"
-    return "void"
-
-@PYB11cppname("adiak::fini")
-def adiak_fini():
-    "Finalize Adiak"
-    return "void"
+# adiak::init() is called automatically when this module is loaded
+# adiak::fini() is called automatically when this module is destroyed
 
 @PYB11cppname("adiak::collect_all")
 def adiak_collect_all():

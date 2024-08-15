@@ -78,16 +78,7 @@ if (ENABLE_MPI)
       waitAllWithDeadlockDetection.hh
       )
 
-  if (ENABLE_TIMER)
-    set(MPI_TIMER_VAR "True")
-  else()
-    set(MPI_TIMER_VAR "False")
-  endif()
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/mpi_mpi4py.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/mpi_mpi4py.py"
-  )
-  set(MPIPY_FILE_NAME "${CMAKE_CURRENT_BINARY_DIR}/mpi_mpi4py.py")
+  set(MPIPY_FILE_NAME "mpi_mpi4py.py")
 
 else()
   #----------------------------------------------------------------------------

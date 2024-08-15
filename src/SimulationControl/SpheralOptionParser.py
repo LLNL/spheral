@@ -2,51 +2,57 @@
 # Create a standard and hopefully convenient command  line parser for Spheral
 # scripts.
 #-------------------------------------------------------------------------------
-import optparse
+import argparse
 
 from SpheralCompiledPackages import *
 
 from SpheralTestUtilities import globalFrame
+from SpheralUtilities import TimerMgr
 
 def commandLine(**options):
 
     # Build a command line parser with the keyword arguments passed to us.
-    parser = optparse.OptionParser()
+    parser = argparse.ArgumentParser()
     for key in options:
-        parser.add_option("--" + key,
-                          dest = key,
-                          default = options[key])
+        parser.add_argument("--" + key,
+                            dest = key,
+                            default = options[key])
 
-    # Add the universal options suppoted by all Spheral++ scripts.
-    parser.add_option("-v", "--verbose",
-                      action = "store_true",
-                      dest = "__verbose",
-                      default = False,
-                      help = "Verbose output -- print all options that were set.")
-
+    # Add the universal options supported by all Spheral++ scripts.
+    parser.add_argument("-v", "--verbose",
+                        action = "store_true",
+                        dest = "verbose",
+                        default = False,
+                        help = "Verbose output -- print all options that were set.")
+    parser.add_argument("--caliper-config", default="", type=str)
     # Evaluate the command line.
-    opts, args = parser.parse_args()
+    args = parser.parse_args()
+    arg_dict = vars(args)
 
     # Verbose output?
-    if opts.__verbose:
+    if args.verbose:
         print("All parameters set:")
-        for key in options:
-            val = eval("opts.%s" % key)
-            if val != options[key]:
-                print("  *  ", key, " = ", val)
-            else:
-                print("     ", key, " = ", val)
+        for key, val in arg_dict.items():
+            if key in options:
+                if val != options[key]:
+                    print("  *  ", key, " = ", val)
+                else:
+                    print("     ", key, " = ", val)
                 
     # Set all the variables.
     gd = globalFrame().f_globals
-    for key in options:
-        val = eval("opts.%s" % key)
+    for key, val in arg_dict.items():
+        if key in options:
+            if (type(val) != type(options[key])):
+                val = eval(val, gd)
+            gd[key] = val
 
-        # The following bit of goofiness is necessary because optparse returns most
-        # arguments as a string, but we need the actual types here.
-        if type(val) != type(options[key]):
-            val = eval(val, gd)
-
-        gd[key] = val
-
+    if (args.caliper_config):
+        TimerMgr.instance().add(args.caliper_config)
+        TimerMgr.instance().start()
+    else:
+        import random, os, sys
+        unique_digits = ''.join(random.sample('0123456789', 4))
+        testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits
+        TimerMgr.instance().default_start(testname)
     return

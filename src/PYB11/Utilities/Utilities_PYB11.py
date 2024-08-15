@@ -66,10 +66,23 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
 #-------------------------------------------------------------------------------
 PYB11preamble += """
 namespace Spheral {
+
 inline void spheral_adiak_init() {
   adiak::init((void*) &Communicator::communicator());
-  // Always collect default adiak information
-  adiak::collect_all();
+  // Always collect some curated default adiak information
+  adiak::adiakversion();
+  adiak::user();
+  adiak::uid();
+  adiak::launchdate();
+  adiak::workdir();
+  adiak::hostname();
+  adiak::clustername();
+  adiak::walltime();
+  adiak::cputime();
+  adiak::jobsize();
+  adiak::numhosts();
+  adiak::hostlist();
+  adiak::mpi_library_version();
 }
 
 enum adiak_categories {
@@ -86,10 +99,12 @@ PYB11modulepreamble = """
 TIME_BEGIN("main");
 Spheral::spheral_adiak_init();
 
+// Call these routines when module is destroyed
 auto atexit = py::module_::import("atexit");
 atexit.attr("register")(py::cpp_function([]() {
    TIME_END("main");
    adiak::fini();
+   TimerMgr::instance().fini();
 }));
 """
 
@@ -120,6 +135,7 @@ from BiCubicInterpolator import *
 from uniform_random import *
 from BuildData import *
 from Adiak import *
+from TimerMgr import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))

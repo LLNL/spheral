@@ -42,11 +42,6 @@ if (NOT ENABLE_CXXONLY)
   )
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/performance/perftest.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/perftest.sh"
-  )
-
-  configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
     "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
   )
@@ -56,9 +51,7 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
-      "${CMAKE_CURRENT_BINARY_DIR}/perftest.sh"
       "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
-      "${CMAKE_CURRENT_SOURCE_DIR}/performance/caliper.config"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 

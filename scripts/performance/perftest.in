@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-export CALI_CONFIG_FILE=@CMAKE_INSTALL_PREFIX@/scripts/caliper.config
-export CALI_CONFIG_PROFILE=spot
-@CMAKE_INSTALL_PREFIX@/spheral @CMAKE_INSTALL_PREFIX@/scripts/lcats --atsExe @CMAKE_INSTALL_PREFIX@/.venv/bin/ats -e @CMAKE_INSTALL_PREFIX@/spheral @SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@ "$@"
