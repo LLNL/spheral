@@ -14,10 +14,7 @@
 #include "RK/gradientRK.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
-
-#if defined(SPHERAL_ENABLE_INSTANTIATIONS)
 #include "Geometry/Dimension.hh"
-#endif
 
 namespace Spheral {
 
