@@ -14,7 +14,6 @@
 #include "RK/gradientRK.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
-#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
