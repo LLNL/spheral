@@ -430,6 +430,7 @@ output('db.numFluidNodeLists')
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,

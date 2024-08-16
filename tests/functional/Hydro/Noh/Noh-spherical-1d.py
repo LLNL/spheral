@@ -139,25 +139,25 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   2.6928,     
-            L2rho =   0.2821,     
-            Linfrho = 30.6014,    
-                                  
-            L1P =     0.278798,   
-            L2P =     0.0708017,  
-            LinfP =   10.0564,    
-                                  
-            L1v =     0.0242686,  
-            L2v =     0.0081968,  
-            Linfv =   0.917114,   
-                                  
-            L1eps =   0.0211761,  
-            L2eps =   0.00273079, 
-            Linfeps = 0.325872,   
-                                  
-            L1h =     0.00131685, 
-            L2h =     0.000368146,
-            Linfh =   0.0267102,  
+            L1rho =   2.69219,   
+            L2rho =   0.281965,  
+            Linfrho = 30.5929,   
+                                 
+            L1P =     0.278906,  
+            L2P =     0.0707854, 
+            LinfP =   10.0544,   
+                                 
+            L1v =     0.0242732, 
+            L2v =     0.00819671,
+            Linfv =   0.91712,   
+                                 
+            L1eps =   0.0211726, 
+            L2eps =   0.00273052,
+            Linfeps = 0.325865,  
+                                 
+            L1h =     0.0013171, 
+            L2h =     0.00036826,
+            Linfh =   0.0267045, 
 
             tol = 1.0e-5,
 

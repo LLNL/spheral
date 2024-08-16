@@ -5,10 +5,10 @@
 #ATS:t13 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu' --restoreCycle 500", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RESTART RUN")
 #
 # Probabilistic damage
-#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240813.gnu' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
-#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240813.gnu'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
-#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240813.gnu' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
-#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240813.gnu' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
+#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
+#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
+#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
+#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
 
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
@@ -169,7 +169,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240813.gnu",
+            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240816.gnu",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = "None",
             comparisonFile = "None",

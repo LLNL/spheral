@@ -7,7 +7,7 @@
 # ASPH
 #
 #ATS:asph0 = test(        SELF, "--crksph False --asph True --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical ASPH, nPerh=4.0", np=8)
-#ATS:asph1 = testif(sph0, SELF, "--crksph False --asph True --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical ASPH, nPerh=4.0, restart test", np=8)
+#ATS:asph1 = testif(asph0,SELF, "--crksph False --asph True --nRadial 100 --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical ASPH, nPerh=4.0, restart test", np=8)
 #
 # CRK (SumVolume)
 #
