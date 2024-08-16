@@ -10,6 +10,7 @@ set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleExt.cmake)
 
 #-----------------------------------------------------------------------------------
 # Submodules
@@ -74,6 +75,9 @@ list(APPEND SPHERAL_BLT_DEPENDS axom )
 # from using object libraries with newer version of axom
 foreach(_comp ${AXOM_COMPONENTS_ENABLED})
   get_target_property(axom_deps axom::${_comp} INTERFACE_LINK_LIBRARIES)
+  # strip cuda out so we have control over when cuda is enabled
+  list(REMOVE_DUPLICATES axom_deps)
+  list(REMOVE_ITEM axom_deps cuda)
   blt_convert_to_system_includes(TARGET ${axom_deps})
   list(APPEND SPHERAL_BLT_DEPENDS ${axom_deps})
 endforeach()
