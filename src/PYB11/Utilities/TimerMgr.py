@@ -9,6 +9,7 @@ class TimerMgr:
     "Singleton wrapper for CaliperManager. Access through TimerMgr.instance(), ie TimerMgr.instance().start()."
 
     @PYB11static
+    @PYB11returnpolicy("reference")
     def instance(self):
         "Access the singleton instance of the timer manager"
         return "TimerMgr&"

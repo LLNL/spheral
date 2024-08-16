@@ -104,7 +104,7 @@ auto atexit = py::module_::import("atexit");
 atexit.attr("register")(py::cpp_function([]() {
    TIME_END("main");
    adiak::fini();
-   TimerMgr::instance().fini();
+   Spheral::TimerMgr::instance().fini();
 }));
 """
 

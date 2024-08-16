@@ -23,7 +23,13 @@
 #endif // TIMER
 // Note: This class is initialized in
 // SimulationControl/SpheralOptionParser.py
+namespace Spheral {
 class TimerMgr {
+private:
+  TimerMgr() = default;
+  ~TimerMgr() { }
+  TimerMgr(const TimerMgr&) = delete;
+  TimerMgr& operator=(const TimerMgr&) = delete;
 public:
   static TimerMgr& instance() {
     static TimerMgr theInstance;
@@ -75,5 +81,5 @@ public:
   }
 #endif
 };
-
+}
 #endif
