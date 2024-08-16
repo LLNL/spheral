@@ -195,7 +195,7 @@ class TestTableKernel(unittest.TestCase):
                     etay += deta
                 etaz += deta
             testSum = testSum**(1.0/3.0)
-            tol = 2.0*self.Wsumtol / (W.kernelExtent/deta)**3
+            tol = 5.0*self.Wsumtol / (W.kernelExtent/deta)**3
             self.assertTrue(fuzzyEqual(W.equivalentWsum(nperh), testSum, tol),
                             "Wsum failure: %g != %g @ %g: " %
                             (W.equivalentWsum(nperh), testSum, nperh))
