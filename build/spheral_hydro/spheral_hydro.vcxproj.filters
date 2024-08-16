@@ -63,6 +63,12 @@
     <ClCompile Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\computeSPHVolumeInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Hydro\computeSPHVolumeInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Hydro\EntropyPolicyInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -146,6 +152,9 @@
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\SpecificFromTotalThermalEnergyPolicyInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\Hydro\computeSPHVolumeInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\Hydro\EntropyPolicyInst.cc.py">
