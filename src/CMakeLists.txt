@@ -10,6 +10,14 @@ include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 
+# Set variables for config header
+set(SPHERAL_ENABLE_1D ${ENABLE_1D})
+set(SPHERAL_ENABLE_2D ${ENABLE_2D})
+set(SPHERAL_ENABLE_3D ${ENABLE_3D})
+
+configure_file(config.hh.in
+  ${PROJECT_BINARY_DIR}/src/config.hh)
+
 # These are internal Spheral packages
 list(APPEND _packages
   ArtificialViscosity
@@ -66,9 +74,6 @@ if(NOT ENABLE_CXXONLY)
     SimulationControl
     PYB11)
 endif()
-
-configure_file(config.hh.in
-  ${PROJECT_BINARY_DIR}/src/config.hh)
 
 foreach(_package ${_packages})
   add_subdirectory(${_package})

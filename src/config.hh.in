@@ -3,4 +3,8 @@
 
 #define SPHERAL_CXX_COMPILER_ID "@CMAKE_CXX_COMPILER_ID@"
 
+#cmakedefine SPHERAL_ENABLE_1D
+#cmakedefine SPHERAL_ENABLE_2D
+#cmakedefine SPHERAL_ENABLE_3D
+
 #endif //  SPHERAL_config_HPP
