@@ -92,6 +92,10 @@ private:
   size_t mN;
   double mXmin, mXmax, mXstep;
   std::vector<double> mVals;
+
+  // Initialize the gradient at the interpolation points based on the tabulated
+  // interpolation values
+  void initializeGradientKnots();
 };
 
 }

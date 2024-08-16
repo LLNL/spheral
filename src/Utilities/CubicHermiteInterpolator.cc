@@ -86,12 +86,13 @@ CubicHermiteInterpolator::initialize(const double xmin,
   std::copy(yvals.begin(), yvals.end(), mVals.begin());
 
   // Estimate the gradients at our lattice points
-  const auto dxInv = 1.0/mXstep;
-  for (auto i = 1u; i < mN - 1u; ++i) {
-    mVals[mN + i] = 0.5*(mVals[i + 1u] - mVals[i - 1u])*dxInv;
-  }
-  mVals[mN] = (mVals[1] - mVals[0])*dxInv;
-  mVals[2u*mN - 1u] = (mVals[mN - 1u] - mVals[mN - 2u])*dxInv;
+  this->initializeGradientKnots();
+  // const auto dxInv = 1.0/mXstep;
+  // for (auto i = 1u; i < mN - 1u; ++i) {
+  //   mVals[mN + i] = 0.5*(mVals[i + 1u] - mVals[i - 1u])*dxInv;
+  // }
+  // mVals[mN] = (mVals[1] - mVals[0])*dxInv;
+  // mVals[2u*mN - 1u] = (mVals[mN - 1u] - mVals[mN - 2u])*dxInv;
 }
 
 //------------------------------------------------------------------------------
@@ -165,6 +166,36 @@ makeMonotonic() {
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Construct the gradient values at the knot points using the algorithm
+// described in 
+// Note: the function values must have already been set in mVals[0,n-1]!
+//------------------------------------------------------------------------------
+void
+CubicHermiteInterpolator::
+initializeGradientKnots() {
+
+  // Set up to solve using Eigen's linear solvers (Ax=b)
+  Eigen::MatrixXf A = Eigen::MatrixXf::Zero(mN, mN);
+  Eigen::VectorXf b(mN);
+  A(0, 0)         =  4.0;      // First row
+  A(0, 1)         = -1.0;
+  A(mN-1u, mN-2u) = -1.0;      // Last row
+  A(mN-1u, mN-1u) =  4.0;
+  b(0)            =  3.0*(mVals[1u] - mVals[0u])/mXstep;
+  b(mN-1u)        =  3.0*(mVals[mN-1u] - mVals[mN-2u])/mXstep;
+  for (auto k = 1u; k < mN-1u; ++k) {      // rows
+    A(k, k-1u) = -0.5;
+    A(k, k)    = 4.0;
+    A(k, k+1u) = -0.5;
+    b(k) = 1.5*(mVals[k+1u] - mVals[k-1u])/mXstep;
+  }
+
+  // Solve for the gradient values
+  const Eigen::VectorXf x = A.colPivHouseholderQr().solve(b);
+  for (auto k = 0u; k < mN; ++k) mVals[mN + k] = x(k);
 }
 
 }
