@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 
 #include "config.hh"
-#include "FVCRKHydroBase.cc"
+#include "FVCRKH/FVCRKHydroBase.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {

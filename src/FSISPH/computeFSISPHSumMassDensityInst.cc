@@ -8,8 +8,6 @@
 
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_1D)
-
-
   template void computeFSISPHSumMassDensity(const ConnectivityMap<Dim<1> >&,
                                             const TableKernel<Dim<1> >&,
                                             const std::vector<int>&,
@@ -20,8 +18,6 @@ namespace Spheral {
 #endif
 
 #if defined(SPHERAL_ENABLE_2D)
-
-
   template void computeFSISPHSumMassDensity(const ConnectivityMap<Dim<2> >&,
                                             const TableKernel<Dim<2> >&,
                                             const std::vector<int>&,
@@ -32,8 +28,6 @@ namespace Spheral {
 #endif
 
 #if defined(SPHERAL_ENABLE_3D)
-
-
   template void computeFSISPHSumMassDensity(const ConnectivityMap<Dim<3> >&,
                                             const TableKernel<Dim<3> >&,
                                             const std::vector<int>&,

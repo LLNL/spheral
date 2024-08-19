@@ -6,7 +6,7 @@ set(FVCRKH_sources )
 
 # Add explicit instantiations
 list(APPEND FVCRKH_sources
-     FVCRKHydroBaseInst.cc
+     # FVCRKHydroBaseInst.cc
      )
 
 set(FVCRKH_headers
