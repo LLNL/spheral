@@ -24,79 +24,61 @@
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_1D)
   template class TableKernel< Dim<1> >;
-"""
 
-for Wname in ("BSplineKernel",
-              "W4SplineKernel",
-              "GaussianKernel",
-              "SuperGaussianKernel",
-              "PiGaussianKernel",
-              "SincKernel",
-              "NSincPolynomialKernel",
-              "NBSplineKernel",
-              "HatKernel",
-              "QuarticSplineKernel",
-              "QuinticSplineKernel",
-              "WendlandC2Kernel",
-              "WendlandC4Kernel",
-              "WendlandC6Kernel",
-              "ExpInvKernel"):
-    text += """
-  template TableKernel<Dim<%1>>::TableKernel(const %(Wname)s<Dim<%1>>&, const unsigned);
-""" % {"Wname" : Wname}
-
-text += """
+  template TableKernel<Dim<1>>::TableKernel(const BSplineKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const W4SplineKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const GaussianKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const SuperGaussianKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const PiGaussianKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const SincKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const NSincPolynomialKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const NBSplineKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const HatKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const QuarticKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const QuinticSplineKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const WendlandC2Kernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const WendlandC4Kernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const WendlandC6Kernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const ExpInvKernel<Dim<1>>&, const unsigned);
 #endif
 
 #if defined(SPHERAL_ENABLE_2D)
   template class TableKernel< Dim<2> >;
-"""
 
-for Wname in ("BSplineKernel",
-              "W4SplineKernel",
-              "GaussianKernel",
-              "SuperGaussianKernel",
-              "PiGaussianKernel",
-              "SincKernel",
-              "NSincPolynomialKernel",
-              "NBSplineKernel",
-              "HatKernel",
-              "QuarticSplineKernel",
-              "QuinticSplineKernel",
-              "WendlandC2Kernel",
-              "WendlandC4Kernel",
-              "WendlandC6Kernel",
-              "ExpInvKernel"):
-    text += """
-  template TableKernel<Dim<%2>>::TableKernel(const %(Wname)s<Dim<%2>>&, const unsigned);
-""" % {"Wname" : Wname}
-
-text += """
+  template TableKernel<Dim<2>>::TableKernel(const BSplineKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const W4SplineKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const GaussianKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const SuperGaussianKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const PiGaussianKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const SincKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const NSincPolynomialKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const NBSplineKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const HatKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const QuarticKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const QuinticSplineKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const WendlandC2Kernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const WendlandC4Kernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const WendlandC6Kernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const ExpInvKernel<Dim<2>>&, const unsigned);
 #endif
 
 #if defined(SPHERAL_ENABLE_3D)
   template class TableKernel< Dim<3> >;
-"""
 
-for Wname in ("BSplineKernel",
-              "W4SplineKernel",
-              "GaussianKernel",
-              "SuperGaussianKernel",
-              "PiGaussianKernel",
-              "SincKernel",
-              "NSincPolynomialKernel",
-              "NBSplineKernel",
-              "HatKernel",
-              "QuarticSplineKernel",
-              "QuinticSplineKernel",
-              "WendlandC2Kernel",
-              "WendlandC4Kernel",
-              "WendlandC6Kernel",
-              "ExpInvKernel"):
-    text += """
-  template TableKernel<Dim<%3>>::TableKernel(const %(Wname)s<Dim<%3>>&, const unsigned);
-""" % {"Wname" : Wname}
-
-text += """
+  template TableKernel<Dim<3>>::TableKernel(const BSplineKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const W4SplineKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const GaussianKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const SuperGaussianKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const PiGaussianKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const SincKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const NSincPolynomialKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const NBSplineKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const HatKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const QuarticKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const QuinticSplineKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const WendlandC2Kernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const WendlandC4Kernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const WendlandC6Kernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const ExpInvKernel<Dim<3>>&, const unsigned);
 #endif
 }
