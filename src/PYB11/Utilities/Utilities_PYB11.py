@@ -68,7 +68,7 @@ PYB11preamble += """
 namespace Spheral {
 
 inline void spheral_adiak_init() {
-  adiak::init((void*) &Communicator::communicator());
+  adiak::init((void*) Communicator::communicator());
   // Always collect some curated default adiak information
   adiak::adiakversion();
   adiak::user();
