@@ -13,6 +13,7 @@ set(Hydro_inst
     GammaPolicy
     SecondMomentHourglassControl
     ThirdMomentHourglassControl
+    computeSPHVolume
    )
 
 
@@ -51,6 +52,7 @@ set(Hydro_headers
     VoronoiHourglassControl.hh
     VoronoiHourglassControlInline.hh
     VoronoiMassDensityPolicy.hh
+    computeSPHVolume.hh
     entropyWeightingFunction.hh
     )
 

@@ -4,13 +4,10 @@
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 
-#include "GSPH/computeSPHVolume.hh"
+#include "Hydro/computeSPHVolume.hh"
 #include "Field/FieldList.hh"
-#include "Neighbor/ConnectivityMap.hh"
-#include "Kernel/TableKernel.hh"
-#include "NodeList/NodeList.hh"
 
-#include <limits.h>
+#include <limits>
 
 namespace Spheral{
 
