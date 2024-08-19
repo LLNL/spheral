@@ -24,8 +24,13 @@ list(APPEND Mesh_sources
      computeGeneratorsInst.cc
      findMatchingVertexInst.cc
      generateMeshInst.cc
-     copy2polytopeInst.cc
      )
+
+if (ENABLE_2D OR ENABLE_3D)
+  list(APPEND Mesh_sources
+       copy2polytopeInst.cc
+       )
+endif()
 
 set(Mesh_headers
     CounterClockwiseCompareElements.hh

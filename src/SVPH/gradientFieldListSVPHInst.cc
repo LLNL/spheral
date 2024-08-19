@@ -9,8 +9,6 @@
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_1D)
 
-using std::vector;
-
 // Scalar
 template
 FieldList<Dim<1>, Dim<1>::Vector>
@@ -38,8 +36,6 @@ gradientFieldListSVPH<Dim<1>, Dim<1>::Vector>(const FieldList<Dim<1>, Dim<1>::Ve
 
 #if defined(SPHERAL_ENABLE_2D)
 
-using std::vector;
-
 // Scalar
 template
 FieldList<Dim<2>, Dim<2>::Vector>
@@ -66,8 +62,6 @@ gradientFieldListSVPH<Dim<2>, Dim<2>::Vector>(const FieldList<Dim<2>, Dim<2>::Ve
 #endif
 
 #if defined(SPHERAL_ENABLE_3D)
-
-using std::vector;
 
 // Scalar
 template
