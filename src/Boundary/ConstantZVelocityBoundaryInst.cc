@@ -8,7 +8,6 @@
 
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_3D)
-  namespace BoundarySpace {
-    template class ConstantZVelocityBoundary< Dim<3> >;
+  template class ConstantZVelocityBoundary< Dim<3> >;
 #endif
 }

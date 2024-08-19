@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------//
 
 #include "BarthJespersenLimiter.hh"
+#include <algorithm>
 
 namespace Spheral {
 

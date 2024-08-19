@@ -13,6 +13,8 @@
 #include "GSPH/Limiters/LimiterBase.hh"
 #include "GSPH/RiemannSolvers/HLLC.hh"
 
+#include "Utilities/safeInv.hh"
+
 #include <limits>
 
 namespace Spheral {

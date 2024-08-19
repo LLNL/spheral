@@ -6,6 +6,8 @@
 #ifndef __Spheral_RiemannSolverBase_hh__
 #define __Spheral_RiemannSolverBase_hh__
 
+#include <vector>
+
 namespace Spheral {
 
 template<typename Dimension> class State;

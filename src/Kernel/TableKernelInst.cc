@@ -34,7 +34,7 @@ namespace Spheral {
   template TableKernel<Dim<1>>::TableKernel(const NSincPolynomialKernel<Dim<1>>&, const unsigned);
   template TableKernel<Dim<1>>::TableKernel(const NBSplineKernel<Dim<1>>&, const unsigned);
   template TableKernel<Dim<1>>::TableKernel(const HatKernel<Dim<1>>&, const unsigned);
-  template TableKernel<Dim<1>>::TableKernel(const QuarticKernel<Dim<1>>&, const unsigned);
+  template TableKernel<Dim<1>>::TableKernel(const QuarticSplineKernel<Dim<1>>&, const unsigned);
   template TableKernel<Dim<1>>::TableKernel(const QuinticSplineKernel<Dim<1>>&, const unsigned);
   template TableKernel<Dim<1>>::TableKernel(const WendlandC2Kernel<Dim<1>>&, const unsigned);
   template TableKernel<Dim<1>>::TableKernel(const WendlandC4Kernel<Dim<1>>&, const unsigned);
@@ -54,7 +54,7 @@ namespace Spheral {
   template TableKernel<Dim<2>>::TableKernel(const NSincPolynomialKernel<Dim<2>>&, const unsigned);
   template TableKernel<Dim<2>>::TableKernel(const NBSplineKernel<Dim<2>>&, const unsigned);
   template TableKernel<Dim<2>>::TableKernel(const HatKernel<Dim<2>>&, const unsigned);
-  template TableKernel<Dim<2>>::TableKernel(const QuarticKernel<Dim<2>>&, const unsigned);
+  template TableKernel<Dim<2>>::TableKernel(const QuarticSplineKernel<Dim<2>>&, const unsigned);
   template TableKernel<Dim<2>>::TableKernel(const QuinticSplineKernel<Dim<2>>&, const unsigned);
   template TableKernel<Dim<2>>::TableKernel(const WendlandC2Kernel<Dim<2>>&, const unsigned);
   template TableKernel<Dim<2>>::TableKernel(const WendlandC4Kernel<Dim<2>>&, const unsigned);
@@ -74,7 +74,7 @@ namespace Spheral {
   template TableKernel<Dim<3>>::TableKernel(const NSincPolynomialKernel<Dim<3>>&, const unsigned);
   template TableKernel<Dim<3>>::TableKernel(const NBSplineKernel<Dim<3>>&, const unsigned);
   template TableKernel<Dim<3>>::TableKernel(const HatKernel<Dim<3>>&, const unsigned);
-  template TableKernel<Dim<3>>::TableKernel(const QuarticKernel<Dim<3>>&, const unsigned);
+  template TableKernel<Dim<3>>::TableKernel(const QuarticSplineKernel<Dim<3>>&, const unsigned);
   template TableKernel<Dim<3>>::TableKernel(const QuinticSplineKernel<Dim<3>>&, const unsigned);
   template TableKernel<Dim<3>>::TableKernel(const WendlandC2Kernel<Dim<3>>&, const unsigned);
   template TableKernel<Dim<3>>::TableKernel(const WendlandC4Kernel<Dim<3>>&, const unsigned);
