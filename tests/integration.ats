@@ -5,6 +5,7 @@
 #-------------------------------------------------------------------------------
 
 glue(fsisph = False)
+glue(gsph = False)
 glue(svph = False)
 
 # Geometry unit tests
