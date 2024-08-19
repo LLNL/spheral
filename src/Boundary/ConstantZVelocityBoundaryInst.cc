@@ -1,9 +1,14 @@
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
+
+#include "config.hh"
+#include "Boundary/ConstantZVelocityBoundary.cc"
 #include "Geometry/Dimension.hh"
-#include "ConstantZVelocityBoundary.cc"
 
 namespace Spheral {
-  template class ConstantZVelocityBoundary< Dim<3> >;
+#if defined(SPHERAL_ENABLE_3D)
+  namespace BoundarySpace {
+    template class ConstantZVelocityBoundary< Dim<3> >;
+#endif
 }

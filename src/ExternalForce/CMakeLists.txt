@@ -1,13 +1,14 @@
 include_directories(.)
-set(ExternalForce_inst
-    ConstantAcceleration
-    LinearAcceleration
-    NFWPotential
-    PointPotential
-    )
 
 set(ExternalForce_sources )
-instantiate(ExternalForce_inst ExternalForce_sources)
+
+# Add explicit instantiations
+list(APPEND ExternalForce_sources
+     ConstantAccelerationInst.cc
+     LinearAccelerationInst.cc
+     NFWPotentialInst.cc
+     PointPotentialInst.cc
+     )
 
 set(ExternalForce_headers
     ConstantAcceleration.hh
@@ -26,6 +27,4 @@ set(ExternalForce_includes
    ${EIGEN_LIB_LOCATION}
    )
 
-
 spheral_add_obj_library(ExternalForce SPHERAL_OBJ_LIBS)
-

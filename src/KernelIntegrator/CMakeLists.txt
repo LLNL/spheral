@@ -1,20 +1,21 @@
 include_directories(.)
-set(KernelIntegrator_inst
-  BilinearIndex
-  FlatConnectivity
-  KernelIntegral
-  KernelIntegrator
-  ManufacturedSolution
-  RKIntegrationKernel
-  SPHIntegrationKernel
-  )
 
 set(KernelIntegrator_sources
   GaussLegendreValues.cc
   SymmetricTetrahedralValues.cc
   SymmetricTriangularValues.cc
   )
-instantiate(KernelIntegrator_inst KernelIntegrator_sources)
+
+# Add explicit instantiations
+list(APPEND KernelIntegrator_sources
+     BilinearIndexInst.cc
+     FlatConnectivityInst.cc
+     KernelIntegralInst.cc
+     KernelIntegratorInst.cc
+     ManufacturedSolutionInst.cc
+     RKIntegrationKernelInst.cc
+     SPHIntegrationKernelInst.cc
+     )
 
 set(KernelIntegrator_headers
   BilinearIndex.hh

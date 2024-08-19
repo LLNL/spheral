@@ -1,26 +1,27 @@
 include_directories(.)
 
-set(DEM_inst 
-    DEMBase
-    SolidBoundary/SolidBoundaryBase
-    SolidBoundary/DEMBoundaryPolicy
-    SolidBoundary/InfinitePlaneSolidBoundary
-    SolidBoundary/CircularPlaneSolidBoundary
-    SolidBoundary/RectangularPlaneSolidBoundary
-    SolidBoundary/CylinderSolidBoundary
-    SolidBoundary/SphereSolidBoundary
-    SolidBoundary/ClippedSphereSolidBoundary
-    ReplacePairFieldList
-    IncrementPairFieldList
-    ReplaceAndIncrementPairFieldList
-    LinearSpringDEM)
-
 set(DEM_sources
     DEMFieldNames.cc
     ContactStorageLocation.cc
-    DEMDimension.cc)
+    DEMDimension.cc
+    )
 
-instantiate(DEM_inst DEM_sources)
+# Add explicit instantiations
+list(APPEND DEM_sources
+     DEMBaseInst.cc
+     SolidBoundary/SolidBoundaryBaseInst.cc
+     SolidBoundary/DEMBoundaryPolicyInst.cc
+     SolidBoundary/InfinitePlaneSolidBoundaryInst.cc
+     SolidBoundary/CircularPlaneSolidBoundaryInst.cc
+     SolidBoundary/RectangularPlaneSolidBoundaryInst.cc
+     SolidBoundary/CylinderSolidBoundaryInst.cc
+     SolidBoundary/SphereSolidBoundaryInst.cc
+     SolidBoundary/ClippedSphereSolidBoundaryInst.cc
+     ReplacePairFieldListInst.cc
+     IncrementPairFieldListInst.cc
+     ReplaceAndIncrementPairFieldListInst.cc
+     LinearSpringDEMInst.cc
+     )
 
 set(DEM_headers
     SolidBoundary/SolidBoundaryBase.hh
@@ -40,7 +41,8 @@ set(DEM_headers
     DEMFieldNames.hh
     ContactStorageLocation.hh
     setUniqueNodeIDs.hh
-    setUniqueNodeIDsInline.hh)
+    setUniqueNodeIDsInline.hh
+    )
 
 add_subdirectory(SolidBoundary)
 

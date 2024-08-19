@@ -1,20 +1,4 @@
 include_directories(.)
-set(Hydro_inst
-    EntropyPolicy
-    CompatibleDifferenceSpecificThermalEnergyPolicy
-    NonSymmetricSpecificThermalEnergyPolicy
-    PressurePolicy
-    SoundSpeedPolicy
-    SpecificFromTotalThermalEnergyPolicy
-    SpecificThermalEnergyPolicy
-    SumVoronoiMassDensityPolicy
-    VolumePolicy
-    VoronoiMassDensityPolicy
-    GammaPolicy
-    SecondMomentHourglassControl
-    ThirdMomentHourglassControl
-   )
-
 
 set(Hydro_sources
     HydroFieldNames.cc
@@ -28,7 +12,22 @@ if (ENABLE_1D AND ENABLE_2D)
   list(APPEND Hydro_sources SphericalPositionPolicy.cc)
 endif()
 
-instantiate(Hydro_inst Hydro_sources)
+# Add explicit instantiations
+list(APPEND Hydro_sources
+     EntropyPolicyInst.cc
+     CompatibleDifferenceSpecificThermalEnergyPolicyInst.cc
+     NonSymmetricSpecificThermalEnergyPolicyInst.cc
+     PressurePolicyInst.cc
+     SoundSpeedPolicyInst.cc
+     SpecificFromTotalThermalEnergyPolicyInst.cc
+     SpecificThermalEnergyPolicyInst.cc
+     SumVoronoiMassDensityPolicyInst.cc
+     VolumePolicyInst.cc
+     VoronoiMassDensityPolicyInst.cc
+     GammaPolicyInst.cc
+     SecondMomentHourglassControlInst.cc
+     ThirdMomentHourglassControlInst.cc
+     )
 
 set(Hydro_headers
     EntropyPolicy.hh

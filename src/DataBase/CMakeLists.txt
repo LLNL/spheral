@@ -1,15 +1,14 @@
 include_directories(.)
-set(DataBase_inst
-    DataBase
-    State
-    StateBase
-    StateDerivatives
-   )
-
 
 set(DataBase_sources )
 
-instantiate(DataBase_inst DataBase_sources)
+# Add explicit instantiations
+list(APPEND DataBase_sources
+     DataBaseInst.cc
+     StateInst.cc
+     StateBaseInst.cc
+     StateDerivativesInst.cc
+     )
 
 set(DataBase_headers
     DataBase.hh

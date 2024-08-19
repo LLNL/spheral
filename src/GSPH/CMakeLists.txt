@@ -1,36 +1,38 @@
 include_directories(.)
 
-set(GSPH_inst
-    computeSPHVolume
-    computeSumVolume
-    computeMFMDensity
-    initializeGradients
-    GenericRiemannHydro
-    GSPHHydroBase
-    MFMHydroBase
-    MFVHydroBase
-    Policies/MassFluxPolicy
-    Policies/ReplaceWithRatioPolicy
-    Policies/MFVIncrementVelocityPolicy
-    Policies/MFVIncrementSpecificThermalEnergyPolicy
-    Policies/CompatibleMFVSpecificThermalEnergyPolicy
-    Limiters/LimiterBase
-    Limiters/VanLeerLimiter
-    Limiters/SuperbeeLimiter
-    Limiters/MinModLimiter
-    Limiters/VanAlbaLimiter
-    Limiters/OspreLimiter
-    Limiters/BarthJespersenLimiter
-    WaveSpeeds/WaveSpeedBase
-    WaveSpeeds/AcousticWaveSpeed
-    WaveSpeeds/DavisWaveSpeed
-    WaveSpeeds/EinfeldtWaveSpeed
-    RiemannSolvers/RiemannSolverBase
-    RiemannSolvers/HLLC
-    RiemannSolvers/SecondOrderArtificialViscosity)
-
 set(GSPH_sources 
     GSPHFieldNames.cc)
+
+# Add explicit instantiations
+list(APPEND GSPH_sources
+     computeSPHVolumeInst.cc
+     computeSumVolumeInst.cc
+     computeMFMDensityInst.cc
+     initializeGradientsInst.cc
+     GenericRiemannHydroInst.cc
+     GSPHHydroBaseInst.cc
+     MFMHydroBaseInst.cc
+     MFVHydroBaseInst.cc
+     Policies/MassFluxPolicyInst.cc
+     Policies/ReplaceWithRatioPolicyInst.cc
+     Policies/MFVIncrementVelocityPolicyInst.cc
+     Policies/MFVIncrementSpecificThermalEnergyPolicyInst.cc
+     Policies/CompatibleMFVSpecificThermalEnergyPolicyInst.cc
+     Limiters/LimiterBaseInst.cc
+     Limiters/VanLeerLimiterInst.cc
+     Limiters/SuperbeeLimiterInst.cc
+     Limiters/MinModLimiterInst.cc
+     Limiters/VanAlbaLimiterInst.cc
+     Limiters/OspreLimiterInst.cc
+     Limiters/BarthJespersenLimiterInst.cc
+     WaveSpeeds/WaveSpeedBaseInst.cc
+     WaveSpeeds/AcousticWaveSpeedInst.cc
+     WaveSpeeds/DavisWaveSpeedInst.cc
+     WaveSpeeds/EinfeldtWaveSpeedInst.cc
+     RiemannSolvers/RiemannSolverBaseInst.cc
+     RiemannSolvers/HLLCInst.cc
+     RiemannSolvers/SecondOrderArtificialViscosityInst.cc
+     )
 
 set(GSPH_headers
     computeSPHVolume.hh
@@ -66,8 +68,6 @@ add_subdirectory(Limiters)
 add_subdirectory(WaveSpeeds)
 add_subdirectory(RiemannSolvers)
 add_subdirectory(Policies)
-
-instantiate(GSPH_inst GSPH_sources)
 
 spheral_install_python_files(GSPHHydros.py)
 

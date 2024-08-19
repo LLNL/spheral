@@ -1,20 +1,22 @@
 include_directories(.)
-set(SolidMaterial_inst
-    LinearPolynomialEquationOfState
-    GruneisenEquationOfState
-    OsborneEquationOfState
-    MurnaghanEquationOfState
-    TillotsonEquationOfState
-    StrengthModel
-    ConstantStrength
-    SteinbergGuinanStrength
-    JohnsonCookStrength
-    CollinsStrength
-    iSALEROCKStrength
-    PhysicsEvolvingMaterialLibrary
-    )
 
 set(SolidMaterial_sources )
+
+# Add explicit instantiations
+list(APPEND SolidMaterial_sources
+     LinearPolynomialEquationOfStateInst.cc
+     GruneisenEquationOfStateInst.cc
+     OsborneEquationOfStateInst.cc
+     MurnaghanEquationOfStateInst.cc
+     TillotsonEquationOfStateInst.cc
+     StrengthModelInst.cc
+     ConstantStrengthInst.cc
+     SteinbergGuinanStrengthInst.cc
+     JohnsonCookStrengthInst.cc
+     CollinsStrengthInst.cc
+     iSALEROCKStrengthInst.cc
+     PhysicsEvolvingMaterialLibraryInst.cc
+     )
 
 set(SolidMaterial_headers
     ANEOS.hh
@@ -61,14 +63,12 @@ spheral_install_python_files(
 # ANEOS
 if (ENABLE_ANEOS)
   message("-- ANEOS enabled")
-  list(APPEND SolidMaterial_inst      ANEOS)
+  list(APPEND SolidMaterial_sources   ANEOSInst.cc)
   list(APPEND SolidMaterial_headers   ANEOS.hh)
   list(APPEND SolidMaterial_sources   ANEOS_initialize.f)
 else()
   message("-- ANEOS disabled")
 endif()
-
-instantiate(SolidMaterial_inst SolidMaterial_sources)
 
 # Ignore -W-maybe-uninitialized warnings thrown from bisectSearch for possibly uninitialized iterators from boost multi-array.
 set_source_files_properties(ANEOSInst1d.cc ANEOSInst2d.cc ANEOSInst3d.cc PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANGUAGE:CXX>:-Wno-uninitialized>")

@@ -1,10 +1,4 @@
 include_directories(.)
-set(NodeGenerators_inst
-    relaxNodeDistribution
-    centroidalRelaxNodesImpl
-    compactFacetedVolumes
-    chooseRandomNonoverlappingCenter
-   )
 
 set(NodeGenerators_sources
     generateCylDistributionFromRZ.cc
@@ -12,7 +6,13 @@ set(NodeGenerators_sources
     readSiloPolyMesh.cc
    )
 
-instantiate(NodeGenerators_inst NodeGenerators_sources)
+# Add explicit instantiations
+list(APPEND NodeGenerators_sources
+     relaxNodeDistributionInst.cc
+     centroidalRelaxNodesImplInst.cc
+     compactFacetedVolumesInst.cc
+     chooseRandomNonoverlappingCenterInst.cc
+     )
 
 set(NodeGenerators_headers
     centroidalRelaxNodesImpl.hh

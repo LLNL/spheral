@@ -1,32 +1,26 @@
 include_directories(.)
-set(CRKSPH_inst
-    computeCRKSPHSumMassDensity
-    computeSolidCRKSPHSumMassDensity
-    CRKSPHHydroBase
-    detectSurface
-    SolidCRKSPHHydroBase
-    editMultimaterialSurfaceTopology
-    zerothOrderSurfaceCorrections
-   )
-
 
 set(CRKSPH_sources
     centerOfMass.cc
-   )
+    )
 
 if(ENABLE_2D)
   list(APPEND CRKSPH_sources
        CRKSPHHydroBaseRZ.cc
        SolidCRKSPHHydroBaseRZ.cc
-      )
+       )
 endif()
 
-if(ENABLE_3D)
-  list(APPEND CRKSPH_sources
-      )
-endif()
-
-instantiate(CRKSPH_inst CRKSPH_sources)
+# Add explicit instantiations
+list(APPEND CRKSPH_sources
+     computeCRKSPHSumMassDensityInst.cc
+     computeSolidCRKSPHSumMassDensityInst.cc
+     CRKSPHHydroBaseInst.cc
+     detectSurfaceInst.cc
+     SolidCRKSPHHydroBaseInst.cc
+     editMultimaterialSurfaceTopologyInst.cc
+     zerothOrderSurfaceCorrectionsInst.cc
+     )
 
 set(CRKSPH_headers
     CRKSPHHydroBase.hh

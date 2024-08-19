@@ -1,25 +1,24 @@
 include_directories(.)
-set(SVPH_inst
-    computeSVPHCorrections
-    computeSVPHCorrectionsOnFaces
-    computeSumVoronoiCellMassDensityFromFaces
-    sampleFieldListSVPH
-    gradientFieldListSVPH
-    SVPHFacetedHydroBase
-    SVPHCorrectionsPolicy
-    SVPHMassDensityPolicy
-    CompatibleFaceSpecificThermalEnergyPolicy
-    MeshIdealHPolicy
-    SpecificThermalEnergyVolumePolicy
-    CellPressurePolicy
-   )
-
 
 set(SVPH_sources 
   SVPHFieldNames.cc
   )
 
-instantiate(SVPH_inst SVPH_sources)
+# Add explicit instantiations
+list(APPEND SVPH_sources
+     computeSVPHCorrectionsInst.cc
+     computeSVPHCorrectionsOnFacesInst.cc
+     computeSumVoronoiCellMassDensityFromFacesInst.cc
+     sampleFieldListSVPHInst.cc
+     gradientFieldListSVPHInst.cc
+     SVPHFacetedHydroBaseInst.cc
+     SVPHCorrectionsPolicyInst.cc
+     SVPHMassDensityPolicyInst.cc
+     CompatibleFaceSpecificThermalEnergyPolicyInst.cc
+     MeshIdealHPolicyInst.cc
+     SpecificThermalEnergyVolumePolicyInst.cc
+     CellPressurePolicyInst.cc
+     )
 
 set(SVPH_headers
     CellPressurePolicy.hh

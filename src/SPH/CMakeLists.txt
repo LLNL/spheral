@@ -1,21 +1,9 @@
 include_directories(.)
-set(SPH_inst
-    SPHHydroBase
-    PSPHHydroBase
-    SolidSPHHydroBase
-    computeSPHOmegaGradhCorrection
-    computeSPHSumMassDensity
-    correctSPHSumMassDensity
-    computePSPHCorrections
-    computeSumVoronoiCellMassDensity
-    )
-
 
 set(SPH_sources )
 
 if(ENABLE_1D)
   list(APPEND SPH_sources
-       SphericalSPHInst.cc
        SphericalSPHHydroBase.cc
        SolidSphericalSPHHydroBase.cc
       )
@@ -34,7 +22,23 @@ if(ENABLE_3D)
       )
 endif()
 
-instantiate(SPH_inst SPH_sources)
+# Add explicit instantiations
+list(APPEND SPH_sources
+    SPHHydroBaseInst.cc
+    PSPHHydroBaseInst.cc
+    SolidSPHHydroBaseInst.cc
+    computeSPHOmegaGradhCorrectionInst.cc
+    computeSPHSumMassDensityInst.cc
+    correctSPHSumMassDensityInst.cc
+    computePSPHCorrectionsInst.cc
+    computeSumVoronoiCellMassDensityInst.cc
+    )
+
+if(ENABLE_1D)
+  list(APPEND SPH_sources
+       SphericalSPHInst.cc
+      )
+endif()
 
 set(SPH_headers
     PSPHHydroBase.hh

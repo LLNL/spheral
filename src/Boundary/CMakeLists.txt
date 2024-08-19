@@ -1,24 +1,8 @@
 include_directories(.)
-set(Boundary_inst
-    Boundary
-    CRKSPHVoidBoundary
-    PlanarBoundary
-    ReflectingBoundary
-    RigidBoundary
-    PeriodicBoundary
-    ConstantVelocityBoundary
-    ConstantXVelocityBoundary
-    ConstantYVelocityBoundary
-    ConstantRVelocityBoundary
-    ConstantBoundary
-    findNodesTouchingThroughPlanes
-    InflowOutflowBoundary
-   )
-
 
 set(Boundary_sources 
-  FacetedVolumeBoundary.cc
-  )
+    FacetedVolumeBoundary.cc
+    )
 
 if(ENABLE_1D)
   list(APPEND Boundary_sources
@@ -36,11 +20,36 @@ if(ENABLE_3D)
   list(APPEND Boundary_sources
       CylindricalBoundary.cc  
       SphericalBoundary.cc
-      ConstantZVelocityBoundaryInst.cc
       )
 endif()
 
-instantiate(Boundary_inst Boundary_sources)
+# Add explicit instantiations
+list(APPEND Boundary_sources
+     BoundaryInst.cc
+     CRKSPHVoidBoundaryInst.cc
+     PlanarBoundaryInst.cc
+     ReflectingBoundaryInst.cc
+     RigidBoundaryInst.cc
+     PeriodicBoundaryInst.cc
+     ConstantVelocityBoundaryInst.cc
+     ConstantXVelocityBoundaryInst.cc
+     ConstantRVelocityBoundaryInst.cc
+     ConstantBoundaryInst.cc
+     findNodesTouchingThroughPlanesInst.cc
+     InflowOutflowBoundaryInst.cc
+     )
+
+if(ENABLE_2D OR ENABLE_3D)
+  list(APPEND Boundary_sources
+       ConstantYVelocityBoundaryInst.cc
+       )
+endif()
+
+if(ENABLE_3D)
+  list(APPEND Boundary_sources
+       ConstantZVelocityBoundaryInst.cc
+       )
+endif()
 
 set(Boundary_headers
     AxisBoundaryRZ.hh

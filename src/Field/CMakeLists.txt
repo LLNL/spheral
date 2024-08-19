@@ -1,18 +1,17 @@
 include_directories(.)
-set(Field_inst
-    AllNodeIterator
-    CoarseNodeIterator
-    GhostNodeIterator
-    InternalNodeIterator
-    MasterNodeIterator
-    NodeIteratorBase
-    RefineNodeIterator
-   )
-
 
 set(Field_sources )
 
-instantiate(Field_inst Field_sources)
+# Add explicit instantiations
+list(APPEND Field_sources
+     AllNodeIteratorInst.cc
+     CoarseNodeIteratorInst.cc
+     GhostNodeIteratorInst.cc
+     InternalNodeIteratorInst.cc
+     MasterNodeIteratorInst.cc
+     NodeIteratorBaseInst.cc
+     RefineNodeIteratorInst.cc
+     )
 
 set(Field_headers
     AggregateField.hh

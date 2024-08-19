@@ -1,18 +1,18 @@
 include_directories(.)
-set(Strength_inst
-    BulkModulusPolicy
-    DeviatoricStressPolicy
-    MeltEnergyPolicy
-    PlasticStrainPolicy
-    ShearModulusPolicy
-    YieldStrengthPolicy
-   )
 
 set(Strength_sources
     SolidFieldNames.cc
     )
 
-instantiate(Strength_inst Strength_sources)
+# Add explicit instantiations
+list(APPEND Strength_sources
+     BulkModulusPolicyInst.cc
+     DeviatoricStressPolicyInst.cc
+     MeltEnergyPolicyInst.cc
+     PlasticStrainPolicyInst.cc
+     ShearModulusPolicyInst.cc
+     YieldStrengthPolicyInst.cc
+     )
 
 set(Strength_headers
     BulkModulusPolicy.hh

@@ -1,17 +1,17 @@
 include_directories(.)
-set(Integrator_inst
-    Integrator
-    PredictorCorrector 
-    SynchronousRK1
-    SynchronousRK2
-    SynchronousRK4
-    CheapSynchronousRK2
-    Verlet
-    )
 
 set(Integrator_sources )
 
-instantiate(Integrator_inst Integrator_sources)
+# Add explicit instantiations
+list(APPEND Integrator_sources
+     IntegratorInst.cc
+     PredictorCorrector Inst.cc
+     SynchronousRK1Inst.cc
+     SynchronousRK2Inst.cc
+     SynchronousRK4Inst.cc
+     CheapSynchronousRK2Inst.cc
+     VerletInst.cc
+     )
 
 set(Integrator_headers
     CheapSynchronousRK2.hh

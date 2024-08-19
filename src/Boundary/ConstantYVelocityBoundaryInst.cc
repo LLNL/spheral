@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Explicit instantiations.
+// Explicit instantiation.
 //------------------------------------------------------------------------------
 
 #include "config.hh"
@@ -8,10 +8,10 @@
 
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_2D)
-  template class ConstantYVelocityBoundary< Dim< 2 > >;
+  template class ConstantYVelocityBoundary< Dim<2> >;
 #endif
 
 #if defined(SPHERAL_ENABLE_3D)
-  template class ConstantYVelocityBoundary< Dim< 3 > >;
+  template class ConstantYVelocityBoundary< Dim<3> >;
 #endif
 }

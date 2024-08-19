@@ -1,15 +1,16 @@
 include_directories(.)
-set(Gravity_inst
-  NBodyGravity
-  )
 
 set(Gravity_sources
-  ApproximatePolyhedralGravityModel.cc
-  TreeInst.cc
-  TreeGravityInst.cc
-  PolyGravityInst.cc
-  )
-instantiate(Gravity_inst Gravity_sources)
+    ApproximatePolyhedralGravityModel.cc
+    )
+
+# Add explicit instantiations
+list(APPEND Gravity_sources
+     TreeInst.cc
+     TreeGravityInst.cc
+     PolyGravityInst.cc
+     NBodyGravityInst.cc
+     )
 
 set(Gravity_headers
   CompatibleGravitationalVelocityPolicy.hh

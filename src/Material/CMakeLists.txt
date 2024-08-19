@@ -1,15 +1,17 @@
 include_directories(.)
-set(Material_inst
-    EquationOfState
-    GammaLawGas
-    PolytropicEquationOfState
-    IsothermalEquationOfState
-    StiffenedGas
-   )
 
 set(Material_sources
     PhysicalConstants.cc
     )
+
+# Add explicit instantiations
+list(APPEND Material_sources
+     EquationOfStateInst.cc
+     GammaLawGasInst.cc
+     PolytropicEquationOfStateInst.cc
+     IsothermalEquationOfStateInst.cc
+     StiffenedGasInst.cc
+     )
 
 set(Material_headers
     EquationOfState.hh
@@ -40,8 +42,6 @@ if (ENABLE_HELMHOLTZ)
 else()
   message("-- Helmholtz equation of state disabled")
 endif()
-
-instantiate(Material_inst Material_sources)
 
 spheral_add_obj_library(Material SPHERAL_OBJ_LIBS)
 

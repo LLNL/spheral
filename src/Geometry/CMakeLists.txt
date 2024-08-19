@@ -1,7 +1,4 @@
 include_directories(.)
-set(Geometry_inst
-    invertRankNTensor
-   )
 
 set(Geometry_sources
     GeometryRegistrar.cc
@@ -22,7 +19,10 @@ set(Geometry_sources
     PolyClipperUtilities.cc
    )
 
-instantiate(Geometry_inst Geometry_sources)
+# Add explicit instantiations
+list(APPEND Geometry_sources
+     invertRankNTensorInst.cc
+     )
 
 set(Geometry_headers
     GeometryRegistrar.hh

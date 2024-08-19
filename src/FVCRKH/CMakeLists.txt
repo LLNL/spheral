@@ -3,7 +3,11 @@ set(FVCRKH_inst
   )
 
 set(FVCRKH_sources )
-instantiate(FVCRKH_inst FVCRKH_sources)
+
+# Add explicit instantiations
+list(APPEND FVCRKH_sources
+     FVCRKHydroBaseInst.cc
+     )
 
 set(FVCRKH_headers
   FVCRKHydroBase.hh

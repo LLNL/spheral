@@ -1,12 +1,4 @@
 include_directories(.)
-set(Mesh_inst
-    MeshPolicy
-    computeGenerators
-    findMatchingVertex
-    generateMesh
-    copy2polytope
-   )
-
 
 set(Mesh_sources
     findMatchingVertex.cc
@@ -26,7 +18,14 @@ set(Mesh_sources
     computeElementOwner.cc
     )
 
-instantiate(Mesh_inst Mesh_sources)
+# Add explicit instantiations
+list(APPEND Mesh_sources
+     MeshPolicyInst.cc
+     computeGeneratorsInst.cc
+     findMatchingVertexInst.cc
+     generateMeshInst.cc
+     copy2polytopeInst.cc
+     )
 
 set(Mesh_headers
     CounterClockwiseCompareElements.hh

@@ -1,13 +1,13 @@
 include_directories(.)
-set(Physics_inst
-    GenericBodyForce
-    GenericHydro
-    Physics
-   )
 
 set(Physics_sources )
 
-instantiate(Physics_inst Physics_sources)
+# Add explicit instantiations
+list(APPEND Physics_sources
+     GenericBodyForceInst.cc
+     GenericHydroInst.cc
+     PhysicsInst.cc
+     )
 
 set(Physics_headers
     GenericBodyForce.hh

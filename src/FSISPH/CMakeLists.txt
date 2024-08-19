@@ -1,19 +1,16 @@
 include_directories(.)
 
-set(FSISPH_inst
-    SolidFSISPHHydroBase
-    computeFSISPHSumMassDensity
-    computeHWeightedFSISPHSumMassDensity
-    computeInterfacePressureCorrectedSumMassDensity
-    SlideSurface
-    )
-
-
 set(FSISPH_sources
     FSIFieldNames.cc )
 
-
-instantiate(FSISPH_inst FSISPH_sources)
+# Add explicit instantiations
+list(APPEND FSISPH_sources
+    SolidFSISPHHydroBaseInst.cc
+    computeFSISPHSumMassDensityInst.cc
+    computeHWeightedFSISPHSumMassDensityInst.cc
+    computeInterfacePressureCorrectedSumMassDensityInst.cc
+    SlideSurfaceInst.cc
+    )
 
 set(FSISPH_headers
     SolidFSISPHHydroBase.hh

@@ -6,8 +6,6 @@ set(Distributed_sources
     RegisterMPIDataTypes.cc
     )
 
-set(Distributed_inst )
-
 set(Distributed_headers
     allReduce.hh
     Communicator.hh
@@ -34,18 +32,19 @@ if (ENABLE_MPI)
     list(APPEND Distributed_sources SortAndDivideRedistributeNodes3d.cc)
   endif()
 
-  list(APPEND Distributed_inst
-       DistributedBoundary
-       NestedGridDistributedBoundary
-       TreeDistributedBoundary
-       BoundingVolumeDistributedBoundary
-       RedistributeNodes
-       DistributeByXPosition
-       SortAndDivideRedistributeNodes
-       SpaceFillingCurveRedistributeNodes
-       MortonOrderRedistributeNodes
-       PeanoHilbertOrderRedistributeNodes
-       VoronoiRedistributeNodes
+  # Add explicit instantiations
+  list(APPEND Distributed_sources
+       DistributedBoundaryInst.cc
+       NestedGridDistributedBoundaryInst.cc
+       TreeDistributedBoundaryInst.cc
+       BoundingVolumeDistributedBoundaryInst.cc
+       RedistributeNodesInst.cc
+       DistributeByXPositionInst.cc
+       SortAndDivideRedistributeNodesInst.cc
+       SpaceFillingCurveRedistributeNodesInst.cc
+       MortonOrderRedistributeNodesInst.cc
+       PeanoHilbertOrderRedistributeNodesInst.cc
+       VoronoiRedistributeNodesInst.cc
        )
 
  list(APPEND Distributed_headers
@@ -94,6 +93,5 @@ if (NOT ENABLE_CXXONLY)
           RENAME      mpi.py
           )
 endif()
-instantiate(Distributed_inst Distributed_sources)
 
 spheral_add_obj_library(Distributed SPHERAL_OBJ_LIBS)

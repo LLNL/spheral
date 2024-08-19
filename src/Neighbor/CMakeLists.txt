@@ -1,18 +1,17 @@
 include_directories(.)
-set(Neighbor_inst
-    ConnectivityMap
-    GridCellIndex
-    GridCellPlane
-    Neighbor
-    NestedGridNeighbor
-    TreeNeighbor
-   )
-
 
 set(Neighbor_sources 
     NodePairList.cc)
 
-instantiate(Neighbor_inst Neighbor_sources)
+# Add explicit instantiations
+list(APPEND Neighbor_sources
+    ConnectivityMapInst.cc
+    GridCellIndexInst.cc
+    GridCellPlaneInst.cc
+    NeighborInst.cc
+    NestedGridNeighborInst.cc
+    TreeNeighborInst.cc
+    )
 
 set(Neighbor_headers
     ConnectivityMap.hh

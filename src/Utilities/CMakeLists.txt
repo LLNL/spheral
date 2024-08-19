@@ -1,18 +1,4 @@
 include_directories(.)
-set(Utilities_inst
-    iterateIdealH
-    mortonOrderIndices
-    peanoHilbertOrderIndices
-    nodeOrdering
-    nodeBoundingBoxes
-    boundingBox
-    globalBoundingVolumes
-    integrateThroughMeshAlongSegment
-    numberDensity
-    medianPosition
-    computeShepardsInterpolation
-    overlayRemapFields
-   )
 
 set(Utilities_sources
     BuildData.cc
@@ -35,7 +21,21 @@ set(Utilities_sources
     uniform_random.cc
     )
 
-instantiate(Utilities_inst Utilities_sources)
+# Add explicit instantiations
+list(APPEND Utilities_sources
+     iterateIdealHInst.cc
+     mortonOrderIndicesInst.cc
+     peanoHilbertOrderIndicesInst.cc
+     nodeOrderingInst.cc
+     nodeBoundingBoxesInst.cc
+     boundingBoxInst.cc
+     globalBoundingVolumesInst.cc
+     integrateThroughMeshAlongSegmentInst.cc
+     numberDensityInst.cc
+     medianPositionInst.cc
+     computeShepardsInterpolationInst.cc
+     overlayRemapFieldsInst.cc
+     )
 
 set(Utilities_headers
     setGlobalFlags.hh

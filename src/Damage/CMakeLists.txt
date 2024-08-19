@@ -1,30 +1,30 @@
 include_directories(.)
-set(Damage_inst
-    DamageModel
-    TensorDamageModel
-    ProbabilisticDamageModel
-    ProbabilisticDamagePolicy
-    IvanoviSALEDamageModel
-    IvanoviSALEDamagePolicy
-    StrainPolicy
-    TensorStrainPolicy
-    TensorDamagePolicy
-    YoungsModulusPolicy
-    LongitudinalSoundSpeedPolicy
-    weibullFlawDistributionBenzAsphaug
-    weibullFlawDistributionOwen
-    computeFragmentField
-    JohnsonCookDamage
-    JohnsonCookFailureStrainPolicy
-    JohnsonCookDamagePolicy
-    PairMaxDamageNodeCoupling
-    ThreePointDamagedNodeCoupling
-    DamageGradientNodeCoupling
-   )
 
 set(Damage_sources )
 
-instantiate(Damage_inst Damage_sources)
+# Add explicit instantiations
+list(APPEND Damage_sources
+     DamageModelInst.cc
+     TensorDamageModelInst.cc
+     ProbabilisticDamageModelInst.cc
+     ProbabilisticDamagePolicyInst.cc
+     IvanoviSALEDamageModelInst.cc
+     IvanoviSALEDamagePolicyInst.cc
+     StrainPolicyInst.cc
+     TensorStrainPolicyInst.cc
+     TensorDamagePolicyInst.cc
+     YoungsModulusPolicyInst.cc
+     LongitudinalSoundSpeedPolicyInst.cc
+     weibullFlawDistributionBenzAsphaugInst.cc
+     weibullFlawDistributionOwenInst.cc
+     computeFragmentFieldInst.cc
+     JohnsonCookDamageInst.cc
+     JohnsonCookFailureStrainPolicyInst.cc
+     JohnsonCookDamagePolicyInst.cc
+     PairMaxDamageNodeCouplingInst.cc
+     ThreePointDamagedNodeCouplingInst.cc
+     DamageGradientNodeCouplingInst.cc
+     )
 
 set(Damage_headers
     DamageGradientPolicy.hh

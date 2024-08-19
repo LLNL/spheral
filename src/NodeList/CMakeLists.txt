@@ -1,21 +1,21 @@
 include_directories(.)
-set(NodeList_inst
-    ASPHSmoothingScale
-    FluidNodeList
-    NodeList
-    NodeListRegistrar
-    SPHSmoothingScale
-    SmoothingScaleBase
-    SolidNodeList
-    generateVoidNodes
-    FixedSmoothingScale
-    nthNodalMoment
-    DEMNodeList
-   )
 
 set(NodeList_sources )
 
-instantiate(NodeList_inst NodeList_sources)
+# Add explicit instantiations
+list(APPEND NodeList_sources
+    ASPHSmoothingScaleInst.cc
+    FluidNodeListInst.cc
+    NodeListInst.cc
+    NodeListRegistrarInst.cc
+    SPHSmoothingScaleInst.cc
+    SmoothingScaleBaseInst.cc
+    SolidNodeListInst.cc
+    generateVoidNodesInst.cc
+    FixedSmoothingScaleInst.cc
+    nthNodalMomentInst.cc
+    DEMNodeListInst.cc
+   )
 
 set(NodeList_headers
     ASPHSmoothingScale.hh

@@ -1,30 +1,29 @@
 include_directories(.)
-set(Kernel_inst
-    BSplineKernel
-    W4SplineKernel
-    GaussianKernel
-    SuperGaussianKernel
-    PiGaussianKernel
-    HatKernel
-    SincKernel
-    NSincPolynomialKernel
-    NBSplineKernel
-    QuarticSplineKernel
-    QuinticSplineKernel
-    TableKernel
-    VolumeIntegrationFunctions
-    WendlandC2Kernel
-    WendlandC4Kernel
-    WendlandC6Kernel
-    ExpInvKernel
-    )
-
 
 set(Kernel_sources
     SphericalKernel.cc
     SphericalBiCubicSplineKernel.cc)
 
-instantiate(Kernel_inst Kernel_sources)
+# Add explicit instantiations
+list(APPEND Kernel_sources
+     BSplineKernelInst.cc
+     W4SplineKernelInst.cc
+     GaussianKernelInst.cc
+     SuperGaussianKernelInst.cc
+     PiGaussianKernelInst.cc
+     HatKernelInst.cc
+     SincKernelInst.cc
+     NSincPolynomialKernelInst.cc
+     NBSplineKernelInst.cc
+     QuarticSplineKernelInst.cc
+     QuinticSplineKernelInst.cc
+     TableKernelInst.cc
+     VolumeIntegrationFunctionsInst.cc
+     WendlandC2KernelInst.cc
+     WendlandC4KernelInst.cc
+     WendlandC6KernelInst.cc
+     ExpInvKernelInst.cc
+     )
 
 set(Kernel_headers
     BSplineKernel.hh
