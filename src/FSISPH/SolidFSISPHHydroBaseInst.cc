@@ -4,7 +4,6 @@
 
 #include "config.hh"
 #include "FSISPH/SolidFSISPHHydroBase.cc"
-#include "FSISPH/SolidFSISPHEvaluateDerivatives.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
