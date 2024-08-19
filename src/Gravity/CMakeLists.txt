@@ -10,11 +10,12 @@ list(APPEND Gravity_sources
      )
 
 if (ENABLE_2D OR ENABLE_3D)
-list(APPEND Gravity_sources
-     PolyGravityInst.cc
-     TreeGravityInst.cc
-     TreeInst.cc
-     )
+  list(APPEND Gravity_sources
+       PolyGravityInst.cc
+       TreeGravityInst.cc
+       TreeInst.cc
+       )
+endif()
 
 set(Gravity_headers
   CompatibleGravitationalVelocityPolicy.hh
