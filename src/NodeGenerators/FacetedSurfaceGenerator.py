@@ -5,7 +5,7 @@
 import mpi
 from math import *
 import string, random
-from numpy.polynomial import Polynomial as P
+import numpy as np
 from NodeGeneratorBase import NodeGeneratorBase
 from PolyhedronFileUtilities import readPolyhedronOBJ
 from Spheral3d import Vector, Tensor, SymTensor, Polyhedron, \
@@ -265,18 +265,22 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             l = lratioed
             dx = dltarget
         else:
-            stuff = [0.0]*(nratioed + 1)
-            stuff[0:1] = [dltarget - lratioed, -lratioed]
-            stuff[-1] = dltarget
-            p = P(stuff, [1.0e-3, 1.0e10], [1.0e-3, 1.0e10])
-            complex_ratio = p.roots()[-1]
-            assert complex_ratio.imag == 0.0
-            ratio = complex_ratio.real
-        
+            # Solving for roots of (nratioed + 1) polynomial with 
+            # the following coefficients.
+            coefficients = [0.0]*(nratioed + 1)
+            coefficients [0] = dltarget
+            coefficients[-2] = -dltarget-lratioed
+            coefficients[-1] = lratioed
+            roots = np.roots(coefficients)
+            #
+            real_inds = np.where(roots.imag == 0.0)[0]
+            assert real_inds.shape[0] != 0
+            ratio = np.max(roots[real_inds].real)
+            #
             # Unfortunately the root finding above isn't 100% accurate, so we 
             # adjust the initial step size to get the correct total length.
             l = dltarget*(1.0 - ratio**nratioed)/(1.0 - ratio)
-            dx = dltarget # * lratioed/l
+            dx = dltarget * lratioed/l
         if mpi.rank == 0:
             print("FacetedSurfaceGenerator: selected ratio=%g, dxfirst=%g, l=%g." % (ratio, dx, l))
         
@@ -292,7 +296,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             else:
                 dxi = dx*ratio**(ix - nconstant)
             xi -= dxi
-            ds = min(2.0*dstarget, max(dstarget, dxi))
+            ds = min(2.0*dstarget, max(dstarget, dxi)) # The approximate spacing of columns WITHIN a facet.
             ny = max(1, int((ymax - ymin)/ds + 0.5))
             nz = max(1, int((zmax - zmin)/ds + 0.5))
             dy = (ymax - ymin)/ny
@@ -311,7 +315,7 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
         
         # Figure out a crude partitioning of the facets between processors.
         if len(facets) > mpi.procs:
-            ndomain0 = len(facets)/mpi.procs
+            ndomain0 = len(facets)//mpi.procs
             remainder = len(facets) % mpi.procs
             assert remainder < mpi.procs
             ndomain = ndomain0
@@ -326,19 +330,29 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             else:
                 imin = 0
                 imax = 0
-                    
+                
         # We need all the extruded facet polyhedra.  In general these may be intersecting!
         print("FacetedSurfaceGenerator: building extruded facets...")
         self.extrudedFacets, localExtrudedFacets = [], []
-        for i in range(imin, imax):
-            f = facets[i]
-            p = f.position
-            verts = vector_of_Vector()
+        for i in range(int(imin), int(imax)):
+            f = facets[i]              # Facet object
+            p = f.position             # Facet position
+            verts = vector_of_Vector() # Empty vector that will contain the extruded volume vertices
             for ip in f.ipoints:
+                # fphat: unit vector towards the center of the facet
                 fphat = (p - surfaceVertices[ip]).unitVector()
-                vi = surfaceVertices[ip] + fphat*0.05*dstarget
+                # vi: vector towards the center of the facet, but translated up and scaled.
+                # The factor in front of dstarget is to ensure that extruded vertices
+                # are not on top of facet vertices. Deleting this factor results in
+                # weird looking extruded volumes.
+                vi = surfaceVertices[ip] + fphat*0.01*dstarget
+                # First extruded vertex near facet vertex
                 verts.append(vi)
+                # Next extruded vertex extruded inward depending on lextrude and the facet
+                # unit normal direction.
+                # vertexNorms: the facet vertex unit normal direction.
                 verts.append(vi - vertexNorms[ip]*lextrude)
+            # This is the new extruded polyhedron made from the vertices created above.
             localExtrudedFacets.append(Polyhedron(verts))   # Better be convex!
         for i in range(mpi.procs):
             self.extrudedFacets.extend(mpi.bcast(localExtrudedFacets, i))
@@ -356,18 +370,29 @@ class ExtrudedSurfaceGenerator(NodeGeneratorBase):
             T = rotationMatrix(nhat)
             Ti = T.Transpose()
             for j in range(len(rt)):
+                # The following points, rj, will show ALL positions in the template.
+                # Rotate template points into the frame of the facet.
                 rj = Ti*rt[j] + p
-                if self.extrudedFacets[i].contains(rj): # and surface.contains(rj):
-                    stuff = [(surfaceFacets[k].distance(rj), k) for k in neighbors if flags[k] == 1]
-                    stuff.sort()
-                    if stuff[0][1] == fi:
-                        self.x.append(rj.x)
-                        self.y.append(rj.y)
-                        self.z.append(rj.z)
-                        self.m.append(mt[j])
-                        self.H.append(SymTensor(Ht[j]))
-                        self.H[-1].rotationalTransform(Ti)
-                        self.nodes2facets.append(fi)
+                # Check whether or not the point in question is within the extruded volume.
+                if self.extrudedFacets[i].contains(rj):
+                    # If the user uses an lextrude value that is too big, points in one extruded volume
+                    # may penetrate other extruded volumes. To get around this, we check if the point
+                    # is in any other extruded volume, then only generate points if they are not
+                    # within other extruded volumes.
+                    is_in_other_facets = any([self.extrudedFacets[k].contains(rj) for k in range(len(self.extrudedFacets)) if k != i])
+                    if not is_in_other_facets:
+                        # The following points will not show all values from the template.
+                        # Only creates points within the extruded volume.
+                        extrudedPoints = [(surfaceFacets[k].distance(rj), k) for k in neighbors if flags[k] == 1]
+                        extrudedPoints.sort()
+                        if extrudedPoints[0][1] == fi:
+                            self.x.append(rj.x)
+                            self.y.append(rj.y)
+                            self.z.append(rj.z)
+                            self.m.append(mt[j])
+                            self.H.append(SymTensor(Ht[j]))
+                            self.H[-1].rotationalTransform(Ti)
+                            self.nodes2facets.append(fi)
         self.rho = [rho] * len(self.x)
         
         # Invoke the base class to finish up.
