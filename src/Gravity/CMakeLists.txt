@@ -7,9 +7,13 @@ set(Gravity_sources
 # Add explicit instantiations
 list(APPEND Gravity_sources
      TreeInst.cc
-     TreeGravityInst.cc
-     PolyGravityInst.cc
      NBodyGravityInst.cc
+     )
+
+if (ENABLE_2D OR ENABLE_3D)
+list(APPEND Gravity_sources
+     PolyGravityInst.cc
+     TreeGravityInst.cc
      )
 
 set(Gravity_headers

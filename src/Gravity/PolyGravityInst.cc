@@ -1,16 +1,17 @@
 //------------------------------------------------------------------------------
-// Explict instantiations.
+// Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "PolyGravity.cc"
+
+#include "config.hh"
+#include "Gravity/PolyGravity.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-
-#ifdef SPHERAL2D
+#if defined(SPHERAL_ENABLE_2D)
   template class PolyGravity<Dim<2> >;
 #endif
-#ifdef SPHERAL3D
+
+#if defined(SPHERAL_ENABLE_3D)
   template class PolyGravity<Dim<3> >;
 #endif
-
 }
