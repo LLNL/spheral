@@ -5,7 +5,7 @@ set(Integrator_sources )
 # Add explicit instantiations
 list(APPEND Integrator_sources
      IntegratorInst.cc
-     PredictorCorrector Inst.cc
+     PredictorCorrectorInst.cc
      SynchronousRK1Inst.cc
      SynchronousRK2Inst.cc
      SynchronousRK4Inst.cc

@@ -14,25 +14,25 @@ endif()
 
 # Add explicit instantiations
 list(APPEND RK_sources
-     computeRKSumVolume
-     computeOccupancyVolume
-     computeHullVolumes
-     computeHVolumes
-     HVolumePolicy
-     ContinuityVolumePolicy
-     computeRKVolumes
-     RKCorrections
-     RKUtilities012
-     RKUtilities3
-     RKUtilities4
-     RKUtilities5
-     RKUtilities6
-     RKUtilities7
-     ReproducingKernelMethods
-     ReproducingKernel
-     interpolateRK
-     gradientRK
-     hessianRK
+     computeRKSumVolumeInst.cc
+     computeOccupancyVolumeInst.cc
+     computeHullVolumesInst.cc
+     computeHVolumesInst.cc
+     HVolumePolicyInst.cc
+     ContinuityVolumePolicyInst.cc
+     computeRKVolumesInst.cc
+     RKCorrectionsInst.cc
+     RKUtilities012Inst.cc
+     RKUtilities3Inst.cc
+     RKUtilities4Inst.cc
+     RKUtilities5Inst.cc
+     RKUtilities6Inst.cc
+     RKUtilities7Inst.cc
+     ReproducingKernelMethodsInst.cc
+     ReproducingKernelInst.cc
+     interpolateRKInst.cc
+     gradientRKInst.cc
+     hessianRKInst.cc
      )
 
 set(RK_headers
