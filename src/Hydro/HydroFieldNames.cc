@@ -29,7 +29,6 @@ const std::string Spheral::HydroFieldNames::massFirstMoment = "mass first moment
 const std::string Spheral::HydroFieldNames::massSecondMoment = "mass second moment";
 const std::string Spheral::HydroFieldNames::weightedNeighborSum = "weighted neighbor sum";
 const std::string Spheral::HydroFieldNames::pressure = "pressure";
-const std::string Spheral::HydroFieldNames::damagedPressure = "damaged pressure";
 const std::string Spheral::HydroFieldNames::partialPpartialEps = "partial pressure partial eps energy derivative";
 const std::string Spheral::HydroFieldNames::partialPpartialRho = "partial pressure partial rho derivative";
 const std::string Spheral::HydroFieldNames::temperature = "temperature";
