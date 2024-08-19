@@ -9,6 +9,8 @@
 
 #ifdef USE_MPI
 #include <mpi.h>
+#else
+typedef int MPI_Comm;
 #endif
 
 namespace Spheral {
@@ -21,18 +23,20 @@ public:
   static Communicator& instance() { static Communicator theInstance; return theInstance; }
 
   // Access the communicator.
-#ifdef USE_MPI
   static MPI_Comm& communicator() { return instance().mCommunicator; }
   static void communicator(MPI_Comm& comm) { instance().mCommunicator = comm; }
+#ifdef USE_MPI
+  static MPI_Comm* comm_ptr() { return &(instance().mCommunicator); }
 #else
-  static int communicator() { return 0; }
-  static void communicator(int&) {}
+  static MPI_Comm* comm_ptr() { return nullptr; }
 #endif
 
 private:
   //------------------------===== Private Interface =====----------------------//
 #ifdef USE_MPI
   MPI_Comm mCommunicator;
+#else
+  MPI_Comm mCommunicator = 0;
 #endif
 
   // No public constructors, destructor, or assignment.
