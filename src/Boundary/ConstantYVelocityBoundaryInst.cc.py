@@ -1,9 +1,11 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "ConstantZVelocityBoundary.cc"
+#include "Boundary/ConstantYVelocityBoundary.cc"
 
 namespace Spheral {
-  template class ConstantZVelocityBoundary< Dim<3> >;
+  template class ConstantYVelocityBoundary< Dim< %(ndim)s > >;
 }
+"""

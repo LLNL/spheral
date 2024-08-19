@@ -1,9 +1,11 @@
+text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "ConstantZVelocityBoundary.cc"
+#include "ArtificialViscosity/TensorMonaghanGingoldViscosity.cc"
 
 namespace Spheral {
-  template class ConstantZVelocityBoundary< Dim<3> >;
+  template class TensorMonaghanGingoldViscosity< Dim< %(ndim)s > >;
 }
+"""

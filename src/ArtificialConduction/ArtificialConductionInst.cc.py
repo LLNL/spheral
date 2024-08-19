@@ -1,9 +1,11 @@
+text = """
 //------------------------------------------------------------------------------
-// Explicit instantiation.
+// Explict instantiation.
 //------------------------------------------------------------------------------
+#include "ArtificialConduction/ArtificialConduction.cc"
 #include "Geometry/Dimension.hh"
-#include "ConstantZVelocityBoundary.cc"
 
 namespace Spheral {
-  template class ConstantZVelocityBoundary< Dim<3> >;
+  template class ArtificialConduction< Dim< %(ndim)s > >;
 }
+"""

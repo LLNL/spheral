@@ -1,8 +1,11 @@
 include_directories(.)
-set(ArtificialConduction_sources
-    ArtificialConductionInst.cc
-    ArtificialConductionPolicyInst.cc
+set(ArtificialConduction_inst
+    ArtificialConduction
+    ArtificialConductionPolicy
     )
+
+set(ArtificialConduction_sources )
+instantiate(ArtificialConduction_inst ArtificialConduction_sources)
 
 set(ArtificialConduction_headers
     ArtificialConduction.hh
