@@ -4,6 +4,7 @@
 
 #include "config.hh"
 #include "Kernel/NSincPolynomialKernel.cc"
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_1D)

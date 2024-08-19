@@ -3,9 +3,8 @@
 //------------------------------------------------------------------------------
 
 #include "config.hh"
-#include "Kernel/Kernel.hh"
 #include "Kernel/BSplineKernel.hh"
-#include <math.h>
+#include "Geometry/Dimension.hh"
 
 namespace Spheral {
 #if defined(SPHERAL_ENABLE_1D)
