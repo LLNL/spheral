@@ -5,6 +5,9 @@
 #include "config.hh"
 #include "Neighbor/GridCellIndex.cc"
 
+// Instantiate the static variables.
+// Set the maximum index value to 2^21/2, so that (mIndexMax - mIndexMin)^3 will
+// be in the range of an unsigned long long (2^64 on the machines I'm using).
 #define INDEXMAX 1048576 - 1 // 2^20 - 1
 #define INDEXMIN -INDEXMAX - 1 // -2^20
 
