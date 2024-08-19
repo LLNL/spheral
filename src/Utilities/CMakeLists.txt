@@ -34,8 +34,13 @@ list(APPEND Utilities_sources
      numberDensityInst.cc
      medianPositionInst.cc
      computeShepardsInterpolationInst.cc
-     overlayRemapFieldsInst.cc
      )
+
+if (ENABLE_2D OR ENABLE_3D)
+  list(APPEND Utilities_sources
+       overlayRemapFieldsInst.cc
+       )
+endif()
 
 set(Utilities_headers
     setGlobalFlags.hh
