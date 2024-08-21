@@ -107,7 +107,7 @@ atexit.attr("register")(py::cpp_function([]() {
    if (Spheral::TimerMgr::is_started()) {
       Spheral::TimerMgr::fini();
    } else {
-      int final = Communicator::finalize();
+      Communicator::finalize();
    }
 }));
 """
