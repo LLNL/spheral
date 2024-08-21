@@ -68,7 +68,7 @@ PYB11preamble += """
 namespace Spheral {
 
 inline void spheral_adiak_init() {
-  adiak::init(Communicator::instance().comm_ptr());
+  adiak::init((void*) Communicator::comm_ptr());
   // Always collect some curated default adiak information
   adiak::adiakversion();
   adiak::user();
@@ -104,7 +104,11 @@ auto atexit = py::module_::import("atexit");
 atexit.attr("register")(py::cpp_function([]() {
    TIME_END("main");
    adiak::fini();
-   Spheral::TimerMgr::instance().fini();
+   if (Spheral::TimerMgr::is_started()) {
+      Spheral::TimerMgr::fini();
+   } else {
+      int final = Communicator::finalize();
+   }
 }));
 """
 

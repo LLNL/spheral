@@ -27,8 +27,10 @@ public:
   static void communicator(MPI_Comm& comm) { instance().mCommunicator = comm; }
 #ifdef USE_MPI
   static MPI_Comm* comm_ptr() { return &(instance().mCommunicator); }
+  static int finalize() { return MPI_Finalize(); }
 #else
   static MPI_Comm* comm_ptr() { return nullptr; }
+  static int finalize() { return 0; }
 #endif
 
 private:

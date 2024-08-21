@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Create a standard and hopefully convenient command  line parser for Spheral
+# Create a standard and hopefully convenient command line parser for Spheral
 # scripts.
 #-------------------------------------------------------------------------------
 import argparse
@@ -46,13 +46,18 @@ def commandLine(**options):
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
             gd[key] = val
+    off_tests = ["none", "off", "disable", "disabled"]
+    if (not args.caliper_config.lower() in off_tests):
+        InitTimers(args)
+    return
 
+def InitTimers(args):
     if (args.caliper_config):
-        TimerMgr.instance().add(args.caliper_config)
-        TimerMgr.instance().start()
+        TimerMgr.add(args.caliper_config)
+        TimerMgr.start()
     else:
         import random, os, sys
         unique_digits = ''.join(random.sample('0123456789', 4))
         testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits
-        TimerMgr.instance().default_start(testname)
+        TimerMgr.default_start(testname)
     return

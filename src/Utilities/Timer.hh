@@ -30,28 +30,32 @@ private:
   ~TimerMgr() { }
   TimerMgr(const TimerMgr&) = delete;
   TimerMgr& operator=(const TimerMgr&) = delete;
+  bool started = false;
 public:
   static TimerMgr& instance() {
     static TimerMgr theInstance;
     return theInstance;
   }
-  void timer_start(std::string regionName) {
+  static void timer_start(std::string regionName) {
     TIME_BEGIN(regionName.c_str());
   }
-  void timer_end(std::string regionName) {
+  static void timer_end(std::string regionName) {
     TIME_END(regionName.c_str());
+  }
+  static bool is_started() {
+    return instance().started;
   }
 #ifdef TIMER
 private:
   cali::ConfigManager cali_mgr;
 public:
-  void add(std::string config_str) {
-    bool test = cali_mgr.add(config_str.c_str());
-    VERIFY2(test, cali_mgr.error_msg());
+  static void add(std::string config_str) {
+    bool test = instance().cali_mgr.add(config_str.c_str());
+    VERIFY2(test, instance().cali_mgr.error_msg());
   }
-  void default_start(std::string testname) {
+  static void default_start(std::string testname) {
     if (!testname.empty()) {
-      std::string default_config = "spot,output=" + testname + ".cali,mem.highwatermark";
+      std::string default_config = "spot,mem.highwatermark,output=" + testname + ".cali";
       add(default_config);
       start();
     } else if (Spheral::Process::getRank() == 0) {
@@ -59,25 +63,26 @@ public:
                 << "no Caliper configuration started" << std::endl;
     }
   }
-  void start() {
-    cali_mgr.start();
+  static void start() {
+    instance().cali_mgr.start();
+    instance().started = true;
   }
-  void stop() {
-    cali_mgr.stop();
+  static void stop() {
+    instance().cali_mgr.stop();
   }
-  void fini() {
-    cali_mgr.flush();
+  static void fini() {
+    instance().cali_mgr.flush();
   }
 #else
-  void default_start(std::string) {
+  static void default_start(std::string) {
   }
-  void add(std::string) {
+  static void add(std::string) {
   }
-  void start() {
+  static void start() {
   }
-  void stop() {
+  static void stop() {
   }
-  void fini() {
+  static void fini() {
   }
 #endif
 };

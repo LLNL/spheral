@@ -6,9 +6,14 @@ from PYB11Generator import *
 # adiak::init() is called automatically when this module is loaded
 # adiak::fini() is called automatically when this module is destroyed
 
+@PYB11cppname("adiak::fini")
+def adiak_fini():
+    "Finish Adiak"
+    return "void"
+
 @PYB11cppname("adiak::collect_all")
 def adiak_collect_all():
-    "Collect all default Adiak metadata"
+    "Add some default Adiak metadata"
     return "void"
 
 adiak_categories = PYB11enum(("unset", "all", "general", "performance", "control"),
