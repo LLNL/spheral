@@ -25,16 +25,19 @@ public:
   // Access the communicator.
   static MPI_Comm& communicator() { return instance().mCommunicator; }
   static void communicator(MPI_Comm& comm) { instance().mCommunicator = comm; }
+  static MPI_Comm* comm_ptr() {
 #ifdef USE_MPI
-  static MPI_Comm* comm_ptr() { return &(instance().mCommunicator); }
+    return &(instance().mCommunicator);
+#else
+    return nullptr;
+#endif
+  }
   static void finalize() {
+#ifdef USE_MPI
     int finalize = MPI_Finalize();
     VERIFY(finalize);
-  }
-#else
-  static MPI_Comm* comm_ptr() { return nullptr; }
-  static void finalize() { return; }
 #endif
+  }
 
 private:
   //------------------------===== Private Interface =====----------------------//
