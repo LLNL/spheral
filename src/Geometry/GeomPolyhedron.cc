@@ -17,7 +17,9 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
-#include "axom/mint.hpp"
+#include "axom/mint/mesh/CellTypes.hpp"
+#include "axom/mint/mesh/UnstructuredMesh.hpp"
+#include "axom/mint/utils/vtk_utils.hpp"
 
 #include <algorithm>
 #include <iterator>

@@ -20,7 +20,7 @@
 #include "Utilities/DomainNode.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
-#include "axom/sidre.hpp"
+#include "axom/sidre/core/SidreTypes.hpp"
 #include "Utilities/uniform_random.hh"
 
 #ifdef USE_MPI
