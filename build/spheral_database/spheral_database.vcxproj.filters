@@ -18,6 +18,12 @@
     <ClCompile Include="..\..\src\DataBase\DataBaseInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\DataBase\ReplaceWithRatioPolicyInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\DataBase\ReplaceWithRatioPolicyInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\DataBase\StateBaseInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -86,6 +92,9 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\DataBase\DataBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\DataBase\ReplaceWithRatioPolicyInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\DataBase\StateBaseInst.cc.py">

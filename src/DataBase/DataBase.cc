@@ -1337,21 +1337,6 @@ DataBase<Dimension>::solidParticleTypes() const {
 }
 
 //------------------------------------------------------------------------------
-// Return the solid mask field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FieldList<Dimension, int>
-DataBase<Dimension>::solidMask() const {
-  REQUIRE(valid());
-  FieldList<Dimension, int> result;
-  for (ConstSolidNodeListIterator nodeListItr = solidNodeListBegin();
-       nodeListItr < solidNodeListEnd(); ++nodeListItr) {
-    result.appendField((*nodeListItr)->mask());
-  }
-  return result;
-}
-
-//------------------------------------------------------------------------------
 // Return the DEM mass field.
 //------------------------------------------------------------------------------
 template<typename Dimension>

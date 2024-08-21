@@ -34,6 +34,9 @@ toss_release_permissions:
 # ------------------------------------------------------------------------------
 # CLEAN OLD BUILD DIRS
 
-cleanup_build_dirs:
-  extends: [.clean_dirs]
+cleanup_old_dirs_toss:
+  extends: [.toss_resource_general, .clean_old_dirs]
+
+cleanup_old_dirs_blueos:
+  extends: [.blueos_resource_general, .clean_old_dirs]
 

@@ -13,9 +13,7 @@
 #include "NodeList/SmoothingScaleBase.hh"
 #include "SolidMaterial/SolidEquationOfState.hh" 
 
-#include "GSPH/computeSPHVolume.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
-
+#include "Hydro/computeSPHVolume.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Hydro/CompatibleDifferenceSpecificThermalEnergyPolicy.hh"
 #include "Hydro/SpecificThermalEnergyPolicy.hh"
@@ -39,6 +37,7 @@
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/PureReplaceState.hh"
 #include "DataBase/updateStateFields.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "ArtificialViscosity/ArtificialViscosity.hh"
 #include "Field/FieldList.hh"
@@ -328,7 +327,6 @@ registerState(DataBase<Dimension>& dataBase,
   FieldList<Dimension, SymTensor> damage = dataBase.solidDamage();
   FieldList<Dimension, int> fragIDs = dataBase.solidFragmentIDs();
   FieldList<Dimension, int> pTypes = dataBase.solidParticleTypes();
-  FieldList<Dimension, int> mask = dataBase.solidMask();
   
   for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.solidNodeListBegin(), dataBase.solidNodeListEnd())) {
     *mPlasticStrain0[nodeListi] = nodeListPtr->plasticStrain();
@@ -424,7 +422,6 @@ registerState(DataBase<Dimension>& dataBase,
   state.enroll(damage);
   state.enroll(fragIDs);
   state.enroll(pTypes);
-  state.enroll(mask);
   state.enroll(mPlasticStrain0);
 
   TIME_END("SolidFSISPHregisterState");
@@ -658,7 +655,6 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  FieldList<Dimension, int> mask = state.fields(SolidFieldNames::mask, int(0));
   //FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
@@ -681,7 +677,6 @@ applyGhostBoundaries(State<Dimension>& state,
     (*boundaryItr)->applyFieldListGhostBoundary(Y);
     (*boundaryItr)->applyFieldListGhostBoundary(fragIDs);
     (*boundaryItr)->applyFieldListGhostBoundary(pTypes);
-    (*boundaryItr)->applyFieldListGhostBoundary(mask);
     //(*boundaryItr)->applyFieldListGhostBoundary(invSqrtJ2);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceFlags);
     (*boundaryItr)->applyFieldListGhostBoundary(interfaceAreaVectors);
@@ -712,7 +707,6 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> Y = state.fields(SolidFieldNames::yieldStrength, 0.0);
   FieldList<Dimension, int> fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   FieldList<Dimension, int> pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
-  FieldList<Dimension, int> mask = state.fields(SolidFieldNames::mask, int(0));
   //FieldList<Dimension, Scalar> invSqrtJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
   FieldList<Dimension, int> interfaceFlags = state.fields(FSIFieldNames::interfaceFlags, int(0));
   FieldList<Dimension, Vector> interfaceAreaVectors = state.fields(FSIFieldNames::interfaceAreaVectors, Vector::zero);
@@ -735,7 +729,6 @@ enforceBoundaries(State<Dimension>& state,
     (*boundaryItr)->enforceFieldListBoundary(Y);
     (*boundaryItr)->enforceFieldListBoundary(fragIDs);
     (*boundaryItr)->enforceFieldListBoundary(pTypes);
-    (*boundaryItr)->enforceFieldListBoundary(mask);
     //(*boundaryItr)->enforceFieldListBoundary(invSqrtJ2);
     (*boundaryItr)->enforceFieldListBoundary(interfaceFlags);
     (*boundaryItr)->enforceFieldListBoundary(interfaceAreaVectors);

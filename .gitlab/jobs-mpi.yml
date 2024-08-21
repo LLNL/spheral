@@ -8,6 +8,10 @@ toss_gcc_mvapich2_cxxonly_build:
   extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .build]
   needs: [toss_gcc_mvapich2_cxxonly_tpls]
 
+toss_gcc_mvapich2_cxxonly_cleanup:
+  extends: [.toss_resource1, .gcc_mvapich2_cxxonly, .cleanup_dir]
+  needs: [toss_gcc_mvapich2_cxxonly_build]
+
 
 
 toss_gcc_mvapich2_tpls:
@@ -21,6 +25,10 @@ toss_gcc_mvapich2_test:
   extends: [.toss_resource2, .gcc_mvapich2, .run_ats]
   needs: [toss_gcc_mvapich2_build]
 
+toss_gcc_mvapich2_cleanup:
+  extends: [.toss_resource2, .gcc_mvapich2, .cleanup_dir]
+  needs: [toss_gcc_mvapich2_test]
+
 
 
 toss_clang_mvapich2_tpls:
@@ -33,6 +41,10 @@ toss_clang_mvapich2_build:
 toss_clang_mvapich2_test:
   extends: [.toss_resource2, .clang_mvapich2, .run_ats]
   needs: [toss_clang_mvapich2_build]
+
+toss_clang_mvapich2_cleanup:
+  extends: [.toss_resource2, .clang_mvapich2, .cleanup_dir]
+  needs: [toss_clang_mvapich2_test]
 
 
 
@@ -52,6 +64,10 @@ blueos_gcc_spectrum_test:
   extends: [.blueos_resource1, .gcc_spectrum, .run_ats]
   needs: [blueos_gcc_spectrum_build]
 
+blueos_gcc_spectrum_cleanup:
+  extends: [.blueos_resource1, .gcc_spectrum, .cleanup_dir]
+  needs: [blueos_gcc_spectrum_test]
+
 
 
 blueos_cuda_11_gcc_spectrum_tpls:
@@ -65,6 +81,10 @@ blueos_cuda_11_gcc_spectrum_test:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_ats]
   needs: [blueos_cuda_11_gcc_spectrum_build]
   allow_failure: true
+
+blueos_cuda_11_gcc_spectrum_cleanup:
+  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .cleanup_dir]
+  needs: [blueos_cuda_11_gcc_spectrum_test]
 
 
 

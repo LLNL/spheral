@@ -115,12 +115,6 @@ given the mass density, bulk modulus, and shear modulus (rho, K, mu)"""
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")
-    def mask(self):
-        "The mask field"
-        return "const IntField&"
-
-    @PYB11const
-    @PYB11returnpolicy("reference_internal")
     def strengthModel(self):
         "Return the strength model object this SolidNodeList is associated with."
         return "const StrengthModel<%(Dimension)s>&"

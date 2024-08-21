@@ -168,7 +168,7 @@ dt(const DataBase<Dimension>& dataBase,
   if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
     Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); };
   } else if (GeometryRegistrar::coords() == CoordinateType::RZ) {
-    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); };
+    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[1]*safeInv(posi[1]); };
   }
 
   // Loop over every fluid node.
