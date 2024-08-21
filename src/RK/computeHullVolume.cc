@@ -281,7 +281,7 @@ computeHullVolume(const FieldList<Dimension, typename Dimension::Vector>& positi
 
   const auto numGens = position.numNodes();
   const auto numNodeLists = position.size();
-  const auto numGensGlobal = allReduce(numGens, MPI_SUM, Communicator::communicator());
+  const auto numGensGlobal = allReduce(numGens, SPHERAL_OP_SUM);
   const auto returnSurface = surfacePoint.size() == numNodeLists;
   const auto returnCells = cells.size() == numNodeLists;
 
