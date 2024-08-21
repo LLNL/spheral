@@ -152,8 +152,8 @@ subCellAcceleration(const Dim<2>::FacetedVolume& celli,
                     const Dim<2>::Scalar  Pi) {
   const auto& facets = celli.facets();
   REQUIRE(size_t(cellFace) < facets.size());
-  auto  Atot = 0.0;
-  for (const auto& f: facets) Atot += f.area();
+  // auto  Atot = 0.0;
+  // for (const auto& f: facets) Atot += f.area();
   const auto& f = facets[cellFace];
   const auto  nA = -f.normal();  // Inward pointing area normal (has magnitude of facet area)
   // const auto Aref = Atot/6u;

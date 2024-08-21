@@ -246,7 +246,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
 

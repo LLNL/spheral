@@ -43,6 +43,7 @@ list(APPEND _packages
   SolidMaterial
   Strength
   Utilities
+  SmoothingScale
   )
 
 if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)

@@ -169,7 +169,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
       const auto ni = nodeListPtr->numInternalNodes();
 
+#ifndef __clang__        // Clang does not like the nodeListi declared in a structured binding
 #pragma omp parallel for
+#endif
       for (auto i = 0u; i < ni; ++i) {
         if (flagNodeDone(nodeListi, i) == 0) {
 
@@ -186,7 +188,9 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto phimax = phi.maxElement();
           const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
           if (deltaHi <= tolerance) flagNodeDone(nodeListi, i) = 1;
+#ifndef __CLANG__
 #pragma omp critical
+#endif
           {
             maxDeltaH = max(maxDeltaH, deltaHi);
           }
