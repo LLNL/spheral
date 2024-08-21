@@ -25,7 +25,6 @@ list(APPEND _packages
   Field
   FieldOperations
   FileIO
-  GSPH
   Geometry
   Hydro
   Integrator
@@ -41,8 +40,6 @@ list(APPEND _packages
   RK
   VoronoiCells
   SPH
-  SVPH
-  SmoothingScale
   SolidMaterial
   Strength
   Utilities
@@ -57,7 +54,15 @@ if (SPHERAL_ENABLE_EXTERNAL_FORCE)
 endif()
 
 if (SPHERAL_ENABLE_GRAVITY)
-   list(APPEND _packages Gravity)
+  list(APPEND _packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND _packages GSPH)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _packages SVPH)
 endif()
 
 if(NOT ENABLE_CXXONLY)

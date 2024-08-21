@@ -11,6 +11,7 @@ set(Hydro_inst
     VolumePolicy
     VoronoiMassDensityPolicy
     GammaPolicy
+    computeSPHVolume
    )
 
 
@@ -42,6 +43,7 @@ set(Hydro_headers
     SumVoronoiMassDensityPolicy.hh
     VolumePolicy.hh
     VoronoiMassDensityPolicy.hh
+    computeSPHVolume.hh
     entropyWeightingFunction.hh
     )
 

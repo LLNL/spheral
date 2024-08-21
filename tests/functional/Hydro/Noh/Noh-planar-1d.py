@@ -50,12 +50,12 @@
 #
 # GSPH
 #
-#ATS:t500 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient RiemannGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial)")
-#ATS:t501 = testif(t500, SELF, "--hydroType GSPH --gsphReconstructionGradient RiemannGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial) RESTART CHECK")
-#ATS:t502 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient HydroAccelerationGradient --graphics None --clearDirectories True --checkError True --tol 5e-2 --restartStep 20", label="Planar Noh problem with GSPH and and HydroAccelerationGradient -- 1-D (serial)")
-#ATS:t503 = testif(t502, SELF, "--hydroType GSPH --gsphReconstructionGradient HydroAccelerationGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and HydroAccelerationGradient -- 1-D (serial) RESTART CHECK")
-#ATS:t504 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient SPHGradient --graphics None --clearDirectories True --checkError True --tol 0.1 --restartStep 20", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial)")
-#ATS:t505 = testif(t504, SELF, "--hydroType GSPH --gsphReconstructionGradient SPHGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial) RESTART CHECK")
+#ATS:t500 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient RiemannGradient --graphics None --clearDirectories True --checkError True --restartStep 20", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial)", gsph=True)
+#ATS:t501 = testif(t500, SELF, "--hydroType GSPH --gsphReconstructionGradient RiemannGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and RiemannGradient -- 1-D (serial) RESTART CHECK", gsph=True)
+#ATS:t502 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient HydroAccelerationGradient --graphics None --clearDirectories True --checkError True --tol 5e-2 --restartStep 20", label="Planar Noh problem with GSPH and and HydroAccelerationGradient -- 1-D (serial)", gsph=True)
+#ATS:t503 = testif(t502, SELF, "--hydroType GSPH --gsphReconstructionGradient HydroAccelerationGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and HydroAccelerationGradient -- 1-D (serial) RESTART CHECK", gsph=True)
+#ATS:t504 = test(        SELF, "--hydroType GSPH --gsphReconstructionGradient SPHGradient --graphics None --clearDirectories True --checkError True --tol 0.1 --restartStep 20", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial)", gsph=True)
+#ATS:t505 = testif(t504, SELF, "--hydroType GSPH --gsphReconstructionGradient SPHGradient --graphics None --clearDirectories False --checkError False --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar Noh problem with GSPH and SPHGradient -- 1-D (serial) RESTART CHECK", gsph=True)
 #
 # MFM
 #

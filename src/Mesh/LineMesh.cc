@@ -58,7 +58,6 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
   // Is there anything to do?
   if (allReduce(unsigned(localGenerators.size()), SPHERAL_OP_SUM) == 0) return;
 
-
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
   {

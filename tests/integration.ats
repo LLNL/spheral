@@ -1,8 +1,11 @@
 #-------------------------------------------------------------------------------
 # This file contains the acceptance tests for committing changes to the 
 # SolidSpheral code to the main repository.  Please verify these all pass 
-# (using the ATS) before pushing changes to that public repot!
+# (using the ATS) before pushing changes to that public repo!
 #-------------------------------------------------------------------------------
+
+glue(gsph = False)
+glue(svph = False)
 
 # Geometry unit tests
 source("unit/Geometry/testVector.py")

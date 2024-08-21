@@ -341,6 +341,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto fragID = state.fields(SolidFieldNames::fragmentIDs, int(0));
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -354,6 +355,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  CHECK(fragID.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  rhoSum = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -453,6 +455,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdeti = Hi.Determinant();
       const auto  safeOmegai = safeInv(omegai, tiny);
       const auto  pTypei = pTypes(nodeListi, i);
+      const auto  fragIDi = fragID(nodeListi, i);
       CHECK(mi > 0.0);
       CHECK(rhoi > 0.0);
       CHECK(Hdeti > 0.0);
@@ -485,6 +488,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto  Hdetj = Hj.Determinant();
       const auto  safeOmegaj = safeInv(omegaj, tiny);
       const auto  pTypej = pTypes(nodeListj, j);
+      const auto  fragIDj = fragID(nodeListj, j);
       CHECK(mj > 0.0);
       CHECK(rhoj > 0.0);
       CHECK(Hdetj > 0.0);
@@ -508,6 +512,18 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Flag if at least one particle is free (0).
       const auto freeParticle = (pTypei == 0 or pTypej == 0);
+
+      // Flag to turn off forces between different fragments,
+      // only if the two particles are moving away from each other.
+      auto fragdir = true;
+      if (fragIDi != fragIDj) {
+        const auto rdiff = ri-rj;
+        const auto vdiff = vi-vj;
+        const auto vdot = vdiff.dot(rdiff);
+        if (vdot > 0.0) {
+          fragdir = false;
+        }
+      }
 
       // Determine how we're applying damage.
       const auto fDij = pairs[kk].f_couple;
@@ -597,7 +613,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       sigmarhoi = safeOmegai*sigmai/(rhoi*rhoi);
       sigmarhoj = safeOmegaj*sigmaj/(rhoj*rhoj);
       const auto deltaDvDt = sigmarhoi*gradWi + sigmarhoj*gradWj - Qacci - Qaccj;
-      if (freeParticle) {
+      if (freeParticle && fragdir) {
         DvDti += mj*deltaDvDt;
         DvDtj -= mi*deltaDvDt;
       }
