@@ -26,27 +26,12 @@ public:
   // Access the communicator.
   static MPI_Comm& communicator() { return instance().mCommunicator; }
   static void communicator(MPI_Comm& comm) { instance().mCommunicator = comm; }
-  static MPI_Comm* comm_ptr() {
-#ifdef USE_MPI
-    return &(instance().mCommunicator);
-#else
-    return nullptr;
-#endif
-  }
-  static void finalize() {
-#ifdef USE_MPI
-    int finalize = MPI_Finalize();
-    VERIFY(finalize);
-#endif
-  }
+  static MPI_Comm* comm_ptr();
+  static void finalize();
 
 private:
   //------------------------===== Private Interface =====----------------------//
-#ifdef USE_MPI
   MPI_Comm mCommunicator;
-#else
-  MPI_Comm mCommunicator = 0;
-#endif
 
   // No public constructors, destructor, or assignment.
   Communicator();

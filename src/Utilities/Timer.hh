@@ -72,6 +72,7 @@ public:
   }
   static void fini() {
     instance().cali_mgr.flush();
+    instance().started = false;
   }
 #else
   static void default_start(std::string) {
