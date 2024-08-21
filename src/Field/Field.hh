@@ -12,7 +12,7 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
-#include "axom/sidre/core/SidreTypes.hpp"
+#include "axom/sidre.hpp"
 
 #include <vector>
 

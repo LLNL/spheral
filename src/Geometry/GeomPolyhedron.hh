@@ -12,8 +12,7 @@
 #include "GeomTensor.hh"
 #include "GeomFacet3d.hh"
 
-#include "axom/quest/InOutOctree.hpp"
-#include "axom/quest/SignedDistance.hpp"
+#include "axom/quest.hpp"
 
 #include <vector>
 #include <utility>
