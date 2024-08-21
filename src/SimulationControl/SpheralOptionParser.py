@@ -46,18 +46,22 @@ def commandLine(**options):
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
             gd[key] = val
-    off_tests = ["none", "off", "disable", "disabled"]
-    if (not args.caliper_config.lower() in off_tests):
-        InitTimers(args)
+    InitTimers(args.caliper_config)
     return
 
-def InitTimers(args):
-    if (args.caliper_config):
+def InitTimers(caliper_config, filename=""):
+    off_tests = ["none", "off", "disable", "disabled"]
+    if (caliper_config.lower() in off_tests):
+        return
+    elif (caliper_config):
         TimerMgr.add(args.caliper_config)
         TimerMgr.start()
     else:
         import random, os, sys
-        unique_digits = ''.join(random.sample('0123456789', 4))
-        testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits
+        if (filename):
+            testname = filename
+        else:
+            unique_digits = ''.join(random.sample('0123456789', 4))
+            testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits
         TimerMgr.default_start(testname)
     return
