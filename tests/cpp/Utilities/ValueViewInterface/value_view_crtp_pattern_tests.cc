@@ -7,7 +7,7 @@
 //--------------------------------
 // Impl Interface
 
-namespace impl {
+SCIP_IMPL_BEGIN
 
 template<typename Dim, typename Desc>
 class Kernel : public Spheral::SPHERALCopyable<Kernel<Dim, Desc>> {
@@ -39,7 +39,7 @@ public:
 	SPHERAL_HOST_DEVICE void doSomething() { printf("OKi HD doSomething()\n"); printf("OtherKernel doSomething\n"); }
 };
 
-} // namespace impl
+SCIP_IMPL_END
 
 //--------------------------------
 // View Interface
@@ -51,22 +51,22 @@ class TableKernel;
 template<typename Dim>
 class OtherKernel;
 
-#define KernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (Kernel<Dim, Desc>), (KernelView), (impl::Kernel<Dim, typename Desc::ImplType>), (code))
-#define TableKernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (TableKernel<Dim>), (TableKernelView), (impl::TableKernel<Dim>), (code))
-#define OtherKernelView__(code) VIEW_INTERFACE_METACLASS_DECLARATION( (OtherKernel<Dim>), (OtherKernelView), (impl::OtherKernel<Dim>), (code))
+#define KernelView__(code) PTR_VIEW_METACLASS_DECL( (Kernel<Dim, Desc>), (KernelView), (vvi::impl::Kernel<Dim, typename Desc::ImplType>), (code))
+#define TableKernelView__(code) PTR_VIEW_METACLASS_DECL( (TableKernel<Dim>), (TableKernelView), (vvi::impl::TableKernel<Dim>), (code))
+#define OtherKernelView__(code) PTR_VIEW_METACLASS_DECL( (OtherKernel<Dim>), (OtherKernelView), (vvi::impl::OtherKernel<Dim>), (code))
 
-#define Kernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((Kernel), (KernelView<Dim, Desc>), (code))
-#define TableKernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((TableKernel), (TableKernelView<Dim>), (code))
-#define OtherKernel__(code) VALUE_INTERFACE_METACLASS_DECLARATION((OtherKernel), (OtherKernelView<Dim>), (code))
+#define Kernel__(code) PTR_VALUE_METACLASS_DECL((Kernel), (KernelView<Dim, Desc>), (code))
+#define TableKernel__(code) PTR_VALUE_METACLASS_DECL((TableKernel), (TableKernelView<Dim>), (code))
+#define OtherKernel__(code) PTR_VALUE_METACLASS_DECL((OtherKernel), (OtherKernelView<Dim>), (code))
 
 template<typename Dim, typename Desc>
-class KernelView__( DEFAULT() );
+class KernelView__( VVI_DEFAULT() );
 
 template<typename Dim>
-class TableKernelView__( DEFAULT() );
+class TableKernelView__( VVI_DEFAULT() );
 
 template<typename Dim>
-class OtherKernelView__( DEFAULT() );
+class OtherKernelView__( VVI_DEFAULT() );
 
 //--------------------------------
 // Value Interface
@@ -74,31 +74,31 @@ class OtherKernelView__( DEFAULT() );
 template<typename Dim, typename Desc>
 class Kernel__(
 public:
-  VALUE_DEF_CTOR(Kernel)
-  VALUE_COPY_CTOR(Kernel)
-  VALUE_ASSIGNEMT_OP()
+  VVI_VALUE_DEF_CTOR(Kernel)
+  VVI_VALUE_COPY_CTOR(Kernel)
+  VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("K H doSomething()\n"); this->sptr_data().doSomething(); }
+	void doSomething() { printf("K H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
 );
 
 template<typename Dim>
 class TableKernel__(
 public:
-  VALUE_DEF_CTOR(TableKernel)
-  VALUE_COPY_CTOR(TableKernel)
-  VALUE_ASSIGNEMT_OP()
+  VVI_VALUE_DEF_CTOR(TableKernel)
+  VVI_VALUE_COPY_CTOR(TableKernel)
+  VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("TK H doSomething()\n"); this->sptr_data().doSomething(); }
+	void doSomething() { printf("TK H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
 );
 
 template<typename Dim>
 class OtherKernel__(
 public:
-  VALUE_DEF_CTOR(OtherKernel)
-  VALUE_COPY_CTOR(OtherKernel)
-  VALUE_ASSIGNEMT_OP()
+  VVI_VALUE_DEF_CTOR(OtherKernel)
+  VVI_VALUE_COPY_CTOR(OtherKernel)
+  VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("OK H doSomething()\n"); this->sptr_data().doSomething(); }
+	void doSomething() { printf("OK H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
 );
 
 class Dim1 {};
@@ -116,11 +116,11 @@ TYPED_TEST_CASE(KernelParallelInterface, EXEC_TYPES);
 TEST(KernelParallelImpl, Impl)
 {
 
-  impl::TableKernel<Dim1> tk_impl;
+  vvi::impl::TableKernel<Dim1> tk_impl;
   
   tk_impl.doSomething();
 
-  impl::Kernel<Dim1, impl::TableKernel<Dim1>> k_impl;
+  vvi::impl::Kernel<Dim1, vvi::impl::TableKernel<Dim1>> k_impl;
   
   k_impl.doSomething();
 

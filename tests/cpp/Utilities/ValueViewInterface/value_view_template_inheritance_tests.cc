@@ -13,7 +13,7 @@ namespace Spheral {
 // Implementation of Existing Class in Spheral...
 //-----------------------------------------------------------------------------
 
-namespace impl {
+SCIP_IMPL_BEGIN
 
 class FB : chai::CHAIPoly{
   public:
@@ -49,7 +49,7 @@ public:
   SPHERAL_HOST_DEVICE virtual size_t size() override { return m_data.size(); }
 };
 
-} // namespace impl
+SCIP_IMPL_END
 
 
 
@@ -63,33 +63,34 @@ class F;
 class FB;
 
 // Define Metaclass macros for Value/View relationships
-#define FBV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (impl::FB), (code))
-#define FB__(code)  VALUE_INTERFACE_METACLASS_DECLARATION((FB), (FBV), (code))
+#define FBV__(code) PTR_VIEW_METACLASS_DECL((FB), (FBV), (vvi::impl::FB), (code))
+#define FB__(code)  PTR_VALUE_METACLASS_DECL((FB), (FBV), (code))
 
-#define FV__(code) VIEW_INTERFACE_METACLASS_DECLARATION((F<T>), (FV), (impl::F<T>), (code))
-#define F__(code) VALUE_INTERFACE_METACLASS_DECLARATION((F), (FV<T>), (code))
+#define FV__(code) PTR_VIEW_METACLASS_DECL((F<T>), (FV), (vvi::impl::F<T>), (code))
+#define F__(code) PTR_VALUE_METACLASS_DECL((F), (FV<T>), (code))
 
 
 // --- Interface definitions ---
 
 class FBV__(
-  DEFAULT()
+  VVI_VIEW_DEF_CTOR(FBV)
 );
 
 // This class instantiation exsists only to fulfil type information
 // queries that might arise : e.g. `typename FB::ViewType`
-class FB__(
   // Because the underlying impl type is an abstract virtual we can not allow
   // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
-  DELETED_INTERFACE(FB)
+class FB__(
+  VVI_DELETED_INTERFACE(FB)
 );
 
 
 template<typename T>
 class FV__(
+  VVI_VIEW_DEF_CTOR(FV)
   // Field inherits from FieldBase so we would like to be able to implicitly
   // upcast a fieldview object to a fieldbaseview.
-  UPCAST_CONVERSION_OP(FBV)
+  VVI_UPCAST_CONVERSION_OP(FBV)
 );
 
 template<typename T>
@@ -97,26 +98,26 @@ class F__(
 public:
   // Define Default semantic value type operations for def Ctor, Copy Ctor
   // and assignment op.
-  VALUE_DEF_CTOR(F)
-  VALUE_COPY_CTOR(F)
-  VALUE_ASSIGNEMT_OP()
+  VVI_VALUE_DEF_CTOR(F)
+  VVI_VALUE_COPY_CTOR(F)
+  VVI_VALUE_ASSIGNEMT_OP()
 
   // Custom Ctor, note we need to create the underlying implementation 
   // object on ctor of value interfaces.
-  F(size_t h, size_t sz) : Base(chai::make_shared<ImplType>(h, sz)) {}
+  F(size_t h, size_t sz) : VVI_CTOR_ARGS( (h, sz) ) {}
 
   // Value semantics dictate that we free underlying data upon destruction.
-  ~F() { this->sptr()->m_data.free(); }
+  ~F() { VVI_IMPL_INST.m_data.free(); }
 
   // HOST only interface
-  void resize(size_t sz) { this->sptr_data().resize(sz); } 
+  void resize(size_t sz) { VVI_IMPL_INST.resize(sz); } 
 
   // Moved from old View Interface pattern.
-  T* data() {return SPTR_DATA_REF().data(); }
-  T& operator()(size_t idx) { return this->sptr_data().operator()(idx); }
-  size_t size() const { return this->sptr_data().size(); }
+  T* data() {return VVI_IMPL_INST.data(); }
+  T& operator()(size_t idx) { return VVI_IMPL_INST.operator()(idx); }
+  size_t size() const { return VVI_IMPL_INST.size(); }
 
-  size_t getHash() const { return this->sptr_data().getHash(); }
+  size_t getHash() const { return VVI_IMPL_INST.getHash(); }
 );
   
 
@@ -198,10 +199,10 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   vec_fv.push_back( &f4 );
 
   SPHERAL_ASSERT_EQ(vec_fbv.size(), vec_fv.size());
-  for(int i = 0; i < vec_fbv.size(); i++) SPHERAL_ASSERT_EQ(vec_fbv[i]->size(), (*vec_fv[i]).size());
+  for(size_t i = 0; i < vec_fbv.size(); i++) SPHERAL_ASSERT_EQ(vec_fbv[i]->size(), (*vec_fv[i]).size());
   std::cout << "Arr  Map Sz : " << chai::ArrayManager::getInstance()->getPointerMap().size() << std::endl;
 
-  for(int i = 0; i < vec_fbv.size(); i++)
+  for(size_t i = 0; i < vec_fbv.size(); i++)
   {
     auto& elem = *vec_fbv[i];
 
@@ -220,7 +221,7 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     printf("--- GPU BEGIN ---\n");
     printf("%ld\n", vec_fv.size());
-    for(int i = 0; i < vec_fbv.size(); i++)
+    for(size_t i = 0; i < vec_fbv.size(); i++)
     {
       auto& elem_b = *vec_fbv[i];
       auto& elem_v = *vec_fv[i];

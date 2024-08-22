@@ -1,14 +1,16 @@
 # This test is based off a basic implementation of Utilities/QuadraticInterpolator.
 spheral_add_test(
-  NAME value_view_basic_class_tests
-  SOURCES value_view_basic_class_tests.cc
+  NAME value_view_ptr_basic_class_tests
+  SOURCES value_view_ptr_basic_class_tests.cc
   #DEBUG_LINKER
 )
 
+if(SPHERAL_ENABLE_SCIP)
+
 # This test is based off a basic implementation of Utilities/QuadraticInterpolator.
 spheral_add_test(
-  NAME value_view_metaclass_basic_class_tests
-  SOURCES value_view_metaclass_basic_class_tests.cc
+  NAME value_view_ref_basic_class_tests
+  SOURCES value_view_ref_basic_class_tests.cc
   #DEBUG_LINKER
 )
 
@@ -24,3 +26,4 @@ spheral_add_test(
   SOURCES value_view_template_inheritance_tests.cc
 )
 
+endif()
