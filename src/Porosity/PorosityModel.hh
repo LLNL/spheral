@@ -58,7 +58,7 @@ public:
 
   // Register the derivatives/change fields for updating state.
   virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs);
+                                   StateDerivatives<Dimension>& derivs) override;
 
   // Do any required one-time initializations on problem start up.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
