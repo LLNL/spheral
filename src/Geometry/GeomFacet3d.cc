@@ -202,6 +202,7 @@ decompose(std::vector<std::array<Vector, 3>>& subfacets) const {
   {
     const auto originalArea = this->area();
     auto areasum = 0.;
+    CONTRACT_VAR(areasum);
     for (auto& subfacet : subfacets) {
       const auto ab = subfacet[1] - subfacet[0];
       const auto ac = subfacet[2] - subfacet[0];

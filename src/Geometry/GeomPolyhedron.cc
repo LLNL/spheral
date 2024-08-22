@@ -1060,6 +1060,7 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
   {
     const auto originalVolume = this->volume();
     auto volumesum = 0.;
+    CONTRACT_VAR(volumesum);
     for (auto& subcell : subcells) {
       const auto subvolume = subcell.volume();
       CONTRACT_VAR(subvolume);
