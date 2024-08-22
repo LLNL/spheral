@@ -70,6 +70,7 @@ source("unit/Utilities/testCubicHermiteInterpolator.py")
 source("unit/Utilities/testBiLinearInterpolator.py")
 source("unit/Utilities/testBiQuadraticInterpolator.py")
 source("unit/Utilities/testBiCubicInterpolator.py")
+source("unit/Utilities/testTimers.py")
 
 # Mesh tests.
 source("unit/Mesh/testLineMesh.py")

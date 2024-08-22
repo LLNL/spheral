@@ -24,7 +24,8 @@ def commandLine(**options):
                         dest = "verbose",
                         default = False,
                         help = "Verbose output -- print all options that were set.")
-    parser.add_argument("--caliper-config", default="", type=str)
+    parser.add_argument("--caliperConfig", default="", type=str)
+    parser.add_argument("--caliperFilename", default="", type=str)
     # Evaluate the command line.
     args = parser.parse_args()
     arg_dict = vars(args)
@@ -38,23 +39,26 @@ def commandLine(**options):
                     print("  *  ", key, " = ", val)
                 else:
                     print("     ", key, " = ", val)
-                
+        if (args.caliperConfig):
+            print("  *  caliperConfig = ", args.caliperConfig)
+        if (args.caliperFilename):
+            print("  *  caliperFilename = ", args.caliperFilename)
     # Set all the variables.
     gd = globalFrame().f_globals
     for key, val in arg_dict.items():
         if key in options:
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
-            gd[key] = val
-    InitTimers(args.caliper_config)
+        gd[key] = val
+    InitTimers(args.caliperConfig, args.caliperFilename)
     return
 
-def InitTimers(caliper_config, filename=""):
+def InitTimers(caliper_config, filename):
     off_tests = ["none", "off", "disable", "disabled"]
     if (caliper_config.lower() in off_tests):
         return
     elif (caliper_config):
-        TimerMgr.add(args.caliper_config)
+        TimerMgr.add(caliper_config)
         TimerMgr.start()
     else:
         import random, os, sys

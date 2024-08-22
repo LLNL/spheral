@@ -152,7 +152,7 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit)
 
   # A macro to preserve directory structure when installing files
   macro(install_with_directory)

@@ -99,7 +99,7 @@ PYB11modulepreamble = """
 TIME_BEGIN("main");
 Spheral::spheral_adiak_init();
 
-// Call these routines when module is destroyed
+// Call these routines when module is exited
 auto atexit = py::module_::import("atexit");
 atexit.attr("register")(py::cpp_function([]() {
    TIME_END("main");

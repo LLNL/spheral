@@ -53,3 +53,13 @@ class TimerMgr:
     def fini(self):
         "Flush the Caliper configuration manager"
         return "void"
+
+    @PYB11static
+    def get_config(self):
+        "Return the current Caliper configuration"
+        return "std::string"
+
+    @PYB11static
+    def get_filename(self):
+        "Return current Caliper filename, if set"
+        return "std::string"
