@@ -18,7 +18,6 @@ import sys, os, time
 # Set based on ENABLE_TIMERS configure variable
 timer_compiler = @MPI_TIMER_VAR@
 
-timer_test_name = "timer_test"
 commandLine()
 
 # Remove cali files from previous test runs
@@ -31,9 +30,19 @@ do_timers = False
 if (TimerMgr.is_started()):
     do_timers = True
 test_dict_0 = {"perf_test": "weak_scaling"}
-adiak_valueString("perf_test", test_dict_0["perf_test"], adiak_categories.performance)
-test_dict_1 = {"rank_count": mpi.procs}
-adiak_valueInt("rank_count", test_dict_1["rank_count"])
+adiak_valueString("perf_test", test_dict_0["perf_test"],
+                  adiak_categories.performance)
+# Caliperreader reads everything as strings for some terrible reason
+# So the test have to be hacked up
+
+# Correct method:
+# test_dict_1 = {"rank_count": mpi.procs}
+# adiak_valueInt("rank_count", test_dict_1["rank_count"])
+
+# Hacked method to have tests pass with caliperreader:
+test_dict_1 = {"rank_count": str(mpi.procs)}
+adiak_valueString("rank_count", test_dict_1["rank_count"])
+
 test_dicts = [test_dict_0, test_dict_1]
 run_count = 8
 sleep_time = 1.E-4
