@@ -27,7 +27,8 @@
 
 .clang_mvapich2:
   variables:
-    SPEC: 'clang@$CLANG_VERSION^mvapich2 -DENABLE_WARNINGS_AS_ERRORS=On'
+    SPEC: 'clang@$CLANG_VERSION^mvapich2'
+    EXTRA_CMAKE_ARGS: '-DENABLE_WARNINGS_AS_ERRORS=On'
 
 .cuda_11_gcc_~mpi:
   variables:
