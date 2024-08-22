@@ -13,10 +13,7 @@ from SpheralUtilities import *
 import mpi
 
 import sys, os, time
-caliper_loc = "@caliper_DIR@"
-sys.path.append(os.path.join(caliper_loc, "../../../lib64/caliper"))
 
-import caliperreader as cr
 
 # Set based on ENABLE_TIMERS configure variable
 timer_compiler = @MPI_TIMER_VAR@
@@ -50,6 +47,9 @@ if (do_timers and TimerMgr.get_filename()):
     adiak_fini()
     TimerMgr.fini()
     mpi.barrier()
+    caliper_loc = "@CONFIG_CALIPER_DIR@"
+    sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+    import caliperreader as cr
     if (not os.path.exists(caliper_file)):
         raise ValueError("Caliper file not found")
     r = cr.CaliperReader()

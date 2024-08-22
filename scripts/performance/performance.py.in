@@ -1,8 +1,8 @@
 #!/user/bin/env python3
 
 import sys, os
-caliper_loc = "@caliper_DIR@"
-sys.path.append(os.path.join(caliper_loc, "../../../lib64/caliper"))
+caliper_loc = "@CONFIG_CALIPER_DIR@"
+sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
 
 import caliperreader as cr
 
