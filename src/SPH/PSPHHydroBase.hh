@@ -97,7 +97,7 @@ public:
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 
-  void postStateUpdate(const Scalar time, 
+  bool postStateUpdate(const Scalar time, 
                        const Scalar dt,
                        const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,

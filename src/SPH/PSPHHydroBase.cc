@@ -196,7 +196,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // corrections.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 PSPHHydroBase<Dimension>::
 postStateUpdate(const Scalar /*time*/, 
                 const Scalar /*dt*/,
@@ -204,10 +204,6 @@ postStateUpdate(const Scalar /*time*/,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& /*derivatives*/) {
 
-  // First we need out boundary conditions completed, which the time integrator hasn't 
-  // verified yet.
-  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
-  
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -231,6 +227,7 @@ postStateUpdate(const Scalar /*time*/,
   }
 
   // We depend on the caller knowing to finalize the ghost boundaries!
+  return true;
 }
 
 //------------------------------------------------------------------------------

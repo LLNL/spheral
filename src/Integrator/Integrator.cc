@@ -351,7 +351,7 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 // stuff.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        const Scalar dt,
                                        const DataBase<Dimension>& dataBase, 
@@ -359,9 +359,11 @@ Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
+  bool updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
+    updateBoundaries |= physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
   }
+  return updateBoundaries;
 }
 
 //------------------------------------------------------------------------------

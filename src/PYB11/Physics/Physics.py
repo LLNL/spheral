@@ -106,7 +106,7 @@ temperature or pressure."""
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
         "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
-        return "void"
+        return "bool"
 
     @PYB11virtual
     @PYB11const

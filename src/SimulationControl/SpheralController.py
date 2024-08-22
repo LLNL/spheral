@@ -971,8 +971,10 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             state.update(derivs, 1.0, 0.0, 1.0)
             self.integrator.enforceBoundaries()
             self.integrator.applyGhostBoundaries()
-            self.integrator.postStateUpdate()
             self.integrator.finalizeGhostBoundaries()
+            if (self.integrator.postStateUpdate()):
+                self.integrator.applyGhostBoundaries()
+                self.integrator.finalizeGhostBoundaries()
             self.integrator.finalize(0.0, 0.0, db, state, derivs)
 
             # Check the displacements.

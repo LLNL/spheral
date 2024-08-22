@@ -244,7 +244,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // boundary conditions have been enforced.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 VoronoiCells<Dimension>::
 postStateUpdate(const Scalar time,
                 const Scalar dt,
@@ -252,6 +252,7 @@ postStateUpdate(const Scalar time,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& derivs) {
   this->preStepInitialize(dataBase, state, derivs);
+  return true;
 }
 
 //------------------------------------------------------------------------------

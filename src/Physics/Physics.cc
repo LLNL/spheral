@@ -216,13 +216,14 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
 // Provide a default no-op postStateUpdate method.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Physics<Dimension>::
 postStateUpdate(const Scalar /*time*/, 
                 const Scalar /*dt*/,
                 const DataBase<Dimension>& /*dataBase*/, 
                 State<Dimension>& /*state*/,
                 StateDerivatives<Dimension>& /*derivatives*/) {
+  return false;
 }
 
 }

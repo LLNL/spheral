@@ -95,7 +95,7 @@ public:
   
   // Provide a hook to be called after the state has been updated and 
   // boundary conditions have been enforced.
-  virtual void postStateUpdate(const Scalar time, 
+  virtual bool postStateUpdate(const Scalar time, 
                                const Scalar dt,
                                const DataBase<Dimension>& dataBase, 
                                State<Dimension>& state,

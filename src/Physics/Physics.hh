@@ -165,8 +165,9 @@ public:
 
   // Provide a hook to be called after the state has been updated and 
   // boundary conditions have been enforced.
+  // Returns a bool indicating whether ghost state should be updated again following this call (default false)
   virtual 
-  void postStateUpdate(const Scalar time, 
+  bool postStateUpdate(const Scalar time, 
                        const Scalar dt,
                        const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
