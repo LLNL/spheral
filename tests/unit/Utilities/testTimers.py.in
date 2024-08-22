@@ -1,8 +1,8 @@
 #
 #
-#ATS:tt0 = test(SELF, "--caliperFilename 'timer_test_1'", label="Timer test 1", np=8)
-#ATS:tt1 = test(SELF, "--caliperConfig 'None' --caliperFilename 'timer_test_2'", label="Timer test 2", np=8)
-#ATS:tt2 = test(SELF, "--caliperFilename 'timer_test_3'", label="Timer test 3", np=1)
+#ATS:test(SELF, "--caliperFilename 'timer_test_1'", label="Timer test 1", np=8)
+#ATS:test(SELF, "--caliperConfig 'None'", label="Timer test 2", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_3'", label="Timer test 3", np=1)
 #
 
 import Spheral
@@ -18,6 +18,7 @@ sys.path.append(os.path.join(caliper_loc, "../../../lib64/caliper"))
 
 import caliperreader as cr
 
+# Set based on ENABLE_TIMERS configure variable
 timer_compiler = @MPI_TIMER_VAR@
 
 timer_test_name = "timer_test"
@@ -50,7 +51,7 @@ if (do_timers and TimerMgr.get_filename()):
     TimerMgr.fini()
     mpi.barrier()
     if (not os.path.exists(caliper_file)):
-        raise ValueError("Caliper file not created")
+        raise ValueError("Caliper file not found")
     r = cr.CaliperReader()
     r.read(caliper_file)
     records = r.records

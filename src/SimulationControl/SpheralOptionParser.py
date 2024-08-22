@@ -30,6 +30,12 @@ def commandLine(**options):
     args = parser.parse_args()
     arg_dict = vars(args)
 
+    if (not TimerMgr.timers_usable()):
+        if (args.caliperConfig or args.caliperFilename):
+            print("WARNING: Caliper command line inputs provided for "+\
+                  "non-timer install. Reconfigure the install with "+\
+                  "-DENABLE_TIMER=ON to be able to use Caliper timers.")
+
     # Verbose output?
     if args.verbose:
         print("All parameters set:")
@@ -54,7 +60,7 @@ def commandLine(**options):
     return
 
 def InitTimers(caliper_config, filename):
-    off_tests = ["none", "off", "disable", "disabled"]
+    off_tests = ["none", "off", "disable", "disabled", "0"]
     if (caliper_config.lower() in off_tests):
         return
     elif (caliper_config):
@@ -64,6 +70,9 @@ def InitTimers(caliper_config, filename):
         import random, os, sys
         if (filename):
             testname = filename
+            # Remove the cali file extension
+            if (".cali" in testname):
+                testname = testname.replace(".cali", "")
         else:
             unique_digits = ''.join(random.sample('0123456789', 4))
             testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits

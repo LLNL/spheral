@@ -63,3 +63,8 @@ class TimerMgr:
     def get_filename(self):
         "Return current Caliper filename, if set"
         return "std::string"
+
+    @PYB11static
+    def timers_usable(self):
+        "Return whether the code has been compiled with timers turned on"
+        return "bool"

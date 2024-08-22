@@ -57,6 +57,9 @@ public:
 private:
   cali::ConfigManager cali_mgr;
 public:
+  static bool timers_usable() {
+    return true;
+  }
   static void add(std::string config_str) {
     bool test = instance().cali_mgr.add(config_str.c_str());
     VERIFY2(test, instance().cali_mgr.error_msg());
@@ -85,6 +88,9 @@ public:
     instance().started = false;
   }
 #else
+  static bool timers_usable() {
+    return false;
+  }
   static void default_start(std::string) {
   }
   static void add(std::string) {
