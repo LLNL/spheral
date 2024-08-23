@@ -7,10 +7,10 @@
 //--------------------------------
 // Impl Interface
 
-SCIP_IMPL_BEGIN
+VVI_IMPL_BEGIN
 
 template<typename Dim, typename Desc>
-class Kernel : public Spheral::SPHERALCopyable<Kernel<Dim, Desc>> {
+class Kernel : public Spheral::SPHERALCopyable {
 
   SPHERAL_HOST_DEVICE Desc& asDesc() {
     return static_cast<Desc&>(const_cast<Kernel<Dim, Desc>&>(*this));
@@ -39,7 +39,7 @@ public:
 	SPHERAL_HOST_DEVICE void doSomething() { printf("OKi HD doSomething()\n"); printf("OtherKernel doSomething\n"); }
 };
 
-SCIP_IMPL_END
+VVI_IMPL_END
 
 //--------------------------------
 // View Interface
@@ -78,7 +78,7 @@ public:
   VVI_VALUE_COPY_CTOR(Kernel)
   VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("K H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
+	void doSomething() { printf("K H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
 template<typename Dim>
@@ -88,7 +88,7 @@ public:
   VVI_VALUE_COPY_CTOR(TableKernel)
   VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("TK H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
+	void doSomething() { printf("TK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
 template<typename Dim>
@@ -98,7 +98,7 @@ public:
   VVI_VALUE_COPY_CTOR(OtherKernel)
   VVI_VALUE_ASSIGNEMT_OP()
 
-	void doSomething() { printf("OK H doSomething()\n"); VVI_IMPL_INST.doSomething(); }
+	void doSomething() { printf("OK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
 class Dim1 {};

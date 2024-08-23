@@ -88,9 +88,9 @@ if(ENABLE_CUDA)
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
   set(SPHERAL_ENABLE_CUDA On)
-  set(SPHERAL_ENABLE_SCIP On)
+  set(SPHERAL_ENABLE_VVI On)
 endif()
-message("Enable Semantic Class Interface Pattern (SCIP) : ${SPHERAL_ENABLE_SCIP}")
+message("Enable Value-View Interface Pattern (VVI) : ${SPHERAL_ENABLE_VVI}")
 
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified

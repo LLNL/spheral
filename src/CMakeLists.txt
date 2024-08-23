@@ -71,6 +71,8 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
+blt_print_target_properties(TARGET Spheral_Utilities)
+
 if(NOT ENABLE_DEV_BUILD)
   # Retrieve the global list populated in spheral_obj_add_library
   get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)

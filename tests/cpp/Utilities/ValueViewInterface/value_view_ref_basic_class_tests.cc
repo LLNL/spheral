@@ -8,9 +8,9 @@
 #include "Utilities/ValueViewInterface.hh"
 #include "Utilities/ManagedVector.hh"
 
-SCIP_IMPL_BEGIN
+VVI_IMPL_BEGIN
 
-class QInt : public Spheral::SPHERALCopyable<QInt>{
+class QInt : public Spheral::SPHERALCopyable {
 public:
 
   SPHERAL_HOST_DEVICE QInt() = default;
@@ -44,7 +44,7 @@ public:
 
 };
 
-SCIP_IMPL_END
+VVI_IMPL_END
 
 
 class QInt;

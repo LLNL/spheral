@@ -5,7 +5,7 @@ spheral_add_test(
   #DEBUG_LINKER
 )
 
-if(SPHERAL_ENABLE_SCIP)
+if(SPHERAL_ENABLE_VVI)
 
 # This test is based off a basic implementation of Utilities/QuadraticInterpolator.
 spheral_add_test(

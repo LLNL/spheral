@@ -16,13 +16,13 @@ else()
   add_definitions("-DDEBUG=0")
 endif()
 
-if (SPHERAL_ENABLE_SCIP)
-  message("-- Semantic Class Interface Pattern (SCIP) : Enabled")
+if (SPHERAL_ENABLE_VVI)
+  message("-- Value-View Interface Pattern (VVI) : Enabled")
   message("------ WARNING ------")
-  message("-- SCIP is an experimental implementation necessary for the GPU port. Use with caution!")
+  message("-- VVI is an experimental implementation necessary for the GPU port. Use with caution!")
   message("---------------------")
 else()
-  message("-- Semantic Class Interface Pattern (SCIP) : Disabled")
+  message("-- Semantic Class Interface Pattern (VVI) : Disabled")
 endif()
 
 # The DBC flag

@@ -7,9 +7,9 @@
 
 #include "Utilities/ValueViewInterface.hh"
 
-SCIP_IMPL_BEGIN
+VVI_IMPL_BEGIN
 
-class QInt : public Spheral::SPHERALCopyable<QInt>{
+class QInt : public Spheral::SPHERALCopyable{
 public:
 
   SPHERAL_HOST_DEVICE QInt() = default;
@@ -43,11 +43,11 @@ public:
 
 };
 
-SCIP_IMPL_END
+VVI_IMPL_END
 
 
 
-#ifdef SPHERAL_ENABLE_SCIP
+#ifdef SPHERAL_ENABLE_VVI
 class QInt;
 
 #define QIntView__(code) PTR_VIEW_METACLASS_DECL( (QInt), (QIntView), (vvi::impl::QInt), (code) )
@@ -71,7 +71,7 @@ public:
   CoeffsType coeffs() const { return deepCopy(sptr_data().coeffs()); }
 );
 
-#endif //SPHERAL_ENABLE_SCIP
+#endif //SPHERAL_ENABLE_VVI
 
 
 

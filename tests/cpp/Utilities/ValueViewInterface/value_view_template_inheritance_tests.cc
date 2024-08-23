@@ -13,7 +13,7 @@ namespace Spheral {
 // Implementation of Existing Class in Spheral...
 //-----------------------------------------------------------------------------
 
-SCIP_IMPL_BEGIN
+VVI_IMPL_BEGIN
 
 class FB : chai::CHAIPoly{
   public:
@@ -29,7 +29,7 @@ class FB : chai::CHAIPoly{
 };
 
 template<typename T>
-class F : public FB, SPHERALCopyable<F<T>>{
+class F : public FB, SPHERALCopyable {
 public:
   ManagedVector<T> m_data;
 
@@ -49,10 +49,11 @@ public:
   SPHERAL_HOST_DEVICE virtual size_t size() override { return m_data.size(); }
 };
 
-SCIP_IMPL_END
+VVI_IMPL_END
 
 
 
+#ifdef SPHERAL_ENABLE_VVI
 //-----------------------------------------------------------------------------
 // Interface to support porting to the GPU.
 //-----------------------------------------------------------------------------
@@ -104,22 +105,23 @@ public:
 
   // Custom Ctor, note we need to create the underlying implementation 
   // object on ctor of value interfaces.
-  F(size_t h, size_t sz) : VVI_CTOR_ARGS( (h, sz) ) {}
+  F(size_t h, size_t sz) : VVI_VALUE_CTOR_ARGS( (h, sz) ) {}
 
   // Value semantics dictate that we free underlying data upon destruction.
-  ~F() { VVI_IMPL_INST.m_data.free(); }
+  ~F() { VVI_IMPL_INST().m_data.free(); }
 
   // HOST only interface
-  void resize(size_t sz) { VVI_IMPL_INST.resize(sz); } 
+  void resize(size_t sz) { VVI_IMPL_INST().resize(sz); } 
 
   // Moved from old View Interface pattern.
-  T* data() {return VVI_IMPL_INST.data(); }
-  T& operator()(size_t idx) { return VVI_IMPL_INST.operator()(idx); }
-  size_t size() const { return VVI_IMPL_INST.size(); }
+  T* data() {return VVI_IMPL_INST().data(); }
+  T& operator()(size_t idx) { return VVI_IMPL_INST().operator()(idx); }
+  size_t size() const { return VVI_IMPL_INST().size(); }
 
-  size_t getHash() const { return VVI_IMPL_INST.getHash(); }
+  size_t getHash() const { return VVI_IMPL_INST().getHash(); }
 );
   
+#endif // !defined(SPHERAL_ENABLE_VVI)
 
 }// namespace Spheral
 
