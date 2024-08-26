@@ -9,37 +9,37 @@
 # The following ATS setup is to generate reference data for the SpheralC tests.
 #
 # SPH 2D
-#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_1proc", np=1, label="Generate 1 proc SPH 2D reference data")
-#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc SPH 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_2d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH 2D reference data")
 #
 # SPH RZ
-#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_1proc", np=1, label="Generate 1 proc SPH RZ reference data")
-#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_8proc", np=8, label="Generate 8 proc SPH RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc SPH RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_rz_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH RZ reference data")
 #
 # SPH 3D
-#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_3d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 3D reference data")
+#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --siloSnapShotFile Spheral_sph_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH 3D reference data")
 #
 # SPH 2D (no grad h correction)
-#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_2d_state_snapshot_1proc", np=1, label="Generate 1 proc SPH 2D reference data (no grad h)")
-#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_2d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 2D reference data (no grad h)")
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_2d_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc SPH 2D reference data (no grad h)")
+#ATS:test(SELF, "--geometry 2d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_2d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH 2D reference data (no grad h)")
 #
 # SPH RZ (no grad h correction)
-#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_rz_state_snapshot_1proc", np=1, label="Generate 1 proc SPH RZ reference data (no grad h)")
-#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_rz_state_snapshot_8proc", np=8, label="Generate 8 proc SPH RZ reference data (no grad h)")
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_rz_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc SPH RZ reference data (no grad h)")
+#ATS:test(SELF, "--geometry RZ --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_rz_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH RZ reference data (no grad h)")
 #
 # SPH 3D (no grad h correction)
-#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_3d_state_snapshot_8proc", np=8, label="Generate 8 proc SPH 3D reference data (no grad h)")
+#ATS:test(SELF, "--geometry 3d --crksph False --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH 3D reference data (no grad h)")
 #
 # CRK 2D
-#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_1proc", np=1, label="Generate 1 proc CRK 2D reference data")
-#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK 2D reference data")
+#ATS:test(SELF, "--geometry 2d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 2D reference data")
 #
 # CRK RZ
-#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_1proc", np=1, label="Generate 1 proc CRK RZ reference data")
-#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, label="Generate 8 proc CRK RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK RZ reference data")
+#ATS:test(SELF, "--geometry RZ --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK RZ reference data")
 #
 # CRK 3D
-#ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, label="Generate 8 proc CRK 3D reference data")
+#ATS:test(SELF, "--geometry 3d --crksph True  --steps 100 --compatibleEnergy False --densityUpdate RigorousSumDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 3D reference data")
 
 import os, shutil, sys
 from math import *
@@ -302,7 +302,7 @@ print("Generating node distribution.")
 # 2D
 if geometry == "2d":
     from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
     generator1 = GenerateNodeDistribution2d(nz, 2*nr, 
                                             rho = rho0,
                                             distributionType = "lattice",
@@ -325,7 +325,7 @@ if geometry == "2d":
 # RZ
 elif geometry == "RZ":
     from GenerateNodeDistribution2d import *
-    from VoronoiDistributeNodes import distributeNodes2d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes2d as distributeNodes
     generator1 = RZGenerator(GenerateNodeDistribution2d(nz, nr,
                                                         rho = rho0,
                                                         distributionType = "lattice",
@@ -348,7 +348,7 @@ elif geometry == "RZ":
 # 3D
 else:
     from GenerateNodeDistribution3d import *
-    from VoronoiDistributeNodes import distributeNodes3d as distributeNodes
+    from PeanoHilbertDistributeNodes import distributeNodes3d as distributeNodes
     rmin = 0.0
     rmax = rlength
     zmin = 0.0
@@ -430,6 +430,7 @@ output('db.numFluidNodeLists')
 #-------------------------------------------------------------------------------
 if crksph:
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
@@ -472,7 +473,7 @@ for bc in bcs:
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
-output("hydro.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 

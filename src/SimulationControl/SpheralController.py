@@ -57,7 +57,6 @@ class SpheralController:
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
-        self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
 
@@ -216,6 +215,17 @@ class SpheralController:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+
+        # Build the connectivity
+        requireConnectivity = max([pkg.requireConnectivity() for pkg in packages])
+        if requireConnectivity:
+            requireGhostConnectivity = max([pkg.requireGhostConnectivity() for pkg in packages])
+            requireOverlapConnectivity = max([pkg.requireOverlapConnectivity() for pkg in packages])
+            requireIntersectionConnectivity = max([pkg.requireIntersectionConnectivity() for pkg in packages])
+            db.reinitializeNeighbors()
+            db.updateConnectivityMap(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity)
+            state.enrollConnectivityMap(db.connectivityMapPtr(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity))
+
         for package in packages:
             package.initializeProblemStartupDependencies(db, state, derivs)
         db.reinitializeNeighbors()
@@ -663,6 +673,27 @@ class SpheralController:
         RKCorrections = eval("RKCorrections%s" % self.dim)
         vector_of_Physics = eval("vector_of_Physics%s" % self.dim)
 
+        # Anyone require Voronoi cells?
+        # If so we need the VoronoiCells physics package first
+        voronoibcs = []
+        index = -1
+        for (ipack, package) in enumerate(packages):
+            if package.requireVoronoiCells():
+                pbcs = package.boundaryConditions
+                voronoibcs += [bc for bc in pbcs if not bc in voronoibcs]
+                if index == -1:
+                    index = ipack
+
+        if index >= 0:
+            VC = eval("VoronoiCells" + self.dim)
+            fb = eval("vector_of_FacetedVolume{}()".format(self.dim)) if facetedBoundaries is None else facetedBoundaries
+            self.VoronoiCells = VC(kernelExtent = db.maxKernelExtent,
+                                   facetedBoundaries = fb)
+            for bc in voronoibcs:
+                self.VoronoiCells.appendBoundary(bc)
+            packages.insert(index, self.VoronoiCells)
+            self.integrator.resetPhysicsPackages(packages)
+
         # Are there any packages that require reproducing kernels?
         # If so, insert the RKCorrections package prior to any RK packages
         rkorders = set()
@@ -676,7 +707,7 @@ class SpheralController:
             needHessian |= package.requireReproducingKernelHessian()
             rkUpdateInFinalize |= package.updateReproducingKernelsInFinalize()
             if ords:
-                pbcs = package.boundaryConditions()
+                pbcs = package.boundaryConditions
                 rkbcs += [bc for bc in pbcs if not bc in rkbcs]
                 if index == -1:
                     index = ipack
@@ -750,7 +781,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
 
             # Make a copy of the current set of boundary conditions for this package,
             # and assign priorities to enforce the desired order
-            bcs = list(package.boundaryConditions())
+            bcs = list(package.boundaryConditions)
             priorities = list(range(len(bcs)))
             for i, bc in enumerate(bcs):
                 if isinstance(bc, eval("ConstantBoundary%s" % self.dim)):
@@ -856,12 +887,23 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         print("SpheralController: Initializing H's...")
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
-        if self.SPH:
-            method = eval("SPHSmoothingScale%s()" % self.dim)
-        else:
-            method = eval("ASPHSmoothingScale%s()" % self.dim)
-        iterateIdealH = eval("iterateIdealH%s" % self.dim)
-        iterateIdealH(db, bcs, self.kernel, method, maxIdealHIterations, idealHTolerance, 0.0, False, False)
+
+        # Find the smoothing scale method
+        method = None
+        for pkg in self.integrator.physicsPackages():
+            if isinstance(pkg, eval(f"SmoothingScaleBase{self.dim}")):
+                method = pkg
+        if method is None:
+            print("SpheralController::iterateIdealH no H update algorithm provided -- assuming standard SPH")
+            method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+                
+        packages = eval(f"vector_of_Physics{self.dim}()")
+        if method.requireVoronoiCells():
+            packages.append(self.VoronoiCells)
+        packages.append(method)
+
+        iterateIdealH = eval(f"iterateIdealH{self.dim}")
+        iterateIdealH(db, packages, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
         return
 
@@ -929,8 +971,10 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             state.update(derivs, 1.0, 0.0, 1.0)
             self.integrator.enforceBoundaries()
             self.integrator.applyGhostBoundaries()
-            self.integrator.postStateUpdate()
             self.integrator.finalizeGhostBoundaries()
+            if (self.integrator.postStateUpdate()):
+                self.integrator.applyGhostBoundaries()
+                self.integrator.finalizeGhostBoundaries()
             self.integrator.finalize(0.0, 0.0, db, state, derivs)
 
             # Check the displacements.

@@ -53,10 +53,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         self.rhofunc = rhofunc
 
         # Do we have a perturbation function?
-        def zeroPerturbation(posi):
-            return posi
         if not perturbFunc:
-            perturbFunc = zeroPerturbation
+            perturbFunc = lambda x: x
 
         self.x, self.y, self.m, self.H = [], [], [], []
 
@@ -107,19 +105,18 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                 pos3 = perturbFunc(Vector2d(r0*cos(theta1), r0*sin(theta1)))
                 areai = 0.5*((pos1 - pos0).cross(pos2 - pos0).z +
                              (pos2 - pos0).cross(pos3 - pos0).z)
-                posi = 0.25*(pos0 + pos1 + pos2 + pos3)
+                posi = 0.5*(r0 + r1)*Vector2d(cos(0.5*(theta0 + theta1)),
+                                              sin(0.5*(theta0 + theta1)))
                 mi = areai*self.rhofunc(posi)
-                xi = posi.x
-                yi = posi.y
-                self.x.append(xi + center[0])
-                self.y.append(yi + center[1])
+                self.x.append(posi.x + center[0])
+                self.y.append(posi.y + center[1])
                 self.m.append(mi)
                 if SPH:
                     hi = sqrt(hr*ha)
                     self.H.append(SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi))
                 else:
                     self.H.append(SymTensor2d(1.0/hr, 0.0, 0.0, 1.0/ha))
-                    runit = Vector2d(xi, yi).unitVector()
+                    runit = posi.unitVector()
                     T = rotationMatrix2d(runit).Transpose()
                     self.H[-1].rotationalTransform(T)
 

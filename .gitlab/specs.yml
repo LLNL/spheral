@@ -4,7 +4,7 @@
 .gcc_mvapich2_cxxonly:
   variables:
     SPEC: 'gcc@$GCC_VERSION^mvapich2'
-    EXTRA_CMAKE_ARGS: '-DENABLE_CXXONLY=On'
+    EXTRA_CMAKE_ARGS: '-DENABLE_CXXONLY=On -DENABLE_WARNINGS_AS_ERRORS=On'
 
 .gcc_mvapich2:
   variables:
@@ -28,6 +28,7 @@
 .clang_mvapich2:
   variables:
     SPEC: 'clang@$CLANG_VERSION^mvapich2'
+    EXTRA_CMAKE_ARGS: '-DENABLE_WARNINGS_AS_ERRORS=On'
 
 .cuda_11_gcc_~mpi:
   variables:

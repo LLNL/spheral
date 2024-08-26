@@ -35,8 +35,7 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                        DataBase<Dimension>& dataBase,
+  SphericalSPHHydroBase(DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
                         const SphericalKernel& W,
                         const SphericalKernel& WPi,
@@ -50,11 +49,15 @@ public:
                         const bool correctVelocityGradient,
                         const bool sumMassDensityOverAllNodeLists,
                         const MassDensityType densityUpdate,
-                        const HEvolutionType HUpdate,
                         const double epsTensile,
                         const double nTensile,
                         const Vector& xmin,
                         const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  SphericalSPHHydroBase() = delete;
+  SphericalSPHHydroBase(const SphericalSPHHydroBase&) = delete;
+  SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~SphericalSPHHydroBase();
@@ -104,11 +107,6 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  SphericalSPHHydroBase();
-  SphericalSPHHydroBase(const SphericalSPHHydroBase&);
-  SphericalSPHHydroBase& operator=(const SphericalSPHHydroBase&);
-
   double mQself;
 
   // The specialized kernels

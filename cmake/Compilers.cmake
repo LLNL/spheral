@@ -14,7 +14,7 @@ option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" ON)
 set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    list(APPEND CXX_WARNING_FLAGS -Wno-unused-command-line-argument -Wno-c++17-extensions)
+    list(APPEND CXX_WARNING_FLAGS -fdiagnostics-show-option -Wno-unused-command-line-argument -Wno-c++17-extensions)
   endif()
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
@@ -58,7 +58,6 @@ message("-- using warning flags ${CXX_WARNING_FLAGS}")
 # cause building errors if the compiler is too picky...
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wno-missing-include-dirs")
 message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
-
 
 #-------------------------------------------------------------------------------
 # PYB11 Target Flags

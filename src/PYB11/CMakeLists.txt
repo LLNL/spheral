@@ -14,6 +14,7 @@ set (_python_packages
   FileIO
   Utilities
   RK
+  VoronoiCells
   DataBase
   Boundary
   Physics
@@ -32,6 +33,7 @@ set (_python_packages
   Strength
   Porosity
   KernelIntegrator
+  SmoothingScale
   polytope
   OpenMP
   )

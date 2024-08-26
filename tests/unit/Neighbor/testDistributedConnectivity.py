@@ -173,11 +173,10 @@ fieldLists = [mass, position, h]
 #-------------------------------------------------------------------------------
 domainbc = TreeDistributedBoundary.instance()
 bounds = vector_of_Boundary([domainbc])
-method = SPHSmoothingScale()
+method = SPHSmoothingScale(IdealH, WT)
 iterateIdealH(dataBase,
+              vector_of_Physics([method]),
               bounds,
-              WT,
-              method,
               100, # max h iterations
               1.e-8) # h tolerance
 dataBase.updateConnectivityMap(testGhosts, testOverlap)

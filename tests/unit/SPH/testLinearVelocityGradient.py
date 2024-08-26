@@ -263,19 +263,21 @@ else:
 #-------------------------------------------------------------------------------
 if iterateH:
     bounds = vector_of_Boundary()
-    method = SPHSmoothingScale()
+    pkgs = [hydro, hydro._smoothingScaleMethod]
+    if "ASPH" in HydroChoice:
+        VC = VoronoiCells(db.maxKernelExtent)
+        pkgs = [VC] + pkgs
+    PKGS = vector_of_Physics(pkgs)
     if testDim == "spherical":
         iterateIdealH(db,
+                      PKGS,
                       bounds,
-                      hydro.kernel.baseKernel1d,
-                      method,
                       maxHIterations,
                       Htolerance)
     else:
         iterateIdealH(db,
+                      PKGS,
                       bounds,
-                      WT,
-                      method,
                       maxHIterations,
                       Htolerance)
 

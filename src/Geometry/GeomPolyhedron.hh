@@ -27,6 +27,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   using Vector = GeomVector<3>;
   using Tensor = GeomTensor<3>;
+  using SymTensor = GeomSymmetricTensor<3>;
   using Facet = GeomFacet3d;
 
   //----------------------------------------------------------------------------
