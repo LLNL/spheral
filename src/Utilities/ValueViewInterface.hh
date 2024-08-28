@@ -7,6 +7,10 @@
 #include "chai/ManagedSharedPtr.hpp"
 #include <memory>
 
+#if defined(SPHERAL_ENABLE_VVI)
+#define VVI_ENABLED
+#endif
+
 namespace Spheral {
 
 // An interface class to ensure all required methods are defined by Data 
@@ -14,6 +18,8 @@ namespace Spheral {
 // SPHERALCopyable class.
 using SPHERALCopyable = chai::CHAICopyable;
   
+} // namespace Spheral
+
 // Interface class for View like objects.
 //
 // All View classes should inherit from ViewInterface. It sets up useful 
@@ -22,34 +28,32 @@ using SPHERALCopyable = chai::CHAICopyable;
 // ViewInterface children will want to use VIEW_DEFINE_ALLOC_CTOR
 // in order to set up a forwarding constructor from the Value class ctor
 // that passes in a "new DataObject" type.
-
-#if defined(SPHERAL_ENABLE_VVI)
-#define VVI_IMPL_BEGIN namespace vvi { namespace impl {
-#define VVI_IMPL_END } } // namespace vvi::impl
+#if defined(VVI_ENABLED)
+#define VVI_IMPL_BEGIN namespace vvimpl {
+#define VVI_IMPL_END } // namespace vvimpl
 #else
 #define VVI_IMPL_BEGIN
 #define VVI_IMPL_END
-#endif // defined(SPHERAL_ENABLE_VVI)
+#endif // defined(VVI_ENABLED)
 
-namespace util {
+namespace vvi {
 
 template<typename T>
-#if defined(SPHERAL_ENABLE_VVI)
+#if defined(VVI_ENABLED)
 using shared_ptr = chai::ManagedSharedPtr<T>;
 #else
 using shared_ptr = std::shared_ptr<T>;
 #endif
 
 template<typename T>
-#if defined(SPHERAL_ENABLE_VVI)
-using vector = ManagedVector<T>;
+#if defined(VVI_ENABLED)
+using vector = ::Spheral::ManagedVector<T>;
 #else
 using vector = std::vector<T>;
 #endif
 
-}// namespace util
+}// namespace vvi
 
-} // namespace Spheral
 
 #include "ValueViewInterfaceImpl.hh"
 
@@ -165,7 +169,10 @@ public: \
 
 // Used for allowing default class behavior from the compiler. Typically this
 // will be used for invoking a basic view interface when using poiter syntax.
-#define VVI_DEFAULT() ;
+#define VVI_VIEW_DEFAULT(view_t) \
+  VVI_VIEW_DEF_CTOR(view_t) \
+  VVI_VIEW_COPY_CTOR(view_t) \
+  VVI_VIEW_ASSIGNEMT_OP()
 
 // Creates a function that allows interface objects to access member variables.
 // through a function of the same name as the variable itself.

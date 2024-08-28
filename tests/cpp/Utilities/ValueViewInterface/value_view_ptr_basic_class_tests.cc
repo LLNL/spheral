@@ -16,7 +16,7 @@ public:
   SPHERAL_HOST_DEVICE QInt(QInt const& rhs) = default;
   SPHERAL_HOST_DEVICE QInt& operator=(QInt const& rhs) = default;
 
-  using CoeffsType = Spheral::util::vector<double>;
+  using CoeffsType = vvi::vector<double>;
 
   double mXmin, mXmax, mXstep;
   CoeffsType mcoeffs;
@@ -50,11 +50,11 @@ VVI_IMPL_END
 #ifdef SPHERAL_ENABLE_VVI
 class QInt;
 
-#define QIntView__(code) PTR_VIEW_METACLASS_DECL( (QInt), (QIntView), (vvi::impl::QInt), (code) )
+#define QIntView__(code) PTR_VIEW_METACLASS_DECL( (QInt), (QIntView), (vvimpl::QInt), (code) )
 #define QInt__(code) PTR_VALUE_METACLASS_DECL( (QInt), (QIntView), (code) )
 
 class QIntView__( 
-  VVI_DEFAULT() // This defines the default behavior of a reference semantics based interface.
+  VVI_VIEW_DEFAULT(QIntView) // This defines the default behavior of a reference semantics based interface.
 public:
   using CoeffsType = typename ImplType::CoeffsType;
 );

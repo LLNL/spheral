@@ -13,13 +13,13 @@
 namespace vvi {
 
 template<typename impl_type>
-class ViewInterface : public ::Spheral::util::shared_ptr<impl_type>
+class ViewInterface : public vvi::shared_ptr<impl_type>
 {
 private:
   using m_ImplType = impl_type;
 
 public:
-  using SmartPtrType = ::Spheral::util::shared_ptr<m_ImplType>;
+  using SmartPtrType = vvi::shared_ptr<m_ImplType>;
   SPHERAL_HOST_DEVICE SmartPtrType & sptr() { return *this; }
   SPHERAL_HOST_DEVICE SmartPtrType const& sptr() const { return *this; }
 

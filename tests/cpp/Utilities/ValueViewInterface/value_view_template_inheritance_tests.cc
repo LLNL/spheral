@@ -29,9 +29,9 @@ class FB : chai::CHAIPoly{
 };
 
 template<typename T>
-class F : public FB, SPHERALCopyable {
+class F : public FB {
 public:
-  ManagedVector<T> m_data;
+  vvi::vector<T> m_data;
 
   SPHERAL_HOST_DEVICE F() : FB() {}
   F(size_t h, size_t sz) : FB(h), m_data(sz) {}
@@ -64,17 +64,17 @@ class F;
 class FB;
 
 // Define Metaclass macros for Value/View relationships
-#define FBV__(code) PTR_VIEW_METACLASS_DECL((FB), (FBV), (vvi::impl::FB), (code))
+#define FBV__(code) PTR_VIEW_METACLASS_DECL((FB), (FBV), (vvimpl::FB), (code))
 #define FB__(code)  PTR_VALUE_METACLASS_DECL((FB), (FBV), (code))
 
-#define FV__(code) PTR_VIEW_METACLASS_DECL((F<T>), (FV), (vvi::impl::F<T>), (code))
+#define FV__(code) PTR_VIEW_METACLASS_DECL((F<T>), (FV), (vvimpl::F<T>), (code))
 #define F__(code) PTR_VALUE_METACLASS_DECL((F), (FV<T>), (code))
 
 
 // --- Interface definitions ---
 
 class FBV__(
-  VVI_VIEW_DEF_CTOR(FBV)
+  VVI_VIEW_DEFAULT(FBV)
 );
 
 // This class instantiation exsists only to fulfil type information
@@ -88,7 +88,7 @@ class FB__(
 
 template<typename T>
 class FV__(
-  VVI_VIEW_DEF_CTOR(FV)
+  VVI_VIEW_DEFAULT(FV)
   // Field inherits from FieldBase so we would like to be able to implicitly
   // upcast a fieldview object to a fieldbaseview.
   VVI_UPCAST_CONVERSION_OP(FBV)
@@ -149,6 +149,7 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::F<double> f(2, 200);
+  auto f_2 = f;
 
   auto f_v = &f;
   Spheral::FB::ViewType fb_v = f_v;
@@ -183,9 +184,9 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   Spheral::F<double> f3(3, 3);
   Spheral::F<double> f4(4, 4);
 
-  Spheral::ManagedVector<Spheral::FB::ViewType> vec_fbv;
+  vvi::vector<Spheral::FB::ViewType> vec_fbv;
   vec_fbv.reserve(5);
-  Spheral::ManagedVector<Spheral::F<double>::ViewType>  vec_fv;
+  vvi::vector<Spheral::F<double>::ViewType>  vec_fv;
   vec_fv.reserve(5);
 
   vec_fbv.push_back( &f0 );

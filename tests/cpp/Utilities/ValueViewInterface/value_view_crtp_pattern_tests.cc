@@ -51,22 +51,22 @@ class TableKernel;
 template<typename Dim>
 class OtherKernel;
 
-#define KernelView__(code) PTR_VIEW_METACLASS_DECL( (Kernel<Dim, Desc>), (KernelView), (vvi::impl::Kernel<Dim, typename Desc::ImplType>), (code))
-#define TableKernelView__(code) PTR_VIEW_METACLASS_DECL( (TableKernel<Dim>), (TableKernelView), (vvi::impl::TableKernel<Dim>), (code))
-#define OtherKernelView__(code) PTR_VIEW_METACLASS_DECL( (OtherKernel<Dim>), (OtherKernelView), (vvi::impl::OtherKernel<Dim>), (code))
+#define KernelView__(code) PTR_VIEW_METACLASS_DECL( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>), (code))
+#define TableKernelView__(code) PTR_VIEW_METACLASS_DECL( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>), (code))
+#define OtherKernelView__(code) PTR_VIEW_METACLASS_DECL( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>), (code))
 
 #define Kernel__(code) PTR_VALUE_METACLASS_DECL((Kernel), (KernelView<Dim, Desc>), (code))
 #define TableKernel__(code) PTR_VALUE_METACLASS_DECL((TableKernel), (TableKernelView<Dim>), (code))
 #define OtherKernel__(code) PTR_VALUE_METACLASS_DECL((OtherKernel), (OtherKernelView<Dim>), (code))
 
 template<typename Dim, typename Desc>
-class KernelView__( VVI_DEFAULT() );
+class KernelView__( VVI_VIEW_DEFAULT(KernelView) );
 
 template<typename Dim>
-class TableKernelView__( VVI_DEFAULT() );
+class TableKernelView__( VVI_VIEW_DEFAULT(TableKernelView) );
 
 template<typename Dim>
-class OtherKernelView__( VVI_DEFAULT() );
+class OtherKernelView__( VVI_VIEW_DEFAULT(OtherKernelView) );
 
 //--------------------------------
 // Value Interface
@@ -116,11 +116,11 @@ TYPED_TEST_CASE(KernelParallelInterface, EXEC_TYPES);
 TEST(KernelParallelImpl, Impl)
 {
 
-  vvi::impl::TableKernel<Dim1> tk_impl;
+  vvimpl::TableKernel<Dim1> tk_impl;
   
   tk_impl.doSomething();
 
-  vvi::impl::Kernel<Dim1, vvi::impl::TableKernel<Dim1>> k_impl;
+  vvimpl::Kernel<Dim1, vvimpl::TableKernel<Dim1>> k_impl;
   
   k_impl.doSomething();
 
