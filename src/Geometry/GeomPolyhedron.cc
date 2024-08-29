@@ -17,9 +17,14 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
-#include <vector>
-#include <map>
+#include "axom/mint.hpp"
+
 #include <algorithm>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <vector>
+
 using std::vector;
 using std::map;
 using std::pair;
@@ -34,12 +39,6 @@ extern "C" {
 }
 
 #include "Utilities/Timer.hh"
-
-#include <algorithm>
-#include <numeric>
-#include <map>
-#include <limits>
-#include <iterator>
 
 namespace Spheral {
 
