@@ -41,6 +41,9 @@ class ManagedVector;
 template<typename U>
 ManagedVector<U> deepCopy(ManagedVector<U> const& array);
 
+template<typename U>
+bool compare(ManagedVector<U> const&, ManagedVector<U> const&);
+
 template<typename DataType>
 class ManagedVector:
   private chai::ManagedArray<DataType>{
@@ -113,11 +116,11 @@ public:
 #ifdef MV_VALUE_SEMANTICS
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : 
     ManagedVector(rhs.m_size)
-  {
+  {printf("MV Copy w/ Value Semantics.\n");
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
-  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
+  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {printf("MV Copy w/ Ref Semantics.\n");}
 #endif
 
   // ---------------------
@@ -303,19 +306,25 @@ private:
   template<typename U>
   friend ManagedVector deepCopy(ManagedVector const& array);
 
-  SPHERAL_HOST_DEVICE
-  friend bool compare(ManagedVector const& lhs, ManagedVector const& rhs)
-  {
-    if (lhs.m_size != rhs.m_size) return false;
-    for (size_t i = 0; i < lhs.m_size; i++) {
-      if (lhs[i] != rhs[i]) { 
-        return false;
-      }
-    }
-    return true;
-  }
+  template<typename U>
+  friend bool compare(ManagedVector const& lhs, ManagedVector const& rhs);
 
 };
+
+template<typename U>
+inline
+bool compare(ManagedVector<U> const& lhs, ManagedVector<U> const& rhs)
+{
+  std::cout << "check\n";
+  if (lhs.size() != rhs.size()) return false;
+  if (lhs.size() == 0) return true;
+  for (size_t i = 0; i < lhs.size(); i++) {
+    if (lhs[i] != rhs[i]) { 
+      return false;
+    }
+  }
+  return true;
+}
 
 
 template<typename U>

@@ -1,15 +1,13 @@
 #ifndef __SPHERAL_VALUEVIEWINTERFACE__
 #define __SPHERAL_VALUEVIEWINTERFACE__
 
-//#include "Utilities/SharedPtr.hh"
-#include "ManagedVector.hh"
 #include "config.hh"
+#include "ManagedVector.hh"
 #include "chai/ManagedSharedPtr.hpp"
+#include "ValueViewInterfaceImpl.hh"
+
 #include <memory>
 
-#if defined(SPHERAL_ENABLE_VVI)
-#define VVI_ENABLED
-#endif
 
 namespace Spheral {
 
@@ -20,14 +18,10 @@ using SPHERALCopyable = chai::CHAICopyable;
   
 } // namespace Spheral
 
-// Interface class for View like objects.
-//
-// All View classes should inherit from ViewInterface. It sets up useful 
-// type aliases and forwarding constructors to the underlying Data class.
-//
-// ViewInterface children will want to use VIEW_DEFINE_ALLOC_CTOR
-// in order to set up a forwarding constructor from the Value class ctor
-// that passes in a "new DataObject" type.
+// ----------------------------------------------------------------------------
+// IMPL class declaration macros
+// ----------------------------------------------------------------------------
+
 #if defined(VVI_ENABLED)
 #define VVI_IMPL_BEGIN namespace vvimpl {
 #define VVI_IMPL_END } // namespace vvimpl
@@ -36,27 +30,17 @@ using SPHERALCopyable = chai::CHAICopyable;
 #define VVI_IMPL_END
 #endif // defined(VVI_ENABLED)
 
-namespace vvi {
+#define VVI_IMPL_DEEPCOPY(impl_t, ...) \
+  friend impl_t deepCopy(impl_t const& rhs) { \
+    impl_t result(rhs); \
+    VVI_IDC_EXPAND__(__VA_ARGS__) \
+    return result; \
+  }
 
-template<typename T>
-#if defined(VVI_ENABLED)
-using shared_ptr = chai::ManagedSharedPtr<T>;
-#else
-using shared_ptr = std::shared_ptr<T>;
-#endif
-
-template<typename T>
-#if defined(VVI_ENABLED)
-using vector = ::Spheral::ManagedVector<T>;
-#else
-using vector = std::vector<T>;
-#endif
-
-}// namespace vvi
-
-
-#include "ValueViewInterfaceImpl.hh"
-
+#define VVI_IMPL_COMPARE(impl_t, ...) \
+  friend bool compare(impl_t const& lhs, impl_t const& rhs) { \
+    return VVI_ICOM_EXPAND__(__VA_ARGS__); \
+  }
 
 // ----------------------------------------------------------------------------
 // VALUE class declaration macros
@@ -90,47 +74,43 @@ using vector = std::vector<T>;
   VIEW_METACLASS_DECL_END()
 
 
-
-
-
-
 // ----------------------------------------------------------------------------
 // VALUE class definition macros
 // ----------------------------------------------------------------------------
 
-#define VVI_CTOR(value_t, params, args) \
-  value_t(UNPACK params) : Base(chai::make_shared<ImplType>(UNPACK args)) {}
-
+//#define VVI_VALUE_CTOR(value_t, params, args) \
+//  value_t(UNPACK params) : Base(chai::make_shared<ImplType>(UNPACK args)) {}
+//
 #define VVI_VALUE_CTOR_ARGS(args) \
   Base(chai::make_shared<ImplType>(UNPACK args))
 
-#define VVI_DTOR(value_t, code) \
-  ~value_t() { UNPACK code }
-
+//#define VVI_VALUE_DTOR(value_t, code) \
+//  ~value_t() { UNPACK code }
+//
 #define VVI_VALUE_DEF_CTOR(value_t) \
   value_t() : Base(chai::make_shared<ImplType>()) {}
 
 #define VVI_VALUE_COPY_CTOR(value_t) \
-  value_t(value_t const& rhs) : Base(chai::make_shared<ImplType>( deepCopy(rhs.VVI_SPTR_DATA_REF__()) )) {}
+  value_t(value_t const& rhs) : Base(rhs) {}
+  //value_t(value_t const& rhs) : Base(chai::make_shared<ImplType>( deepCopy(rhs.VVI_SPTR_DATA_REF__()) )) {}
+  //value_t(value_t const& rhs) : Base( deepCopy(rhs.VVI_SPTR_DATA_REF__()) ) {}
 
 #define VVI_VALUE_ASSIGNEMT_OP() \
   ValueType& operator=(ValueType const& rhs) { \
-    ViewType::operator=( ViewType::ViewType(chai::make_shared<ImplType>( deepCopy( rhs.VVI_SPTR_DATA_REF__() )))); \
+    Base::operator=(rhs); \
     return *this; \
   }
+    //ViewType::operator=( ViewType::ViewType(chai::make_shared<ImplType>( deepCopy( rhs.VVI_SPTR_DATA_REF__() )))); \
 
 #define VVI_VALUE_EQ_OP() \
   bool operator==(const ValueType& rhs) const \
-    { return compare(sptr_data(), rhs.sptr_data()); }
+    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
 
-#define VVI_VALUE_TOVIEW_OP() \
-  ViewType toView() { return ViewType(*this); }
-
-#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
-  value_t& operator=(value_t const& rhs) { \
-    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
-    return *this; \
-  }
+//#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
+//  value_t& operator=(value_t const& rhs) { \
+//    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
+//    return *this; \
+//  }
 
 
 // ----------------------------------------------------------------------------
@@ -185,7 +165,6 @@ public: \
 // Used when calling out to functions in the interface definitions.
 //#define VVI_IMPL_INST this->sptr_data()
 #define VVI_IMPL_INST VVI_SPTR_DATA_REF__
-
 
 
 

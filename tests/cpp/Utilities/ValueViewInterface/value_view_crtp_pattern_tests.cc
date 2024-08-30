@@ -75,9 +75,6 @@ template<typename Dim, typename Desc>
 class Kernel__(
 public:
   VVI_VALUE_DEF_CTOR(Kernel)
-  VVI_VALUE_COPY_CTOR(Kernel)
-  VVI_VALUE_ASSIGNEMT_OP()
-
 	void doSomething() { printf("K H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
@@ -85,9 +82,6 @@ template<typename Dim>
 class TableKernel__(
 public:
   VVI_VALUE_DEF_CTOR(TableKernel)
-  VVI_VALUE_COPY_CTOR(TableKernel)
-  VVI_VALUE_ASSIGNEMT_OP()
-
 	void doSomething() { printf("TK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
@@ -95,9 +89,6 @@ template<typename Dim>
 class OtherKernel__(
 public:
   VVI_VALUE_DEF_CTOR(OtherKernel)
-  VVI_VALUE_COPY_CTOR(OtherKernel)
-  VVI_VALUE_ASSIGNEMT_OP()
-
 	void doSomething() { printf("OK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 

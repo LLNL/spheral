@@ -28,6 +28,7 @@ class FB : chai::CHAIPoly{
     SPHERAL_HOST_DEVICE virtual size_t size() = 0;
 };
 
+
 template<typename T>
 class F : public FB {
 public:
@@ -39,14 +40,11 @@ public:
   SPHERAL_HOST_DEVICE T* data() { return &m_data[0]; }
   SPHERAL_HOST_DEVICE T& operator()(size_t idx) { return m_data[idx]; }
 
-  friend F deepCopy(F const& rhs) {
-    F result(rhs);
-    result.m_data = deepCopy(rhs.m_data);
-    return result;
-  }
-
   virtual void resize(size_t sz) override {std::cout << "Resize : " << sz << std::endl; m_data.resize(sz); } 
   SPHERAL_HOST_DEVICE virtual size_t size() override { return m_data.size(); }
+
+  VVI_IMPL_DEEPCOPY(F, m_data)
+  VVI_IMPL_COMPARE(F, m_data, hash)
 };
 
 VVI_IMPL_END
@@ -97,19 +95,13 @@ class FV__(
 template<typename T>
 class F__(
 public:
-  // Define Default semantic value type operations for def Ctor, Copy Ctor
-  // and assignment op.
-  VVI_VALUE_DEF_CTOR(F)
-  VVI_VALUE_COPY_CTOR(F)
-  VVI_VALUE_ASSIGNEMT_OP()
-
   // Custom Ctor, note we need to create the underlying implementation 
   // object on ctor of value interfaces.
   F(size_t h, size_t sz) : VVI_VALUE_CTOR_ARGS( (h, sz) ) {}
 
   // Value semantics dictate that we free underlying data upon destruction.
   ~F() { VVI_IMPL_INST().m_data.free(); }
-
+  
   // HOST only interface
   void resize(size_t sz) { VVI_IMPL_INST().resize(sz); } 
 
@@ -149,7 +141,9 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
   using WORK_EXEC_POLICY = TypeParam;
 
   Spheral::F<double> f(2, 200);
-  auto f_2 = f;
+  //auto f_2 = f;
+  Spheral::F<double> f_2(2, 200);
+  std::cout << (f == f_2) << std::endl;
 
   auto f_v = &f;
   Spheral::FB::ViewType fb_v = f_v;

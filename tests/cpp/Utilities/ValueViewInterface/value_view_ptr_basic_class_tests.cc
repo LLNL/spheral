@@ -41,6 +41,8 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const { return mXmax; }
   SPHERAL_HOST_DEVICE CoeffsType const& coeffs() const { return mcoeffs; }
 
+  VVI_IMPL_DEEPCOPY(QInt, mcoeffs)
+  VVI_IMPL_COMPARE(QInt, mcoeffs, mXmin, mXmax, mXstep)
 };
 
 VVI_IMPL_END
@@ -62,6 +64,9 @@ public:
 class QInt__(
 public:
   VVI_VALUE_DEF_CTOR(QInt)
+  //VVI_VALUE_COPY_CTOR(QInt)
+  //VVI_VALUE_ASSIGNEMT_OP()
+  //VVI_VALUE_EQ_OP()
 
   double xmin() const { return sptr_data().xmin(); }
   double xmax() const { return sptr_data().xmax(); }
@@ -101,6 +106,14 @@ GPU_TYPED_TEST(QIntExampleTypedTest, SmartCopySemantics)
 
     qq_int.initialize(4);
     SPHERAL_ASSERT_EQ(qq_int_v->coeffs().size(), 10);
+
+    //QInt qq_int2 = qq_int;
+    QInt qq_int2;
+    qq_int2 = qq_int;
+    SPHERAL_ASSERT_NE(qq_int.VVI_IMPL_INST().coeffs().begin(), qq_int2.VVI_IMPL_INST().coeffs().begin());
+    SPHERAL_ASSERT_EQ(qq_int_v->coeffs().begin(), qq_int_v2->coeffs().begin());
+    SPHERAL_ASSERT_TRUE(qq_int == qq_int2);
+    
 
     EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
       printf("xmin : %lf\n", qq_int_v->xmin());
