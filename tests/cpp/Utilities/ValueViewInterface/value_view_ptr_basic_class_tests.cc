@@ -56,18 +56,13 @@ class QInt;
 #define QInt__(code) PTR_VALUE_METACLASS_DECL( (QInt), (QIntView), (code) )
 
 class QIntView__( 
-  VVI_VIEW_DEFAULT(QIntView) // This defines the default behavior of a reference semantics based interface.
+  //VVI_VIEW_DEFAULT(QIntView) // This defines the default behavior of a reference semantics based interface.
 public:
   using CoeffsType = typename ImplType::CoeffsType;
 );
 
 class QInt__(
 public:
-  VVI_VALUE_DEF_CTOR(QInt)
-  //VVI_VALUE_COPY_CTOR(QInt)
-  //VVI_VALUE_ASSIGNEMT_OP()
-  //VVI_VALUE_EQ_OP()
-
   double xmin() const { return sptr_data().xmin(); }
   double xmax() const { return sptr_data().xmax(); }
 

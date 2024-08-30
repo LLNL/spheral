@@ -18,24 +18,18 @@ class Kernel : public Spheral::SPHERALCopyable {
 public:
 	SPHERAL_HOST_DEVICE void doSomething() { printf("Ki HD doSomething()\n"); asDesc().doSomething(); }
 
-  friend Kernel deepCopy(Kernel const& rhs) {
-    Kernel result(rhs);
-    return result;
-  }
-
+  VVI_IMPL_DEEPCOPY(Kernel)
 };
 
 template<typename Dim>
 class TableKernel : public Kernel<Dim, TableKernel<Dim>> {
 public:
-  TableKernel() = default;
 	SPHERAL_HOST_DEVICE void doSomething() { printf("TKi HD doSomething()\n"); printf("TableKernel doSomething\n"); }
 };
 
 template<typename Dim>
 class OtherKernel : public Kernel<Dim, OtherKernel<Dim>> {
 public:
-  OtherKernel() = default;
 	SPHERAL_HOST_DEVICE void doSomething() { printf("OKi HD doSomething()\n"); printf("OtherKernel doSomething\n"); }
 };
 
@@ -51,44 +45,38 @@ class TableKernel;
 template<typename Dim>
 class OtherKernel;
 
-#define KernelView__(code) PTR_VIEW_METACLASS_DECL( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>), (code))
-#define TableKernelView__(code) PTR_VIEW_METACLASS_DECL( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>), (code))
-#define OtherKernelView__(code) PTR_VIEW_METACLASS_DECL( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>), (code))
+template<typename Dim, typename Desc>
+class PTR_VIEW_METACLASS_DECL_DEFAULT( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>) );
+
+template<typename Dim>
+class PTR_VIEW_METACLASS_DECL_DEFAULT( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>) );
+
+template<typename Dim>
+class PTR_VIEW_METACLASS_DECL_DEFAULT( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>) );
+
+
+//--------------------------------
+// Value Interface
 
 #define Kernel__(code) PTR_VALUE_METACLASS_DECL((Kernel), (KernelView<Dim, Desc>), (code))
 #define TableKernel__(code) PTR_VALUE_METACLASS_DECL((TableKernel), (TableKernelView<Dim>), (code))
 #define OtherKernel__(code) PTR_VALUE_METACLASS_DECL((OtherKernel), (OtherKernelView<Dim>), (code))
 
 template<typename Dim, typename Desc>
-class KernelView__( VVI_VIEW_DEFAULT(KernelView) );
-
-template<typename Dim>
-class TableKernelView__( VVI_VIEW_DEFAULT(TableKernelView) );
-
-template<typename Dim>
-class OtherKernelView__( VVI_VIEW_DEFAULT(OtherKernelView) );
-
-//--------------------------------
-// Value Interface
-
-template<typename Dim, typename Desc>
 class Kernel__(
 public:
-  VVI_VALUE_DEF_CTOR(Kernel)
 	void doSomething() { printf("K H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
 template<typename Dim>
 class TableKernel__(
 public:
-  VVI_VALUE_DEF_CTOR(TableKernel)
 	void doSomething() { printf("TK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
 template<typename Dim>
 class OtherKernel__(
 public:
-  VVI_VALUE_DEF_CTOR(OtherKernel)
 	void doSomething() { printf("OK H doSomething()\n"); VVI_IMPL_INST().doSomething(); }
 );
 
@@ -122,6 +110,22 @@ GPU_TYPED_TEST(KernelParallelInterface, TableKernelInterface)
   using WORK_EXEC_POLICY = TypeParam;
 
   TableKernel<Dim1> tk;
+  
+  tk.doSomething();
+
+  TableKernelView<Dim1> tkv = &tk;
+
+  EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
+    tkv->doSomething();
+  EXEC_IN_SPACE_END()
+}
+
+GPU_TYPED_TEST(KernelParallelInterface, TableKernelInterfaceCopy)
+{
+  using WORK_EXEC_POLICY = TypeParam;
+
+  TableKernel<Dim1> tk;
+  TableKernel<Dim1> tk2 = tk;
   
   tk.doSomething();
 

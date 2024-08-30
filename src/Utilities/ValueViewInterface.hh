@@ -33,13 +33,13 @@ using SPHERALCopyable = chai::CHAICopyable;
 #define VVI_IMPL_DEEPCOPY(impl_t, ...) \
   friend impl_t deepCopy(impl_t const& rhs) { \
     impl_t result(rhs); \
-    VVI_IDC_EXPAND__(__VA_ARGS__) \
+    VVI_IDC_EXPAND__( void, ##__VA_ARGS__ ) \
     return result; \
   }
 
 #define VVI_IMPL_COMPARE(impl_t, ...) \
   friend bool compare(impl_t const& lhs, impl_t const& rhs) { \
-    return VVI_ICOM_EXPAND__(__VA_ARGS__); \
+    return VVI_ICOM_EXPAND__( void, ##__VA_ARGS__); \
   }
 
 // ----------------------------------------------------------------------------
@@ -73,38 +73,35 @@ using SPHERALCopyable = chai::CHAICopyable;
   UNPACK code \
   VIEW_METACLASS_DECL_END()
 
+#define PTR_VIEW_METACLASS_DECL_DEFAULT(value_t, view_t, impl_t) \
+  PTR_VIEW_METACLASS_DECL( value_t, view_t, impl_t, ( VVI_VIEW_DEFAULT(UNPACK view_t) ) )
+  //class VIEW_METACLASS_DECL_BEGIN((UNPACK value_t), (UNPACK view_t), (UNPACK impl_t)) \
+  //POINTER_SYNTAX_OPERATORS() \
+  //VVI_VIEW_DEFAULT(view_t) \
+  //VIEW_METACLASS_DECL_END()
 
 // ----------------------------------------------------------------------------
 // VALUE class definition macros
 // ----------------------------------------------------------------------------
 
-//#define VVI_VALUE_CTOR(value_t, params, args) \
-//  value_t(UNPACK params) : Base(chai::make_shared<ImplType>(UNPACK args)) {}
-//
 #define VVI_VALUE_CTOR_ARGS(args) \
   Base(chai::make_shared<ImplType>(UNPACK args))
 
-//#define VVI_VALUE_DTOR(value_t, code) \
-//  ~value_t() { UNPACK code }
-//
 #define VVI_VALUE_DEF_CTOR(value_t) \
-  value_t() : Base(chai::make_shared<ImplType>()) {}
+  value_t() : Base() {}
 
 #define VVI_VALUE_COPY_CTOR(value_t) \
   value_t(value_t const& rhs) : Base(rhs) {}
-  //value_t(value_t const& rhs) : Base(chai::make_shared<ImplType>( deepCopy(rhs.VVI_SPTR_DATA_REF__()) )) {}
-  //value_t(value_t const& rhs) : Base( deepCopy(rhs.VVI_SPTR_DATA_REF__()) ) {}
 
 #define VVI_VALUE_ASSIGNEMT_OP() \
   ValueType& operator=(ValueType const& rhs) { \
     Base::operator=(rhs); \
     return *this; \
   }
-    //ViewType::operator=( ViewType::ViewType(chai::make_shared<ImplType>( deepCopy( rhs.VVI_SPTR_DATA_REF__() )))); \
 
-#define VVI_VALUE_EQ_OP() \
-  bool operator==(const ValueType& rhs) const \
-    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
+//#define VVI_VALUE_EQ_OP() \
+//  bool operator==(const ValueType& rhs) const \
+//    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
 
 //#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
 //  value_t& operator=(value_t const& rhs) { \

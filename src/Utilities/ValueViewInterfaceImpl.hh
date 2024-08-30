@@ -4,11 +4,6 @@
 // Macro tool for unpacking types with multiple template arguments.
 #define UNPACK( ... ) __VA_ARGS__
 
-// Macro tool for creating macro functions with an unknown number of arguments (Max 9)
-#define MKFNS(fn,...) MKFN_N(fn,##__VA_ARGS__,9,8,7,6,5,4,3,2,1,0)(__VA_ARGS__)
-#define MKFN_N(fn, n1, n2, n3, n4, n5, n6, n7, n8, n9, n, ...) fn##n
-
-
 // ----------------------------------------------------------------------------
 // Class definitions for Value and View Intreface class structure.
 // ----------------------------------------------------------------------------
@@ -60,6 +55,8 @@ private:
 protected:
   using ViewType = typename view_type::ViewType;
 
+  ValueInterface() : ValueInterface(chai::make_shared<m_ImplType>()) {}
+
 public:
 #if !defined(SPHERAL_ENABLE_VVI)
   ValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
@@ -68,7 +65,6 @@ public:
   ValueInterface(ValueInterface const& rhs) : ValueInterface(chai::make_shared<m_ImplType>( deepCopy(rhs.sptr_data()) )) {}
   ValueInterface& operator=(ValueInterface const& rhs) { ViewType::operator=( chai::make_shared<m_ImplType>( deepCopy( rhs.sptr_data() ) ) ); return *this; }
   bool operator==(ValueInterface const& rhs) const { return compare(this->sptr_data(), rhs.sptr_data()); }
-  
 };
 
 namespace detail {
@@ -93,35 +89,41 @@ namespace detail {
 // IMPL class declaration macros
 // ----------------------------------------------------------------------------
 
+// Macro tool for creating macro functions with an unknown number of arguments (Max 9)
+#define MKFNS(fn,...) MKFN_N(fn,##__VA_ARGS__, 9,8,7,6,5,4,3,2,1,0)(__VA_ARGS__)
+#define MKFN_N(fn, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n, ...) fn##n
+
+
 // DeepCopy macro helpers
 
 #define VIDCH__(arg) result.arg = deepCopy(rhs.arg);
 
 #define VVI_IDC_EXPAND__(...) MKFNS(VVI_IDC_EXPAND__,##__VA_ARGS__)
-#define VVI_IDC_EXPAND__1(arg1) \
+#define VVI_IDC_EXPAND__0(v) 
+#define VVI_IDC_EXPAND__1(void, arg1) \
   VIDCH__(arg1)
-#define VVI_IDC_EXPAND__2(arg1, arg2) \
+#define VVI_IDC_EXPAND__2(void, arg1, arg2) \
   VIDCH__(arg1) VIDCH__(arg2)
-#define VVI_IDC_EXPAND__3(arg1, arg2, arg3) \
+#define VVI_IDC_EXPAND__3(void, arg1, arg2, arg3) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3)
-#define VVI_IDC_EXPAND__4(arg1, arg2, arg3, arg4) \
+#define VVI_IDC_EXPAND__4(void, arg1, arg2, arg3, arg4) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) 
-#define VVI_IDC_EXPAND__5(arg1, arg2, arg3, arg4, arg5) \
+#define VVI_IDC_EXPAND__5(void, arg1, arg2, arg3, arg4, arg5) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) VIDCH__(arg5)
-#define VVI_IDC_EXPAND__6(arg1, arg2, arg3, arg4, arg5, arg6) \
+#define VVI_IDC_EXPAND__6(void, arg1, arg2, arg3, arg4, arg5, arg6) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) VIDCH__(arg5) VIDCH__(arg6)
-#define VVI_IDC_EXPAND__7(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+#define VVI_IDC_EXPAND__7(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) VIDCH__(arg5) VIDCH__(arg6) \
   VIDCH__(arg7) 
-#define VVI_IDC_EXPAND__8(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+#define VVI_IDC_EXPAND__8(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) VIDCH__(arg5) VIDCH__(arg6) \
   VIDCH__(arg7) VIDCH__(arg8)
-#define VVI_IDC_EXPAND__9(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+#define VVI_IDC_EXPAND__9(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
   VIDCH__(arg1) VIDCH__(arg2) VIDCH__(arg3) \
   VIDCH__(arg4) VIDCH__(arg5) VIDCH__(arg6) \
   VIDCH__(arg7) VIDCH__(arg8) VIDCH__(arg9)
@@ -131,30 +133,31 @@ namespace detail {
 #define VICOMH__(arg) vvi::detail::compare(lhs.arg, rhs.arg)
 
 #define VVI_ICOM_EXPAND__(...) MKFNS(VVI_ICOM_EXPAND__,##__VA_ARGS__)
-#define VVI_ICOM_EXPAND__1(arg1) \
+#define VVI_ICOM_EXPAND__0(void) true
+#define VVI_ICOM_EXPAND__1(void, arg1) \
   VICOMH__(arg1)
-#define VVI_ICOM_EXPAND__2(arg1, arg2) \
+#define VVI_ICOM_EXPAND__2(void, arg1, arg2) \
   VICOMH__(arg1) && VICOMH__(arg2)
-#define VVI_ICOM_EXPAND__3(arg1, arg2, arg3) \
+#define VVI_ICOM_EXPAND__3(void, arg1, arg2, arg3) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3)
-#define VVI_ICOM_EXPAND__4(arg1, arg2, arg3, arg4) \
+#define VVI_ICOM_EXPAND__4(void, arg1, arg2, arg3, arg4) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) && \
   VICOMH__(arg4) 
-#define VVI_ICOM_EXPAND__5(arg1, arg2, arg3, arg4, arg5) \
+#define VVI_ICOM_EXPAND__5(void, arg1, arg2, arg3, arg4, arg5) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) && \
   VICOMH__(arg4) && VICOMH__(arg5)
-#define VVI_ICOM_EXPAND__6(arg1, arg2, arg3, arg4, arg5, arg6) \
+#define VVI_ICOM_EXPAND__6(void, arg1, arg2, arg3, arg4, arg5, arg6) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) &&\
   VICOMH__(arg4) && VICOMH__(arg5) && VICOMH__(arg6)
-#define VVI_ICOM_EXPAND__7(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+#define VVI_ICOM_EXPAND__7(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) && \
   VICOMH__(arg4) && VICOMH__(arg5) && VICOMH__(arg6) && \
   VICOMH__(arg7) 
-#define VVI_ICOM_EXPAND__8(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+#define VVI_ICOM_EXPAND__8(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) && \
   VICOMH__(arg4) && VICOMH__(arg5) && VICOMH__(arg6) && \
   VICOMH__(arg7) && VICOMH__(arg8)
-#define VVI_ICOM_EXPAND__9(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
+#define VVI_ICOM_EXPAND__9(void, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) \
   VICOMH__(arg1) && VICOMH__(arg2) && VICOMH__(arg3) && \
   VICOMH__(arg4) && VICOMH__(arg5) && VICOMH__(arg6) && \
   VICOMH__(arg7) && VICOMH__(arg8) && VICOMH__(arg9)
