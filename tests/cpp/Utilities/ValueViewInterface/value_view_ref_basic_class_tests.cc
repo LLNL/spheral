@@ -69,8 +69,6 @@ public:
 
 class QInt__(
 public:
-  VVI_VALUE_DEF_CTOR(QInt)
-
   // Forward Value capable methods
   SPHERAL_HOST void initialize(size_t min) const { return sptr_data().initialize(min); }
   SPHERAL_HOST void editData(size_t min) const { return sptr_data().editData(min); }

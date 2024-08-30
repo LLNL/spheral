@@ -51,7 +51,7 @@ VVI_IMPL_END
 
 
 
-#ifdef SPHERAL_ENABLE_VVI
+#ifdef VVI_ENABLED
 //-----------------------------------------------------------------------------
 // Interface to support porting to the GPU.
 //-----------------------------------------------------------------------------
@@ -62,35 +62,20 @@ class F;
 class FB;
 
 // Define Metaclass macros for Value/View relationships
-#define FBV__(code) PTR_VIEW_METACLASS_DECL((FB), (FBV), (vvimpl::FB), (code))
-#define FB__(code)  PTR_VALUE_METACLASS_DECL((FB), (FBV), (code))
+class PTR_VIEW_METACLASS_DEFAULT((FB), (FBV), (vvimpl::FB))
+class PTR_VALUE_METACLASS_DELETED((FB), (FBV), (vvimpl::FB))
 
 #define FV__(code) PTR_VIEW_METACLASS_DECL((F<T>), (FV), (vvimpl::F<T>), (code))
 #define F__(code) PTR_VALUE_METACLASS_DECL((F), (FV<T>), (code))
 
 
-// --- Interface definitions ---
-
-class FBV__(
-  VVI_VIEW_DEFAULT(FBV)
-);
-
-// This class instantiation exsists only to fulfil type information
-// queries that might arise : e.g. `typename FB::ViewType`
-  // Because the underlying impl type is an abstract virtual we can not allow
-  // construction of FB class with default Ctor, Copy Ctor or assignment Op. 
-class FB__(
-  VVI_DELETED_INTERFACE(FB)
-);
-
-
 template<typename T>
 class FV__(
-  VVI_VIEW_DEFAULT(FV)
   // Field inherits from FieldBase so we would like to be able to implicitly
   // upcast a fieldview object to a fieldbaseview.
   VVI_UPCAST_CONVERSION_OP(FBV)
 );
+
 
 template<typename T>
 class F__(

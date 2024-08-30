@@ -46,13 +46,13 @@ template<typename Dim>
 class OtherKernel;
 
 template<typename Dim, typename Desc>
-class PTR_VIEW_METACLASS_DECL_DEFAULT( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>) );
+class PTR_VIEW_METACLASS_DEFAULT( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>) );
 
 template<typename Dim>
-class PTR_VIEW_METACLASS_DECL_DEFAULT( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>) );
+class PTR_VIEW_METACLASS_DEFAULT( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>) );
 
 template<typename Dim>
-class PTR_VIEW_METACLASS_DECL_DEFAULT( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>) );
+class PTR_VIEW_METACLASS_DEFAULT( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>) );
 
 
 //--------------------------------

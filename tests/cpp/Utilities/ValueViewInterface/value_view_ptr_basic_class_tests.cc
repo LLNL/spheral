@@ -48,7 +48,6 @@ public:
 VVI_IMPL_END
 
 
-
 #ifdef SPHERAL_ENABLE_VVI
 class QInt;
 
@@ -56,7 +55,6 @@ class QInt;
 #define QInt__(code) PTR_VALUE_METACLASS_DECL( (QInt), (QIntView), (code) )
 
 class QIntView__( 
-  //VVI_VIEW_DEFAULT(QIntView) // This defines the default behavior of a reference semantics based interface.
 public:
   using CoeffsType = typename ImplType::CoeffsType;
 );
