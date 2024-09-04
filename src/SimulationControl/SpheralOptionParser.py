@@ -2,7 +2,7 @@
 # Create a standard and hopefully convenient command line parser for Spheral
 # scripts.
 #-------------------------------------------------------------------------------
-import argparse
+import argparse, mpi
 
 from SpheralCompiledPackages import *
 
@@ -56,6 +56,7 @@ def commandLine(**options):
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
         gd[key] = val
+    # Initialize timers
     InitTimers(args.caliperConfig, args.caliperFilename)
     return
 
@@ -74,7 +75,15 @@ def InitTimers(caliper_config, filename):
             if (".cali" in testname):
                 testname = testname.replace(".cali", "")
         else:
+            # Name file based on name of python file being run
+            # with four random digits at the end
             unique_digits = ''.join(random.sample('0123456789', 4))
-            testname = os.path.splitext(os.path.basename(sys.argv[0]))[0] + "_" +  unique_digits
+            # Remove any file extension provided
+            testname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+            # Remove any dashes
+            testname = testname.replace("-", "")
+            testname += unique_digits
         TimerMgr.default_start(testname)
+    adiak_valueInt("threads_per_rank", omp_get_num_threads())
+    adiak_valueInt("num_ranks", mpi.procs)
     return
