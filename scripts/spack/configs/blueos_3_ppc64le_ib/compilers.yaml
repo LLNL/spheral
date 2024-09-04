@@ -25,3 +25,16 @@ compilers:
     modules: []
     environment: {}
     extra_rpaths: []
+- compiler:
+    spec: gcc@10.2.1
+    paths:
+      cc: /usr/tce/packages/gcc/gcc-10.2.1/bin/gcc
+      cxx: /usr/tce/packages/gcc/gcc-10.2.1/bin/g++
+      f77: /usr/tce/packages/gcc/gcc-10.2.1/bin/gfortran
+      fc: /usr/tce/packages/gcc/gcc-10.2.1/bin/gfortran
+    flags: {}
+    operating_system: rhel7
+    target: ppc64le
+    modules: []
+    environment: {}
+    extra_rpaths: []
