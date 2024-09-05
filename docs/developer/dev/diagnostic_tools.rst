@@ -10,9 +10,9 @@ Spheral uses Caliper to preform diagnostics, such as timing. To enable this func
 Querying using Caliper
 ======================
 
-Caliper is configured and started through the `cali::ConfigManager`.
-The `cali::ConfigManager` is wrapped in a `TimerMgr` singleton class, which has a python interface.
-`TimerMgr` is initialized and started in the `InitTimers` routine which is called in `commandLine()` in ``src/SimulationControl/SpheralOptionParser.py``.
+Caliper is configured and started through the :kbd:`cali::ConfigManager`.
+The :kbd:`cali::ConfigManager` is wrapped in a :kbd:`TimerMgr` singleton class, which has a python interface.
+:kbd:`TimerMgr` is initialized and started in the :kbd:`InitTimers` routine which is called in :kbd:`commandLine()` in ``src/SimulationControl/SpheralOptionParser.py``.
 By default, the Caliper configuration is set to ``spot,mem.highwatermark`` and outputs Caliper files (``.cali``).
 For the default configuration, the Caliper files are named based on what file is being run, for example:
 ::
@@ -36,7 +36,7 @@ Non-default Caliper configurations can be set at the command line using ``--cali
    python Noh-cylindrical-2d.py --caliperConfig 'runtime-report(output=time.txt),calc.inclusive,region.count'
 
 .. note::
-   The above configuration produces timing results similar to the previous `Spheral::Timer` method. This results in a file named ``time.txt`` with cumulative times for the nested regions as well as a count of how many times each region ran.
+   The above configuration produces timing results similar to the previous :kbd:`Spheral::Timer` method. This results in a file named ``time.txt`` with cumulative times for the nested regions as well as a count of how many times each region ran.
 
 Additionally, Caliper timers can be turned off using ``--caliperConfig none``.
 
@@ -58,9 +58,9 @@ So far there are two different types of regions in Spheral, using the following 
   TIME_BEGIN("timer_name")
   TIME_END("timer_name")
 
-- `TIME_FUNCTION` can be added to the very beginning of a function and creates a region for the entire function using the function's name. `TIME_FUNCTION` uses just the function name and no class or parameter information, so be careful when using this method with functions that could share names.
+- :kbd:`TIME_FUNCTION` can be added to the very beginning of a function and creates a region for the entire function using the function's name. :kbd:`TIME_FUNCTION` uses just the function name and no class or parameter information, so be careful when using this method with functions that could share names.
 
-- `TIME_BEGIN("timer_name")` and `TIME_END("timer_name")` create a region between the two different calls and use the string (in this case timer_name) as the name.
+- :kbd:`TIME_BEGIN("timer_name")` and :kbd:`TIME_END("timer_name")` create a region between the two different calls and use the string (in this case timer_name) as the name.
 
 
 Adding Region Timers in Python
