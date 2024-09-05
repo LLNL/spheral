@@ -75,9 +75,10 @@ def InitTimers(caliper_config, filename):
             if (".cali" in testname):
                 testname = testname.replace(".cali", "")
         else:
+            from datetime import datetime
+            # Append the current day and time to the filename
+            unique_digits = datetime.now().strftime("_%Y_%m_%d_%H%M%S")
             # Name file based on name of python file being run
-            # with four random digits at the end
-            unique_digits = ''.join(random.sample('0123456789', 4))
             # Remove any file extension provided
             testname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
             # Remove any dashes
