@@ -71,19 +71,13 @@ def InitTimers(caliper_config, filename):
         import random, os, sys
         if (filename):
             testname = filename
-            # Remove the cali file extension
-            if (".cali" in testname):
-                testname = testname.replace(".cali", "")
         else:
             from datetime import datetime
             # Append the current day and time to the filename
             unique_digits = datetime.now().strftime("_%Y_%m_%d_%H%M%S")
             # Name file based on name of python file being run
-            # Remove any file extension provided
             testname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-            # Remove any dashes
-            testname = testname.replace("-", "")
-            testname += unique_digits
+            testname += unique_digits + ".cali"
         TimerMgr.default_start(testname)
     adiak_valueInt("threads_per_rank", omp_get_num_threads())
     adiak_valueInt("num_ranks", mpi.procs)

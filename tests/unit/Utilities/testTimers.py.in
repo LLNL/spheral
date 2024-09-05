@@ -1,8 +1,8 @@
 #
 #
-#ATS:test(SELF, "--caliperFilename 'timer_test_1'", label="Timer test 1", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=8)
 #ATS:test(SELF, "--caliperConfig 'None'", label="Timer test 2", np=8)
-#ATS:test(SELF, "--caliperFilename 'timer_test_3'", label="Timer test 3", np=1)
+#ATS:test(SELF, "--caliperFilename 'timer_test_3.cali'", label="Timer test 3", np=1)
 #
 
 import Spheral

@@ -67,8 +67,8 @@ public:
   }
   static void default_start(std::string testname) {
     if (!testname.empty()) {
-      std::string default_config = "spot,mem.highwatermark,output=" + testname + ".cali";
-      instance().caliperFilename = testname + ".cali";
+      std::string default_config = "spot,mem.highwatermark,output=" + testname;
+      instance().caliperFilename = testname;
       add(default_config);
       start();
     } else if (Spheral::Process::getRank() == 0) {

@@ -28,7 +28,7 @@ where the file name includes the current date and time.
 The Caliper file name can be specified using the command line
 ::
 
-   python Noh-cylindrical-2d.py --caliperFilename 'new_test_name'
+   python Noh-cylindrical-2d.py --caliperFilename 'new_test_name.cali'
 
 Non-default Caliper configurations can be set at the command line using ``--caliperConfig`` like so
 ::
