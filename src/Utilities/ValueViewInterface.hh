@@ -11,7 +11,7 @@
 
 namespace Spheral {
 
-// An interface class to ensure all required methods are defined by Data 
+// An interface cass to ensure all required methods are defined by Data 
 // classes that need to be automatically copied by another CHAICopyable or
 // SPHERALCopyable class.
 using SPHERALCopyable = chai::CHAICopyable;
@@ -30,17 +30,27 @@ using SPHERALCopyable = chai::CHAICopyable;
 #define VVI_IMPL_END
 #endif // defined(VVI_ENABLED)
 
-#define VVI_IMPL_DEEPCOPY(impl_t, ...) \
+#if defined(VVI_ENABLED)
+
+#define VVI_IMPL_DEEPCOPY(...) VVI_IMPL_DEEPCOPY__( __VA_ARGS__ , void)
+
+#define VVI_IMPL_DEEPCOPY__(impl_t, ...) \
   friend impl_t deepCopy(impl_t const& rhs) { \
     impl_t result(rhs); \
-    VVI_IDC_EXPAND__( void, ##__VA_ARGS__ ) \
+    VVI_IDC_EXPAND__( __VA_ARGS__ ) \
     return result; \
   }
 
-#define VVI_IMPL_COMPARE(impl_t, ...) \
+#define VVI_IMPL_COMPARE(...) VVI_IMPL_COMPARE__( __VA_ARGS__. void) 
+
+#define VVI_IMPL_COMPARE__(impl_t, ...) \
   friend bool compare(impl_t const& lhs, impl_t const& rhs) { \
-    return VVI_ICOM_EXPAND__( void, ##__VA_ARGS__); \
+    return VVI_ICOM_EXPAND__( __VA_ARGS__); \
   }
+#else
+#define VVI_IMPL_DEEPCOPY(impl_t, ...)
+#define VVI_IMPL_COMPARE(impl_t, ...)
+#endif
 
 // ----------------------------------------------------------------------------
 // VALUE class declaration macros
@@ -74,42 +84,42 @@ using SPHERALCopyable = chai::CHAICopyable;
   VIEW_METACLASS_DECL_END()
 
 #define PTR_VIEW_METACLASS_DEFAULT(value_t, view_t, impl_t) \
-  PTR_VIEW_METACLASS_DECL( value_t, view_t, impl_t, (  ) )
+  PTR_VIEW_METACLASS_DECL( value_t, view_t, impl_t, (  ) );
 
 #define PTR_VALUE_METACLASS_DEFAULT(value_t, view_t, impl_t) \
-  PTR_VALUE_METACLASS_DECL( value_t, view_t, impl_t, (  ) )
+  PTR_VALUE_METACLASS_DECL( value_t, view_t, impl_t, (  ) );
 
 #define PTR_VALUE_METACLASS_DELETED(value_t, view_t, impl_t) \
-  PTR_VALUE_METACLASS_DECL( value_t, view_t, ( VVI_DELETED_INTERFACE(UNPACK value_t) ) )
+  PTR_VALUE_METACLASS_DECL( value_t, view_t, ( VVI_DELETED_INTERFACE(UNPACK value_t) ) );
 
 // ----------------------------------------------------------------------------
 // VALUE class definition macros
 // ----------------------------------------------------------------------------
 
 #define VVI_VALUE_CTOR_ARGS(args) \
-  Base(chai::make_shared<ImplType>(UNPACK args))
+  Base(VVI_MAKE_SHARED<ImplType>(UNPACK args))
 
-//#define VVI_VALUE_DEF_CTOR(value_t) \
-//  value_t() : Base() {}
+#define VVI_VALUE_DEF_CTOR(value_t) \
+  value_t() : Base() {}
+
+#define VVI_VALUE_COPY_CTOR(value_t) \
+  value_t(value_t const& rhs) : Base(rhs) {}
+
+////#define VVI_VALUE_ASSIGNEMT_OP() \
+////  ValueType& operator=(ValueType const& rhs) { \
+////    Base::operator=(rhs); \
+////    return *this; \
+////  }
 //
-//#define VVI_VALUE_COPY_CTOR(value_t) \
-//  value_t(value_t const& rhs) : Base(rhs) {}
+////#define VVI_VALUE_EQ_OP() \
+////  bool operator==(const ValueType& rhs) const \
+////    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
 //
-//#define VVI_VALUE_ASSIGNEMT_OP() \
-//  ValueType& operator=(ValueType const& rhs) { \
-//    Base::operator=(rhs); \
-//    return *this; \
-//  }
-
-//#define VVI_VALUE_EQ_OP() \
-//  bool operator==(const ValueType& rhs) const \
-//    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
-
-//#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
-//  value_t& operator=(value_t const& rhs) { \
-//    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
-//    return *this; \
-//  }
+////#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
+////  value_t& operator=(value_t const& rhs) { \
+////    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
+////    return *this; \
+////  }
 
 
 // ----------------------------------------------------------------------------

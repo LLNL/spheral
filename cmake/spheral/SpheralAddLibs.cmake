@@ -107,14 +107,14 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   endif()
 
 
-  # This cleans up library targets created with object libs. It is turned off as it triggers
-  # a failure on Werror and pedantic builds.
-  set(_properties COMPILE_DEFINITIONS LINK_LIBRARIES LINK_OPTIONS INTERFACE_LINK_OPTIONS COMPILE_OPTIONS INTERFACE_COMPILE_OPTIONS)
-  foreach(_prop ${_properties})
-    get_target_property(temp_prop Spheral_${package_name} ${_prop})
-    list(REMOVE_DUPLICATES temp_prop)
-    set_target_properties(Spheral_${package_name} PROPERTIES ${_prop} "${temp_prop}")
-  endforeach()
+  ## This cleans up library targets created with object libs. It is turned off as it triggers
+  ## a failure on Werror and pedantic builds.
+  #set(_properties COMPILE_DEFINITIONS LINK_LIBRARIES LINK_OPTIONS INTERFACE_LINK_OPTIONS COMPILE_OPTIONS INTERFACE_COMPILE_OPTIONS)
+  #foreach(_prop ${_properties})
+  #  get_target_property(temp_prop Spheral_${package_name} ${_prop})
+  #  list(REMOVE_DUPLICATES temp_prop)
+  #  set_target_properties(Spheral_${package_name} PROPERTIES ${_prop} "${temp_prop}")
+  #endforeach()
 
   set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 

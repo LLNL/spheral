@@ -16,6 +16,9 @@ class Kernel : public Spheral::SPHERALCopyable {
     return static_cast<Desc&>(const_cast<Kernel<Dim, Desc>&>(*this));
   }
 public:
+  SPHERAL_HOST_DEVICE operator Desc() const {
+    return static_cast<Desc&>(const_cast<Kernel<Dim, Desc>&>(*this));
+  }
 	SPHERAL_HOST_DEVICE void doSomething() { printf("Ki HD doSomething()\n"); asDesc().doSomething(); }
 
   VVI_IMPL_DEEPCOPY(Kernel)
@@ -46,13 +49,13 @@ template<typename Dim>
 class OtherKernel;
 
 template<typename Dim, typename Desc>
-class PTR_VIEW_METACLASS_DEFAULT( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>) );
+class PTR_VIEW_METACLASS_DEFAULT( (Kernel<Dim, Desc>), (KernelView), (vvimpl::Kernel<Dim, typename Desc::ImplType>) )
 
 template<typename Dim>
-class PTR_VIEW_METACLASS_DEFAULT( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>) );
+class PTR_VIEW_METACLASS_DEFAULT( (TableKernel<Dim>), (TableKernelView), (vvimpl::TableKernel<Dim>) )
 
 template<typename Dim>
-class PTR_VIEW_METACLASS_DEFAULT( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>) );
+class PTR_VIEW_METACLASS_DEFAULT( (OtherKernel<Dim>), (OtherKernelView), (vvimpl::OtherKernel<Dim>) )
 
 
 //--------------------------------

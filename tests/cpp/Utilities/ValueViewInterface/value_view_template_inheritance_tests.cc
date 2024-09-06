@@ -209,7 +209,7 @@ GPU_TYPED_TEST(FieldParallelInheritanceTypedTest, AccessPattern)
       auto& elem_v = *vec_fv[i];
 
       printf("%ld, %ld\n", elem_b.getHash(), elem_b.size());
-      printf("%p\n", &elem_v(0));
+      printf("%p\n", (void*)&elem_v(0));
       for(size_t j = 0; j < elem_v.size(); j++) { printf("%f, ",vec_fv[i]->operator()(j));} 
       printf("\n");
     }

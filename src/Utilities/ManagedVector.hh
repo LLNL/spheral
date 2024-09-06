@@ -315,9 +315,7 @@ template<typename U>
 inline
 bool compare(ManagedVector<U> const& lhs, ManagedVector<U> const& rhs)
 {
-  std::cout << "check\n";
   if (lhs.size() != rhs.size()) return false;
-  if (lhs.size() == 0) return true;
   for (size_t i = 0; i < lhs.size(); i++) {
     if (lhs[i] != rhs[i]) { 
       return false;

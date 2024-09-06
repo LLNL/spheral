@@ -82,11 +82,13 @@ message("-----------------------------------------------------------------------
 find_package(RAJA REQUIRED NO_DEFAULT_PATH PATHS ${raja_DIR})
 if (RAJA_FOUND) 
   message("Found RAJA External Package.")
+  blt_convert_to_system_includes(TARGET RAJA)
 endif()
 message("-----------------------------------------------------------------------------")
 find_package(umpire REQUIRED NO_DEFAULT_PATH PATHS ${umpire_DIR})
 if (umpire_FOUND) 
   message("Found umpire External Package.")
+  blt_convert_to_system_includes(TARGET umpire)
 endif()
 message("-----------------------------------------------------------------------------")
 
