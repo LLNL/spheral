@@ -33,23 +33,13 @@ using SPHERALCopyable = chai::CHAICopyable;
 #if defined(VVI_ENABLED)
 
 #define VVI_IMPL_DEEPCOPY(...) VVI_IMPL_DEEPCOPY__( __VA_ARGS__ , void)
-
-#define VVI_IMPL_DEEPCOPY__(impl_t, ...) \
-  friend impl_t deepCopy(impl_t const& rhs) { \
-    impl_t result(rhs); \
-    VVI_IDC_EXPAND__( __VA_ARGS__ ) \
-    return result; \
-  }
-
 #define VVI_IMPL_COMPARE(...) VVI_IMPL_COMPARE__( __VA_ARGS__. void) 
 
-#define VVI_IMPL_COMPARE__(impl_t, ...) \
-  friend bool compare(impl_t const& lhs, impl_t const& rhs) { \
-    return VVI_ICOM_EXPAND__( __VA_ARGS__); \
-  }
 #else
-#define VVI_IMPL_DEEPCOPY(impl_t, ...)
-#define VVI_IMPL_COMPARE(impl_t, ...)
+
+#define VVI_IMPL_DEEPCOPY(...)
+#define VVI_IMPL_COMPARE(...)
+
 #endif
 
 // ----------------------------------------------------------------------------
@@ -105,37 +95,39 @@ using SPHERALCopyable = chai::CHAICopyable;
 #define VVI_VALUE_COPY_CTOR(value_t) \
   value_t(value_t const& rhs) : Base(rhs) {}
 
-////#define VVI_VALUE_ASSIGNEMT_OP() \
-////  ValueType& operator=(ValueType const& rhs) { \
-////    Base::operator=(rhs); \
-////    return *this; \
-////  }
-//
-////#define VVI_VALUE_EQ_OP() \
-////  bool operator==(const ValueType& rhs) const \
-////    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
-//
-////#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
-////  value_t& operator=(value_t const& rhs) { \
-////    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
-////    return *this; \
-////  }
+/*
+#define VVI_VALUE_ASSIGNEMT_OP() \
+  ValueType& operator=(ValueType const& rhs) { \
+    Base::operator=(rhs); \
+    return *this; \
+  }
 
+#define VVI_VALUE_EQ_OP() \
+  bool operator==(const ValueType& rhs) const \
+    { return compare(VVI_SPTR_DATA_REF__(), rhs.VVI_SPTR_DATA_REF__()); }
+
+#define VVI_VALUE_TYPE_DEFAULT_ASSIGNMENT_OP(value_t) \
+  value_t& operator=(value_t const& rhs) { \
+    ViewType::operator=( ViewType( new ImplType(deepCopy(rhs.ViewInterfaceType::sptr_data())) ) ); \
+    return *this; \
+  }
+*/
 
 // ----------------------------------------------------------------------------
 // VIEW class definition macros
 // ----------------------------------------------------------------------------
 
-//#define VVI_VIEW_COPY_CTOR(view_t) \
-//  view_t(view_t const& rhs) = default;
-//
-//#define VVI_VIEW_ASSIGNEMT_OP() \
-//  SPHERAL_HOST_DEVICE ViewType& operator=(ViewType const& rhs) = default;
-//
-//#define VVI_VIEW_EQ_OP() \
-//  bool operator==(const ViewType& rhs) const \
-//    { return sptr_data() == rhs.sptr_data(); }
+/*
+#define VVI_VIEW_COPY_CTOR(view_t) \
+  view_t(view_t const& rhs) = default;
 
+#define VVI_VIEW_ASSIGNEMT_OP() \
+  SPHERAL_HOST_DEVICE ViewType& operator=(ViewType const& rhs) = default;
+
+#define VVI_VIEW_EQ_OP() \
+  bool operator==(const ViewType& rhs) const \
+    { return sptr_data() == rhs.sptr_data(); }
+*/
 
 // ----------------------------------------------------------------------------
 // Special case macros
@@ -153,12 +145,14 @@ public: \
   type(type const&) = delete; \
   type& operator=(type const&) = delete;
 
-//// Used for allowing default class behavior from the compiler. Typically this
-//// will be used for invoking a basic view interface when using poiter syntax.
-//#define VVI_VIEW_DEFAULT(view_t) \
-//  VVI_VIEW_DEF_CTOR(view_t) \
-//  VVI_VIEW_COPY_CTOR(view_t) \
-//  VVI_VIEW_ASSIGNEMT_OP()
+/*
+// Used for allowing default class behavior from the compiler. Typically this
+// will be used for invoking a basic view interface when using poiter syntax.
+#define VVI_VIEW_DEFAULT(view_t) \
+  VVI_VIEW_DEF_CTOR(view_t) \
+  VVI_VIEW_COPY_CTOR(view_t) \
+  VVI_VIEW_ASSIGNEMT_OP()
+*/
 
 // Creates a function that allows interface objects to access member variables.
 // through a function of the same name as the variable itself.

@@ -100,6 +100,13 @@ namespace detail {
 
 // DeepCopy macro helpers
 
+#define VVI_IMPL_DEEPCOPY__(impl_t, ...) \
+  friend impl_t deepCopy(impl_t const& rhs) { \
+    impl_t result(rhs); \
+    VVI_IDC_EXPAND__( __VA_ARGS__ ) \
+    return result; \
+  }
+
 #define VIDCH__(arg) result.arg = deepCopy(rhs.arg);
 
 #define VVI_IDC_EXPAND__(...) MKFNS(VVI_IDC_EXPAND__,##__VA_ARGS__)
@@ -133,6 +140,11 @@ namespace detail {
   VIDCH__(arg7) VIDCH__(arg8) VIDCH__(arg9)
 
 // Compare macro helpers
+
+#define VVI_IMPL_COMPARE__(impl_t, ...) \
+  friend bool compare(impl_t const& lhs, impl_t const& rhs) { \
+    return VVI_ICOM_EXPAND__( __VA_ARGS__); \
+  }
 
 #define VICOMH__(arg) vvi::detail::compare(lhs.arg, rhs.arg)
 
@@ -219,10 +231,6 @@ public: \
 #define VVI_VIEW_DEF_CTOR(view_t) \
   view_t() = default;
 
-// TODO: Is this still relevant?
-//#define VVI_VIEW_SHALLOW_COPY__(view_t) \
-//public: \
-//  void shallowCopy(view_t const& rhs) {*this = rhs;}
 
 #define VIEW_INTERFACE_METACLASS(value_t, view_t, impl_t) \
 public: \
