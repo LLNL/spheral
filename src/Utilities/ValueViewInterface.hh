@@ -33,7 +33,7 @@ using SPHERALCopyable = chai::CHAICopyable;
 #if defined(VVI_ENABLED)
 
 #define VVI_IMPL_DEEPCOPY(...) VVI_IMPL_DEEPCOPY__( __VA_ARGS__ , void)
-#define VVI_IMPL_COMPARE(...) VVI_IMPL_COMPARE__( __VA_ARGS__. void) 
+#define VVI_IMPL_COMPARE(...) VVI_IMPL_COMPARE__( __VA_ARGS__, void) 
 
 #else
 

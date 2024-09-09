@@ -123,7 +123,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
-  const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
+  const auto result = 3u*RAJA_MIN(mN1, size_t(RAJA_MAX(0.0, x - mXmin)/mXstep));
   ENSURE(result <= 3u*mN1);
   return result;
 }
@@ -156,7 +156,7 @@ QuadraticInterpolator::xstep() const {
 }
 
 inline
-const std::vector<double>&
+const vvi::vector<double>&
 QuadraticInterpolator::coeffs() const {
   return mcoeffs;
 }

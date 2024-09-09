@@ -45,6 +45,7 @@ namespace detail {
 
     SPHERAL_HOST_DEVICE ViewInterface() = default;
     SPHERAL_HOST ViewInterface(SmartPtrType&& rhs) : SmartPtrType(std::forward<SmartPtrType>(rhs)) {}
+    SPHERAL_HOST_DEVICE bool operator==(ViewInterface const& rhs) const { return this->sptr_data() == rhs.sptr_data(); }
   };
 
 
@@ -66,9 +67,9 @@ namespace detail {
   #if !defined(SPHERAL_ENABLE_VVI)
     ValueInterface(m_ImplType* rhs) : view_type((rhs)) {}
   #endif
-    ValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {std::cout << "fwd Ctor\n";}
-    ValueInterface(ValueInterface const& rhs) : ValueInterface(VVI_MAKE_SHARED<m_ImplType>( deepCopy(rhs.sptr_data()) )) {std::cout << "Copy Ctor\n";}
-    ValueInterface& operator=(ValueInterface const& rhs) { ViewType::operator=( VVI_MAKE_SHARED<m_ImplType>( deepCopy( rhs.sptr_data() ) ) ); std::cout << "Ass Op/n"; return *this; }
+    ValueInterface(m_SmartPtrType&& s_ptr) : view_type(std::forward<m_SmartPtrType>(s_ptr)) {}
+    ValueInterface(ValueInterface const& rhs) : ValueInterface(VVI_MAKE_SHARED<m_ImplType>( deepCopy(rhs.sptr_data()) )) {}
+    ValueInterface& operator=(ValueInterface const& rhs) { ViewType::operator=( VVI_MAKE_SHARED<m_ImplType>( deepCopy( rhs.sptr_data() ) ) ); return *this; }
     bool operator==(ValueInterface const& rhs) const { return compare(this->sptr_data(), rhs.sptr_data()); }
   };
 
@@ -78,7 +79,7 @@ namespace detail {
   { return lhs == rhs; }
 
   template<typename elem>
-  bool compare(Spheral::ManagedVector<elem> const& lhs, Spheral::ManagedVector<elem> const& rhs)
+  bool compare(::Spheral::ManagedVector<elem> const& lhs, ::Spheral::ManagedVector<elem> const& rhs)
   { return ::Spheral::compare(lhs, rhs); }
 
 }

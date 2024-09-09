@@ -97,11 +97,13 @@ TEST(QuadraticInterpolatorTest, OperatorParen)
   SPHERAL_ASSERT_EQ(q_int(3, 0), 1.5);
   SPHERAL_ASSERT_EQ(q_int(4, 0), 2);
 }
+
+#ifdef SPHERAL_ENABLE_VVI
 // Setting up G Test for QuadraticInterpolator
 template<typename T>
 class QuadraticInterpolatorTypedTest : public::testing::Test {};
 
 // All QuadraticInterpolatorTets cases will run over each type in EXEC_TYPES.
 TYPED_TEST_CASE(QuadraticInterpolatorTypedTest, EXEC_TYPES);
-
-//#include "quadratic_interpolator_view_tests.hh"
+#include "quadratic_interpolator_view_tests.hh"
+#endif

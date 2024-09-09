@@ -20,6 +20,7 @@ VVI_IMPL_BEGIN
 
 class QuadraticInterpolator {
 public:
+  using CoeffsType = vvi::vector<double>;
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
   template<typename Func>
@@ -35,7 +36,7 @@ public:
                   const std::vector<double>& yvals);
 
   // Comparisons
-  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolator& rhs) const;
+  bool operator==(const QuadraticInterpolator& rhs) const;
 
   // Interpolate for the y value
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
@@ -55,16 +56,16 @@ public:
   SPHERAL_HOST_DEVICE double xmin() const;                        // Minimum x coordinate for table              
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table              
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values            
-  SPHERAL_HOST_DEVICE const std::vector<double>& coeffs() const;  // the fitting coefficients
+  SPHERAL_HOST_DEVICE const CoeffsType& coeffs() const;  // the fitting coefficients
   
-  VVI_IMPL_DEEPCOPY(QuadraticInterpolator)
+  VVI_IMPL_DEEPCOPY(QuadraticInterpolator, mcoeffs)
   VVI_IMPL_COMPARE(QuadraticInterpolator, mN1, mXmin, mXmax, mcoeffs)
 private:
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1;
   double mXmin, mXmax, mXstep;
-  std::vector<double> mcoeffs;
+  CoeffsType mcoeffs;
 };
 
 VVI_IMPL_END
@@ -80,6 +81,9 @@ class PTR_VIEW_METACLASS_DEFAULT \
   ((QuadraticInterpolator), (QuadraticInterpolatorView), (code))
 
 class QuadraticInterpolator__(
+
+  using CoeffsType = typename ImplType::CoeffsType;
+
   template<typename Func>
   QuadraticInterpolator(const double xmin,
                         const double xmax,
@@ -112,7 +116,7 @@ class QuadraticInterpolator__(
   double xmin()  const { return VVI_IMPL_INST().xmin(); }
   double xmax()  const { return VVI_IMPL_INST().xmax(); }
   double xstep() const { return VVI_IMPL_INST().xstep(); }
-  const std::vector<double>& coeffs() const { return VVI_IMPL_INST().coeffs(); }
+  const vvi::vector<double>& coeffs() const { return VVI_IMPL_INST().coeffs(); }
 );
 
 #endif // VVI_ENABLED
