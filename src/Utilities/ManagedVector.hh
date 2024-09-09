@@ -120,7 +120,7 @@ public:
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
   }
 #else
-  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {printf("MV Copy w/ Ref Semantics.\n");}
+  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
 #endif
 
   // ---------------------

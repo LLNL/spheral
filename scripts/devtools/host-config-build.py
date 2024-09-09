@@ -114,7 +114,7 @@ def main():
 
     if args.test:
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      print("~~~~~ Running test Spheral")
+      print("~~~~~ Running make test Spheral")
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
       sexe("make test".format(), echo=True, ret_output=False)
