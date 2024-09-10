@@ -8,7 +8,7 @@
   variables:
     HOSTNAME: 'ruby'
     PARTITION: pdebug
-    BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
+    BUILD_ALLOC: salloc -N 1 -p pdebug -t 60 --exclusive
     TEST_ALLOC: ''
   extends: [.on_toss_4_x86]
 

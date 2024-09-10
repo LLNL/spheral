@@ -53,7 +53,7 @@ TEST_F(FieldTest, NameNodeListCtor)
 
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor)
 {
-  using WORK_EXEC_POLICY = TypeParam;
+  //using WORK_EXEC_POLICY = TypeParam;
 
   {
     std::string field_name = "Field::NodeListValCtor";
@@ -69,7 +69,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor)
 
 GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor)
 {
-  using WORK_EXEC_POLICY = TypeParam;
+  //using WORK_EXEC_POLICY = TypeParam;
 
   {
     std::string field_name = "Field::CopyCtor";
@@ -104,7 +104,7 @@ TEST_F(FieldTest, AssignmentFieldBase)
 
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField)
 {
-  using WORK_EXEC_POLICY = TypeParam;
+  //using WORK_EXEC_POLICY = TypeParam;
 
   {
     std::string field_name = "Field::AssignmentField";
@@ -188,7 +188,7 @@ TEST_F(FieldTest, AssignmentDataType)
 
 GPU_TYPED_TEST_P(FieldTypedTest, size)
 {
-  using WORK_EXEC_POLICY = TypeParam;
+  //using WORK_EXEC_POLICY = TypeParam;
 
   {
     std::string field_name = "Field::size";
