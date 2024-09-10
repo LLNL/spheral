@@ -86,6 +86,9 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_DEV_BUILD`` (On, *Off*)
   Builds separate internal C++ libraries for faster code development.
 
+``SPHERAL_ENABLE_VVI`` (On, *Off*)
+  Builds Spheral with the experimental Value-View Interface for GPU porting capabilities.
+
 ``<TPL-Name-Here>_DIR``
   Directory of previously built TPL.
 
