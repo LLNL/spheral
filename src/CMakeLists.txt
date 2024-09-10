@@ -21,7 +21,6 @@ list(APPEND _packages
   DataBase
   DataOutput
   Distributed
-  FSISPH
   Field
   FieldOperations
   FileIO
@@ -50,6 +49,10 @@ endif()
 
 if (SPHERAL_ENABLE_EXTERNAL_FORCE)
   list(APPEND _packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND _packages FSISPH)
 endif()
 
 if (SPHERAL_ENABLE_GRAVITY)

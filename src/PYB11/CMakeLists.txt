@@ -24,7 +24,6 @@ set (_python_packages
   SPH
   CRKSPH
   DEM
-  FSISPH
   ArtificialViscosity
   Mesh
   Damage
@@ -54,6 +53,10 @@ endif()
 
 if (SPHERAL_ENABLE_EXTERNAL_FORCE)
   list(APPEND _python_packages ExternalForce)
+endif()
+
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND _python_packages FSISPH)
 endif()
 
 if (SPHERAL_ENABLE_GRAVITY)

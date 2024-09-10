@@ -18,6 +18,10 @@ if (NOT ENABLE_CXXONLY)
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
   endif()
 
+  if (NOT SPHERAL_ENABLE_FSISPH)
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not fsisph\"'")
+  endif()
+
   if (NOT SPHERAL_ENABLE_GSPH)
      list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not gsph\"'")
   endif()
