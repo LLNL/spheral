@@ -77,14 +77,13 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
+# Retrieve the global list populated in spheral_obj_add_library
+get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 if(NOT ENABLE_DEV_BUILD)
-  # Retrieve the global list populated in spheral_obj_add_library
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-
   set(CXX_sources spheralCXX.cc)
-  # Must use quotes when passing lists as inputs for functions
-  spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 endif()
+# Must use quotes when passing lists as inputs for functions
+spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 
 # This calls LLNLSpheralInstallObjs.cmake
 if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})

@@ -188,6 +188,4 @@ if (ENABLE_TESTS)
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
-if(NOT ENABLE_DEV_BUILD)
-  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
-endif()
+include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

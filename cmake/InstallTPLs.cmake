@@ -67,9 +67,15 @@ endif()
 # Find pre-compiled TPLs
 #-----------------------------------------------------------------------------------
 
+# Any targets that used find package must be added to these lists
+set(SPHERAL_FP_TPLS )
+set(SPHERAL_FP_DIRS )
+
 # Use find_package to get axom (which brings in fmt) and patch fmt
 find_package(axom REQUIRED NO_DEFAULT_PATH PATHS ${axom_DIR}/lib/cmake)
 list(APPEND SPHERAL_BLT_DEPENDS axom )
+list(APPEND SPHERAL_FP_TPLS axom)
+list(APPEND SPHERAL_FP_DIRS ${axom_DIR}/lib/cmake)
 
 # This is a hack to handle transitive issues that come
 # from using object libraries with newer version of axom
@@ -87,6 +93,8 @@ message("-----------------------------------------------------------------------
 find_package(adiak REQUIRED NO_DEFAULT_PATH PATHS ${adiak_DIR}/lib/cmake/adiak)
 if(adiak_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS adiak::adiak)
+  list(APPEND SPHERAL_FP_TPLS adiak)
+  list(APPEND SPHERAL_FP_DIRS ${adiak_DIR})
   message("Found Adiak External Package")
 endif()
 message("-----------------------------------------------------------------------------")
@@ -97,6 +105,8 @@ if (ENABLE_TIMER)
   find_package(caliper REQUIRED NO_DEFAULT_PATH PATHS ${caliper_DIR}/share/cmake/caliper)
   if(caliper_FOUND)
     list(APPEND SPHERAL_BLT_DEPENDS caliper)
+    list(APPEND SPHERAL_FP_TPLS caliper)
+    list(APPEND SPHERAL_FP_DIRS ${caliper_DIR})
     message("Found Caliper External Package")
   endif()
 endif()
@@ -118,6 +128,8 @@ if(chai_DIR AND USE_EXTERNAL_CHAI)
   if (chai_FOUND) 
     message("Found chai External Package.")
   endif()
+  list(APPEND SPHERAL_FP_TPLS chai)
+  list(APPEND SPHERAL_FP_DIRS ${chai_DIR})
 else()
   message("Using chai Submodule.")
   set(chai_DIR "${SPHERAL_ROOT_DIR}/extern/chai")
@@ -126,6 +138,10 @@ else()
 endif()
 
 list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
+list(APPEND SPHERAL_FP_TPLS RAJA umpire)
+list(APPEND SPHERAL_FP_DIRS ${raja_DIR} ${umpire_DIR})
+set_property(GLOBAL PROPERTY SPHERAL_FP_TPLS ${SPHERAL_FP_TPLS})
+set_property(GLOBAL PROPERTY SPHERAL_FP_DIRS ${SPHERAL_FP_DIRS})
 
 message("-----------------------------------------------------------------------------")
 
