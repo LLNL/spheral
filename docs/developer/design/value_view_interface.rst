@@ -58,17 +58,17 @@ Definitions
 -----------
 
 Implementation Class (\ ``ImplType``\ )
-#######################################
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Implementation Class is a class targeted for use with the VVI pattern. This is usually a pre-existing class that a developer wants to use on the GPU. VVI is required when it's current members or class hierarchy / structure are not conventionally suited for device side use.
 
 Value Class (\ ``ValueType``\ )
-###############################
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 An interface to the underlying implmentation class. This class is named the same as the ``ImplType``\ , and thus should require no changes to the current user code to use this type. The ``ValueType`` uses traditional C++ value copy semantics by default. However the semantic interface of how the type should be used should directly match the semantic conditions of the original ``ImplType``.
 
 View Class (\ ``ViewType``\ )
-#############################
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The View interface is what allows VVI to work seamlessly with ``RAJA`` execution contexts. A ``ViewType`` will have reference semantic like behavior. Meaning that copy construction of a ``ViewType`` does not invoke an allocation of the underlying class data, it instead references the underlying ``ValueType`` instance that it is associated with.
 
