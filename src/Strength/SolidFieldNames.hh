@@ -41,6 +41,8 @@ struct SolidFieldNames {
   static const std::string fragmentIDs;
   static const std::string particleTypes;
   static const std::string meltSpecificEnergy;
+  static const std::string mask;
+  static const std::string damagedPressure;
 };
 
 }

@@ -9,12 +9,27 @@ if (NOT ENABLE_CXXONLY)
   string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" "* " VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
 
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
+
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"level<100\"'")
   endif()
+
   if (NOT ENABLE_MPI)
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
   endif()
+
+  if (NOT SPHERAL_ENABLE_FSISPH)
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not fsisph\"'")
+  endif()
+
+  if (NOT SPHERAL_ENABLE_GSPH)
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not gsph\"'")
+  endif()
+
+  if (NOT SPHERAL_ENABLE_SVPH)
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not svph\"'")
+  endif()
+
   if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
   endif()

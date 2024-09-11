@@ -1,13 +1,13 @@
 
 # Solid FSISPH
 #
-#ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial)")
-#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#ATS:fsisph1 = test(           SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial)", fsisph=True)
+#ATS:fsisph2 = testif(fsisph1, SELF, "--fsisph True --solid True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with FSISPH -- 1-D (serial) RESTART CHECK", fsisph=True)
 #
 # GSPH
 #
-#ATS:gsph1 = test(         SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial)")
-#ATS:gsph2 = testif(gsph1, SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial) RESTART CHECK")
+#ATS:gsph1 = test(         SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial)", gsph=True)
+#ATS:gsph2 = testif(gsph1, SELF, "--gsph True --nx1 500 --nx2 30 --cfl 0.45 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Water-Gas Sod problem with GSPH -- 1-D (serial) RESTART CHECK", gsph=True)
 #
 
 import os, sys

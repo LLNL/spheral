@@ -4,7 +4,7 @@
 #
 # Solid FSISPH
 #
-#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=8)
+#ATS:t100 = test(        SELF, "--clearDirectories True --checkError True --goalTime 5.0 --fsisph True --nrSpecimen 15 ", label="Diametral Compression Test FSISPH -- 2-D", np=8, fsisph=True)
 
 from Spheral2d import *
 

@@ -1,6 +1,7 @@
 include_directories(.)
 set(DataBase_inst
     DataBase
+    ReplaceWithRatioPolicy
     State
     StateBase
     StateDerivatives
@@ -34,6 +35,7 @@ set(DataBase_headers
     PureReplaceBoundedStateInline.hh
     ReplaceBoundedState.hh
     ReplaceBoundedStateInline.hh
+    ReplaceWithRatioPolicy.hh
     State.hh
     StateBase.hh
     StateBaseInline.hh
