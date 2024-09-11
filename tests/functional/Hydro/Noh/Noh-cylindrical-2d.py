@@ -465,9 +465,6 @@ output("hydro.densityUpdate")
 #output("hydro._smoothingScaleMethod.HEvolution")
 if crksph:
     output("hydro.correctionOrder")
-if asph:
-    #hydro._smoothingScaleMethod.fHourGlass = fHourGlass
-    output("hydro._smoothingScaleMethod.fHourGlass")
 
 packages = [hydro]
 

@@ -9,6 +9,9 @@
 #define __Spheral_ASPHSmooothingScale__
 
 #include "SmoothingScale/SmoothingScaleBase.hh"
+#include "Utilities/Functors.hh"
+
+#include <memory>
 
 namespace Spheral {
 
@@ -22,11 +25,11 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
   using FacetedVolume = typename Dimension::FacetedVolume;
+  using HidealFilterType = PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, SymTensor, SymTensor>;
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,
-                     const TableKernel<Dimension>& W,
-                     const Scalar fHourGlass);
+                     const TableKernel<Dimension>& W);
   ASPHSmoothingScale() = delete;
   virtual ~ASPHSmoothingScale() {}
 
@@ -37,16 +40,6 @@ public:
   // It is assumed after this method has been called it is safe to call
   // Physics::registerState to create full populated State objects.
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
-
-  // A second optional method to be called on startup, after Physics::initializeProblemStartup
-  // has been called.
-  // This method is called after independent variables have been initialized and put into
-  // the state and derivatives. During this method, the dependent state, such as
-  // temperature and pressure, is initialized so that all the fields in the initial
-  // state and derivatives objects are valid.
-  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
-                                                    State<Dimension>& state,
-                                                    StateDerivatives<Dimension>& derivs) override;
 
   // Register the state you want carried around (and potentially evolved), as
   // well as the policies for such evolution.
@@ -78,33 +71,28 @@ public:
                                     StateDerivatives<Dimension>& derivs) override;
 
   // We require the Voronoi-like cells per point
-  virtual bool requireVoronoiCells() const override                            { return true; }
+  virtual bool requireVoronoiCells() const override                            { return this->HEvolution() == HEvolutionType::IdealH; }
 
   // Access our internal data
-  Scalar                                                 fHourGlass()    const { return mfHourGlass; }
   const TableKernel<Dimension>&                          WT()            const { return mWT; }
   const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
-  const FieldList<Dimension, Vector>&                    firstMoment()   const { return mFirstMoment; }
   const FieldList<Dimension, SymTensor>&                 secondMoment()  const { return mSecondMoment; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
 
-  // Attributes we can set
-  void fHourGlass(const Scalar x) { mfHourGlass = x; }
+  // Optional user hook providing a functor to manipulate the ideal H vote
+  void HidealFilter(std::shared_ptr<HidealFilterType>& functorPtr) { mHidealFilterPtr = functorPtr; }
 
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "ASPHSmoothingScale"; }
-  virtual void dumpState(FileIO& file, const std::string& pathName) const override;
-  virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mfHourGlass;
   const TableKernel<Dimension>& mWT;
   FieldList<Dimension, Scalar> mZerothMoment;
-  FieldList<Dimension, Vector> mFirstMoment;
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
+  std::shared_ptr<HidealFilterType> mHidealFilterPtr;
 };
 
 }
