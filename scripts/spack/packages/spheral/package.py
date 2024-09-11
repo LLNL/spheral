@@ -50,7 +50,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # Zlib fix has been merged into conduit, using develop until next release.
     depends_on('conduit@0.9.1 +shared +hdf5~hdf5_compat -test ~parmetis', type='build')
     depends_on('conduit +hdf5', type='build', when='^hdf5@1.8.0:1.8')
-    depends_on('axom@0.9.0 ~shared +hdf5 -lua -examples -python -fortran', type='build')
+    depends_on('axom@0.9.0 +shared +hdf5 -lua -examples -python -fortran', type='build')
     depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic', type='build')
     mpi_tpl_list = ["hdf5", "conduit", "axom", "caliper", "adiak~shared"]
     for ctpl in mpi_tpl_list:
