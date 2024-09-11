@@ -8,12 +8,13 @@ from SmoothingScaleBase import *
 class ASPHSmoothingScale(SmoothingScaleBase):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using HidealFilterType = typename ASPHSmoothingScale<%(Dimension)s>::HidealFilterType;
 """
 
     #...........................................................................
@@ -92,3 +93,5 @@ call Physics::registerState for instance to create full populated State objects.
     WT = PYB11property("const TableKernel<%(Dimension)s>&", "WT", doc="The interpolation kernel")
     zerothMoment = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "zerothMoment", doc="The zeroth moment storage FieldList")
     secondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "secondMoment", doc="The second moment storage FieldList")
+    cellSecondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "cellSecondMoment", doc="The second moment of the Voronoi cells")
+    HidealFilter = PYB11property("std::shared_ptr<HidealFilterType>", "HidealFilter", "HidealFilter", doc="Optional function to manipulate the Hideal calculation")

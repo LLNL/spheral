@@ -71,16 +71,17 @@ public:
                                     StateDerivatives<Dimension>& derivs) override;
 
   // We require the Voronoi-like cells per point
-  virtual bool requireVoronoiCells() const override                            { return this->HEvolution() == HEvolutionType::IdealH; }
+  virtual bool requireVoronoiCells() const override                               { return this->HEvolution() == HEvolutionType::IdealH; }
 
   // Access our internal data
-  const TableKernel<Dimension>&                          WT()            const { return mWT; }
-  const FieldList<Dimension, Scalar>&                    zerothMoment()  const { return mZerothMoment; }
-  const FieldList<Dimension, SymTensor>&                 secondMoment()  const { return mSecondMoment; }
+  const TableKernel<Dimension>&                          WT()            const    { return mWT; }
+  const FieldList<Dimension, Scalar>&                    zerothMoment()  const    { return mZerothMoment; }
+  const FieldList<Dimension, SymTensor>&                 secondMoment()  const    { return mSecondMoment; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
 
   // Optional user hook providing a functor to manipulate the ideal H vote
-  void HidealFilter(std::shared_ptr<HidealFilterType>& functorPtr) { mHidealFilterPtr = functorPtr; }
+  std::shared_ptr<HidealFilterType> HidealFilter() const                          { return mHidealFilterPtr; }
+  void HidealFilter(std::shared_ptr<HidealFilterType> functorPtr)                 { mHidealFilterPtr = functorPtr; }
 
   //****************************************************************************
   // Methods required for restarting.
