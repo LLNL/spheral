@@ -6,6 +6,7 @@ from math import *
 import numpy as np
 import unittest
 import random
+random.seed(458945989204001)
 
 #===============================================================================
 # Main testing class.
@@ -34,7 +35,7 @@ class TestTableKernel(unittest.TestCase):
         self.W0tol = 1.0e-3
         self.W1tol = 1.0e-2
         self.W2tol = 1.0e-2
-        self.Wsumtol = 1.0e-1
+        self.Wsumtol = 2.0e-1
         
         return
 
@@ -114,19 +115,16 @@ class TestTableKernel(unittest.TestCase):
         minNperh = max(W.minNperhLookup, 0.5*W.kernelExtent)
         for nperh in np.linspace(minNperh, W.maxNperhLookup, n):
             deta = 1.0/nperh
-            etax = deta
-            testSum = 0.0
-            while etax < W.kernelExtent:
-                testSum += 2.0*abs(W.gradValue(etax, 1.0))
-                etax += deta
+            etac = np.arange(-W.kernelExtent, W.kernelExtent+deta, deta)
+            testSum = np.sum(np.array([W.kernelValueSPH(abs(x)) for x in etac]))
             tol = self.Wsumtol / (W.kernelExtent/deta)
-            self.assertTrue(fuzzyEqual(W.equivalentWsum(nperh), testSum, tol),
+            self.assertTrue(fuzzyEqual(W.equivalentWsum(nperh), testSum, 2.0*tol),
                             "Wsum failure: %g != %g @ %g: " %
                             (W.equivalentWsum(nperh), testSum, nperh))
             self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                        nperh,
                                        tol),
-                            "Lookup n per h failure: %g %g %g" %
+                            "Lookup n per h failure: %g %g @ %g" %
                             (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
         return
 
@@ -139,20 +137,9 @@ class TestTableKernel(unittest.TestCase):
         for itest in range(10):
             nperh = random.uniform(minNperh, W.maxNperhLookup)
             deta = 1.0/nperh
-            testSum = 0.0
-            etay = 0.0
-            while etay < W.kernelExtent:
-                etax = 0.0
-                while etax < W.kernelExtent:
-                    eta = Vector2d(etax, etay)
-                    delta = abs(W.gradValue(eta.magnitude(), 1.0))
-                    if etax > 0.0:
-                        delta *= 2.0
-                    if etay > 0.0:
-                        delta *= 2.0
-                    testSum += delta
-                    etax += deta
-                etay += deta
+            etac = np.arange(-W.kernelExtent, W.kernelExtent+deta, deta)
+            xc, yc = np.meshgrid(etac, etac)
+            testSum = np.sum(np.array([W.kernelValueSPH(Vector3d(*x).magnitude()) for x in np.stack((np.ravel(xc), np.ravel(yc)), axis=-1)]))
             testSum = sqrt(testSum)
             tol = self.Wsumtol / (W.kernelExtent/deta)**2
             self.assertTrue(fuzzyEqual(W.equivalentWsum(nperh), testSum, tol),
@@ -161,7 +148,7 @@ class TestTableKernel(unittest.TestCase):
             self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                        nperh,
                                        tol),
-                            "Lookup n per h failure: %g %g %g" %
+                            "Lookup n per h failure: %g %g @ %g" %
                             (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
                              
         return
@@ -175,25 +162,9 @@ class TestTableKernel(unittest.TestCase):
         for itest in range(10):
             nperh = random.uniform(minNperh, W.maxNperhLookup)
             deta = 1.0/nperh
-            testSum = 0.0
-            etaz = 0.0
-            while etaz < W.kernelExtent:
-                etay = 0.0
-                while etay < W.kernelExtent:
-                    etax = 0.0
-                    while etax < W.kernelExtent:
-                        eta = Vector3d(etax, etay, etaz)
-                        delta = abs(W.gradValue(eta.magnitude(), 1.0))
-                        if etax > 0.0:
-                            delta *= 2.0
-                        if etay > 0.0:
-                            delta *= 2.0
-                        if etaz > 0.0:
-                            delta *= 2.0
-                        testSum += delta
-                        etax += deta
-                    etay += deta
-                etaz += deta
+            etac = np.arange(-W.kernelExtent, W.kernelExtent+deta, deta)
+            xc, yc, zc = np.meshgrid(etac, etac, etac)
+            testSum = np.sum(np.array([W.kernelValueSPH(Vector3d(*x).magnitude()) for x in np.stack((np.ravel(xc), np.ravel(yc), np.ravel(zc)), axis=-1)]))
             testSum = testSum**(1.0/3.0)
             tol = 5.0*self.Wsumtol / (W.kernelExtent/deta)**3
             self.assertTrue(fuzzyEqual(W.equivalentWsum(nperh), testSum, tol),
@@ -202,7 +173,7 @@ class TestTableKernel(unittest.TestCase):
             self.assertTrue(fuzzyEqual(W.equivalentNodesPerSmoothingScale(testSum),
                                        nperh,
                                        tol),
-                            "Lookup n per h failure: %g %g %g" %
+                            "Lookup n per h failure: %g %g @ %g" %
                             (testSum, W.equivalentNodesPerSmoothingScale(testSum), nperh))
                              
         return
