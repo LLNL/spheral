@@ -91,12 +91,12 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
     add_library(Spheral_${package_name} INTERFACE)
     target_link_libraries(Spheral_${package_name} INTERFACE ${_cxx_obj_list})
   else()
-    # Build static spheral C++ library
+    # Build static or shared spheral C++ library
     blt_add_library(NAME Spheral_${package_name}
       HEADERS     ${${package_name}_headers}
       SOURCES     ${${package_name}_sources}
       DEPENDS_ON  ${_cxx_obj_list} ${SPHERAL_CXX_DEPENDS} ${SPHERAL_BLT_DEPENDS}
-      SHARED      FALSE)
+      SHARED      ${ENABLE_SHARED})
   endif()
   target_include_directories(Spheral_${package_name} SYSTEM PRIVATE ${SPHERAL_SUBMOD_INCLUDES})
   if(ENABLE_CUDA)
