@@ -221,7 +221,7 @@ SolidFSISPHHydroBase(DataBase<Dimension>& dataBase,
 
     mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
     mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
-    mDamagedPressure = dataBase.newFluidFieldList(0.0, FSIFieldNames::damagedPressure);
+    mDamagedPressure = dataBase.newFluidFieldList(0.0, SolidFieldNames::damagedPressure);
     mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
     mBulkModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::bulkModulus);
     mShearModulus = dataBase.newSolidFieldList(0.0, SolidFieldNames::shearModulus);
@@ -329,7 +329,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeSolidFieldList(mShearModulus, 0.0, SolidFieldNames::shearModulus, false);
   dataBase.resizeSolidFieldList(mYieldStrength, 0.0, SolidFieldNames::yieldStrength, false);
   dataBase.resizeSolidFieldList(mPlasticStrain0, 0.0, SolidFieldNames::plasticStrain + "0", false);
-  dataBase.resizeSolidFieldList(mDamagedPressure, 0.0, FSIFieldNames::damagedPressure, false);
+  dataBase.resizeSolidFieldList(mDamagedPressure, 0.0, SolidFieldNames::damagedPressure, false);
   dataBase.resizeSolidFieldList(mInterfaceNormals, Vector::zero, FSIFieldNames::interfaceNormals, false);
   dataBase.resizeSolidFieldList(mInterfaceFraction, 0.0, FSIFieldNames::interfaceFraction, false); 
   dataBase.resizeSolidFieldList(mInterfaceSmoothness, 0.0, FSIFieldNames::interfaceSmoothness, false);
@@ -618,7 +618,7 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  FieldList<Dimension, Scalar> damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  FieldList<Dimension, Scalar> damagedPressure = state.fields(SolidFieldNames::damagedPressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
@@ -670,7 +670,7 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   FieldList<Dimension, Vector> velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   FieldList<Dimension, Scalar> pressure = state.fields(HydroFieldNames::pressure, 0.0);
-  FieldList<Dimension, Scalar> damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  FieldList<Dimension, Scalar> damagedPressure = state.fields(SolidFieldNames::damagedPressure, 0.0);
   FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   FieldList<Dimension, SymTensor> S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   FieldList<Dimension, Scalar> K = state.fields(SolidFieldNames::bulkModulus, 0.0);
