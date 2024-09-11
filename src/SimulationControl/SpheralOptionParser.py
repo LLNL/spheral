@@ -68,7 +68,7 @@ def InitTimers(caliper_config, filename):
         TimerMgr.add(caliper_config)
         TimerMgr.start()
     else:
-        import random, os, sys
+        import os, sys
         if (filename):
             testname = filename
         else:

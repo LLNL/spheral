@@ -101,7 +101,10 @@ message("-----------------------------------------------------------------------
 # Use find_package to get caliper
 if (ENABLE_TIMER)
   # Save caliper_DIR because it gets overwritten by find_package
-  set(CONFIG_CALIPER_DIR "${caliper_DIR}" CACHE PATH "Configuration Caliper directory")
+  if(NOT CONFIG_CALIPER_DIR)
+    # Only save if it does not exists already
+    set(CONFIG_CALIPER_DIR "${caliper_DIR}" CACHE PATH "Configuration Caliper directory")
+  endif()
   find_package(caliper REQUIRED NO_DEFAULT_PATH PATHS ${caliper_DIR}/share/cmake/caliper)
   if(caliper_FOUND)
     list(APPEND SPHERAL_BLT_DEPENDS caliper)
