@@ -6,7 +6,6 @@ include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralAddLibs.cmake)
 include(${SPHERAL_CMAKE_MODULE_PATH}/spheral/SpheralInstallPythonFiles.cmake)
 
 include_directories(.)
-include_directories(${PROJECT_BINARY_DIR}/src)
 
 set(SPHERAL_PYTHON_INSTALL ${PROJECT_BINARY_DIR}/lib)
 

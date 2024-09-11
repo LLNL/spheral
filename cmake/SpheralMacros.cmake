@@ -59,7 +59,7 @@ macro(spheral_add_test)
   blt_add_library(
     NAME ${original_test_name}_lib
     SOURCES ${TEST_LIB_SOURCE}
-    SOURCES ${CMAKE_SOURCE_DIR}/src/spheralCXX.cc
+    SOURCES ${SPHERAL_ROOT_DIR}/src/spheralCXX.cc
     DEPENDS_ON ${SPHERAL_BLT_DEPENDS} ${original_deps}
     SHARED False 
     )

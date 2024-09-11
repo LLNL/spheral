@@ -148,8 +148,9 @@ set_property(GLOBAL PROPERTY SPHERAL_CXX_DEPENDS "${SPHERAL_CXX_DEPENDS}")
 #-------------------------------------------------------------------------------
 # Prepare to build the src
 #-------------------------------------------------------------------------------
-configure_file(src/config.hh.in
+configure_file(${SPHERAL_ROOT_DIR}/src/config.hh.in
   ${PROJECT_BINARY_DIR}/src/config.hh)
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 add_subdirectory(${SPHERAL_ROOT_DIR}/src)
 
