@@ -116,7 +116,7 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   #  set_target_properties(Spheral_${package_name} PROPERTIES ${_prop} "${temp_prop}")
   #endforeach()
 
-  set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_LINK_LIBRARIES "")
+  #set_target_properties(Spheral_${package_name} PROPERTIES INTERFACE_LINK_LIBRARIES "")
 
   # Convert package name to lower-case for export target name
   string(TOLOWER ${package_name} lower_case_package)
