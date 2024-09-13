@@ -5,6 +5,15 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
+    * Value-View Interface for wrapping comlex classes in a GPU compatible Interface.
+      * Enabled w/ `SPHERAL_ENABLE_VVI=On`.
+      * Example executables demonstrating :
+        * Basic class w/ ManagedVector member.
+        * CRTP pattern.
+        * `Spheral::Field` like structure w/ an abstract inferface base class.
+      * VVI Implmenetation of `Spheral::QuadraticInterpolator`.
+    * CTest unit tests for `QuadraticInterpolator` and `Field`.
+    * CTest runs during GitlabCI build stage.
     * MPI variables are now wrapped as
       ```
       SPHERAL_OP_SUM, SPHERAL_OP_MAX, SPHERAL_OP_MIN
