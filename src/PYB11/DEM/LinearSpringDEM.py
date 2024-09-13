@@ -88,3 +88,5 @@ class LinearSpringDEM(DEMBase):
     collisionDuration = PYB11property("Scalar", "collisionDuration", "collisionDuration", doc="duration of a contact")
 
     momentOfInertia = PYB11property("const FieldList<%(Dimension)s, Scalar>&","momentOfInertia", returnpolicy="reference_internal")
+    maximumOverlap = PYB11property("const FieldList<%(Dimension)s, Scalar>&","maximumOverlap", returnpolicy="reference_internal")
+    newMaximumOverlap = PYB11property("const FieldList<%(Dimension)s, Scalar>&","newMaximumOverlap", returnpolicy="reference_internal")

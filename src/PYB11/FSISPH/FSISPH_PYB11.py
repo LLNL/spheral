@@ -56,7 +56,6 @@ SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, templat
 # expose our field names
 #-------------------------------------------------------------------------------
 class FSIFieldNames:
-    damagedPressure = PYB11readonly(static=True, returnpolicy="copy")
     pressureGradient = PYB11readonly(static=True, returnpolicy="copy")
     specificThermalEnergyGradient = PYB11readonly(static=True, returnpolicy="copy")
     interfaceFlags = PYB11readonly(static=True, returnpolicy="copy")

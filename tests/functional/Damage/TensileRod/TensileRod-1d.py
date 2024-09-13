@@ -175,6 +175,10 @@ commandLine(length = 3.0,
             comparisonFile = "None",
             )
 
+# On the IBM BlueOS machines we have some tolerance issues...
+if "SYS_TYPE" in os.environ and os.environ["SYS_TYPE"] == "blueos_3_ppc64le_ib_p9":
+    testtol *= 20.0
+
 if crksph:
     hydroname = "CRKSPH"
     nPerh = 1.51

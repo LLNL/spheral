@@ -84,3 +84,22 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS -wd11074,11076,654)
   set(SPHERAL_PYB11_TARGET_FLAGS )
 endif()
+
+#-------------------------------------------------------------------------------
+# BlueOS specific flags
+#-------------------------------------------------------------------------------
+if (DEFINED ENV{SYS_TYPE})
+  if ("$ENV{SYS_TYPE}" STREQUAL "blueos_3_ppc64le_ib_p9")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+      set(CXX_BLUEOS_FLAGS "-Os")    # Needed to prevent relocation overflow errors during link
+      add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_BLUEOS_FLAGS}>")
+      message("-- Adding ${CXX_BLUEOS_FLAGS} to C++ compile flags")
+    endif()
+    list(APPEND SPHERAL_PYB11_TARGET_FLAGS "-fvar-tracking-assignments-toggle")
+  endif()
+endif()
+#set(CXX_STRIP_FLAGS "-fdata-sections;-ffunction-sections")
+#set(CXX_LINK_STRIP_FLAGS "-Wl,--gc-sections")
+#set(CXX_LINK_STRIP_FLAGS "-Wl,-z combreloc")
+#add_link_options("${CXX_LINK_STRIP_FLAGS}")
+

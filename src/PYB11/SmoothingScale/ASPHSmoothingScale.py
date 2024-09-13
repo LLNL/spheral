@@ -8,20 +8,20 @@ from SmoothingScaleBase import *
 class ASPHSmoothingScale(SmoothingScaleBase):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using HidealFilterType = typename ASPHSmoothingScale<%(Dimension)s>::HidealFilterType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
                HUpdate = "HEvolutionType",
-               W = "const TableKernel<%(Dimension)s>&",
-               fHourGlass = ("double", "0.05")):
+               W = "const TableKernel<%(Dimension)s>&"):
         "ASPHSmoothingScale constructor"
 
     #...........................................................................
@@ -33,17 +33,6 @@ class ASPHSmoothingScale(SmoothingScaleBase):
 Typically this is used to size arrays once all the materials and NodeLists have
 been created.  It is assumed after this method has been called it is safe to
 call Physics::registerState for instance to create full populated State objects."""
-        return "void"
-
-    @PYB11virtual
-    def initializeProblemStartupDependencies(self,
-                                             dataBase = "DataBase<%(Dimension)s>&",
-                                             state = "State<%(Dimension)s>&",
-                                             derivs = "StateDerivatives<%(Dimension)s>&"):
-        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
-been called.
-One use for this hook is to fill in dependendent state using the State object, such as
-temperature or pressure."""
         return "void"
 
     @PYB11virtual
@@ -99,21 +88,10 @@ temperature or pressure."""
     def label(self):
         return "std::string"
 
-    @PYB11virtual
-    @PYB11const
-    def dumpState(self, file="FileIO&", pathName="const std::string&"):
-        "Serialize under the given path in a FileIO object"
-        return "void"
-
-    @PYB11virtual
-    def restoreState(self, file="const FileIO&", pathName="const std::string&"):
-        "Restore state from the given path in a FileIO object"
-        return "void"
-
     #...........................................................................
     # Attributes
     WT = PYB11property("const TableKernel<%(Dimension)s>&", "WT", doc="The interpolation kernel")
     zerothMoment = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "zerothMoment", doc="The zeroth moment storage FieldList")
-    firstMoment = PYB11property("const FieldList<%(Dimension)s, Vector>&", "firstMoment", doc="The first moment storage FieldList")
     secondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "secondMoment", doc="The second moment storage FieldList")
-    fHourGlass = PYB11property("Scalar", "fHourGlass", "fHourGlass", doc="The hourglass fighting multiplier")
+    cellSecondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "cellSecondMoment", doc="The second moment of the Voronoi cells")
+    HidealFilter = PYB11property("std::shared_ptr<HidealFilterType>", "HidealFilter", "HidealFilter", doc="Optional function to manipulate the Hideal calculation")
