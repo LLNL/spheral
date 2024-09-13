@@ -74,7 +74,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-delete-abstract-non-virtual-dtor)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND SPHERAL_PYB11_TARGET_FLAGS
-    -Wno-pedantic)
+    -Wno-pedantic
+    -fvar-tracking-assignments-toggle)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -95,7 +96,6 @@ if (DEFINED ENV{SYS_TYPE})
       add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_BLUEOS_FLAGS}>")
       message("-- Adding ${CXX_BLUEOS_FLAGS} to C++ compile flags")
     endif()
-    list(APPEND SPHERAL_PYB11_TARGET_FLAGS "-fvar-tracking-assignments-toggle")
   endif()
 endif()
 #set(CXX_STRIP_FLAGS "-fdata-sections;-ffunction-sections")
