@@ -51,16 +51,6 @@ if(NOT SPHERAL_FOUND)
     endif()
   endif()
   include("${SPHERAL_CXX_INSTALL_PREFIX}/lib/cmake/spheral_cxx-targets.cmake")
-  if(@ENABLE_DEV_BUILD)
-    set(SPHERAL_LIBS @SPHERAL_OBJ_LIBS@)
-    add_library(Spheral_CXX INTERFACE IMPORTED)
-    foreach(_lib ${SPHERAL_LIBS})
-      set_property(TARGET Spheral_CXX
-        PROPERTY INTERFACE_LINK_LIBRARIES
-        ${_lib}
-        APPEND)
-    endforeach()
-  endif()
   set_property(TARGET Spheral_CXX
     APPEND PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES ${SPHERAL_CXX_INCLUDE_DIRS})
