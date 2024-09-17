@@ -4,25 +4,29 @@
 .on_ruby:
   tags:
     - ruby
-    - shell
+    - batch
   variables:
     HOSTNAME: 'ruby'
-    PARTITION: pdebug
-    BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
-    TEST_ALLOC: ''
-    CLEAN_ALLOC: srun -n 20
+    ALLOC_TIME: 60
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user --deadline=now+1hour -N1 -t ${ALLOC_TIME}"
+    #PARTITION: pdebug
+    #BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
+    #TEST_ALLOC: ''
+    #CLEAN_ALLOC: srun -n 20
   extends: [.on_toss_4_x86]
 
 .on_lassen:
   tags:
     - lassen
-    - shell
+    - batch
   variables:
     HOSTNAME: 'lassen'
-    BUILD_ALLOC: lalloc 1 -W 60
-    TEST_ALLOC: $BUILD_ALLOC
-    CLEAN_ALLOC: lalloc 1 lrun -n 20
-    LC_MODULES: "cuda/11.1.0"
+    ALLOC_TIME: 60
+    SCHEDULER_PARAMETERS: "-nnodes 1 -W ${ALLOC_TIME} -q pci -alloc_flags atsdisable"
+    #BUILD_ALLOC: lalloc 1 -W 60
+    #TEST_ALLOC: $BUILD_ALLOC
+    #CLEAN_ALLOC: lalloc 1 lrun -n 20
+    #LC_MODULES: "cuda/11.1.0"
   extends: [.on_blueos_3_ppc64]
 
 # ------------------------------------------------------------------------------
