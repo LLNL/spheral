@@ -40,11 +40,11 @@
 # ------------------------------------------------------------------------------
 #
 .toss_resource1:
-  resource_group: toss1
+  #resource_group: toss1
   extends: [.toss_resource_general]
 
 .toss_resource2:
-  resource_group: toss2
+  #resource_group: toss2
   extends: [.toss_resource_general]
 
 .blueos_resource1:
