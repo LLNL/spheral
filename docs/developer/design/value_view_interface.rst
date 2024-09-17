@@ -1,9 +1,10 @@
-
+==================================
 Value-View Interface Documentation
 ==================================
 
+************
 Introduction
-------------
+************
 
 The Value-View Interface (VVI) pattern is a tool to aid in porting complex class structures and design patterns that are not traditionally conducive to execution on the GPU. It can also be used as a stepping stone for performing incremental integration of a large codebase to the GPU. Allowing a code to port it's existing CPU friendly patterns to the GPU without a major initial refactor.
 
@@ -21,28 +22,31 @@ VVI's philosophy is based largely upon ideas from CHAI. VVI builds upon from CHA
    We also provided CHAI with ``chai::ManagedVector``\ , a ``std::vector`` like CHAI class. This was not necessary for VVI but was instrumental in the port for Spheral to the GPU and will be seen later in this document.
 
 
+*******************
 The VALUE Interface
--------------------
+*******************
 
 The Value-View interface enables a class to switch between value (\ *VALUE*\ ) and reference (\ *VIEW*\ )  semantics. A *VALUE* interface allows use of objects in a way that is indicative of normal C++. The semantics of a *VIEW* interface allow us to use the same instance of an object with reference semantics and provides the ability to be implicitly copyable between the HOST and DEVICE.
 
+******************
 The VIEW Interface
-------------------
+******************
 
 There are two paths for defining a *VIEW* interface. Each has it's tradeoffs and should be selected based on situation.
 
 Reference Syntax Interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
-The Reference Interface lets a View act like a reference, calling functions of a class similarly to how you would with any reference of a type. This interface is the more verbose and allows users to specify exactly which calls can and cannot be made by the View interface. This is a more type safe implementation. Compile time errors will be thrown if a function call that is only usable in the Value Interface is called from a View Interface. However, if your code targeted for offload to the GPU often references the Implementation class by pointer, this could require many tedious changes and the [[#Pointer Syntax Interface]] might be a better first step.
+The Reference Interface lets a View act like a reference, calling functions of a class similarly to how you would with any reference of a type. This interface is the more verbose and allows users to specify exactly which calls can and cannot be made by the View interface. This is a more type safe implementation. Compile time errors will be thrown if a function call that is only usable in the Value Interface is called from a View Interface. However, if your code targeted for offload to the GPU often references the Implementation class by pointer, this could require many tedious changes and the Pointer Syntax Interface might be a better first step.
 
 Pointer Syntax Interface
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 The pointer interface allows a View object to act like a pointer. The interface required to define this implementation can be considerably smaller for many classes. It does not provide type safety. Therefore, you *could* call a function that should only be used by a Value object from a View object (you should still get a ``__host__ __device__`` warning if this happens in a GPU context). It is up to the developer to understand what they can and cannot call from a view like object. This is the "quick and dirty" conversion but is really useful for rapid implementation of VVI in certain cases.
 
+*****************
 Use Cases for VVI
------------------
+*****************
 
 VVI was designed to help overcome a variety of complex obstacles in regards to GPU porting, such as:
 
@@ -54,29 +58,31 @@ VVI was designed to help overcome a variety of complex obstacles in regards to G
 
 VVI should be avoided when possible. Simple classes with trivial members should be converted to be GPU capable directly. VVI is most useful when a copy of an object could result in a considerable data reallocation or when the class structure is not conducive to traditional GPU use.
 
+***********
 Definitions
------------
+***********
 
 Implementation Class (\ ``ImplType``\ )
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=======================================
 
 The Implementation Class is a class targeted for use with the VVI pattern. This is usually a pre-existing class that a developer wants to use on the GPU. VVI is required when it's current members or class hierarchy / structure are not conventionally suited for device side use.
 
 Value Class (\ ``ValueType``\ )
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===============================
 
 An interface to the underlying implmentation class. This class is named the same as the ``ImplType``\ , and thus should require no changes to the current user code to use this type. The ``ValueType`` uses traditional C++ value copy semantics by default. However the semantic interface of how the type should be used should directly match the semantic conditions of the original ``ImplType``.
 
 View Class (\ ``ViewType``\ )
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================
 
 The View interface is what allows VVI to work seamlessly with ``RAJA`` execution contexts. A ``ViewType`` will have reference semantic like behavior. Meaning that copy construction of a ``ViewType`` does not invoke an allocation of the underlying class data, it instead references the underlying ``ValueType`` instance that it is associated with.
 
+**************************************
 Preparing Implementation Class for VVI
---------------------------------------
+**************************************
 
 Private Members
-^^^^^^^^^^^^^^^
+===============
 
 
 * All data members must be private. They may be accessed through ``get`` and ``set`` methods. This should be done first as this may require some changes through the codebase.
@@ -114,7 +120,7 @@ Private Members
    f.var() = 5
 
 std::vector members
-^^^^^^^^^^^^^^^^^^^
+===================
 
 
 * ``std::vector``\ members should be converted to ``vvi::vector``. ``vvi::vector`` is an alias for ``chai::ManagedVector`` that will revert to ``std::vector`` when VVI is disabled.
@@ -130,12 +136,14 @@ std::vector members
 
 
 * A ``deepCopy()`` method must be provided that calls ``deepCopy()`` on each ``vvi``\ member. When VVI is enabled the ``vvi`` types use reference semantics. ``deepCopy()`` allows the *VALUE* interface to copy the object correctly.
-  ### DeepCopy & Compare
-* In order to correctly perform Copy and Equivalence operations from the *VALUE* interface, special ``deepCopy`` and ``compare`` method needs to be provided from the ``ImplType``.
-* Helper macros have been developed to aid in declaring these in your classes.
-  #### DeepCopy
+
+DeepCopy & Compare
+  In order to correctly perform Copy and Equivalence operations from the *VALUE* interface, special ``deepCopy`` and ``compare`` method needs to be provided from the ``ImplType``. Helper macros have been developed to aid in declaring these in your classes.
+
+DeepCopy
   ``VVI_IMPL_DEEPCOPY(impl_t, <vvi member names>)`` This deep copy macro first performs the ``ImplType`` Copy Ctor, It will then manually perform a deep-copy on any other ``vvi`` type that exists as a member of the ``ImplType`` defined in the list.
-  #### Compare
+
+Compare
   ``VVI_IMPL_COMPARE(impl_t, <all class members>)`` This macro will perform a value based comparison on all member names given (you probably want to list all members...).
 
 .. code-block:: c++
@@ -152,7 +160,7 @@ std::vector members
    };
 
 chai::CHAICopyable
-^^^^^^^^^^^^^^^^^^
+==================
 
 
 * If you intend to use the class as the element type of a chai container then a **default constructor** must be provided.
@@ -176,7 +184,7 @@ chai::CHAICopyable
    chai::ManagedArray<foo> my_arr;
 
 Classes w/ virtual methods
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 
 * If the class has a virtual method such that a virtual table would be present for it or its derived classes the class needs to inherit from ``chai::Poly``. 
@@ -206,11 +214,12 @@ Classes w/ virtual methods
    Inheriting from ``chai::CHAIPoly`` includes the behavior of ``chai::CHAICopyable``.
 
 
+*****************************************
 Value View Interface Declaration Examples
------------------------------------------
+*****************************************
 
 Basic Class Interface
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 Below we demonstrate how to implement the Value-View Interface (VVI) pattern on a very basic class.
 
@@ -233,7 +242,7 @@ We need to forward declare *VALUE* class names. VVI details should be guarded wi
    class foo;
 
 Basic VIEW Interface
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 *VIEW* interfaces inherit default constructor, copy constructor, and assignment operator behavior provided by the underlying ``ViewInterface`` type that all *VIEW* interface classes inherit from. 
 
@@ -267,7 +276,7 @@ We use helper macros with the naming convention ``<name>__`` to aid in writing i
 
 
 Basic Value Interface
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 *VALUE* interface default behavior is inherited from the ``vvi::detail::ValueInterface`` class. If not defined a Default Constructor will be used for the *VALUE* interface. Copy constructor, Assignment and Equivalence behavior is baked in, assuming the appropriate ``DEEPCOPY`` and ``COMPARE`` interfaces have been defined in the ``ImplType``.
 
@@ -285,9 +294,9 @@ VVI Supplies ``VVI_IMPL_INST`` as a way to access the underlying instantiation o
    #endif
 
 Class w/ Custom Constructor & Vector Member
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================================
 
-Here we demonstrate using VVI with a class containing a ``vvi::vector`` member and a non default constructor. We have already made the necessary changes for VVI preparation ([[#std vector members]]). We will also assume that this class may be used as an element type to another CHAI container, therefore it must inherit from ``chai::CHAICopyable``.
+Here we demonstrate using VVI with a class containing a ``vvi::vector`` member and a non default constructor. We have already made the necessary changes for VVI preparation. We will also assume that this class may be used as an element type to another CHAI container, therefore it must inherit from ``chai::CHAICopyable``.
 
 .. code-block:: c++
 
@@ -309,7 +318,7 @@ Here we demonstrate using VVI with a class containing a ``vvi::vector`` member a
    VVI_IMPL_END
 
 Type Alias View Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 Declaring the interface class names and the *VIEW* interface are the same as above. However we would like to expose the type information for ``vec_t``. Defining the type alias in the *VIEW* interface makes it publicly visible to both *VIEW* and *VALUE* interfaces.
 
@@ -327,7 +336,7 @@ Declaring the interface class names and the *VIEW* interface are the same as abo
    );
 
 Custom Ctor Value Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 When defining a non-default constructor for *VALUE* interfaces we need to forward the arguments with ``VVI_VALUE_CTOR_ARGS()`` as below. The argument list needs to be passed within ``()``.
 
@@ -352,7 +361,7 @@ When defining a non-default constructor for *VALUE* interfaces we need to forwar
    #endif
 
 Template Class Interface
-^^^^^^^^^^^^^^^^^^^^^^^^
+========================
 
 Templated classes can be used with the VVI Pattern.
 
@@ -375,7 +384,7 @@ Remember to template the forward declaration.
    class foo;
 
 Template Interface Declarations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 When defining the ``_METACLASS_DECL`` macros we need to template the exclusive types to the interface we are representing:
 
@@ -407,12 +416,12 @@ In the interface declarations we need to ensure we template the interfaces.
    #endif
 
 Abstract & Polymorphic Class Interface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+======================================
 
 One of the strongest features of the VVI Pattern is the ability to use abstract class interfaces on the GPU. Below we are converting a *very* basic example of a polymorphic class for use in VVI.
 
 Implmentation Classes w/ Virtual Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------
 
 Base classes with virtual interfaces need to inherit from ``vvi::poly``. This allows VVI to perform a specialized copies between the host and device such that the vitual table is preserved across execution spaces.
 
@@ -457,7 +466,7 @@ We need to forward declare for both ``base`` and ``derived``.
      (derived), (derivedView), (vvimpl::derived), (code) )
 
 Base Class Interface
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 ``base`` is an abstract interface class. It should **NEVER** be constructable. However, we may want to declare the class to query type name information. We use ``VVI_DELETED_INTERFACE()`` to ensure a ``base`` *VALUE* type is not constructed.
 
@@ -482,7 +491,7 @@ Base Class Interface
 
 
 Derived Class Interface
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 The ``derived`` interface can be defined similarly to other *VALUE* and *VIEW* interfaces. Here we add ``VVI_UPCAST_CONVERSION_OP()`` to allow us to upcast a derived type to the base. This allows conversion from ``derivedView -> baseView`` as well as conversions of ``derived -> baseView``.
 
@@ -499,26 +508,26 @@ The ``derived`` interface can be defined similarly to other *VALUE* and *VIEW* i
 
    #endif
 
+*****************
 Macro Definitions
------------------
+*****************
 
 VALUE Interface Definition Macros
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+=================================
 
 * ``VVI_VALUE_CTOR_ARGS((args))`` : Forward arguments of a non-default constructor for a *VALUE* interface.
 * ``VVI_VALUE_DEF_CTOR(value_t)`` : Define default constructor for a *VALUE* interface.
 
-Interface Behavior Macros
-^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Interface Behavior Macros
+=========================
 
 * ``VVI_DELETED_INTERFACE(type)`` : Delete the constructor, copy constructor and assignment operator.
 * ``VVI_UPCAST_CONVERSION_OP(parent_t)`` : Define an implicit conversion operator to the defined parent type.
 
-Class Declaration Macros
-^^^^^^^^^^^^^^^^^^^^^^^^
 
+Class Declaration Macros
+========================
 
 * ``PTR_VALUE_METACLASS_DECL((value_t), (view_t), (impl_t), (code))``
 * ``REF_VALUE_METACLASS_DECL((value_t), (view_t), (impl_t), (code))``
