@@ -14,10 +14,6 @@ import mpi
 
 import sys, os, time
 
-
-# Set based on ENABLE_TIMERS configure variable
-timer_compiler = @MPI_TIMER_VAR@
-
 commandLine()
 
 # Remove cali files from previous test runs
