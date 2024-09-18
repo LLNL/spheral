@@ -1,9 +1,4 @@
 cd @CMAKE_INSTALL_PREFIX@
-echo "Creating Spheral virtual python environment ..."
-env PYTHONPATH=@SPACK_PYTHONPATH@ @PYTHON_EXE@ -m venv .venv --without-pip --prompt "Spheral>"
-
-echo "Installing runtime python libraries ..."
-cp -r @VIRTUALENV_PYTHONPATH_COPY@ .venv/ &> /dev/null
 
 echo "Setup Spheral libraries ..."
 cp @SPHERAL_SITE_PACKAGES_PATH@/Spheral.pth .venv/@SPHERAL_SITE_PACKAGES_PATH@/
