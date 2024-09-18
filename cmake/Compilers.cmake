@@ -75,7 +75,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND SPHERAL_PYB11_TARGET_FLAGS
     -Wno-pedantic
-    -fvar-tracking-assignments-toggle)
+    -fno-var-tracking-assignments)
 endif()
 
 #-------------------------------------------------------------------------------
