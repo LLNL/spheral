@@ -65,11 +65,6 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 
-  install(FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
-  )
-
   install(CODE "execute_process( \
     COMMAND env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m venv .venv --without-pip --prompt \
     'Spheral>')"
