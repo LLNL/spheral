@@ -35,6 +35,11 @@ class TimerMgr:
         return "void"
 
     @PYB11static
+    def load(self, config_json = "std::string"):
+        "Load a json file containing Caliper configurations"
+        return "void"
+
+    @PYB11static
     def default_start(self, testname = "std::string"):
         "Set the spot Caliper configuration and start the manager"
         return "void"

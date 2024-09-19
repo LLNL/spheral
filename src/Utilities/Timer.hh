@@ -65,9 +65,13 @@ public:
     VERIFY2(test, instance().cali_mgr.error_msg());
     instance().caliperConfig += config_str;
   }
+  static void load(std::string config_json) {
+    instance().cali_mgr.load(config_json.c_str());
+    VERIFY2(!instance().cali_mgr.error(), instance().cali_mgr.error_msg());
+  }
   static void default_start(std::string testname) {
     if (!testname.empty()) {
-      std::string default_config = "spot,mem.highwatermark,output=" + testname;
+      std::string default_config = "spot,output=" + testname;
       instance().caliperFilename = testname;
       add(default_config);
       start();
@@ -90,6 +94,8 @@ public:
 #else
   static bool timers_usable() {
     return false;
+  }
+  static void load(std::string) {
   }
   static void default_start(std::string) {
   }

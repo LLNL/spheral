@@ -13,7 +13,7 @@ Querying using Caliper
 Caliper is configured and started through the :kbd:`cali::ConfigManager`.
 The :kbd:`cali::ConfigManager` is wrapped in a :kbd:`TimerMgr` singleton class, which has a python interface.
 :kbd:`TimerMgr` is initialized and started in the :kbd:`InitTimers` routine which is called in :kbd:`commandLine()` in ``src/SimulationControl/SpheralOptionParser.py``.
-By default, the Caliper configuration is set to ``spot,mem.highwatermark`` and outputs Caliper files (``.cali``).
+By default, the Caliper configuration is set to ``spot`` and outputs Caliper files (``.cali``).
 For the default configuration, the Caliper files are named based on what file is being run, for example:
 ::
 
@@ -38,9 +38,10 @@ Non-default Caliper configurations can be set at the command line using ``--cali
 .. note::
    The above configuration produces timing results similar to the previous :kbd:`Spheral::Timer` method. This results in a file named ``time.txt`` with cumulative times for the nested regions as well as a count of how many times each region ran.
 
-Additionally, Caliper timers can be turned off using ``--caliperConfig none``.
+Similarly, a non-default Caliper configuration can be read in from a JSON file using ``--caliperConfigJSON`` and providing the file name.
+Lastly, Caliper timers can be turned off using ``--caliperConfig none``.
 
-There are many different Caliper configurations to view various information. Here are some extra links for those who want to read or experiment with other features in Caliper that can be incorperated into Spheral:
+There are many different Caliper configurations to view various information. Here are some extra links for those who want to read or experiment with other features in Caliper that can be incorporated into Spheral:
 
   * `Configuration basics <https://software.llnl.gov/Caliper/CaliperBasics.html#more-on-configurations>`_
   * `Builtin Configuration <https://software.llnl.gov/Caliper/BuiltinConfigurations.html>`_
