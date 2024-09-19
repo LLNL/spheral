@@ -15,6 +15,16 @@ Notable changes include:
     * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
     * Failed ATS runs are automatically retested once in the Gitlab CI.
     * Python execute command is centralized in scripts/spheralutils.py now.
+    * New ASPH idealH algorithm implemented, which is much more robust and accurate as H elongations become extreme.
+    * New experimental hourglass control algorithm implemented, along with some basic tests/demonstrations.
+    * H update algorithms converted to their own independent physics packages, no longer part of the various hydro packages.
+    * Physics interface updated slightly:
+      * Physics::postStateUpdate now returns a bool indicating if boundary conditions should be enforced again.
+      * Physics packages can now have Physics sub-packages, which can be run before or after the main package.  The SpheralController
+        now checks for these packages and adds them to the physics package list as needed.
+      * Physics packages can indicate if they require Voronoi cell information be available.  If so, a new package which computes and
+        updates the Voronoi information is automatically added to the package list by the SpheralController (similar to how the
+        Reproducing Kernel corrections are handled).
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
@@ -23,11 +33,14 @@ Notable changes include:
     * The FSISPH package is now optional (SPHERAL\_ENABLE\_FSISPH).
     * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH).
     * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
+    * Added a GCC flag to prevent building variable tracking symbols when building PYB11 modules.  This is unnecessary, and
+      on some platforms trying to build such symbols is very expensive and in some cases fails.
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.
     * Time step estimate due to velocity divergence in RZ space has been fixed.
     * Fixed tolerances for ANEOS equation of state temperature lookup
+    * Clang C++ warnings have eliminated, so the Clang CI tests have been updated to treat warnings as errors.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
