@@ -267,6 +267,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
         boundItr != this->boundaryEnd();
         ++boundItr){
     (*boundItr)->applyFieldListGhostBoundary(particleRadius);
+    (*boundItr)->applyFieldListGhostBoundary(uniqueIndex);
     (*boundItr)->applyFieldListGhostBoundary(particleIndex);
   }
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
