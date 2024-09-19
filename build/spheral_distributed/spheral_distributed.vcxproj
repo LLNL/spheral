@@ -83,7 +83,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -91,7 +91,7 @@
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWithDebugInfo|x64'" Label="PropertySheets">
@@ -99,21 +99,21 @@
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
@@ -121,7 +121,7 @@
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParReleaseWithDebugInfo|x64'" Label="PropertySheets">
@@ -129,7 +129,7 @@
     <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
-    <Import Project="..\..\..\hypre\src\Windows\Hypre_Includes.props" />
+    <Import Project="$(SolutionDir)imports\hypre\src\Windows\Hypre_Includes.props" />
     <Import Project="$(SolutionDir)Properties\Solution.Language.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />

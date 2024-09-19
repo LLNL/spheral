@@ -108,55 +108,55 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Parallel.Win32.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Parallel.Win32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Parallel.Win32.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Parallel.Win32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParDebugVisit|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Serial.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Serial.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Parallel.Win32.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Parallel.Win32.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ParRelease|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Paths.Base.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Parallel.props" />
-    <Import Project="$(WindowsProjectPath)Properties\Solution.Optimization.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Paths.Base.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Parallel.props" />
+    <Import Project="$(SolutionDir)Properties\Solution.Optimization.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
