@@ -25,7 +25,7 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
   using FacetedVolume = typename Dimension::FacetedVolume;
-  using HidealFilterType = PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, SymTensor, SymTensor>;
+  using HidealFilterType = PythonBoundFunctors::Spheral4ArgFunctor<size_t, size_t, SymTensor, SymTensor, SymTensor>;
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,

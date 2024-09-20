@@ -150,15 +150,17 @@ polySecondMoment(const Dim<3>::FacetedVolume& poly,
   return result;
 }
 
+//------------------------------------------------------------------------------
 // A default no-op functor for the Hideal filter
+//------------------------------------------------------------------------------
 template<typename Dimension>
 class HidealPassthrough:
-    public PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, typename Dimension::SymTensor, typename Dimension::SymTensor> {
+    public PythonBoundFunctors::Spheral4ArgFunctor<size_t, size_t, typename Dimension::SymTensor, typename Dimension::SymTensor, typename Dimension::SymTensor> {
 public:
   using SymTensor = typename Dimension::SymTensor;
-  HidealPassthrough(): PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, typename Dimension::SymTensor, typename Dimension::SymTensor>() {}
+  HidealPassthrough(): PythonBoundFunctors::Spheral4ArgFunctor<size_t, size_t, SymTensor, SymTensor, SymTensor>() {}
   virtual ~HidealPassthrough() {}
-  virtual SymTensor __call__(const size_t nodeListi, const size_t i, const SymTensor Hideal) const override { return Hideal; }
+  virtual SymTensor __call__(const size_t& nodeListi, const size_t& i, const SymTensor& H0, const SymTensor& Hideal) const override { return Hideal; }
 };
 
 }
@@ -670,8 +672,8 @@ finalize(const Scalar time,
         // Build the new H tensor
         // Hi = constructSymTensorWithBoundedDiagonal(fscale*eigenT.eigenValues, hmaxInv, hminInv);
         // Hi.rotationalTransform(eigenT.eigenVectors);
-        Hi = (*mHidealFilterPtr)(k, i, T.Inverse());
-        Hideali = Hi;
+        Hideali = (*mHidealFilterPtr)(k, i, Hi, T.Inverse());
+        Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
 
         // // If requested, move toward the cell centroid
         // if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {

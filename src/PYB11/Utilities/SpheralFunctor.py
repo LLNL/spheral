@@ -12,7 +12,7 @@ class SpheralFunctor:
 
     @PYB11pure_virtual
     @PYB11const
-    def __call__(self, x="%(argT)s"):
+    def __call__(self, x1="const %(argT)s&"):
         "Required operator() to map %(argT)s --> %(retT)s"
         return "%(retT)s"
 
@@ -26,8 +26,8 @@ class Spheral2ArgFunctor:
     @PYB11pure_virtual
     @PYB11const
     def __call__(self,
-                 x = "%(argT1)s",
-                 y = "%(argT2)s"):
+                 x1 = "const %(argT1)s&",
+                 x2 = "const %(argT2)s&"):
         "Required operator() to map %(argT1)s %(argT2)s --> %(retT)s"
         return "%(retT)s"
 
@@ -41,8 +41,25 @@ class Spheral3ArgFunctor:
     @PYB11pure_virtual
     @PYB11const
     def __call__(self,
-                 x = "%(argT1)s",
-                 y = "%(argT2)s",
-                 z = "%(argT3)s"):
+                 x1 = "const %(argT1)s&",
+                 x2 = "const %(argT2)s&",
+                 x3 = "const %(argT3)s&"):
         "Required operator() to map %(argT1)s %(argT2)s %(argT3)s --> %(retT)s"
+        return "%(retT)s"
+
+@PYB11namespace("Spheral::PythonBoundFunctors")
+@PYB11holder("std::shared_ptr")
+@PYB11template("argT1", "argT2", "argT3", "argT4", "retT")
+class Spheral4ArgFunctor:
+    def pyinit(self):
+        return
+
+    @PYB11pure_virtual
+    @PYB11const
+    def __call__(self,
+                 x1 = "const %(argT1)s&",
+                 x2 = "const %(argT2)s&",
+                 x3 = "const %(argT3)s&",
+                 x4 = "const %(argT4)s&"):
+        "Required operator() to map %(argT1)s %(argT2)s %(argT3)s %(argT4)s --> %(retT)s"
         return "%(retT)s"
