@@ -199,16 +199,6 @@ class SpheralController:
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
 
-        # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
-            self.iterateIdealH()
-            # db.reinitializeNeighbors()
-            # self.integrator.setGhostNodes()
-            # db.updateConnectivityMap(False)
-            # self.integrator.applyGhostBoundaries(state, derivs)
-            # for bc in uniquebcs:
-            #     bc.initializeProblemStartup(False)
-
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
         for package in packages:
@@ -226,8 +216,14 @@ class SpheralController:
             db.updateConnectivityMap(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity)
             state.enrollConnectivityMap(db.connectivityMapPtr(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity))
 
+        # Initialize dependent state
         for package in packages:
             package.initializeProblemStartupDependencies(db, state, derivs)
+
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
+            self.iterateIdealH()
+
         db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)

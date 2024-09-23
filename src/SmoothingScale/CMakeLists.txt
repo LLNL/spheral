@@ -15,6 +15,7 @@ set(SmoothingScale_headers
     FixedSmoothingScale.hh
     SPHSmoothingScale.hh
     ASPHSmoothingScale.hh
+    ASPHSmoothingScaleUserFilter.hh
     )
 
 spheral_add_obj_library(SmoothingScale SPHERAL_OBJ_LIBS)
