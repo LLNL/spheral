@@ -105,7 +105,6 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
   // Prepare the state and derivatives
-  for (auto* pkg: packages) pkg->initializeProblemStartup(dataBase);
   State<Dimension> state(dataBase, packages);
   StateDerivatives<Dimension> derivs(dataBase, packages);
 
@@ -151,19 +150,18 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     dataBase.updateConnectivityMap(false, false, false);
     state.enrollConnectivityMap(dataBase.connectivityMapPtr(false, false, false));
 
-    // Some methods update both Hideal and H in the finalize, so we make a copy of the state
+    // Some methods (ASPH) update both Hideal and H in the finalize, so we make a copy of the state
     // to give the methods
     auto state1 = state;
     state1.copyState();
 
     // Call the smoothing scale package to get a new vote on the ideal H
+    for (auto* pkg: packages) pkg->preStepInitialize(dataBase, state1, derivs);
     for (auto* pkg: packages) pkg->initialize(0.0, 1.0, dataBase, state1, derivs);
     derivs.Zero();
-    for (auto* pkg: packages) {
-      pkg->evaluateDerivatives(0.0, 1.0, dataBase, state1, derivs);
-      pkg->finalizeDerivatives(0.0, 1.0, dataBase, state1, derivs);
-      pkg->finalize(0.0, 1.0, dataBase, state1, derivs);
-    }
+    for (auto* pkg: packages) pkg->evaluateDerivatives(0.0, 1.0, dataBase, state1, derivs);
+    for (auto* pkg: packages) pkg->finalizeDerivatives(0.0, 1.0, dataBase, state1, derivs);
+    for (auto* pkg: packages) pkg->finalize(0.0, 1.0, dataBase, state1, derivs);
     
     // Set the new H and measure how much it changed
     for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {

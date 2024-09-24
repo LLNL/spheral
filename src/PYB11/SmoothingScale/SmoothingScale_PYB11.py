@@ -16,6 +16,7 @@ PYB11includes += ['"SmoothingScale/SmoothingScaleBase.hh"',
                   '"SmoothingScale/FixedSmoothingScale.hh"',
                   '"SmoothingScale/SPHSmoothingScale.hh"',
                   '"SmoothingScale/ASPHSmoothingScale.hh"',
+                  '"SmoothingScale/ASPHSmoothingScaleUserFilter.hh"',
                   '"Kernel/TableKernel.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"FileIO/FileIO.hh"']
@@ -38,6 +39,7 @@ from SmoothingScaleBase import SmoothingScaleBase
 from FixedSmoothingScale import FixedSmoothingScale
 from SPHSmoothingScale import SPHSmoothingScale
 from ASPHSmoothingScale import ASPHSmoothingScale
+from ASPHSmoothingScaleUserFilter import ASPHSmoothingScaleUserFilter
 
 for ndim in dims:
     exec(f'''
@@ -45,4 +47,5 @@ SmoothingScaleBase{ndim}d = PYB11TemplateClass(SmoothingScaleBase, template_para
 FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<{ndim}>")
 SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<{ndim}>")
 ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<{ndim}>")
+ASPHSmoothingScaleUserFilter{ndim}d = PYB11TemplateClass(ASPHSmoothingScaleUserFilter, template_parameters="Dim<{ndim}>")
 ''')

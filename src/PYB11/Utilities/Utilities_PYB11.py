@@ -272,7 +272,7 @@ for ndim in dims:
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))
 VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "std::pair<double,double>"))
-SizetSizetSymTensorSymTensorFunctor%(ndim)id = PYB11TemplateClass(Spheral3ArgFunctor, template_parameters=("size_t", "size_t", "%(SymTensor)s", "%(SymTensor)s"))
+SizetSizetSymTensorSymTensorSymTensorFunctor%(ndim)id = PYB11TemplateClass(Spheral4ArgFunctor, template_parameters=("size_t", "size_t", "%(SymTensor)s", "%(SymTensor)s", "%(SymTensor)s"))
 
 # boundingVolumes
 boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Vector)s", pyname="boundingBox")

@@ -9,7 +9,7 @@
 #define __Spheral_ASPHSmooothingScale__
 
 #include "SmoothingScale/SmoothingScaleBase.hh"
-#include "Utilities/Functors.hh"
+#include "SmoothingScale/ASPHSmoothingScaleUserFilter.hh"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
   using FacetedVolume = typename Dimension::FacetedVolume;
-  using HidealFilterType = PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, SymTensor, SymTensor>;
+  using HidealFilterType = ASPHSmoothingScaleUserFilter<Dimension>;
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,

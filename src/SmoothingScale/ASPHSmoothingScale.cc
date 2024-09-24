@@ -150,17 +150,6 @@ polySecondMoment(const Dim<3>::FacetedVolume& poly,
   return result;
 }
 
-// A default no-op functor for the Hideal filter
-template<typename Dimension>
-class HidealPassthrough:
-    public PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, typename Dimension::SymTensor, typename Dimension::SymTensor> {
-public:
-  using SymTensor = typename Dimension::SymTensor;
-  HidealPassthrough(): PythonBoundFunctors::Spheral3ArgFunctor<size_t, size_t, typename Dimension::SymTensor, typename Dimension::SymTensor>() {}
-  virtual ~HidealPassthrough() {}
-  virtual SymTensor __call__(const size_t nodeListi, const size_t i, const SymTensor Hideal) const override { return Hideal; }
-};
-
 }
 
 //------------------------------------------------------------------------------
@@ -175,7 +164,7 @@ ASPHSmoothingScale(const HEvolutionType HUpdate,
   mZerothMoment(FieldStorageType::CopyFields),
   mSecondMoment(FieldStorageType::CopyFields),
   mCellSecondMoment(FieldStorageType::CopyFields),
-  mHidealFilterPtr(std::make_shared<HidealPassthrough<Dimension>>()) {
+  mHidealFilterPtr(std::make_shared<ASPHSmoothingScaleUserFilter<Dimension>>()) {
 }
 
 //------------------------------------------------------------------------------
@@ -410,6 +399,9 @@ finalize(const Scalar time,
   // If we're not using the IdealH algorithm we can save a lot of time...
   const auto Hupdate = this->HEvolution();
   if (Hupdate == HEvolutionType::IdealH) {
+
+    // Notify any user filter object things are about to start
+    mHidealFilterPtr->startFinalize(time, dt, dataBase, state, derivs);
 
     // Grab our state
     const auto numNodeLists = dataBase.numFluidNodeLists();
@@ -668,10 +660,10 @@ finalize(const Scalar time,
         T *= std::min(4.0, std::max(0.25, 1.0 - a + a*s));
 
         // Build the new H tensor
-        // Hi = constructSymTensorWithBoundedDiagonal(fscale*eigenT.eigenValues, hmaxInv, hminInv);
-        // Hi.rotationalTransform(eigenT.eigenVectors);
-        Hi = (*mHidealFilterPtr)(k, i, T.Inverse());
-        Hideali = Hi;
+        if (surfacePoint(k, i) == 0) {  // Keep the time evolved version for surface points
+          Hideali = (*mHidealFilterPtr)(k, i, Hi, T.Inverse());
+          Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
+        }
 
         // // If requested, move toward the cell centroid
         // if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
