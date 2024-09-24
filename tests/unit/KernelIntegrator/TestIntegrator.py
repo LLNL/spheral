@@ -78,8 +78,6 @@ commandLine(
     # Plotting
     plot = False,
 )
-correctionOrder = LinearOrder # We don't actually use this
-useOverlap = False
 
 if nPerh < correctionOrderIntegration:
     print("nPerh is not large enough for correction order: {} < {}".format(nPerh, correctionOrderIntegration))
@@ -252,11 +250,12 @@ iterateIdealH(dataBase,
               method,
               100, # max h iterations
               1.e-4) # h tolerance
-dataBase.updateConnectivityMap(True, useOverlap) # need ghost and overlap connectivity
+dataBase.updateConnectivityMap(True, False) # need ghost and overlap connectivity
 
 #-------------------------------------------------------------------------------
 # Create RK object
 #-------------------------------------------------------------------------------
+correctionOrder = LinearOrder # We don't actually use this
 rk = RKCorrections(orders = set([ZerothOrder, correctionOrder]), 
                    dataBase = dataBase,
                    W = WT,
@@ -293,7 +292,7 @@ if clipBoundaries:
 #-------------------------------------------------------------------------------
 # Create a state directly and initialize physics package
 #-------------------------------------------------------------------------------
-connectivity = dataBase.connectivityMap(True, useOverlap)
+connectivity = dataBase.connectivityMap(True, False)
 state = State(dataBase, packages)
 derivs = StateDerivatives(dataBase, packages)
 rk.initializeProblemStartup(dataBase)
@@ -325,8 +324,6 @@ WR.computeCorrections(connectivity, volume, position, H, testHessian,
 connectivity_time = time.time()
 flatConnectivity = FlatConnectivity()
 flatConnectivity.computeIndices(dataBase)
-if useOverlap:
-    flatConnectivity.computeOverlapIndices(dataBase)
 flatConnectivity.computeSurfaceIndices(dataBase, state)
 connectivity_time = time.time() - connectivity_time
 output("connectivity_time")
@@ -421,26 +418,14 @@ nPerhTest = 4.01
 if (nx == 20) and (dimension == 1) and (not useRK) and (nPerh == nPerhTest) and (not randomizeNodes) and (correctionOrderIntegration < 0):
     indi = 10
     indj = 11
-    if useOverlap:
-        indij = flatConnectivity.localToFlatOverlap(indi, indj)
-    else:
-        indij = flatConnectivity.localToFlat(indi, indj)
-    if useOverlap:
-        vals = [["vlK",  vlK[indi], 1.0],
-                ["vlG",  vlG[indi].x, 0.0],
-                ["vbKK",  vbKK[indi][indij], 0.9585478852898509],
-                ["vbGK",  vbGK[indi][indij].x, -1.4389923272268597],
-                ["vbKG",  vbKG[indi][indij].x, 1.4389923272268597],
-                ["vbGdG",  vbGdG[indi][indij], 5.1346676217110305],
-                ["vbGpG",  vbGpG[indi][indij].xx, 5.1346676217110305]]
-    else:
-        vals = [["vlK",  vlK[indi], 1.0],
-                ["vlG",  vlG[indi].x, 0.0],
-                ["vbKK",  vbKK[indi][indij], 1.21520485672],
-                ["vbGK",  vbGK[indi][indij].x, -7.48643093476],
-                ["vbKG",  vbKG[indi][indij].x, 7.48643093476],
-                ["vbGdG",  vbGdG[indi][indij], -5.83078993373],
-                ["vbGpG",  vbGpG[indi][indij].xx, -5.83078993373]]
+    indij = flatConnectivity.localToFlat(indi, indj)
+    vals = [["vlK",  vlK[indi], 1.0],
+            ["vlG",  vlG[indi].x, 0.0],
+            ["vbKK",  vbKK[indi][indij], 1.21520485672],
+            ["vbGK",  vbGK[indi][indij].x, -7.48643093476],
+            ["vbKG",  vbKG[indi][indij].x, 7.48643093476],
+            ["vbGdG",  vbGdG[indi][indij], -5.83078993373],
+            ["vbGpG",  vbGpG[indi][indij].xx, -5.83078993373]]
     print("x: ", position(0, indi), position(0, indj))
     print("H: ", H(0, indi), H(0, indj))
     print("delta: ", delta[0])
@@ -452,42 +437,24 @@ if (nx == 20) and (dimension == 1) and (not useRK) and (nPerh == nPerhTest) and 
             checksum += 1
 
     indi = 0
-    if useOverlap:
-        indj = 2
-        indij = flatConnectivity.localToFlatOverlap(indi, indj)
-    else:
-        indj = 1
-        indij = flatConnectivity.localToFlat(indi, indj)
+    indj = 1
+    indij = flatConnectivity.localToFlat(indi, indj)
     numSurfaces = flatConnectivity.numSurfaces(indi)
     print("x: ", position(0, indi), position(0, indj))
     print("H: ", H(0, indi), H(0, indj))
     print("delta: ", 2*delta[0])
-    if useOverlap:
-        vals = [["slKn1",  slKn[indi][0].x, -0.7981466844744088],
-                ["slKn2",  slKn[indj][0].x, -0.32244298020359935],
-                ["slKKn",  sbKKn[indi][0 + numSurfaces * indij].x, -0.2573567955815503],
-                ["vlK1",  vlK[indi], 0.581078921339981],
-                ["vlK2",  vlK[indj], 0.9648661145429461],
-                ["vlG1",  vlG[indi].x, -0.7981466844744085],
-                ["vlG2",  vlG[indj].x, -0.32244298020359935],
-                ["vbKK",  vbKK[indi][indij], 0.5297239342952187],
-                ["vbGK",  vbGK[indi][indij].x, -0.6960555516515605],
-                ["vbKG",  vbKG[indi][indij].x, 0.4386987560700106],
-                ["vbGdG",  vbGdG[indi][indij], 0.691599920549981],
-                ["vbGpG",  vbGpG[indi][indij].xx, 0.691599920549981]]
-    else:
-        vals = [["slKn1",  slKn[indi][0].x, -1.49474091258],
-                ["slKn2",  slKn[indj][0].x, -0.697023258026],
-                ["slKKn",  sbKKn[indi][0 + numSurfaces * indij].x, -1.04186918079],
-                ["vlK1",  vlK[indi], 0.658577434997],
-                ["vlK2",  vlK[indj], 0.934274660301],
-                ["vlG1",  vlG[indi].x, -1.49474091258],
-                ["vlG2",  vlG[indj].x, -0.697023258026],
-                ["vbKK",  vbKK[indi][indij], 0.962387521061],
-                ["vbGK",  vbGK[indi][indij].x, -2.26223953892],
-                ["vbKG",  vbKG[indi][indij].x, 1.22037035812],
-                ["vbGdG",  vbGdG[indi][indij], 4.06585331025],
-                ["vbGpG",  vbGpG[indi][indij].xx, 4.06585331025]]
+    vals = [["slKn1",  slKn[indi][0].x, -1.49474091258],
+            ["slKn2",  slKn[indj][0].x, -0.697023258026],
+            ["slKKn",  sbKKn[indi][0 + numSurfaces * indij].x, -1.04186918079],
+            ["vlK1",  vlK[indi], 0.658577434997],
+            ["vlK2",  vlK[indj], 0.934274660301],
+            ["vlG1",  vlG[indi].x, -1.49474091258],
+            ["vlG2",  vlG[indj].x, -0.697023258026],
+            ["vbKK",  vbKK[indi][indij], 0.962387521061],
+            ["vbGK",  vbGK[indi][indij].x, -2.26223953892],
+            ["vbKG",  vbKG[indi][indij].x, 1.22037035812],
+            ["vbGdG",  vbGdG[indi][indij], 4.06585331025],
+            ["vbGpG",  vbGpG[indi][indij].xx, 4.06585331025]]
     for val in vals:
         err = val[1] - val[2]
         print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
@@ -500,60 +467,33 @@ if (nx == 10) and (ny == 10) and (dimension == 2) and (not useRK) and (nPerh == 
     indj = 14
     print("xi/j: ", position(0, indi), position(0, indj))
     print("H: ", H(0, indi), H(0, indj))
-    if useOverlap:
-        indij = flatConnectivity.localToFlatOverlap(indi, indj)
-    else:
-        indij = flatConnectivity.localToFlat(indi, indj)
+    indij = flatConnectivity.localToFlat(indi, indj)
     normali = Vector(0.0, -1.0)
     inds = flatConnectivity.surfaceIndex(indi, normali)
     output("inds")
     numSurfaces = flatConnectivity.numSurfaces(indi)
-    if useOverlap:
-        vals = [["slKn1x",  slKn[indi][0].x, 0.0],
-                ["slKn1y",  slKn[indi][0].y, -0.669533189156],
-                ["slKn2x",  slKn[indj][0].x, 0.0],
-                ["slKn2y",  slKn[indj][0].y, -0.384126497652],
-                ["slKKnx",  sbKKn[indi][0 + numSurfaces * indij].x, 0.0],
-                ["slKKny",  sbKKn[indi][0 + numSurfaces * indij].y, -0.121348978374],
-                ["vlK1",  vlK[indi], 0.640055056],
-                ["vlK2",  vlK[indj], 0.899817182704],
-                ["vlG1x",  vlG[indi].x, 0.000422802024285],
-                ["vlG1y",  vlG[indi].y, -0.669533225255],
-                ["vlG2x",  vlG[indj].x, 0.0],
-                ["vlG2y",  vlG[indj].y, -0.384126497454],
-                ["vbKK",  vbKK[indi][indij], 0.197565771183],
-                ["vbGKx",  vbGK[indi][indij].x, 0.144680555004],
-                ["vbGKy",  vbGK[indi][indij].y, -0.194445006415],
-                ["vbKGx",  vbKG[indi][indij].x, -0.144680555416],
-                ["vbKGy",  vbKG[indi][indij].y, 0.0730960304324],
-                ["vbGdG",  vbGdG[indi][indij], 0.432183556241],
-                ["vbGpGxx",  vbGpG[indi][indij].xx, 0.2572459162768114],
-                ["vbGpGxy",  vbGpG[indi][indij].xy, 0.052853608053438667],
-                ["vbGpGyx",  vbGpG[indi][indij].yx, 0.14212702761020798],
-                ["vbGpGyy",  vbGpG[indi][indij].yy, 0.17493765529791133]]
-    else:
-        vals = [["slKn1x",  slKn[indi][0].x, 0.0],
-                ["slKn1y",  slKn[indi][0].y, -1.10482203514],
-                ["slKn2x",  slKn[indj][0].x, 0.0],
-                ["slKn2y",  slKn[indj][0].y, -0.0522556780278],
-                ["slKKnx",  sbKKn[indi][0 + numSurfaces * indij].x, 0.0],
-                ["slKKny",  sbKKn[indi][0 + numSurfaces * indij].y, -0.0343822076932],
-                ["vlK1",  vlK[indi], 0.763109630513],
-                ["vlK2",  vlK[indj], 0.997202162814],
-                ["vlG1x",  vlG[indi].x, 0.0],
-                ["vlG1y",  vlG[indi].y, -1.10482202211],
-                ["vlG2x",  vlG[indj].x, 0.0],
-                ["vlG2y",  vlG[indj].y, -0.0522556774438],
-                ["vbKK",  vbKK[indi][indij], 0.364885066884],
-                ["vbGKx",  vbGK[indi][indij].x, 1.09984867374],
-                ["vbGKy",  vbGK[indi][indij].y, -1.11038326324],
-                ["vbKGx",  vbKG[indi][indij].x, -1.0998487204],
-                ["vbKGy",  vbKG[indi][indij].y, 1.07600104499],
-                ["vbGdG",  vbGdG[indi][indij], -0.975412260163],
-                ["vbGpGxx",  vbGpG[indi][indij].xx, -0.440011432611],
-                ["vbGpGxy",  vbGpG[indi][indij].xy, 3.10803524703],
-                ["vbGpGyx",  vbGpG[indi][indij].yx, 3.2260267427],
-                ["vbGpGyy",  vbGpG[indi][indij].yy, -0.535400825501]]
+    vals = [["slKn1x",  slKn[indi][0].x, 0.0],
+            ["slKn1y",  slKn[indi][0].y, -1.10482203514],
+            ["slKn2x",  slKn[indj][0].x, 0.0],
+            ["slKn2y",  slKn[indj][0].y, -0.0522556780278],
+            ["slKKnx",  sbKKn[indi][0 + numSurfaces * indij].x, 0.0],
+            ["slKKny",  sbKKn[indi][0 + numSurfaces * indij].y, -0.0343822076932],
+            ["vlK1",  vlK[indi], 0.763109630513],
+            ["vlK2",  vlK[indj], 0.997202162814],
+            ["vlG1x",  vlG[indi].x, 0.0],
+            ["vlG1y",  vlG[indi].y, -1.10482202211],
+            ["vlG2x",  vlG[indj].x, 0.0],
+            ["vlG2y",  vlG[indj].y, -0.0522556774438],
+            ["vbKK",  vbKK[indi][indij], 0.364885066884],
+            ["vbGKx",  vbGK[indi][indij].x, 1.09984867374],
+            ["vbGKy",  vbGK[indi][indij].y, -1.11038326324],
+            ["vbKGx",  vbKG[indi][indij].x, -1.0998487204],
+            ["vbKGy",  vbKG[indi][indij].y, 1.07600104499],
+            ["vbGdG",  vbGdG[indi][indij], -0.975412260163],
+            ["vbGpGxx",  vbGpG[indi][indij].xx, -0.440011432611],
+            ["vbGpGxy",  vbGpG[indi][indij].xy, 3.10803524703],
+            ["vbGpGyx",  vbGpG[indi][indij].yx, 3.2260267427],
+            ["vbGpGyy",  vbGpG[indi][indij].yy, -0.535400825501]]
     for val in vals:
         err = val[1] - val[2]
         print("\t{}\t{}\t{}\t{}".format(val[0], val[1], val[2], err))
@@ -561,7 +501,7 @@ if (nx == 10) and (ny == 10) and (dimension == 2) and (not useRK) and (nPerh == 
             print("tolerance fail")
             checksum += 1
 
-if (nx == 5) and (ny == 5) and (nz == 5) and (dimension == 3) and (not useRK) and (nPerh == nPerhTest) and (not randomizeNodes) and (correctionOrderIntegration < 0) and not useOverlap:
+if (nx == 5) and (ny == 5) and (nz == 5) and (dimension == 3) and (not useRK) and (nPerh == nPerhTest) and (not randomizeNodes) and (correctionOrderIntegration < 0):
     indi = 30
     indj = 31
     print("xi/j: ", position(0, indi), position(0, indj))
@@ -631,10 +571,7 @@ else:
     # ivals = [0, 1]
 
 for i in ivals:
-    if useOverlap:
-        numElements = flatConnectivity.numOverlapNeighbors(i)
-    else:
-        numElements = flatConnectivity.numNeighbors(i)
+    numElements = flatConnectivity.numNeighbors(i)
     numSurfaces = flatConnectivity.numSurfaces(i)
     av_neighbors += numElements
     av_surfaces += numSurfaces
