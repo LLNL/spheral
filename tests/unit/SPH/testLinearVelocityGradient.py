@@ -287,7 +287,8 @@ if iterateH:
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
-hydro.initializeProblemStartup(db)
+for pkg in integrator.physicsPackages():
+    pkg.initializeProblemStartup(db)
 state = State(db, integrator.physicsPackages())
 derivs = StateDerivatives(db, integrator.physicsPackages())
 
