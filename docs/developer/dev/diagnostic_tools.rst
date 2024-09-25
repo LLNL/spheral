@@ -90,6 +90,6 @@ Starting Caliper Manually
 As mentioned above, Caliper (not an individual Caliper timer) is normally configured and started in ``commandLine()`` python routine. However, Caliper can be directly configured and started through the python interface, if desired. This can be done by putting the following into the python file:
 ::
 
-   caliper_config = "some_configuration,(output=some_filename.txt)"
+   caliper_config = "some_configuration(output=some_filename.txt)"
    TimerMgr.add(caliper_config)
    TimerMgr.start()
