@@ -17,6 +17,7 @@ PYB11includes += ['"SmoothingScale/SmoothingScaleBase.hh"',
                   '"SmoothingScale/SPHSmoothingScale.hh"',
                   '"SmoothingScale/ASPHSmoothingScale.hh"',
                   '"SmoothingScale/ASPHSmoothingScaleUserFilter.hh"',
+                  '"SmoothingScale/polySecondMoment.hh"',
                   '"Kernel/TableKernel.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"FileIO/FileIO.hh"']
@@ -48,4 +49,12 @@ FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_pa
 SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<{ndim}>")
 ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<{ndim}>")
 ASPHSmoothingScaleUserFilter{ndim}d = PYB11TemplateClass(ASPHSmoothingScaleUserFilter, template_parameters="Dim<{ndim}>")
+
+@PYB11cppname("polySecondMoment")
+def polySecondMoment{ndim}d(poly = "const Dim<{ndim}>::FacetedVolume&",
+                            center = "const Dim<{ndim}>::Vector&"):
+    "Return the second moment of a convex polytope"
+    return "Dim<{ndim}>::SymTensor"
 ''')
+
+        
