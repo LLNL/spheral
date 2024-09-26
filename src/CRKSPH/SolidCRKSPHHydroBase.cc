@@ -32,7 +32,6 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 

@@ -15,6 +15,9 @@ Notable changes include:
     * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
     * Failed ATS runs are automatically retested once in the Gitlab CI.
     * Python execute command is centralized in scripts/spheralutils.py now.
+    * Caliper updated v2.11.
+    * Adiak added as TPL.
+    * Created singleton wrapper for cali::ConfigManger and python wrapped Caliper timer and Adiak routines.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
@@ -23,6 +26,8 @@ Notable changes include:
     * The FSISPH package is now optional (SPHERAL\_ENABLE\_FSISPH).
     * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH).
     * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
+    * Cleaner Spheral Spack package.
+    * ENABLE\_DEV\_BUILD can now export targets properly.
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.

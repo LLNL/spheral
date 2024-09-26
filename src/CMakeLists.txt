@@ -80,16 +80,25 @@ foreach(_package ${_packages})
   add_subdirectory(${_package})
 endforeach()
 
-if(NOT ENABLE_DEV_BUILD)
-  # Retrieve the global list populated in spheral_obj_add_library
-  get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-
+# For dev builds, we must call LLNLSpheralInstallObjs.cmake
+# to ensure LLNLSpheral libraries are added to the Spheral_CXX
+# target
+if(ENABLE_DEV_BUILD)
+  # This calls LLNLSpheralInstallObjs.cmake
+  if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
+    include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
+  endif()
+else()
   set(CXX_sources spheralCXX.cc)
-  # Must use quotes when passing lists as inputs for functions
-  spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 endif()
+# Retrieve the global list populated in spheral_obj_add_library
+get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
+# Must use quotes when passing lists as inputs for functions
+spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 
 # This calls LLNLSpheralInstallObjs.cmake
-if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
-  include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
+if(NOT ENABLE_DEV_BUILD)
+  if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
+    include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
+  endif()
 endif()
