@@ -22,7 +22,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Spheral'
-copyright = '2012, LLNS'
+copyright = '2024, LLNS'
 author = 'J. Michael Owen'
 
 # The short X.Y version

@@ -25,7 +25,6 @@
 
 #include "Neighbor/ConnectivityMap.hh"
 
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/registerWithRedistribution.hh"

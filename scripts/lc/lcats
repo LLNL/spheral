@@ -642,9 +642,6 @@ parser.add_option("--wcid", action="store", type="string", metavar="WC-ID to ass
                   #default = machineSettings.options.bank,
                   help = "HERT WC-ID to use for batch job.")
 
-parser.add_option( "--threaded", action="store_true", dest="threaded",
-                   help = "Run threaded tests. NOTE ATS must run these on login node (no salloc). ")
-
 parser.add_option( "--nogpu", action="store_true", dest="nogpu",
                    help = "For blueos. Filters out gpu test. Used in conjunction with threaded option.")
 
@@ -814,18 +811,6 @@ ezatsArgs= ['addOp', 'batch', 'interactive', 'name', 'allocTime', 'atsExe', 'mac
 # Add glue arg to pass unique file system test path to ats
 toAdd= """ --glue='testpath=str("%s")' """ % options.testpath
 
-# Add threaded arg to filter for threaded or non threaded tests.  Otherwise all versions will run, and threaded will be run incorrectly
-if options.threaded:
-    if options.nogpu:
-        toAdd += """ --filter="'nt' in locals()" --filter="'ngpu' not in locals()" """
-    elif options.gpuonly:
-        toAdd += """ --filter="'nt' in locals()" --filter="'ngpu' in locals()" """
-    # This version only works if we're using os.system - execv call fails because filter is split incorrectly
-    else:
-        toAdd += """ --filter="'nt' in locals()" """
-else:
-    toAdd += """ --filter="'nt' not in locals()" """
-
 if options.sanitize:
         toAdd += """ --filter="sanitize==1" """
 
@@ -982,7 +967,7 @@ else:
                                + finalCommandToRun
                                # +  " -p " + machineSettings.options.partition  + " " 
     # Threaded tests under ats should NOT use salloc
-    elif not options.threaded and 'blue' not in os.environ['SYS_TYPE']:
+    elif 'blue' not in os.environ['SYS_TYPE']:
         finalCommandToRun= "salloc  --exclusive "  \
                                + " " + allocTime \
                                + HERT_WC_ID \

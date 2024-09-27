@@ -1,0 +1,84 @@
+#
+#
+#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=8)
+#ATS:test(SELF, "--caliperConfig 'None'", label="Timer test 2", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_3.cali'", label="Timer test 3", np=1)
+#
+
+import Spheral
+from SpheralTestUtilities import *
+from SpheralOptionParser import *
+from SpheralUtilities import TimerMgr
+from SpheralUtilities import *
+import mpi
+
+import sys, os, time
+
+commandLine()
+
+# Remove cali files from previous test runs
+caliper_file = TimerMgr.get_filename()
+if (os.path.exists(caliper_file)):
+    if (mpi.rank == 0):
+        os.remove(caliper_file)
+
+do_timers = False
+if (TimerMgr.is_started()):
+    do_timers = True
+test_dict_0 = {"perf_test": "weak_scaling"}
+adiak_valueString("perf_test", test_dict_0["perf_test"],
+                  adiak_categories.performance)
+# Caliperreader reads everything as strings for some terrible reason
+# So the test have to be hacked up
+
+# Correct method:
+# test_dict_1 = {"rank_count": mpi.procs}
+# adiak_valueInt("rank_count", test_dict_1["rank_count"])
+
+# Hacked method to have tests pass with caliperreader:
+test_dict_1 = {"rank_count": str(mpi.procs)}
+adiak_valueString("rank_count", test_dict_1["rank_count"])
+
+test_dicts = [test_dict_0, test_dict_1]
+run_count = 8
+sleep_time = 1.E-4
+fake_timer_name = "test_timer"
+
+for i in range(run_count):
+    TimerMgr.timer_start(fake_timer_name)
+    time.sleep(sleep_time)
+    TimerMgr.timer_end(fake_timer_name)
+if (do_timers and TimerMgr.get_filename()):
+    adiak_fini()
+    TimerMgr.fini()
+    mpi.barrier()
+    caliper_loc = "@CONFIG_CALIPER_DIR@"
+    sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+    import caliperreader as cr
+    if (not os.path.exists(caliper_file)):
+        raise ValueError("Caliper file not found")
+    r = cr.CaliperReader()
+    r.read(caliper_file)
+    records = r.records
+    found_errors = 0
+    # Test for timer name
+    if (fake_timer_name in records[1]['region']):
+        print(f"Found {fake_timer_name} timer")
+    else:
+        found_errors += 1
+    # Test for function count
+    count_val = int(eval(records[1]["avg#sum#rc.count"]))
+    if (count_val == run_count):
+        print("Run count in Caliper file is correct")
+    else:
+        found_errors += 1
+    # Test for adiak values
+    for td in test_dicts:
+        if (td.items() <= r.globals.items()):
+            print(f"Found {td.items()}")
+        else:
+            found_errors += 1
+    if (found_errors > 0):
+        raise ValueError("Caliper file not correct")
+    else:
+        print("No errors found for TimerMgr")
