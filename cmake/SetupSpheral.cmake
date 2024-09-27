@@ -153,7 +153,7 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
+  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit)
 
   # A macro to preserve directory structure when installing files
   macro(install_with_directory)
@@ -189,6 +189,4 @@ if (ENABLE_TESTS)
     DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
-if(NOT ENABLE_DEV_BUILD)
-  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
-endif()
+include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

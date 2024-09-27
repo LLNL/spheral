@@ -56,6 +56,11 @@ if (NOT ENABLE_CXXONLY)
     "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
   )
 
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
+  )
+
   install(FILES
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
@@ -63,6 +68,11 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
       "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
+  )
+
+  install(FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
   )
 
   install(CODE "execute_process( \
