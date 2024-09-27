@@ -59,7 +59,7 @@ void
 VoronoiCells<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mVolume = dataBase.newFluidFieldList(0.0, HydroFieldNames::volume);
-  mWeight = dataBase.newFluidFieldList(0.0, "Voronoi weight");
+  // mWeight = dataBase.newFluidFieldList(0.0, "Voronoi weight");
   mSurfacePoint = dataBase.newFluidFieldList(0, HydroFieldNames::surfacePoint);
   mEtaVoidPoints = dataBase.newFluidFieldList(std::vector<Vector>(), HydroFieldNames::etaVoidPoints);
   mCells = dataBase.newFluidFieldList(FacetedVolume(), HydroFieldNames::cells);
@@ -80,7 +80,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 
   // Ensure our state is sized correctly
   dataBase.resizeFluidFieldList(mVolume, 0.0, HydroFieldNames::volume, false);
-  dataBase.resizeFluidFieldList(mWeight, 0.0, "Voronoi weight", false);
+  // dataBase.resizeFluidFieldList(mWeight, 0.0, "Voronoi weight", false);
   dataBase.resizeFluidFieldList(mSurfacePoint, 0, HydroFieldNames::surfacePoint, false);
   dataBase.resizeFluidFieldList(mEtaVoidPoints, vector<Vector>(), HydroFieldNames::etaVoidPoints, false);
   dataBase.resizeFluidFieldList(mCells, FacetedVolume(), HydroFieldNames::cells, false);
@@ -203,35 +203,35 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   const auto& cm = state.connectivityMap();
   const auto  pos = state.fields(HydroFieldNames::position, Vector::zero);
   const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
+  // const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  // const auto  rho = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto  D = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
-
-  // Use m/rho to estimate our weighting to roughly match cell volumes
-  const auto numNodeLists = dataBase.numFluidNodeLists();
-  for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = mass[k]->numInternalElements();
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      CHECK(rho(k,i) > 0.0);
-      mVolume(k,i) = mass(k,i)/rho(k,i);
-    }
-  }
-  
-  // Enforce boundaries on the volume
   auto& boundaries = this->boundaryConditions();
-  for (auto* bcPtr: boundaries) bcPtr->applyFieldListGhostBoundary(mVolume);
-  for (auto* bcPtr: boundaries) bcPtr->finalizeGhostBoundary();
 
-  // We can now compute the weights from our volumes (including ghosts)
-  for (auto k = 0u; k < numNodeLists; ++k) {
-    const auto n = mass[k]->numElements();    // ghosts as well!
-#pragma omp parallel for
-    for (auto i = 0u; i < n; ++i) {
-      CHECK(mVolume(k,i) > 0.0);
-      mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
-    }
-  }
+//   // Use m/rho to estimate our weighting to roughly match cell volumes
+//   const auto numNodeLists = dataBase.numFluidNodeLists();
+//   for (auto k = 0u; k < numNodeLists; ++k) {
+//     const auto n = mass[k]->numInternalElements();
+// #pragma omp parallel for
+//     for (auto i = 0u; i < n; ++i) {
+//       CHECK(rho(k,i) > 0.0);
+//       mVolume(k,i) = mass(k,i)/rho(k,i);
+//     }
+//   }
+  
+//   // Enforce boundaries on the volume
+//   for (auto* bcPtr: boundaries) bcPtr->applyFieldListGhostBoundary(mVolume);
+//   for (auto* bcPtr: boundaries) bcPtr->finalizeGhostBoundary();
+
+//   // We can now compute the weights from our volumes (including ghosts)
+//   for (auto k = 0u; k < numNodeLists; ++k) {
+//     const auto n = mass[k]->numElements();    // ghosts as well!
+// #pragma omp parallel for
+//     for (auto i = 0u; i < n; ++i) {
+//       CHECK(mVolume(k,i) > 0.0);
+//       mWeight(k,i) = 1.0/Dimension::rootnu(mVolume(k,i));
+//     }
+//   }
 
   // Compute the cell data.  Note we are using the fact the state versions of the things
   // we're updating (mSurfacePoint, mCells, etc.) are just pointing at our internal fields.
