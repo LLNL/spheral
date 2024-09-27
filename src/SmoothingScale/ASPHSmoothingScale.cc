@@ -186,103 +186,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-
   // Get the state and derivative FieldLists.
   // State FieldLists.
-  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  CHECK(position.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
-  CHECK(mass.size() == numNodeLists);
-  CHECK(massDensity.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DHDt = derivs.fields(IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  massZerothMoment = derivs.fields(HydroFieldNames::massZerothMoment, 0.0);
+  auto DHDt = derivs.fields(IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
-  CHECK(massZerothMoment.size() == numNodeLists);
-
-#pragma omp parallel
-  {
-    // Thread private scratch variables
-    bool sameMatij;
-    int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
-    Vector rij, etai, etaj, gradWi, gradWj;
-    SymTensor psiij;
-
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
-
-#pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
-
-      // Get the state for node i.
-      mi = mass(nodeListi, i);
-      rhoi = massDensity(nodeListi, i);
-      // Pi = P(nodeListi, i);
-      const auto& ri = position(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      auto&       massZerothMomenti = massZerothMoment_thread(nodeListi, i);
-
-      // Get the state for node j
-      mj = mass(nodeListj, j);
-      rhoj = massDensity(nodeListj, j);
-      const auto& rj = position(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
-
-      // Flag if this is a contiguous material pair or not.
-      sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
-
-      // Node displacement.
-      rij = ri - rj;
-      etai = Hi*rij;
-      etaj = Hj*rij;
-      etaMagi = etai.magnitude();
-      etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
-
-      // Symmetrized kernel weight and gradient.
-      WSPHi = mWT.kernelValueSPH(etaMagi);
-      WSPHj = mWT.kernelValueSPH(etaMagj);
-      gradWi = mWT.gradValue(etaMagi, Hi.Determinant()) * Hi*etai*safeInvVar(etaMagi);
-      gradWj = mWT.gradValue(etaMagj, Hj.Determinant()) * Hj*etaj*safeInvVar(etaMagj);
-
-      // Moments of the node distribution -- used for the ideal H calculation.
-      fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      psiij = rij.unitVector().selfdyad();
-      massZerothMomenti +=     fweightij*WSPHi;
-      massZerothMomentj += 1.0/fweightij*WSPHj;
-    } // loop over pairs
-
-    // Reduce the thread values to the master.
-    threadReduceFieldLists<Dimension>(threadStack);
-  }   // OpenMP parallel region
 
   // Finish up the derivatives now that we've walked all pairs
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hminInv = safeInvVar(nodeList.hmin());
-    const auto  hmaxInv = safeInvVar(nodeList.hmax());
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
+    const auto& nodeList = H[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
@@ -290,31 +207,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& DvDxi = DvDx(nodeListi, i);
-      auto&       massZerothMomenti = massZerothMoment(nodeListi, i);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
       // Time derivative of H
       DHDt(nodeListi, i) = smoothingScaleDerivative(Hi, DvDxi);
 
-      // Determine the current effective number of nodes per smoothing scale.
-      const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
-                                                  0.5*nPerh :
-                                                  mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
-      CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
+      // // Determine the current effective number of nodes per smoothing scale.
+      // const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
+      //                                             0.5*nPerh :
+      //                                             mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
+      // CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-      // The ratio of the desired to current nodes per smoothing scale.
-      const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
-      CHECK(s > 0.0);
+      // // The ratio of the desired to current nodes per smoothing scale.
+      // const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+      // CHECK(s > 0.0);
 
-      // Now determine how to scale the current H to the desired value.
-      // We only scale H at this point in setting Hideal, not try to change the shape.
-      const auto a = (s < 1.0 ? 
-                      0.4*(1.0 + s*s) :
-                      0.4*(1.0 + 1.0/(s*s*s)));
-      CHECK(1.0 - a + a*s > 0.0);
-      Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
+      // // Now determine how to scale the current H to the desired value.
+      // // We only scale H at this point in setting Hideal, not try to change the shape.
+      // const auto a = (s < 1.0 ? 
+      //                 0.4*(1.0 + s*s) :
+      //                 0.4*(1.0 + 1.0/(s*s*s)));
+      // CHECK(1.0 - a + a*s > 0.0);
+      // Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
     }
   }
   TIME_END("ASPHSmoothingScaleDerivs");
@@ -599,10 +512,12 @@ finalize(const Scalar time,
         T *= s;
 
         // Build the new H tensor
-        if (surfacePoint(k, i) == 0) {  // Keep the time evolved version for surface points
+        if (surfacePoint(k, i) == 0) {
           Hideali = (*mHidealFilterPtr)(k, i, Hi, T.Inverse());
-          Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
+        } else {
+          Hideali = (*mHidealFilterPtr)(k, i, Hi, Hi);           // Keep the time evolved version for surface points
         }
+        Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
 
         // // If requested, move toward the cell centroid
         // if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
@@ -619,6 +534,16 @@ finalize(const Scalar time,
         //   dr *= min(1.0, drmax*safeInv(drmag));
         //   ri += dr;
         // }
+      }
+    }
+  } else {
+    // Apply any requested user filtering/alterations to the final H in the case where we're not using the IdealH algorithm
+    const auto numNodeLists = dataBase.numFluidNodeLists();
+    auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    for (auto k = 0u; k < numNodeLists; ++k) {
+      const auto n = H[k]->numInternalElements();
+      for (auto i = 0u; i < n; ++i) {
+        H(k,i) = (*mHidealFilterPtr)(k, i, H(k,i), H(k,i));
       }
     }
   }
