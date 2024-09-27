@@ -80,7 +80,6 @@ blueos_cuda_11_gcc_spectrum_build:
 blueos_cuda_11_gcc_spectrum_test:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_ats]
   needs: [blueos_cuda_11_gcc_spectrum_build]
-  allow_failure: true
 
 blueos_cuda_11_gcc_spectrum_cleanup:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .cleanup_dir]

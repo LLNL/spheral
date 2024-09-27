@@ -14,7 +14,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     git      = "https://github.com/llnl/spheral.git"
     tags     = ['radiuss', 'simulations', 'hydrodynamics']
 
-    maintainers = ['mdavis36','jmikeowen']
+    maintainers = ['mdavis36','jmikeowen','owen32']
 
     # -------------------------------------------------------------------------
     # VERSIONS
@@ -43,29 +43,32 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('qhull@2020.2 +pic', type='build')
     depends_on('m-aneos@1.0')
     depends_on('eigen@3.4.0', type='build')
-    depends_on('hdf5@1.8.19 ~mpi +hl', type='build', when='~mpi')
-    depends_on('hdf5@1.8.19 +mpi +hl', type='build', when='+mpi')
+    depends_on('hdf5@1.8.19 +hl', type='build')
 
     depends_on('silo@4.10.2 +hdf5', type='build')
 
     # Zlib fix has been merged into conduit, using develop until next release.
-    depends_on('conduit@0.9.1 +shared +mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='+mpi')
-    depends_on('conduit@0.9.1 +shared ~mpi +hdf5~hdf5_compat -test ~parmetis', type='build', when='~mpi')
-    depends_on('conduit@0.9.1 +shared +mpi +hdf5 -test ~parmetis', type='build', when='+mpi^hdf5@1.8.0:1.8')
-    depends_on('conduit@0.9.1 +shared ~mpi +hdf5 -test ~parmetis', type='build', when='~mpi^hdf5@1.8.0:1.8')
+    depends_on('conduit@0.9.1 +shared +hdf5~hdf5_compat -test ~parmetis', type='build')
+    depends_on('conduit +hdf5', type='build', when='^hdf5@1.8.0:1.8')
+    depends_on('axom@0.9.0 +hdf5 -lua -examples -python -fortran', type='build')
+    depends_on('axom +shared', when='~cuda', type='build')
+    depends_on('axom ~shared', when='+cuda', type='build')
+    depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic', type='build')
+    mpi_tpl_list = ["hdf5", "conduit", "axom", "caliper", "adiak~shared"]
+    for ctpl in mpi_tpl_list:
+        for mpiv in ["+mpi", "~mpi"]:
+            depends_on(f"{ctpl} {mpiv}", type='build', when=f"{mpiv}")
 
-    depends_on('raja@2024.02.0 +cuda cuda_arch=70', when='+cuda')
-    depends_on('umpire  +cuda cuda_arch=70', when='+cuda')
-
-    depends_on('raja@2024.02.0 ~cuda', when='~cuda')
-    depends_on('umpire  ~cuda', when='~cuda')
-
-    depends_on('axom@0.9.0 ~shared +cuda +mpi +hdf5 -lua -examples -python -fortran', type='build', when='+mpi+cuda')
-    depends_on('axom@0.9.0 ~shared +cuda ~mpi +hdf5 -lua -examples -python -fortran', type='build', when='~mpi+cuda')
-    depends_on('axom@0.9.0 ~shared ~cuda +mpi +hdf5 -lua -examples -python -fortran', type='build', when='+mpi~cuda')
-    depends_on('axom@0.9.0 ~shared ~cuda ~mpi +hdf5 -lua -examples -python -fortran', type='build', when='~mpi~cuda')
-
-    depends_on('caliper@2.8.0 ~shared ~adiak ~libdw ~papi ~libunwind +pic', type='build')
+    depends_on("raja@2024.02.0", type="build")
+    cuda_tpl_list = ["raja", "umpire", "axom"]
+    with when("+cuda"):
+        depends_on('caliper ~cuda', type="build")
+        for ctpl in cuda_tpl_list:
+            for val in CudaPackage.cuda_arch_values:
+                depends_on(f"{ctpl} +cuda cuda_arch={val}", type='build', when=f"+cuda cuda_arch={val}")
+    with when("~cuda"):
+        for ctpl in cuda_tpl_list:
+            depends_on(f"{ctpl} ~cuda", type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
     depends_on('polytope@0.7.3 +python', type='build')
@@ -162,6 +165,8 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         # TPL locations
         entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+
+        entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
         entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 

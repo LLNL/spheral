@@ -15,6 +15,9 @@ Notable changes include:
     * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
     * Failed ATS runs are automatically retested once in the Gitlab CI.
     * Python execute command is centralized in scripts/spheralutils.py now.
+    * Caliper updated v2.11.
+    * Adiak added as TPL.
+    * Created singleton wrapper for cali::ConfigManger and python wrapped Caliper timer and Adiak routines.
     * New ASPH idealH algorithm implemented, which is much more robust and accurate as H elongations become extreme.
     * New experimental hourglass control algorithm implemented, along with some basic tests/demonstrations.
     * H update algorithms converted to their own independent physics packages, no longer part of the various hydro packages.
@@ -33,6 +36,8 @@ Notable changes include:
     * The FSISPH package is now optional (SPHERAL\_ENABLE\_FSISPH).
     * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH).
     * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
+    * Cleaner Spheral Spack package.
+    * ENABLE\_DEV\_BUILD can now export targets properly.
     * Added a GCC flag to prevent building variable tracking symbols when building PYB11 modules.  This is unnecessary, and
       on some platforms trying to build such symbols is very expensive and in some cases fails.
 
