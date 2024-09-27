@@ -100,16 +100,30 @@ ClippingType<Dim<2>> {
   static std::vector<Vector> createEtaVoidPoints(const Vector& etaVoidAvg,
                                                  const int nvoid,
                                                  const double rin,
-                                                 const SymTensor& /*Hi*/,
-                                                 const SymTensor& /*Hinvi*/,
-                                                 const PolyVolume& /*celli*/) {
+                                                 const SymTensor& Hi,
+                                                 const SymTensor& Hinvi,
+                                                 const PolyVolume& celli) {
     std::vector<Vector> result;
+
+    // If H is non-spherical, start alignment with the closest H eigenvector.  Otherwise
+    // we use teh etaVoidAvg.
+    double theta;
+    const auto Hev = Hinvi.eigenVectors();
+    if (Hev.eigenValues.minElement()/Hev.eigenValues.maxElement() < 0.95) {
+      const auto nhat = (std::abs(etaVoidAvg.dot(Hev.eigenVectors.getColumn(0))) > std::abs(etaVoidAvg.dot(Hev.eigenVectors.getColumn(1))) ?
+                         Hev.eigenVectors.getColumn(0) :                         
+                         Hev.eigenVectors.getColumn(1));
+      theta = atan2(nhat.y(), nhat.x());
+    } else {
+      theta = atan2(etaVoidAvg.y(), etaVoidAvg.x());
+    }
+
     const auto nverts = 18;
-    const auto thetaVoidAvg = atan2(etaVoidAvg.y(), etaVoidAvg.x());
     const auto nv = max(1U, min(4U, unsigned(4.0*double(nvoid)/double(nverts))));
+    const auto dtheta = 2.0*M_PI/nv;
     for (unsigned k = 0; k != nv; ++k) {
-      const auto theta = thetaVoidAvg + (0.5*k - 0.25*(nv - 1))*M_PI;
-      result.push_back(Vector(0.5*rin*cos(theta), 0.5*rin*sin(theta)));
+      result.push_back(Vector(rin*cos(theta), rin*sin(theta)));
+      theta += dtheta;
     }
     ENSURE(result.size() == nv);
     return result;
