@@ -247,12 +247,12 @@ finalize(const Scalar time,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 
+  // Notify any user filter object things are about to start
+  mHidealFilterPtr->startFinalize(time, dt, dataBase, state, derivs);
+
   // If we're not using the IdealH algorithm we can save a lot of time...
   const auto Hupdate = this->HEvolution();
   if (Hupdate == HEvolutionType::IdealH) {
-
-    // Notify any user filter object things are about to start
-    mHidealFilterPtr->startFinalize(time, dt, dataBase, state, derivs);
 
     // Grab our state
     const auto numNodeLists = dataBase.numFluidNodeLists();
