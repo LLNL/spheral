@@ -106,13 +106,15 @@ ClippingType<Dim<2>> {
     std::vector<Vector> result;
 
     // If H is non-spherical, start alignment with the closest H eigenvector.  Otherwise
-    // we use teh etaVoidAvg.
+    // we use etaVoidAvg.
     double theta;
     const auto Hev = Hinvi.eigenVectors();
     if (Hev.eigenValues.minElement()/Hev.eigenValues.maxElement() < 0.95) {
-      const auto nhat = (std::abs(etaVoidAvg.dot(Hev.eigenVectors.getColumn(0))) > std::abs(etaVoidAvg.dot(Hev.eigenVectors.getColumn(1))) ?
-                         Hev.eigenVectors.getColumn(0) :                         
-                         Hev.eigenVectors.getColumn(1));
+      const auto ev1 = Hev.eigenVectors.getColumn(0);
+      const auto ev2 = Hev.eigenVectors.getColumn(1);
+      const auto nhat = (std::abs(etaVoidAvg.dot(ev1)) > std::abs(etaVoidAvg.dot(ev2)) ?
+                         ev1 * sgn(etaVoidAvg.dot(ev1)) :
+                         ev2 * sgn(etaVoidAvg.dot(ev2)));
       theta = atan2(nhat.y(), nhat.x());
     } else {
       theta = atan2(etaVoidAvg.y(), etaVoidAvg.x());
@@ -223,7 +225,7 @@ ClippingType<Dim<3>> {
     for (const auto& vert: celli) {
       const auto peta = Hi*vert.position;
       if (peta.magnitude2() > rin*rin) {
-        result.push_back(0.5*rin*peta.unitVector());
+        result.push_back(rin*peta.unitVector());
       }
     }
     return result;
@@ -431,7 +433,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           const auto  Hinv = Hi.Inverse();
 #pragma omp critical (computeVoronoiVolume_polycells)
           {
-            for (auto& v: polycells(nodeListi, i)) v.position = 1.1*rin*Hinv*v.position;
+            for (auto& v: polycells(nodeListi, i)) v.position = 1.5*rin*Hinv*v.position;
           }
 
           // Clip by any faceted boundaries first.
