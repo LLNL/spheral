@@ -46,6 +46,10 @@ function(spheral_add_obj_library package_name obj_list_name)
   # Install the headers
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
+  if(ENABLE_DEV_BUILD)
+    install(TARGETS Spheral_${package_name}
+      DESTINATION lib)
+  endif()
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
   set_property(GLOBAL APPEND PROPERTY ${obj_list_name} Spheral_${package_name})
