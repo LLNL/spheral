@@ -118,7 +118,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField)
     SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
 
     // Is this behavior correct? Shouldn't it be 7?
-    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
+    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 7);
   }
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }

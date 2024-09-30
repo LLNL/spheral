@@ -31,7 +31,8 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Initialize)
   EXEC_IN_SPACE_END();
 }
 
-GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, CopySemantics)
+#ifdef SPHERAL_ENABLE_VVI
+GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, VVICopySemantics)
 {
   using WORK_EXEC_POLICY = TypeParam;
 
@@ -74,6 +75,7 @@ GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, CopySemantics)
   c_copy.free();
 
 }
+#endif
 
 GPU_TYPED_TEST(QuadraticInterpolatorTypedTest, Equivalence)
 {

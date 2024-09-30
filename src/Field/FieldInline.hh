@@ -149,6 +149,7 @@ Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
   mDataArray(field.mDataArray),
   mValid(field.valid()) {
+    if (this->nodeListPtr() == 0) setNodeList(field.nodeList());
 }
 
 //------------------------------------------------------------------------------
@@ -200,6 +201,7 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
+    if (this->nodeListPtr() == 0) setNodeList(rhs.nodeList());
     FieldBase<Dimension>::operator=(rhs);
     mDataArray = rhs.mDataArray;
     mValid = rhs.mValid;
