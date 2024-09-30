@@ -46,6 +46,8 @@ Notable changes include:
     * Time step estimate due to velocity divergence in RZ space has been fixed.
     * Fixed tolerances for ANEOS equation of state temperature lookup
     * Clang C++ warnings have eliminated, so the Clang CI tests have been updated to treat warnings as errors.
+    * Fix for installing libraries when building individual package WITH ENABLE_DEV_BUILD=On.
+    * Bugfix for RZ solid CRKSPH with compatible energy.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
