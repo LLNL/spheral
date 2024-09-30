@@ -209,8 +209,10 @@ registerState(DataBase<Dim<2>>& dataBase,
     state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
     // Get the policy for the position, and add the specific energy as a dependency.
-    auto positionPolicy = state.policy(state.buildFieldKey(HydroFieldNames::position, UpdatePolicyBase<Dimension>::wildcard()));
-    positionPolicy->addDependency(HydroFieldNames::specificThermalEnergy);
+    auto positionPolicies = state.policies(HydroFieldNames::position);
+    for (auto& keyval: positionPolicies) {
+      keyval.second->addDependency(HydroFieldNames::specificThermalEnergy);
+    }
   }
 }
 
