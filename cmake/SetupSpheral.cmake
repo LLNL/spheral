@@ -166,7 +166,6 @@ endif()
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
 
   # A macro to preserve directory structure when installing files
   macro(install_with_directory)
