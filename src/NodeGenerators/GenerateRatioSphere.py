@@ -113,7 +113,6 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             r1hr += 2.0*r1hr*(sin(0.5*nNodePerh*dtheta))**2
             hr = max(r1hr - ri, ri - r0hr)
             ha = nNodePerh * ri*dtheta
-            hr = max(hr, 0.01*ha)
             # box = Polygon([Vector2d(r0hr, -ha), Vector2d(r1hr, -ha),
             #                Vector2d(r1hr,  ha), Vector2d(r0hr,  ha)])
             # Hi = polySecondMoment2d(box, box.centroid).sqrt().Inverse()
