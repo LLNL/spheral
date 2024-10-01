@@ -13,6 +13,7 @@
 
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
+#include "Utilities/ValueViewInterface.hh"
 
 #include <vector>
 
@@ -39,6 +40,14 @@ using DataAllocator = std::allocator<DataType>;
 template<typename Dimension, typename DataType>
 class Field: 
     public FieldBase<Dimension> {
+  //--------------------------- Private Interface ---------------------------//
+  // Private Data
+  using container_type = vvi::vector<DataType>; 
+  container_type mDataArray;
+  bool mValid;
+
+  // No default constructor.
+  Field();
    
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -52,8 +61,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+  typedef typename container_type::iterator iterator;
+  typedef typename container_type::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -241,16 +250,6 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
-  std::vector<DataType, DataAllocator<DataType>> mDataArray;
-  bool mValid;
-
-  // No default constructor.
-  Field();
 };
 
 } // namespace Spheral

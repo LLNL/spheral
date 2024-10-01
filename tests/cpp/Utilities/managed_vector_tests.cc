@@ -328,6 +328,61 @@ TEST(ManagedVectorTest, Erase)
   for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check4[i]);
 }
 
+TEST(ManagedVectorTest, EraseRange)
+{
+  MVDouble array;
+  std::vector<double> check = {0,1,2,3,4,5,6,7,8,9};
+
+  for (size_t i = 0; i < 10; i++) {
+    array.push_back(check[i]);
+  }
+  SPHERAL_ASSERT_EQ(array.size(), check.size());
+
+  // Erase the last element
+  array.erase(array.end() - 1, array.end());
+
+  std::vector<double> check2 = {0,1,2,3,4,5,6,7,8};
+
+  SPHERAL_ASSERT_EQ(array.size(), check2.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check2[i]);
+
+  // Erase the 3rd element
+  array.erase(array.begin() + 2, array.begin() + 3);
+
+  std::vector<double> check3 = {0,1,3,4,5,6,7,8};
+  SPHERAL_ASSERT_EQ(array.size(), check3.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check3[i]);
+  
+  // Erase the first element
+  array.erase(array.begin(), array.begin()+1);
+
+  std::vector<double> check4 = {1,3,4,5,6,7,8};
+  SPHERAL_ASSERT_EQ(array.size(), check4.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check4[i]);
+
+  // Erase the first element, indexed before begin
+  //
+  array.erase(array.begin()-10, array.begin()+1);
+
+  std::vector<double> check5 = {3,4,5,6,7,8};
+  SPHERAL_ASSERT_EQ(array.size(), check5.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check5[i]);
+
+  // Erase the last 2 elements, indexed after end
+  array.erase(array.end() - 2, array.end()+10);
+
+  std::vector<double> check6 = {3,4,5,6};
+  SPHERAL_ASSERT_EQ(array.size(), check6.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check6[i]);
+
+  // Erase middle elements
+  array.erase(array.begin() + 1, array.end() - 1);
+
+  std::vector<double> check7 = {3,6};
+  SPHERAL_ASSERT_EQ(array.size(), check7.size());
+  for (size_t i = 0; i < array.size(); i++) SPHERAL_ASSERT_EQ(array[i], check7[i]);
+}
+
 TEST(ManagedVectorTest, Insert)
 {
   MVDouble array;

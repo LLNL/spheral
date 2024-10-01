@@ -237,13 +237,13 @@ Field<Dimension, DataType>::operator=(const DataType& rhs) {
 //------------------------------------------------------------------------------
 // Test equivalence with a FieldBase.
 //------------------------------------------------------------------------------
-template<typename Value>
-struct CrappyFieldCompareMethod {
-  static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
-                      const std::vector<Value,DataAllocator<Value>>& rhs) {
-    return lhs == rhs;
-  }
-};
+//template<typename Value>
+//struct CrappyFieldCompareMethod {
+//  static bool compare(const vvi::vector<Value>>& lhs, 
+//                      const vvi::vector<Value>& rhs) {
+//    return lhs == rhs;
+//  }
+//};
 
 template<typename Dimension, typename DataType>
 inline
@@ -254,7 +254,8 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
   try {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
     if (rhsPtr == 0) return false;
-    return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
+    return compare(mDataArray, rhsPtr->mDataArray);
+    //return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
   } catch (const std::bad_cast &) {
     return false;
   }

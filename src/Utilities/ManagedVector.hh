@@ -141,6 +141,13 @@ public:
   }
 #endif
 
+  SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(std::vector<DataType> const& rhs) {
+    if (capacity() != rhs.capacity()) MA::reallocate(rhs.capacity());
+    m_size = rhs.size();
+    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
+    return *this; 
+  }
+
   // ---------------------
   // Equivalence
   // ---------------------
@@ -205,7 +212,7 @@ public:
         for (size_t i = old_size; i < size; i++) new(&MA::data(chai::CPU, false)[i]) DataType();
       }
       if (old_size > size) {
-        destroy(begin() + old_size, begin() + size);
+        destroy(begin() + old_size - 1, begin() + size);
       }
       m_size = size;
       MA::registerTouch(chai::CPU);
@@ -234,11 +241,26 @@ public:
   }
 
   SPHERAL_HOST
-  void erase(iterator pos) {
-    for (iterator it = pos; it < end(); it++) {
-      *it = std::move(*(it + 1));
+  iterator erase(iterator pos) {
+    return erase(pos, pos+1);
+  }
+
+  SPHERAL_HOST
+  iterator erase(iterator first, iterator last) {
+    if(first < last) {
+
+      if (first < begin()) first = begin();
+      if (last > end()) last = end(); 
+
+      auto delta = std::distance(first, last);
+
+      for (iterator it = first; it < end() - delta; it++) {
+        *it = std::move(*(it + delta));
+      }
+
+      resize(m_size - delta);
     }
-    m_size--;
+    return end();
   }
 
   SPHERAL_HOST_DEVICE size_t capacity() const {return MA::size();}
