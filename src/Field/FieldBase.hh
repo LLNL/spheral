@@ -10,6 +10,8 @@
 #include <vector>
 #include <memory>
 
+#include "Utilities/ValueViewInterface.hh"
+
 namespace Spheral {
 
 // Forward declarations
@@ -17,25 +19,39 @@ template<typename Dimension> class NodeList;
 template<typename Dimension> class FieldListBase;
 
 template<typename Dimension>
-class FieldBase {
-
+class FieldBase : chai::CHAIPoly {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename std::string FieldName;
+  using FieldName = std::string;
   typedef typename Dimension::Scalar Scalar;
 
+protected:
+
+  //--------------------------- Private Interface ---------------------------//
+  FieldName mName;
+  const NodeList<Dimension>* mNodeListPtr = 0;
+
+  // The set of FieldLists currently referencing this Field.
+  mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
+
+  // Disallow the default constructor.
+  FieldBase();
   // Constructors.
   FieldBase(FieldName name);
   FieldBase(FieldName name,
             const NodeList<Dimension>& nodeList);
+
   FieldBase(const FieldBase& fieldBase);
+  // Assignment operator.
+  virtual FieldBase& operator=(const FieldBase& rhs);
+
+
+public:
+  //--------------------------- Public Interface ---------------------------//
   virtual std::shared_ptr<FieldBase> clone() const = 0;
 
   // Destructor.
   virtual ~FieldBase();
-
-  // Assignment operator.
-  virtual FieldBase& operator=(const FieldBase& rhs);
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldBase& rhs) const = 0;
@@ -71,10 +87,6 @@ public:
                                     const int sendProc,
                                     const int recvProc) const = 0;
 
-//   // Methods to support cacheing of coarse and refine neighbor values.
-//   void notifyNewCoarseNodes() const;
-//   void notifyNewRefineNodes() const;
-
 protected:
   //--------------------------- Protected Interface ---------------------------//
   void setFieldBaseNodeList(const NodeList<Dimension>& nodeListPtr);
@@ -86,16 +98,6 @@ protected:
   void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
   bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
 
-private:
-  //--------------------------- Private Interface ---------------------------//
-  FieldName mName;
-  const NodeList<Dimension>* mNodeListPtr = 0;
-
-  // The set of FieldLists currently referencing this Field.
-  mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
-
-  // Disallow the default constructor.
-  FieldBase();
 };
 
 }

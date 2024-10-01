@@ -254,7 +254,7 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
   try {
     const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
     if (rhsPtr == 0) return false;
-    return compare(mDataArray, rhsPtr->mDataArray);
+    return vvi::detail::compare(mDataArray, rhsPtr->mDataArray);
     //return CrappyFieldCompareMethod<DataType>::compare(mDataArray, rhsPtr->mDataArray);
   } catch (const std::bad_cast &) {
     return false;
@@ -795,14 +795,15 @@ inline
 bool
 Field<Dimension, DataType>::
 operator==(const Field<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (n != rhs.size()) return false;
-  auto result = true;
-  auto i = 0;
-  while (i < (int)n and result) {
-    result = (*this)(i) == rhs(i);
-  }
-  return result;
+  return mDataArray == rhs.mDataArray;
+  //const auto n = this->size();
+  //if (n != rhs.size()) return false;
+  //auto result = true;
+  //auto i = 0;
+  //while (i < (int)n and result) {
+  //  result = (*this)(i) == rhs(i);
+  //}
+  //return result;
 }
 
 //------------------------------------------------------------------------------

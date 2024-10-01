@@ -82,7 +82,7 @@ namespace detail {
   bool compare(::Spheral::ManagedVector<elem> const& lhs, ::Spheral::ManagedVector<elem> const& rhs)
   { return ::Spheral::compare(lhs, rhs); }
 
-}
+} // namespace detail
 
 } // namespace vvi
 

@@ -50,6 +50,9 @@ class Field:
   Field();
    
 public:
+  VVI_IMPL_DEEPCOPY(Field, mDataArray)
+  VVI_IMPL_COMPARE(Field, mDataArray)
+
   //--------------------------- Public Interface ---------------------------//
   typedef typename Dimension::Scalar Scalar;
   typedef typename Dimension::Vector Vector;
