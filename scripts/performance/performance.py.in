@@ -1,18 +1,66 @@
 #!/user/bin/env python3
 
-import sys, os
+import sys, os, yaml
+import numpy as np
+
 caliper_loc = "@CONFIG_CALIPER_DIR@"
 sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
 
+benchmark_dir = "/usr/gapps/Spheral/benchmarks"
+test_list_yaml = "@CMAKE_INSTALL_PREFIX@/tests/performance/test_list.yaml"
+spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
+spheral_install_config = "@SPHERAL_CONFIGURATION@"
+
 import caliperreader as cr
 
-# Put some filler functions here
-def compare_times(manager):
-    filtered = [test for test in manager.testlist if test.status is PASSED]
-    for t in filtered:
-        print(t)
+from compare_times import compare_times
 
 onExit(compare_times)
 glue(keep=True)
-source("functional/Hydro/Noh/Noh-cylindrical-2d.py")
 
+def get_test(test_configs, gen_tests):
+    # Gathers the specific and general test data info
+    # Returns the input line, timer regions, and timers
+    gen_test_name = test_configs["gen_test"]
+    gen_test = gen_tests[gen_test_name]
+    input_line = gen_test["gen_inputs"] + " " + test_configs["inputs"]
+    return input_line, gen_test["regions"], gen_test["timers"]
+
+def create_test(test_dir, test_name, test_inps, test_num, num_cores):
+    test_path = os.path.join(test_dir, test_name+".py")
+    cali_file = f"{test_name}_{test_num}.cali"
+    ref_cali_file = os.path.join(benchmark_dir, spheral_test_config, cali_file)
+    # All tests should have doCompare input
+    inps = f"{test_inps} --caliperFilename {cali_file} --doCompare False"
+    t = test(test_path, inps,
+             label=f"{test_name} test {test_num}",
+             np=num_cores,
+             cali_file=f"{cali_file}",
+             ref_cali_file=f"{ref_cali_file}")
+    return t
+
+with open(test_list_yaml, 'r') as ff:
+    try:
+        loader = yaml.safe_load(ff)
+    except yaml.YAMLError as exception:
+        print(exception)
+    gen_tests = loader["gen_tests"]
+    if (spheral_sys_arch not in loader):
+        print(f"ERROR: {spheral_sys_arch} architecture not found in test_list.yaml")
+        sys.exit(1)
+    cur_arch_tests = loader[spheral_sys_arch]
+    for test_name, configs in cur_arch_tests.items():
+        input_line, regions, timers = get_test(configs, gen_tests)
+        t = create_test(test_dir, 
+        
+noh_dir = "functional/Hydro/Noh"
+noh_name = "Noh-cylindrical-2d"
+num_cores = 72
+points_per_core = 5000
+total_points = points_per_core * num_cores
+nradial = int(np.sqrt(total_points))
+ntheta = nradial
+noh_inps = f"--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 10 --doComparison False --nRadial {nradial} --nTheta {ntheta}"
+t = create_test(noh_dir, noh_name, noh_inps, 0, num_cores)
+# Add a wait to ensure all timer files are done
+wait()

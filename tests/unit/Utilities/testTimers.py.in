@@ -29,7 +29,7 @@ test_dict_0 = {"perf_test": "weak_scaling"}
 adiak_valueString("perf_test", test_dict_0["perf_test"],
                   adiak_categories.performance)
 # Caliperreader reads everything as strings for some terrible reason
-# So the test have to be hacked up
+# So the test has to be hacked up
 
 # Correct method:
 # test_dict_1 = {"rank_count": mpi.procs}

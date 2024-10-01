@@ -170,6 +170,7 @@ commandLine(seed = "constantDTheta",
             dataDir = "dumps-cylindrical-Noh",
             outputFile = "None",
             comparisonFile = "None",
+            doCompare = True,
 
             graphics = True,
             )
@@ -603,6 +604,10 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Plot the results.

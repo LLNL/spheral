@@ -184,6 +184,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             comparisonFile = "None",
             normOutputFile = "None",
             writeOutputLabel = True,
+            doComparison = True,
 
             # Parameters for the test acceptance.,
             L1rho =   0.0537214,   
@@ -614,6 +615,9 @@ else:
         control.step(5)
         control.advance(goalTime, maxSteps)
 
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Compute the analytic answer.
@@ -641,12 +645,12 @@ xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
 for i in range(len(rho)):
-  L1 = L1 + abs(rho[i]-rhoans[i])
+    L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
 if mpi.rank == 0 and outputFile != "None":
- print("L1=",L1_tot,"\n")
- with open("Converge.txt", "a") as myfile:
-    myfile.write("%s %s\n" % (nx1, L1_tot))
+    print("L1=",L1_tot,"\n")
+    with open("Converge.txt", "a") as myfile:
+        myfile.write("%s %s\n" % (nx1, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.

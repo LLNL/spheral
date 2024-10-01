@@ -24,9 +24,13 @@ def commandLine(**options):
                         dest = "verbose",
                         default = False,
                         help = "Verbose output -- print all options that were set.")
-    parser.add_argument("--caliperConfig", default="", type=str)
-    parser.add_argument("--caliperFilename", default="", type=str)
-    parser.add_argument("--caliperConfigJSON", default="", type=str)
+    # This logic checks if the user already set a Caliper argument and default value
+    # and prevents adding the argument if it already exists
+    arg_list = [action.dest for action in parser._actions]
+    cali_args = ["Config", "Filename", "ConfigJSON"]
+    for ca in cali_args:
+        if (ca not in arg_list):
+            parser.add_argument(f"--caliper{ca}", default="", type=str)
     # Evaluate the command line.
     args = parser.parse_args()
     arg_dict = vars(args)
@@ -59,8 +63,11 @@ def commandLine(**options):
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
         gd[key] = val
-    # Initialize timers
-    InitTimers(args.caliperConfig, args.caliperFilename, args.caliperConfigJSON)
+    # Initialize Caliper ConfigManager
+    InitTimers(args.caliperConfig,
+               args.caliperFilename,
+               args.caliperConfigJSON,
+               args.caliperOutputDir)
     return
 
 def InitTimers(caliper_config, filename, caliper_json):
@@ -69,6 +76,7 @@ def InitTimers(caliper_config, filename, caliper_json):
         if(not caliper_config):
             raise RuntimeError("SpheralOptionParser: specifying a configuration file without using one of the configurations means no timers are started")
     off_tests = ["none", "off", "disable", "disabled", "0"]
+    # Check if Caliper is turned off
     if (caliper_config.lower() in off_tests):
         return
     elif (caliper_config):
