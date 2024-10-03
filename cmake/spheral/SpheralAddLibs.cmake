@@ -46,6 +46,17 @@ function(spheral_add_obj_library package_name obj_list_name)
   # Install the headers
   install(FILES ${${package_name}_headers}
     DESTINATION include/${package_name})
+  if(ENABLE_DEV_BUILD)
+    # Export target name is either spheral_cxx-targets or spheral_llnlcxx-targets
+    if (${obj_list_name} MATCHES "LLNL")
+      set(export_target_name spheral_llnlcxx-targets)
+    else()
+      set(export_target_name spheral_cxx-targets)
+    endif()
+    install(TARGETS Spheral_${package_name}
+      EXPORT ${export_target_name}
+      DESTINATION lib)
+  endif()
   # Append Spheral_${package_name} to the global object list
   # For example, SPHERAL_OBJ_LIBS or LLNLSPHERAL_OBJ_LIBS
   set_property(GLOBAL APPEND PROPERTY ${obj_list_name} Spheral_${package_name})
@@ -85,9 +96,6 @@ function(spheral_add_cxx_library package_name _cxx_obj_list)
   set(export_target_name spheral_${lower_case_package}-targets)
 
   if(ENABLE_DEV_BUILD)
-    install(TARGETS ${_cxx_obj_list}
-      EXPORT ${export_target_name}
-      DESTINATION lib)
     add_library(Spheral_${package_name} INTERFACE)
     target_link_libraries(Spheral_${package_name} INTERFACE ${_cxx_obj_list})
   else()
