@@ -63,6 +63,7 @@ def commandLine(**options):
             if (type(val) != type(options[key])):
                 val = eval(val, gd)
         gd[key] = val
+        adiak_value(key, val)
     # Initialize Caliper ConfigManager
     InitTimers(args.caliperConfig,
                args.caliperFilename,
@@ -93,6 +94,6 @@ def InitTimers(caliper_config, filename, caliper_json):
             testname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
             testname += unique_digits + ".cali"
         TimerMgr.default_start(testname)
-    adiak_valueInt("threads_per_rank", omp_get_num_threads())
-    adiak_valueInt("num_ranks", mpi.procs)
+    adiak_value("threads_per_rank", omp_get_num_threads())
+    adiak_value("num_ranks", mpi.procs)
     return
