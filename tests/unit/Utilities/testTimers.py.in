@@ -14,18 +14,18 @@ import mpi
 
 import sys, os, time
 
-# Dictionary for testing Adiak inputs
+# For testing explicitly set Adiak inputs
 test_dict = {"perf_test": "weak_scaling",
-             "rank_count": str(mpi.procs)}
-# Note: Caliperreader reads everything as strings for some terrible reason
-# The second entry should be
-#            "rank_count": mpi.procs}
-# but is hacked up for the tests to pass
-# Testing commmand line inputs that are automatically passed to adiak
+             "rank_count": mpi.procs,
+             "fake_float": 2.141}
+# Add test dicts to Adiak
+for key, val in test_dict.items():
+    adiak_value(key, val)
+
+# For testing that commmandLine inputs are automatically passed to adiak
 test_int = 4
 test_str = "hello"
 test_float = 4.224
-
 inp_test_dict = {"test_int": test_int,
                  "test_str": test_str,
                  "test_float": test_float}
@@ -44,10 +44,6 @@ do_timers = False
 if (TimerMgr.is_started()):
     do_timers = True
 
-
-for key, val in test_dict.items():
-    adiak_value(key, val)
-
 run_count = 8
 sleep_time = 1.E-4
 fake_timer_name = "test_timer"
@@ -56,6 +52,8 @@ for i in range(run_count):
     TimerMgr.timer_start(fake_timer_name)
     time.sleep(sleep_time)
     TimerMgr.timer_end(fake_timer_name)
+
+# Read in Caliper file and process it
 if (do_timers and TimerMgr.get_filename()):
     adiak_fini()
     TimerMgr.fini()
@@ -69,30 +67,46 @@ if (do_timers and TimerMgr.get_filename()):
     r.read(caliper_file)
     records = r.records
     found_errors = 0
+
     # Test for timer name
     if (fake_timer_name in records[1]['region']):
         print(f"Found {fake_timer_name} timer")
     else:
+        print(f"ERROR: {fake_timer_name} timer not found")
         found_errors += 1
+
     # Test for function count
     count_val = int(eval(records[1]["avg#sum#rc.count"]))
     if (count_val == run_count):
         print("Run count in Caliper file is correct")
     else:
+        print("ERROR: Caliper function count is off")
         found_errors += 1
-    glbs = r.globals
+
+    # Note: Caliperreader reads everything as strings for some terrible reason
+    # we must convert the Adiak values first
+    adiak_inp = {}
+    for key, val in r.globals.items():
+        try:
+            newval = eval(val)
+        except:
+            newval = val
+        adiak_inp.update({key: newval})
+
     # Test Adiak output for explicitly set values
-    for td in test_dict:
-        if (td.items() <= glbs.items()):
-            print(f"Found {td.items()}")
-        else:
-            found_errors += 1
+    if (test_dict.items() <= adiak_inp.items()):
+        print(f"Found {test_dict.items()}")
+    else:
+        print("ERROR: Adiak values not found in Caliper file")
+        found_errors += 1
+
     # Test Adiak outputs for commandLine inputs
-    for tkey, tval in inp_test_dict.items():
-        if (tkey in glbs.items() and str(tval) == glbs[tkey]):
-            print(f"Found {tkey}: {tval}")
-        else:
-            found_errors += 1
+    if (inp_test_dict.items() <= adiak_inp.items()):
+        print(f"Found {inp_test_dict.items()}")
+    else:
+        print("ERROR: commandLine inputs not found in Adiak values in Caliper file")
+        found_errors += 1
+
     if (found_errors > 0):
         raise ValueError("Caliper file not correct")
     else:
