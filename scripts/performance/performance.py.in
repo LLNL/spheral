@@ -1,66 +1,94 @@
 #!/user/bin/env python3
 
-import sys, os, yaml
+# This file runs and compares performance tests through the ats system.
+# Run using: ./spheral-lcats tests/performance.py
+
+import sys, os, argparse, time
 import numpy as np
 
 caliper_loc = "@CONFIG_CALIPER_DIR@"
 sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
-
-benchmark_dir = "/usr/gapps/Spheral/benchmarks"
-test_list_yaml = "@CMAKE_INSTALL_PREFIX@/tests/performance/test_list.yaml"
-spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
-spheral_install_config = "@SPHERAL_CONFIGURATION@"
-
 import caliperreader as cr
 
-from compare_times import compare_times
+# Location of benchmark data
+benchmark_dir = "/usr/gapps/Spheral/benchmarks"
+# Current system architecture from Spack
+spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
+# Current install configuration from Spack
+spheral_install_config = "@SPHERAL_CONFIGURATION@"
+
+# Function called on exit to do timing comparisons
+def compare_times(manager):
+    for test in manager.testlist:
+        run_dir = test.directory
+        cfile = os.path.join(run_dir, test.options["caliper_filename"])
+        ref_caliper_file = test.options["ref_cali_file"]
+        regions = test.options["regions"]
+        timers = test.options["timers"]
+        r = cr.CaliperReader()
+        r.read(cfile)
+        records = r.records
+        # Extract current times
+        times = {}
+        for rec in records:
+            if ("region" in rec):
+                fname = rec["region"]
+                if (type(fname) is list):
+                    fname = fname[-1]
+                if (fname in regions):
+                    if (fname in times):
+                        for t in timers:
+                            times[fname][t] += float(rec[t])
+                    else:
+                        new_dict = {}
+                        for t in timers:
+                            new_dict.update({t: float(rec[t])})
+                        times.update({fname: new_dict})
+        for i, j in times.items():
+            print(f"{i}")
+            for k, v in j.items():
+                print(f"{k}: {v}")
 
 onExit(compare_times)
 glue(keep=True)
 
-def get_test(test_configs, gen_tests):
-    # Gathers the specific and general test data info
-    # Returns the input line, timer regions, and timers
-    gen_test_name = test_configs["gen_test"]
-    gen_test = gen_tests[gen_test_name]
-    input_line = gen_test["gen_inputs"] + " " + test_configs["inputs"]
-    return input_line, gen_test["regions"], gen_test["timers"]
+# NOH tests
+group(name="NOH tests")
+# General input for all Noh-cylindrical-2d.py tests
+test_dir = "../functional/Hydro/Noh"
+test_file = "Noh-cylindrical-2d.py"
+gen_noh_inp = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --doCompare False"
 
-def create_test(test_dir, test_name, test_inps, test_num, num_cores):
-    test_path = os.path.join(test_dir, test_name+".py")
-    cali_file = f"{test_name}_{test_num}.cali"
-    ref_cali_file = os.path.join(benchmark_dir, spheral_test_config, cali_file)
-    # All tests should have doCompare input
-    inps = f"{test_inps} --caliperFilename {cali_file} --doCompare False"
-    t = test(test_path, inps,
-             label=f"{test_name} test {test_num}",
-             np=num_cores,
-             cali_file=f"{cali_file}",
-             ref_cali_file=f"{ref_cali_file}")
-    return t
-
-with open(test_list_yaml, 'r') as ff:
-    try:
-        loader = yaml.safe_load(ff)
-    except yaml.YAMLError as exception:
-        print(exception)
-    gen_tests = loader["gen_tests"]
-    if (spheral_sys_arch not in loader):
-        print(f"ERROR: {spheral_sys_arch} architecture not found in test_list.yaml")
-        sys.exit(1)
-    cur_arch_tests = loader[spheral_sys_arch]
-    for test_name, configs in cur_arch_tests.items():
-        input_line, regions, timers = get_test(configs, gen_tests)
-        t = create_test(test_dir, 
-        
-noh_dir = "functional/Hydro/Noh"
-noh_name = "Noh-cylindrical-2d"
-num_cores = 72
-points_per_core = 5000
-total_points = points_per_core * num_cores
+# Test 1
+num_cores = 8
+ppc = 100 # Points per core
+# If we are on RZGenie/Ruby
+if ("broadwell" in spheral_sys_arch):
+    num_cores = 72
+    ppc = 500
+total_points = num_cores * ppc
 nradial = int(np.sqrt(total_points))
 ntheta = nradial
-noh_inps = f"--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --steps 10 --doComparison False --nRadial {nradial} --nTheta {ntheta}"
-t = create_test(noh_dir, noh_name, noh_inps, 0, num_cores)
+test_name = "NC2D_1"
+caliper_filename = f"{test_name}_{int(time.time())}.cali"
+inps = f"{gen_noh_inp} --nTheta {ntheta} --nRadial {nradial} --steps 10 --caliperFilename {caliper_filename}"
+test_path = os.path.join(test_dir, test_file)
+# Path to benchmark timing data
+ref_cali_file = os.path.join(benchmark_dir, spheral_install_config, caliper_filename)
+regions = ["CheapRK2",
+           "CheapRK2PreInit",
+           "ConnectivityMap_computeConnectivity",
+           "ConnectivityMap_patch",
+           "CheapRK2EvalDerivs",
+           "CheapRK2EndStep"]
+timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
+t = test(script=test_path, clas=inps, label=f"{test_name}", np=num_cores,
+         caliper_filename=caliper_filename,
+         regions=regions,
+         timers=timers,
+         ref_cali_file=ref_cali_file)
+
+endgroup()
+
 # Add a wait to ensure all timer files are done
 wait()

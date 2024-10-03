@@ -66,8 +66,7 @@ def commandLine(**options):
     # Initialize Caliper ConfigManager
     InitTimers(args.caliperConfig,
                args.caliperFilename,
-               args.caliperConfigJSON,
-               args.caliperOutputDir)
+               args.caliperConfigJSON)
     return
 
 def InitTimers(caliper_config, filename, caliper_json):

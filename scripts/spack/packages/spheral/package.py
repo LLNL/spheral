@@ -84,7 +84,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-docutils@0.18.1', type='build')
     depends_on('py-scipy@1.12.0', type='build')
     depends_on('py-ats@exit', type='build')
-    depends_on('py-pyyaml', type='build')
     depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
 
     depends_on('py-sphinx', type='build')

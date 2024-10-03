@@ -65,9 +65,10 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 
+  add_subdirectory(performance)
+
   install(CODE "execute_process( \
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh \ 
     )")
 
-  include_directories(performance)
 endif()
