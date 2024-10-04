@@ -85,12 +85,7 @@ endforeach()
 # For dev builds, we must call LLNLSpheralInstallObjs.cmake
 # to ensure LLNLSpheral libraries are added to the Spheral_CXX
 # target
-if(ENABLE_DEV_BUILD)
-  # This calls LLNLSpheralInstallObjs.cmake
-  if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
-    include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
-  endif()
-else()
+if(NOT ENABLE_DEV_BUILD)
   set(CXX_sources spheralCXX.cc)
 endif()
 # Retrieve the global list populated in spheral_obj_add_library
@@ -99,8 +94,6 @@ get_property(SPHERAL_OBJ_LIBS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
 spheral_add_cxx_library(CXX "${SPHERAL_OBJ_LIBS}")
 
 # This calls LLNLSpheralInstallObjs.cmake
-if(NOT ENABLE_DEV_BUILD)
-  if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
-    include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
-  endif()
+if(EXISTS ${EXTERNAL_SPHERAL_OBJ_CMAKE})
+  include(${EXTERNAL_SPHERAL_OBJ_CMAKE})
 endif()
