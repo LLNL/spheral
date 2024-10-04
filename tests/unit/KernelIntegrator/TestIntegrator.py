@@ -219,7 +219,7 @@ output("numLocal")
 # Randomize nodes
 #-------------------------------------------------------------------------------
 import random
-seed = 2
+seed = 4587592729430
 rangen = random.Random()
 rangen.seed(seed)
 
