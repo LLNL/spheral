@@ -267,19 +267,13 @@ if iterateH:
     if "ASPH" in HydroChoice:
         VC = VoronoiCells(db.maxKernelExtent)
         pkgs = [VC] + pkgs
-    PKGS = vector_of_Physics(pkgs)
-    if testDim == "spherical":
-        iterateIdealH(db,
-                      PKGS,
-                      bounds,
-                      maxHIterations,
-                      Htolerance)
-    else:
-        iterateIdealH(db,
-                      PKGS,
-                      bounds,
-                      maxHIterations,
-                      Htolerance)
+    for pkg in pkgs:
+        pkg.initializeProblemStartup(db)
+    iterateIdealH(db,
+                  pkgs,
+                  bounds,
+                  maxHIterations,
+                  Htolerance)
 
 #-------------------------------------------------------------------------------
 # Invoke the SPH evaluateDerivatives, which will put velocity gradients in the 
@@ -287,7 +281,8 @@ if iterateH:
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
-hydro.initializeProblemStartup(db)
+for pkg in integrator.physicsPackages():
+    pkg.initializeProblemStartup(db)
 state = State(db, integrator.physicsPackages())
 derivs = StateDerivatives(db, integrator.physicsPackages())
 

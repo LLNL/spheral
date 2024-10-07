@@ -9,7 +9,7 @@
 .gcc_mvapich2:
   variables:
     SPEC: 'gcc@$GCC_VERSION^mvapich2'
-    EXTRA_CMAKE_ARGS: '-DENABLE_DOCS=On -DENABLE_WARNINGS_AS_ERRORS=On'
+    EXTRA_CMAKE_ARGS: '-DENABLE_DOCS=On -DENABLE_WARNINGS_AS_ERRORS=On -DENABLE_DEV_BUILD=On'
 
 .gcc_~mpi:
   variables:

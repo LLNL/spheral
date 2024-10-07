@@ -3,10 +3,11 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
-from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
+from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d, Polygon
+from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d, Polyhedron
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ
 from Spheral import vector_of_int, vector_of_double, vector_of_vector_of_double, vector_of_SymTensor3d
+from Spheral import polySecondMoment2d, polySecondMoment3d
 
 #-------------------------------------------------------------------------------
 # This version ratios from the center out in 2D.  Kind of a misnomer with the
@@ -33,6 +34,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  SPH = False,
                  rejecter = None,
                  perturbFunc = None):
+
+        nNodePerh = float(nNodePerh)  # Just to be sure...
 
         assert drStart > 0.0
         assert drRatio > 0.0
@@ -79,12 +82,19 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                 if startFromCenter:
                     r0 = min(rmax, rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
                     r1 = min(rmax, rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
+                    r0hr = rmin + drStart*(1.0 - drRatio**max(0, i - nNodePerh))/(1.0 - drRatio)
+                    r1hr = rmin + drStart*(1.0 - drRatio**(      i + nNodePerh))/(1.0 - drRatio)
                 else:
                     r0 = max(rmin, rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
                     r1 = max(rmin, rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
+                    r0hr = rmax - drStart*(1.0 - drRatio**(      i + nNodePerh))/(1.0 - drRatio)
+                    r1hr = rmax - drStart*(1.0 - drRatio**max(0, i - nNodePerh))/(1.0 - drRatio)
             else:
                 r0 = min(rmax, rmin + i*drStart)
                 r1 = min(rmax, rmin + (i + 1)*drStart)
+                r0hr = rmin + (i - nNodePerh)*drStart
+                r1hr = rmin + (i + nNodePerh)*drStart
+
             dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
@@ -93,9 +103,20 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             else:
                 ntheta = max(nthetamin, int(li/dr*aspectRatio))
             dtheta = Dtheta/ntheta
-            hr = nNodePerh * dr
-            ha = nNodePerh * ri*dtheta
 
+            # Find the radial and azimuthal smoothing lengths we should use.  We have to be
+            # careful for extrememely high aspect ratios that the points will overlap the expected
+            # number of neighbors taking into account the curvature of the local point distribution.
+            # This means hr might need to be larger than we would naively expect...
+            #hdelta = 2.0*ri*(sin(0.5*nNodePerh*dtheta))**2
+            r0hr -= 2.0*r1hr*(sin(0.5*nNodePerh*dtheta))**2
+            r1hr += 2.0*r1hr*(sin(0.5*nNodePerh*dtheta))**2
+            hr = max(r1hr - ri, ri - r0hr)
+            ha = nNodePerh * ri*dtheta
+            # box = Polygon([Vector2d(r0hr, -ha), Vector2d(r1hr, -ha),
+            #                Vector2d(r1hr,  ha), Vector2d(r0hr,  ha)])
+            # Hi = polySecondMoment2d(box, box.centroid).sqrt().Inverse()
+            
             for j in range(ntheta):
                 theta0 = thetamin + j*dtheta
                 theta1 = thetamin + (j + 1)*dtheta

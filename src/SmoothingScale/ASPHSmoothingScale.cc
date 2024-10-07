@@ -6,6 +6,7 @@
 // Created by JMO, Wed Sep 14 15:01:13 PDT 2005
 //----------------------------------------------------------------------------//
 #include "SmoothingScale/ASPHSmoothingScale.hh"
+#include "SmoothingScale/polySecondMoment.hh"
 #include "Geometry/Dimension.hh"
 #include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
@@ -84,69 +85,6 @@ smoothingScaleDerivative(const Dim<3>::SymTensor& H,
   result.yy(H.yz()*(Phidot - DvDx.zy()) - H.xy()*(Gdot + DvDx.xy()) - H.yy()*DvDx.yy());
   result.yz(H.xy()*Tdot - H.yy()*Phidot - H.xz()*DvDx.xy() - H.yz()*DvDx.yy() - H.zz()*DvDx.zy());
   result.zz(H.xz()*(Tdot - DvDx.xz()) - H.yz()*(Phidot + DvDx.yz()) - H.zz()*DvDx.zz());
-  return result;
-}
-  
-//------------------------------------------------------------------------------
-// Compute the second moment about the give position for a polytope
-//------------------------------------------------------------------------------
-// 1D -- nothing to do
-inline
-Dim<1>::SymTensor
-polySecondMoment(const Dim<1>::FacetedVolume& poly,
-                 const Dim<1>::Vector& center) {
-  return Dim<1>::SymTensor(1);
-}
-
-// 2D
-inline
-Dim<2>::SymTensor
-polySecondMoment(const Dim<2>::FacetedVolume& poly,
-                 const Dim<2>::Vector& center) {
-  Dim<2>::SymTensor result;
-  const auto& facets = poly.facets();
-  for (const auto& f: facets) {
-    const auto v1 = f.point1() - center;
-    const auto v2 = f.point2() - center;
-    const auto thpt = std::abs(v1.x()*v2.y() - v2.x()*v1.y())/12.0;
-    result[0] += (v1.x()*v1.x() + v1.x()*v2.x() + v2.x()*v2.x())*thpt;
-    result[1] += (v1.x()*v1.y() + v2.x()*v2.y() + 0.5*(v2.x()*v1.y() + v1.x()*v2.y()))*thpt;
-    result[2] += (v1.y()*v1.y() + v1.y()*v2.y() + v2.y()*v2.y())*thpt;
-  }
-  return result;
-}
-
-inline
-Dim<3>::SymTensor
-polySecondMoment(const Dim<3>::FacetedVolume& poly,
-                 const Dim<3>::Vector& center) {
-  using Scalar = Dim<3>::Scalar;
-  using Vector = Dim<3>::Vector;
-  using SymTensor = Dim<3>::SymTensor;
-  SymTensor result;
-  std::vector<std::array<Vector, 3>> tris;
-  Vector v1, v2, v3;
-  Scalar thpt, x1, x2, x3, y1, y2, y3, z1, z2, z3;
-  const auto& facets = poly.facets();
-  for (const auto& f: facets) {
-    f.decompose(tris);
-    for (const auto& tri: tris) {
-      v1 = tri[0] - center;
-      v2 = tri[1] - center;
-      v3 = tri[2] - center;
-      x1 = v1.x(); y1 = v1.y(); z1 = v1.z();
-      x2 = v2.x(); y2 = v2.y(); z2 = v2.z();
-      x3 = v3.x(); y3 = v3.y(); z3 = v3.z();
-      thpt = std::abs(x3*y2*z1 - x2*y3*z1 - x3*y1*z2 + x1*y3*z2 + x2*y1*z3 - x1*y2*z3);
-      result[0] += thpt * pow2(x1 + x2) + x3*(x1 + x2 + x3);                                              // xx
-      result[1] += thpt * 0.5*(x1*(2.0*y1 + y2 + y3) + x2*(y1 + 2.0*y2 + y3) + x3*(y1 + y2 + 2.0*y3));    // xy
-      result[2] += thpt * 0.5*(x1*(2.0*z1 + z2 + z3) + x2*(z1 + 2.0*z2 + z3) + x3*(z1 + z2 + 2.0*z3));    // xz
-      result[3] += thpt * pow2(y1 + y2) + y3*(y1 + y2 + y3);                                              // yy
-      result[4] += thpt * 0.5*(y1*(2.0*z1 + z2 + z3) + y2*(z1 + 2.0*z2 + z3) + y3*(z1 + z2 + 2.0*z3));    // yz
-      result[5] += thpt * pow2(z1 + z2) + z3*(z1 + z2 + z3);                                              // zz
-    }
-  }
-  result /= 60.0;
   return result;
 }
 
@@ -248,103 +186,20 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-
   // Get the state and derivative FieldLists.
   // State FieldLists.
-  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto P = state.fields(HydroFieldNames::pressure, 0.0);
   const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  CHECK(position.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
-  CHECK(mass.size() == numNodeLists);
-  CHECK(massDensity.size() == numNodeLists);
   CHECK(DvDx.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DHDt = derivs.fields(IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  massZerothMoment = derivs.fields(HydroFieldNames::massZerothMoment, 0.0);
+  auto DHDt = derivs.fields(IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
-  CHECK(massZerothMoment.size() == numNodeLists);
-
-#pragma omp parallel
-  {
-    // Thread private scratch variables
-    bool sameMatij;
-    int i, j, nodeListi, nodeListj;
-    Scalar mi, mj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij;
-    Vector rij, etai, etaj, gradWi, gradWj;
-    SymTensor psiij;
-
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
-
-#pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-      i = pairs[kk].i_node;
-      j = pairs[kk].j_node;
-      nodeListi = pairs[kk].i_list;
-      nodeListj = pairs[kk].j_list;
-
-      // Get the state for node i.
-      mi = mass(nodeListi, i);
-      rhoi = massDensity(nodeListi, i);
-      // Pi = P(nodeListi, i);
-      const auto& ri = position(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      auto&       massZerothMomenti = massZerothMoment_thread(nodeListi, i);
-
-      // Get the state for node j
-      mj = mass(nodeListj, j);
-      rhoj = massDensity(nodeListj, j);
-      const auto& rj = position(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
-
-      // Flag if this is a contiguous material pair or not.
-      sameMatij = (nodeListi == nodeListj); // and fragIDi == fragIDj);
-
-      // Node displacement.
-      rij = ri - rj;
-      etai = Hi*rij;
-      etaj = Hj*rij;
-      etaMagi = etai.magnitude();
-      etaMagj = etaj.magnitude();
-      CHECK(etaMagi >= 0.0);
-      CHECK(etaMagj >= 0.0);
-
-      // Symmetrized kernel weight and gradient.
-      WSPHi = mWT.kernelValueSPH(etaMagi);
-      WSPHj = mWT.kernelValueSPH(etaMagj);
-      gradWi = mWT.gradValue(etaMagi, Hi.Determinant()) * Hi*etai*safeInvVar(etaMagi);
-      gradWj = mWT.gradValue(etaMagj, Hj.Determinant()) * Hj*etaj*safeInvVar(etaMagj);
-
-      // Moments of the node distribution -- used for the ideal H calculation.
-      fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      psiij = rij.unitVector().selfdyad();
-      massZerothMomenti +=     fweightij*WSPHi;
-      massZerothMomentj += 1.0/fweightij*WSPHj;
-    } // loop over pairs
-
-    // Reduce the thread values to the master.
-    threadReduceFieldLists<Dimension>(threadStack);
-  }   // OpenMP parallel region
 
   // Finish up the derivatives now that we've walked all pairs
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hminInv = safeInvVar(nodeList.hmin());
-    const auto  hmaxInv = safeInvVar(nodeList.hmax());
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
+    const auto& nodeList = H[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
@@ -352,31 +207,27 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& DvDxi = DvDx(nodeListi, i);
-      auto&       massZerothMomenti = massZerothMoment(nodeListi, i);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
       // Time derivative of H
       DHDt(nodeListi, i) = smoothingScaleDerivative(Hi, DvDxi);
 
-      // Determine the current effective number of nodes per smoothing scale.
-      const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
-                                                  0.5*nPerh :
-                                                  mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
-      CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
+      // // Determine the current effective number of nodes per smoothing scale.
+      // const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
+      //                                             0.5*nPerh :
+      //                                             mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
+      // CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-      // The ratio of the desired to current nodes per smoothing scale.
-      const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
-      CHECK(s > 0.0);
+      // // The ratio of the desired to current nodes per smoothing scale.
+      // const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+      // CHECK(s > 0.0);
 
-      // Now determine how to scale the current H to the desired value.
-      // We only scale H at this point in setting Hideal, not try to change the shape.
-      const auto a = (s < 1.0 ? 
-                      0.4*(1.0 + s*s) :
-                      0.4*(1.0 + 1.0/(s*s*s)));
-      CHECK(1.0 - a + a*s > 0.0);
-      Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
+      // // Now determine how to scale the current H to the desired value.
+      // // We only scale H at this point in setting Hideal, not try to change the shape.
+      // const auto a = (s < 1.0 ? 
+      //                 0.4*(1.0 + s*s) :
+      //                 0.4*(1.0 + 1.0/(s*s*s)));
+      // CHECK(1.0 - a + a*s > 0.0);
+      // Hideal(nodeListi, i) = std::max(hmaxInv, std::min(hminInv, Hi / (1.0 - a + a*s)));
     }
   }
   TIME_END("ASPHSmoothingScaleDerivs");
@@ -396,12 +247,12 @@ finalize(const Scalar time,
          State<Dimension>& state,
          StateDerivatives<Dimension>& derivs) {
 
+  // Notify any user filter object things are about to start
+  mHidealFilterPtr->startFinalize(time, dt, dataBase, state, derivs);
+
   // If we're not using the IdealH algorithm we can save a lot of time...
   const auto Hupdate = this->HEvolution();
   if (Hupdate == HEvolutionType::IdealH) {
-
-    // Notify any user filter object things are about to start
-    mHidealFilterPtr->startFinalize(time, dt, dataBase, state, derivs);
 
     // Grab our state
     const auto numNodeLists = dataBase.numFluidNodeLists();
@@ -582,8 +433,8 @@ finalize(const Scalar time,
         fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
         massZerothMomenti +=     fweightij * WSPHi;
         massZerothMomentj += 1.0/fweightij * WSPHj;
-        massSecondMomenti +=                 WSPHi * mCellSecondMoment(nodeListj, j);
-        massSecondMomentj += 1.0/fweightij * WSPHj * mCellSecondMoment(nodeListi, i);
+        if (surfacePoint(nodeListj, j) == 0) massSecondMomenti +=                 WSPHi * mCellSecondMoment(nodeListj, j);
+        if (surfacePoint(nodeListi, i) == 0) massSecondMomentj += 1.0/fweightij * WSPHj * mCellSecondMoment(nodeListi, i);
       }
 
       // Reduce the thread values to the master.
@@ -653,17 +504,20 @@ finalize(const Scalar time,
         // fscale = 1.0/Dimension::rootnu(fscale);
 
         // Now apply the desired volume scaling from the zeroth moment to fscale
-        const auto a = (s < 1.0 ? 
-                        0.4*(1.0 + s*s) :
-                        0.4*(1.0 + 1.0/(s*s*s)));
-        CHECK(1.0 - a + a*s > 0.0);
-        T *= std::min(4.0, std::max(0.25, 1.0 - a + a*s));
+        // const auto a = (s < 1.0 ? 
+        //                 0.4*(1.0 + s*s) :
+        //                 0.4*(1.0 + 1.0/(s*s*s)));
+        // CHECK(1.0 - a + a*s > 0.0);
+        // T *= std::min(4.0, std::max(0.25, 1.0 - a + a*s));
+        T *= s;
 
         // Build the new H tensor
-        if (surfacePoint(k, i) == 0) {  // Keep the time evolved version for surface points
+        if (surfacePoint(k, i) == 0) {
           Hideali = (*mHidealFilterPtr)(k, i, Hi, T.Inverse());
-          Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
+        } else {
+          Hideali = (*mHidealFilterPtr)(k, i, Hi, Hi);           // Keep the time evolved version for surface points
         }
+        Hi = Hideali;     // Since this is the after all our regular state update gotta update the actual H
 
         // // If requested, move toward the cell centroid
         // if (mfHourGlass > 0.0 and surfacePoint(k,i) == 0) {
@@ -680,6 +534,16 @@ finalize(const Scalar time,
         //   dr *= min(1.0, drmax*safeInv(drmag));
         //   ri += dr;
         // }
+      }
+    }
+  } else {
+    // Apply any requested user filtering/alterations to the final H in the case where we're not using the IdealH algorithm
+    const auto numNodeLists = dataBase.numFluidNodeLists();
+    auto        H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    for (auto k = 0u; k < numNodeLists; ++k) {
+      const auto n = H[k]->numInternalElements();
+      for (auto i = 0u; i < n; ++i) {
+        H(k,i) = (*mHidealFilterPtr)(k, i, H(k,i), H(k,i));
       }
     }
   }

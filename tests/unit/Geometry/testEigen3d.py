@@ -286,9 +286,6 @@ class TestEigenVectors(unittest.TestCase):
             A = SymTensor3d(lam1, 0.0, 0.0,
                             0.0, lam2, 0.0,
                             0.0, 0.0, lam3)
-            A = SymTensor3d(lam1, 0.0, 0.0,
-                            0.0, lam2, 0.0,
-                            0.0, 0.0, lam3)
             lam0 = [(lam1, Vector3d(1, 0, 0)),
                     (lam2, Vector3d(0, 1, 0)),
                     (lam3, Vector3d(0, 0, 1))]
