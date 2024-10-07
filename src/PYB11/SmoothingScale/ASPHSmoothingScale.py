@@ -21,7 +21,9 @@ class ASPHSmoothingScale(SmoothingScaleBase):
     # Constructors
     def pyinit(self,
                HUpdate = "HEvolutionType",
-               W = "const TableKernel<%(Dimension)s>&"):
+               W = "const TableKernel<%(Dimension)s>&",
+               fixShape = ("const bool", "false"),
+               radialOnly = ("const bool", "false")):
         "ASPHSmoothingScale constructor"
 
     #...........................................................................
@@ -95,3 +97,5 @@ call Physics::registerState for instance to create full populated State objects.
     secondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "secondMoment", doc="The second moment storage FieldList")
     cellSecondMoment = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "cellSecondMoment", doc="The second moment of the Voronoi cells")
     HidealFilter = PYB11property("std::shared_ptr<HidealFilterType>", "HidealFilter", "HidealFilter", doc="Optional function to manipulate the Hideal calculation")
+    fixShape = PYB11property("bool", "fixShape", "fixShape", doc="Force the H tensor shape to be fixed -- only adjust volume")
+    radialOnly = PYB11property("bool", "radialOnly", "radialOnly", doc="Force the H tensor to evolve solely in the radial direction")

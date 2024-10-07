@@ -3,6 +3,7 @@ set(SmoothingScale_inst
   SmoothingScaleBase
   SPHSmoothingScale
   ASPHSmoothingScale
+  IncrementASPHHtensor
 )
 
 set(SmoothingScale_sources

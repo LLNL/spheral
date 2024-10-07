@@ -29,7 +29,9 @@ public:
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,
-                     const TableKernel<Dimension>& W);
+                     const TableKernel<Dimension>& W,
+                     const bool fixShape = false,
+                     const bool radialOnly = false);
   ASPHSmoothingScale() = delete;
   virtual ~ASPHSmoothingScale() {}
 
@@ -71,13 +73,20 @@ public:
                                     StateDerivatives<Dimension>& derivs) override;
 
   // We require the Voronoi-like cells per point
-  virtual bool requireVoronoiCells() const override                               { return this->HEvolution() == HEvolutionType::IdealH; }
+  virtual bool requireVoronoiCells() const override                               { return (this->HEvolution() == HEvolutionType::IdealH and
+                                                                                            not (mFixShape or mRadialOnly)); }
 
   // Access our internal data
   const TableKernel<Dimension>&                          WT()            const    { return mWT; }
   const FieldList<Dimension, Scalar>&                    zerothMoment()  const    { return mZerothMoment; }
   const FieldList<Dimension, SymTensor>&                 secondMoment()  const    { return mSecondMoment; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
+
+  // Special evolution flags
+  bool fixShape() const                                                           { return mFixShape; }
+  bool radialOnly() const                                                         { return mRadialOnly; }
+  void fixShape(const bool x)                                                     { mFixShape = x; }
+  void radialOnly(const bool x)                                                   { mRadialOnly = x; }
 
   // Optional user hook providing a functor to manipulate the ideal H vote
   std::shared_ptr<HidealFilterType> HidealFilter() const                          { return mHidealFilterPtr; }
@@ -94,6 +103,7 @@ private:
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
   std::shared_ptr<HidealFilterType> mHidealFilterPtr;
+  bool mFixShape, mRadialOnly;
 };
 
 }
