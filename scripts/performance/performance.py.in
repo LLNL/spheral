@@ -65,7 +65,7 @@ ppc = 100 # Points per core
 # If we are on RZGenie/Ruby
 if ("broadwell" in spheral_sys_arch):
     num_cores = 72
-    ppc = 500
+    ppc = 1000
 total_points = num_cores * ppc
 nradial = int(np.sqrt(total_points))
 ntheta = nradial

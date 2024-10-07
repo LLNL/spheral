@@ -1,28 +1,29 @@
 #
 #
 #ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=8)
-#ATS:test(SELF, "--caliperConfig 'None'", label="Timer test 2", np=8)
-#ATS:test(SELF, "--caliperFilename 'timer_test_3.cali'", label="Timer test 3", np=1)
+#ATS:test(SELF, "--caliperConfig 'none'", label="Timer test 2", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_3.cali' --adiakData 'adiak_test:1, test_adiak:two'", label="Timer test 3", np=1)
 #
 
 import Spheral
 from SpheralTestUtilities import *
 from SpheralOptionParser import *
-from SpheralUtilities import TimerMgr
 from SpheralUtilities import *
 import mpi
 
 import sys, os, time
 
-# For testing explicitly set Adiak inputs
+# Test set Adiak inputs
 test_dict = {"perf_test": "weak_scaling",
              "rank_count": mpi.procs,
              "fake_float": 2.141}
-# Add test dicts to Adiak
 for key, val in test_dict.items():
     adiak_value(key, val)
 
-# For testing that commmandLine inputs are automatically passed to adiak
+# Test the --adiakData input. This must match what is hard-coded in the ATS lines
+adiak_data_dict = {"adiak_test": 1, "test_adiak": "two"}
+
+# Test that commmandLine inputs are being passed to Adiak
 test_int = 4
 test_str = "hello"
 test_float = 4.224
@@ -60,30 +61,21 @@ if (do_timers and TimerMgr.get_filename()):
     mpi.barrier()
     caliper_loc = "@CONFIG_CALIPER_DIR@"
     sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
-    import caliperreader as cr
     if (not os.path.exists(caliper_file)):
-        raise ValueError("Caliper file not found")
+        raise FileNotFoundError("Caliper file not found")
+    import caliperreader as cr
     r = cr.CaliperReader()
     r.read(caliper_file)
     records = r.records
-    found_errors = 0
 
     # Test for timer name
-    if (fake_timer_name in records[1]['region']):
-        print(f"Found {fake_timer_name} timer")
-    else:
-        print(f"ERROR: {fake_timer_name} timer not found")
-        found_errors += 1
+    assert fake_timer_name in records[1]['region'], f"{fake_timer_name} timer not found"
 
     # Test for function count
     count_val = int(eval(records[1]["avg#sum#rc.count"]))
-    if (count_val == run_count):
-        print("Run count in Caliper file is correct")
-    else:
-        print("ERROR: Caliper function count is off")
-        found_errors += 1
+    assert count_val == run_count, "Caliper function count is off"
 
-    # Note: Caliperreader reads everything as strings for some terrible reason
+    # Note: CaliperReader reads everything as strings for some terrible reason
     # we must convert the Adiak values first
     adiak_inp = {}
     for key, val in r.globals.items():
@@ -94,20 +86,11 @@ if (do_timers and TimerMgr.get_filename()):
         adiak_inp.update({key: newval})
 
     # Test Adiak output for explicitly set values
-    if (test_dict.items() <= adiak_inp.items()):
-        print(f"Found {test_dict.items()}")
-    else:
-        print("ERROR: Adiak values not found in Caliper file")
-        found_errors += 1
+    assert test_dict.items() <= adiak_inp.items(), "Adiak values not found in Caliper file"
 
-    # Test Adiak outputs for commandLine inputs
-    if (inp_test_dict.items() <= adiak_inp.items()):
-        print(f"Found {inp_test_dict.items()}")
-    else:
-        print("ERROR: commandLine inputs not found in Adiak values in Caliper file")
-        found_errors += 1
+    # Test Adiak outputs for commandLine() inputs
+    assert inp_test_dict.items() <= adiak_inp.items(), "commandLine() inputs not found in Caliper file Adiak values"
 
-    if (found_errors > 0):
-        raise ValueError("Caliper file not correct")
-    else:
-        print("No errors found for TimerMgr")
+    # Test --adiakData command line input
+    if ("adiakData" in adiak_inp):
+        assert adiak_data_dict.items() <= adiak_inp.items(), "adiakData input found found in Caliper file Adiak values"
