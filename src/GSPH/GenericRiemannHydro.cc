@@ -212,6 +212,8 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                       mM,
                       mRiemannDpDx,
                       mRiemannDvDx);
+
+  mM.Zero();
  
 }
 
