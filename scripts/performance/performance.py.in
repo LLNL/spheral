@@ -55,7 +55,7 @@ glue(keep=True)
 # NOH tests
 group(name="NOH tests")
 # General input for all Noh-cylindrical-2d.py tests
-test_dir = "@SPHERAL_TEST_INSTALL_PREFIX@/functional/Hydro/Noh"
+test_dir = "@SPHERAL_TEST_INSTALL_PREFIX@/tests/functional/Hydro/Noh"
 test_file = "Noh-cylindrical-2d.py"
 gen_noh_inp = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --doCompare False"
 
@@ -75,12 +75,14 @@ inps = f"{gen_noh_inp} --nTheta {ntheta} --nRadial {nradial} --steps 10 --calipe
 test_path = os.path.join(test_dir, test_file)
 # Path to benchmark timing data
 ref_cali_file = os.path.join(benchmark_dir, spheral_install_config, caliper_filename)
+# Select which timing regions to post-process
 regions = ["CheapRK2",
            "CheapRK2PreInit",
            "ConnectivityMap_computeConnectivity",
            "ConnectivityMap_patch",
            "CheapRK2EvalDerivs",
            "CheapRK2EndStep"]
+# Select which timers to use to post-process the regions above
 timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
 spec_inps = f"{inps} --adiakData 'test_name: {test_name}, total_points:{nradial*ntheta}'"
 t = test(script=test_path, clas=spec_inps, label=f"{test_name}", np=num_cores,

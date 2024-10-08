@@ -6,5 +6,5 @@ configure_file(
 
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/performance.py"
-  DESTINATION "${SPHERAL_TEST_INSTALL_PREFIX}"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
 )
