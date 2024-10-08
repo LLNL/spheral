@@ -5,16 +5,21 @@
 #-------------------------------------------------------------------------------
 # The Yee-Vortex Test
 #-------------------------------------------------------------------------------
-import shutil, os, sys, mpi
+import shutil
+import os
+import sys
+import mpi
+
 from math import *
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from findLastRestart import *
 from GenerateNodeDistribution2d import *
-from CubicNodeGenerator import GenerateSquareNodeDistribution
-from CentroidalVoronoiRelaxation import * 
-import DistributeNodes
+
+if mpi.procs > 1:
+    from VoronoiDistributeNodes import distributeNodes2d
+else:
+    from DistributeNodes import distributeNodes2d
 
 class YeeDensity:
     def __init__(self,
@@ -66,12 +71,12 @@ commandLine(
     temp_inf = 1.0,
 
     # Resolution and node seeding.
-    nRadial = 64,
+    nRadial = 32,
     seed = "constantDTheta",
 
     # kernel options
     KernelConstructor = WendlandC2Kernel,
-    nPerh = 3.01,
+    nPerh = 2.51,
     order = 7,
     hmin = 1e-5,
     hmax = 0.5,
@@ -84,6 +89,7 @@ commandLine(
     psph = False,
     gsph = False,
     mfm = False,
+    mfv = False,
 
     # general hydro options
     asph = False, 
@@ -91,7 +97,7 @@ commandLine(
     XSPH = False,
     epsilonTensile = 0.0,
     nTensile = 8,
-    densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
+    densityUpdate = IntegrateDensity,#RigorousSumDensity, # VolumeScaledDensity,
     compatibleEnergy = True,
     evolveTotalEnergy = False,
     correctVelocityGradient = True,
@@ -108,7 +114,7 @@ commandLine(
 
     # MFM/GSPH options
     WaveSpeedConstructor = DavisWaveSpeed, # Einfeldt, Acoustic
-    LimiterConstructor = VanLeerLimiter, # VanLeer, Opsre, MinMod, VanAlba, Superbee
+    LimiterConstructor = VanLeerLimiter, # VanLeer, Ospre, MinMod, VanAlba, Superbee
     riemannLinearReconstruction = True,
     riemannGradientType = SPHSameTimeGradient, # HydroAccelerationGradient, SPHGradient, RiemannGradient, MixedMethodGradient, SPHSameTimeGradient
 
@@ -183,6 +189,8 @@ elif fsisph:
     hydroname = "FSISPH"
 elif mfm:
     hydroname = "MFM"
+elif mfv:
+    hydroname = "MFV"
 elif gsph:
     hydroname = "GSPH"
 else:
@@ -247,8 +255,8 @@ mpi.barrier()
 #-------------------------------------------------------------------------------
 mu = 1.0
 K = 1.0
-eos = GammaLawGasMKS(gamma, mu)
-#eos = PolytropicEquationOfStateMKS(K,gamma,mu)
+#eos = GammaLawGasMKS(gamma, mu)
+eos = PolytropicEquationOfStateMKS(K,gamma,mu)
 YeeDensityFunc = YeeDensity(xc,yc,gamma,beta,temp_inf)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
@@ -283,7 +291,7 @@ output("    nodes.nodesPerSmoothingScale")
 # Set the node properties.
 #-------------------------------------------------------------------------------
 rmaxbound = rmax + rmax/nRadial*nbcrind
-print rmaxbound
+print(rmaxbound)
 nr1 = nRadial + nbcrind
 if seed == "lattice" or "xstaggeredLattice":
     generator = GenerateNodeDistribution2d(2*nr1, 2*nr1,
@@ -308,11 +316,6 @@ else:
                                            theta = 2.0*pi,
                                            nNodePerh = nPerh,
                                            SPH = SPH)
-
-if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-else:
-    from DistributeNodes import distributeNodes2d
 
 distributeNodes2d((nodes, generator))
 print(nodes.name, ":")
@@ -432,6 +435,23 @@ elif mfm:
     waveSpeed = WaveSpeedConstructor()
     solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
     hydro = MFM(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                gradientType = riemannGradientType,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfv:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,riemannLinearReconstruction)
+    hydro = MFV(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
@@ -569,13 +589,13 @@ else:
 from SpheralPointmeshSiloDump import dumpPhysicsState  
   
 control = SpheralController(integrator, WT,
-                            initializeDerivatives = True,
+                            initializeDerivatives = False,
                             statsStep = statsStep,
                             restartStep = restartStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            #vizMethod = dumpPhysicsState,
-                            #vizGhosts=True,
+                            vizMethod = dumpPhysicsState,
+                            vizGhosts=True,
                             vizBaseName = vizBaseName,
                             vizDerivs=True,
                             vizDir = vizDir,
