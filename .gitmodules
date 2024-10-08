@@ -16,3 +16,4 @@
 	path = extern/chai
 	url = https://github.com/llnl/chai
 	branch = feature/ManagedSharedPtr
+        ignore = all

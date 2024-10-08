@@ -56,13 +56,60 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
+                  '"Utilities/Timer.hh"',
+                  '"Distributed/Communicator.hh"',
+                  '"adiak.hpp"',
                   '<algorithm>']
 
 #-------------------------------------------------------------------------------
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
+namespace Spheral {
 
+inline void spheral_adiak_init() {
+  adiak::init((void*) Communicator::comm_ptr());
+  // Always collect some curated default adiak information
+  adiak::adiakversion();
+  adiak::user();
+  adiak::uid();
+  adiak::launchdate();
+  adiak::workdir();
+  adiak::hostname();
+  adiak::clustername();
+  adiak::walltime();
+  adiak::cputime();
+  adiak::jobsize();
+  adiak::numhosts();
+  adiak::hostlist();
+  adiak::mpi_library_version();
+}
+
+enum adiak_categories {
+unset = 0,
+all,
+general,
+performance,
+control
+};
+}
+"""
+
+PYB11modulepreamble = """
+TIME_BEGIN("main");
+Spheral::spheral_adiak_init();
+
+// Call these routines when module is exited
+auto atexit = py::module_::import("atexit");
+atexit.attr("register")(py::cpp_function([]() {
+   TIME_END("main");
+   adiak::fini();
+   if (Spheral::TimerMgr::is_started()) {
+      Spheral::TimerMgr::fini();
+   } else {
+      Communicator::finalize();
+   }
+}));
 """
 
 #-------------------------------------------------------------------------------
@@ -91,6 +138,8 @@ from BiQuadraticInterpolator import *
 from BiCubicInterpolator import *
 from uniform_random import *
 from BuildData import *
+from Adiak import *
+from TimerMgr import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -747,3 +796,14 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
                   planes = "const std::vector<GeomPlane<Dim<3>>>&"):
     "Return the volume of the clipped region."
     return "double"
+
+#...............................................................................
+for (value, label) in (("int", "Int"),
+                       ("unsigned", "Unsigned"),
+                       ("long", "Long"),
+                       ("double", "Scalar"),
+                       ("std::string", "String")):
+    exec("""
+adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
+adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
+""" % {"label" : label, "value" : value})
