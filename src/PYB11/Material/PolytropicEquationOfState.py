@@ -93,4 +93,4 @@ class PolytropicEquationOfState(EquationOfState):
 #-------------------------------------------------------------------------------
 # Add the virtual interface
 #-------------------------------------------------------------------------------
-PYB11inject(EOSAbstractMethods, PolytropicEquationOfState)
+PYB11inject(EOSAbstractMethods, PolytropicEquationOfState, virtual=True)
