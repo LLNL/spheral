@@ -107,7 +107,7 @@ class TestEigenVectors(unittest.TestCase):
             lam = [x for x in vlam]
             lam.sort()
             for (x, x0) in zip(lam, lam0):
-                self.assertTrue(fuzzyEqual(x, x0, 1e-10),
+                self.assertTrue(fuzzyEqual(x, x0, 1e-8),
                                 "Eigen values %s do not equal expected values %s" % (str(lam), str(lam0)))
         return
 

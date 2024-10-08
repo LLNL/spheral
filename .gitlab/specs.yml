@@ -23,7 +23,7 @@
 
 .gcc_spectrum:
   variables:
-    SPEC: 'gcc@$GCC_VERSION^spectrum-mpi -DENABLE_DEV_BUILD=On'
+    SPEC: 'gcc@$GCC_VERSION^spectrum-mpi'
 
 .clang_mvapich2:
   variables:
