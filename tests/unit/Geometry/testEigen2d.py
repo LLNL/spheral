@@ -10,7 +10,6 @@ from Spheral import *
 # Create a global random number generator.
 import random
 random.seed(37549927891710)
-rangen = random.Random()
 ranrange = 1.0e8
 
 #===============================================================================
@@ -31,12 +30,12 @@ def randomSymTensor2d(lam1 = None,
                       lam2 = None):
 
     if lam1 is None:
-        lam1 = rangen.uniform(-ranrange, ranrange)
+        lam1 = random.uniform(-ranrange, ranrange)
     if lam2 is None:
-        lam2 = rangen.uniform(-ranrange, ranrange)
+        lam2 = random.uniform(-ranrange, ranrange)
 
     # Pick random Euler angles.
-    theta = rangen.uniform(0.0, 2.0*pi)
+    theta = random.uniform(0.0, 2.0*pi)
 
     # Build the rotation matrix of eigen vectors to rotate from the principle to
     # the lab frame (so transpose of what we usually mean)
@@ -99,7 +98,7 @@ class TestEigenVectors(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testDoublyDegenerateEigenValues(self):
         for i in range(self.ntests):
-            lam12 = rangen.uniform(-ranrange, ranrange)
+            lam12 = random.uniform(-ranrange, ranrange)
             A, vlam0, vectors0 = randomSymTensor2d(lam1 = lam12,
                                                    lam2 = lam12)
             lam0 = [x for x in vlam0]
@@ -117,8 +116,8 @@ class TestEigenVectors(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testDiagonalEigenValues(self):
         for i in range(self.ntests):
-            lam1 = rangen.uniform(-ranrange, ranrange)
-            lam2 = rangen.uniform(-ranrange, ranrange)
+            lam1 = random.uniform(-ranrange, ranrange)
+            lam2 = random.uniform(-ranrange, ranrange)
             A = SymTensor2d(lam1, 0.0,
                             0.0, lam2)
             lam0 = [lam1, lam2]
@@ -159,7 +158,7 @@ class TestEigenVectors(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testDoublyDegenerateEigenVectors(self):
         for i in range(self.ntests):
-            lam12 = rangen.uniform(-ranrange, ranrange)
+            lam12 = random.uniform(-ranrange, ranrange)
             A, vlam0, vectors0 = randomSymTensor2d(lam1 = lam12,
                                                    lam2 = lam12)
             lam0 = [(vlam0(i), vectors0.getColumn(i)) for i in range(2)]
@@ -188,8 +187,8 @@ class TestEigenVectors(unittest.TestCase):
     #---------------------------------------------------------------------------
     def testDiagonalEigenVectors(self):
         for i in range(self.ntests):
-            lam1 = rangen.uniform(-ranrange, ranrange)
-            lam2 = rangen.uniform(-ranrange, ranrange)
+            lam1 = random.uniform(-ranrange, ranrange)
+            lam2 = random.uniform(-ranrange, ranrange)
             A = SymTensor2d(lam1, 0.0,
                             0.0, lam2)
             lam0 = [(lam1, Vector2d(1, 0)),

@@ -35,7 +35,7 @@ def meshScales(xnodes, xmin, xmax):
 # Create a global random number generator.
 #===============================================================================
 import random
-rangen = random.Random()
+random.seed(589290234)
 
 #===============================================================================
 # Some boundary conditions.
@@ -281,7 +281,7 @@ class UniformLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
-        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx)] # [rangen.uniform(x0, x1) for i in xrange(nx)]
+        xnodes = [x0 + (i + 0.5)*dxavg for i in range(nx)] # [random.uniform(x0, x1) for i in xrange(nx)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
         for proc in range(numDomains):
@@ -441,7 +441,7 @@ class RandomLineMeshTests(unittest.TestCase, LineMeshGenericTests):
 
         # Generate initial positions, and split them up between domains appropriately.
         dxavg = (x1 - x0)/nx
-        xnodes = [rangen.uniform(x0, x1) for i in range(nx)]
+        xnodes = [random.uniform(x0, x1) for i in range(nx)]
         xnodes.sort()
         self.dxmin, self.dxmax = meshScales(xnodes, x0, x1)
         for proc in range(numDomains):
