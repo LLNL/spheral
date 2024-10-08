@@ -9,6 +9,9 @@ from SpheralUtilities import adiak_value
 import SpheralOpenMP
 
 def parse_dict(string):
+    """
+    Function to parse a dictionary provided through the command line
+    """
     try:
         inp_dict = dict(item.split(":") for item in string.split(","))
     except:
@@ -46,8 +49,7 @@ def add_timing_args(parser):
 
 def init_timer(args):
     """
-    Initializes the timing manager and adds input values to Adiak
-    Returns the equivalent dictionary with unnecessary inputs removed
+    Initializes the timing manager and adds input values to Adiak from parsed arguments
     """
     if args.verbose:
         if (args.caliperConfig):
@@ -94,10 +96,14 @@ def init_timer(args):
     if (args.adiakData):
         for key, val in args.adiakData.items():
             adiak_value(key, val)
+
     # Add all commandLine() inputs as Adiak metadata
     args_dict = vars(args)
-    args_dict.pop("adiakData")
+    args_dict.pop("adiakData") # Remove --adiakData inputs
     for key, val in args_dict.items():
-        if val:
-            adiak_value(key, val)
+        if (type(val) is not type(None)):
+            try:
+                adiak_value(key, val)
+            except:
+                adiak_value(key, val.__name__)
     return

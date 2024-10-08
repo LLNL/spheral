@@ -55,7 +55,7 @@ glue(keep=True)
 # NOH tests
 group(name="NOH tests")
 # General input for all Noh-cylindrical-2d.py tests
-test_dir = "../functional/Hydro/Noh"
+test_dir = "@SPHERAL_TEST_INSTALL_PREFIX@/functional/Hydro/Noh"
 test_file = "Noh-cylindrical-2d.py"
 gen_noh_inp = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 --nPerh 2.01 --graphics False --clearDirectories True --doCompare False"
 
@@ -82,7 +82,8 @@ regions = ["CheapRK2",
            "CheapRK2EvalDerivs",
            "CheapRK2EndStep"]
 timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
-t = test(script=test_path, clas=inps, label=f"{test_name}", np=num_cores,
+spec_inps = f"{inps} --adiakData 'test_name: {test_name}, total_points:{nradial*ntheta}'"
+t = test(script=test_path, clas=spec_inps, label=f"{test_name}", np=num_cores,
          caliper_filename=caliper_filename,
          regions=regions,
          timers=timers,

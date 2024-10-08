@@ -86,11 +86,14 @@ if (do_timers and TimerMgr.get_filename()):
         adiak_inp.update({key: newval})
 
     # Test Adiak output for explicitly set values
-    assert test_dict.items() <= adiak_inp.items(), "Adiak values not found in Caliper file"
+    assert test_dict.items() <= adiak_inp.items(),\
+        "incorrect Adiak values found in Caliper file"
 
     # Test Adiak outputs for commandLine() inputs
-    assert inp_test_dict.items() <= adiak_inp.items(), "commandLine() inputs not found in Caliper file Adiak values"
+    assert inp_test_dict.items() <= adiak_inp.items(),\
+        "incorrect commandLine() inputs found in Caliper file Adiak values"
 
     # Test --adiakData command line input
     if ("adiakData" in adiak_inp):
-        assert adiak_data_dict.items() <= adiak_inp.items(), "adiakData input found found in Caliper file Adiak values"
+        assert adiak_data_dict.items() <= adiak_inp.items(),\
+            "incorrect adiakData inputs found in Caliper file Adiak values"
