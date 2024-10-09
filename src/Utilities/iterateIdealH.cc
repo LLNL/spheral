@@ -102,18 +102,18 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     }
   }
 
-  // Check if we're using ASPH and radialOnly.  If so we'll switch to fixShape for the iteration.
-  auto radialOnly = false;
-  ASPHSmoothingScale<Dimension>* asphPkg = nullptr;
-  for (auto* pkg: packages) {
-    asphPkg = dynamic_cast<ASPHSmoothingScale<Dimension>*>(pkg);
-    if (asphPkg != nullptr and asphPkg->radialOnly()) {
-      radialOnly = true;
-      asphPkg->radialOnly(false);
-      asphPkg->fixShape(true);
-      break;
-    }
-  }
+  // // Check if we're using ASPH and radialOnly.  If so we'll switch to fixShape for the iteration.
+  // auto radialOnly = false;
+  // ASPHSmoothingScale<Dimension>* asphPkg = nullptr;
+  // for (auto* pkg: packages) {
+  //   asphPkg = dynamic_cast<ASPHSmoothingScale<Dimension>*>(pkg);
+  //   if (asphPkg != nullptr and asphPkg->radialOnly()) {
+  //     radialOnly = true;
+  //     asphPkg->radialOnly(false);
+  //     asphPkg->fixShape(true);
+  //     break;
+  //   }
+  // }
 
   // Build a list of flags to indicate which nodes have been completed.
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
@@ -265,12 +265,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) boundaryPtr->applyFieldListGhostBoundary(m);
   for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) boundaryPtr->finalizeGhostBoundary();
 
-  // Restore ASPH radialOnly choice if necessary
-  if (radialOnly) {
-    CHECK(asphPkg != nullptr);
-    asphPkg->radialOnly(true);
-    asphPkg->fixShape(false);
-  }
+  // // Restore ASPH radialOnly choice if necessary
+  // if (radialOnly) {
+  //   CHECK(asphPkg != nullptr);
+  //   asphPkg->radialOnly(true);
+  //   asphPkg->fixShape(false);
+  // }
 
   // Report the final timing.
   const auto t1 = clock();
