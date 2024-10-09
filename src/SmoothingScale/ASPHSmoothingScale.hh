@@ -60,7 +60,12 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
 
-  // Similarly packages might want a hook to do some post-step finalizations.
+  // Optional hook to be called at the beginning of a time step.
+  virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
+                                 State<Dimension>& state,
+                                 StateDerivatives<Dimension>& derivs) override;
+
+ // Similarly packages might want a hook to do some post-step finalizations.
   // Really we should rename this post-step finalize.
   virtual void finalize(const Scalar time, 
                         const Scalar dt,
@@ -81,6 +86,7 @@ public:
   const FieldList<Dimension, Scalar>&                    zerothMoment()  const    { return mZerothMoment; }
   const FieldList<Dimension, SymTensor>&                 secondMoment()  const    { return mSecondMoment; }
   const FieldList<Dimension, SymTensor>&                 cellSecondMoment() const { return mCellSecondMoment; }
+  const FieldList<Dimension, Scalar>&                    radius0() const          { return mRadius0; }
 
   // Special evolution flags
   bool fixShape() const                                                           { return mFixShape; }
@@ -102,6 +108,7 @@ private:
   const TableKernel<Dimension>& mWT;
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
+  FieldList<Dimension, Scalar> mRadius0;
   std::shared_ptr<HidealFilterType> mHidealFilterPtr;
   bool mFixShape, mRadialOnly;
 };

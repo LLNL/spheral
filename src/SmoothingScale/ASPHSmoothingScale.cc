@@ -98,7 +98,9 @@ inline
 Dim<1>::SymTensor
 radialEvolution(const Dim<1>::SymTensor& Hi,
                 const Dim<1>::Vector& nhat,
-                const Dim<1>::Scalar s) {
+                const Dim<1>::Scalar s,
+                const Dim<1>::Scalar r0,
+                const Dim<1>::Scalar r1) {
   return Hi / s;
 }
 
@@ -107,7 +109,9 @@ inline
 Dim<2>::SymTensor
 radialEvolution(const Dim<2>::SymTensor& Hi,
                 const Dim<2>::Vector& nhat,
-                const Dim<2>::Scalar s) {
+                const Dim<2>::Scalar s,
+                const Dim<2>::Scalar r0,
+                const Dim<2>::Scalar r1) {
   const auto T = rotationMatrix(nhat).Transpose();
   const auto hev0 = Hi.eigenVectors();
   Dim<2>::SymTensor result;
@@ -118,7 +122,10 @@ radialEvolution(const Dim<2>::SymTensor& Hi,
     result(0,0) = hev0.eigenValues(1);
     result(1,1) = hev0.eigenValues(0);
   }
+  const auto fr = r1*safeInvVar(r0);
+  CHECK(fr > 0.0);
   result(0,0) /= s;
+  result(1,1) /= fr;
   result.rotationalTransform(T);
   return result;
 }
@@ -128,12 +135,20 @@ inline
 Dim<3>::SymTensor
 radialEvolution(const Dim<3>::SymTensor& Hi,
                 const Dim<3>::Vector& nhat,
-                const Dim<3>::Scalar s) {
+                const Dim<3>::Scalar s,
+                const Dim<3>::Scalar r0,
+                const Dim<3>::Scalar r1) {
   const auto Tprinciple = rotationMatrix(nhat);
   const auto Tlab = Tprinciple.Transpose();
   auto result = Hi;
   result.rotationalTransform(Tprinciple);
+  const auto fr = r1*safeInvVar(r0);
+  CHECK(fr > 0.0);
   result(0,0) /= s;
+  result(1,1) /= fr;
+  result(1,2) /= fr;
+  result(2,1) /= fr;
+  result(2,2) /= fr;
   result.rotationalTransform(Tlab);
   return result;
 }
@@ -154,6 +169,7 @@ ASPHSmoothingScale(const HEvolutionType HUpdate,
   mZerothMoment(FieldStorageType::CopyFields),
   mSecondMoment(FieldStorageType::CopyFields),
   mCellSecondMoment(FieldStorageType::CopyFields),
+  mRadius0(FieldStorageType::CopyFields),
   mHidealFilterPtr(std::make_shared<ASPHSmoothingScaleUserFilter<Dimension>>()),
   mFixShape(fixShape),
   mRadialOnly(radialOnly) {
@@ -171,6 +187,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   dataBase.resizeFluidFieldList(mZerothMoment, 0.0, HydroFieldNames::massZerothMoment, false);
   dataBase.resizeFluidFieldList(mSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
   dataBase.resizeFluidFieldList(mCellSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment + " cells", false);
+  if (mRadialOnly) dataBase.resizeFluidFieldList(mRadius0, 0.0, "Start of step radius", false);
 }
 
 //------------------------------------------------------------------------------
@@ -264,6 +281,30 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     }
   }
   TIME_END("ASPHSmoothingScaleDerivs");
+}
+
+//------------------------------------------------------------------------------
+// Initialize at the beginning of a timestep.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ASPHSmoothingScale<Dimension>::
+preStepInitialize(const DataBase<Dimension>& dataBase, 
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
+  // If we're using the radial H scaling, take a snapshot of the initial radius of
+  // each point.
+  if (mRadialOnly) {
+    const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto numFields = pos.numFields();
+    for (auto k = 0u; k < numFields; ++k) {
+      const auto n = pos[k]->numInternalElements();
+#pragma omp parallel for
+      for (auto i = 0u; i < n; ++i) {
+        mRadius0(k,i) = pos(k,i).magnitude();
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -564,7 +605,7 @@ finalize(const Scalar time,
           // We scale H in the radial direction only (also force H to be aligned radially).
           CHECK(mRadialOnly);
           const auto nhat = pos(k, i).unitVector();
-          Hideali = radialEvolution(Hi, nhat, 1.0 - a + a*s);
+          Hideali = radialEvolution(Hi, nhat, 1.0 - a + a*s, mRadius0(k,i), pos(k,i).magnitude());
 
         }
 
