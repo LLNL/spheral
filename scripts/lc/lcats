@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 
-from builtins import str
-from builtins import object
-import os, string, time, sys
-import getopt
+import os, time, sys
 import time
 import platform
 import sys
-import optparse, re, copy
+import argparse, re
 import subprocess
 
 d_debug= 0
@@ -31,7 +28,7 @@ def cpu_count():
         except Exception as e:
             print ("Error running lscpu to get cpu count\n")
             sys.exit(1)
-           
+
         out = p.stdout
         lines = out.split('\n')
 
@@ -61,13 +58,13 @@ def createBsubFile(inCommand, inAllOptions):
     #BSUB -o jobRetry.output              # output is sent to file job.output
     #BSUB -J nightlyBlueosBuild           # name of the job
     #BSUB -W 240                          # alloc time - was defaulting to 30 minutes
-    FILE.write("#BSUB -G %s \n" % machineSettings.options.group) 
+    FILE.write("#BSUB -G %s \n" % machineSettings.group)
     FILE.write("#BSUB -o " + bsubOutputFilename + "\n")
     FILE.write("#BSUB -J " + inFilename +  "\n")
-    FILE.write("#BSUB -W %d \n" % machineSettings.options.allocTime )
-    FILE.write("#BSUB -n " + str(machineSettings.options.numProcs) +  "\n")
+    FILE.write("#BSUB -W %d \n" % machineSettings.allocTime )
+    FILE.write("#BSUB -n " + str(machineSettings.numProcs) +  "\n")
     FILE.write("\n\n")
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
+    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
 
     FILE.write(""+ '\n')
@@ -78,7 +75,7 @@ def createBsubFile(inCommand, inAllOptions):
     FILE.write("date"+ '\n')
     FILE.close()
     return inFilename
-    
+
 #---------------------------------------------------------------------------
 def createMsubFile(inCommand, inAllOptions):
 
@@ -96,27 +93,27 @@ def createMsubFile(inCommand, inAllOptions):
     FILE.write("#MSUB -N " + inFilename + '\n')
     FILE.write("#MSUB -j oe "+ '\n')                       # directs all err output to stdout ")
     FILE.write("#MSUB -o " + msubOutputFilename + '\n')
-    FILE.write("#MSUB -l nodes=" +  str(machineSettings.options.numNodes)+ ":ppn=" + str(cpu_count()) + '\n')
-    FILE.write("#MSUB -l walltime=%d:00\n" % machineSettings.options.allocTime )
+    FILE.write("#MSUB -l nodes=" +  str(machineSettings.numNodes)+ ":ppn=" + str(cpu_count()) + '\n')
+    FILE.write("#MSUB -l walltime=%d:00\n" % machineSettings.allocTime )
 #    FILE.write("#MSUB -V                         # exports all environment var "+ '\n')
 
-    if machineSettings.options.name != 'cray':
-        FILE.write("#MSUB -q " +  machineSettings.options.partition + '\n')
+    if machineSettings.name != 'cray':
+        FILE.write("#MSUB -q " +  machineSettings.partition + '\n')
         FILE.write("#MSUB -l gres=ignore  "+ '\n')
-        FILE.write("#MSUB -A " + machineSettings.options.bank + "                        #bank to use "+ '\n')
+        FILE.write("#MSUB -A " + machineSettings.bank + "                        #bank to use "+ '\n')
 
     FILE.write(""+ '\n')
 
     # LLNL specific
-    if machineSettings.options.name == 'cray':
+    if machineSettings.name == 'cray':
         FILE.write("source " + "/usr/projects/kull/developers/tools/kull_cshrc.csh " + '\n')
 
     # rzmerl and zin specific - increase limits to avoid pthread_create errors.
-    if machineSettings.options.name == 'chaos5BatchCapable':
+    if machineSettings.name == 'chaos5BatchCapable':
         FILE.write('limit maxproc 7168'+'\n')
         FILE.write('limit descriptors 7168'+'\n')
 
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
+    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
 
     FILE.write(""+ '\n')
@@ -151,18 +148,18 @@ def createSbatchFile(inCommand, inAllOptions):
     FILE.write("#SBATCH --job-name=" + inFilename + '\n')
     FILE.write("#SBATCH --error="+ sbatchErrorFilename + '\n')                       # directs all err output to stdout ")
     FILE.write("#SBATCH --output="+ sbatchOutputFilename + '\n')                       # directs all other output to stdout ")
-    FILE.write("#SBATCH --nodes=" +  str(machineSettings.options.numNodes)+ "\n")
+    FILE.write("#SBATCH --nodes=" +  str(machineSettings.numNodes)+ "\n")
     FILE.write("#SBATCH --ntasks=" + str(cpu_count()) +"\n") # Is this OKay?  Not sure if we want to default ntasks.
-    FILE.write("#SBATCH --time=%d\n" % machineSettings.options.allocTime )
+    FILE.write("#SBATCH --time=%d\n" % machineSettings.allocTime )
 
-    if machineSettings.options.name != 'cray':
-        FILE.write("#SBATCH --partition=" +  machineSettings.options.partition + '\n')
-        FILE.write("#SBATCH --account=" + machineSettings.options.bank + "                        #bank to use "+ '\n')
+    if machineSettings.name != 'cray':
+        FILE.write("#SBATCH --partition=" +  machineSettings.partition + '\n')
+        FILE.write("#SBATCH --account=" + machineSettings.bank + "                        #bank to use "+ '\n')
 
     FILE.write(""+ '\n')
 
     # LLNL specific
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.options.machineType + '\n')
+    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
     FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
 
     FILE.write(""+ '\n')
@@ -176,107 +173,32 @@ def createSbatchFile(inCommand, inAllOptions):
     FILE.close()
     return inFilename
 
-#---------------------------------------------------------------------------
-from optparse import SUPPRESS_HELP
-class NoErrOptionParser(optparse.OptionParser):
-    # Found this online... modified some
-    def __init__(self,*args,**kwargs):
-        self.valid_args_cre_list = []
-        optparse.OptionParser.__init__(self, *args, **kwargs)
-
-    def error(self,msg):
-        optparse.OptionParser.error(self,msg)
-        pass
-
-    def add_option(self,*args,**kwargs):
-        self.valid_args_cre_list.append(re.compile('^'+args[0] +  "[ =]"))
-        self.valid_args_cre_list.append(re.compile('^' + args[0] + '$'))
-        optparse.OptionParser.add_option(self, *args, **kwargs)
-
-    def parse_args(self,*args,**kwargs):
-        # filter out invalid options
-        args_to_parse = args[0]
-        # all args are stored in args_to_parse
-        new_args_to_parse = []
-        for a in args_to_parse:
-            for cre in self.valid_args_cre_list:
-                if cre.match(a):
-                    new_args_to_parse.append(a)
-                    break
-                elif not a.startswith("-"):
-                    new_args_to_parse.append(a)
-                    break
-
-        #args that'll be used are stored in new_args_to_parse
-        # remove old values and insert the new
-        while len(args_to_parse) > 0:
-            args_to_parse.pop()
-        for a in new_args_to_parse:
-            args_to_parse.append(a)
-
-        return optparse.OptionParser.parse_args(self,*args,**kwargs)
-
-#------------------------------------------------------------------------
-class AttributeDict (dict):
-    """A dictionary whose items can be accessed as attributes."""
-    def __getattr__(self, name):
-        return self[name]
-    def __setattr__(self, name, value):
-        self[name] = value
-    def __repr__(self):
-        from io import StringIO
-        out = StringIO()
-        print("AttributeDict(", file=out)
-        keys = list(self.keys())
-        keys.sort()
-        for key in keys:
-            print("  ", key, " = ", repr(self[key]), ",", file=out)
-        print(")", file=out)
-        s = out.getvalue()
-        out.close()
-        return s
-    __str__ = __repr__
 #------------------------------------------------------------------------
 
-class MachineInfo (object):
+class MachineInfo:
 
     def __init__ (self, **options):
         "Must not throw an exception -- object must always get created."
         super(MachineInfo, self).__init__()
-
-
-        self.options = AttributeDict(
-            # Run settings
-
-            name= '',
-            allocTime= '',
-            machineType= '',
-            batch = True,
-            numNodes=4,
-            numProcs= None,
-            group = '',
-            partition= 'pbatch',
-
-            atsArgs= [],
-
-        )
-        try:
-            self.options.update(options)
-        except Exception as e:
-            self.set(INVALID, 'Bad options: ' + e)
-            return
-
+        self.name = ''
+        self.allocTime = ''
+        self.machineType = ''
+        self.batch = True
+        self.numNodes = 4
+        self.numProcs = None
+        self.group = ''
+        self.partition = 'pbatch'
+        self.atsArgs = []
+        self.__dict__.update(options)
 
 #---------------------------------------------------------------------------
 # MAIN
 #---------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------
-# Setup option parser
+# Setup argument parser
 #---------------------------------------------------------------------------
-parser= NoErrOptionParser(add_help_option=False)
-
-(options, args) = parser.parse_args(sys.argv[:])
+parser = argparse.ArgumentParser()
 
 #---------------------------------------------------------------------------
 useCpu= cpu_count()
@@ -603,7 +525,7 @@ else:
     print("Could not determine machine settings to use.")
     sys.exit(1)
 
-print("Selected machine settings for: ", machineSettings.options.name)
+print("Selected machine settings for: ", machineSettings.name)
 
 #----------------------------------------------------------
 # inits and defaults
@@ -620,103 +542,102 @@ bsubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
 # options affecting machine settings
 #---------------------------------------------------------------------------
 
-parser.add_option( "--allocTime", action="store", type="int", metavar="minutes", dest="allocTime",
+parser.add_argument( "--allocTime", type=int, metavar="minutes", dest="allocTime",
                    help = "The amount of time for the batch job (in minutes) .")
 
-parser.add_option( "--interactive", action="store_true", dest="interactive",
+parser.add_argument( "--interactive", action="store_true", dest="interactive",
                    help = "Run ats interactively in SLURM (default is false if batch system detected.)")
 
-parser.add_option( "--machineType", action="store", type="string", metavar="MACHINE_TYPE", dest="machineType",
+parser.add_argument( "--machineType", type=str, metavar="MACHINE_TYPE", dest="machineType",
                    help="Sets the MACHINE_TYPE for ats.")
 
-parser.add_option( "--numNodes", action="store", type="int", metavar="number of nodes", dest="numNodes",
+parser.add_argument( "--numNodes", type=int, metavar="number of nodes", dest="numNodes",
                    help="Number of nodes to allocate for ats to run in.")
 
-parser.add_option( "--partition", action="store", type="string", metavar="scheduler partition", dest="partition",
+parser.add_argument( "--partition", type=str, metavar="scheduler partition", dest="partition",
                    help = "Partition in which to run jobs.")
 
-parser.add_option( "--bank", action="store", type="string", metavar="account to charge",dest="bank",
+parser.add_argument( "--bank", type=str, metavar="account to charge",dest="bank",
                    help = "Bank to use for batch job.")
 
-parser.add_option("--wcid", action="store", type="string", metavar="WC-ID to assign", dest='wcid',
-                  #default = machineSettings.options.bank,
+parser.add_argument("--wcid", type=str, metavar="WC-ID to assign", dest='wcid',
+                  #default = machineSettings.bank,
                   help = "HERT WC-ID to use for batch job.")
 
-parser.add_option( "--nogpu", action="store_true", dest="nogpu",
+parser.add_argument( "--nogpu", action="store_true", dest="nogpu",
                    help = "For blueos. Filters out gpu test. Used in conjunction with threaded option.")
 
-parser.add_option( "--gpuonly", action="store_true", dest="gpuonly",
+parser.add_argument( "--gpuonly", action="store_true", dest="gpuonly",
                    help = "For blueos nvcc runs.  Filters for gpu tests. Used in conjunction with threaded option.")
 
-parser.add_option( "--sanitize", action="store_true", dest="sanitize",
+parser.add_argument( "--sanitize", action="store_true", dest="sanitize",
                    help = "Run sanitize tests. NOTE These need a specific build to work. ")
 
 
 #---------------------------------------------------------------------------
 # other options
 #---------------------------------------------------------------------------
-parser.add_option( "--msubFilename", action="store", type="string", metavar="msub file name", dest='msubFilename',
+parser.add_argument( "--msubFilename", type=str, metavar="msub file name", dest='msubFilename',
                    default = msubFilenameDefault, help = "The name of the generated ats msub job script that will be run.")
 
-parser.add_option( "--bsubFilename", action="store", type="string", metavar="msub file name", dest='bsubFilename',
+parser.add_argument( "--bsubFilename", type=str, metavar="msub file name", dest='bsubFilename',
                    default = bsubFilenameDefault, help = "The name of the generated ats bsub job script that will be run.")
 
-parser.add_option( '--timelimit', dest='timelimit', default=30,
+parser.add_argument( '--timelimit', dest='timelimit', default=30,
                    help='Set the default time limit on each test. The value may be given as a digit followed by an s, m, or h to give the time in seconds, minutes (the default), or hours.')
 
 # The P2 version is a sym-link to the latest python 2 version of ATS.  There's a P3 when we're ready for Python3
-parser.add_option( "--atsExe", action="store", type="string", dest="atsExe", default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
+parser.add_argument( "--atsExe", type=str, dest="atsExe", default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
 
-parser.add_option( "--addOp", action="store", type="string", dest="extraEzatsArgs", default='',
-                  help="Adds extra job scheduler option to ezats.")
-
-parser.add_option( "--skip", action='store_true', dest='skip',  default = False,
+parser.add_argument( "--skip", action='store_true', dest='skip',  default = False,
                    help='skip actual execution of the tests, but show filtering results and missing test files.')
 
-parser.add_option( "--testpath", action="store", type="string", dest="testpath", default="",
+parser.add_argument( "--testpath", type=str, dest="testpath", default="",
                   help="Specifies a path for ezats to use for unique test output.")
 
-parser.add_option( "--debug-build", action="store_true", dest="debugbuild", default=False,
+parser.add_argument( "--debug-build", action="store_true", dest="debugbuild", default=False,
                    help="assume we are testing a debug build and should skip expensive (level>=100) tests.")
 
-(options, args) = parser.parse_args(sys.argv[:])
+# Pass through options
+parser.add_argument("passthrough", nargs="*",
+                    help="Anything beyond a blank -- is passed through to the ats call")
+
+options = parser.parse_args()
 
 # If running in SLURM, use defaults of less nodes and pdebug partition
 if options.interactive:
-    machineSettings.options.batch = False
-    machineSettings.options.numNodes = 4
+    machineSettings.batch = False
+    machineSettings.numNodes = 4
 
     if "muir" in platform.node():
-        machineSettings.options.partition = 'views'
+        machineSettings.partition = 'views'
     else:
-        machineSettings.options.partition = 'pdebug'
+        machineSettings.partition = 'pdebug'
 
-    machineSettings.options.allocTime = 60
+    machineSettings.allocTime = 60
 
 if options.allocTime:
-    machineSettings.options.allocTime = options.allocTime
+    machineSettings.allocTime = options.allocTime
 
 if options.machineType:
-    machineSettings.options.machineType = options.machineType
+    machineSettings.machineType = options.machineType
 
 if options.numNodes:
-    machineSettings.options.numNodes = options.numNodes
+    machineSettings.numNodes = options.numNodes
 
 if options.partition:
-    machineSettings.options.partition = options.partition
+    machineSettings.partition = options.partition
 
 if options.bank:
-    machineSettings.options.bank = options.bank
+    machineSettings.bank = options.bank
 
 if options.wcid:
-    machineSettings.options.wcid = options.wcid
+    machineSettings.wcid = options.wcid
 
 if (d_debug==1):
     print("options= ", options)
 
-
-whichAts= sys.argv[0]
-atsArgs = sys.argv[1:]
+atsArgs = " ".join(str(x) for x in options.passthrough)
 
 if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
     print("------------------------------------------------------------------")
@@ -732,166 +653,56 @@ if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
     print("\n\n------------------------------------------------------------------")
     print("ezats sets these ATS options: ")
     print("------------------------------------------------------------------")
-    print('\n'.join(machineSettings.options.atsArgs))
+    print('\n'.join(machineSettings.atsArgs))
     print('\n\n')
 
     sys.exit(0)
 
-# Convert array of strings to a string with spaces for delimiters
-atsArgs = " ".join(str(x) for x in atsArgs)
-
-#---------------------------------------------------------------------------
-# Added this section to allow ezats to determine an appropriate filesystem
-# to use for testing for this machine.  The filesystem can then be passed
-# onto to tests in ats that request a location.
-#
-# The appropriate filesystem to use for each machine is determined by the
-# lustre file system summary and max bandwith tables
-# https://computing.llnl.gov/?set=resources&page=lc_lustre
-#---------------------------------------------------------------------------
-
-#def checkFileSystem(path, timeout=4):
-# 04/25/23: SD: Increasing the timeout as they're having lustre problems and we 
-# suspect this is causing failures. Revisit and change back to 4 when lustre issues
-# are resolved 
-def checkFileSystem(path, timeout=30):
-
-    def timeoutFunction( timeout, timeoutReturn, func, *args):
-
-        res = timeoutReturn
-
-        def handleTimeOut( signum, frame):
-            raise TimeOutException
-
-        import signal
-        theOldHandler = signal.signal( signal.SIGALRM, handleTimeOut)
-        signal.alarm(timeout)
-        try:
-            try:
-                res = func(*args)
-            finally:
-                signal.signal(signal.SIGALRM, theOldHandler)
-        except:
-            pass #catch the TimeOutException
-
-        signal.alarm(0)
-
-        return res
-
-    def canWriteToFileSystem(path):
-
-        from tempfile import TemporaryFile
-        from os import makedirs
-        try:
-            if not os.path.exists(path):
-                makedirs( path )
-            TemporaryFile(dir=path)
-        except:
-            return False
-
-        return True
-
-
-    return timeoutFunction( timeout, False, canWriteToFileSystem, path )
-
-#---------------------------------------------------------------------------
-
-#----------------------------------------------------------
-# Examine options:
-#----------------------------------------------------------
-
 print("Note:  the srun message 'error: ioctl(TIOCGWINSZ)' can be ignored.  \n[It means the process is trying to do something that requires a tty \nbut it's not doing either a read or write.]\n")
 
-#----------------------------------------------------------
-# get args to add  - added threaded option to the ezatsArgs or it would be passed to ats
-#----------------------------------------------------------
-batchArgs= ['partition', 'bank', 'wcid']
-ezatsArgs= ['addOp', 'batch', 'interactive', 'name', 'allocTime', 'atsExe', 'machineType', 'bsubFile', 'msubFile', 'bank', 'testpath' , 'threaded', 'gpuonly' ,'nogpu', 'numProcs', 'group', 'sanitize', 'debug-build']
-
+toAdd = ""
 # Add glue arg to pass unique file system test path to ats
-toAdd= """ --glue='testpath=str("%s")' """ % options.testpath
+if (options.testpath):
+    toAdd= """ --glue='testpath=str("%s")' """ % options.testpath
 
 if options.sanitize:
-        toAdd += """ --filter="sanitize==1" """
+    toAdd += """ --filter="sanitize==1" """
 
 if options.debugbuild:
     toAdd += """ --filter="level<100" """
 
-for machineArg in machineSettings.options:
-    if machineSettings.options[machineArg] == '' or \
-       machineSettings.options[machineArg] == None:
-        continue
-    if machineArg not in atsArgs and \
-             machineArg != 'atsArgs' and \
-             machineArg not in batchArgs and \
-             machineArg not in ezatsArgs:
-        toAdd += "--" + machineArg + " " + str(machineSettings.options[machineArg]) + " "
-toAdd+= "  "
+toAdd += " ".join(x for x in machineSettings.atsArgs if x not in atsArgs)
+if(machineSettings.machineType != 'SlurmProcessorScheduled' and
+   machineSettings.machineType != 'blueos_3_ppc64le_ib_p9'):
+    try:
+        toAdd += f" --numNodes {machineSettings.numNodes}"
+    except:
+        pass
+    try:
+        toAdd += f" --wcid {machineSettings.wcid}"
+    except:
+        pass
 
-for machineArg in machineSettings.options.atsArgs:
-    theArg= machineArg.replace("=", " ").split()[0]
-    if theArg not in atsArgs:
-        toAdd += machineArg + " "
+finalCommandToRun = f"{options.atsExe} {toAdd} {atsArgs}"
 
-atsArgs= options.atsExe + " " +  toAdd + atsArgs
-finalCommandToRun= atsArgs
-#----------------------------------------------------------
-# clean finalCommandToRun
-#----------------------------------------------------------
-listCommandsToRemove= ['--'+x for x in ezatsArgs]
-
-if machineSettings.options.batch:
+if machineSettings.batch:
     listCommandsToRemove.append('--batchHost')
     listCommandsToRemove.append('--batchT')
     listCommandsToRemove.append('--batchP')
     listCommandsToRemove.append('--batch ')
     listCommandsToRemove.append('--partition')
-if machineSettings.options.machineType=='SlurmProcessorScheduled' or machineSettings.options.machineType=='blueos_3_ppc64le_ib_p9':
-    listCommandsToRemove.append('--numNodes')
-    listCommandsToRemove.append('--wcid')
 
-for machineArg in machineSettings.options.atsArgs:
+for machineArg in machineSettings.atsArgs:
     if 'REMOVE' in machineArg:
         listCommandsToRemove.append(machineArg)
 
 # Remove all extra spaces
 finalCommandToRun = re.sub(r"\s+", " ", finalCommandToRun.strip())
 
-# Remove extra options for both batch and interactive
-if len(listCommandsToRemove) > 0:
-    for unwantedCommand in listCommandsToRemove[:]:
-        startPos= finalCommandToRun.find(unwantedCommand)
-        if d_debug:
-            print("DEBUG: ", unwantedCommand, "-- found start pos= ", startPos)
-        if startPos!= -1:        #if found
-            endPos= finalCommandToRun.find(" -", startPos+2)
-            if d_debug:
-                print("DEBUG: ", "end pos= ", endPos)
-
-            if endPos== -1:
-                endPos= finalCommandToRun.find("--", startPos+2)
-                if d_debug:
-                    print("DEBUG: ", "found end pos= ", endPos)
-            if endPos== -1: # looking at last option, backtrack to find the last space..
-               endPos= finalCommandToRun.rfind(' ')
-               if d_debug:
-                   print("DEBUG: ", "rfind() found end pos= ", endPos)
-
-            if endPos < startPos:
-               finalCommandToRun= finalCommandToRun[:endPos]
-            else:
-               finalCommandToRun= finalCommandToRun[:startPos] + finalCommandToRun[endPos:]
-
-            if d_debug:
-                print("DEBUG: ", unwantedCommand, "-----> ", finalCommandToRun)
-
-#finalCommandToRun= finalCommandToRun.replace(options.extraEzatsArgs, '', 1)
-realFinalCommandToRun= None
-
 #----------------------------------------------------------
 # if MSUB, SBATCH or BSUB
 #----------------------------------------------------------
-if machineSettings.options.batch:
+if machineSettings.batch:
     print("--- ATS COMMAND ---\n", finalCommandToRun)
     if "blueos" in SYS_TYPE:
         bsubFilename= createBsubFile(finalCommandToRun, options)
@@ -935,53 +746,52 @@ if machineSettings.options.batch:
 #----------------------------------------------------------
 else:
 
-    os.environ["MACHINE_TYPE"] = machineSettings.options.machineType
-    if machineSettings.options.name in ['rzwhippet_flux']:
+    os.environ["MACHINE_TYPE"] = machineSettings.machineType
+    if machineSettings.name in ['rzwhippet_flux']:
        os.environ["MACHINE_TYPE"] = "flux00"
     os.environ["BATCH_TYPE"] = "None"
 
     if platform.processor() == 'ppc64':
         numProcsLine = ""
     else:
-        numProcsLine = " -n %d" % ( machineSettings.options.numNodes* cpu_count() )
+        numProcsLine = " -n %d" % ( machineSettings.numNodes* cpu_count() )
 
-    if machineSettings.options.allocTime:
-        if machineSettings.options.name in ['rzwhippet_flux']:
-            allocTime = "-t %dm" % machineSettings.options.allocTime
+    if machineSettings.allocTime:
+        if machineSettings.name in ['rzwhippet_flux']:
+            allocTime = "-t %dm" % machineSettings.allocTime
         else:
-            allocTime = "--time=%d:00" % machineSettings.options.allocTime
+            allocTime = "--time=%d:00" % machineSettings.allocTime
     else:
         allocTime = ""
 
     HERT_WC_ID = ''
-    if machineSettings.options.name in ['chama', 'glory']:
-        HERT_WC_ID = ' --account=' + machineSettings.options.wcid
+    if machineSettings.name in ['chama', 'glory']:
+        HERT_WC_ID = ' --account=' + machineSettings.wcid
 
-    if machineSettings.options.name in ['rzwhippet_flux']:
+    if machineSettings.name in ['rzwhippet_flux']:
         finalCommandToRun= "flux alloc --exclusive "  \
                                + " " + allocTime \
                                + HERT_WC_ID \
                                + options.extraEzatsArgs \
-                               + " -N " + str(machineSettings.options.numNodes) \
+                               + " -N " + str(machineSettings.numNodes) \
                                + numProcsLine + " " \
                                + finalCommandToRun
-                               # +  " -p " + machineSettings.options.partition  + " " 
+                               # +  " -p " + machineSettings.partition  + " "
     # Threaded tests under ats should NOT use salloc
     elif 'blue' not in os.environ['SYS_TYPE']:
         finalCommandToRun= "salloc  --exclusive "  \
                                + " " + allocTime \
                                + HERT_WC_ID \
                                + options.extraEzatsArgs \
-                               + " -N " + str(machineSettings.options.numNodes) \
+                               + " -N " + str(machineSettings.numNodes) \
                                + numProcsLine \
-                               +  " -p " + machineSettings.options.partition  + " " \
+                               +  " -p " + machineSettings.partition  + " " \
                                + finalCommandToRun
     else:
-        finalCommandToRun += " --numNodes="+ str(machineSettings.options.numNodes)
+        finalCommandToRun += " --numNodes="+ str(machineSettings.numNodes)
     #sys.exit()
 
 if (d_debug==1):
-    print("whichAts= ", whichAts)
     print("finalCommandToRun after= ", finalCommandToRun)
 
 #----------------------------------------------------------
@@ -1002,12 +812,7 @@ if tagFilter != -1 and comboMark==True:
 else:
     argsToUse= finalCommandToRun.split()
 
-if realFinalCommandToRun is not None:
-    print("Running:\n ", realFinalCommandToRun)
-    if (d_debug==1):
-        print("Really running:\n ", finalCommandToRun)
-else:
-    print("Running:\n ", finalCommandToRun)
+print("Running:\n ", finalCommandToRun)
 if (d_debug==1):
     print("atsExe= ", options.atsExe)
     print("atsArgs= ", argsToUse)
@@ -1018,5 +823,3 @@ try:
 except Exception as e:
     print("Caught - non-zero exit status 3 - thrown by final command", e)
     print("Tests appear to execute correctly...but this output is here to keep an eye on this.")
-
-

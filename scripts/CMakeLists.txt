@@ -31,7 +31,7 @@ if (NOT ENABLE_CXXONLY)
   endif()
 
   if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
+    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--smpi_off")
   endif()
 
   string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")

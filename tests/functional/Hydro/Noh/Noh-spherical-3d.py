@@ -7,6 +7,7 @@
 import os, shutil, sys
 from math import *
 from SolidSpheral3d import *
+from SpheralUtilities import adiak_value
 from SpheralTestUtilities import *
 from GenerateNodeDistribution3d import *
 
@@ -123,6 +124,7 @@ commandLine(order = 5,
             dataDir = "dumps-spherical-Noh",
             outputFile = "Noh_spherical_profiles.gnu",
             comparisonFile = "None",
+            doCompare = True,
 
             graphics = True,
             )
@@ -253,6 +255,7 @@ output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
+adiak_value("total_points", db.globalNumInternalNodes)
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -522,6 +525,9 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Plot the results.

@@ -94,6 +94,7 @@ def run_ats_test(args):
     ats_configs = ' --timelimit="45m"'
     test_alloc = " ".join(args.test_alloc)
     run_command = f"{test_alloc} {lcats_test} --logs test-logs {ats_file} {ats_configs}"
+    print(f"Running {run_command}")
     ci_output = os.path.join(args.ci_build_dir, "test-logs")
     run_and_report(run_command, ci_output, 0)
 

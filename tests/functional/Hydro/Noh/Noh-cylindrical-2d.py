@@ -44,6 +44,7 @@ import os, shutil, mpi, sys
 from math import *
 
 from SolidSpheral2d import *
+from SpheralUtilities import adiak_value
 from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
@@ -330,6 +331,7 @@ output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
+adiak_value("total_points", db.globalNumInternalNodes)
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.

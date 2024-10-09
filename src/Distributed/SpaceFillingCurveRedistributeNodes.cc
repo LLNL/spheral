@@ -157,27 +157,27 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
     // Compute the target work per domain.
     const Scalar targetWork = workField.sumElements()/numProcs;
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Target work per process " << targetWork << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Target work per process " << targetWork << endl;
 
     // Compute the Key indices for each point on this processor.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Hashing indices" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Hashing indices" << endl;
     FieldList<Dimension, Key> indices = computeHashedIndices(dataBase);
 
     // Find the range of hashed indices.
     const Key indexMin = indices.min();
     const Key indexMax = indices.max();
     CHECK(indexMax < indexMax + indexMax);
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Index min/max : " << indexMin << " " << indexMax << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Index min/max : " << indexMin << " " << indexMax << endl;
 
     // Build the array of (hashed index, DomainNode) pairs.
     // Note this comes back locally sorted.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: sorting indices" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: sorting indices" << endl;
     vector<pair<Key, DomainNode<Dimension> > > sortedIndices = buildIndex2IDPairs(indices,
                                                                                   nodeDistribution);
     const int numLocalNodes = nodeDistribution.size();
 
     // Build our set of unique indices and their count.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Counting uniques and such" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Counting uniques and such" << endl;
     vector<Key> uniqueIndices;
     vector<int> count;
     vector<Scalar> work;
@@ -209,7 +209,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(work.size() == uniqueIndices.size());
     }
     maxCount = allReduce(maxCount, SPHERAL_OP_MAX);
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
 
     //   // DEBUG
     //   {
