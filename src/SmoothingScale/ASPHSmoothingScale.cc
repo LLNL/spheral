@@ -171,6 +171,7 @@ ASPHSmoothingScale(const HEvolutionType HUpdate,
   mCellSecondMoment(FieldStorageType::CopyFields),
   mRadius0(FieldStorageType::CopyFields),
   mHidealFilterPtr(std::make_shared<ASPHSmoothingScaleUserFilter<Dimension>>()),
+  mRadialFunctorPtr(std::make_shared<ASPHRadialFunctor<Dimension>>()),
   mFixShape(fixShape),
   mRadialOnly(radialOnly) {
 }
@@ -203,26 +204,18 @@ registerState(DataBase<Dimension>& dataBase,
 
   const auto Hupdate = this->HEvolution();
   auto Hfields = dataBase.fluidHfield();
-  const auto numFields = Hfields.numFields();
-  for (auto k = 0u; k < numFields; ++k) {
-    auto& Hfield = *Hfields[k];
-    const auto& nodeList = Hfield.nodeList();
-    const auto hmin = nodeList.hmin();
-    const auto hmax = nodeList.hmax();
-    const auto hminratio = nodeList.hminratio();
-    switch (Hupdate) {
-      case HEvolutionType::IntegrateH:
-      case HEvolutionType::IdealH:
-        state.enroll(Hfield, make_policy<IncrementASPHHtensor<Dimension>>(hmin, hmax, hminratio, mFixShape, mRadialOnly));
-        break;
+  switch (Hupdate) {
+  case HEvolutionType::IntegrateH:
+  case HEvolutionType::IdealH:
+    state.enroll(Hfields, make_policy<IncrementASPHHtensor<Dimension>>(mFixShape, mRadialOnly, mRadialFunctorPtr));
+    break;
 
-      case HEvolutionType::FixedH:
-        state.enroll(Hfield);
-        break;
+  case HEvolutionType::FixedH:
+    state.enroll(Hfields);
+    break;
 
-       default:
-         VERIFY2(false, "ASPHSmoothingScale ERROR: Unknown Hevolution option ");
-    }
+  default:
+    VERIFY2(false, "ASPHSmoothingScale ERROR: Unknown Hevolution option ");
   }
 }
 
@@ -301,7 +294,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto n = pos[k]->numInternalElements();
 #pragma omp parallel for
       for (auto i = 0u; i < n; ++i) {
-        mRadius0(k,i) = pos(k,i).magnitude();
+        mRadius0(k,i) = mRadialFunctorPtr->radialCoordinate(k, i, pos(k,i));
       }
     }
   }
@@ -604,8 +597,9 @@ finalize(const Scalar time,
 
           // We scale H in the radial direction only (also force H to be aligned radially).
           CHECK(mRadialOnly);
-          const auto nhat = pos(k, i).unitVector();
-          Hideali = radialEvolution(Hi, nhat, 1.0 - a + a*s, mRadius0(k,i), pos(k,i).magnitude());
+          const auto nhat = mRadialFunctorPtr->radialUnitVector(k, i, pos(k,i));
+          const auto r1 = mRadialFunctorPtr->radialCoordinate(k, i, pos(k,i));
+          Hideali = radialEvolution(Hi, nhat, 1.0 - a + a*s, mRadius0(k,i), r1);
 
         }
 

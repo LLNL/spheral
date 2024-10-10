@@ -17,6 +17,7 @@ PYB11includes += ['"SmoothingScale/SmoothingScaleBase.hh"',
                   '"SmoothingScale/SPHSmoothingScale.hh"',
                   '"SmoothingScale/ASPHSmoothingScale.hh"',
                   '"SmoothingScale/ASPHSmoothingScaleUserFilter.hh"',
+                  '"SmoothingScale/ASPHRadialFunctor.hh"',
                   '"SmoothingScale/polySecondMoment.hh"',
                   '"Kernel/TableKernel.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
@@ -41,20 +42,24 @@ from FixedSmoothingScale import FixedSmoothingScale
 from SPHSmoothingScale import SPHSmoothingScale
 from ASPHSmoothingScale import ASPHSmoothingScale
 from ASPHSmoothingScaleUserFilter import ASPHSmoothingScaleUserFilter
+from ASPHRadialFunctor import ASPHRadialFunctor
 
 for ndim in dims:
+    Dimension = f"Dim<{ndim}>"
+    Vector = f"{Dimension}::Vector"
     exec(f'''
-SmoothingScaleBase{ndim}d = PYB11TemplateClass(SmoothingScaleBase, template_parameters="Dim<{ndim}>")
-FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_parameters="Dim<{ndim}>")
-SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="Dim<{ndim}>")
-ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="Dim<{ndim}>")
-ASPHSmoothingScaleUserFilter{ndim}d = PYB11TemplateClass(ASPHSmoothingScaleUserFilter, template_parameters="Dim<{ndim}>")
+SmoothingScaleBase{ndim}d = PYB11TemplateClass(SmoothingScaleBase, template_parameters="{Dimension}")
+FixedSmoothingScale{ndim}d = PYB11TemplateClass(FixedSmoothingScale, template_parameters="{Dimension}")
+SPHSmoothingScale{ndim}d = PYB11TemplateClass(SPHSmoothingScale, template_parameters="{Dimension}")
+ASPHSmoothingScale{ndim}d = PYB11TemplateClass(ASPHSmoothingScale, template_parameters="{Dimension}")
+ASPHSmoothingScaleUserFilter{ndim}d = PYB11TemplateClass(ASPHSmoothingScaleUserFilter, template_parameters="{Dimension}")
+ASPHRadialFunctor{ndim}d = PYB11TemplateClass(ASPHRadialFunctor, template_parameters="{Dimension}")
 
 @PYB11cppname("polySecondMoment")
-def polySecondMoment{ndim}d(poly = "const Dim<{ndim}>::FacetedVolume&",
-                            center = "const Dim<{ndim}>::Vector&"):
+def polySecondMoment{ndim}d(poly = "const {Dimension}::FacetedVolume&",
+                            center = "const {Dimension}::Vector&"):
     "Return the second moment of a convex polytope"
-    return "Dim<{ndim}>::SymTensor"
+    return "{Dimension}::SymTensor"
 ''')
 
         

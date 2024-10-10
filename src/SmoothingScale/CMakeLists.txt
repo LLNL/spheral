@@ -18,7 +18,9 @@ set(SmoothingScale_headers
   FixedSmoothingScale.hh
   SPHSmoothingScale.hh
   ASPHSmoothingScale.hh
+  IncrementASPHHtensor.hh
   ASPHSmoothingScaleUserFilter.hh
+  ASPHRadialFunctor.hh
   polySecondMoment.hh
 )
 

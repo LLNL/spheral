@@ -10,8 +10,12 @@
 
 #include "SmoothingScale/SmoothingScaleBase.hh"
 #include "SmoothingScale/ASPHSmoothingScaleUserFilter.hh"
+#include "SmoothingScale/ASPHRadialFunctor.hh"
+#include "Utilities/Functors.hh"
 
-#include <memory>
+#include <memory>   // std::shared_ptr
+#include <utility>  // std::pair
+#include <tuple>
 
 namespace Spheral {
 
@@ -26,6 +30,7 @@ public:
   using SymTensor = typename Dimension::SymTensor;
   using FacetedVolume = typename Dimension::FacetedVolume;
   using HidealFilterType = ASPHSmoothingScaleUserFilter<Dimension>;
+  using RadialFunctorType = ASPHRadialFunctor<Dimension>;
 
   // Constructors, destructor.
   ASPHSmoothingScale(const HEvolutionType HUpdate,
@@ -94,9 +99,13 @@ public:
   void fixShape(const bool x)                                                     { mFixShape = x; }
   void radialOnly(const bool x)                                                   { mRadialOnly = x; }
 
-  // Optional user hook providing a functor to manipulate the ideal H vote
+  // Optional user functor to manipulate the final ideal H vote
   std::shared_ptr<HidealFilterType> HidealFilter() const                          { return mHidealFilterPtr; }
   void HidealFilter(std::shared_ptr<HidealFilterType> functorPtr)                 { mHidealFilterPtr = functorPtr; }
+
+  // Optional user functor to override the radial unit normal and radius for radialOnly mode
+  std::shared_ptr<RadialFunctorType> RadialFunctor() const                        { return mRadialFunctorPtr; }
+  void RadialFunctor(std::shared_ptr<RadialFunctorType> functorPtr)               { mRadialFunctorPtr = functorPtr; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -110,6 +119,7 @@ private:
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
   FieldList<Dimension, Scalar> mRadius0;
   std::shared_ptr<HidealFilterType> mHidealFilterPtr;
+  std::shared_ptr<RadialFunctorType> mRadialFunctorPtr;
   bool mFixShape, mRadialOnly;
 };
 

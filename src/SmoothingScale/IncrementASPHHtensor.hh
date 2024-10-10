@@ -1,14 +1,17 @@
 //---------------------------------Spheral++----------------------------------//
 // IncrementASPHHtensor
 //
-// Specialized version of FieldUpdatePolicy for time integrating the H tensor.
+// Specialized version of UpdatePolicy for time integrating the H tensor.
 //
 // Created by JMO, Mon Oct  7 13:31:02 PDT 2024
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_IncrementASPHHtensor_hh__
 #define __Spheral_IncrementASPHHtensor_hh__
 
-#include "DataBase/FieldUpdatePolicy.hh"
+#include "DataBase/UpdatePolicyBase.hh"
+#include "SmoothingScale/ASPHRadialFunctor.hh"
+
+#include <memory>  // std::shared_ptr
 
 namespace Spheral {
 
@@ -16,21 +19,20 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension>
-class IncrementASPHHtensor: public FieldUpdatePolicy<Dimension> {
+class IncrementASPHHtensor: public UpdatePolicyBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
+  using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
   using Scalar = typename Dimension::Scalar;
   using Vector = typename Dimension::Vector;
   using SymTensor = typename Dimension::SymTensor;
+  using RadialFunctorType = ASPHRadialFunctor<Dimension>;
 
   // Constructors, destructor.
-  IncrementASPHHtensor(const Scalar hmin,
-                       const Scalar hmax,
-                       const Scalar hminratio,
-                       const bool fixShape,
-                       const bool radialOnly);
+  IncrementASPHHtensor(const bool fixShape,
+                       const bool radialOnly,
+                       std::shared_ptr<RadialFunctorType> radialFunctorPtr);
   virtual ~IncrementASPHHtensor()   {}
   IncrementASPHHtensor(const IncrementASPHHtensor& rhs) = delete;
   IncrementASPHHtensor& operator=(const IncrementASPHHtensor& rhs) = delete;
@@ -43,10 +45,7 @@ public:
                       const double t,
                       const double dt) override;
 
-  // Access the min and max's.
-  Scalar hmin() const               { return mhmin; }
-  Scalar hmax() const               { return mhmax; }
-  Scalar hminratio() const          { return mhminratio; }
+  // Access the internal state
   bool fixShape() const             { return mFixShape; }
   bool radialOnly() const           { return mRadialOnly; }
 
@@ -57,8 +56,8 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mhmin, mhmax, mhminratio;
   bool mFixShape, mRadialOnly;
+  std::shared_ptr<RadialFunctorType> mRadialFunctorPtr;
 };
 
 }
