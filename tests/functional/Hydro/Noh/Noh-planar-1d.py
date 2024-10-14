@@ -184,7 +184,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             comparisonFile = "None",
             normOutputFile = "None",
             writeOutputLabel = True,
-            doComparison = True,
+            doCompare = True,
 
             # Parameters for the test acceptance.,
             L1rho =   0.0537214,   
