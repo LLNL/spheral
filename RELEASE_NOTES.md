@@ -5,7 +5,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
-    * Value-View Interface for wrapping comlex classes in a GPU compatible Interface.
+    * Value-View Interface for wrapping complex classes in a GPU compatible Interface.
       * Enabled w/ `SPHERAL_ENABLE_VVI=On`.
       * Example executables demonstrating :
         * Basic class w/ ManagedVector member.
