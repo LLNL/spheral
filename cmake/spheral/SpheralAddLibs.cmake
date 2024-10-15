@@ -224,14 +224,7 @@ function(spheral_add_pybind11_library package_name module_list_name)
 
   # Get the TPL dependencies
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
-  # If building shared libraries, use the SPHERAL_OBJ_LIBS global list
-  # Note, LLNLSpheral has appended any local targets to this list as well
-  if(ENABLE_DEV_BUILD)
-    get_property(SPHERAL_DEPENDS GLOBAL PROPERTY SPHERAL_OBJ_LIBS)
-  else()
-    # Otherwise, provide target names
-    list(APPEND SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
-  endif()
+  list(APPEND SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
 
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
