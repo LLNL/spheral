@@ -114,7 +114,7 @@ redistributeNodes(DataBase<Dim<1> >& dataBase,
 
   // Output the initial load distribution statistics.
   const string initialLoadStats = this->gatherDomainDistributionStatistics(work);
-  if (procID == 0) cerr << "SortAndDivideRedistributeNodes::redistributeNodes initial load balancing:" << endl
+  if (procID == 0) cout << "SortAndDivideRedistributeNodes::redistributeNodes initial load balancing:" << endl
                         << initialLoadStats << endl << endl;
 
   // Compute the total work, and the target work per processor.
@@ -183,7 +183,7 @@ redistributeNodes(DataBase<Dim<1> >& dataBase,
 
   // Output the final load distribution statistics.
   const string finalLoadStats = this->gatherDomainDistributionStatistics(work);
-  if (procID == 0) cerr << "SortAndDivideRedistributeNodes::redistributeNodes final load balancing:" << endl
+  if (procID == 0) cout << "SortAndDivideRedistributeNodes::redistributeNodes final load balancing:" << endl
                         << finalLoadStats << endl << endl;
   MPI_Barrier(Communicator::communicator());
 

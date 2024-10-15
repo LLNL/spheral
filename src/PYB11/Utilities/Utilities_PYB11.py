@@ -804,6 +804,6 @@ for (value, label) in (("int", "Int"),
                        ("double", "Scalar"),
                        ("std::string", "String")):
     exec("""
-adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
-adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
+adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s", pyname="adiak_value")
+adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value")
 """ % {"label" : label, "value" : value})

@@ -183,6 +183,7 @@ if (ENABLE_TESTS)
   string(REPLACE "\n" " " test_files ${test_files1})
   separate_arguments(test_files)
   list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
+  list(REMOVE_ITEM test_files tests/unit/Utilities/testTimers.py.in)
   install_with_directory(
     FILES       ${test_files} 
     SOURCE      ${SPHERAL_ROOT_DIR}

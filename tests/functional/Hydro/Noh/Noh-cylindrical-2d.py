@@ -44,6 +44,7 @@ import os, shutil, mpi, sys
 from math import *
 
 from SolidSpheral2d import *
+from SpheralUtilities import adiak_value
 from SpheralTestUtilities import *
 from GenerateNodeDistribution2d import *
 from CubicNodeGenerator import GenerateSquareNodeDistribution
@@ -170,6 +171,7 @@ commandLine(seed = "constantDTheta",
             dataDir = "dumps-cylindrical-Noh",
             outputFile = "None",
             comparisonFile = "None",
+            doCompare = True,
 
             graphics = True,
             )
@@ -329,6 +331,7 @@ output("db")
 output("db.appendNodeList(nodes1)")
 output("db.numNodeLists")
 output("db.numFluidNodeLists")
+adiak_value("total_points", db.globalNumInternalNodes)
 
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
@@ -603,6 +606,10 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Plot the results.

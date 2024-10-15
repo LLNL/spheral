@@ -31,7 +31,7 @@ if (NOT ENABLE_CXXONLY)
   endif()
 
   if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
+    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--smpi_off")
   endif()
 
   string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
@@ -56,12 +56,7 @@ if (NOT ENABLE_CXXONLY)
     "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
   )
 
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-  )
-
-  install(FILES
+  install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
@@ -70,10 +65,7 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 
-  install(FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
-  )
+  add_subdirectory(performance)
 
   install(CODE "execute_process( \
     COMMAND env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m venv .venv --without-pip --prompt \
