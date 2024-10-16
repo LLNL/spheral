@@ -10,7 +10,7 @@ import numpy as np
 # Create a global random number generator.
 # We force a fixed seed to cut down random failures in CI testing.
 import random
-rangen = random.Random(49884928910350901743)
+random.seed(49884928910350901743)
 
 #===========================================================================
 # Measure the relative difference between two numbers
@@ -24,7 +24,7 @@ def err(a, b):
 def xgen(n, xmin, xmax):
     count = 0
     if n < 3:
-        yield rangen.uniform(xmin, xmax)
+        yield random.uniform(xmin, xmax)
         count += 1
     else:
         while count < n:
@@ -33,7 +33,7 @@ def xgen(n, xmin, xmax):
             elif count == n - 1:
                 yield xmax
             else:
-                yield rangen.uniform(xmin, xmax)
+                yield random.uniform(xmin, xmax)
             count += 1
 
 #===============================================================================
@@ -204,9 +204,9 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         dx = (xmax - xmin)/self.n
         hx = 0.05*(xmax - xmin)
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, 10*self.n, func)  # Without the analytic gradient we benefit from more fiting points
             self.checkError(xmin, xmax, func, F, 
@@ -222,9 +222,9 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         xmin = -10.0
         xmax =  40.0
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func, Fgrad(func))
             self.checkError(xmin, xmax, func, F,
@@ -240,9 +240,9 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         xmin = -10.0
         xmax =  40.0
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
             func = Fquad(A, B, C)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
             F.makeMonotonic()
@@ -262,10 +262,10 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         dx = (xmax - xmin)/self.n
         hx = 0.05*(xmax - xmin)
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
-            D = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
+            D = random.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
             F = CubicHermiteInterpolator(xmin, xmax, 10*self.n, func)  # Without the analytic gradient we benefit from more fiting points
             self.checkError(xmin, xmax, func, F,
@@ -281,10 +281,10 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         xmin = -10.0
         xmax =  40.0
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
-            D = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
+            D = random.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func, Fgrad(func))
             self.checkError(xmin, xmax, func, F, 
@@ -300,10 +300,10 @@ class TestCubicHermiteInterpolator(unittest.TestCase):
         xmin = -10.0
         xmax =  40.0
         for ifunc in range(self.nfunc):
-            A = rangen.uniform(-100.0, 100.0)
-            B = rangen.uniform(-100.0, 100.0)
-            C = rangen.uniform(-100.0, 100.0)
-            D = rangen.uniform(-100.0, 100.0)
+            A = random.uniform(-100.0, 100.0)
+            B = random.uniform(-100.0, 100.0)
+            C = random.uniform(-100.0, 100.0)
+            D = random.uniform(-100.0, 100.0)
             func = Fcubic(A, B, C, D)
             F = CubicHermiteInterpolator(xmin, xmax, self.n, func)
             F.makeMonotonic()

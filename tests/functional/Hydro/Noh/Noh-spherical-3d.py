@@ -47,7 +47,7 @@ commandLine(order = 5,
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            solid = False,    # If true, use the fluid limit of the solid hydro option
+            solid = False,                   # If true, use the fluid limit of the solid hydro option
 
             svph = False,
             crksph = False,
@@ -57,7 +57,8 @@ commandLine(order = 5,
             mfm = False,
             mfv = False,
 
-            asph = False,   # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            asph = False,                    # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            radialOnly = False,              # Force ASPH tensors to be aligned and evolve radially
             boolReduceViscosity = False,
             HopkinsConductivity = False,     # For PSPH
             nhQ = 5.0,
@@ -379,11 +380,15 @@ output("hydro")
 output("hydro.kernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.HEvolution")
 if not (gsph or mfm or mfv or fsisph):
     output("hydro.PiKernel")
 if not fsisph:
     output("hydro.densityUpdate")
+output("hydro._smoothingScaleMethod.HEvolution")
+if radialOnly:
+    assert asph
+    hydro._smoothingScaleMethod.radialOnly = True
+    output("hydro._smoothingScaleMethod.radialOnly")
 
 packages = [hydro]
 

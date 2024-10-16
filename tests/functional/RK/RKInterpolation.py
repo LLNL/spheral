@@ -232,9 +232,8 @@ output("numLocal")
 # Randomize nodes
 #-------------------------------------------------------------------------------
 import random
-seed = 2
-rangen = random.Random()
-rangen.seed(seed)
+seed = 459297849234
+random.seed(seed)
 
 if randomizeNodes:
     dx = (x1 - x0)/nx
@@ -243,14 +242,14 @@ if randomizeNodes:
     pos = nodes.positions()
     for i in range(nodes.numInternalNodes):
         if dimension == 1:
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
         elif dimension == 2:
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
         elif dimension == 3:
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
-            pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
+            pos[i].z += ranfrac * dz * random.uniform(-1.0, 1.0)
             
 #-------------------------------------------------------------------------------
 # Iterate h

@@ -78,14 +78,15 @@ commandLine(seed = "constantDTheta",
 
             # hydro type (only one!)
             svph = False,
-            crksph = False,   # high order conservative formulation of SPH
-            psph = False,     # pressure-based formulation of SPH
-            fsisph = False,   # formulation for multimaterial problems
-            gsph = False,     # godunov SPH
-            mfm = False,      # moving finite mass of Hopkins 2015
-            mfv=False,        # moving finite volume of Hopkins 2015
-            asph = False,     # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
-            solid = False,    # If true, use the fluid limit of the solid hydro option
+            crksph = False,                     # high order conservative formulation of SPH                                     
+            psph = False,                       # pressure-based formulation of SPH                                              
+            fsisph = False,                     # formulation for multimaterial problems                                         
+            gsph = False,                       # godunov SPH                                                                    
+            mfm = False,                        # moving finite mass of Hopkins 2015                                             
+            mfv=False,                          # moving finite volume of Hopkins 2015                                           
+            asph = False,                       # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
+            solid = False,                      # If true, use the fluid limit of the solid hydro option                         
+            radialOnly = False,                 # Force ASPH tensors to be aligned and evolve radially
 
             # general hydro options
             densityUpdate = RigorousSumDensity, # (IntegrateDensity)
@@ -462,9 +463,13 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-#output("hydro._smoothingScaleMethod.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 if crksph:
     output("hydro.correctionOrder")
+if radialOnly:
+    assert asph
+    hydro._smoothingScaleMethod.radialOnly = True
+    output("hydro._smoothingScaleMethod.radialOnly")
 
 packages = [hydro]
 

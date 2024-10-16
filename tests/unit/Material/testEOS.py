@@ -9,7 +9,7 @@ from Spheral1d import *
 
 # Create a global random number generator.
 import random
-rangen = random.Random()
+random.seed(5479029084)
 
 # We'll just use a gamma-law gas to base our tests on.
 gamma = 5.0/3.0
