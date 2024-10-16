@@ -282,8 +282,6 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   updateStateFields(SolidFieldNames::shearModulus, state, derivs);
   updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
 
-  mDamagedPressure+=this->pressure();
-
   const auto& mass = dataBase.fluidMass();
   const auto& massDensity = dataBase.fluidMassDensity();
   computeSPHVolume(mass,massDensity,mVolume);
