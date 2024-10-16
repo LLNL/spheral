@@ -5,6 +5,8 @@
 
 namespace Spheral {
 
+VVI_IMPL_BEGIN
+
 //------------------------------------------------------------------------------
 // Construct to fit the given function
 //------------------------------------------------------------------------------
@@ -46,6 +48,18 @@ QuadraticInterpolator::QuadraticInterpolator(const double xmin,
     mcoeffs[3*i0 + 1u] = X(1);
     mcoeffs[3*i0 + 2u] = X(2);
   }
+}
+
+//------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+bool
+inline
+QuadraticInterpolator::operator==(const QuadraticInterpolator& rhs) const {
+  return ((mN1 == rhs.mN1) and
+          (mXmin == rhs.mXmin) and
+          (mXmax == rhs.mXmax) and
+          (mcoeffs == rhs.mcoeffs));
 }
 
 //------------------------------------------------------------------------------
@@ -109,7 +123,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
-  const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
+  const auto result = 3u*RAJA_MIN(mN1, size_t(RAJA_MAX(0.0, x - mXmin)/mXstep));
   ENSURE(result <= 3u*mN1);
   return result;
 }
@@ -142,9 +156,11 @@ QuadraticInterpolator::xstep() const {
 }
 
 inline
-const std::vector<double>&
+const vvi::vector<double>&
 QuadraticInterpolator::coeffs() const {
   return mcoeffs;
 }
+
+VVI_IMPL_END
 
 }
