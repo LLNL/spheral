@@ -24,11 +24,11 @@
 .gcc_spectrum:
   variables:
     SPEC: 'gcc@$GCC_VERSION^spectrum-mpi'
-    EXTRA_CMAKE_ARGS: '-DENABLE_DEV_BUILD=On'
 
 .clang_mvapich2:
   variables:
     SPEC: 'clang@$CLANG_VERSION^mvapich2'
+    EXTRA_CMAKE_ARGS: '-DENABLE_DEV_BUILD=On'
 
 .cuda_11_gcc_~mpi:
   variables:
