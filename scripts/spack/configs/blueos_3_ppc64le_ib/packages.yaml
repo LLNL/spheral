@@ -59,6 +59,8 @@ packages:
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-8.3.1
     - spec: spectrum-mpi@10.3.1.03rtm0%gcc@4.9.3
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-4.9.3
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@10.2.1
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-10.2.1
     - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-9.0.0
     - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0-ibm
