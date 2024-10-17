@@ -219,12 +219,6 @@ postStateUpdate(const Scalar /*time*/,
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
                          (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
-  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-    boundaryPtr->applyFieldListGhostBoundary(rho);
-    boundaryPtr->applyFieldListGhostBoundary(P);
-    boundaryPtr->applyFieldListGhostBoundary(cs);
-    boundaryPtr->applyFieldListGhostBoundary(PSPHcorrection);
-  }
 
   // We depend on the caller knowing to finalize the ghost boundaries!
   return true;
