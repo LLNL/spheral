@@ -19,7 +19,9 @@ struct HydroFieldNames {
   static const std::string work;
   static const std::string velocityGradient;
   static const std::string internalVelocityGradient;
-  static const std::string hydroAcceleration;
+  static const std::string acceleration;            // Non-hydro (things that don't modify the thermal energy) use this
+  static const std::string hydroAcceleration;       // Normal hydro sources (things that do modify material thermal energy)
+  static const std::string ahgAcceleration;
   static const std::string massDensity;
   static const std::string normalization;
   static const std::string specificThermalEnergy;
@@ -30,9 +32,9 @@ struct HydroFieldNames {
   static const std::string XSPHDeltaV;
   static const std::string XSPHWeightSum;
   static const std::string Hsmooth;
+  static const std::string massZerothMoment;
   static const std::string massFirstMoment;
   static const std::string massSecondMoment;
-  static const std::string weightedNeighborSum;
   static const std::string pressure;
   static const std::string partialPpartialEps;
   static const std::string partialPpartialRho;

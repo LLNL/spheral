@@ -275,9 +275,8 @@ domainsPerChunk(const Dim<2>::SymTensor::EigenStructType& shapeTensor) const {
   BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;
-    for (vector<int>::const_iterator itr = result.begin();
-         itr != result.end();
-         ++itr) checkCount += *itr;
+    CONTRACT_VAR(checkCount);
+    for (const auto x: result) checkCount += x;
     ENSURE(checkCount == numProcs);
   }
   END_CONTRACT_SCOPE

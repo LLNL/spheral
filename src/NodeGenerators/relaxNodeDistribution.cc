@@ -3,6 +3,7 @@
 // Optionally the user can specify a weighting function for the nodes.
 //------------------------------------------------------------------------------
 #include "relaxNodeDistribution.hh"
+#include "Mesh/Mesh.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
 #include "Distributed/allReduce.hh"
@@ -28,7 +29,6 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
                       const typename Dimension::FacetedVolume& boundary,
                       const std::vector<Boundary<Dimension>*>& /*boundaries*/,
                       const TableKernel<Dimension>& /*W*/,
-                      const SmoothingScaleBase<Dimension>& /*smoothingScaleMethod*/,
                       const WeightingFunctor<Dimension>& weightingFunctor,
                       const WeightingFunctor<Dimension>& massDensityFunctor,
                       const double targetMass,

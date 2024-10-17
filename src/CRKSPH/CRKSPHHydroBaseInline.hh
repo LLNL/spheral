@@ -38,24 +38,6 @@ densityUpdate(MassDensityType type) {
 }
 
 //------------------------------------------------------------------------------
-// Choose how we want to update the H tensor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-HEvolutionType
-CRKSPHHydroBase<Dimension>::HEvolution() const {
-  return mHEvolution;
-}
-
-template<typename Dimension>
-inline
-void
-CRKSPHHydroBase<Dimension>::
-HEvolution(HEvolutionType type) {
-  mHEvolution = type;
-}
-
-//------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.
 //------------------------------------------------------------------------------
@@ -105,17 +87,6 @@ inline
 void
 CRKSPHHydroBase<Dimension>::XSPH(bool val) {
   mXSPH = val;
-}
-
-//------------------------------------------------------------------------------
-// The object defining how smoothing scales are evolved.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const SmoothingScaleBase<Dimension>&
-CRKSPHHydroBase<Dimension>::
-smoothingScaleMethod() const {
-  return mSmoothingScaleMethod;
 }
 
 //------------------------------------------------------------------------------
@@ -204,24 +175,8 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
-specificThermalEnergy0() const {
-  return mSpecificThermalEnergy0;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
 entropy() const {
   return mEntropy;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-Hideal() const {
-  return mHideal;
 }
 
 template<typename Dimension>
@@ -246,22 +201,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 viscousWork() const {
   return mViscousWork;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-CRKSPHHydroBase<Dimension>::
-weightedNeighborSum() const {
-  return mWeightedNeighborSum;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-massSecondMoment() const {
-  return mMassSecondMoment;
 }
 
 template<typename Dimension>
@@ -302,14 +241,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 CRKSPHHydroBase<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-CRKSPHHydroBase<Dimension>::
-DHDt() const {
-  return mDHDt;
 }
 
 template<typename Dimension>

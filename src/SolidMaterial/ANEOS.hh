@@ -27,10 +27,10 @@ class ANEOS: public SolidEquationOfState<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
   // Constructors, destructors.
   ANEOS(const int materialNumber,
@@ -142,8 +142,11 @@ private:
   int mMaterialNumber;
   unsigned mNumRhoVals, mNumTvals;
   double mRhoMin, mRhoMax, mTmin, mTmax, mEpsMin, mEpsMax;
-  std::shared_ptr<CubicHermiteInterpolator> mEpsMinInterp, mEpsMaxInterp;
-  std::shared_ptr<BiCubicInterpolator> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp, mDPDepsInterp, mDPDRinterp;
+
+  using InterpolatorType = CubicHermiteInterpolator;
+  using BiInterpolatorType = BiCubicInterpolator;
+  std::shared_ptr<InterpolatorType> mEpsMinInterp, mEpsMaxInterp;
+  std::shared_ptr<BiInterpolatorType> mEpsInterp, mTinterp, mPinterp, mCVinterp, mCSinterp, mKinterp, mSinterp, mDPDepsInterp, mDPDRinterp;
 
   // ANEOS internal units.
   PhysicalConstants mANEOSunits;

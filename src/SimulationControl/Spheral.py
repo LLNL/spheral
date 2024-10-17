@@ -147,6 +147,10 @@ print("|  %-76s|" % ("  number of threads per rank: " + str(omp_get_num_threads(
 print("\\------------------------------------------------------------------------------/")
 
 # ------------------------------------------------------------------------------
-# Set the prompt just to clear to folks they now have Spheral
+# Set the prompt just to clear to folks they now have Spheral.
+# To maintain sanity by default only have one process print the prompt...
 # ------------------------------------------------------------------------------
-sys.ps1 = "Spheral> "
+if mpi.rank == 0:
+    sys.ps1 = "Spheral> "
+else:
+    sys.ps1 = ""

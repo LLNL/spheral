@@ -36,8 +36,7 @@ public:
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidSphericalSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                             DataBase<Dimension>& dataBase,
+  SolidSphericalSPHHydroBase(DataBase<Dimension>& dataBase,
                              ArtificialViscosity<Dimension>& Q,
                              const SphericalKernel& W,
                              const SphericalKernel& WPi,
@@ -52,13 +51,17 @@ public:
                              const bool correctVelocityGradient,
                              const bool sumMassDensityOverAllNodeLists,
                              const MassDensityType densityUpdate,
-                             const HEvolutionType HUpdate,
                              const double epsTensile,
                              const double nTensile,
                              const bool damageRelieveRubble,
                              const bool strengthInDamage,
                              const Vector& xmin,
                              const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  SolidSphericalSPHHydroBase() = delete;
+  SolidSphericalSPHHydroBase(const SolidSphericalSPHHydroBase&) = delete;
+  SolidSphericalSPHHydroBase& operator=(const SolidSphericalSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~SolidSphericalSPHHydroBase();
@@ -115,11 +118,6 @@ private:
   const SphericalKernel& mKernel;
   const SphericalKernel& mPiKernel;
   const SphericalKernel& mGradKernel;
-
-  // No default constructor, copying, or assignment.
-  SolidSphericalSPHHydroBase();
-  SolidSphericalSPHHydroBase(const SolidSphericalSPHHydroBase&);
-  SolidSphericalSPHHydroBase& operator=(const SolidSphericalSPHHydroBase&);
 };
 
 }

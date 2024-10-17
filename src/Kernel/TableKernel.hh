@@ -9,6 +9,7 @@
 
 #include "Kernel.hh"
 #include "Utilities/QuadraticInterpolator.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 
 #include <vector>
 
@@ -19,15 +20,19 @@ class TableKernel: public Kernel<Dimension, TableKernel<Dimension> > {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using InterpolatorType = QuadraticInterpolator;
+  using NperhInterpolatorType = CubicHermiteInterpolator;
 
   // Constructors.
   template<typename KernelType>
   TableKernel(const KernelType& kernel,
-              const unsigned numPoints = 100u);
+              const unsigned numPoints = 100u,
+              const Scalar minNperh = 0.25,
+              const Scalar maxNperh = 64.0);
   TableKernel(const TableKernel<Dimension>& rhs);
 
   // Destructor.
@@ -63,33 +68,40 @@ public:
                            std::vector<Scalar>& kernelValues,
                            std::vector<Scalar>& gradValues) const;
 
-  // Return the equivalent number of nodes per smoothing scale implied by the given
-  // sum of kernel values.
-  Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
+  // Special kernel values for use in finding smoothing scales (SPH and ASPH versions)
+  // ***These are only intended for use adapting smoothing scales***, and are used
+  // for the succeeding equivalentNodesPerSmoothingScale lookups!
+  Scalar kernelValueSPH(const Scalar etaij) const;
+  Scalar kernelValueASPH(const Scalar etaij, const Scalar nPerh) const;
 
-  // Return the equivalent W sum implied by the given number of nodes per smoothing scale.
+  // Return the equivalent number of nodes per smoothing scale implied by the given
+  // sum of kernel values, using the zeroth moment SPH algorithm
+  Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
   Scalar equivalentWsum(const Scalar nPerh) const;
 
-  // Allow read only access to the tabular data.
-  const std::vector<Scalar>& nperhValues() const;
-  const std::vector<Scalar>& WsumValues() const;
+  // Access the internal data
+  size_t numPoints() const                                    { return mNumPoints; }
+  Scalar minNperhLookup() const                               { return mMinNperh; }
+  Scalar maxNperhLookup() const                               { return mMaxNperh; }
 
-  // Number of points in our lookup data
-  size_t numPoints() const;
+  // Direct access to our interpolators
+  const InterpolatorType& Winterpolator() const               { return mInterp; }
+  const InterpolatorType& gradWinterpolator() const           { return mGradInterp; }
+  const InterpolatorType& grad2Winterpolator() const          { return mGrad2Interp; }
+  const NperhInterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
+  const NperhInterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Data for the kernel tabulation.
-  typedef QuadraticInterpolator InterpolatorType;
-  InterpolatorType mInterp, mGradInterp, mGrad2Interp;
   size_t mNumPoints;
+  Scalar mTargetNperh, mMinNperh, mMaxNperh;
+  InterpolatorType mInterp, mGradInterp, mGrad2Interp;       // W, grad W, grad^2 W
+  NperhInterpolatorType mNperhLookup, mWsumLookup;           // SPH nperh lookups
 
-  // Data for the nperh lookup algorithm.
-  std::vector<Scalar> mNperhValues, mWsumValues;
-  Scalar mMinNperh, mMaxNperh;
-
-  // Initialize the table relating Wsum to nodes per smoothing scale.
-  void setNperhValues(const bool scaleTo1D = false);
+  using Kernel<Dimension, TableKernel<Dimension>>::mVolumeNormalization;
+  using Kernel<Dimension, TableKernel<Dimension>>::mKernelExtent;
+  using Kernel<Dimension, TableKernel<Dimension>>::mInflectionPoint;
 };
 
 }

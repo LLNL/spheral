@@ -107,7 +107,7 @@ several times during a time step."""
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
         "Iterate over all physics packages and call postStateUpdate"
-        return "void"
+        return "bool"
 
     def appendPhysicsPackage(self, package="Physics<%(Dimension)s>&"):
         "Add a Physics package."

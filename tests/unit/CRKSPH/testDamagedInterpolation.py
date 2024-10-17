@@ -86,8 +86,7 @@ exec("from Spheral%s import *" % testDim)
 # Create a random number generator.
 #-------------------------------------------------------------------------------
 import random
-rangen = random.Random()
-rangen.seed(seed)
+random.seed(seed)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -180,7 +179,7 @@ for i in range(nodes1.numInternalNodes):
         dx = dx1
     else:
         dx = dx2
-    nodes1.positions()[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+    nodes1.positions()[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list

@@ -1,14 +1,10 @@
 include_directories(.)
 set(NodeList_inst
-    ASPHSmoothingScale
     FluidNodeList
     NodeList
     NodeListRegistrar
-    SPHSmoothingScale
-    SmoothingScaleBase
     SolidNodeList
     generateVoidNodes
-    FixedSmoothingScale
     nthNodalMoment
     DEMNodeList
    )
@@ -18,8 +14,6 @@ set(NodeList_sources )
 instantiate(NodeList_inst NodeList_sources)
 
 set(NodeList_headers
-    ASPHSmoothingScale.hh
-    FixedSmoothingScale.hh
     FluidNodeList.hh
     FluidNodeListInline.hh
     FluidNodeTraits.hh
@@ -27,14 +21,10 @@ set(NodeList_headers
     NodeListInline.hh
     NodeListRegistrar.hh
     NodeListRegistrarInline.hh
-    SPHSmoothingScale.hh
-    SmoothingScaleBase.hh
-    SmoothingScaleBaseInline.hh
     SolidNodeList.hh
     SolidNodeListInline.hh
     generateVoidNodes.hh
     nthNodalMoment.hh
-    secondMomentUtilities.hh
     DEMNodeList.hh
     DEMNodeListInline.hh
     )

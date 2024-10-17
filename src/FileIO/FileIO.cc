@@ -66,7 +66,7 @@ FileIO::splitPathComponents(const string path) const {
 std::string
 FileIO::joinPathComponents(const std::vector<std::string>& components) const {
   string result = "";
-  for (const auto s: components) result += "/" + s;
+  for (const auto& s: components) result += "/" + s;
   return result;
 }
 

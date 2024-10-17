@@ -18,8 +18,7 @@ class SphericalSPHHydroBase(SPHHydroBase):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const SphericalKernel&",
                WPi = "const SphericalKernel&",
@@ -33,7 +32,6 @@ class SphericalSPHHydroBase(SPHHydroBase):
                correctVelocityGradient = "const bool",
                sumMassDensityOverAllNodeLists = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                xmin = "const Vector&",
