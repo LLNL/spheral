@@ -13,18 +13,35 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
         return
 
     def pyinit_func(self,
-                    xmin = "const double",
-                    xmax = "const double",
-                    n = "const size_t",
+                    xmin = "double",
+                    xmax = "double",
+                    n = "size_t",
                     F = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
-        "Constructs an interpolator based on the given function"
+        "Constructs an interpolator based on the given function sampled in x in [xmin, xmax]"
+        return
+
+    def pyinit_vals(self,
+                    xmin = "double",
+                    xmax = "double",
+                    yvals = "const std::vector<double>&"):
+        "Constructs an interpolator for yvals sampled in x in [xmin, xmax]"
         return
 
     def initialize(self,
-                   xmin = "const double",
-                   xmax = "const double",
-                   yvals = "const std::vector<double>&"):
-        "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
+                   xmin = "double",
+                   xmax = "double",
+                   n = "size_t",
+                   F = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
+        "Initializes the interpolator based on the given function sampled in x in [xmin, xmax]"
+        return "void"
+
+    @PYB11pycppname("initialize")
+    def initialize_vals(self,
+                        xmin = "double",
+                        xmax = "double",
+                        yvals = "const std::vector<double>&"):
+        "Initializes the interpolator for yvals sampled uniformly in x in [xmin, xmax]"
+        return "void"
 
     @PYB11const
     def __call__(self,

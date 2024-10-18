@@ -15,7 +15,6 @@
 namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -31,20 +30,19 @@ class CRKSPHHydroBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::FacetedVolume FacetedVolume;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
+  using FourthRankTensor = typename Dimension::FourthRankTensor;
+  using FifthRankTensor = typename Dimension::FifthRankTensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using FacetedVolume = typename Dimension::FacetedVolume;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                  DataBase<Dimension>& dataBase,
+  CRKSPHHydroBase(DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
                   const double filter,
@@ -54,9 +52,13 @@ public:
                   const bool evolveTotalEnergy,
                   const bool XSPH,
                   const MassDensityType densityUpdate,
-                  const HEvolutionType HUpdate,
                   const double epsTensile,
                   const double nTensile);
+
+  // No default constructor, copying, or assignment.
+  CRKSPHHydroBase() = delete;
+  CRKSPHHydroBase(const CRKSPHHydroBase&) = delete;
+  CRKSPHHydroBase& operator=(const CRKSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~CRKSPHHydroBase();
@@ -129,10 +131,6 @@ public:
   MassDensityType densityUpdate() const;
   void densityUpdate(MassDensityType type);
 
-  // Flag to select how we want to evolve the H tensor.
-  HEvolutionType HEvolution() const;
-  void HEvolution(HEvolutionType type);
-
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
   bool compatibleEnergyEvolution() const;
@@ -145,9 +143,6 @@ public:
   // Flag to determine if we're using the XSPH algorithm.
   bool XSPH() const;
   void XSPH(bool val);
-
-  // The object defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
 
   // Fraction of centroidal filtering to apply.
   double filter() const;
@@ -164,21 +159,16 @@ public:
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    specificThermalEnergy0() const;
   const FieldList<Dimension, Scalar>&    entropy() const;
-  const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    viscousWork() const;
-  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
   const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
 
   const FieldList<Dimension, Vector>&    DxDt() const;
   const FieldList<Dimension, Vector>&    DvDt() const;
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, SymTensor>& DHDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const std::vector<Vector>&             pairAccelerations() const;
@@ -192,13 +182,9 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  // The method defining how we evolve smoothing scales.
-  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
-
   // A bunch of switches.
   RKOrder mOrder;
   MassDensityType mDensityUpdate;
-  HEvolutionType mHEvolution;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
   double mfilter;
   Scalar mEpsTensile, mnTensile;
@@ -207,16 +193,11 @@ protected:
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mSpecificThermalEnergy0;
   FieldList<Dimension, Scalar>    mEntropy;
 
-  FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mViscousWork;
-
-  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;
@@ -235,10 +216,6 @@ private:
   // The restart registration.
   RestartRegistrationType mRestart;
 
-  // No default constructor, copying, or assignment.
-  CRKSPHHydroBase();
-  CRKSPHHydroBase(const CRKSPHHydroBase&);
-  CRKSPHHydroBase& operator=(const CRKSPHHydroBase&);
 };
 
 }

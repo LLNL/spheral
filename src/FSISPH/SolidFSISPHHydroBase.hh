@@ -36,7 +36,6 @@ enum class FSIMassDensityMethod {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class SlideSurface;
 template<typename Dimension> class TableKernel;
@@ -51,40 +50,43 @@ class SolidFSISPHHydroBase: public GenericHydro<Dimension> {
 public:
 
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidFSISPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                    DataBase<Dimension>& dataBase,
-                    ArtificialViscosity<Dimension>& Q,
-                    SlideSurface<Dimension>& slide,
-                    const TableKernel<Dimension>& W,
-                    const double cfl,
-                    const double surfaceForceCoefficient,
-                    const double densityStabilizationCoefficient,
-                    const double specificThermalEnergyDiffusionCoefficient,
-                    const double xsphCoefficient,
-                    const InterfaceMethod interfaceMethod,
-                    const KernelAveragingMethod kernelAveragingMethod,
-                    const std::vector<int> sumDensityNodeLists,
-                    const bool useVelocityMagnitudeForDt,
-                    const bool compatibleEnergyEvolution,
-                    const bool evolveTotalEnergy,
-                    const bool linearCorrectGradients,
-                    const bool planeStrain,
-                    const double interfacePmin,
-                    const double interfaceNeighborAngleThreshold,
-                    const FSIMassDensityMethod densityUpdate,
-                    const HEvolutionType HUpdate,
-                    const double epsTensile,
-                    const double nTensile,
-                    const Vector& xmin,
-                    const Vector& xmax);
+  SolidFSISPHHydroBase(DataBase<Dimension>& dataBase,
+                       ArtificialViscosity<Dimension>& Q,
+                       SlideSurface<Dimension>& slide,
+                       const TableKernel<Dimension>& W,
+                       const double cfl,
+                       const double surfaceForceCoefficient,
+                       const double densityStabilizationCoefficient,
+                       const double specificThermalEnergyDiffusionCoefficient,
+                       const double xsphCoefficient,
+                       const InterfaceMethod interfaceMethod,
+                       const KernelAveragingMethod kernelAveragingMethod,
+                       const std::vector<int> sumDensityNodeLists,
+                       const bool useVelocityMagnitudeForDt,
+                       const bool compatibleEnergyEvolution,
+                       const bool evolveTotalEnergy,
+                       const bool linearCorrectGradients,
+                       const bool planeStrain,
+                       const double interfacePmin,
+                       const double interfaceNeighborAngleThreshold,
+                       const FSIMassDensityMethod densityUpdate,
+                       const double epsTensile,
+                       const double nTensile,
+                       const Vector& xmin,
+                       const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  SolidFSISPHHydroBase() = delete;
+  SolidFSISPHHydroBase(const SolidFSISPHHydroBase&) = delete;
+  SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&) = delete;
 
   virtual ~SolidFSISPHHydroBase();
 
@@ -158,14 +160,10 @@ public:
 
 
   const TableKernel<Dimension>& kernel() const;
-  const SmoothingScaleBase<Dimension>& smoothingScaleMethod() const;
   SlideSurface<Dimension>& slideSurface() const;
 
   FSIMassDensityMethod densityUpdate() const;
   void densityUpdate(FSIMassDensityMethod type);
-
-  HEvolutionType HEvolution() const;
-  void HEvolution(HEvolutionType type);
 
   InterfaceMethod interfaceMethod() const;
   void interfaceMethod(InterfaceMethod method);
@@ -240,8 +238,6 @@ public:
   const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, SymTensor>& DHDt() const;
-  const FieldList<Dimension, SymTensor>& Hideal() const;
   const FieldList<Dimension, Vector>&    DPDx() const;
   const FieldList<Dimension, Vector>&    DepsDx() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
@@ -251,8 +247,6 @@ public:
   const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
-  const FieldList<Dimension, Scalar>&    weightedNeighborSum() const;
-  const FieldList<Dimension, SymTensor>& massSecondMoment() const;
 
   const FieldList<Dimension, int>& interfaceFlags() const;
   const FieldList<Dimension, Vector>& interfaceAreaVectors() const;
@@ -276,11 +270,9 @@ public:
 
 private:
   const TableKernel<Dimension>& mKernel;
-  const SmoothingScaleBase<Dimension>& mSmoothingScaleMethod;
   SlideSurface<Dimension>& mSlideSurface;
 
   FSIMassDensityMethod mDensityUpdate;
-  HEvolutionType mHEvolution;
   InterfaceMethod mInterfaceMethod;                   // switch for material interface method
   KernelAveragingMethod mKernelAveragingMethod;       // how do we handle our kernels?
 
@@ -324,8 +316,6 @@ private:
   FieldList<Dimension, Scalar>    mDmassDensityDt;
   FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
   FieldList<Dimension, SymTensor> mDdeviatoricStressDt;
-  FieldList<Dimension, SymTensor> mDHDt;
-  FieldList<Dimension, SymTensor> mHideal;
   FieldList<Dimension, Vector>    mDPDx;
   FieldList<Dimension, Vector>    mDepsDx;
   FieldList<Dimension, Tensor>    mDvDx;
@@ -335,8 +325,6 @@ private:
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
-  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, SymTensor> mMassSecondMoment;
 
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type
   FieldList<Dimension, Vector> mInterfaceAreaVectors;         // interface area vectors that can be used for BCs
@@ -350,11 +338,6 @@ private:
   FieldList<Dimension, Scalar> mInterfaceFraction;                // normalization for same material nodes
   FieldList<Dimension, Scalar> mNewInterfaceSmoothness;           // smoothness metric (0-1) next time step 
   FieldList<Dimension, Scalar> mInterfaceAngles;                  // check the angle for free-surface master nodes (type 2 -> type 3)
-
-  // No default constructor, copying, or assignment.
-  SolidFSISPHHydroBase();
-  SolidFSISPHHydroBase(const SolidFSISPHHydroBase&);
-  SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&);
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

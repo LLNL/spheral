@@ -2,11 +2,9 @@
 // Implement Lloyd's algorithm for centroidal relaxation of fluid points.
 //------------------------------------------------------------------------------
 #include "centroidalRelaxNodesImpl.hh"
-#include "RK/computeVoronoiVolume.hh"
+#include "VoronoiCells/computeVoronoiVolume.hh"
 #include "RK/ReproducingKernel.hh"
 #include "RK/gradientRK.hh"
-#include "NodeList/ASPHSmoothingScale.hh"
-#include "Utilities/iterateIdealH.hh"
 
 #include <ctime>
 using std::vector;

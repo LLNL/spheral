@@ -36,12 +36,32 @@ class CubicHermiteInterpolator:
         "Initialize from tabulated values"
         return
 
-    def initialize(self,
-                   xmin = "const double",
-                   xmax = "const double",
-                   yvals = "const std::vector<double>&"):
+    @PYB11pycppname("initialize")
+    def initialize_func(self,
+                        xmin = "const double",
+                        xmax = "const double",
+                        n = "const size_t",
+                        F = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
+        "Initialize based on the given function"
+        return "void"
+
+    @PYB11pycppname("initialize")
+    def initialize_gradfunc(self,
+                            xmin = "const double",
+                            xmax = "const double",
+                            n = "const size_t",
+                            F = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+                            Fgrad = "const PythonBoundFunctors::SpheralFunctor<double, double>&"):
+        "Initialize based on the given function and its gradient"
+        return "void"
+
+    @PYB11pycppname("initialize")
+    def initialize_table(self,
+                         xmin = "const double",
+                         xmax = "const double",
+                         yvals = "const std::vector<double>&"):
         "Initializes the interpolator for yvals sampled in x in [xmin, xmax]"
-        return
+        return "void"
 
     def makeMonotonic(self):
         """Force interpolation to be monotonic.  This generally degrades accuracy, and can introduce structure between
@@ -121,7 +141,7 @@ tabulated knots (although that structure should still be monotonic between the t
         return "double"
 
     # Attributes
-    N = PYB11property(doc="The number of the tabulated values used")
+    size = PYB11property(doc="The number of the tabulated values used")
     xmin = PYB11property(doc="Minimum x coordinate for table")
     xmax = PYB11property(doc="Maximum x coordinate for table")
     xstep = PYB11property(doc="delta x between tabulated values")

@@ -13,7 +13,6 @@
 namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -29,19 +28,18 @@ class SolidCRKSPHHydroBase: public CRKSPHHydroBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
+  using FourthRankTensor = typename Dimension::FourthRankTensor;
+  using FifthRankTensor = typename Dimension::FifthRankTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidCRKSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                       DataBase<Dimension>& dataBase,
+  SolidCRKSPHHydroBase(DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
                        const RKOrder order,
                        const double filter,
@@ -51,10 +49,14 @@ public:
                        const bool evolveTotalEnergy,
                        const bool XSPH,
                        const MassDensityType densityUpdate,
-                       const HEvolutionType HUpdate,
                        const double epsTensile,
                        const double nTensile,
                        const bool damageRelieveRubble);
+
+  // No default constructor, copying, or assignment.
+  SolidCRKSPHHydroBase() = delete;
+  SolidCRKSPHHydroBase(const SolidCRKSPHHydroBase&) = delete;
+  SolidCRKSPHHydroBase& operator=(const SolidCRKSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~SolidCRKSPHHydroBase();
@@ -100,7 +102,6 @@ public:
   const FieldList<Dimension, Scalar>&    shearModulus() const;
   const FieldList<Dimension, Scalar>&    yieldStrength() const;
   const FieldList<Dimension, Scalar>&    plasticStrain0() const;
-  const FieldList<Dimension, SymTensor>& Hfield0() const;
 
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble() const;
@@ -125,12 +126,6 @@ private:
   FieldList<Dimension, Scalar> mShearModulus;
   FieldList<Dimension, Scalar> mYieldStrength;
   FieldList<Dimension, Scalar> mPlasticStrain0;
-  FieldList<Dimension, SymTensor> mHfield0;
-
-  // No default constructor, copying, or assignment.
-  SolidCRKSPHHydroBase();
-  SolidCRKSPHHydroBase(const SolidCRKSPHHydroBase&);
-  SolidCRKSPHHydroBase& operator=(const SolidCRKSPHHydroBase&);
 };
 
 }

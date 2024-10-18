@@ -309,9 +309,8 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
   BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;
-    for (vector<int>::const_iterator itr = remainProcs.begin();
-         itr != remainProcs.end();
-         ++itr) checkCount += *itr;
+    CONTRACT_VAR(checkCount);
+    for (const auto x: remainProcs) checkCount += x;
     CHECK(checkCount == totalRemainProcs);
   }
   END_CONTRACT_SCOPE
@@ -350,9 +349,8 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
     BEGIN_CONTRACT_SCOPE
     {
       int checkCount = 0;
-      for (vector<int>::const_iterator itr = result[i].begin();
-           itr != result[i].end();
-           ++itr) checkCount += *itr;
+      CONTRACT_VAR(checkCount);
+      for (const auto x: result[i]) checkCount += x;
       CHECK(checkCount == numDomainsInSlab);
     }
     END_CONTRACT_SCOPE
@@ -364,10 +362,9 @@ domainsPerChunk(const Dim<3>::SymTensor::EigenStructType& shapeTensor) const {
   BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;
+    CONTRACT_VAR(checkCount);
     for (int i = 0; i != xChunks; ++i) {
-      for (vector<int>::const_iterator itr = result[i].begin();
-           itr != result[i].end();
-           ++itr) checkCount += *itr;
+      for (const auto x: result[i]) checkCount += x;
     }
     ENSURE(checkCount == numProcs);
   }

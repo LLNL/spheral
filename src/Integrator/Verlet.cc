@@ -140,8 +140,11 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, hdt0, t, dt0);
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   this->finalizeGhostBoundaries();
+  if (this->postStateUpdate(t + hdt0, hdt0, db, state, derivs)) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
   TIME_END("VerletPredict1");
 
   // Check if the timestep is still a good idea...
@@ -179,8 +182,11 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
+  if (this->postStateUpdate(t + dt0, dt0, db, state, derivs)) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
   TIME_END("VerletPredict2");
 
   // Evaluate the derivatives at the predicted end-point.
@@ -219,8 +225,11 @@ step(typename Dimension::Scalar maxTime,
   }
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   this->finalizeGhostBoundaries();
+  if (this->postStateUpdate(t + dt0, dt0, db, state, derivs)) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
   TIME_END("VerletUpdateState");
 
   // Apply any physics specific finalizations.

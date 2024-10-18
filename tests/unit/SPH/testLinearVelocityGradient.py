@@ -85,8 +85,7 @@ HydroConstructor = eval(HydroChoice)
 # Create a random number generator.
 #-------------------------------------------------------------------------------
 import random
-rangen = random.Random()
-rangen.seed(seed)
+random.seed(seed)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -209,14 +208,14 @@ for i in range(nodes1.numInternalNodes):
     else:
         dx = dx2
     if testDim in ("1d", "spherical"):
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+        pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
     elif testDim == "2d":
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-        pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
+        pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+        pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
     elif testDim == "3d":
-        pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-        pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
-        pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
+        pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+        pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
+        pos[i].z += ranfrac * dz * random.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -263,21 +262,17 @@ else:
 #-------------------------------------------------------------------------------
 if iterateH:
     bounds = vector_of_Boundary()
-    method = SPHSmoothingScale()
-    if testDim == "spherical":
-        iterateIdealH(db,
-                      bounds,
-                      hydro.kernel.baseKernel1d,
-                      method,
-                      maxHIterations,
-                      Htolerance)
-    else:
-        iterateIdealH(db,
-                      bounds,
-                      WT,
-                      method,
-                      maxHIterations,
-                      Htolerance)
+    pkgs = [hydro, hydro._smoothingScaleMethod]
+    if "ASPH" in HydroChoice:
+        VC = VoronoiCells(db.maxKernelExtent)
+        pkgs = [VC] + pkgs
+    for pkg in pkgs:
+        pkg.initializeProblemStartup(db)
+    iterateIdealH(db,
+                  pkgs,
+                  bounds,
+                  maxHIterations,
+                  Htolerance)
 
 #-------------------------------------------------------------------------------
 # Invoke the SPH evaluateDerivatives, which will put velocity gradients in the 
@@ -285,7 +280,8 @@ if iterateH:
 #-------------------------------------------------------------------------------
 integrator = CheapSynchronousRK2Integrator(db)
 integrator.appendPhysicsPackage(hydro)
-hydro.initializeProblemStartup(db)
+for pkg in integrator.physicsPackages():
+    pkg.initializeProblemStartup(db)
 state = State(db, integrator.physicsPackages())
 derivs = StateDerivatives(db, integrator.physicsPackages())
 

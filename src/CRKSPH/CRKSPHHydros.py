@@ -7,6 +7,7 @@ dims = spheralDimensions()
 # The generic CRKSPHHydro pattern.
 #-------------------------------------------------------------------------------
 def CRKSPH(dataBase,
+           W,
            Q = None,
            order = RKOrder.LinearOrder,
            filter = 0.0,
@@ -62,16 +63,8 @@ def CRKSPH(dataBase,
         Cq = 1.0*(dataBase.maxKernelExtent/4.0)**2
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Smoothing scale update
-    if smoothingScaleMethod is None:
-        if ASPH:
-            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-        else:
-            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
     # Build the constructor arguments
-    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "Q" : Q,
               "order" : order,
               "filter" : filter,
@@ -81,7 +74,6 @@ def CRKSPH(dataBase,
               "evolveTotalEnergy" : evolveTotalEnergy,
               "XSPH" : XSPH,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile}
 
@@ -91,7 +83,15 @@ def CRKSPH(dataBase,
     # Build the thing.
     result = constructor(**kwargs)
     result.Q = Q
+
+    # Smoothing scale update
+    if smoothingScaleMethod is None:
+        if ASPH:
+            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+        else:
+            smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod
+    result.appendSubPackage(smoothingScaleMethod)
 
     # If we're using area-weighted RZ, we need to reflect from the axis
     if GeometryRegistrar.coords() == CoordinateType.RZ:

@@ -14,7 +14,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -27,16 +26,15 @@ class PSPHHydroBase: public SPHHydroBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                DataBase<Dimension>& dataBase,
+  PSPHHydroBase(DataBase<Dimension>& dataBase,
                 ArtificialViscosity<Dimension>& Q,
                 const TableKernel<Dimension>& W,
                 const TableKernel<Dimension>& WPi,
@@ -50,9 +48,13 @@ public:
                 const bool HopkinsConductivity,
                 const bool sumMassDensityOverAllNodeLists,
                 const MassDensityType densityUpdate,
-                const HEvolutionType HUpdate,
                 const Vector& xmin,
                 const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  PSPHHydroBase() = delete;
+  PSPHHydroBase(const PSPHHydroBase&) = delete;
+  PSPHHydroBase& operator=(const PSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~PSPHHydroBase();
@@ -95,7 +97,7 @@ public:
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 
-  void postStateUpdate(const Scalar time, 
+  bool postStateUpdate(const Scalar time, 
                        const Scalar dt,
                        const DataBase<Dimension>& dataBase, 
                        State<Dimension>& state,
@@ -133,13 +135,6 @@ protected:
   //PSPH Fields
   FieldList<Dimension, Scalar>    mGamma;
   FieldList<Dimension, Scalar>    mPSPHcorrection;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  PSPHHydroBase();
-  PSPHHydroBase(const PSPHHydroBase&);
-  PSPHHydroBase& operator=(const PSPHHydroBase&);
 };
 
 }

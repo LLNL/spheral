@@ -86,18 +86,10 @@ def SPH(W,
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Smoothing scale update
-    if smoothingScaleMethod is None:
-        if ASPH:
-            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-        else:
-            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
-              "W" : W,
+    kwargs = {"W" : W,
               "WPi" : WPi,
               "dataBase" : dataBase,
               "Q" : Q,
@@ -111,7 +103,6 @@ def SPH(W,
               "correctVelocityGradient" : correctVelocityGradient,
               "sumMassDensityOverAllNodeLists" : sumMassDensityOverAllNodeLists,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
@@ -125,7 +116,16 @@ def SPH(W,
     # Build the SPH hydro
     result = constructor(**kwargs)
     result.Q = Q
+
+    # Smoothing scale update
+    if smoothingScaleMethod is None:
+        WH = W.baseKernel1d if GeometryRegistrar.coords() == CoordinateType.Spherical else W
+        if ASPH:
+            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, WH)")
+        else:
+            smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, WH)")
     result._smoothingScaleMethod = smoothingScaleMethod
+    result.appendSubPackage(smoothingScaleMethod)
 
     # In spherical coordatinates, preserve our locally constructed spherical kernels
     # and add the origin enforcement boundary

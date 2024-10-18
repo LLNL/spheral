@@ -743,7 +743,7 @@ generateDomainInfo() {
   this->boundingBox(xmin, xmax);
 
   // Define the hashing scale.
-  const double dxhash = (xmax - xmin).maxElement() / std::numeric_limits<KeyElement>::max();
+  const double dxhash = (xmax - xmin).maxElement() / double(std::numeric_limits<KeyElement>::max());
 
   // Puff out the bounds a bit.  We do the all reduce just to ensure
   // bit perfect consistency across processors.
@@ -1033,7 +1033,7 @@ generateParallelRind(vector<typename Dimension::Vector>& generators,
     this->boundingBox(xmin, xmax);
 
     // Define the hashing scale.
-    const double dxhash = (xmax - xmin).maxElement() / std::numeric_limits<KeyElement>::max();
+    const double dxhash = (xmax - xmin).maxElement() / double(std::numeric_limits<KeyElement>::max());
 
     // Puff out the bounds a bit.  We do the all reduce just to ensure
     // bit perfect consistency across processors.
