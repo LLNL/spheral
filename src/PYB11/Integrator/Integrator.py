@@ -21,7 +21,7 @@ class Integrator:
     #...........................................................................
     # Constructors
     def pyinit(self):
-        "Construct an itegrator"
+        "Construct an integrator"
 
     def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an integrator with a DataBase"

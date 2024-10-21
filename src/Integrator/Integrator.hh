@@ -5,10 +5,13 @@
 //
 // Created by JMO, Wed May 31 21:58:08 PDT 2000
 //----------------------------------------------------------------------------//
-#ifndef Integrator_HH
-#define Integrator_HH
+#ifndef __Spheral_Integrator__
+#define __Spheral_Integrator__
 
 #include "DataOutput/registerWithRestart.hh"
+#include "NodeList/NodeListRegistrar.hh"
+#include "Physics/Physics.hh"
+#include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -22,7 +25,6 @@ namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class DataBase;
-template<typename Dimension> class Physics;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class Boundary;
 class FileIO;
@@ -31,16 +33,18 @@ template<typename Dimension>
 class Integrator {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename std::vector<Physics<Dimension>*>::iterator PackageIterator;
-  typedef typename std::vector<Physics<Dimension>*>::const_iterator ConstPackageIterator;
+  using PackageIterator = typename std::vector<Physics<Dimension>*>::iterator;
+  using ConstPackageIterator = typename std::vector<Physics<Dimension>*>::const_iterator;
 
-  typedef typename std::vector<Boundary<Dimension>*>::iterator BoundaryIterator;
-  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  using BoundaryIterator = typename std::vector<Boundary<Dimension>*>::iterator;
+  using ConstBoundaryIterator = typename std::vector<Boundary<Dimension>*>::const_iterator;
+
+  using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
   // Constructors.
   Integrator();
@@ -144,71 +148,71 @@ public:
                       State<Dimension>& state1) const;
 
   // Access the current time.
-  Scalar currentTime() const;
-  void currentTime(Scalar time);
+  Scalar currentTime() const                                                        { return mCurrentTime; }
+  void currentTime(const Scalar x)                                                  { mCurrentTime = x; }
 
   // Access the current cycle.
-  int currentCycle() const;
-  void currentCycle(int cycle);
+  int currentCycle() const                                                          { return mCurrentCycle; }
+  void currentCycle(const int x)                                                    { mCurrentCycle = x; }
 
   // Access the minimum allowed timestep.
-  Scalar dtMin() const;
-  void dtMin(Scalar dt);
+  Scalar dtMin() const                                                              { return mDtMin; }
+  void dtMin(const Scalar x)                                                        { mDtMin = x; }
 
   // Access the maximum allowed timestep.
-  Scalar dtMax() const;
-  void dtMax(Scalar dt);
+  Scalar dtMax() const                                                              { return mDtMax; }
+  void dtMax(const Scalar x)                                                        { mDtMax = x; }
 
   // Access the last timestep.
-  Scalar lastDt() const;
-  void lastDt(Scalar dt);
+  Scalar lastDt() const                                                             { return mLastDt; }
+  void lastDt(const Scalar x)                                                       { mLastDt = x; }
 
   // Access the timestep growth factor.
-  Scalar dtGrowth() const;
-  void dtGrowth(Scalar fraction);
+  Scalar dtGrowth() const                                                           { return mDtGrowth; }
+  void dtGrowth(const Scalar x)                                                     { mDtGrowth = x; }
 
   // The fraction of the timestep we consider when checking for stable behavior.
-  Scalar dtCheckFrac() const;
-  void dtCheckFrac(Scalar fraction);
+  Scalar dtCheckFrac() const                                                        { return mDtCheckFrac; }
+  void dtCheckFrac(const Scalar x)                                                  { mDtCheckFrac = x; }
 
   // Public const access to the DataBase.
-  const DataBase<Dimension>& dataBase() const;
+  const DataBase<Dimension>& dataBase() const                                       { CHECK(mDataBasePtr); return *mDataBasePtr; }
 
   // Access the list of physics packages.
-  const std::vector<Physics<Dimension>*>& physicsPackages() const;
+  const std::vector<Physics<Dimension>*>& physicsPackages() const                   { return mPhysicsPackages; }
 
   // Provide standard iterator methods over the physics package list.
-  PackageIterator physicsPackagesBegin();
-  PackageIterator physicsPackagesEnd();
+  PackageIterator physicsPackagesBegin()                                            { return mPhysicsPackages.begin(); }
+  PackageIterator physicsPackagesEnd()                                              { return mPhysicsPackages.end(); }
 
-  ConstPackageIterator physicsPackagesBegin() const;
-  ConstPackageIterator physicsPackagesEnd() const;
+  ConstPackageIterator physicsPackagesBegin() const                                 { return mPhysicsPackages.begin(); }
+  ConstPackageIterator physicsPackagesEnd() const                                   { return mPhysicsPackages.end(); }
 
   // Flag to determine whether or not to be rigorous about about boundaries.
-  bool rigorousBoundaries() const;
-  void rigorousBoundaries(bool value);
+  bool rigorousBoundaries() const                                                   { return mRigorousBoundaries; }
+  void rigorousBoundaries(const bool x)                                             { mRigorousBoundaries = x; }
 
   // If we're not being rigorous about boundary conditions, how frequently
   // do we update them?
-  int updateBoundaryFrequency() const;
-  void updateBoundaryFrequency(int value);
+  int updateBoundaryFrequency() const                                               { return mUpdateBoundaryFrequency; }
+  void updateBoundaryFrequency(const int x)                                         { mUpdateBoundaryFrequency = x; }
 
   // Select whether the integrator is verbose or not during a cycle.
-  bool verbose() const;
-  void verbose(bool x);
+  bool verbose() const                                                              { return mVerbose; }
+  void verbose(const bool x)                                                        { mVerbose = x; }
 
   // Should the integrator check interim timestep votes and abort steps?
-  bool allowDtCheck() const;
-  void allowDtCheck(bool x);
+  bool allowDtCheck() const                                                         { return mAllowDtCheck; }
+  void allowDtCheck(const bool x)                                                   { mAllowDtCheck = x; }
 
   // Select whether we should run in a mode the ensures domain decomposition independence.
   // Possibly some performance impact.
-  bool domainDecompositionIndependent() const;
-  void domainDecompositionIndependent(bool x);
+  bool domainDecompositionIndependent() const                                       { return NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(); }
+  void domainDecompositionIndependent(const bool x)                                 { NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(x); }
 
   // Select whether we're going to enforce culling of ghost nodes or not.
-  bool cullGhostNodes() const;
-  void cullGhostNodes(bool x);
+  bool cullGhostNodes() const                                                       { return mCullGhostNodes; }
+  void cullGhostNodes(const bool x)                                                 { mCullGhostNodes = x; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -220,7 +224,14 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Allow write access to the DataBase for descendent classes.
-  DataBase<Dimension>& accessDataBase();
+  DataBase<Dimension>& accessDataBase()                                            { CHECK(mDataBasePtr); return *mDataBasePtr; }
+
+  // How should we query a physics package for the time step?
+  virtual TimeStepType dt(const Physics<Dimension>* pkg,
+                          const DataBase<Dimension>& dataBase,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs,
+                          const Scalar currentTime) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -236,7 +247,5 @@ private:
 };
 
 }
-
-#include "IntegratorInline.hh"
 
 #endif

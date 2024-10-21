@@ -1,14 +1,14 @@
 #-------------------------------------------------------------------------------
-# SynchronousRK1Integrator
+# ImplicitIntegrator base class
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from IntegratorAbstractMethods import *
 from Integrator import *
 
 @PYB11template("Dimension")
-@PYB11cppname("SynchronousRK1")
-class SynchronousRK1Integrator(Integrator):
-    "First-order in time explicit (forward Euler) integration scheme"
+@PYB11module("SpheralIntegrator")
+class ImplicitIntegrator(Integrator):
+    "Base class for all Spheral implicit in time integration algorithms"
 
     PYB11typedefs = """
     typedef typename %(Dimension)s::Scalar Scalar;
@@ -21,30 +21,18 @@ class SynchronousRK1Integrator(Integrator):
     #...........................................................................
     # Constructors
     def pyinit(self):
-        "Construct an itegrator"
+        "Construct an ImplicitIntegrator"
 
     def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
-        "Construct an integrator with a DataBase"
+        "Construct an ImplicitIntegrator with a DataBase"
 
     def pyinit2(self,
                 dataBase = "DataBase<%(Dimension)s>&",
                 physicsPackages = "const std::vector<Physics<%(Dimension)s>*>&"):
-        "Construct an integrator with a DataBase and physics packages"
-
-    #...........................................................................
-    # Virtual methods
-    @PYB11virtual
-    @PYB11pycppname("step")
-    def step1(self, maxTime="Scalar"):
-        "Take a step"
-        return "bool"
-
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
+        "Construct an ImplicitIntegrator with a DataBase and physics packages"
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------
-PYB11inject(IntegratorAbstractMethods, SynchronousRK1Integrator, pure_virtual=False, virtual=True)
+PYB11inject(IntegratorAbstractMethods, ImplicitIntegrator, virtual=False, pure_virtual=True)
+PYB11inject(RestartMethods, ImplicitIntegrator)

@@ -71,6 +71,12 @@ public:
   virtual std::string label() const = 0;
 
   //******************************************************************************//
+  // Optionally override the dt choice when advancing implicitly in time
+  virtual TimeStepType dtImplicit(const DataBase<Dimension>& dataBase, 
+                                  const State<Dimension>& state,
+                                  const StateDerivatives<Dimension>& derivs,
+                                  const Scalar currentTime) const { return this->dt(dataBase, state, derivs, currentTime); }
+
   // Methods for handling boundary conditions.
   // Add a Boundary condition.
   void appendBoundary(Boundary<Dimension>& boundary);  // To end of boundary list

@@ -1,8 +1,9 @@
 include_directories(.)
 set(Integrator_inst
     Integrator
+    ImplicitIntegrator
     PredictorCorrector 
-    SynchronousRK1
+    ForwardEuler
     SynchronousRK2
     SynchronousRK4
     CheapSynchronousRK2
@@ -14,11 +15,11 @@ set(Integrator_sources )
 instantiate(Integrator_inst Integrator_sources)
 
 set(Integrator_headers
-    CheapSynchronousRK2.hh
     Integrator.hh
-    IntegratorInline.hh
+    ImplicitIntegrator.hh
+    CheapSynchronousRK2.hh
     PredictorCorrector.hh
-    SynchronousRK1.hh
+    ForwardEuler.hh
     SynchronousRK2.hh
     SynchronousRK4.hh
     Verlet.hh

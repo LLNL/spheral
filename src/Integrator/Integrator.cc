@@ -209,8 +209,8 @@ selectDt(const typename Dimension::Scalar dtMin,
 
   // Loop over each package, and pick their timesteps.
   TimeStepType dt(dtMax, "");
-  for (auto physicsItr = physicsPackagesBegin(); physicsItr < physicsPackagesEnd(); ++physicsItr) {
-    auto dtVote = (*physicsItr)->dt(db, state, derivs, t);
+  for (auto* pkg: mPhysicsPackages) {
+    auto dtVote = this->dt(pkg, db, state, derivs, t);
     if (dtVote.first > 0.0 and dtVote.first < dt.first) dt = dtVote;
   }
 
@@ -788,25 +788,6 @@ Integrator<Dimension>::copyGhostState(const State<Dimension>& state0,
 }
 
 //------------------------------------------------------------------------------
-// Flag for whether we should try to run in a domain decomposition independent/
-// reproducing mode.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-Integrator<Dimension>::
-domainDecompositionIndependent() const {
-  return NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
-}
-
-template<typename Dimension>
-void
-Integrator<Dimension>::
-domainDecompositionIndependent(const bool x) {
-  NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent(x);
-  // if (x) mCullGhostNodes = false;
-}
-
-//------------------------------------------------------------------------------
 // Dump the current state of the Integrator to the given file.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -836,6 +817,20 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mLastDt, pathName + "/lastDt");
   file.read(mCurrentTime, pathName + "/currentTime");
   file.read(mCurrentCycle, pathName + "/currentCycle");
+}
+
+//------------------------------------------------------------------------------
+// How should we query a physics package for the time step?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Integrator<Dimension>::TimeStepType
+Integrator<Dimension>::
+dt(const Physics<Dimension>* pkg,
+   const DataBase<Dimension>& dataBase,
+   const State<Dimension>& state,
+   const StateDerivatives<Dimension>& derivs,
+   const Scalar currentTime) const {
+  return pkg->dt(dataBase, state, derivs, currentTime);
 }
 
 }

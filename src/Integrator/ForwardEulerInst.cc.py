@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-#include "Integrator/SynchronousRK1.cc"
+#include "Integrator/ForwardEuler.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class SynchronousRK1< Dim< %(ndim)s > >;
+  template class ForwardEuler< Dim< %(ndim)s > >;
 }
 """
