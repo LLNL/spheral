@@ -108,8 +108,11 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, dt, t, dt);
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
-  this->postStateUpdate(t + dt, dt, db, state, derivs);
   this->finalizeGhostBoundaries();
+  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
 
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);

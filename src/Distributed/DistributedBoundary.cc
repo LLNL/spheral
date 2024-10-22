@@ -703,6 +703,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
     {
       CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
+      CONTRACT_VAR(totalNumRecvs);
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
@@ -742,6 +743,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
     {
       CHECK(mSendBuffers.size() == mField2SendBuffer.size());
       int totalNumSends = 0;
+      CONTRACT_VAR(totalNumSends);
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
@@ -897,6 +899,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
     {
       CHECK(mSendBuffers.size() == mField2SendBuffer.size());
       int totalNumSends = 0;
+      CONTRACT_VAR(totalNumSends);
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
@@ -949,6 +952,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
     {
       CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
+      CONTRACT_VAR(totalNumRecvs);
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
@@ -1287,6 +1291,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     // Count the numbers of send and receive buffers and requests.
     int numSendBuffers = 0;
     int numRecvBuffers = 0;
+    CONTRACT_VAR(numSendBuffers);
+    CONTRACT_VAR(numRecvBuffers);
     for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
          itr != mSendBuffers.end();
          ++itr) numSendBuffers += itr->size();

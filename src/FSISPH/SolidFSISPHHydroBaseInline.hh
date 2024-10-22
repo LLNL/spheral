@@ -13,17 +13,6 @@ kernel() const {
 }
 
 //------------------------------------------------------------------------------
-// The object defining how smoothing scales are evolved.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const SmoothingScaleBase<Dimension>&
-SolidFSISPHHydroBase<Dimension>::
-smoothingScaleMethod() const {
-  return mSmoothingScaleMethod;
-}
-
-//------------------------------------------------------------------------------
 // Ref to the slide surface obj
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -50,24 +39,6 @@ void
 SolidFSISPHHydroBase<Dimension>::
 densityUpdate(FSIMassDensityMethod type) {
   mDensityUpdate = type;
-}
-
-//------------------------------------------------------------------------------
-// Choose how we want to update the H tensor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-HEvolutionType
-SolidFSISPHHydroBase<Dimension>::HEvolution() const {
-  return mHEvolution;
-}
-
-template<typename Dimension>
-inline
-void
-SolidFSISPHHydroBase<Dimension>::
-HEvolution(HEvolutionType type) {
-  mHEvolution = type;
 }
 
 //------------------------------------------------------------------------------
@@ -531,22 +502,6 @@ DdeviatoricStressDt() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SolidFSISPHHydroBase<Dimension>::
-DHDt() const {
-  return mDHDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SolidFSISPHHydroBase<Dimension>::
-Hideal() const {
-  return mHideal;
-}
-
-template<typename Dimension>
-inline
 const FieldList<Dimension,  typename Dimension::Vector>&
 SolidFSISPHHydroBase<Dimension>::
 DPDx() const {
@@ -615,22 +570,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 SolidFSISPHHydroBase<Dimension>::
 normalization() const {
   return mNormalization;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
-weightedNeighborSum() const {
-  return mWeightedNeighborSum;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-SolidFSISPHHydroBase<Dimension>::
-massSecondMoment() const {
-  return mMassSecondMoment;
 }
 
 // template<typename Dimension>

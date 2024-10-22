@@ -12,13 +12,21 @@ template<typename Dimension>
 template<typename Value>
 Field<Dimension, Value>&
 StateBase<Dimension>::
-field(const typename StateBase<Dimension>::KeyType& key, 
-      const Value&) const {
+field(const typename StateBase<Dimension>::KeyType& key) const {
   try {
     return dynamic_cast<Field<Dimension, Value>&>(this->getAny<FieldBase<Dimension>>(key));
   } catch (...) {
     VERIFY2(false,"StateBase ERROR: unable to extract field for key " << key << "\n");
   }
+}
+
+template<typename Dimension>
+template<typename Value>
+Field<Dimension, Value>&
+StateBase<Dimension>::
+field(const typename StateBase<Dimension>::KeyType& key, 
+      const Value&) const {
+  return this->template field<Value>(key);
 }
 
 //------------------------------------------------------------------------------
@@ -53,7 +61,7 @@ template<typename Value>
 inline
 FieldList<Dimension, Value>
 StateBase<Dimension>::
-fields(const std::string& name, const Value& dummy) const {
+fields(const std::string& name) const {
   FieldList<Dimension, Value> result;
   KeyType fieldName, nodeListName;
   for (auto itr = mStorage.begin();
@@ -62,10 +70,19 @@ fields(const std::string& name, const Value& dummy) const {
     splitFieldKey(itr->first, fieldName, nodeListName);
     if (fieldName == name) {
       CHECK(nodeListName != "");
-      result.appendField(this->field<Value>(itr->first, dummy));
+      result.appendField(this->template field<Value>(itr->first));
     }
   }
   return result;
+}
+
+template<typename Dimension>
+template<typename Value>
+inline
+FieldList<Dimension, Value>
+StateBase<Dimension>::
+fields(const std::string& name, const Value& dummy) const {
+  return this->template fields<Value>(name);
 }
 
 //------------------------------------------------------------------------------

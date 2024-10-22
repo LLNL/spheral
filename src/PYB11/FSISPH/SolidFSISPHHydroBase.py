@@ -19,8 +19,7 @@ class SolidFSISPHHydroBase(GenericHydro):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                slides = "SlideSurface<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
@@ -40,7 +39,6 @@ class SolidFSISPHHydroBase(GenericHydro):
                interfacePmin = "const double",
                interfaceNeighborAngleThreshold = "const double ",
                densityUpdate = "const FSIMassDensityMethod",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                xmin = "const Vector&",
@@ -99,10 +97,8 @@ temperature or pressure."""
     # Properties
     kernel = PYB11property("const TableKernel<%(Dimension)s>&", "kernel", doc="The interpolation kernel")
     slideSurfaces = PYB11property("SlideSurface<%(Dimension)s>&", "slideSurface", doc="The slide surface object")
-    smoothingScaleMethod = PYB11property("const SmoothingScaleBase<%(Dimension)s>&", "smoothingScaleMethod",returnpolicy="reference_internal",doc="The object defining how we evolve smoothing scales.")
     
     densityUpdate = PYB11property("FSIMassDensityMethod", "densityUpdate", "densityUpdate", doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
-    HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution", doc="Flag to select how we want to evolve the H tensor")
     interfaceMethod = PYB11property("InterfaceMethod", "interfaceMethod", "interfaceMethod",doc="Flag to select how we want construct material interfaces")
     kernelAveragingMethod = PYB11property("KernelAveragingMethod", "kernelAveragingMethod", "kernelAveragingMethod",doc="Flag to select our kernel type")
 
@@ -144,8 +140,6 @@ temperature or pressure."""
     DmassDensityDt =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DmassDensityDt",       returnpolicy="reference_internal")
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DdeviatoricStressDt =          PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DdeviatoricStressDt",  returnpolicy="reference_internal")
-    DHDt =                         PYB11property("const FieldList<%(Dimension)s, SymTensor>&","DHDt",                 returnpolicy="reference_internal")
-    Hideal =                       PYB11property("const FieldList<%(Dimension)s, SymTensor>&","Hideal",               returnpolicy="reference_internal")
     DepsDx =                       PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DepsDx",               returnpolicy="reference_internal")
     DPDx =                         PYB11property("const FieldList<%(Dimension)s, Vector>&",   "DPDx",                 returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
@@ -155,8 +149,6 @@ temperature or pressure."""
     maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
     effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure",   returnpolicy="reference_internal")
     normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
-    weightedNeighborSum =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "weightedNeighborSum",  returnpolicy="reference_internal")
-    massSecondMoment =             PYB11property("const FieldList<%(Dimension)s, SymTensor>&","massSecondMoment",     returnpolicy="reference_internal")
     interfaceFraction =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "interfaceFraction",    returnpolicy="reference_internal")
     interfaceFlags =                   PYB11property("const FieldList<%(Dimension)s, int>&",      "interfaceFlags",       returnpolicy="reference_internal")
     interfaceAreaVectors =             PYB11property("const FieldList<%(Dimension)s, Vector>&",   "interfaceAreaVectors", returnpolicy="reference_internal")

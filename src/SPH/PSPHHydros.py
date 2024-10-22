@@ -23,7 +23,8 @@ def PSPH(dataBase,
          HUpdate = IdealH,
          xmin = (-1e100, -1e100, -1e100),
          xmax = ( 1e100,  1e100,  1e100),
-         ASPH = False):
+         ASPH = False,
+         smoothingScaleMethod = None):
 
     # We use the provided DataBase to sniff out what sort of NodeLists are being
     # used, and based on this determine which SPH object to build.
@@ -47,17 +48,10 @@ def PSPH(dataBase,
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
         Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
 
-    # Smoothing scale update
-    if ASPH:
-        smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-    else:
-        smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "Q" : Q,
               "W" : W,
               "WPi" : WPi,
@@ -71,15 +65,22 @@ def PSPH(dataBase,
               "HopkinsConductivity" : HopkinsConductivity,
               "sumMassDensityOverAllNodeLists" : sumMassDensityOverAllNodeLists,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
     # Build the thing
     result = constructor(**kwargs)
     result.Q = Q
-    result._smoothingScaleMethod = smoothingScaleMethod
     
+    # Smoothing scale update
+    if smoothingScaleMethod is None:
+        if ASPH:
+            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+        else:
+            smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
+    result._smoothingScaleMethod = smoothingScaleMethod
+    result.appendSubPackage(smoothingScaleMethod)
+
     return result
 
 #-------------------------------------------------------------------------------

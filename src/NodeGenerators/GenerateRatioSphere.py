@@ -3,10 +3,11 @@ import mpi
 
 from NodeGeneratorBase import *
 
-from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d
-from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d
+from Spheral import Vector2d, Tensor2d, SymTensor2d, CylindricalBoundary, rotationMatrix2d, Polygon
+from Spheral import Vector3d, Tensor3d, SymTensor3d, CylindricalBoundary, rotationMatrix3d, Polyhedron
 from Spheral import CylindricalBoundary, generateCylDistributionFromRZ
 from Spheral import vector_of_int, vector_of_double, vector_of_vector_of_double, vector_of_SymTensor3d
+from Spheral import polySecondMoment2d, polySecondMoment3d
 
 #-------------------------------------------------------------------------------
 # This version ratios from the center out in 2D.  Kind of a misnomer with the
@@ -34,6 +35,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                  rejecter = None,
                  perturbFunc = None):
 
+        nNodePerh = float(nNodePerh)  # Just to be sure...
+
         assert drStart > 0.0
         assert drRatio > 0.0
         assert nNodePerh > 0.0
@@ -53,10 +56,8 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
         self.rhofunc = rhofunc
 
         # Do we have a perturbation function?
-        def zeroPerturbation(posi):
-            return posi
         if not perturbFunc:
-            perturbFunc = zeroPerturbation
+            perturbFunc = lambda x: x
 
         self.x, self.y, self.m, self.H = [], [], [], []
 
@@ -81,12 +82,19 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                 if startFromCenter:
                     r0 = min(rmax, rmin + drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
                     r1 = min(rmax, rmin + drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
+                    r0hr = rmin + drStart*(1.0 - drRatio**max(0, i - nNodePerh))/(1.0 - drRatio)
+                    r1hr = rmin + drStart*(1.0 - drRatio**(      i + nNodePerh))/(1.0 - drRatio)
                 else:
                     r0 = max(rmin, rmax - drStart*(1.0 - drRatio**(i + 1))/(1.0 - drRatio))
                     r1 = max(rmin, rmax - drStart*(1.0 - drRatio**i)/(1.0 - drRatio))
+                    r0hr = rmax - drStart*(1.0 - drRatio**(      i + nNodePerh))/(1.0 - drRatio)
+                    r1hr = rmax - drStart*(1.0 - drRatio**max(0, i - nNodePerh))/(1.0 - drRatio)
             else:
                 r0 = min(rmax, rmin + i*drStart)
                 r1 = min(rmax, rmin + (i + 1)*drStart)
+                r0hr = rmin + (i - nNodePerh)*drStart
+                r1hr = rmin + (i + nNodePerh)*drStart
+
             dr = r1 - r0
             ri = 0.5*(r0 + r1)
             li = Dtheta*ri
@@ -95,9 +103,20 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
             else:
                 ntheta = max(nthetamin, int(li/dr*aspectRatio))
             dtheta = Dtheta/ntheta
-            hr = nNodePerh * dr
-            ha = nNodePerh * ri*dtheta
 
+            # Find the radial and azimuthal smoothing lengths we should use.  We have to be
+            # careful for extrememely high aspect ratios that the points will overlap the expected
+            # number of neighbors taking into account the curvature of the local point distribution.
+            # This means hr might need to be larger than we would naively expect...
+            #hdelta = 2.0*ri*(sin(0.5*nNodePerh*dtheta))**2
+            r0hr -= 2.0*r1hr*(sin(0.5*nNodePerh*dtheta))**2
+            r1hr += 2.0*r1hr*(sin(0.5*nNodePerh*dtheta))**2
+            hr = max(r1hr - ri, ri - r0hr)
+            ha = nNodePerh * ri*dtheta
+            # box = Polygon([Vector2d(r0hr, -ha), Vector2d(r1hr, -ha),
+            #                Vector2d(r1hr,  ha), Vector2d(r0hr,  ha)])
+            # Hi = polySecondMoment2d(box, box.centroid).sqrt().Inverse()
+            
             for j in range(ntheta):
                 theta0 = thetamin + j*dtheta
                 theta1 = thetamin + (j + 1)*dtheta
@@ -107,19 +126,18 @@ class GenerateRatioSphere2d(NodeGeneratorBase):
                 pos3 = perturbFunc(Vector2d(r0*cos(theta1), r0*sin(theta1)))
                 areai = 0.5*((pos1 - pos0).cross(pos2 - pos0).z +
                              (pos2 - pos0).cross(pos3 - pos0).z)
-                posi = 0.25*(pos0 + pos1 + pos2 + pos3)
+                posi = 0.5*(r0 + r1)*Vector2d(cos(0.5*(theta0 + theta1)),
+                                              sin(0.5*(theta0 + theta1)))
                 mi = areai*self.rhofunc(posi)
-                xi = posi.x
-                yi = posi.y
-                self.x.append(xi + center[0])
-                self.y.append(yi + center[1])
+                self.x.append(posi.x + center[0])
+                self.y.append(posi.y + center[1])
                 self.m.append(mi)
                 if SPH:
                     hi = sqrt(hr*ha)
                     self.H.append(SymTensor2d(1.0/hi, 0.0, 0.0, 1.0/hi))
                 else:
                     self.H.append(SymTensor2d(1.0/hr, 0.0, 0.0, 1.0/ha))
-                    runit = Vector2d(xi, yi).unitVector()
+                    runit = posi.unitVector()
                     T = rotationMatrix2d(runit).Transpose()
                     self.H[-1].rotationalTransform(T)
 

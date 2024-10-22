@@ -245,25 +245,6 @@ densityUpdate(MassDensityType type) {
   mDensityUpdate = type;
 }
 
-
-//------------------------------------------------------------------------------
-// Choose how we want to update the H tensor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-HEvolutionType
-GenericRiemannHydro<Dimension>::HEvolution() const {
-  return mHEvolution;
-}
-
-template<typename Dimension>
-inline
-void
-GenericRiemannHydro<Dimension>::
-HEvolution(HEvolutionType type) {
-  mHEvolution = type;
-}
-
 //------------------------------------------------------------------------------
 // Access the flag determining if we're using the compatible energy evolution 
 // algorithm.
@@ -418,18 +399,6 @@ kernel() const {
   return mKernel;
 }
 
-
-//------------------------------------------------------------------------------
-// The object defining how smoothing scales are evolved.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const SmoothingScaleBase<Dimension>&
-GenericRiemannHydro<Dimension>::
-smoothingScaleMethod() const {
-  return mSmoothingScaleMethod;
-}
-
 //------------------------------------------------------------------------------
 // The internal state field lists.
 //------------------------------------------------------------------------------
@@ -467,35 +436,10 @@ soundSpeed() const {
 
 template<typename Dimension>
 inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-GenericRiemannHydro<Dimension>::
-Hideal() const {
-  return mHideal;
-}
-
-
-template<typename Dimension>
-inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 GenericRiemannHydro<Dimension>::
 normalization() const {
   return mNormalization;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-GenericRiemannHydro<Dimension>::
-weightedNeighborSum() const {
-  return mWeightedNeighborSum;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-GenericRiemannHydro<Dimension>::
-massSecondMoment() const {
-  return mMassSecondMoment;
 }
 
 template<typename Dimension>
@@ -552,14 +496,6 @@ const FieldList<Dimension, typename Dimension::Scalar>&
 GenericRiemannHydro<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::SymTensor>&
-GenericRiemannHydro<Dimension>::
-DHDt() const {
-  return mDHDt;
 }
 
 template<typename Dimension>

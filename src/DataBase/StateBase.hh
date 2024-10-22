@@ -95,6 +95,11 @@ public:
   template<typename Value>
   std::vector<Field<Dimension, Value>*> allFields(const Value& dummy) const;
 
+  // This version is for when providing a dummy Value type is not possible/practical.
+  // Using this form however meand using the cumbersome syntax:  state.template field<Value>(key)
+  template<typename Value>
+  Field<Dimension, Value>& field(const KeyType& key) const;
+
   //............................................................................
   // Enroll a FieldList.
   virtual void enroll(FieldListBase<Dimension>& fieldList);
@@ -103,6 +108,11 @@ public:
   template<typename Value>
   FieldList<Dimension, Value> fields(const std::string& name, 
                                      const Value& dummy) const;
+
+  // This version is for when providing a dummy Value type is not possible/practical.
+  // Using this form however meand using the cumbersome syntax:  state.template fields<Value>(key)
+  template<typename Value>
+  FieldList<Dimension, Value> fields(const std::string& name) const;
 
   //............................................................................
   // Enroll an arbitrary type
