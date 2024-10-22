@@ -16,6 +16,15 @@ else()
   add_definitions("-DDEBUG=0")
 endif()
 
+if (SPHERAL_ENABLE_VVI)
+  message("-- Value-View Interface Pattern (VVI) : Enabled")
+  message("------ WARNING ------")
+  message("-- VVI is an experimental implementation necessary for the GPU port. Use with caution!")
+  message("---------------------")
+else()
+  message("-- Semantic Class Interface Pattern (VVI) : Disabled")
+endif()
+
 # The DBC flag
 if (DBC_MODE STREQUAL "All")
   message("-- DBC (design by contract) set to All")
