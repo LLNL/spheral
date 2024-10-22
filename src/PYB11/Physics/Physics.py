@@ -25,6 +25,24 @@ class Physics:
     #...........................................................................
     # Virtual methods
     @PYB11virtual
+    @PYB11const
+    def dtImplicit(self,
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "const State<%(Dimension)s>&",
+                   derivs = "const StateDerivatives<%(Dimension)s>&",
+                   currentTime = "const Scalar"):
+        "Optionally compute a timestep for implicit time advancement"
+        return "TimeStepType"
+
+    @PYB11virtual
+    @PYB11const
+    def maxResidual(self,
+                    state1 = "const State<%(Dimension)s>&",
+                    state0 = "const State<%(Dimension)s>&"):
+        "Compute the maximum residual difference between the States"
+        return "Scalar"
+
+    @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):

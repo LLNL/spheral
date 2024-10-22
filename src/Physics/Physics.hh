@@ -10,6 +10,7 @@
 #define Physics_HH
 
 #include "RK/RKCorrectionParams.hh"
+#include "Utilities/DBC.hh"
 
 #include <vector>
 #include <set>
@@ -76,6 +77,12 @@ public:
                                   const State<Dimension>& state,
                                   const StateDerivatives<Dimension>& derivs,
                                   const Scalar currentTime) const { return this->dt(dataBase, state, derivs, currentTime); }
+
+  // Return the maximum state change we care about for checking for convergence in the implicit integration methods.
+  // For now we default to raise an error so Physics packages that are not ready for implicit advancement don't
+  // accidentally go along for the ride.
+  virtual Scalar maxResidual(const State<Dimension>& state1,
+                             const State<Dimension>& state0) const { VERIFY2(false, this->label() + " does not currently support implicit time advancement"); return 0.0; }
 
   // Methods for handling boundary conditions.
   // Add a Boundary condition.

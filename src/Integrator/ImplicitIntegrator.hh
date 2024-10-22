@@ -39,6 +39,10 @@ public:
   // Assignment.
   ImplicitIntegrator& operator=(const ImplicitIntegrator& rhs);
 
+  // Find the maximum residual difference in the states
+  virtual Scalar computeResiduals(const State<Dimension>& state1,
+                                  const State<Dimension>& state0) const;
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Override the package dt method to call the implicit version

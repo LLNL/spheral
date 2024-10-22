@@ -31,6 +31,16 @@ class ImplicitIntegrator(Integrator):
                 physicsPackages = "const std::vector<Physics<%(Dimension)s>*>&"):
         "Construct an ImplicitIntegrator with a DataBase and physics packages"
 
+    #...........................................................................
+    # Methods
+    @PYB11virtual
+    @PYB11const
+    def computeResiduals(self,
+                         state1 = "const State<%(Dimension)s>&",
+                         state0 = "const State<%(Dimension)s>&"):
+        "Compute the maximum residual difference across all physics packages between two States"
+        return "Scalar"
+
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------

@@ -4,6 +4,7 @@
 // Created by JMO, Fri Oct 18 16:34:11 PDT 2024
 //----------------------------------------------------------------------------//
 #include "Integrator/ImplicitIntegrator.hh"
+#include "Distributed/allReduce.hh"
 
 namespace Spheral {
 
@@ -66,6 +67,23 @@ dt(const Physics<Dimension>* pkg,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
   return pkg->dtImplicit(dataBase, state, derivs, currentTime);
+}
+
+//------------------------------------------------------------------------------
+// Find the maximum residual difference in the states
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ImplicitIntegrator<Dimension>::
+computeResiduals(const State<Dimension>& state1,
+                 const State<Dimension>& state0) const {
+  const auto& packages = this->physicsPackages();
+  Scalar result = 0.0;
+  for (const auto* pkg: packages) {
+    result = std::max(result, pkg->maxResidual(state1, state0));
+  }
+  result = allReduce(result, SPHERAL_OP_MAX);
+  return result;
 }
 
 }
