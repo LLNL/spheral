@@ -1,0 +1,145 @@
+#!/user/bin/env python3
+
+# This file runs and compares performance tests through the ats system.
+# Run using: ./spheral-ats tests/performance.py
+
+import sys, shutil, os, time
+import numpy as np
+
+# Current system architecture from Spack
+spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
+# Current install configuration from Spack
+spheral_install_config = "@SPHERAL_CONFIGURATION@"
+
+# Function called on exit to do timing comparisons
+def compare_times(manager):
+    for test in manager.testlist:
+        run_dir = test.directory
+        cali_file = test.options["caliper_filename"]
+        cfile = os.path.join(run_dir, test.options["caliper_filename"])
+        ref_regions = test.options["regions"]
+        ref_timers = test.options["timers"]
+        r = cr.CaliperReader()
+        r.read(cfile)
+        # Get the Caliper timing records
+        records = r.records
+        # Get the Caliper metadata, including Adiak data
+        gls = r.globals
+        # Filter out the commandLine inputs
+        metadata = {}
+        for key, val in gls.items():
+            if (r.attribute(key).get('adiak.subcategory') != "spheral_input"):
+                metadata.update({key: val})
+        # WIP: Compare timers against historical timers
+        if (ci_run):
+            ref_caliper_dir = test.options["ref_cali_dir"]
+            if (not os.path.exists(ref_caliper_dir)):
+                os.makedirs(ref_caliper_dir)
+            new_cali_data = os.path.join(ref_caliper_dir, cfile)
+            shutil.copyfile(cfile, new_cali_data)
+
+        # Get the number of nodes (ie hardware nodes)
+        num_comp_nodes = eval(gls["numhosts"])
+        # Get the number of MPI ranks
+        num_ranks = eval(gls["jobsize"])
+        # Get the number of SPH nodes
+        total_internal_nodes = eval(gls["total_internal_nodes"])
+        nodes_per_rank = int(total_internal_nodes / num_ranks)
+        print(f"SPH nodes per rank {nodes_per_rank}")
+        walltime = eval(metadata["walltime"])
+        print(f"Walltime {walltime}")
+        # Extract current times
+        times = {}
+        # Iterate over list of records
+        for rec in records:
+            if ("region" in rec):
+                fname = rec["region"]
+                if (type(fname) is list):
+                    fname = fname[-1]
+                if (fname in ref_regions):
+                    if (fname in times):
+                        for t in ref_timers:
+                            times[fname][t] += float(rec[t])
+                    else:
+                        new_dict = {}
+                        for t in ref_timers:
+                            new_dict.update({t: float(rec[t])})
+                        times.update({fname: new_dict})
+
+onExit(compare_times)
+glue(keep=True)
+
+if ("power" in spheral_sys_arch):
+    num_nodes = 1
+    num_cores = 40
+elif ("broadwell" in spheral_sys_arch):
+    num_nodes = 2
+    num_cores = 36
+
+# NOH tests
+test_dir = "@SPHERAL_TEST_INSTALL_PREFIX@/tests/functional/Hydro/Noh"
+
+# Select which timing regions to post-process
+regions = ["CheapRK2",
+           "CheapRK2PreInit",
+           "ConnectivityMap_computeConnectivity",
+           "ConnectivityMap_patch",
+           "CheapRK2EvalDerivs",
+           "CheapRK2EndStep"]
+# Select which timers to use to post-process the regions above
+timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
+
+# General input for all Noh tests
+gen_noh_inps = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 "+\
+    "--nPerh 2.01 --graphics False --clearDirectories False --doCompare False "+\
+    "--dataDir None --vizTime None --vizCycle None"
+
+group(name="NOH 2D tests")
+test_file = "Noh-cylindrical-2d.py"
+nRadial = 100
+test_path = os.path.join(test_dir, test_file)
+test_name_base = "NC2D"
+
+# Test with varying number of ranks
+ranks = [1, 2, 4]
+for i, n in enumerate(ranks):
+    test_name = f"{test_name_base}_{i}"
+    caliper_filename = f"{test_name}_{int(time.time())}.cali"
+    inps = f"{gen_noh_inps} --caliperFilename {caliper_filename} --nRadial {nRadial} --steps 10 --adiakData 'test_name: {test_name}'"
+    ncores = int(num_nodes*num_cores/n)
+    t = test(script=test_path, clas=inps, label=f"{test_name}",
+             np=ncores,
+             nn=num_nodes,
+             caliper_filename=caliper_filename,
+             regions=regions,
+             timers=timers,
+             install_config=spheral_install_config)
+
+endgroup()
+
+group(name="NOH 3D tests")
+test_file = "Noh-spherical-3d.py"
+test_path = os.path.join(test_dir, test_file)
+test_name_base = "NS3D"
+
+# Test with varying number of SPH nodes per rank
+npcore = [100, 200, 300]
+for i, n in enumerate(npcore):
+    test_name = f"{test_name_base}_{i}"
+    caliper_filename = f"{test_name}_{int(time.time())}.cali"
+    total_sph_nodes = n*num_cores
+    npd = int(np.cbrt(total_sph_nodes))
+    node_inps = f"--nx {npd} --ny {npd} --nz {npd}"
+    inps = f"{gen_noh_inps} {node_inps} --caliperFilename {caliper_filename} --steps 3 --adiakData 'test_name: {test_name}'"
+    # WIP: Path to benchmark timing data
+    ncores = int(num_cores)
+    t = test(script=test_path, clas=inps, label=f"{test_name}",
+             np=ncores,
+             nn=num_nodes,
+             independent=False,
+             caliper_filename=caliper_filename,
+             regions=regions,
+             timers=timers,
+             install_config=spheral_install_config)
+# Add a wait to ensure all timer files are done
+wait()

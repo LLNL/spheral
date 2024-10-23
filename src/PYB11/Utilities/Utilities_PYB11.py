@@ -803,7 +803,22 @@ for (value, label) in (("int", "Int"),
                        ("long", "Long"),
                        ("double", "Scalar"),
                        ("std::string", "String")):
-    exec("""
-adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s", pyname="adiak_value")
-adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value")
-""" % {"label" : label, "value" : value})
+    exec(f"""
+adiak_value{label} = PYB11TemplateFunction(adiak_value, "{value}", pyname="adiak_value")
+adiak_value2{label} = PYB11TemplateFunction(adiak_value2, "{value}", pyname="adiak_value")
+""")
+array_types =  ["Scalar",
+                "Vector",
+                "Tensor",
+                "SymTensor",
+                "ThirdRankTensor",
+                "FourthRankTensor",
+                "FifthRankTensor"]
+for ndim in dims:
+    for ctype in array_types:
+        value = f"Dim::<{ndim}>::{ctype}"
+        label = f"{ctype}{ndim}"
+        exec(f"""
+adiak_value{label} = PYB11TemplateFunction(adiak_value, "{value}", pyname="adiak_value")
+adiak_value2{label} = PYB11TemplateFunction(adiak_value2, "{value}", pyname="adiak_value")
+""")

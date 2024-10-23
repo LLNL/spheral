@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+
+import os, time, sys
+import argparse
+
+# This is a wrapper for running Spheral through ATS
+
+# These are set by CMake
+spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
+spheral_install_config = "@SPHERAL_CONFIGURATION@"
+
+# Find spheralutils.py
+install_prefix = "@CMAKE_INSTALL_PREFIX@"
+sys.path.append(os.path.join(install_prefix, "scripts"))
+from spheralutils import sexe
+
+# Apply filters set during install
+install_filters = "@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@"
+
+# Options for running CI
+# If the number of failed tests exceeds this value, ATS is not rerun
+max_test_failures = 10
+# Number of times to rerun the ATS tests
+max_reruns = 1
+test_log_name = "test-logs"
+
+ats_exe = os.path.join(install_prefix, ".venv/bin/ats")
+spheral_exe = os.path.join(install_prefix, "spheral")
+
+#------------------------------------------------------------------------------
+
+# Run ats.py to check results and return the number of failed tests
+def report_results(output_dir):
+    ats_py = os.path.join(output_dir, "atsr.py")
+    if (not os.path.exists(ats_py)):
+        raise Exception(f"{ats_py} does not exists")
+    exec(compile(open(ats_py).read(), ats_py, 'exec'), globals())
+    state = globals()["state"]
+    failed_tests = [t for t in state['testlist'] if t['status'] in [FAILED,TIMEDOUT] ]
+    if len(failed_tests) > 0:
+        print(f"ATS failed {len(failed_tests)} tests.")
+        for t in failed_tests:
+            print(t['name'])
+        return len(failed_tests)
+    else:
+        print("ATS passed all tests.")
+        return 0
+
+#------------------------------------------------------------------------------
+
+# Run the tests and check if any failed
+def run_and_report(run_command, ci_output, num_runs):
+    if (num_runs > max_reruns):
+        raise Exception ("Exceeded number of ATS reruns")
+    try:
+        sexe(run_command)
+    except Exception as e:
+        print(e)
+    tests_passed = report_results(ci_output)
+    if (tests_passed == 0):
+        if (num_runs > 0):
+            print("WARNING: Some tests were run multiple times")
+        sys.exit(0)
+        # This should be added back in once Jacamar can handle exit codes properly
+        # if (num_runs == 0):
+        #     sys.exit(0)
+        # else:
+        #     sys.exit(80)
+    elif (tests_passed >= max_test_failures):
+        raise Exception("Too many test failures, not rerunning ATS")
+    else:
+        rerun_command = run_command
+        if (num_runs == 0):
+            ats_cont_file = os.path.join(ci_output, "continue.ats")
+            if (not os.path.exists(ats_cont_file)):
+                raise Exception(f"{ats_cont_file} not found, ATS cannot be rerun")
+            rerun_command = f"{run_command} {ats_cont_file}"
+        print("WARNING: Test failure, rerunning ATS")
+        run_and_report(rerun_command, ci_output, num_runs + 1)
+
+def main():
+    #---------------------------------------------------------------------------
+    # Setup argument parser
+    #---------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(allow_abbrev=False,
+                                     usage="""
+                                     ./spheral-ats --numNodes 2 tests/integration.ats --filter="level<100"
+                                     """,
+                                     description="""
+                                     Launches and runs Spheral using the ATS system.
+                                     Must provide an ATS file (either python or .ats).
+                                     Any unrecognized arguments are passed as inputs to the ATS file.
+                                     """)
+    parser.add_argument("--numNodes", type=int,
+                        default=None,
+                        help="Number of nodes to allocate.")
+    parser.add_argument("--timeLimit", type=int,
+                        default=None,
+                        help="Time limit for allocation.")
+    parser.add_argument("--ciRun", action="store_true",
+                        help="Pass if running the CI.")
+    parser.add_argument("--atsHelp", action="store_true",
+                        help="Print the help output for ATS. Useful for seeing ATS options.")
+    options, unknown_options = parser.parse_known_args()
+    if (options.atsHelp):
+        sexe(f"{ats_exe} --help")
+        return
+
+    #---------------------------------------------------------------------------
+    # Setup machine info classes
+    #---------------------------------------------------------------------------
+    mac_args = []
+    ats_args = [install_filters, "--allInteractive"]
+    numNodes = options.numNodes
+    timeLimit = options.timeLimit
+    if ("broadwell" in spheral_sys_arch):
+        os.environ["MACHINE_TYPE"] = "slurm36"
+        numNodes = numNodes if numNodes else 2
+        timeLimit = timeLimit if timeLimit else 120
+        time_limit = 120
+        mac_args = ["--npMax=36"]
+        launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+    elif ("power9" in spheral_sys_arch):
+        numNodes = numNodes if numNodes else 1
+        timeLimit = timeLimit if timeLimit else 60
+        mac_args = ["--smpi_off", "--npMax=40"]
+        launch_cmd = f"lalloc {numNodes} -W {timeLimit} "
+        if (options.ciRun):
+            launch_cmd += "-q pdebug -G guests "
+            mac_args.append("--lrun_pack")
+        else:
+            mac_args.append("--lrun")
+    ats_args.extend(mac_args)
+
+    #---------------------------------------------------------------------------
+    # Launch ATS
+    #---------------------------------------------------------------------------
+    if (numNodes):
+        ats_args.append(f"--numNodes {numNodes}")
+    if (timeLimit):
+        ats_args.append(f"--timelimit {timeLimit}")
+    # If doing a CI run, set some more options
+    if (options.ciRun):
+        ats_args.append(f"--logs {test_log_name}")
+    ats_args = " ".join(str(x) for x in ats_args)
+    other_args = " ".join(str(x) for x in unknown_options)
+    run_command = f"{launch_cmd}{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
+    print(f"\nRunning: {run_command}\n")
+    if (not options.ciRun):
+        try:
+            sexe(run_command)
+        except Exception as e:
+            print(e)
+    else:
+        run_and_report(run_command, test_log_name, 0)
+
+if __name__ == "__main__":
+    main()

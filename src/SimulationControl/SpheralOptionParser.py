@@ -46,7 +46,10 @@ def commandLine(**options):
     for key, val in arg_dict.items():
         if key in options:
             if (type(val) != type(options[key])):
-                val = eval(val, gd)
+                if (type(val) == str and val == "None"):
+                    val = None
+                else:
+                    val = eval(val, gd)
         gd[key] = val
     # Initialize timers and add inputs as Adiak metadata
     SpheralTimingParser.init_timer(args)

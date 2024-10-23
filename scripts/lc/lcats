@@ -6,189 +6,101 @@ import platform
 import sys
 import argparse, re
 import subprocess
+import copy
 
 d_debug= 0
 
 SYS_TYPE = os.environ.get('SYS_TYPE','')
 # This is better than platform.node() some of the time, because it differentiates between jade, jadeita, and jadedev.
-LCSCHEDCLUSTER = os.environ.get('LCSCHEDCLUSTER',platform.node())
-
-def cpu_count():
-    """Reliably return the number of physical cores.
-       multiprocessing.cpu_count() and psutil.cpu_count() do not do this correctly.
-       Instead parse the output of 'lscpu'.
-    """
-    if 'rzwhippet' in platform.node():
-        return 56
-    elif 'rzgenie' in platform.node() or 'ruby' in platform.node():
-        return 36
-    else:
-        try:
-            p = subprocess.run(["lscpu",], stdout=subprocess.PIPE, text=True)
-        except Exception as e:
-            print ("Error running lscpu to get cpu count\n")
-            sys.exit(1)
-
-        out = p.stdout
-        lines = out.split('\n')
-
-        for line in lines:
-            key, value = line.split(":")
-            if key == "Core(s) per socket":
-                cores_per_socket = int(value)
-            if key == "Socket(s)":
-                sockets = int(value)
-                break
-
-        return (cores_per_socket * sockets)
-
-
-#---------------------------------------------------------------------------
-def createBsubFile(inCommand, inAllOptions):
-    inFilename= inAllOptions.msubFilename
-
-    FILE= open(inFilename, "w")
-
-    bsubOutputFilename= inFilename + ".out"
-
-    import platform
-    thisNode= platform.node()
-
-    #BSUB -G guests
-    #BSUB -o jobRetry.output              # output is sent to file job.output
-    #BSUB -J nightlyBlueosBuild           # name of the job
-    #BSUB -W 240                          # alloc time - was defaulting to 30 minutes
-    FILE.write("#BSUB -G %s \n" % machineSettings.group)
-    FILE.write("#BSUB -o " + bsubOutputFilename + "\n")
-    FILE.write("#BSUB -J " + inFilename +  "\n")
-    FILE.write("#BSUB -W %d \n" % machineSettings.allocTime )
-    FILE.write("#BSUB -n " + str(machineSettings.numProcs) +  "\n")
-    FILE.write("\n\n")
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
-    FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-
-    FILE.write(""+ '\n')
-    FILE.write("date"+ '\n')
-    FILE.write("cd " + os.getcwd() + "\n")
-    FILE.write(inCommand+ '\n')
-
-    FILE.write("date"+ '\n')
-    FILE.close()
-    return inFilename
-
-#---------------------------------------------------------------------------
-def createMsubFile(inCommand, inAllOptions):
-
-    inFilename= inAllOptions.msubFilename
-
-    FILE= open(inFilename, "w")
-
-    msubOutputFilename= inFilename + ".out"
-
-    import platform
-    thisNode= platform.node()
-
-    FILE.write("#!/bin/tcsh" + '\n')
-    FILE.write("\n")
-    FILE.write("#MSUB -N " + inFilename + '\n')
-    FILE.write("#MSUB -j oe "+ '\n')                       # directs all err output to stdout ")
-    FILE.write("#MSUB -o " + msubOutputFilename + '\n')
-    FILE.write("#MSUB -l nodes=" +  str(machineSettings.numNodes)+ ":ppn=" + str(cpu_count()) + '\n')
-    FILE.write("#MSUB -l walltime=%d:00\n" % machineSettings.allocTime )
-#    FILE.write("#MSUB -V                         # exports all environment var "+ '\n')
-
-    if machineSettings.name != 'cray':
-        FILE.write("#MSUB -q " +  machineSettings.partition + '\n')
-        FILE.write("#MSUB -l gres=ignore  "+ '\n')
-        FILE.write("#MSUB -A " + machineSettings.bank + "                        #bank to use "+ '\n')
-
-    FILE.write(""+ '\n')
-
-    # LLNL specific
-    if machineSettings.name == 'cray':
-        FILE.write("source " + "/usr/projects/kull/developers/tools/kull_cshrc.csh " + '\n')
-
-    # rzmerl and zin specific - increase limits to avoid pthread_create errors.
-    if machineSettings.name == 'chaos5BatchCapable':
-        FILE.write('limit maxproc 7168'+'\n')
-        FILE.write('limit descriptors 7168'+'\n')
-
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
-    FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-
-    FILE.write(""+ '\n')
-    FILE.write("date"+ '\n')
-    FILE.write("cd " + os.getcwd() + "\n")
-    FILE.write(inCommand+ '\n')
-
-    FILE.write("date"+ '\n')
-
-
-    FILE.close()
-    return inFilename
-
-#---------------------------------------------------------------------------
-def createSbatchFile(inCommand, inAllOptions):
-    ''' Some clusters don't have msub wrappers so we use sbatch directly.
-        Options are still the same as those used for the msub just the submission is different
-        so reusing most of the same variables here.
-    '''
-    inFilename= inAllOptions.msubFilename
-
-    FILE= open(inFilename, "w")
-
-    sbatchOutputFilename= inFilename + ".out"
-    sbatchErrorFilename= inFilename + ".error"
-
-    import platform
-    thisNode= platform.node()
-
-    FILE.write("#!/bin/tcsh" + '\n')
-    FILE.write("\n")
-    FILE.write("#SBATCH --job-name=" + inFilename + '\n')
-    FILE.write("#SBATCH --error="+ sbatchErrorFilename + '\n')                       # directs all err output to stdout ")
-    FILE.write("#SBATCH --output="+ sbatchOutputFilename + '\n')                       # directs all other output to stdout ")
-    FILE.write("#SBATCH --nodes=" +  str(machineSettings.numNodes)+ "\n")
-    FILE.write("#SBATCH --ntasks=" + str(cpu_count()) +"\n") # Is this OKay?  Not sure if we want to default ntasks.
-    FILE.write("#SBATCH --time=%d\n" % machineSettings.allocTime )
-
-    if machineSettings.name != 'cray':
-        FILE.write("#SBATCH --partition=" +  machineSettings.partition + '\n')
-        FILE.write("#SBATCH --account=" + machineSettings.bank + "                        #bank to use "+ '\n')
-
-    FILE.write(""+ '\n')
-
-    # LLNL specific
-    FILE.write("setenv MACHINE_TYPE " + machineSettings.machineType + '\n')
-    FILE.write("setenv SYS_TYPE " + SYS_TYPE + '\n')
-
-    FILE.write(""+ '\n')
-    FILE.write("date"+ '\n')
-    FILE.write("cd " + os.getcwd() + "\n")
-    FILE.write(inCommand+ '\n')
-
-    FILE.write("date"+ '\n')
-
-
-    FILE.close()
-    return inFilename
+LCSCHEDCLUSTER = os.environ.get('LCSCHEDCLUSTER','')
 
 #------------------------------------------------------------------------
 
 class MachineInfo:
+    def __init__ (self, **options):
+        self.name = ''
+        self.allocTime = 120
+        self.timeCmd = '--time'
+        self.timeLimit = 120
+        self.machineType = ''
+        self.numNodes = 4
+        self.procsPerNode = None
+        self.allocCmd = None
+        self.nodeCmd = ''
+        self.gpusPerNode = 0
+        self.group = ''
+        self.groupCmd = ''
+        self.partition = 'pbatch'
+        self.partitionCmd = '-p'
 
+        self.bank = ''
+        self.defaultAtsArgs = [
+            "--continueFreq=15",
+            "--timelimit=120"]
+        self.atsArgs = []
+        self.envArgs = []
+        self.__dict__.update(options)
+
+    def get_ats_args(self):
+        args_list = " ".join(str(x) for x in self.defaultAtsArgs + self.atsArgs)
+        args_list += f" --numNodes {self.numNodes} --allInteractive"
+        return args_list
+
+    def get_launch_cmd(self):
+        launch_cmd = f"{self.allocCmd} {self.nodeCmd} {self.numNodes} {self.timeCmd} {self.allocTime}"
+        if (self.group):
+            launch_cmd += f" {self.groupCmd} {self.group}"
+        if (self.partition):
+            launch_cmd += f" {self.partitionCmd} {self.partition}"
+        return launch_cmd
+
+    def get_num_procs(self):
+        return self.numNodes * self.procsPerNode
+
+class blueOS(MachineInfo):
     def __init__ (self, **options):
         "Must not throw an exception -- object must always get created."
         super(MachineInfo, self).__init__()
-        self.name = ''
-        self.allocTime = ''
-        self.machineType = ''
-        self.batch = True
+        self.name = '',
+        self.allocTime = 240
+        self.timeCmd = '-W'
+        self.machineType = 'blueos_3_ppc64le_ib_p9'
         self.numNodes = 4
-        self.numProcs = None
+        self.procsPerNode = 40
+        self.gpusPerNode = 4
+        self.allocCmd = '/usr/tcetmp/bin/lalloc'
+        self.nodeCmd = ""
+        self.group = 'guests'
+        self.groupCmd = '-G'
+        self.bank = 'guests'
+        self.partition = 'pdebug'
+        self.partitionCmd = '-q'
+        self.atsArgs = ["--smpi_off",
+                        "--npMax=36",
+                        "--glue='noDraco=True'",
+                        "--glue='noVisit=True'",
+                        "--glue='noOpacityServer=True'",
+                        "--glue='noCxxUnitTesting=True'"]
+        self.envArgs = []
+        self.__dict__.update(options)
+
+class toss4(MachineInfo):
+    def __init__ (self, **options):
+        super(MachineInfo, self).__init__()
+        self.name = '',
+        self.allocTime = 180
+        self.machineType = 'slurm36'
+        self.numNodes = 2
+        self.procsPerNode = 36
+        self.gpusPerNode = 0
+        self.allocCmd = 'salloc --exclusive'
+        self.nodeCmd = "-N"
         self.group = ''
-        self.partition = 'pbatch'
-        self.atsArgs = []
+        self.bank = 'wbronze'
+        self.partition = 'pdebug'
+        self.partitionCmd = '-p'
+        self.atsArgs = ["--npMax=40"]
+        self.envArgs = []
         self.__dict__.update(options)
 
 #---------------------------------------------------------------------------
@@ -196,407 +108,66 @@ class MachineInfo:
 #---------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------
+# Setup machine info classes
+#-----------------------------------------------------------------------
+
+lassenSettings = blueOS(name="lassen")
+rzanselSettings = blueOS(name="rzansel")
+
+rubySettings = toss4(name="ruby", partition="")
+rzgenieSettings = toss4(name="rzgenie")
+rzwhippetSettings = toss4(name="rzwhippet", procsPerNode=112)
+
+allSettings = [lassenSettings, rzanselSettings, rubySettings, rzgenieSettings]
+macNames = {x.name: x for x in allSettings}
+
+#---------------------------------------------------------------------------
 # Setup argument parser
 #---------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 
-#---------------------------------------------------------------------------
-useCpu= cpu_count()
-#---------------------------------------------------------------------------
-
-blueosSettings= MachineInfo(
-    name='blueos',
-    machineType='blueos_3_ppc64le_ib_p9',
-    batch= False,
-    allocTime = 240,
-    group = "guests",
-    partition='pdebug',
-    numProcs = 128,
-    numNodes=4,
-    bank='guests',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=40",
-              "--continueFreq=15",
-              "--timelimit=120",
-              "--glue='noDraco=True'",
-              "--glue='noVisit=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noCxxUnitTesting=True'",
-            ],
-)
-
-rzmantaSettings= MachineInfo(
-    name='blueos',
-    machineType='rzmanta',
-    batch= True,
-    allocTime = 240,
-    group = "guests",
-    partition='pdebug',
-    numProcs = 128,
-    #numNodes=,
-    #bank='science',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=8",
-              "--continueFreq=15",
-              "--timelimit=480",
-              "--glue='noDraco=True'",
-              "--glue='noVisit=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noCxxUnitTesting=True'",
-            ],
-)
-
-bgqSettings= MachineInfo(
-    name='bgq',
-    machineType='rzuseq',
-    batch= False,
-    allocTime = 480,
-
-    partition='pdebug',
-    numNodes=64,
-    bank='science',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=8",
-              "--continueFreq=15",
-              "--timelimit=480",
-              "--glue='noDraco=True'",
-              "--glue='noVisit=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noCxxUnitTesting=True'",
-            ],
-
-)
-
-chaos5BatchCapable = MachineInfo(
-    name='chaos5BatchCapable',
-    machineType='SlurmProcessorScheduled',
-    batch = True,
-    partition='pbatch',
-    numNodes=8,
-    bank='wbronze',
-    allocTime = 180,
-    atsArgs=[ "--allInteractive",
-              "--glue='independent=True'",
-              "--continueFreq=15",
-              "--timelimit=60",
-              "--npMax=%s" % cpu_count()
-            ],
-
-)
-
-chaos5NotBatchCapable= MachineInfo(
-    name='chaos5NotBatchCapable',
-    machineType='SlurmProcessorScheduled',
-    batch=False,
-    numNodes=4,
-    partition='pdebug',
-    bank='wbronze',
-    allocTime = 180,
-    atsArgs=[ "--allInteractive",
-              "--continueFreq=15",
-              "--timelimit=60",
-              "--glue='independent=True'"
-    ],
-
-)
-
-craySettings= MachineInfo(
-    name='cray',
-    machineType='cray',
-    atsArgs=[
-              '--allInteractive',
-              "--timelimit=60",
-              "--glue='independent=True'",
-    ],
-
-)
-
-chamaSettings= MachineInfo(
-    name='chama',
-    machineType='SlurmProcessorScheduled',
-    batch = False,
-    partition='nw',
-    numNodes=8,
-    bank='FY140244', # TAG's WC_IC
-    wcid='FY140244', # TAG's WC_IC
-    allocTime = 240,
-    atsArgs=[ "--allInteractive",
-              "--glue='independent=True'",
-              "--glue='noDraco=True'",
-              "--glue='noOverlink=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noTracker=True'",
-              "--timelimit=60",
-              "--npMax=%s" % cpu_count()
-            ],
-
-)
-
-glorySettings= MachineInfo(
-    name='glory',
-    machineType='SlurmProcessorScheduled',
-    batch = False,
-    partition='nw',
-    numNodes=8,
-    bank='FY140244', # TAG's WC_IC
-    wcid='FY140244', # TAG's WC_IC
-    allocTime = 240,
-    atsArgs=[ "--allInteractive",
-              "--glue='independent=True'",
-              # "--glue='noDraco=True'",
-              "--glue='noOverlink=True'",
-              "--glue='noOpacityServer=True'",
-              "--glue='noTracker=True'",
-              "--timelimit=60",
-              "--npMax=%s" % cpu_count()
-            ],
-
-)
-
-toss3Settings= MachineInfo(
-    name='rzgenie',
-    machineType='SlurmProcessorScheduled',
-    batch= False,
-    #allocTime = 240,
-    allocTime = 180,
-    partition='pdebug',
-    #numNodes=4,
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=%s"%(useCpu),
-              "--continueFreq=15",
-              "--timelimit=120",
-            ],
-
-)
-
-toss3Batch= MachineInfo(
-    name='rztopaz',
-    machineType='SlurmProcessorScheduled',
-    batch= True,
-    allocTime = 360,
-    partition='pbatch',
-    numNodes=4,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=36",
-              "--continueFreq=15",
-              "--timelimit=120",
-            ],
-
-)
-
-rztopazSettings= MachineInfo(
-    name='rztopaz',
-    machineType='SlurmProcessorScheduled',
-    batch= False,
-    allocTime = 60,
-    partition='pdebug',
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=36",
-              "--continueFreq=15",
-              "--timelimit=60",
-            ],
-)
-
-toss4Settings= MachineInfo(
-    name='toss4machine',
-    machineType='slurm36',
-    batch= False,
-    allocTime = 180,
-    partition='pdebug',
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=36",
-              "--continueFreq=15",
-              "--timelimit 120m",
-            ],
-)
-
-toss4BatchSettings= MachineInfo(
-    name='toss4BatchMachine',
-    machineType='slurm36',
-    batch= True,
-    allocTime = 180,
-    partition='pdebug',
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=36",
-              "--continueFreq=15",
-              "--timelimit 120m",
-            ],
-)
-
-# Ruby settings (same as TOSS4 interactive without pdebug)
-rubySettings= MachineInfo(
-    name='toss4machine',
-    machineType='slurm36',
-    batch= False,
-    allocTime = 180,
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=36",
-              "--continueFreq=15",
-              "--timelimit 120m",
-            ],
-)
-
-#  settings when rzwhippet is running flux natively
-rzwhippetSettings= MachineInfo(
-    name='rzwhippet',
-    machineType='flux00',
-    batch= False,
-    allocTime = 180,
-    numNodes=2,
-    bank='wbronze',
-    atsArgs=[
-              "--glue='independent=True'",
-              '--allInteractive',
-              "--npMax=%s"%(useCpu),
-              "--continueFreq=15",
-              "--timelimit=120",
-            ],
-)
-
-# Determine machine settings to use
-#-----------------------------------------------------------------------
-# Determine machine settings to use
-# NOTE:
-# The options are obtained from argv, the defaults for the options are from the machineSettings
-# options are used later to figure what to do....  machine settings are used for non-init options
-#
-#-----------------------------------------------------------------------
-
-if platform.processor() == 'ppc64':
-    machineSettings = bgqSettings
-
-elif 'PRGENVMODULES' in os.environ:   # cray machine
-    machineSettings = craySettings
-
-elif 'chama' in SYS_TYPE:
-    machineSettings = chamaSettings
-
-elif 'glory' in SYS_TYPE:
-    machineSettings = glorySettings
-
-elif 'blue' in SYS_TYPE:
-    machineSettings = blueosSettings
-
-elif 'toss_3' in SYS_TYPE:
-    if 'rzgenie' in LCSCHEDCLUSTER or 'jadedev' == LCSCHEDCLUSTER or 'zindev' == LCSCHEDCLUSTER:
-        # Developer machines are interactive
-        machineSettings = toss3Settings
-    elif '--partition=pdebug' in sys.argv and not '--batch' in sys.argv:
-        # Need short queue settings
-        machineSettings = rztopazSettings
-    else:
-        # Put it in batch.
-        machineSettings = toss3Batch
-elif 'toss_4' in SYS_TYPE:
-    if 'ruby' in  LCSCHEDCLUSTER:
-        machineSettings = rubySettings
-    else:
-        machineSettings = toss4Settings
-else:
-    print("Could not determine machine settings to use.")
-    sys.exit(1)
-
-print("Selected machine settings for: ", machineSettings.name)
-
-#----------------------------------------------------------
-# inits and defaults
-#----------------------------------------------------------
-import random
-import time
-ezatsLocaltime = time.localtime()
-ezatsStartTime = time.strftime("%y%m%d%H%M%S",ezatsLocaltime)
-msubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
-bsubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
-
-
-#---------------------------------------------------------------------------
-# options affecting machine settings
-#---------------------------------------------------------------------------
-
 parser.add_argument( "--allocTime", type=int, metavar="minutes", dest="allocTime",
                    help = "The amount of time for the batch job (in minutes) .")
 
-parser.add_argument( "--interactive", action="store_true", dest="interactive",
-                   help = "Run ats interactively in SLURM (default is false if batch system detected.)")
+parser.add_argument( "--machine", type=str, default=None, choices=list(macNames.keys()),
+                   help="Sets the machine for ats.")
 
-parser.add_argument( "--machineType", type=str, metavar="MACHINE_TYPE", dest="machineType",
-                   help="Sets the MACHINE_TYPE for ats.")
-
-parser.add_argument( "--numNodes", type=int, metavar="number of nodes", dest="numNodes",
+parser.add_argument( "--numNodes", type=int,
                    help="Number of nodes to allocate for ats to run in.")
 
-parser.add_argument( "--partition", type=str, metavar="scheduler partition", dest="partition",
+parser.add_argument( "--partition", type=str,
                    help = "Partition in which to run jobs.")
 
-parser.add_argument( "--bank", type=str, metavar="account to charge",dest="bank",
+parser.add_argument( "--bank", type=str,
                    help = "Bank to use for batch job.")
 
-parser.add_argument("--wcid", type=str, metavar="WC-ID to assign", dest='wcid',
-                  #default = machineSettings.bank,
+parser.add_argument("--wcid", type=str,
                   help = "HERT WC-ID to use for batch job.")
-
-parser.add_argument( "--nogpu", action="store_true", dest="nogpu",
-                   help = "For blueos. Filters out gpu test. Used in conjunction with threaded option.")
-
-parser.add_argument( "--gpuonly", action="store_true", dest="gpuonly",
-                   help = "For blueos nvcc runs.  Filters for gpu tests. Used in conjunction with threaded option.")
 
 parser.add_argument( "--sanitize", action="store_true", dest="sanitize",
                    help = "Run sanitize tests. NOTE These need a specific build to work. ")
 
-
 #---------------------------------------------------------------------------
 # other options
 #---------------------------------------------------------------------------
-parser.add_argument( "--msubFilename", type=str, metavar="msub file name", dest='msubFilename',
+ezatsLocaltime = time.localtime()
+ezatsStartTime = time.strftime("%y%m%d%H%M%S",ezatsLocaltime)
+msubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
+bsubFilenameDefault= "tmpAts." +  ezatsStartTime + ".job"
+parser.add_argument( "--msubFilename", type=str,
                    default = msubFilenameDefault, help = "The name of the generated ats msub job script that will be run.")
 
-parser.add_argument( "--bsubFilename", type=str, metavar="msub file name", dest='bsubFilename',
+parser.add_argument( "--bsubFilename", type=str,
                    default = bsubFilenameDefault, help = "The name of the generated ats bsub job script that will be run.")
 
 parser.add_argument( '--timelimit', dest='timelimit', default=30,
                    help='Set the default time limit on each test. The value may be given as a digit followed by an s, m, or h to give the time in seconds, minutes (the default), or hours.')
 
 # The P2 version is a sym-link to the latest python 2 version of ATS.  There's a P3 when we're ready for Python3
-parser.add_argument( "--atsExe", type=str, dest="atsExe", default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
+parser.add_argument( "--atsExe", type=str, default="/usr/apps/ats/7.0.P3/bin/ats", help="Sets which ats to use.")
 
-parser.add_argument( "--skip", action='store_true', dest='skip',  default = False,
-                   help='skip actual execution of the tests, but show filtering results and missing test files.')
-
-parser.add_argument( "--testpath", type=str, dest="testpath", default="",
+parser.add_argument( "--testpath", type=str, default="",
                   help="Specifies a path for ezats to use for unique test output.")
-
-parser.add_argument( "--debug-build", action="store_true", dest="debugbuild", default=False,
-                   help="assume we are testing a debug build and should skip expensive (level>=100) tests.")
 
 # Pass through options
 parser.add_argument("passthrough", nargs="*",
@@ -604,23 +175,26 @@ parser.add_argument("passthrough", nargs="*",
 
 options = parser.parse_args()
 
-# If running in SLURM, use defaults of less nodes and pdebug partition
-if options.interactive:
-    machineSettings.batch = False
-    machineSettings.numNodes = 4
+#---------------------------------------------------------------------------
+# Determine machine settings to use
+#-----------------------------------------------------------------------
 
-    if "muir" in platform.node():
-        machineSettings.partition = 'views'
-    else:
-        machineSettings.partition = 'pdebug'
+if options.machine:
+    machineSettings = macNames[options.machine]
+elif LCSCHEDCLUSTER in macNames:
+    machineSettings = macNames[LCSCHEDCLUSTER]
+else:
+    print("Could not determine machine settings to use.")
+    sys.exit(1)
 
-    machineSettings.allocTime = 60
+print("Selected machine settings for: ", machineSettings.name)
+
+#---------------------------------------------------------------------------
+# options affecting machine settings
+#---------------------------------------------------------------------------
 
 if options.allocTime:
     machineSettings.allocTime = options.allocTime
-
-if options.machineType:
-    machineSettings.machineType = options.machineType
 
 if options.numNodes:
     machineSettings.numNodes = options.numNodes
@@ -634,29 +208,7 @@ if options.bank:
 if options.wcid:
     machineSettings.wcid = options.wcid
 
-if (d_debug==1):
-    print("options= ", options)
-
 atsArgs = " ".join(str(x) for x in options.passthrough)
-
-if "--help" in atsArgs or "-h" in atsArgs or "-help" in atsArgs:
-    print("------------------------------------------------------------------")
-    print("Options available for only ezats: ")
-    print("------------------------------------------------------------------")
-    parser.print_help()
-    print("------------------------------------------------------------------")
-    print("Options for ats: ")
-    print("------------------------------------------------------------------")
-    from subprocess import check_call
-    check_call([options.atsExe, "-h"])
-
-    print("\n\n------------------------------------------------------------------")
-    print("ezats sets these ATS options: ")
-    print("------------------------------------------------------------------")
-    print('\n'.join(machineSettings.atsArgs))
-    print('\n\n')
-
-    sys.exit(0)
 
 print("Note:  the srun message 'error: ioctl(TIOCGWINSZ)' can be ignored.  \n[It means the process is trying to do something that requires a tty \nbut it's not doing either a read or write.]\n")
 
@@ -668,158 +220,21 @@ if (options.testpath):
 if options.sanitize:
     toAdd += """ --filter="sanitize==1" """
 
-if options.debugbuild:
-    toAdd += """ --filter="level<100" """
+#toAdd += " ".join(x for x in machineSettings.atsArgs if x not in atsArgs)
 
-toAdd += " ".join(x for x in machineSettings.atsArgs if x not in atsArgs)
-if(machineSettings.machineType != 'SlurmProcessorScheduled' and
-   machineSettings.machineType != 'blueos_3_ppc64le_ib_p9'):
-    try:
-        toAdd += f" --numNodes {machineSettings.numNodes}"
-    except:
-        pass
-    try:
-        toAdd += f" --wcid {machineSettings.wcid}"
-    except:
-        pass
+AtsRunCmd = f"{options.atsExe} {toAdd} {atsArgs} {machineSettings.get_ats_args()}"
 
-finalCommandToRun = f"{options.atsExe} {toAdd} {atsArgs}"
+os.environ["MACHINE_TYPE"] = machineSettings.machineType
+os.environ["BATCH_TYPE"] = "None"
 
-if machineSettings.batch:
-    listCommandsToRemove.append('--batchHost')
-    listCommandsToRemove.append('--batchT')
-    listCommandsToRemove.append('--batchP')
-    listCommandsToRemove.append('--batch ')
-    listCommandsToRemove.append('--partition')
-
-for machineArg in machineSettings.atsArgs:
-    if 'REMOVE' in machineArg:
-        listCommandsToRemove.append(machineArg)
-
+finalCommandToRun = machineSettings.get_launch_cmd() + " " + AtsRunCmd
 # Remove all extra spaces
 finalCommandToRun = re.sub(r"\s+", " ", finalCommandToRun.strip())
 
-#----------------------------------------------------------
-# if MSUB, SBATCH or BSUB
-#----------------------------------------------------------
-if machineSettings.batch:
-    print("--- ATS COMMAND ---\n", finalCommandToRun)
-    if "blueos" in SYS_TYPE:
-        bsubFilename= createBsubFile(finalCommandToRun, options)
-        batchtype = 'bsub < ' # have to have an input file redirect for bsub
-        print("\nWritten to %s batch filename: %s " %(batchtype, bsubFilename))
-        cmd = batchtype + ' ' + bsubFilename
-    elif 'magma' in LCSCHEDCLUSTER:
-        sbatchFilename= createSbatchFile(finalCommandToRun, options)
-        batchtype = 'sbatch'
-        print("\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename))
-        cmd = batchtype + ' ' + sbatchFilename
-    elif 'mica' in LCSCHEDCLUSTER:
-        sbatchFilename= createSbatchFile(finalCommandToRun, options)
-        batchtype = 'sbatch'
-        print("\nWritten to %s batch filename: %s " %(batchtype, sbatchFilename))
-        cmd = batchtype + ' ' + sbatchFilename
-    else:
-        msubFilename= createMsubFile(finalCommandToRun, options)
-        batchtype = 'msub'
-        print("\nWritten to %s batch filename: %s " %(batchtype, msubFilename))
-        cmd = batchtype + ' ' + msubFilename
-
-    if not options.skip:
-        from subprocess import check_call
-        print("Running0: ", cmd)
-        #check_call( cmd.split() )
-        os.system( cmd )
-    else:
-        if 'msub' in batchtype:
-            print("SKIP option in ats command.  ' msub ",  msubFilename, "' was not executed.")
-        elif 'sbatch' in batchtype:
-            print("SKIP option in ats command.  ' sbatch ",  sbatchFilename, "' was not executed.")
-        else:
-            print("SKIP option in ats command.  ' bsub ",  bsubFilename, "' was not executed.")
-
-
-    sys.exit()
-
-#----------------------------------------------------------
-# else SALLOC or threaded w/out salloc
-#----------------------------------------------------------
-else:
-
-    os.environ["MACHINE_TYPE"] = machineSettings.machineType
-    if machineSettings.name in ['rzwhippet_flux']:
-       os.environ["MACHINE_TYPE"] = "flux00"
-    os.environ["BATCH_TYPE"] = "None"
-
-    if platform.processor() == 'ppc64':
-        numProcsLine = ""
-    else:
-        numProcsLine = " -n %d" % ( machineSettings.numNodes* cpu_count() )
-
-    if machineSettings.allocTime:
-        if machineSettings.name in ['rzwhippet_flux']:
-            allocTime = "-t %dm" % machineSettings.allocTime
-        else:
-            allocTime = "--time=%d:00" % machineSettings.allocTime
-    else:
-        allocTime = ""
-
-    HERT_WC_ID = ''
-    if machineSettings.name in ['chama', 'glory']:
-        HERT_WC_ID = ' --account=' + machineSettings.wcid
-
-    if machineSettings.name in ['rzwhippet_flux']:
-        finalCommandToRun= "flux alloc --exclusive "  \
-                               + " " + allocTime \
-                               + HERT_WC_ID \
-                               + options.extraEzatsArgs \
-                               + " -N " + str(machineSettings.numNodes) \
-                               + numProcsLine + " " \
-                               + finalCommandToRun
-                               # +  " -p " + machineSettings.partition  + " "
-    # Threaded tests under ats should NOT use salloc
-    elif 'blue' not in os.environ['SYS_TYPE']:
-        finalCommandToRun= "salloc  --exclusive "  \
-                               + " " + allocTime \
-                               + HERT_WC_ID \
-                               + options.extraEzatsArgs \
-                               + " -N " + str(machineSettings.numNodes) \
-                               + numProcsLine \
-                               +  " -p " + machineSettings.partition  + " " \
-                               + finalCommandToRun
-    else:
-        finalCommandToRun += " --numNodes="+ str(machineSettings.numNodes)
-    #sys.exit()
-
-if (d_debug==1):
-    print("finalCommandToRun after= ", finalCommandToRun)
-
-#----------------------------------------------------------
-# Find filter part and keep whole
-#
-#  [05/30] The problem is from splitting the command into argsToUse. If we ran w/ something other than os.execv, maybe this will work correctly.
-tagFilter= finalCommandToRun.find('--filter')
-comboMark= False
-for anArg in sys.argv[1:]:
-    if '--filter' in anArg and ("'" in anArg):
-        comboMark= True
-if tagFilter != -1 and comboMark==True:
-    startFilter= finalCommandToRun.find("'", tagFilter)
-    endFilter= finalCommandToRun.find("'", startFilter+1)
-    filterPart= finalCommandToRun[tagFilter:endFilter+1]
-    filterPart= filterPart.replace("'", '')
-    argsToUse= finalCommandToRun[0:tagFilter].split() + [filterPart] + finalCommandToRun[endFilter+1:].split()
-else:
-    argsToUse= finalCommandToRun.split()
-
-print("Running:\n ", finalCommandToRun)
-if (d_debug==1):
-    print("atsExe= ", options.atsExe)
-    print("atsArgs= ", argsToUse)
+print(f"Running command:\n   {finalCommandToRun}")
 
 from subprocess import check_call
 try:
     check_call( finalCommandToRun,shell=True )
 except Exception as e:
     print("Caught - non-zero exit status 3 - thrown by final command", e)
-    print("Tests appear to execute correctly...but this output is here to keep an eye on this.")

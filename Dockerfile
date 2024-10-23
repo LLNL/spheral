@@ -75,5 +75,5 @@ RUN make install
 # Run ATS testing suite.
 WORKDIR ../install
 ENV MPLBACKEND=agg
-RUN ./spheral-atstest --filter="level<100" tests/integration.ats
+RUN ./spheral-ats --filter="level<100" tests/integration.ats
 # -----------------------------------------------------------------------------

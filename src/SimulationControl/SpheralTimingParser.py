@@ -8,6 +8,8 @@ from SpheralUtilities import TimerMgr
 from SpheralUtilities import adiak_value
 import SpheralOpenMP
 
+cali_args = ["caliperConfig", "caliperFilename", "caliperConfigJSON"]
+
 def parse_dict(string):
     """
     Function to parse a dictionary provided through the command line
@@ -42,10 +44,9 @@ def add_timing_args(parser):
     # argument and default value and prevents adding the argument
     # if it already exists
     arg_list = [action.dest for action in parser._actions]
-    cali_args = ["Config", "Filename", "ConfigJSON"]
     for ca in cali_args:
         if (ca not in arg_list):
-            parser.add_argument(f"--caliper{ca}", default="", type=str)
+            parser.add_argument(f"--{ca}", default="", type=str)
 
 def init_timer(args):
     """
@@ -96,14 +97,4 @@ def init_timer(args):
     if (args.adiakData):
         for key, val in args.adiakData.items():
             adiak_value(key, val)
-
-    # Add all commandLine() inputs as Adiak metadata
-    args_dict = vars(args)
-    args_dict.pop("adiakData") # Remove --adiakData inputs
-    for key, val in args_dict.items():
-        if (type(val) is not type(None)):
-            try:
-                adiak_value(key, val)
-            except:
-                adiak_value(key, val.__name__)
     return
