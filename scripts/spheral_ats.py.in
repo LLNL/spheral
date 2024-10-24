@@ -2,6 +2,7 @@
 
 import os, time, sys
 import argparse
+import ats
 
 # This is a wrapper for running Spheral through ATS
 
@@ -119,6 +120,7 @@ def main():
     numNodes = options.numNodes
     timeLimit = options.timeLimit
     ciRun = False if options.perfTest else True
+    launch_cmd = ""
     if ("broadwell" in spheral_sys_arch):
         os.environ["MACHINE_TYPE"] = "slurm36"
         numNodes = numNodes if numNodes else 2
