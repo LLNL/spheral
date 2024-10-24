@@ -165,7 +165,9 @@ if (ENABLE_TESTS)
     USE_SOURCE_PERMISSIONS
     DESTINATION "${SPHERAL_TEST_INSTALL_PREFIX}"
     PATTERN "*CMakeLists.txt*" EXCLUDE
+    PATTERN "*.cmake" EXCLUDE
     PATTERN "*.in" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
     PATTERN "*~" EXCLUDE)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit)
 endif()

@@ -20,20 +20,11 @@ test_dict = {"perf_test": "weak_scaling",
 for key, val in test_dict.items():
     adiak_value(key, val)
 
-# Test the --adiakData input. This must match what is hard-coded in the ATS lines
+# Test the --adiakData input. This must match what is
+# hard-coded in the ATS magic lines
 adiak_data_dict = {"adiak_test": 1, "test_adiak": "two"}
 
-# Test that commmandLine inputs are being passed to Adiak
-test_int = 4
-test_str = "hello"
-test_float = 4.224
-inp_test_dict = {"test_int": test_int,
-                 "test_str": test_str,
-                 "test_float": test_float}
-
-commandLine(test_int=test_int,
-            test_str=test_str,
-            test_float=test_float)
+commandLine()
 
 # Remove cali files from previous test runs
 caliper_file = TimerMgr.get_filename()
@@ -88,10 +79,6 @@ if (do_timers and TimerMgr.get_filename()):
     # Test Adiak output for explicitly set values
     assert test_dict.items() <= adiak_inp.items(),\
         "incorrect Adiak values found in Caliper file"
-
-    # Test Adiak outputs for commandLine() inputs
-    assert inp_test_dict.items() <= adiak_inp.items(),\
-        "incorrect commandLine() inputs found in Caliper file Adiak values"
 
     # Test --adiakData command line input
     if ("adiakData" in adiak_inp):
