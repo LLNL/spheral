@@ -29,30 +29,19 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-BackwardEuler<Dimension>::BackwardEuler():
-  ImplicitIntegrator<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-BackwardEuler<Dimension>::
-BackwardEuler(DataBase<Dimension>& dataBase):
-  ImplicitIntegrator<Dimension>(dataBase) {
-}
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase and Physics packages.
+// Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
 BackwardEuler<Dimension>::
 BackwardEuler(DataBase<Dimension>& dataBase,
-               const vector<Physics<Dimension>*>& physicsPackages):
-  ImplicitIntegrator<Dimension>(dataBase, physicsPackages) {
+              const vector<Physics<Dimension>*> physicsPackages,
+              const Scalar beta,
+              const Scalar tol,
+              const size_t maxIterations):
+  ImplicitIntegrator<Dimension>(dataBase, physicsPackages),
+  mBeta(beta),
+  mTol(tol),
+  mMaxIters(maxIterations) {
 }
 
 //------------------------------------------------------------------------------
@@ -71,6 +60,9 @@ BackwardEuler<Dimension>::
 operator=(const BackwardEuler<Dimension>& rhs) {
   if (this != &rhs) {
     ImplicitIntegrator<Dimension>::operator=(rhs);
+    mBeta = rhs.mBeta;
+    mTol = rhs.mTol;
+    mMaxIters = rhs.mMaxIters;
   }
   return *this;
 }
@@ -122,7 +114,7 @@ step(typename Dimension::Scalar maxTime,
   // Iterate on the new state
   auto residual = 2.0*mTol;
   auto k = 0u;
-  while (k++ < mMaxIterations and residual > mTol) {
+  while (k++ < mMaxIters and residual > mTol) {
     
     // Compute the derivatives for the current trial end of step state
     this->initializeDerivatives(t, dt, state, derivs);
@@ -146,7 +138,7 @@ step(typename Dimension::Scalar maxTime,
   }
 
   if (this->verbose() and Process::getRank() == 0) {
-    cerr << "    BackwardEuler: " << k << "/" << mMaxIterations << " for residual " << residual << endl;
+    cerr << "    BackwardEuler: " << k << "/" << mMaxIters << " for residual " << residual << endl;
   }
 
   if (residual > mTol and Process::getRank() == 0) {

@@ -22,6 +22,7 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"Integrator/ImplicitIntegrator.hh"',
                   '"Integrator/PredictorCorrector.hh"',
                   '"Integrator/ForwardEuler.hh"',
+                  '"Integrator/BackwardEuler.hh"',
                   '"Integrator/SynchronousRK2.hh"',
                   '"Integrator/SynchronousRK4.hh"',
                   '"Integrator/CheapSynchronousRK2.hh"',
@@ -39,6 +40,7 @@ from Integrator import *
 from ImplicitIntegrator import *
 from PredictorCorrectorIntegrator import *
 from ForwardEulerIntegrator import *
+from BackwardEulerIntegrator import *
 from SynchronousRK2Integrator import *
 from SynchronousRK4Integrator import *
 from CheapSynchronousRK2Integrator import *
@@ -51,6 +53,7 @@ Integrator{ndim}d = PYB11TemplateClass(Integrator, template_parameters="{Dimensi
 ImplicitIntegrator{ndim}d = PYB11TemplateClass(ImplicitIntegrator, template_parameters="{Dimension}")
 PredictorCorrectorIntegrator{ndim}d = PYB11TemplateClass(PredictorCorrectorIntegrator, template_parameters="{Dimension}")
 ForwardEulerIntegrator{ndim}d = PYB11TemplateClass(ForwardEulerIntegrator, template_parameters="{Dimension}")
+BackwardEulerIntegrator{ndim}d = PYB11TemplateClass(BackwardEulerIntegrator, template_parameters="{Dimension}")
 SynchronousRK2Integrator{ndim}d = PYB11TemplateClass(SynchronousRK2Integrator, template_parameters="{Dimension}")
 SynchronousRK4Integrator{ndim}d = PYB11TemplateClass(SynchronousRK4Integrator, template_parameters="{Dimension}")
 CheapSynchronousRK2Integrator{ndim}d = PYB11TemplateClass(CheapSynchronousRK2Integrator, template_parameters="{Dimension}")

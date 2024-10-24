@@ -4,6 +4,7 @@ set(Integrator_inst
     ImplicitIntegrator
     PredictorCorrector 
     ForwardEuler
+    BackwardEuler
     SynchronousRK2
     SynchronousRK4
     CheapSynchronousRK2
@@ -20,6 +21,7 @@ set(Integrator_headers
     CheapSynchronousRK2.hh
     PredictorCorrector.hh
     ForwardEuler.hh
+    BackwardEuler.hh
     SynchronousRK2.hh
     SynchronousRK4.hh
     Verlet.hh

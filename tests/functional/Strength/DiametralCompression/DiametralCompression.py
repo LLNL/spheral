@@ -317,7 +317,7 @@ for n in nodeListSet:
     db.appendNodeList(n)
     print(n.name)
 del n
-nodeLists = db.nodeLists()
+nodeLists = db.nodeLists
 
 output("db")
 output("db.nodeLists")

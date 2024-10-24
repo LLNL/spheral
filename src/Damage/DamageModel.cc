@@ -197,7 +197,7 @@ finalize(const Scalar /*time*/,
       }
     }
     nD = allReduce(nD, SPHERAL_OP_SUM);
-    const auto ntot = std::max(1, dataBase.globalNumInternalNodes());
+    const auto ntot = std::max<size_t>(1u, dataBase.globalNumInternalNodes());
     const auto dfrac = double(nD)/double(ntot);
     mComputeIntersectConnectivity = (dfrac > 0.2);  // Should tune this number...
     // if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;

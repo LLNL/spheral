@@ -22,15 +22,14 @@ public:
   using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
-  BackwardEuler();
-  BackwardEuler(DataBase<Dimension>& dataBase);
   BackwardEuler(DataBase<Dimension>& dataBase,
-                const std::vector<Physics<Dimension>*>& physicsPackages);
+                const std::vector<Physics<Dimension>*> physicsPackages = std::vector<Physics<Dimension>*>(),
+                const Scalar beta = 1.0,
+                const Scalar tol = 1.0e-6,
+                const size_t maxIterations = 10u);
 
   // Destructor.
-  ~BackwardEuler(const Scalar beta = 1.0,
-                 const Scalar tol = 1.0e-6,
-                 const size_t maxIterations = 10u);
+  ~BackwardEuler();
 
   // Assignment.
   BackwardEuler& operator=(const BackwardEuler& rhs);
@@ -41,13 +40,13 @@ public:
                     StateDerivatives<Dimension>& derivs) override;
 
   // Access internal state
-  Scalar beta()             const { return mBeta; }
-  Scalar tol()              const { return mTol; }
-  size_t maxIterations()    const { return mMaxIters; }
+  Scalar beta()                const { return mBeta; }
+  Scalar tol()                 const { return mTol; }
+  size_t maxIterations()       const { return mMaxIters; }
 
-  void beta(const x)              { mBeta = x; }
-  void tol(const x)               { mTol = x; }
-  void maxIterations(const x)     { mMaxIters = x; }
+  void beta(const Scalar x)          { mBeta = x; }
+  void tol(const Scalar x)           { mTol = x; }
+  void maxIterations(const size_t x) { mMaxIters = x; }
 
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
@@ -58,6 +57,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
 private:
   Scalar mBeta, mTol;
+  size_t mMaxIters;
 };
 
 }

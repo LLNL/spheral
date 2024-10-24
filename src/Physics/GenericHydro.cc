@@ -19,6 +19,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Strength/SolidFieldNames.hh"
+#include "Utilities/range.hh"
 
 #include <limits>
 #include <algorithm>
@@ -116,7 +117,7 @@ GenericHydro<Dimension>::~GenericHydro() {
 }
 
 //------------------------------------------------------------------------------
-// Determine the timestep requirements for a hydro step.
+// Determine the timestep requirements for a hydro step (explicit)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 typename GenericHydro<Dimension>::TimeStepType
@@ -142,13 +143,7 @@ dt(const DataBase<Dimension>& dataBase,
   const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
                                                          this->requireOverlapConnectivity(),
                                                          this->requireIntersectionConnectivity());
-  const auto  numNodeLists = connectivityMap.nodeLists().size();
-
-  // Stuff from the artificial viscosity
-  //const auto& Q = this->artificialViscosity();
-  //const auto  Cl = Q.Cl();
-  //const auto  Cq = Q.Cq();
-  //const auto  Qeps2 = Q.epsilon2();
+  const auto  pairs = connectivityMap.nodePairList();
 
   // Check for deviatoric stress.
   const auto haveDS = state.fieldNameRegistered(SolidFieldNames::deviatoricStress);
@@ -164,30 +159,25 @@ dt(const DataBase<Dimension>& dataBase,
   auto minDt = make_pair(std::numeric_limits<double>::max(), string());
 
   // Define a function for computing the velocity divergence (different for curvilinear coordinates)
-  auto Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); };
-  if (GeometryRegistrar::coords() == CoordinateType::Spherical) {
-    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); };
-  } else if (GeometryRegistrar::coords() == CoordinateType::RZ) {
-    Fdiv = +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[1]*safeInv(posi[1]); };
-  }
-
+  const auto Fdiv = (GeometryRegistrar::coords() == CoordinateType::Spherical ? +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); } :
+                     GeometryRegistrar::coords() == CoordinateType::RZ        ? +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[1]*safeInv(posi[1]); } :
+                                                                                +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); });
   // Loop over every fluid node.
   // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(std::numeric_limits<double>::max(), string("null")))
   // #pragma omp parallel for reduction(MINPAIR:minDt) collapse(2)
-  for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto& fluidNodeList = **(dataBase.fluidNodeListBegin() + nodeListi);
-    const auto nPerh = fluidNodeList.nodesPerSmoothingScale();
+  for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListPtrs())) {
+    const auto nPerh = fluidNodeListPtr->nodesPerSmoothingScale();
     CHECK(nPerh > 0.0);
 
     // Check if we have a longitudinal sound speed for this material.
-    const bool useCsl = haveLongCs and csl.haveNodeList(fluidNodeList);
+    const auto useCsl = haveLongCs and csl.haveNodeList(*fluidNodeListPtr);
     const Field<Dimension, Scalar>* cslptr = nullptr;
-    if (useCsl) cslptr = *csl.fieldForNodeList(fluidNodeList);
+    if (useCsl) cslptr = *csl.fieldForNodeList(*fluidNodeListPtr);
 
     // Check if we have a deviatoric stress for this material.
-    const bool useS = haveDS and S.haveNodeList(fluidNodeList);
+    const auto useS = haveDS and S.haveNodeList(*fluidNodeListPtr);
     const Field<Dimension, SymTensor>* Sptr = nullptr;
-    if (useS) Sptr = *S.fieldForNodeList(fluidNodeList);
+    if (useS) Sptr = *S.fieldForNodeList(*fluidNodeListPtr);
 
     // Walk all the nodes in this FluidNodeList.
     const auto ni = connectivityMap.numNodes(nodeListi);
@@ -201,16 +191,17 @@ dt(const DataBase<Dimension>& dataBase,
       auto DTnode_local = mDTnode;
       auto DTreason_local = mDTreason;
 #pragma omp for
-      for (auto k = 0; k < ni; ++k) {
+      for (auto k = 0u; k < ni; ++k) {
         const auto i = connectivityMap.ithNode(nodeListi, k);
 
         // If this node is masked, don't worry about it.
         if (mask(nodeListi, i) == 1) {
 
           // Get this nodes minimum characteristic smoothing scale.
-          CHECK2(H(nodeListi, i).Determinant() >  0.0,
-                 "Bad H tensor : " << H(nodeListi, i) << " : " << fluidNodeList.name() << " " << i << " " << fluidNodeList.firstGhostNode());
+          const auto& vi = velocity(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
+          CHECK2(Hi.Determinant() >  0.0,
+                 "Bad H tensor : " << Hi << " : " << fluidNodeListPtr->name() << " " << i << " " << fluidNodeListPtr->firstGhostNode());
           const Scalar nodeScalei = 1.0/Hi.eigenValues().maxElement()/nPerh;
           // const Scalar nodeScalei = 1.0/Dimension::rootnu(Hi.Determinant());
           //     const Scalar nodeScalei = nodeExtent(nodeListi, i).minElement()/kernelExtent;
@@ -222,7 +213,7 @@ dt(const DataBase<Dimension>& dataBase,
             minDt_local = make_pair(csDt, ("Sound speed limit: dt = " + to_string(csDt) + "\n" +
                                            "                   cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                            "            nodeScale = " + to_string(nodeScalei) + "\n" +
-                                           "             material = " + fluidNodeList.name() + "\n" +
+                                           "             material = " + fluidNodeListPtr->name() + "\n" +
                                            "(nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                            "           @ position = " + vec_to_string(position(nodeListi, i))));
             DTrank_local = rank;
@@ -239,7 +230,7 @@ dt(const DataBase<Dimension>& dataBase,
                                              "                                cs = " + to_string(cs(nodeListi, i)) + "\n" +
                                              "                               csl = " + to_string((*cslptr)(i)) + "\n" +
                                              "                         nodeScale = " + to_string(nodeScalei) + "\n" +
-                                             "                          material = " + fluidNodeList.name() + "\n" +
+                                             "                          material = " + fluidNodeListPtr->name() + "\n" +
                                              "             (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                              "                        @ position = " + vec_to_string(position(nodeListi, i))));
               DTrank_local = rank;
@@ -261,7 +252,7 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                              csS = " + to_string(csS) + "\n" +
                                             "                                              rho = " + to_string(rhoi) + "\n" +
                                             "                                        nodeScale = " + to_string(nodeScalei) + "\n" +
-                                            "                                         material = " + fluidNodeList.name() + "\n" +
+                                            "                                         material = " + fluidNodeListPtr->name() + "\n" +
                                             "                            (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                                       @ position = " + vec_to_string(position(nodeListi, i))));
               DTrank_local = rank;
@@ -280,7 +271,7 @@ dt(const DataBase<Dimension>& dataBase,
                                             "                                       csQ = " + to_string(csq) + "\n" +
                                             "                                       rho = " + to_string(rhoi) + "\n" +
                                             "                                 nodeScale = " + to_string(nodeScalei) + "\n" +
-                                            "                                  material = " + fluidNodeList.name() + "\n" +
+                                            "                                  material = " + fluidNodeListPtr->name() + "\n" +
                                             "                     (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                                @ position = " + vec_to_string(position(nodeListi, i))));
             DTrank_local = rank;
@@ -295,7 +286,7 @@ dt(const DataBase<Dimension>& dataBase,
           if (divvDt < minDt_local.first) {
             minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
                                              "                 div velocity = " + to_string(divVelocity) + "\n" +
-                                             "                     material = " + fluidNodeList.name() + "\n" +
+                                             "                     material = " + fluidNodeListPtr->name() + "\n" +
                                              "        (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                              "                   @ position = " + vec_to_string(position(nodeListi, i))));
             DTrank_local = rank;
@@ -304,88 +295,6 @@ dt(const DataBase<Dimension>& dataBase,
             DTreason_local = "velocity divergence";
           }
 
-          // Maximum velocity difference limit.
-          //const auto& xi = position(nodeListi, i);
-          const auto& vi = velocity(nodeListi, i);
-          const auto& fullConnectivity = connectivityMap.connectivityForNode(nodeListi, i);
-          for (auto nodeListj = 0u; nodeListj != numNodeLists; ++nodeListj) {
-            const auto& connectivity = fullConnectivity[nodeListj];
-            for (auto jItr = connectivity.begin();
-                 jItr != connectivity.end();
-                 ++jItr) {
-              const auto  j = *jItr;
-              //const auto& xj = position(nodeListj, j);
-              const auto& vj = velocity(nodeListj, j);
-              const auto& Hj = H(nodeListj, j);
-              //const auto  rhoj = rho(nodeListj, j);
-              const Scalar nodeScalej = 1.0/Hj.eigenValues().maxElement()/nPerh;
-              // const Scalar vij = std::abs((vj - vi).dot((xi - xj).unitVector()));
-              const auto  vij = vi - vj;
-              const auto  dtVelDiff = std::min(nodeScalei, nodeScalej)*safeInvVar(vij.magnitude(), 1e-30);
-              if (dtVelDiff < minDt_local.first) {
-                minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
-                                                    "                              material = " + fluidNodeList.name() + "\n" +
-                                                    "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
-                                                    "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(rank) + ")\n" +
-                                                    "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
-                                                    "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
-                                                    "                                   vij = " + to_string(vij.magnitude()) + "\n" +
-                                                    "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
-                                                    "                            nodeScalej = " + to_string(nodeScalej)));
-                DTrank_local = rank;
-                DTNodeList_local = nodeListi;
-                DTnode_local = i;
-                DTreason_local = "pairwise velocity difference";
-              }
-
-              // // We also use a pairwise condition modeled on the Monaghan-Gingold viscosity formulation.
-              // const auto csj = cs(nodeListj, j);
-              // const auto xij = (xi - xj);
-              // const auto etai = Hi*xij;
-              // const auto etaj = Hj*xij;
-              // const auto mui = std::abs(vij.dot(etai)/(etai.magnitude2() + Qeps2));
-              // const auto muj = std::abs(vij.dot(etaj)/(etaj.magnitude2() + Qeps2));
-              // const auto ei = Cl*csi*mui + Cq*mui*mui;
-              // const auto ej = Cl*csj*muj + Cq*muj*muj;
-              // const auto csQpair = 2.0*std::min(rhoi*ei, rhoj*ej);
-              // const auto dtQpair = std::min(nodeScalei, nodeScalej)/(csQpair + tiny);
-              // if (dtQpair < minDt_local.first) {
-              //   minDt_local = make_pair(dtQpair, ("                  Pairwise Q limit: dt = " + to_string(dtVelDiff) + "\n" + 
-              //                                     "                              material = " + fluidNodeList.name() + "\n" +
-              //                                     "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(Process::getRank()) + ")\n" +
-              //                                     "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(Process::getRank()) + ")\n" +
-              //                                     "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
-              //                                     "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
-              //                                     "                               csQpair = " + to_string(csQpair) + "\n"
-              //                                     "                                   mui = " + to_string(mui) + "\n"
-              //                                     "                                   muj = " + to_string(muj) + "\n"
-              //                                     "                                   vij = " + vec_to_string(vij) + "\n" +
-              //                                     "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
-              //                                     "                            nodeScalej = " + to_string(nodeScalej)));
-              // }
-            }
-          }
-
-          //     // Eigenvalues of the stress-strain tensor.
-          //     Vector eigenValues = DvDx(nodeListi, i).Symmetric().eigenValues();
-          //     Scalar maxValue = -1.0;
-          //     for (int i = 0; i < Dimension::nDim; ++i) {
-          //       maxValue = max(maxValue, fabs(eigenValues(i)));
-          //     }
-          //     const double strainDt = 1.0/(maxValue + tiny);
-          //     if (strainDt < minDt) {
-          //       minDt = strainDt;
-          //       reason = "strain limit";
-          //     }
-
-          //     // Limit by the velocity shear.
-          //     const Scalar shearVelocity = computeShearMagnitude(DvDx(nodeListi, i));
-          //     const double shearDt = 1.0/(shearVelocity + tiny);
-          //     if (shearDt < minDt) {
-          //       minDt = shearDt;
-          //       reason = "velocity shear limit";
-          //     }
-
           // Total acceleration limit.
           const auto vmagi = vi.magnitude();
           const auto dtAcc = 0.1*std::max(nodeScalei/(vmagi + tiny), vmagi/(DvDt(nodeListi, i).magnitude() + tiny));
@@ -393,7 +302,7 @@ dt(const DataBase<Dimension>& dataBase,
             minDt_local = make_pair(dtAcc, ("Total acceleration limit: dt = " + to_string(dtAcc) + "\n" + 
                                             "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
                                             "                   nodeScale = " + to_string(nodeScalei) + "\n" +
-                                            "                    material = " + fluidNodeList.name() + "\n" +
+                                            "                    material = " + fluidNodeListPtr->name() + "\n" +
                                             "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                             "                  @ position = " + vec_to_string(position(nodeListi, i))));
             DTrank_local = rank;
@@ -409,7 +318,7 @@ dt(const DataBase<Dimension>& dataBase,
               minDt_local = make_pair(velDt, ("Velocity magnitude limit: dt = " + to_string(velDt) + "\n" +
                                               "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
                                               "                   nodeScale = " + to_string(nodeScalei) + "\n" +
-                                              "                    material = " + fluidNodeList.name() + "\n" +
+                                              "                    material = " + fluidNodeListPtr->name() + "\n" +
                                               "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
                                               "                  @ position = " + vec_to_string(position(nodeListi, i))));
               DTrank_local = rank;
@@ -418,6 +327,212 @@ dt(const DataBase<Dimension>& dataBase,
               DTreason_local = "velocity magnitude";
             }
           }
+        }
+      }
+
+      // Maximum pair-wise velocity difference limit
+      const auto npairs = pairs.size();
+#pragma omp for
+      for (auto k = 0u; k < npairs; ++k) {
+        const auto i = pairs[k].i_node;
+        const auto j = pairs[k].j_node;
+        const auto nodeListi = pairs[k].i_list;
+        const auto nodeListj = pairs[k].j_list;
+
+        const auto& vi = velocity(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  nodeScalei = 1.0/Hi.eigenValues().maxElement()/nPerh;
+
+        const auto& vj = velocity(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  nodeScalej = 1.0/Hj.eigenValues().maxElement()/nPerh;
+
+        const auto  vij = vi - vj;
+        const auto  dtVelDiff = std::min(nodeScalei, nodeScalej)*safeInvVar(vij.magnitude(), tiny);
+        if (dtVelDiff < minDt_local.first) {
+          minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
+                                              "                              material = " + fluidNodeListPtr->name() + "\n" +
+                                              "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                              "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(rank) + ")\n" +
+                                              "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
+                                              "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
+                                              "                                   vij = " + to_string(vij.magnitude()) + "\n" +
+                                              "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
+                                              "                            nodeScalej = " + to_string(nodeScalej)));
+          DTrank_local = rank;
+          DTNodeList_local = nodeListi;
+          DTnode_local = i;
+          DTreason_local = "pairwise velocity difference";
+        }
+      }
+
+#pragma omp critical
+      {
+        if (minDt_local.first < minDt.first) {
+          minDt = minDt_local;
+          mDTrank = DTrank_local;
+          mDTNodeList = DTNodeList_local;
+          mDTnode = DTnode_local;
+          mDTreason = DTreason_local;
+        }
+      }
+    }
+  }
+
+  // Scale by the cfl safety factor.
+  minDt.first *= cfl();
+  return minDt;
+}
+
+//------------------------------------------------------------------------------
+// Determine the timestep requirements for a hydro step (implicit)
+//
+// In the implicit case we're going to limit solely by motion, such that
+// connectivity/topology shouldn't change too much timestep to timestep.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename GenericHydro<Dimension>::TimeStepType
+GenericHydro<Dimension>::
+dtImplicit(const DataBase<Dimension>& dataBase,
+           const State<Dimension>& state,
+           const StateDerivatives<Dimension>& derivs,
+           typename Dimension::Scalar /*currentTime*/) const {
+
+  const double tiny = std::numeric_limits<double>::epsilon();
+
+  // Get some useful fluid variables from the DataBase.
+  const auto  mask = state.fields(HydroFieldNames::timeStepMask, 1);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  const auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  const auto& connectivityMap = dataBase.connectivityMap(this->requireGhostConnectivity(),
+                                                         this->requireOverlapConnectivity(),
+                                                         this->requireIntersectionConnectivity());
+  const auto  pairs = connectivityMap.nodePairList();
+
+  // Initialize the return value to some impossibly high value.
+  auto minDt = make_pair(std::numeric_limits<double>::max(), string());
+
+  // Define a function for computing the velocity divergence (different for curvilinear coordinates)
+  const auto Fdiv = (GeometryRegistrar::coords() == CoordinateType::Spherical ? +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi[0] + 2.0*veli[0]*safeInv(posi[0]); } :
+                     GeometryRegistrar::coords() == CoordinateType::RZ        ? +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace() + veli[1]*safeInv(posi[1]); } :
+                                                                                +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); });
+
+  // Loop over every fluid node.
+  for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListPtrs())) {
+    const auto nPerh = fluidNodeListPtr->nodesPerSmoothingScale();
+    CHECK(nPerh > 0.0);
+
+    // Walk all the nodes in this FluidNodeList.
+    const auto ni = connectivityMap.numNodes(nodeListi);
+    const auto rank = Process::getRank();
+#pragma omp parallel
+    {
+      auto minDt_local = minDt;
+      auto DTrank_local = mDTrank;
+      auto DTNodeList_local = mDTNodeList;
+      auto DTnode_local = mDTnode;
+      auto DTreason_local = mDTreason;
+#pragma omp for
+      for (auto k = 0u; k < ni; ++k) {
+        const auto i = connectivityMap.ithNode(nodeListi, k);
+
+        // If this node is masked, don't worry about it.
+        if (mask(nodeListi, i) == 1) {
+
+          // Get this nodes minimum characteristic smoothing scale.
+          
+          const auto& Hi = H(nodeListi, i);
+          const auto& vi = velocity(nodeListi, i);
+          CHECK2(Hi.Determinant() >  0.0,
+                 "Bad H tensor : " << Hi << " : " << fluidNodeListPtr->name() << " " << i << " " << fluidNodeListPtr->firstGhostNode());
+          const Scalar nodeScalei = 1.0/Hi.eigenValues().maxElement()/nPerh;
+
+          // Velocity divergence limit.
+          const auto divVelocity = Fdiv(DvDx(nodeListi, i), position(nodeListi, i), velocity(nodeListi, i));
+          const auto divvDt = 1.0/(std::abs(divVelocity) + tiny);
+          if (divvDt < minDt_local.first) {
+            minDt_local = make_pair(divvDt, ("Velocity divergence limit: dt = " + to_string(divvDt) + "\n" +
+                                             "                 div velocity = " + to_string(divVelocity) + "\n" +
+                                             "                     material = " + fluidNodeListPtr->name() + "\n" +
+                                             "        (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                             "                   @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "velocity divergence";
+          }
+
+          // Total acceleration limit.
+          const auto vmagi = vi.magnitude();
+          const auto dtAcc = 0.1*std::max(nodeScalei/(vmagi + tiny), vmagi/(DvDt(nodeListi, i).magnitude() + tiny));
+          if (dtAcc < minDt_local.first) {
+            minDt_local = make_pair(dtAcc, ("Total acceleration limit: dt = " + to_string(dtAcc) + "\n" + 
+                                            "              |acceleration| = " + to_string(DvDt(nodeListi, i).magnitude()) + "\n" +
+                                            "                   nodeScale = " + to_string(nodeScalei) + "\n" +
+                                            "                    material = " + fluidNodeListPtr->name() + "\n" +
+                                            "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                            "                  @ position = " + vec_to_string(position(nodeListi, i))));
+            DTrank_local = rank;
+            DTNodeList_local = nodeListi;
+            DTnode_local = i;
+            DTreason_local = "acceleration";
+          }
+
+          // If requested, limit against the absolute velocity.
+          if (useVelocityMagnitudeForDt()) {
+            const auto velDt = nodeScalei/(velocity(nodeListi, i).magnitude() + 1.0e-10);
+            if (velDt < minDt_local.first) {
+              minDt_local = make_pair(velDt, ("Velocity magnitude limit: dt = " + to_string(velDt) + "\n" +
+                                              "                        |vi| = " + to_string(velocity(nodeListi, i).magnitude()) + "\n" +
+                                              "                   nodeScale = " + to_string(nodeScalei) + "\n" +
+                                              "                    material = " + fluidNodeListPtr->name() + "\n" +
+                                              "       (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                              "                  @ position = " + vec_to_string(position(nodeListi, i))));
+              DTrank_local = rank;
+              DTNodeList_local = nodeListi;
+              DTnode_local = i;
+              DTreason_local = "velocity magnitude";
+            }
+          }
+        }
+      }
+
+      // Maximum pair-wise velocity difference limit
+      const auto npairs = pairs.size();
+#pragma omp for
+      for (auto k = 0u; k < npairs; ++k) {
+        const auto i = pairs[k].i_node;
+        const auto j = pairs[k].j_node;
+        const auto nodeListi = pairs[k].i_list;
+        const auto nodeListj = pairs[k].j_list;
+
+        const auto& vi = velocity(nodeListi, i);
+        const auto& Hi = H(nodeListi, i);
+        const auto  nodeScalei = 1.0/Hi.eigenValues().maxElement()/nPerh;
+
+        const auto& vj = velocity(nodeListj, j);
+        const auto& Hj = H(nodeListj, j);
+        const auto  nodeScalej = 1.0/Hj.eigenValues().maxElement()/nPerh;
+
+        const auto  vij = vi - vj;
+        const auto  dtVelDiff = std::min(nodeScalei, nodeScalej)*safeInvVar(vij.magnitude(), tiny);
+        if (dtVelDiff < minDt_local.first) {
+          minDt_local = make_pair(dtVelDiff, ("Pairwise velocity difference limit: dt = " + to_string(dtVelDiff) + "\n" + 
+                                              "                              material = " + fluidNodeListPtr->name() + "\n" +
+                                              "                  (nodeListi, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n" +
+                                              "                  (nodeListj, i, rank) = (" + to_string(nodeListj) + " " + to_string(j) + " " + to_string(rank) + ")\n" +
+                                              "                   @ pos(nodeListi, i) = " + vec_to_string(position(nodeListi, i)) + "\n" +
+                                              "                   @ pos(nodeListj, j) = " + vec_to_string(position(nodeListj, j)) + "\n" +
+                                              "                                   vij = " + to_string(vij.magnitude()) + "\n" +
+                                              "                            nodeScalei = " + to_string(nodeScalei) + "\n" +
+                                              "                            nodeScalej = " + to_string(nodeScalej)));
+          DTrank_local = rank;
+          DTNodeList_local = nodeListi;
+          DTnode_local = i;
+          DTreason_local = "pairwise velocity difference";
         }
       }
 

@@ -50,7 +50,13 @@ public:
   virtual TimeStepType dt(const DataBase<Dimension>& dataBase,
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
-                          const Scalar currentTime) const;
+                          const Scalar currentTime) const override;
+
+  // Provide an appropriate vote for an implicit time step limit.
+  virtual TimeStepType dtImplicit(const DataBase<Dimension>& dataBase,
+                                  const State<Dimension>& state,
+                                  const StateDerivatives<Dimension>& derivs,
+                                  const Scalar currentTime) const override;
 
   // Allow access to the artificial viscosity.
   ArtificialViscosity<Dimension>& artificialViscosity() const;

@@ -33,7 +33,16 @@ class GenericHydro(Physics):
            state = "const State<%(Dimension)s>&",
            derivs = "const StateDerivatives<%(Dimension)s>&",
            currentTime = "const Scalar"):
-        "Vote on a time step."
+        "Vote on a time step (explicit)"
+        return "TimeStepType"
+
+    @PYB11virtual
+    @PYB11const
+    def dtImplicit(dataBase = "const DataBase<%(Dimension)s>&", 
+                   state = "const State<%(Dimension)s>&",
+                   derivs = "const StateDerivatives<%(Dimension)s>&",
+                   currentTime = "const Scalar"):
+        "Vote on a time step (implicit)"
         return "TimeStepType"
 
     #...........................................................................

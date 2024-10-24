@@ -42,7 +42,7 @@ def FSISPH(dataBase,
         raise RuntimeError("compatibleEnergyEvolution and evolveTotalEnergy are incompatible")
 
     # create the map nodelist --> index
-    nodeLists = dataBase.nodeLists()
+    nodeLists = dataBase.nodeLists
     nodeListMap = {}
     for i in range(dataBase.numNodeLists):          
         nodeListMap[nodeLists[i]]=i

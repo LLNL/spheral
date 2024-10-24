@@ -451,7 +451,7 @@ Ss = db.solidDeviatoricStress
 Sxx = db.newSolidScalarFieldList(0.0, "deviatoricStress")
 Y = hydro.yieldStrength
 mu = hydro.shearModulus
-nodeLists = db.nodeLists()
+nodeLists = db.nodeLists
 numNodeLists = db.numNodeLists
 for nodeListi in range(numNodeLists):
     

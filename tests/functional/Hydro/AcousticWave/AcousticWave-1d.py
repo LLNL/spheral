@@ -354,7 +354,7 @@ def printTotalEnergy(cycle,time,dt):
     vel00=db.fluidVelocity
     eps00=db.fluidSpecificThermalEnergy
     rho00 = db.fluidMassDensity
-    nodeLists = db.nodeLists()
+    nodeLists = db.nodeLists
     for nodelisti in range(db.numNodeLists):
 
         for i in range(nodeLists[nodelisti].numInternalNodes):

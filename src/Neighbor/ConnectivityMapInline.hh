@@ -223,12 +223,12 @@ overlapConnectivityForNode(const int nodeListID,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+size_t
 ConnectivityMap<Dimension>::
 numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
                     const int nodeID) const {
   const std::vector< std::vector<int> >& neighbors = connectivityForNode(nodeListPtr, nodeID);
-  int result = 0;
+  size_t result = 0u;
   for (std::vector< std::vector<int> >::const_iterator itr = neighbors.begin();
        itr != neighbors.end();
        ++itr) result += itr->size();
@@ -237,7 +237,7 @@ numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
 
 template<typename Dimension>
 inline
-int
+size_t
 ConnectivityMap<Dimension>::
 numNeighborsForNode(const int nodeListID,
                     const int nodeID) const {
@@ -250,12 +250,12 @@ numNeighborsForNode(const int nodeListID,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+size_t
 ConnectivityMap<Dimension>::
 numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
                            const int nodeID) const {
   const std::vector< std::vector<int> >& neighbors = overlapConnectivityForNode(nodeListPtr, nodeID);
-  int result = 0;
+  size_t result = 0u;
   for (std::vector< std::vector<int> >::const_iterator itr = neighbors.begin();
        itr != neighbors.end();
        ++itr) result += itr->size();
@@ -264,7 +264,7 @@ numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
 
 template<typename Dimension>
 inline
-int
+size_t
 ConnectivityMap<Dimension>::
 numOverlapNeighborsForNode(const int nodeListID,
                            const int nodeID) const {
@@ -322,7 +322,7 @@ end(const int nodeList) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-int
+size_t
 ConnectivityMap<Dimension>::
 numNodes(const int nodeList) const {
   REQUIRE(nodeList >= 0 and nodeList < (int)mNodeLists.size());
