@@ -19,8 +19,7 @@ class SolidSPHHydroBase(SPHHydroBase):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -35,7 +34,6 @@ class SolidSPHHydroBase(SPHHydroBase):
                correctVelocityGradient = "const bool",
                sumMassDensityOverAllNodeLists = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool",
@@ -106,7 +104,6 @@ mass density, velocity, and specific thermal energy."""
     shearModulus =         PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "shearModulus",        returnpolicy="reference_internal")
     yieldStrength =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "yieldStrength",       returnpolicy="reference_internal")
     plasticStrain0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "plasticStrain0",      returnpolicy="reference_internal")
-    Hfield0 =              PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "Hfield0",             returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

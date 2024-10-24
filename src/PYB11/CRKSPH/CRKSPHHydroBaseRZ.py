@@ -23,7 +23,6 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
 """
 
     def pyinit(self,
-               smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                order = "const RKOrder",
@@ -34,7 +33,6 @@ class CRKSPHHydroBaseRZ(CRKSPHHydroBase):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double"):
         "Constructor"

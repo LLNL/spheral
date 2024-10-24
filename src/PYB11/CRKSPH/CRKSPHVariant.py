@@ -22,7 +22,6 @@ class CRKSPHVariant(CRKSPHHydroBase):
 """
 
     def pyinit(self,
-               smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -33,7 +32,6 @@ class CRKSPHVariant(CRKSPHHydroBase):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                correctionOrder = "const RKOrder",
                volumeType = "const RKVolumeType",
                epsTensile = "const double",

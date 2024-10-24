@@ -19,8 +19,7 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -35,7 +34,6 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
                correctVelocityGradient = "const bool",
                sumMassDensityOverAllNodeLists = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool",

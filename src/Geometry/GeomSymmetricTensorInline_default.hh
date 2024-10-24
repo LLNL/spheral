@@ -2258,7 +2258,7 @@ sqrt() const {
   GeomSymmetricTensor<nDim> result;
   for (int i = 0; i != nDim; ++i) {
     REQUIRE(eigen.eigenValues(i) >= 0.0);
-    result(i,i) = std::sqrt(eigen.eigenValues(i));
+    result(i,i) = std::sqrt(std::max(0.0, eigen.eigenValues(i)));
   }
   result.rotationalTransform(eigen.eigenVectors);
   return result;

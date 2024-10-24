@@ -61,8 +61,8 @@ update(const KeyType& key,
        State<Dimension>& state,
        StateDerivatives<Dimension>& derivs,
        const double multiplier,
-       const double /*t*/,
-       const double /*dt*/) {
+       const double t,
+       const double dt) {
 
 //   // HACK!
 //   std::cerr.setf(std::ios::scientific, std::ios::floatfield);
@@ -78,17 +78,45 @@ update(const KeyType& key,
   // Get the state field lists
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
+  const auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
   const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  CHECK(pairAccelerations.size() == npairs);
+  const auto  nint = mDataBasePtr->numInternalNodes();
+  CHECK(pairAccelerations.size() == npairs or
+        pairAccelerations.size() == (npairs + nint));
+  const bool selfInteraction = (pairAccelerations.size() == (npairs + nint));
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
+
+  // Check that the partial accelerations sum to the total hydro acceleration, or this isn't going to conserve
+  BEGIN_CONTRACT_SCOPE
+    {
+      auto DvDt_check = mDataBasePtr->newFluidFieldList(Vector::zero, "hydro acceleration check");
+      for (auto kk = 0u; kk < npairs; ++kk) {
+        const auto i = pairs[kk].i_node;
+        const auto j = pairs[kk].j_node;
+        const auto nodeListi = pairs[kk].i_list;
+        const auto nodeListj = pairs[kk].j_list;
+        const auto& paccij = pairAccelerations[kk];
+        const auto  mi = mass(nodeListi, i);
+        const auto  mj = mass(nodeListj, j);
+        DvDt_check(nodeListi, i) += paccij;
+        DvDt_check(nodeListj, j) -= paccij * mi/mj;
+      }
+      const auto numNodeLists = mDataBasePtr->numFluidNodeLists();
+      for (auto k = 0u; k < numNodeLists; ++k) {
+        const auto n = DvDt_check[k]->numInternalElements();
+        for (auto i = 0u; i < n; ++i) {
+          CHECK2(fuzzyEqual(DvDt_check(k, i).dot(DvDt(k, i)), DvDt(k, i).magnitude2(), 1.0e-8),
+                 DvDt_check(k, i) << " != " << DvDt(k, i) << " for (NodeList,i) = " << k << " " << i);
+        }
+      }
+    }
+  END_CONTRACT_SCOPE
 
   // Walk all pairs and figure out the discrete work for each point
 #pragma omp parallel
@@ -106,14 +134,14 @@ update(const KeyType& key,
       // State for node i.
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
-      const auto& ai = acceleration(nodeListi, i);
+      const auto& ai = DvDt(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
       const auto& paccij = pairAccelerations[kk];
 
       // State for node j.
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
-      const auto& aj = acceleration(nodeListj, j);
+      const auto& aj = DvDt(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;
 
       const auto  vji12 = vj12 - vi12;
@@ -135,12 +163,24 @@ update(const KeyType& key,
   }
 
   // Now we can update the energy.
+  auto offset = npairs;
   for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < n; ++i) {
+
+      // Add the self-contribution if any
+      if (selfInteraction) {
+        const auto& vi = velocity(nodeListi, i);
+        const auto& ai = DvDt(nodeListi, i);
+        const auto  vi12 = vi + ai*hdt;
+        const auto duii = -vi12.dot(pairAccelerations[offset + i]);
+        DepsDt(nodeListi, i) += duii;
+      }
+
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
+    offset += n;
   }
 }
 

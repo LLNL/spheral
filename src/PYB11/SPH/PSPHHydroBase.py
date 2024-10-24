@@ -18,8 +18,7 @@ class PSPHHydroBase(SPHHydroBase):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
@@ -33,7 +32,6 @@ class PSPHHydroBase(SPHHydroBase):
                HopkinsConductivity = "const bool",
                sumMassDensityOverAllNodeLists = "const bool",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                xmin = "const Vector&",
                xmax = "const Vector&"):
         "PSPHHydroBase constructor"
@@ -92,7 +90,7 @@ mass density, velocity, and specific thermal energy."""
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
         "Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections."
-        return "void"
+        return "bool"
                
     @PYB11virtual
     def applyGhostBoundaries(state = "State<%(Dimension)s>&",
