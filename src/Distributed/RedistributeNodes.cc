@@ -736,7 +736,7 @@ workPerNode(const DataBase<Dimension>& dataBase,
   // Output some statistics.
   const Scalar minWeight = result.min();
   const Scalar maxWeight = result.max();
-  if (Process::getRank() == 0) cerr << "RedistributeNodes::workPerNode: min/max work : "
+  if (Process::getRank() == 0) cout << "RedistributeNodes::workPerNode: min/max work : "
                                     << minWeight << " "
                                     << maxWeight << endl;
 

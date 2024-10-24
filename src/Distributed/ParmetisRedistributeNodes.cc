@@ -669,7 +669,7 @@ printConnectivityStatistics(const map<int, vector<pair<int, double> > >& neighbo
 
     CHECK(navgNeighbor > 0);
     avgNeighbor /= navgNeighbor;
-    cerr << "ParmetisRedistributeNodes:: min connections = "
+    cout << "ParmetisRedistributeNodes:: min connections = "
          << minNeighbor << endl
          << "                            max connections = "
          << maxNeighbor << endl

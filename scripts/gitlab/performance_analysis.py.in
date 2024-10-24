@@ -1,0 +1,32 @@
+#!/user/bin/env python3
+
+import os, sys
+import argparse
+
+# Location of benchmark data
+benchmark_dir = "/usr/gapps/Spheral/benchmarks"
+
+caliper_loc = "@CONFIG_CALIPER_DIR@"
+sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+import caliperreader as cr
+
+def main():
+    #---------------------------------------------------------------------------
+    # Setup argument parser
+    #---------------------------------------------------------------------------
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--atsOutput", type=str, required=True,
+                        help="Path to atsr.py file produced from running performance.py")
+    args = parser.parse_args()
+
+    atsFile = args.atsOutput
+    if (os.path.isdir(args.atsOutput)):
+        atsFile = os.path.join(args.atsOutput, "atsr.py")
+    if (not os.path.exists(atsFile)):
+        raise Exception(f"File {atsFile} does not exist")
+    # Run atsr.py and put values into globals
+    exec(compile(open(atsFile).read(), atsFile, 'exec'), globals())
+    state = globals()["state"]
+
+if __name__=="__main__":
+    main()

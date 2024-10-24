@@ -124,6 +124,7 @@ commandLine(order = 5,
             dataDir = "dumps-spherical-Noh",
             outputFile = "Noh_spherical_profiles.gnu",
             comparisonFile = "None",
+            doCompare = True,
 
             graphics = True,
             )
@@ -158,17 +159,20 @@ if asph:
 if solid:
     hydroname = "Solid" + hydroname
 
-dataDir = os.path.join(dataDir,
-                       hydroname,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "filter=%f" % filter,
-                       "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
-restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
-
-vizDir = os.path.join(dataDir, "visit")
+if dataDir:
+    dataDir = os.path.join(dataDir,
+                           hydroname,
+                           "nPerh=%f" % nPerh,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "filter=%f" % filter,
+                           "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
+    restartDir = os.path.join(dataDir, "restarts")
+    restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
+    vizDir = os.path.join(dataDir, "visit")
+else:
+    restartBaseName = None
+    vizDir = None
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
@@ -177,7 +181,7 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 and dataDir:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
@@ -527,6 +531,9 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Plot the results.

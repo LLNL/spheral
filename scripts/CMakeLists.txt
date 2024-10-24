@@ -30,49 +30,35 @@ if (NOT ENABLE_CXXONLY)
      list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not svph\"'")
   endif()
 
-  if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
-  endif()
-
   string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-setup-venv.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
-    )
+  )
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-env.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
-    )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/atstest.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
-    )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/lcatstest.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
   )
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/spheral_ats.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/spheral_ats.py"
   )
 
-  install(FILES
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/gitlab/performance_analysis.py.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/performance_analysis.py"
+  )
+
+  install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
-      "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
-      "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
+      "${CMAKE_CURRENT_BINARY_DIR}/spheral_ats.py"
+      "${CMAKE_CURRENT_BINARY_DIR}/performance_analysis.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/spheralutils.py"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
-  )
-
-  install(FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
   )
 
   install(CODE "execute_process( \

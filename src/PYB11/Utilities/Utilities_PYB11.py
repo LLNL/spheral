@@ -819,7 +819,7 @@ for (value, label) in (("int", "Int"),
                        ("long", "Long"),
                        ("double", "Scalar"),
                        ("std::string", "String")):
-    exec("""
-adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
-adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
-""" % {"label" : label, "value" : value})
+    exec(f"""
+adiak_value{label} = PYB11TemplateFunction(adiak_value, "{value}", pyname="adiak_value")
+adiak_value2{label} = PYB11TemplateFunction(adiak_value2, "{value}", pyname="adiak_value")
+""")

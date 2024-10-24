@@ -9,7 +9,6 @@
     HOSTNAME: 'ruby'
     PARTITION: pdebug
     BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
-    TEST_ALLOC: ''
     CLEAN_ALLOC: srun -n 20
   extends: [.on_toss_4_x86]
 
@@ -20,7 +19,6 @@
   variables:
     HOSTNAME: 'lassen'
     BUILD_ALLOC: lalloc 1 -W 60
-    TEST_ALLOC: $BUILD_ALLOC
     CLEAN_ALLOC: lalloc 1 lrun -n 20
     LC_MODULES: "cuda/11.1.0"
   extends: [.on_blueos_3_ppc64]

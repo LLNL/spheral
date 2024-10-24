@@ -7,6 +7,7 @@
 glue(fsisph = False)
 glue(gsph = False)
 glue(svph = False)
+glue(independent = True)
 
 # Geometry unit tests
 source("unit/Geometry/testVector.py")
