@@ -12,7 +12,7 @@ sys.path.append(os.path.join(install_prefix, "scripts"))
 from spheralutils import sexe
 
 # Apply filters set during install
-install_filters = "@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@"
+install_filters = """@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@"""
 
 # Options for running CI
 # If the number of failed tests exceeds this value, ATS is not rerun

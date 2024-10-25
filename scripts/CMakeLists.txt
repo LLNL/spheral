@@ -11,23 +11,23 @@ if (NOT ENABLE_CXXONLY)
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"level<100\"'")
+    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"level<100\"")
   endif()
 
   if (NOT ENABLE_MPI)
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
+    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"np<2\"")
   endif()
 
   if (NOT SPHERAL_ENABLE_FSISPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not fsisph\"'")
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not fsisph\"")
   endif()
 
   if (NOT SPHERAL_ENABLE_GSPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not gsph\"'")
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not gsph\"")
   endif()
 
   if (NOT SPHERAL_ENABLE_SVPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not svph\"'")
+     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not svph\"")
   endif()
 
   string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
