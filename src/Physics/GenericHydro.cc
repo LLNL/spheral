@@ -165,7 +165,9 @@ dt(const DataBase<Dimension>& dataBase,
   // Loop over every fluid node.
   // #pragma omp declare reduction (MINPAIR : pair<double,string> : omp_out = (omp_out.first < omp_in.first ? omp_out : omp_in)) initializer(omp_priv = pair<double,string>(std::numeric_limits<double>::max(), string("null")))
   // #pragma omp parallel for reduction(MINPAIR:minDt) collapse(2)
-  for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListPtrs())) {
+  for (auto [nodeListi_, fluidNodeListPtr_] : enumerate(dataBase.fluidNodeListPtrs())) {       // __clang__
+    const auto nodeListi = nodeListi_;                                                         // __clang__
+    const auto fluidNodeListPtr = fluidNodeListPtr_;                                           // __clang__
     const auto nPerh = fluidNodeListPtr->nodesPerSmoothingScale();
     CHECK(nPerh > 0.0);
 
@@ -421,7 +423,9 @@ dtImplicit(const DataBase<Dimension>& dataBase,
                                                                                 +[](const Tensor& DvDxi, const Vector& posi, const Vector& veli) { return DvDxi.Trace(); });
 
   // Loop over every fluid node.
-  for (auto [nodeListi, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListPtrs())) {
+  for (auto [nodeListi_, fluidNodeListPtr_] : enumerate(dataBase.fluidNodeListPtrs())) {       // __clang__
+    const auto nodeListi = nodeListi_;                                                         // __clang__
+    const auto fluidNodeListPtr = fluidNodeListPtr_;                                           // __clang__
     const auto nPerh = fluidNodeListPtr->nodesPerSmoothingScale();
     CHECK(nPerh > 0.0);
 
