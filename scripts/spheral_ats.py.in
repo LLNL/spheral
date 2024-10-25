@@ -2,13 +2,9 @@
 
 import os, time, sys
 import argparse
-import ats
+import ats.util.generic_utils as ats_utils
 
 # This is a wrapper for running Spheral through ATS
-
-# These are set by CMake
-spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
-spheral_install_config = "@SPHERAL_CONFIGURATION@"
 
 # Find spheralutils.py
 install_prefix = "@CMAKE_INSTALL_PREFIX@"
@@ -29,7 +25,6 @@ ats_exe = os.path.join(install_prefix, ".venv/bin/ats")
 spheral_exe = os.path.join(install_prefix, "spheral")
 
 #------------------------------------------------------------------------------
-
 # Run ats.py to check results and return the number of failed tests
 def report_results(output_dir):
     ats_py = os.path.join(output_dir, "atsr.py")
@@ -84,7 +79,16 @@ def run_and_report(run_command, ci_output, num_runs):
         print("WARNING: Test failure, rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
+#---------------------------------------------------------------------------
+# Main routine
+#---------------------------------------------------------------------------
 def main():
+    # Use ATS to for some machine specific functions
+    if "MACHINE_TYPE" not in os.environ:
+        ats_utils.set_machine_type_based_on_sys_type()
+    hostname = None
+    if "HOSTNAME" in os.environ:
+        hostname = os.environ["HOSTNAME"]
     #---------------------------------------------------------------------------
     # Setup argument parser
     #---------------------------------------------------------------------------
@@ -116,38 +120,32 @@ def main():
     # Setup machine info classes
     #---------------------------------------------------------------------------
     mac_args = []
-    ats_args = [install_filters, "--allInteractive"]
+    ats_args = [install_filters]
     numNodes = options.numNodes
     timeLimit = options.timeLimit
     ciRun = False if options.perfTest else True
     launch_cmd = ""
-    if ("broadwell" in spheral_sys_arch):
-        os.environ["MACHINE_TYPE"] = "slurm36"
+
+    if "rzgenie" in hostname or "ruby" in hostname:
         numNodes = numNodes if numNodes else 2
         timeLimit = timeLimit if timeLimit else 120
         time_limit = 120
-        mac_args = []
+        mac_args = [f"--numNodes {numNodes}"]
         launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
         if (ciRun):
-            mac_args.append("--npMax=36")
-    elif ("power9" in spheral_sys_arch):
+            launch_cmd += "-p pdebug "
+    elif "lassen" in hostname or "rzansel" in hostname:
         numNodes = numNodes if numNodes else 1
         timeLimit = timeLimit if timeLimit else 60
-        mac_args = ["--smpi_off"]
-        launch_cmd = f"lalloc {numNodes} -W {timeLimit} "
+        mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
+        launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
         if (ciRun):
-            launch_cmd += "-q pdebug -G guests "
-        else:
-            mac_args.append("--lrun")
+            launch_cmd += "-q pdebug "
     ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
     # Launch ATS
     #---------------------------------------------------------------------------
-    if (numNodes):
-        ats_args.append(f"--numNodes {numNodes}")
-    if (timeLimit):
-        ats_args.append(f"--timelimit {timeLimit}")
     # If doing a CI run, set some more options
     if (ciRun):
         if ("--logs" not in unknown_options):
@@ -157,6 +155,7 @@ def main():
             log_name_indx = unknown_options.index("--logs") + 1
             log_name = unknown_options[log_name_indx]
         ats_args.append("--glue='independent=True'")
+        ats_args.append("--continueFreq=15")
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     run_command = f"{launch_cmd}{ats_exe} -e {spheral_exe} {ats_args} {other_args}"

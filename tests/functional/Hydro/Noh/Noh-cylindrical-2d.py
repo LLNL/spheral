@@ -169,8 +169,8 @@ commandLine(seed = "constantDTheta",
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-cylindrical-Noh",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             doCompare = True,
 
             graphics = True,
@@ -735,7 +735,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -789,7 +789,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

@@ -114,9 +114,9 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             checkEnergy = False,
             restoreCycle = -1,
             restartStep = 100,
-            outputFile = "None",
-            comparisonFile = "None",
-            normOutputFile = "None",
+            outputFile = None,
+            comparisonFile = None,
+            normOutputFile = None,
             writeOutputLabel = True,
 
             graphics = True,

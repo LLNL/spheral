@@ -64,7 +64,6 @@ commandLine(
 
     graphics = True,
     plotKernels = False,
-    outputFile = "None",
     plotSPH = True,
 )
 

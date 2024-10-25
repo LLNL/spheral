@@ -89,7 +89,7 @@ regions = ["CheapRK2",
 timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
 
 # General input for all Noh tests
-gen_noh_inps = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --filter 0.0 "+\
+gen_noh_inps = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
     "--nPerh 2.01 --graphics False --clearDirectories False --doCompare False "+\
     "--dataDir None --vizTime None --vizCycle None"
 

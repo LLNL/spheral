@@ -118,8 +118,8 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             restartStep = 10000,
             dataDirBase = "dump-rz-Noh",
             outputFile = "Noh-RZ.gnu",
-            comparisonFile = "None",
-            normOutputFile = "None",
+            comparisonFile = None,
+            normOutputFile = None,
             writeOutputLabel = True,
 
             graphics = True,
@@ -453,7 +453,7 @@ L1 = 0.0
 for i in range(len(rho)):
     L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
-# if mpi.rank == 0 and outputFile != "None":
+# if mpi.rank == 0 and outputFile:
 #     print "L1=",L1_tot,"\n"
 #     with open("Converge.txt", "a") as myfile:
 #         myfile.write("%s %s\n" % (nz, L1_tot))
@@ -567,7 +567,7 @@ if outputFile:
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
@@ -582,7 +582,7 @@ if outputFile:
 #     failure = False
 #     hD = []
 
-#     if normOutputFile != "None":
+#     if normOutputFile:
 #        f = open(normOutputFile, "a")
 #        if writeOutputLabel:
 #           f.write(("#" + 13*"%17s " + "\n") % ('"n"',
@@ -605,7 +605,7 @@ if outputFile:
 #         L2 = Pn.gridpnorm(2, rmin, rmax)
 #         Linf = Pn.gridpnorm("inf", rmin, rmax)
 #         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-#         if normOutputFile != "None":
+#         if normOutputFile:
 #            f.write((3*"%16.12e ") % (L1, L2, Linf))
 #         hD.append([L1,L2,Linf])
 
@@ -627,7 +627,7 @@ if outputFile:
 # #                 failure = True
 # #             if failure:
 # #                 raise ValueError, "Error bounds violated."
-# #     if normOutputFile != "None":
+# #     if normOutputFile:
 # #        f.write("\n")
                                              
 # #     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],

@@ -31,4 +31,3 @@ class PyAts(PythonPackage):
     depends_on("py-setuptools", type="build")
     depends_on("py-poetry-core", type="build")
 
-    patch('exit_code.patch')

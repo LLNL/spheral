@@ -88,7 +88,7 @@ commandLine(order = 5,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 8,
-            filter = 0.0,
+            xfilter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -123,7 +123,7 @@ commandLine(order = 5,
             checkRestart = False,
             dataDir = "dumps-spherical-Noh",
             outputFile = "Noh_spherical_profiles.gnu",
-            comparisonFile = "None",
+            comparisonFile = None,
             doCompare = True,
 
             graphics = True,
@@ -165,7 +165,7 @@ if dataDir:
                            "nPerh=%f" % nPerh,
                            "compatibleEnergy=%s" % compatibleEnergy,
                            "Cullen=%s" % boolCullenViscosity,
-                           "filter=%f" % filter,
+                           "xfilter=%f" % xfilter,
                            "nx=%i_ny=%i_nz=%i" % (nx, ny, nz))
     restartDir = os.path.join(dataDir, "restarts")
     restartBaseName = os.path.join(restartDir, "Noh-spherical-3d-%ix%ix%i" % (nx, ny, nz))
@@ -280,7 +280,7 @@ if svph:
 elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
-                   filter = filter,
+                   filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
@@ -355,7 +355,7 @@ elif mfv:
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = filter,
+                 filter = xfilter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
@@ -368,7 +368,7 @@ elif psph:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
+                filter = xfilter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
@@ -643,7 +643,7 @@ if graphics:
 rmaxnorm = 0.35
 rminnorm = 0.05
 
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -704,7 +704,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
