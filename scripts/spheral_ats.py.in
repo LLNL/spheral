@@ -12,7 +12,7 @@ sys.path.append(os.path.join(install_prefix, "scripts"))
 from spheralutils import sexe
 
 # Apply filters set during install
-install_filters = """@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@"""
+install_filters = '@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@'
 
 # Options for running CI
 # If the number of failed tests exceeds this value, ATS is not rerun
@@ -119,29 +119,30 @@ def main():
     #---------------------------------------------------------------------------
     # Setup machine info classes
     #---------------------------------------------------------------------------
-    mac_args = []
     ats_args = [install_filters]
     numNodes = options.numNodes
     timeLimit = options.timeLimit
     ciRun = False if options.perfTest else True
     launch_cmd = ""
 
-    if "rzgenie" in hostname or "ruby" in hostname:
-        numNodes = numNodes if numNodes else 2
-        timeLimit = timeLimit if timeLimit else 120
-        time_limit = 120
-        mac_args = [f"--numNodes {numNodes}"]
-        launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-        if (ciRun):
-            launch_cmd += "-p pdebug "
-    elif "lassen" in hostname or "rzansel" in hostname:
-        numNodes = numNodes if numNodes else 1
-        timeLimit = timeLimit if timeLimit else 60
-        mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-        launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
-        if (ciRun):
-            launch_cmd += "-q pdebug "
-    ats_args.extend(mac_args)
+    if hostname:
+        mac_args = []
+        if "rzgenie" in hostname or "ruby" in hostname:
+            numNodes = numNodes if numNodes else 2
+            timeLimit = timeLimit if timeLimit else 120
+            time_limit = 120
+            mac_args = [f"--numNodes {numNodes}"]
+            launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (ciRun):
+                launch_cmd += "-p pdebug "
+        elif "lassen" in hostname or "rzansel" in hostname:
+            numNodes = numNodes if numNodes else 1
+            timeLimit = timeLimit if timeLimit else 60
+            mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
+            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
+            if (ciRun):
+                launch_cmd += "-q pdebug "
+        ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
     # Launch ATS
