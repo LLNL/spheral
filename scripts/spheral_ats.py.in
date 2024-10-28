@@ -83,12 +83,12 @@ def run_and_report(run_command, ci_output, num_runs):
 # Main routine
 #---------------------------------------------------------------------------
 def main():
+    temp_uname = os.uname()
+    hostname = temp_uname[1]
+    sys_type = os.getenv("SYS_TYPE")
     # Use ATS to for some machine specific functions
     if "MACHINE_TYPE" not in os.environ:
         ats_utils.set_machine_type_based_on_sys_type()
-    hostname = None
-    if "HOSTNAME" in os.environ:
-        hostname = os.environ["HOSTNAME"]
     #---------------------------------------------------------------------------
     # Setup argument parser
     #---------------------------------------------------------------------------
@@ -126,25 +126,24 @@ def main():
     launch_cmd = ""
     blueOS = False
 
-    if hostname:
-        mac_args = []
-        if "rzgenie" in hostname or "ruby" in hostname:
-            numNodes = numNodes if numNodes else 2
-            timeLimit = timeLimit if timeLimit else 120
-            time_limit = 120
-            mac_args = [f"--numNodes {numNodes}"]
-            launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-            if (ciRun):
-                launch_cmd += "-p pdebug "
-        elif "lassen" in hostname or "rzansel" in hostname:
-            blueOS = True
-            numNodes = numNodes if numNodes else 1
-            timeLimit = timeLimit if timeLimit else 60
-            mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
-            if (ciRun):
-                launch_cmd += "-q pdebug "
-        ats_args.extend(mac_args)
+    mac_args = []
+    if hostname and ("rzgenie" in hostname or "ruby" in hostname):
+        numNodes = numNodes if numNodes else 2
+        timeLimit = timeLimit if timeLimit else 120
+        time_limit = 120
+        mac_args = [f"--numNodes {numNodes}"]
+        launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+        if (ciRun):
+            launch_cmd += "-p pdebug "
+    elif 'blueos_3_ppc64le_ib_p9' in sys_type:
+        blueOS = True
+        numNodes = numNodes if numNodes else 1
+        timeLimit = timeLimit if timeLimit else 60
+        mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
+        launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
+        if (ciRun):
+            launch_cmd += "-q pdebug "
+    ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
     # Launch ATS
