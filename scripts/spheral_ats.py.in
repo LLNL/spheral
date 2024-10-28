@@ -12,7 +12,7 @@ sys.path.append(os.path.join(install_prefix, "scripts"))
 from spheralutils import sexe
 
 # Apply filters set during install
-install_filters = '@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@'
+install_filters = '''@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@'''
 
 # Options for running CI
 # If the number of failed tests exceeds this value, ATS is not rerun
@@ -124,6 +124,7 @@ def main():
     timeLimit = options.timeLimit
     ciRun = False if options.perfTest else True
     launch_cmd = ""
+    blueOS = False
 
     if hostname:
         mac_args = []
@@ -136,6 +137,7 @@ def main():
             if (ciRun):
                 launch_cmd += "-p pdebug "
         elif "lassen" in hostname or "rzansel" in hostname:
+            blueOS = True
             numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 60
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
@@ -155,11 +157,17 @@ def main():
         else:
             log_name_indx = unknown_options.index("--logs") + 1
             log_name = unknown_options[log_name_indx]
-        ats_args.append("--glue='independent=True'")
-        ats_args.append("--continueFreq=15")
+        ats_args.append('--glue="independent=True"')
+        ats_args.append('--continueFreq=15')
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
-    run_command = f"{launch_cmd}{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
+    cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
+    if blueOS:
+        # Launches using Bsub have issues with '<' being in command
+        # so entire run statment must be in quotes
+        run_command = f"{launch_cmd} '{cmd}'"
+    else:
+        run_command = f"{launch_cmd}{cmd}"
     print(f"\nRunning: {run_command}\n")
     if (ciRun):
         run_and_report(run_command, log_name, 0)
