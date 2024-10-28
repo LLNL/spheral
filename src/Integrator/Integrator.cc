@@ -537,86 +537,7 @@ Integrator<Dimension>::setGhostNodes() {
     db.updateConnectivityMap(mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity);
 
     // If we're culling ghost nodes, do it now.
-    if (mCullGhostNodes and 
-        (not this->domainDecompositionIndependent()) and
-        (not mRequireGhostConnectivity) and
-        (not mRequireOverlapConnectivity)) {
-      const auto numNodeLists = db.numNodeLists();
-      const auto& cm = db.connectivityMap();
-
-      // First build the set of flags indicating which nodes are used.
-      FieldList<Dimension, int> flags = db.newGlobalFieldList(0, "active nodes");
-      for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
-        const auto& nodeList = *nodeListPtr;
-        for (auto i = 0u; i < nodeList.numInternalNodes(); ++i) {
-          flags(nodeListi, i) = 1;
-          const vector<vector<int> >& fullConnectivity = cm.connectivityForNode(&nodeList, i);
-          for (auto nodeListj = 0u; nodeListj < fullConnectivity.size(); ++nodeListj) {
-            const vector<int>& connectivity = fullConnectivity[nodeListj];
-            for (auto j: connectivity) flags(nodeListj, j) = 1;
-          }
-        }
-
-        // Ghost nodes that are control nodes for other ghost nodes we're keeping must
-        // be kept as well.
-        const auto firstGhostNode = nodeList.firstGhostNode();
-        for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
-          const auto& boundary = *boundaryPtr;
-          const auto& controlNodes = boundary.controlNodes(nodeList);
-          const auto& ghostNodes = boundary.ghostNodes(nodeList);
-          // CHECK(controlNodes.size() == ghostNodes.size());  // Not true if this is a DistributedBoundary!
-          for (auto i: controlNodes) {
-            if (i >= (int)firstGhostNode) flags(nodeListi, i) = 1;
-          }
-
-          // Boundary conditions are allowed to opt out of culling entirely.
-          if (not boundary.allowGhostCulling()) {
-            for (auto i: ghostNodes) flags(nodeListi, i) = 1;
-          }
-        }
-      }
-
-      // Create the index mapping from old to new node orderings.
-      FieldList<Dimension, int> old2newIndexMap = db.newGlobalFieldList(int(0), "index map");
-      for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
-        const auto numNodes = nodeListPtr->numNodes();
-        for (auto i = 0u; i < numNodes; ++i) old2newIndexMap(nodeListi, i) = i;
-      }
-
-      // Now use these flags to cull the boundary conditions.
-      vector<int> numNodesRemoved(numNodeLists, 0);
-      for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
-        boundaryPtr->cullGhostNodes(flags, old2newIndexMap, numNodesRemoved);
-      }
-
-      // Patch up the connectivity map.
-      db.patchConnectivityMap(flags, old2newIndexMap);
-
-      // Now the boundary conditions have been updated, so we can go ahead and remove
-      // the ghost nodes themselves from the NodeLists.
-      for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
-        auto& nodeList = *nodeListPtr;
-        vector<int> nodesToRemove;
-        for (auto i = nodeList.firstGhostNode(); i < nodeList.numNodes(); ++i) {
-          if (flags(nodeListi, i) == 0) nodesToRemove.push_back(i);
-        }
-        nodeList.deleteNodes(nodesToRemove);
-        nodeList.neighbor().updateNodes();
-      }
-
-      // All nodes should now be labeled as keepers.
-      BEGIN_CONTRACT_SCOPE
-      {
-        for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-          ENSURE(flags[nodeListi]->numElements() == 0 or
-                 *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
-        }
-      }
-      END_CONTRACT_SCOPE
-
-      // The ConnectivityMap should be valid too.
-      ENSURE(db.connectivityMap().valid());
-    }
+    cullGhostNodesFunc();
 
   // } else {
 
@@ -626,6 +547,102 @@ Integrator<Dimension>::setGhostNodes() {
   //   for (ConstBoundaryIterator boundaryItr = boundaries.begin(); 
   //        boundaryItr != boundaries.end();
   //        ++boundaryItr) (*boundaryItr)->reset(db);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Cull the ghost nodes
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+Integrator<Dimension>::cullGhostNodesFunc() {
+  
+  // Get that DataBase.
+  auto& db = accessDataBase();
+
+  // Get the complete set of unique boundary conditions.
+  const auto boundaries = uniqueBoundaryConditions();
+
+  if (mRequireConnectivity and
+      mCullGhostNodes and 
+      (not this->domainDecompositionIndependent()) and
+      (not mRequireGhostConnectivity) and
+      (not mRequireOverlapConnectivity)) {
+    const auto numNodeLists = db.numNodeLists();
+    const auto& cm = db.connectivityMap();
+
+    // First build the set of flags indicating which nodes are used.
+    FieldList<Dimension, int> flags = db.newGlobalFieldList(0, "active nodes");
+    for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
+      const auto& nodeList = *nodeListPtr;
+      for (auto i = 0u; i < nodeList.numInternalNodes(); ++i) {
+        flags(nodeListi, i) = 1;
+        const vector<vector<int> >& fullConnectivity = cm.connectivityForNode(&nodeList, i);
+        for (auto nodeListj = 0u; nodeListj < fullConnectivity.size(); ++nodeListj) {
+          const vector<int>& connectivity = fullConnectivity[nodeListj];
+          for (auto j: connectivity) flags(nodeListj, j) = 1;
+        }
+      }
+
+      // Ghost nodes that are control nodes for other ghost nodes we're keeping must
+      // be kept as well.
+      const auto firstGhostNode = nodeList.firstGhostNode();
+      for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
+        const auto& boundary = *boundaryPtr;
+        const auto& controlNodes = boundary.controlNodes(nodeList);
+        const auto& ghostNodes = boundary.ghostNodes(nodeList);
+        // CHECK(controlNodes.size() == ghostNodes.size());  // Not true if this is a DistributedBoundary!
+        for (auto i: controlNodes) {
+          if (i >= (int)firstGhostNode) flags(nodeListi, i) = 1;
+        }
+
+        // Boundary conditions are allowed to opt out of culling entirely.
+        if (not boundary.allowGhostCulling()) {
+          for (auto i: ghostNodes) flags(nodeListi, i) = 1;
+        }
+      }
+    }
+
+    // Create the index mapping from old to new node orderings.
+    FieldList<Dimension, int> old2newIndexMap = db.newGlobalFieldList(int(0), "index map");
+    for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
+      const auto numNodes = nodeListPtr->numNodes();
+      for (auto i = 0u; i < numNodes; ++i) old2newIndexMap(nodeListi, i) = i;
+    }
+
+    // Now use these flags to cull the boundary conditions.
+    vector<int> numNodesRemoved(numNodeLists, 0);
+    for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
+      boundaryPtr->cullGhostNodes(flags, old2newIndexMap, numNodesRemoved);
+    }
+
+    // Patch up the connectivity map.
+    db.patchConnectivityMap(flags, old2newIndexMap);
+
+    // Now the boundary conditions have been updated, so we can go ahead and remove
+    // the ghost nodes themselves from the NodeLists.
+    for (auto [nodeListi, nodeListPtr]: enumerate(db.nodeListBegin(), db.nodeListEnd())) {
+      auto& nodeList = *nodeListPtr;
+      vector<int> nodesToRemove;
+      for (auto i = nodeList.firstGhostNode(); i < nodeList.numNodes(); ++i) {
+         if (flags(nodeListi, i) == 0) nodesToRemove.push_back(i);
+      }
+      nodeList.deleteNodes(nodesToRemove);
+      nodeList.neighbor().updateNodes();
+    }
+
+    // All nodes should now be labeled as keepers.
+    BEGIN_CONTRACT_SCOPE
+    {
+      for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
+         ENSURE(flags[nodeListi]->numElements() == 0 or
+                *min_element(flags[nodeListi]->begin(), flags[nodeListi]->end()) == 1);
+      }
+    }
+    END_CONTRACT_SCOPE
+
+    // The ConnectivityMap should be valid too.
+    ENSURE(db.connectivityMap().valid());
   }
 }
 
