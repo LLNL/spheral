@@ -29,7 +29,7 @@ spheral_exe = os.path.join(install_prefix, "spheral")
 def report_results(output_dir):
     ats_py = os.path.join(output_dir, "atsr.py")
     if (not os.path.exists(ats_py)):
-        raise Exception(f"{ats_py} does not exists")
+        raise Exception("ats.py does not exists. Tests likely did not run.")
     exec(compile(open(ats_py).read(), ats_py, 'exec'), globals())
     state = globals()["state"]
     failed_tests = [t for t in state['testlist'] if t['status'] in [FAILED,TIMEDOUT] ]
@@ -135,7 +135,7 @@ def main():
         launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
         if (ciRun):
             launch_cmd += "-p pdebug "
-    elif 'blueos_3_ppc64le_ib_p9' in sys_type:
+    elif sys_type and 'blueos_3_ppc64le_ib_p9' in sys_type:
         blueOS = True
         numNodes = numNodes if numNodes else 1
         timeLimit = timeLimit if timeLimit else 60
