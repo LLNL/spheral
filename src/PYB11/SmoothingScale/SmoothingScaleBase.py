@@ -78,6 +78,16 @@ call Physics::registerState for instance to create full populated State objects.
 
     @PYB11virtual
     @PYB11const
+    def maxResidual(self,
+                    dataBase = "const DataBase<%(Dimension)s>&",
+                    state1 = "const State<%(Dimension)s>&",
+                    state0 = "const State<%(Dimension)s>&",
+                    tol = "const Scalar"):
+        "Compute the maximum residual difference between the States"
+        return "ResidualType"
+
+    @PYB11virtual
+    @PYB11const
     def dumpState(self, file="FileIO&", pathName="const std::string&"):
         "Serialize under the given path in a FileIO object"
         return "void"
