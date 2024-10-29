@@ -209,7 +209,6 @@ public:
   // Select whether we're going to enforce culling of ghost nodes or not.
   bool cullGhostNodes() const;
   void cullGhostNodes(bool x);
-  void cullGhostNodesFunc(); // TODO: rename
 
   //****************************************************************************
   // Methods required for restarting.
