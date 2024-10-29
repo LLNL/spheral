@@ -66,7 +66,7 @@ computeResiduals(const State<Dimension>& state1,
   const auto& db = this->dataBase();
   const auto& packages = this->physicsPackages();
   const auto  tol = this->convergenceTolerance();
-  auto result = ResidualType(0.0, "default");
+  auto result = ResidualType(-1.0, "DEFAULT : You should not get this");
   for (const auto* pkg: packages) {
     const auto pres = pkg->maxResidual(db, state1, state0, tol);
     if (pres.first > result.first) result = pres;

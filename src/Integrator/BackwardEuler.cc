@@ -115,6 +115,10 @@ step(typename Dimension::Scalar maxTime,
   auto k = 0u;
   while (k++ < mMaxIters and residual > tol) {
     
+    // Make a copy of the current end of step state
+    State<Dimension> state1(state);
+    state1.copyState();
+
     // Compute the derivatives for the current trial end of step state
     this->initializeDerivatives(t, dt, state, derivs);
     derivs.Zero();
@@ -122,7 +126,7 @@ step(typename Dimension::Scalar maxTime,
     this->finalizeDerivatives(t, dt, db, state, derivs);
     
     // Trial advance the state to the end of the timestep.
-    state = state0;
+    state.assign(state0);
     state.update(derivs, mBeta * dt, t, dt);
     if (mBeta < 1.0) state.update(derivs0, (1.0 - mBeta) * dt, t, dt);
     this->applyGhostBoundaries(state, derivs);
@@ -133,11 +137,11 @@ step(typename Dimension::Scalar maxTime,
     }
 
     // Check the current residual
-    residual = this->computeResiduals(state, state0);
+    residual = this->computeResiduals(state, state1);
   }
 
   if (this->verbose() and Process::getRank() == 0) {
-    cerr << "    BackwardEuler: " << k << "/" << mMaxIters << " for residual " << residual << endl;
+    cerr << "    BackwardEuler: " << (k - 1u) << "/" << mMaxIters << " for residual " << residual << endl;
   }
 
   if (residual > tol and Process::getRank() == 0) {
