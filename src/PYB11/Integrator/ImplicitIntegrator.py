@@ -20,16 +20,14 @@ class ImplicitIntegrator(Integrator):
 
     #...........................................................................
     # Constructors
-    def pyinit(self):
-        "Construct an ImplicitIntegrator"
-
-    def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
+    def pyinit(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an ImplicitIntegrator with a DataBase"
 
-    def pyinit2(self,
+    def pyinit1(self,
                 dataBase = "DataBase<%(Dimension)s>&",
-                physicsPackages = "const std::vector<Physics<%(Dimension)s>*>&"):
-        "Construct an ImplicitIntegrator with a DataBase and physics packages"
+                physicsPackages = ("const std::vector<Physics<%(Dimension)s>*>&", "std::vector<Physics<%(Dimension)s>*>()"),
+                tol = ("Scalar", "1.0e-6")):
+        "Construct an ImplicitIntegrator with a DataBase, physics packages, and tolerance"
 
     #...........................................................................
     # Methods
@@ -41,8 +39,11 @@ class ImplicitIntegrator(Integrator):
         "Compute the maximum residual difference across all physics packages between two States"
         return "Scalar"
 
+    #...........................................................................
+    # Properties
+    convergenceTolerance = PYB11property("Scalar", "convergenceTolerance", "convergenceTolerance", doc="Tolerance for convergence in residuals during integration")
+
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------
 PYB11inject(IntegratorAbstractMethods, ImplicitIntegrator, virtual=False, pure_virtual=True)
-PYB11inject(RestartMethods, ImplicitIntegrator)

@@ -405,7 +405,7 @@ else:
 #-------------------------------------------------------------------------------
 import AcousticWaveSolution
 xlocal = [pos.x for pos in nodes1.positions().internalValues()]
-xprof = mpi.reduce(xlocal, mpi.SUM)
+xprof = np.array(mpi.reduce(xlocal, mpi.SUM))
 dx = (x1 - x0)/nx1
 h1 = nPerh*dx
 answer = AcousticWaveSolution.AcousticWaveSolution(eos, 
@@ -472,14 +472,14 @@ print("Total energy error: %g" % Eerror)
 if outputFile != "None":
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
-    mprof = mpi.reduce(nodes1.mass().internalValues(), mpi.SUM)
-    rhoprof = mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM)
+    mprof = np.array(mpi.reduce(nodes1.mass().internalValues(), mpi.SUM))
+    rhoprof = np.array(mpi.reduce(nodes1.massDensity().internalValues(), mpi.SUM))
     P = ScalarField("pressure", nodes1)
     nodes1.pressure(P)
-    Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
-    vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
-    epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    hprof = mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM)
+    Pprof = np.array(mpi.reduce(P.internalValues(), mpi.SUM))
+    vprof = np.array(mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM))
+    epsprof = np.array(mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM))
+    hprof = np.array(mpi.reduce([1.0/H.xx for H in nodes1.Hfield().internalValues()], mpi.SUM))
     xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 
     labels = ["x", "m", "rho", "P", "v", "eps", "h", 

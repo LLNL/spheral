@@ -18,6 +18,8 @@ from SlideSurface import *
 PYB11includes += ['"FSISPH/SolidFSISPHHydroBase.hh"',
                   '"FSISPH/FSIFieldNames.hh"',
                   '"FSISPH/SlideSurface.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']
 

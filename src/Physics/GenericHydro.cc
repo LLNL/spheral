@@ -85,7 +85,7 @@ GenericHydro(ArtificialViscosity<Dimension>& Q,
              const bool useVelocityMagnitudeForDt):
   Physics<Dimension>(),
   mArtificialViscosity(Q),
-  mCfl(cfl),
+  mCFL(cfl),
   mUseVelocityMagnitudeForDt(useVelocityMagnitudeForDt),
   mMinMasterNeighbor(INT_MAX),
   mMaxMasterNeighbor(0),
@@ -556,6 +556,179 @@ dtImplicit(const DataBase<Dimension>& dataBase,
   // Scale by the cfl safety factor.
   minDt.first *= cfl();
   return minDt;
+}
+
+//------------------------------------------------------------------------------
+// Return the maximum state change we care about for checking for convergence
+// in the implicit integration methods.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename GenericHydro<Dimension>::ResidualType
+GenericHydro<Dimension>::
+maxResidual(const DataBase<Dimension>& dataBase, 
+            const State<Dimension>& state1,
+            const State<Dimension>& state0,
+            const Scalar tol) const {
+  REQUIRE(tol > 0.0);
+
+  // Grab the state we're comparing
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto  position0 = state0.fields(HydroFieldNames::position, Vector::zero);
+  const auto  velocity0 = state0.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  eps0 = state0.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  position1 = state1.fields(HydroFieldNames::position, Vector::zero);
+  const auto  velocity1 = state1.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto  eps1 = state1.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+
+  // Initialize the return value to some impossibly high value.
+  auto result = make_pair(0.0, string());
+
+  // Define some functions to compute residuals
+  auto fresS = [](const Scalar& x1, const Scalar& x2, const Scalar tol) { auto dx = std::abs(x2 - x1);     return std::min(dx, dx/std::max(std::abs(x1) + std::abs(x2), tol)); };
+  auto fresV = [](const Vector& x1, const Vector& x2, const Scalar tol) { auto dx = (x2 - x1).magnitude(); return std::min(dx, dx/std::max(x1.magnitude() + x2.magnitude(), tol)); };
+
+  // Loop over every fluid node.
+  for (auto [nodeListi_, fluidNodeListPtr_] : enumerate(dataBase.fluidNodeListPtrs())) {       // __clang__
+    const auto nodeListi = nodeListi_;                                                         // __clang__
+
+    // Walk all the nodes in this FluidNodeList.
+    const auto ni = connectivityMap.numNodes(nodeListi);
+    const auto rank = Process::getRank();
+#pragma omp parallel
+    {
+      auto maxResidual_local = result;
+      auto rank_local = mMaxResidualRank;
+      auto nodeList_local = mMaxResidualNodeList;
+      auto node_local = mMaxResidualNode;
+      auto reason_local = mMaxResidualReason;
+#pragma omp for
+      for (auto k = 0u; k < ni; ++k) {
+        const auto i = connectivityMap.ithNode(nodeListi, k);
+        const auto& xi0 = position0(nodeListi, i);
+        const auto& vi0 = velocity0(nodeListi, i);
+        const auto  epsi0 = eps0(nodeListi, i);
+        const auto& xi1 = position1(nodeListi, i);
+        const auto& vi1 = velocity1(nodeListi, i);
+        const auto  epsi1 = eps1(nodeListi, i);
+
+        // Position
+        auto xres = fresV(xi0, xi1, tol);
+        if (xres > maxResidual_local.first) {
+          maxResidual_local = make_pair(xres, ("Position change: residual = " + to_string(xres) + "\n" +
+                                               "                     pos0 = " + vec_to_string(xi0) + "\n" +
+                                               "                     pos1 = " + vec_to_string(xi1) + "\n" +
+                                               "    (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
+          rank_local = rank;
+          nodeList_local = nodeListi;
+          node_local = i;
+          reason_local = "velocity magnitude";
+        }
+
+        // Velocity
+        auto vres = fresV(vi0, vi1, tol);
+        if (vres > maxResidual_local.first) {
+          maxResidual_local = make_pair(xres, ("Velocity change: residual = " + to_string(vres) + "\n" +
+                                               "                     pos0 = " + vec_to_string(xi0) + "\n" +
+                                               "                     pos1 = " + vec_to_string(xi1) + "\n" +
+                                               "                     vel0 = " + vec_to_string(vi0) + "\n" +
+                                               "                     vel1 = " + vec_to_string(vi1) + "\n" +
+                                               "    (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
+          rank_local = rank;
+          nodeList_local = nodeListi;
+          node_local = i;
+          reason_local = "velocity magnitude";
+        }
+
+        // Thermal energy
+        auto epsres = fresS(epsi0, epsi1, tol);
+        if (epsres > maxResidual_local.first) {
+          maxResidual_local = make_pair(xres, ("Thermal energy change: residual = " + to_string(epsres) + "\n" +
+                                               "                           pos0 = " + vec_to_string(xi0) + "\n" +
+                                               "                           pos1 = " + vec_to_string(xi1) + "\n" +
+                                               "                           eps0 = " + to_string(epsi0) + "\n" +
+                                               "                           eps1 = " + to_string(epsi1) + "\n" +
+                                               "          (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
+          rank_local = rank;
+          nodeList_local = nodeListi;
+          node_local = i;
+          reason_local = "velocity magnitude";
+        }
+      }
+
+#pragma omp critical
+      {
+        if (maxResidual_local.first > result.first) {
+          result = maxResidual_local;
+          mMaxResidualRank = rank_local;
+          mMaxResidualNodeList = nodeList_local;
+          mMaxResidualNode = node_local;
+          mMaxResidualReason = reason_local;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Update the master neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GenericHydro<Dimension>::
+updateMasterNeighborStats(int numMaster) const {
+  if (numMaster > 0) {
+    mMinMasterNeighbor = std::min(mMinMasterNeighbor, numMaster);
+    mMaxMasterNeighbor = std::max(mMaxMasterNeighbor, numMaster);
+    mSumMasterNeighbor += numMaster;
+    mNormMasterNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the coarse neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GenericHydro<Dimension>::
+updateCoarseNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinCoarseNeighbor = std::min(mMinCoarseNeighbor, numNeighbor);
+    mMaxCoarseNeighbor = std::max(mMaxCoarseNeighbor, numNeighbor);
+    mSumCoarseNeighbor += numNeighbor;
+    mNormCoarseNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the refine neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GenericHydro<Dimension>::
+updateRefineNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinRefineNeighbor = std::min(mMinRefineNeighbor, numNeighbor);
+    mMaxRefineNeighbor = std::max(mMaxRefineNeighbor, numNeighbor);
+    mSumRefineNeighbor += numNeighbor;
+    mNormRefineNeighbor++;
+  }
+}
+
+//------------------------------------------------------------------------------
+// Update the actual neighboring statistics.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+GenericHydro<Dimension>::
+updateActualNeighborStats(int numNeighbor) const {
+  if (numNeighbor > 0) {
+    mMinActualNeighbor = std::min(mMinActualNeighbor, numNeighbor);
+    mMaxActualNeighbor = std::max(mMaxActualNeighbor, numNeighbor);
+    mSumActualNeighbor += numNeighbor;
+    mNormActualNeighbor++;
+  }
 }
 
 }

@@ -8,22 +8,18 @@
 
 namespace Spheral {
 
-//------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ImplicitIntegrator<Dimension>::
-ImplicitIntegrator():
-  Integrator<Dimension>() {
-}
+using std::cout;
+using std::endl;
 
 //------------------------------------------------------------------------------
 // Construct with the given DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 ImplicitIntegrator<Dimension>::
-ImplicitIntegrator(DataBase<Dimension>& dataBase):
-  Integrator<Dimension>(dataBase) {
+ImplicitIntegrator(DataBase<Dimension>& dataBase,
+                   const Scalar tol):
+  Integrator<Dimension>(dataBase),
+  mTol(tol) {
 }
 
 //------------------------------------------------------------------------------
@@ -32,8 +28,10 @@ ImplicitIntegrator(DataBase<Dimension>& dataBase):
 template<typename Dimension>
 ImplicitIntegrator<Dimension>::
 ImplicitIntegrator(DataBase<Dimension>& dataBase,
-                   const std::vector<Physics<Dimension>*>& physicsPackages):
-  Integrator<Dimension>(dataBase, physicsPackages) {
+                   const std::vector<Physics<Dimension>*>& physicsPackages,
+                   const Scalar tol):
+  Integrator<Dimension>(dataBase, physicsPackages),
+  mTol(tol) {
 }
 
 //------------------------------------------------------------------------------
@@ -56,6 +54,36 @@ operator=(const ImplicitIntegrator<Dimension>& rhs) {
 }
 
 //------------------------------------------------------------------------------
+// Find the maximum residual difference in the states
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ImplicitIntegrator<Dimension>::
+computeResiduals(const State<Dimension>& state1,
+                 const State<Dimension>& state0) const {
+
+  // Get the local (to this MPI rank) answer
+  const auto& db = this->dataBase();
+  const auto& packages = this->physicsPackages();
+  const auto  tol = this->convergenceTolerance();
+  auto result = ResidualType(0.0, "default");
+  for (const auto* pkg: packages) {
+    const auto pres = pkg->maxResidual(db, state1, state0, tol);
+    if (pres.first > result.first) result = pres;
+  }
+
+  // Reduce for the global result, and optionally print out some verbose info
+  const auto globalMax = allReduce(result.first, SPHERAL_OP_MAX);
+  if (result.first == globalMax and this->verbose()) {
+    cout << "Global residual of "
+         << result.first << endl
+         << result.second << endl;
+  }
+  cout.flush();
+  return globalMax;
+}
+
+//------------------------------------------------------------------------------
 // How should we query a physics package for the time step?
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -67,23 +95,6 @@ dt(const Physics<Dimension>* pkg,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
   return pkg->dtImplicit(dataBase, state, derivs, currentTime);
-}
-
-//------------------------------------------------------------------------------
-// Find the maximum residual difference in the states
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename Dimension::Scalar
-ImplicitIntegrator<Dimension>::
-computeResiduals(const State<Dimension>& state1,
-                 const State<Dimension>& state0) const {
-  const auto& packages = this->physicsPackages();
-  Scalar result = 0.0;
-  for (const auto* pkg: packages) {
-    result = std::max(result, pkg->maxResidual(state1, state0));
-  }
-  result = allReduce(result, SPHERAL_OP_MAX);
-  return result;
 }
 
 }

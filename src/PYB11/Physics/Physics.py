@@ -9,12 +9,13 @@ from PhysicsAbstractMethods import *
 class Physics:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
 """
 
     #...........................................................................
@@ -37,10 +38,12 @@ class Physics:
     @PYB11virtual
     @PYB11const
     def maxResidual(self,
+                    dataBase = "const DataBase<%(Dimension)s>&",
                     state1 = "const State<%(Dimension)s>&",
-                    state0 = "const State<%(Dimension)s>&"):
+                    state0 = "const State<%(Dimension)s>&",
+                    tol = "const Scalar"):
         "Compute the maximum residual difference between the States"
-        return "Scalar"
+        return "ResidualType"
 
     @PYB11virtual
     def applyGhostBoundaries(self,

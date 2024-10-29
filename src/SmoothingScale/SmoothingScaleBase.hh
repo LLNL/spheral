@@ -10,11 +10,15 @@
 
 #include "Geometry/Dimension.hh"
 #include "Physics/Physics.hh"
+#include "Field/FieldList.hh"
+#include "DataOutput/registerWithRestart.hh"
 
 #include <utility>
 #include <cmath>
 
 namespace Spheral {
+
+class FileIO;
 
 enum class HEvolutionType {
   IdealH = 0,

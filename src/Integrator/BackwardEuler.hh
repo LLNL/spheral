@@ -41,11 +41,9 @@ public:
 
   // Access internal state
   Scalar beta()                const { return mBeta; }
-  Scalar tol()                 const { return mTol; }
   size_t maxIterations()       const { return mMaxIters; }
 
   void beta(const Scalar x)          { mBeta = x; }
-  void tol(const Scalar x)           { mTol = x; }
   void maxIterations(const size_t x) { mMaxIters = x; }
 
   // We need to make the simpler form of step visible!
@@ -56,7 +54,7 @@ public:
 
   //--------------------------- Public Interface ---------------------------//
 private:
-  Scalar mBeta, mTol;
+  Scalar mBeta;
   size_t mMaxIters;
 };
 

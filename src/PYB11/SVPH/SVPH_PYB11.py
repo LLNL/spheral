@@ -20,6 +20,8 @@ PYB11includes += ['"SVPH/SVPHFieldNames.hh"',
                   '"SVPH/gradientFieldListSVPH.hh"',
                   '"SVPH/SVPHHydroBase.hh"',
                   '"SVPH/SVPHFacetedHydroBase.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"FileIO/FileIO.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"']

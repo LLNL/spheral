@@ -38,9 +38,8 @@ BackwardEuler(DataBase<Dimension>& dataBase,
               const Scalar beta,
               const Scalar tol,
               const size_t maxIterations):
-  ImplicitIntegrator<Dimension>(dataBase, physicsPackages),
+  ImplicitIntegrator<Dimension>(dataBase, physicsPackages, tol),
   mBeta(beta),
-  mTol(tol),
   mMaxIters(maxIterations) {
 }
 
@@ -61,7 +60,6 @@ operator=(const BackwardEuler<Dimension>& rhs) {
   if (this != &rhs) {
     ImplicitIntegrator<Dimension>::operator=(rhs);
     mBeta = rhs.mBeta;
-    mTol = rhs.mTol;
     mMaxIters = rhs.mMaxIters;
   }
   return *this;
@@ -79,6 +77,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Get the current time and data base.
   Scalar t = this->currentTime();
+  const Scalar tol = this->convergenceTolerance();
   DataBase<Dimension>& db = this->accessDataBase();
 
   // Initalize the integrator.
@@ -112,9 +111,9 @@ step(typename Dimension::Scalar maxTime,
   }
 
   // Iterate on the new state
-  auto residual = 2.0*mTol;
+  auto residual = 2.0*tol;
   auto k = 0u;
-  while (k++ < mMaxIters and residual > mTol) {
+  while (k++ < mMaxIters and residual > tol) {
     
     // Compute the derivatives for the current trial end of step state
     this->initializeDerivatives(t, dt, state, derivs);
@@ -141,7 +140,7 @@ step(typename Dimension::Scalar maxTime,
     cerr << "    BackwardEuler: " << k << "/" << mMaxIters << " for residual " << residual << endl;
   }
 
-  if (residual > mTol and Process::getRank() == 0) {
+  if (residual > tol and Process::getRank() == 0) {
     cerr << "BackwardEuler step WARNING: failed to converge on new state" << endl;
   }
 
@@ -156,7 +155,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->lastDt(dt);
 
-  return (residual < mTol);
+  return (residual < tol);
 }
 
 }

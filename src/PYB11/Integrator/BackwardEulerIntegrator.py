@@ -107,7 +107,6 @@ makes this not just backward Euler:
     #...........................................................................
     # Properties
     beta = PYB11property("Scalar", "beta", "beta", doc="The blend of (n+1) and (n) derivative states for advancement")
-    tol = PYB11property("Scalar", "tol", "tol", doc="The tolerance to test for convergence of a step")
     maxIterations = PYB11property("size_t", "maxIterations", "maxIterations", doc="The maximum allowed iterations to try for advancing a step")
 
 #-------------------------------------------------------------------------------

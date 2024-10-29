@@ -23,6 +23,8 @@ PYB11includes += ['"ArtificialViscosity/ArtificialViscosity.hh"',
                   '"ArtificialViscosity/TensorCRKSPHViscosity.hh"',
                   '"ArtificialViscosity/VonNeumanViscosity.hh"',
                   '"ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"',
+                  '"DataBase/State.hh"',
+                  '"DataBase/StateDerivatives.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------

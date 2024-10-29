@@ -26,12 +26,14 @@ public:
   using ConstBoundaryIterator = typename std::vector<Boundary<Dimension>*>::const_iterator;
 
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
+  using ResidualType = typename Physics<Dimension>::ResidualType;
 
   // Constructors.
-  ImplicitIntegrator();
-  ImplicitIntegrator(DataBase<Dimension>& dataBase);
   ImplicitIntegrator(DataBase<Dimension>& dataBase,
-                     const std::vector<Physics<Dimension>*>& physicsPackages);
+                     const Scalar tol = 1.0e-6);
+  ImplicitIntegrator(DataBase<Dimension>& dataBase,
+                     const std::vector<Physics<Dimension>*>& physicsPackages,
+                     const Scalar tol = 1.0e-6);
 
   // Destructor.
   virtual ~ImplicitIntegrator();
@@ -43,6 +45,13 @@ public:
   virtual Scalar computeResiduals(const State<Dimension>& state1,
                                   const State<Dimension>& state0) const;
 
+  // Internal data
+  Scalar convergenceTolerance()                  const { return mTol; }
+  void convergenceTolerance(const Scalar x)            { mTol = x; }
+
+  // Forbidden methods
+  ImplicitIntegrator() = delete;
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Override the package dt method to call the implicit version
@@ -51,6 +60,10 @@ protected:
                           const State<Dimension>& state,
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const override;
+
+private:
+  //-------------------------- Private Interface --------------------------//
+  Scalar mTol;
 };
 
 }
