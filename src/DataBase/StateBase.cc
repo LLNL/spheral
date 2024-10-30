@@ -12,6 +12,8 @@
 #include "Mesh/Mesh.hh"
 #include "Utilities/DBC.hh"
 
+#include "RK/ReproducingKernel.hh"
+
 #include <algorithm>
 #include <sstream>
 using std::vector;
@@ -24,7 +26,7 @@ using std::abs;
 
 namespace Spheral {
 
-// namespace {
+namespace {
 // //------------------------------------------------------------------------------
 // // Helper for copying a type, used in copyState
 // //------------------------------------------------------------------------------
@@ -39,7 +41,24 @@ namespace Spheral {
 //   }
 // }
 
-// }
+//------------------------------------------------------------------------------
+// Check if a boost::any object contains a pointer to the given type
+//------------------------------------------------------------------------------
+template<typename T>
+inline
+bool
+is_ptype(boost::any& anyT) {
+  return anyT.type() == typeid(T*);
+}
+
+template<typename Dimension>
+inline
+bool
+is_known_noncopy_type(boost::any& anyT) {
+  return is_ptype<ReproducingKernel<Dimension>>(anyT);
+}
+
+}
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -156,7 +175,16 @@ operator==(const StateBase<Dimension>& rhs) const {
               result = false;
             }
           } catch (const boost::bad_any_cast&) {
-            std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+            try {
+              auto lhsPtr = boost::any_cast<std::set<int>*>(lhsItr->second);
+              auto rhsPtr = boost::any_cast<std::set<int>*>(rhsItr->second);
+              if (*lhsPtr != *rhsPtr) {
+                cerr << "set<int> for " << lhsItr->first <<  " don't match." << endl;
+                result = false;
+              }
+            } catch (const boost::bad_any_cast&) {
+              std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
+            }
           }
         }
       }
@@ -419,8 +447,21 @@ assign(const StateBase<Dimension>& rhs) {
             const auto rhsptr = boost::any_cast<Scalar*>(anyrhs);
             *lhsptr = *rhsptr;
           } catch(const boost::bad_any_cast&) {
-          // We'll assume other things don't need to be assigned...
-          // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+            try {
+              auto lhsptr = boost::any_cast<std::set<int>*>(anylhs);
+              const auto rhsptr = boost::any_cast<std::set<int>*>(anyrhs);
+              *lhsptr = *rhsptr;
+            } catch(const boost::bad_any_cast&) {
+              try {
+                auto lhsptr = boost::any_cast<std::set<RKOrder>*>(anylhs);
+                const auto rhsptr = boost::any_cast<std::set<RKOrder>*>(anyrhs);
+                *lhsptr = *rhsptr;
+              } catch(const boost::bad_any_cast&) {
+                // We'll assume other things don't need to be assigned...
+                VERIFY2(is_known_noncopy_type<Dimension>(anylhs),
+                        "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
+              }
+            }
           }
         }
       }
@@ -470,20 +511,45 @@ copyState() {
     } catch (const boost::bad_any_cast&) {
       try {
         auto ptr = boost::any_cast<vector<Vector>*>(anythingPtr);
-        auto clone = std::shared_ptr<vector<Vector>>(new vector<Vector>(*ptr));
+        auto clone = std::make_shared<vector<Vector>>(*ptr);
         mCache.push_back(clone);
         itr->second = clone.get();
 
       } catch (const boost::bad_any_cast&) {
-      try {
-        auto ptr = boost::any_cast<Vector*>(anythingPtr);
-        auto clone = std::shared_ptr<Vector>(new Vector(*ptr));
-        mCache.push_back(clone);
-        itr->second = clone.get();
+        try {
+          auto ptr = boost::any_cast<Vector*>(anythingPtr);
+          auto clone = std::make_shared<Vector>(*ptr);
+          mCache.push_back(clone);
+          itr->second = clone.get();
 
         } catch (const boost::bad_any_cast&) {
-        // We'll assume other things don't need to be copied...
-        // VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
+          try {
+            auto ptr = boost::any_cast<Scalar*>(anythingPtr);
+            auto clone = std::make_shared<Scalar>(*ptr);
+            mCache.push_back(clone);
+            itr->second = clone.get();
+
+          } catch (const boost::bad_any_cast&) {
+            try {
+              auto ptr = boost::any_cast<std::set<int>*>(anythingPtr);
+              auto clone = std::make_shared<std::set<int>>(*ptr);
+              mCache.push_back(clone);
+              itr->second = clone.get();
+
+            } catch (const boost::bad_any_cast&) {
+              try {
+                auto ptr = boost::any_cast<std::set<RKOrder>*>(anythingPtr);
+                auto clone = std::make_shared<std::set<RKOrder>>(*ptr);
+                mCache.push_back(clone);
+                itr->second = clone.get();
+
+              } catch (const boost::bad_any_cast&) {
+                // Check against the list of stuff we can safely not copy
+                VERIFY2(is_known_noncopy_type<Dimension>(anythingPtr),
+                        "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
+              }
+            }
+          }
         }
       }
     }
@@ -491,4 +557,3 @@ copyState() {
 }
 
 }
-
