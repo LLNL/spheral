@@ -22,16 +22,10 @@ public:
   using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
-  ForwardEuler();
-  ForwardEuler(DataBase<Dimension>& dataBase);
   ForwardEuler(DataBase<Dimension>& dataBase,
                const std::vector<Physics<Dimension>*>& physicsPackages);
-
-  // Destructor.
-  ~ForwardEuler();
-
-  // Assignment.
   ForwardEuler& operator=(const ForwardEuler& rhs);
+  virtual ~ForwardEuler();
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
@@ -43,6 +37,9 @@ public:
 
   // Restart methods.
   virtual std::string label() const override { return "ForwardEuler"; }
+
+  // Forbidden methods
+  ForwardEuler() = delete;
 };
 
 }

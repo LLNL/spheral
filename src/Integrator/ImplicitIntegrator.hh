@@ -28,18 +28,15 @@ public:
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
   using ResidualType = typename Physics<Dimension>::ResidualType;
 
-  // Constructors.
-  ImplicitIntegrator(DataBase<Dimension>& dataBase,
-                     const Scalar tol = 1.0e-6);
+  // Constructors, destructor
   ImplicitIntegrator(DataBase<Dimension>& dataBase,
                      const std::vector<Physics<Dimension>*>& physicsPackages,
                      const Scalar tol = 1.0e-6);
-
-  // Destructor.
+  ImplicitIntegrator& operator=(const ImplicitIntegrator& rhs);
   virtual ~ImplicitIntegrator();
 
-  // Assignment.
-  ImplicitIntegrator& operator=(const ImplicitIntegrator& rhs);
+  // Override the step method for our implicit approach
+  virtual bool step(Scalar maxTime) override;
 
   // Find the maximum residual difference in the states
   virtual Scalar computeResiduals(const State<Dimension>& state1,
@@ -51,6 +48,9 @@ public:
 
   // Forbidden methods
   ImplicitIntegrator() = delete;
+
+  using Integrator<Dimension>::step;
+  using Integrator<Dimension>::mDtMultiplier;
 
 protected:
   //-------------------------- Protected Interface --------------------------//

@@ -18,21 +18,15 @@ template<typename Dimension>
 class PredictorCorrector: public Integrator<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
-  PredictorCorrector();
-  PredictorCorrector(DataBase<Dimension>& dataBase);
   PredictorCorrector(DataBase<Dimension>& dataBase,
                      const std::vector<Physics<Dimension>*>& physicsPackages);
-
-  // Destructor.
-  ~PredictorCorrector();
-
-  // Assignment.
+  virtual ~PredictorCorrector();
   PredictorCorrector& operator=(const PredictorCorrector& rhs);
 
   // All Integrators are required to provide the single cycle method.
@@ -46,6 +40,8 @@ public:
   // Restart methods.
   virtual std::string label() const override { return "PredictorCorrector"; }
 
+  // Forbidden methods
+  PredictorCorrector() = delete;
 };
 
 }

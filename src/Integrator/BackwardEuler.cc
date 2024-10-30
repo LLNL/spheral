@@ -100,6 +100,7 @@ step(typename Dimension::Scalar maxTime,
   StateDerivatives<Dimension> derivs0(derivs);
   state0.copyState();
   derivs0.copyState();
+  CHECK(state0 == state);
 
   // Initial Forward Euler prediction for the end of timestep state
   state.update(derivs, dt, t, dt);
@@ -118,6 +119,7 @@ step(typename Dimension::Scalar maxTime,
     // Make a copy of the current end of step state
     State<Dimension> state1(state);
     state1.copyState();
+    CHECK(state1 == state);
 
     // Compute the derivatives for the current trial end of step state
     this->initializeDerivatives(t, dt, state, derivs);
@@ -127,6 +129,7 @@ step(typename Dimension::Scalar maxTime,
     
     // Trial advance the state to the end of the timestep.
     state.assign(state0);
+    state.copyState();
     state.update(derivs, mBeta * dt, t, dt);
     if (mBeta < 1.0) state.update(derivs0, (1.0 - mBeta) * dt, t, dt);
     this->applyGhostBoundaries(state, derivs);
@@ -144,8 +147,14 @@ step(typename Dimension::Scalar maxTime,
     cerr << "    BackwardEuler: " << (k - 1u) << "/" << mMaxIters << " for residual " << residual << endl;
   }
 
-  if (residual > tol and Process::getRank() == 0) {
-    cerr << "BackwardEuler step WARNING: failed to converge on new state" << endl;
+  if (residual > tol) {
+    if (Process::getRank() == 0u) cerr << "BackwardEuler step WARNING: failed to converge on new state" << endl;
+    this->currentTime(t);
+    state.assign(state0);
+    derivs.assign(derivs0);
+    state.copyState();
+    derivs.copyState();
+    return false;
   }
 
   // Apply any physics specific finalizations.
@@ -159,7 +168,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentCycle(this->currentCycle() + 1);
   this->lastDt(dt);
 
-  return (residual < tol);
+  return true;
 }
 
 }

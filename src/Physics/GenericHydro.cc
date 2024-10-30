@@ -614,8 +614,8 @@ maxResidual(const DataBase<Dimension>& dataBase,
         auto xres = fresV(xi0, xi1, tol);
         if (xres > maxResidual_local.first) {
           maxResidual_local = ResidualType(xres, ("Position change: residual = " + to_string(xres) + "\n" +
-                                                  "                     pos0 = " + vec_to_string(xi0) + "\n" +
-                                                  "                     pos1 = " + vec_to_string(xi1) + "\n" +
+                                                  "                     pos0 = " + vec_to_string(xi0) + 
+                                                  "                     pos1 = " + vec_to_string(xi1) + 
                                                   "    (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
           rank_local = rank;
           nodeList_local = nodeListi;
@@ -627,10 +627,10 @@ maxResidual(const DataBase<Dimension>& dataBase,
         auto vres = fresV(vi0, vi1, tol);
         if (vres > maxResidual_local.first) {
           maxResidual_local = ResidualType(xres, ("Velocity change: residual = " + to_string(vres) + "\n" +
-                                                  "                     pos0 = " + vec_to_string(xi0) + "\n" +
-                                                  "                     pos1 = " + vec_to_string(xi1) + "\n" +
-                                                  "                     vel0 = " + vec_to_string(vi0) + "\n" +
-                                                  "                     vel1 = " + vec_to_string(vi1) + "\n" +
+                                                  "                     pos0 = " + vec_to_string(xi0) + 
+                                                  "                     pos1 = " + vec_to_string(xi1) + 
+                                                  "                     vel0 = " + vec_to_string(vi0) + 
+                                                  "                     vel1 = " + vec_to_string(vi1) + 
                                                   "    (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
           rank_local = rank;
           nodeList_local = nodeListi;
@@ -642,8 +642,8 @@ maxResidual(const DataBase<Dimension>& dataBase,
         auto epsres = fresS(epsi0, epsi1, tol);
         if (epsres > maxResidual_local.first) {
           maxResidual_local = ResidualType(xres, ("Thermal energy change: residual = " + to_string(epsres) + "\n" +
-                                                  "                           pos0 = " + vec_to_string(xi0) + "\n" +
-                                                  "                           pos1 = " + vec_to_string(xi1) + "\n" +
+                                                  "                           pos0 = " + vec_to_string(xi0) + 
+                                                  "                           pos1 = " + vec_to_string(xi1) + 
                                                   "                           eps0 = " + to_string(epsi0) + "\n" +
                                                   "                           eps1 = " + to_string(epsi1) + "\n" +
                                                   "          (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));

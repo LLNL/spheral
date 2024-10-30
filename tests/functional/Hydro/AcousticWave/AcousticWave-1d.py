@@ -329,8 +329,7 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db)
-integrator.appendPhysicsPackage(hydro)
+integrator = IntegratorConstructor(db, [hydro], 1.0, 1.0e-10)
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax

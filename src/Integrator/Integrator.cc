@@ -39,72 +39,17 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::Integrator():
-  mDtMin(0.0),
-  mDtMax(FLT_MAX),
-  mDtGrowth(2.0),
-  mLastDt(1e-5),
-  mDtMultiplier(1.0),
-  mDtCheckFrac(0.5),
-  mCurrentTime(0.0),
-  mCurrentCycle(0),
-  mUpdateBoundaryFrequency(1),
-  mVerbose(false),
-  mAllowDtCheck(false),
-  mRequireConnectivity(true),
-  mRequireGhostConnectivity(false),
-  mRequireOverlapConnectivity(false),
-  mRequireIntersectionConnectivity(false),
-  mDataBasePtr(0),
-  mPhysicsPackages(0),
-  mRigorousBoundaries(false),
-  mCullGhostNodes(true),
-  mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::
-Integrator(DataBase<Dimension>& dataBase):
-  mDtMin(0.0),
-  mDtMax(FLT_MAX),
-  mDtGrowth(2.0),
-  mLastDt(1e-5),
-  mDtMultiplier(1.0),
-  mDtCheckFrac(0.5),
-  mCurrentTime(0.0),
-  mCurrentCycle(0),
-  mUpdateBoundaryFrequency(1),
-  mVerbose(false),
-  mAllowDtCheck(false),
-  mRequireConnectivity(true),
-  mRequireGhostConnectivity(false),
-  mRequireOverlapConnectivity(false),
-  mRequireIntersectionConnectivity(false),
-  mDataBasePtr(&dataBase),
-  mPhysicsPackages(0),
-  mRigorousBoundaries(false),
-  mCullGhostNodes(true),
-  mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase and Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 Integrator<Dimension>::
 Integrator(DataBase<Dimension>& dataBase,
            const vector<Physics<Dimension>*>& physicsPackages):
+  mDtMultiplier(1.0),
   mDtMin(0.0),
   mDtMax(FLT_MAX),
   mDtGrowth(2.0),
   mLastDt(1e-5),
-  mDtMultiplier(1.0),
   mDtCheckFrac(0.5),
   mCurrentTime(0.0),
   mCurrentCycle(0),
@@ -114,10 +59,11 @@ Integrator(DataBase<Dimension>& dataBase,
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
   mDataBasePtr(&dataBase),
-  mPhysicsPackages(physicsPackages),
+  mPhysicsPackages(),
   mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
+  for (auto* pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
 }
 
 //------------------------------------------------------------------------------
@@ -135,11 +81,11 @@ Integrator<Dimension>&
 Integrator<Dimension>::
 operator=(const Integrator<Dimension>& rhs) {
   if (this != &rhs) {
+    mDtMultiplier = rhs.mDtMultiplier;
     mDtMin = rhs.mDtMin;
     mDtMax = rhs.mDtMax;
     mDtGrowth = rhs.mDtGrowth;
     mLastDt = rhs.mLastDt;
-    mDtMultiplier = rhs.mDtMultiplier;
     mDtCheckFrac = rhs.mDtCheckFrac;
     mCurrentTime = rhs.mCurrentTime;
     mCurrentCycle = rhs.mCurrentCycle;
@@ -169,8 +115,8 @@ step(const typename Dimension::Scalar maxTime) {
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   auto success = false;
-  auto count = 0;
-  auto maxIterations = 10;
+  auto count = 0u;
+  auto maxIterations = 10u;
   while (not success and count < maxIterations) {
     ++count;
     if (count == maxIterations) mAllowDtCheck = false;
@@ -200,8 +146,6 @@ selectDt(const typename Dimension::Scalar dtMin,
 
   REQUIRE(dtMin >= 0 and dtMax > 0);
   REQUIRE(dtMin <= dtMax);
-
-  typedef typename Physics<Dimension>::TimeStepType TimeStepType;
 
   // Get the current time and data base.
   auto        t = currentTime();

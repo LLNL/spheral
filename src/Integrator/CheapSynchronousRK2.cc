@@ -31,23 +31,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CheapSynchronousRK2<Dimension>::CheapSynchronousRK2():
-  Integrator<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CheapSynchronousRK2<Dimension>::
-CheapSynchronousRK2(DataBase<Dimension>& dataBase):
-  Integrator<Dimension>(dataBase) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase and Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>

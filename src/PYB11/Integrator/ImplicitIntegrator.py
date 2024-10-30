@@ -11,26 +11,29 @@ class ImplicitIntegrator(Integrator):
     "Base class for all Spheral implicit in time integration algorithms"
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
 """
 
     #...........................................................................
     # Constructors
-    def pyinit(self, dataBase = "DataBase<%(Dimension)s>&"):
-        "Construct an ImplicitIntegrator with a DataBase"
-
-    def pyinit1(self,
-                dataBase = "DataBase<%(Dimension)s>&",
-                physicsPackages = ("const std::vector<Physics<%(Dimension)s>*>&", "std::vector<Physics<%(Dimension)s>*>()"),
-                tol = ("Scalar", "1.0e-6")):
+    def pyinit(self,
+               dataBase = "DataBase<%(Dimension)s>&",
+               physicsPackages = ("const std::vector<Physics<%(Dimension)s>*>&", "std::vector<Physics<%(Dimension)s>*>()"),
+               tol = ("Scalar", "1.0e-6")):
         "Construct an ImplicitIntegrator with a DataBase, physics packages, and tolerance"
 
     #...........................................................................
     # Methods
+    @PYB11virtual
+    def step(self,
+             maxTime = "Scalar"):
+        "Take an implicit step"
+        return "bool"
+
     @PYB11virtual
     @PYB11const
     def computeResiduals(self,

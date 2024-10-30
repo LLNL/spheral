@@ -47,16 +47,10 @@ public:
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
   // Constructors.
-  Integrator();
-  Integrator(DataBase<Dimension>& dataBase);
   Integrator(DataBase<Dimension>& dataBase,
-             const std::vector<Physics<Dimension>*>& physicsPackages);
-
-  // Destructor.
-  virtual ~Integrator();
-
-  // Assignment.
+             const std::vector<Physics<Dimension>*>& physicsPackages = std::vector<Physics<Dimension>*>());
   Integrator& operator=(const Integrator& rhs);
+  virtual ~Integrator();
 
   // All Integrator classes must define the dt and step methods.
   virtual bool step(Scalar maxTime,
@@ -214,12 +208,18 @@ public:
   bool cullGhostNodes() const                                                       { return mCullGhostNodes; }
   void cullGhostNodes(const bool x)                                                 { mCullGhostNodes = x; }
 
+  // The timestep multiplier
+  Scalar dtMultiplier()                                                       const { return mDtMultiplier; }
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const { return "Integrator"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
+
+  // Disallowed methods
+  Integrator() = delete;
 
 protected:
   //-------------------------- Protected Interface --------------------------//
@@ -233,9 +233,11 @@ protected:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
+  Scalar mDtMultiplier;
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtMultiplier, mDtCheckFrac, mCurrentTime;
+  Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mAllowDtCheck, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity;
   DataBase<Dimension>* mDataBasePtr;

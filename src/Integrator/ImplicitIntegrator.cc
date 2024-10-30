@@ -4,23 +4,15 @@
 // Created by JMO, Fri Oct 18 16:34:11 PDT 2024
 //----------------------------------------------------------------------------//
 #include "Integrator/ImplicitIntegrator.hh"
+#include "DataBase/State.hh"
+#include "DataBase/StateDerivatives.hh"
 #include "Distributed/allReduce.hh"
 
 namespace Spheral {
 
 using std::cout;
 using std::endl;
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ImplicitIntegrator<Dimension>::
-ImplicitIntegrator(DataBase<Dimension>& dataBase,
-                   const Scalar tol):
-  Integrator<Dimension>(dataBase),
-  mTol(tol) {
-}
+using std::min;
 
 //------------------------------------------------------------------------------
 // Construct with the given DataBase and Physics packages.
@@ -50,7 +42,45 @@ ImplicitIntegrator<Dimension>&
 ImplicitIntegrator<Dimension>::
 operator=(const ImplicitIntegrator<Dimension>& rhs) {
   Integrator<Dimension>::operator=(rhs);
+  mTol = rhs.mTol;
   return *this;
+}
+
+//------------------------------------------------------------------------------
+// step
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+ImplicitIntegrator<Dimension>::
+step(const typename Dimension::Scalar maxTime) {
+
+  DataBase<Dimension>& db = this->accessDataBase();
+  State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+  auto success = false;
+  auto count = 0u;
+  auto maxIterations = 10u;
+  while (not success and count++ < maxIterations) {
+    
+    // Try to advance using the current timestep multiplier
+    success = this->step(maxTime, state, derivs);
+
+    // Adjust the current timestep multiplier based on whether we succeeded or not
+    mDtMultiplier *= (success ?
+                      1.2 :
+                      0.5);
+    mDtMultiplier = min(1.0, mDtMultiplier);
+
+    if (not success and
+        this->verbose() and
+        Process::getRank() == 0) {
+      cerr << "ImplicitIntegrator::step did not converge with tolerance on iteration " << count << "/" << maxIterations << endl
+           << "                         reducing timestep multiplier to " << mDtMultiplier << endl;
+    }
+  }
+
+  VERIFY(success);
+  return success;
 }
 
 //------------------------------------------------------------------------------

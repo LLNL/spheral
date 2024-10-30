@@ -27,12 +27,8 @@ public:
                 const Scalar beta = 1.0,
                 const Scalar tol = 1.0e-6,
                 const size_t maxIterations = 10u);
-
-  // Destructor.
-  ~BackwardEuler();
-
-  // Assignment.
   BackwardEuler& operator=(const BackwardEuler& rhs);
+  virtual ~BackwardEuler();
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
