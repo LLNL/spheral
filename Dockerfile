@@ -75,5 +75,5 @@ RUN make install
 # Run ATS testing suite.
 WORKDIR ../install
 ENV MPLBACKEND=agg
-RUN ./spheral-ats --level 99 tests/integration.ats
+RUN ./spheral-ats --level 99 --mpiexec /usr/bin/mpirun --npMax $JCXX tests/integration.ats
 # -----------------------------------------------------------------------------

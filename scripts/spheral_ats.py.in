@@ -24,6 +24,9 @@ test_log_name = "test-logs"
 ats_exe = os.path.join(install_prefix, ".venv/bin/ats")
 spheral_exe = os.path.join(install_prefix, "spheral")
 
+toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
+blueos_machine_names = ["rzansel", "lassen"]
+
 #------------------------------------------------------------------------------
 # Run ats.py to check results and return the number of failed tests
 def report_results(output_dir):
@@ -126,24 +129,24 @@ def main():
     launch_cmd = ""
     blueOS = False
 
-    mac_args = []
-    if hostname and ("rzgenie" in hostname or "ruby" in hostname):
-        numNodes = numNodes if numNodes else 2
-        timeLimit = timeLimit if timeLimit else 120
-        time_limit = 120
-        mac_args = [f"--numNodes {numNodes}"]
-        launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-        if (ciRun):
-            launch_cmd += "-p pdebug "
-    elif sys_type and 'blueos_3_ppc64le_ib_p9' in sys_type:
-        blueOS = True
-        numNodes = numNodes if numNodes else 1
-        timeLimit = timeLimit if timeLimit else 60
-        mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-        launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
-        if (ciRun):
-            launch_cmd += "-q pdebug "
-    ats_args.extend(mac_args)
+    if hostname:
+        mac_args = []
+        if any(x in hostname for x in toss_machine_names):
+            numNodes = numNodes if numNodes else 2
+            timeLimit = timeLimit if timeLimit else 120
+            mac_args = [f"--numNodes {numNodes}"]
+            launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (ciRun):
+                launch_cmd += "-p pdebug "
+        elif any(x in hostname for x in blueos_machine_names):
+            blueOS = True
+            numNodes = numNodes if numNodes else 1
+            timeLimit = timeLimit if timeLimit else 60
+            mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
+            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
+            if (ciRun):
+                launch_cmd += "-q pdebug "
+        ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
     # Launch ATS
