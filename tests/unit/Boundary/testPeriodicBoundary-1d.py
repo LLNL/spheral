@@ -166,6 +166,6 @@ print("** PASS **")
 # Plot the final state.
 #-------------------------------------------------------------------------------
 if graphics == "gnu":
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
