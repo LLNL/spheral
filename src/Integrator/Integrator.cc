@@ -47,7 +47,7 @@ Integrator(DataBase<Dimension>& dataBase,
            const vector<Physics<Dimension>*>& physicsPackages):
   mDtMultiplier(1.0),
   mDtMin(0.0),
-  mDtMax(FLT_MAX),
+  mDtMax(std::numeric_limits<Scalar>::max()),
   mDtGrowth(2.0),
   mLastDt(1e-5),
   mDtCheckFrac(0.5),
@@ -58,6 +58,8 @@ Integrator(DataBase<Dimension>& dataBase,
   mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
+  mRequireIntersectionConnectivity(false),
   mDataBasePtr(&dataBase),
   mPhysicsPackages(),
   mRigorousBoundaries(false),
@@ -89,17 +91,17 @@ operator=(const Integrator<Dimension>& rhs) {
     mDtCheckFrac = rhs.mDtCheckFrac;
     mCurrentTime = rhs.mCurrentTime;
     mCurrentCycle = rhs.mCurrentCycle;
-    mDataBasePtr = rhs.mDataBasePtr;
-    mPhysicsPackages = rhs.mPhysicsPackages;
-    mRigorousBoundaries = rhs.mRigorousBoundaries;
     mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
-    mCullGhostNodes = rhs.mCullGhostNodes;
     mVerbose = rhs.mVerbose;
     mAllowDtCheck = rhs.mAllowDtCheck;
     mRequireConnectivity = rhs.mRequireConnectivity;
     mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
     mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
     mRequireIntersectionConnectivity = rhs.mRequireIntersectionConnectivity;
+    mDataBasePtr = rhs.mDataBasePtr;
+    mPhysicsPackages = rhs.mPhysicsPackages;
+    mRigorousBoundaries = rhs.mRigorousBoundaries;
+    mCullGhostNodes = rhs.mCullGhostNodes;
   }
   return *this;
 }
