@@ -153,14 +153,6 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
-  configure_file(
-    "${SPHERAL_ROOT_DIR}/tests/performance.py.in"
-    "${CMAKE_BINARY_DIR}/tests/performance.py"
-  )
-  install(FILES
-    "${CMAKE_BINARY_DIR}/tests/performance.py"
-    DESTINATION "${SPHERAL_TEST_INSTALL_PREFIX}"
-  )
   install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/
     USE_SOURCE_PERMISSIONS
     DESTINATION "${SPHERAL_TEST_INSTALL_PREFIX}"

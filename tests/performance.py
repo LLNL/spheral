@@ -5,11 +5,15 @@
 
 import sys, shutil, os, time
 import numpy as np
+cur_dir = os.path.dirname(__file__)
+spheral_path = os.path.join(cur_dir, "../lib/python3.9/site-packages/Spheral")
+sys.path.append(spheral_path)
+import SpheralConfigs
 
 # Current system architecture from Spack
-spheral_sys_arch = "@SPHERAL_SYS_ARCH@"
+spheral_sys_arch = SpheralConfigs.sys_arch()
 # Current install configuration from Spack
-spheral_install_config = "@SPHERAL_CONFIGURATION@"
+spheral_install_config = SpheralConfigs.config()
 
 glue(keep=True)
 
@@ -24,7 +28,7 @@ elif ("broadwell" in spheral_sys_arch):
     num_cores = 36
 
 # NOH tests
-test_dir = "@SPHERAL_TEST_INSTALL_PREFIX@/functional/Hydro/Noh"
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
 
 # Select which timing regions to post-process
 regions = ["CheapRK2",

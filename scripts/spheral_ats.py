@@ -1,31 +1,29 @@
-#!@CMAKE_INSTALL_PREFIX@/spheral
+#!/usr/bin/env python3
 
 import os, time, sys
 import argparse
 import ats.util.generic_utils as ats_utils
+import SpheralConfigs
+import mpi
 
 # This is a wrapper for running Spheral through ATS
-
-# Find spheralutils.py
-install_prefix = "@CMAKE_INSTALL_PREFIX@"
-sys.path.append(os.path.join(install_prefix, "scripts"))
-from spheralutils import sexe
-
-# Apply filters set during install
-install_filters = '''@SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING@'''
 
 # Options for running CI
 # If the number of failed tests exceeds this value, ATS is not rerun
 max_test_failures = 10
 # Number of times to rerun the ATS tests
 max_reruns = 1
-test_log_name = "test-logs"
 
+# Use current path to find spheralutils module
+cur_dir = os.path.dirname(__file__)
+# Set current directory to install prefix
+if (os.path.islink(__file__)):
+    cur_dir = os.path.join(cur_dir, os.readlink(__file__))
+install_prefix = os.path.join(cur_dir, "..")
 ats_exe = os.path.join(install_prefix, ".venv/bin/ats")
 spheral_exe = os.path.join(install_prefix, "spheral")
-
-toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
-blueos_machine_names = ["rzansel", "lassen"]
+sys.path.append(cur_dir)
+from spheralutils import sexe
 
 #------------------------------------------------------------------------------
 # Run ats.py to check results and return the number of failed tests
@@ -46,7 +44,6 @@ def report_results(output_dir):
         return 0
 
 #------------------------------------------------------------------------------
-
 # Run the tests and check if any failed
 def run_and_report(run_command, ci_output, num_runs):
     if (num_runs > max_reruns):
@@ -82,22 +79,41 @@ def run_and_report(run_command, ci_output, num_runs):
         print("WARNING: Test failure, rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
+#------------------------------------------------------------------------------
+# Add any build specific ATS arguments
+def install_ats_args():
+    install_args = []
+    if (SpheralConfigs.build_type() == "Debug"):
+        install_args.append('--level 99')
+    if (mpi.is_fake_mpi()):
+        install_args.append('--filter="np<2"')
+    comp_configs = SpheralConfigs.component_configs()
+    test_comps = ["FSISPH", "GSPH", "SVPH"]
+    for ts in test_comps:
+        if ts not in comp_configs:
+            install_args.append(f'--filter="not {ts.lower()}"')
+    return install_args
+
 #---------------------------------------------------------------------------
 # Main routine
 #---------------------------------------------------------------------------
 def main():
+    test_log_name = "test-logs"
+    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
+    blueos_machine_names = ["rzansel", "lassen"]
     temp_uname = os.uname()
     hostname = temp_uname[1]
     sys_type = os.getenv("SYS_TYPE")
     # Use ATS to for some machine specific functions
     if "MACHINE_TYPE" not in os.environ:
         ats_utils.set_machine_type_based_on_sys_type()
+
     #---------------------------------------------------------------------------
     # Setup argument parser
     #---------------------------------------------------------------------------
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      usage="""
-                                     ./spheral-ats --numNodes 2 tests/integration.ats --filter="level<100"
+                                     ./spheral spheral_ats.py --numNodes 2 tests/integration.ats --filter="level<100"
                                      """,
                                      description="""
                                      Launches and runs Spheral using the ATS system.
@@ -122,7 +138,7 @@ def main():
     #---------------------------------------------------------------------------
     # Setup machine info classes
     #---------------------------------------------------------------------------
-    ats_args = [install_filters]
+    ats_args = install_ats_args()
     numNodes = options.numNodes
     timeLimit = options.timeLimit
     ciRun = False if options.perfTest else True

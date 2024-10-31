@@ -3,11 +3,13 @@
 import os, sys, shutil, glob
 import argparse
 
+import SpheralConfigs
+
 # Location of benchmark data
 benchmark_dir = "/usr/gapps/Spheral/benchmarks"
 
-caliper_loc = "@CONFIG_CALIPER_DIR@"
-sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+caliper_loc = SpheralConfigs.caliper_module_path()
+sys.path.append(caliper_loc)
 import caliperreader as cr
 
 def main():

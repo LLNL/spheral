@@ -5,7 +5,7 @@ cp @SPHERAL_SITE_PACKAGES_PATH@/Spheral.pth .venv/@SPHERAL_SITE_PACKAGES_PATH@/
 mkdir -p .venv/@SPHERAL_SITE_PACKAGES_PATH@/Spheral
 cd @CMAKE_INSTALL_PREFIX@/.venv/@SPHERAL_SITE_PACKAGES_PATH@/Spheral
 cp --symbolic-link @CMAKE_INSTALL_PREFIX@/@SPHERAL_SITE_PACKAGES_PATH@/Spheral/* . > /dev/null 2>&1
-cd - > /dev/null 
+cd - > /dev/null
 
 # We need to reconfigure ATS to use our virtual env python otherwise ats will not be able to launch properly.
 echo "Reconfigure ATS executing python to virtual env python..."
@@ -15,10 +15,10 @@ sed -i 's|XXXXXX|\x27\x27\x27exec\x27 @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$
 echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@
 chmod u+x scripts/spheral-env.sh
-chmod u+x scripts/spheral_ats.py
+chmod u+x scripts/atstest.sh
 cp --symbolic-link scripts/spheral-env.sh spheral &> /dev/null
-cp --symbolic-link scripts/spheral_ats.py spheral-ats &> /dev/null
-cd - > /dev/null 
+cp --symbolic-link scripts/atstest.sh spheral-ats &> /dev/null
+cd - > /dev/null
 
 echo "Byte-compiling packages in install path ..."
 @CMAKE_INSTALL_PREFIX@/spheral -m compileall -q @CMAKE_INSTALL_PREFIX@/.venv/@SPHERAL_SITE_PACKAGES_PATH@

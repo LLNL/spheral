@@ -1,0 +1,25 @@
+
+'''
+This module allows access to the Spheral build configuration information
+'''
+
+import sys, os
+
+def build_type():
+    return "@CMAKE_BUILD_TYPE@"
+
+def sys_arch():
+    return "@SPHERAL_SYS_ARCH@"
+
+def config():
+    return "@SPHERAL_CONFIGURATION@"
+
+def component_configs():
+    return [@SPHERAL_COMP_CONFIG_STR@]
+
+def caliper_module_path():
+    caliper_loc = "@CONFIG_CALIPER_DIR@"
+    if (caliper_loc and os.path.exists(caliper_loc)):
+        return os.path.join(caliper_loc, "lib64/caliper")
+    else:
+        return None

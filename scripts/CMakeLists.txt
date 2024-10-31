@@ -8,30 +8,6 @@ if (NOT ENABLE_CXXONLY)
   # our virtual env in spheral-setup-venv.sh
   string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" ";" VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
 
-  set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"level<100\"")
-  endif()
-
-  if (NOT ENABLE_MPI)
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"np<2\"")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_FSISPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not fsisph\"")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_GSPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not gsph\"")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_SVPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter=\"not svph\"")
-  endif()
-
-  string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
-
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-setup-venv.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
@@ -43,20 +19,16 @@ if (NOT ENABLE_CXXONLY)
   )
 
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/spheral_ats.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/spheral_ats.py"
-  )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/gitlab/performance_analysis.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/performance_analysis.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atstest.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
   )
 
   install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
-      "${CMAKE_CURRENT_BINARY_DIR}/spheral_ats.py"
-      "${CMAKE_CURRENT_BINARY_DIR}/performance_analysis.py"
+      "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/spheral_ats.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/gitlab/performance_analysis.py"
       "${CMAKE_CURRENT_SOURCE_DIR}/spheralutils.py"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
@@ -66,6 +38,7 @@ if (NOT ENABLE_CXXONLY)
     'Spheral>')"
   )
 
+  # Copy over all of the python TPL files, with a few exceptions
   foreach(_venv_dir ${VIRTUALENV_PYTHONPATH_COPY})
     if(NOT ${_venv_dir} MATCHES "sphinx")
       install(DIRECTORY ${_venv_dir}

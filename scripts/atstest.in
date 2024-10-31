@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+@CMAKE_INSTALL_PREFIX@/spheral @CMAKE_INSTALL_PREFIX@/scripts/spheral_ats.py "$@"
