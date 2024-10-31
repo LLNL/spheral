@@ -96,7 +96,7 @@ commandLine(nx1 = 100,
             normOutputFile = "Limited_asciiDump.dat",
             writeOutputLabel = True,
 
-            graphics = "gnu",
+            graphics = True,
 
             checkReversibility = False,
             )

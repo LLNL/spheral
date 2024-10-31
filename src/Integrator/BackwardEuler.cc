@@ -129,7 +129,6 @@ step(typename Dimension::Scalar maxTime,
     
     // Trial advance the state to the end of the timestep.
     state.assign(state0);
-    state.copyState();
     state.update(derivs, mBeta * dt, t, dt);
     if (mBeta < 1.0) state.update(derivs0, (1.0 - mBeta) * dt, t, dt);
     this->applyGhostBoundaries(state, derivs);
@@ -152,8 +151,6 @@ step(typename Dimension::Scalar maxTime,
     this->currentTime(t);
     state.assign(state0);
     derivs.assign(derivs0);
-    state.copyState();
-    derivs.copyState();
     return false;
   }
 
