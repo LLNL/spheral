@@ -1,14 +1,23 @@
-Code Performance Diagnostics
-############################
+Code Debugging and Diagnostics
+##############################
+
+Valgrind
+========
+
+We advise using Valgrind to check memory leaks when doing development on Spheral.
+When using Valgrind to check Spheral, be sure to use the provided suppression file
+::
+
+   valgrind --suppressions=./scripts/devtools/valgrind_python_suppression ./spheral
+
+
+Using Caliper
+=============
 
 Spheral uses Caliper to preform code diagnostics, such as timing. To enable this functionality in the code, Spheral needs to be configured with ``ENABLE_TIMER=ON``. Otherwise, the timing regions are no-ops for improved preformance.
 ::
 
   ./scripts/devtools/host-config-build.py <sys_type>-<spec>.cmake -DENABLE_TIMER=ON
-
-
-Using Caliper
-=============
 
 Caliper is configured and started through the ``cali::ConfigManager``.
 The ``cali::ConfigManager`` is wrapped in a ``TimerMgr`` singleton class, which has a python interface.
@@ -99,7 +108,7 @@ Adiak metadata can be added inside python code using the following function call
 .. _manual_caliper:
 
 Starting Caliper Manually
-========================
+=========================
 
 As mentioned above, the Caliper timing manager is normally configured and started in the ``commandLine()`` routine. However, Caliper can be directly configured and started through the python interface, if desired. This can be done by putting the following into the python file:
 ::
