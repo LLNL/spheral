@@ -129,7 +129,7 @@ commandLine(# materials properties
             restartStep = 10000,
             dataDirBase = "dumps-Piston-1d-Cu",
             restartBaseName = "Piston-1d-Cu-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
             graphics = True,
             )

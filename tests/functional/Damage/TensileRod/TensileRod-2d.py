@@ -166,7 +166,7 @@ commandLine(seed = "lattice",
 
             clearDirectories = False,
             dataDirBase = "dumps-TensileRod-2d",
-            outputFile = "None",
+            outputFile = None,
             )
 
 dx = xlength/nx
