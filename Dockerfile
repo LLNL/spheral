@@ -2,7 +2,7 @@
 #   sudo env DOCKERBUILDKIT=1 docker build . --target spheral-build-env-local --tag spheral-build-env (--progress=plain)
 #   Optional Arguments:
 #     --progress=plain        : Prints plain output to terminal instead of windowed version.
-#     --build-args SPEC=...   : Specify optional build argument to override. Defualt = gcc
+#     --build-args SPEC=...   : Specify optional build argument to override. Default = gcc
 #                               e.g. --build-args SPEC=clang 
 
 # To build and run a spheral test:

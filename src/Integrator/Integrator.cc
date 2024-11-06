@@ -351,7 +351,7 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 // stuff.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        const Scalar dt,
                                        const DataBase<Dimension>& dataBase, 
@@ -359,9 +359,11 @@ Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
+  bool updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
+    updateBoundaries |= physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
   }
+  return updateBoundaries;
 }
 
 //------------------------------------------------------------------------------
@@ -389,7 +391,9 @@ void
 Integrator<Dimension>::
 appendPhysicsPackage(Physics<Dimension>& package) {
   if (!havePhysicsPackage(package)) {
+    for (auto* packagePtr: package.preSubPackages()) this->appendPhysicsPackage(*packagePtr);
     mPhysicsPackages.push_back(&package);
+    for (auto* packagePtr: package.postSubPackages()) this->appendPhysicsPackage(*packagePtr);
   } else {
     cerr << "Warning: attempt to append Physics package " << &package
          << "to Integrator " << this << " which already has it." << endl;

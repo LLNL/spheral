@@ -125,14 +125,14 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
   // Output the initial load distribution statistics.
   const string initialLoadStats = this->gatherDomainDistributionStatistics(work);
   if (procID == 0) {
-    cerr << "SortAndDivideRedistributeNodes::redistributeNodes initial load balancing:" << endl
+    cout << "SortAndDivideRedistributeNodes::redistributeNodes initial load balancing:" << endl
          << initialLoadStats << endl
          << "    Domain distribution shape tensor: " << shapeTensor.eigenValues << endl
          << "    Number of domains per work chunk: ";
     for (vector<int>::const_iterator itr = domainsPerStep.begin();
          itr != domainsPerStep.end();
-         ++itr) cerr << " " << *itr;
-    cerr << endl;
+         ++itr) cout << " " << *itr;
+    cout << endl;
   }
     
   // Compute the total work, and the target work per processor.
@@ -232,7 +232,7 @@ redistributeNodes(DataBase<Dim<2> >& dataBase,
 
   // Output the final load distribution statistics.
   const string finalLoadStats = this->gatherDomainDistributionStatistics(work);
-  if (procID == 0) cerr << "SortAndDivideRedistributeNodes::redistributeNodes final load balancing:" << endl
+  if (procID == 0) cout << "SortAndDivideRedistributeNodes::redistributeNodes final load balancing:" << endl
                         << finalLoadStats << endl << endl;
   MPI_Barrier(Communicator::communicator());
 
@@ -275,9 +275,8 @@ domainsPerChunk(const Dim<2>::SymTensor::EigenStructType& shapeTensor) const {
   BEGIN_CONTRACT_SCOPE
   {
     int checkCount = 0;
-    for (vector<int>::const_iterator itr = result.begin();
-         itr != result.end();
-         ++itr) checkCount += *itr;
+    CONTRACT_VAR(checkCount);
+    for (const auto x: result) checkCount += x;
     ENSURE(checkCount == numProcs);
   }
   END_CONTRACT_SCOPE

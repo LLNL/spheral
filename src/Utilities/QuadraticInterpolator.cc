@@ -13,11 +13,25 @@ namespace Spheral {
 VVI_IMPL_BEGIN
 
 //------------------------------------------------------------------------------
+// Constructor with sampled values
+//------------------------------------------------------------------------------
+QuadraticInterpolator::QuadraticInterpolator(double xmin,
+                                             double xmax,
+                                             const std::vector<double>& yvals):
+  mN1(),
+  mXmin(),
+  mXmax(),
+  mXstep(),
+  mcoeffs() {
+  this->initialize(xmin, xmax, yvals);
+}
+
+//------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
 void
-QuadraticInterpolator::initialize(const double xmin,
-                                  const double xmax,
+QuadraticInterpolator::initialize(double xmin,
+                                  double xmax,
                                   const std::vector<double>& yvals) {
   const auto n = yvals.size();
   VERIFY2(n > 2, "QuadraticInterpolator::initialize requires at least 3 unique values to fit");

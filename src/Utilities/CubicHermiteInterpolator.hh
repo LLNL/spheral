@@ -38,8 +38,20 @@ public:
   CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs);
   CubicHermiteInterpolator& operator=(const CubicHermiteInterpolator& rhs);
 
-  // Initialize from tabulated values
-  void initialize(const double xmin, const double xmax,
+  // (Re)initialize after construction, same options as construction
+  template<typename Func>
+  void initialize(const double xmin,
+                  const double xmax,
+                  const size_t n,
+                  const Func& F);
+  template<typename Func, typename GradFunc>
+  void initialize(const double xmin,
+                  const double xmax,
+                  const size_t n,
+                  const Func& F,
+                  const GradFunc& Fgrad);
+  void initialize(const double xmin,
+                  const double xmax,
                   const std::vector<double>& yvals);
 
   // Force interpolation to be monotonic (may introduce structure between tabulated points)
@@ -68,7 +80,7 @@ public:
   double h11(const double x) const;
 
   // Allow read access the internal data representation
-  size_t N() const;                           // The number of tabulated values
+  size_t size() const;                        // The number of tabulated values
   double xmin() const;                        // Minimum x coordinate for table              
   double xmax() const;                        // Maximum x coordinate for table              
   double xstep() const;                       // delta x between tabulated values            
@@ -80,6 +92,10 @@ private:
   size_t mN;
   double mXmin, mXmax, mXstep;
   std::vector<double> mVals;
+
+  // Initialize the gradient at the interpolation points based on the tabulated
+  // interpolation values
+  void initializeGradientKnots();
 };
 
 }

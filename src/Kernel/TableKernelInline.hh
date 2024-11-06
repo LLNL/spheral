@@ -133,32 +133,5 @@ TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
   }
 }
 
-//------------------------------------------------------------------------------
-// Return the assorted tabular lookup data.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<typename Dimension::Scalar>&
-TableKernel<Dimension>::
-nperhValues() const {
-  return mNperhValues;
-}
-
-template<typename Dimension>
-inline
-const std::vector<typename Dimension::Scalar>&
-TableKernel<Dimension>::
-WsumValues() const {
-  return mWsumValues;
-}
-
-template<typename Dimension>
-inline
-size_t
-TableKernel<Dimension>::
-numPoints() const {
-  return mNumPoints;
-}
-
 }
 

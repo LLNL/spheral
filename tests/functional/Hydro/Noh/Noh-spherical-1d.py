@@ -139,25 +139,25 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             writeOutputLabel = True,
 
             # Parameters for the test acceptance.,
-            L1rho =   2.69127,    
-            L2rho =   0.281878,   
-            Linfrho = 30.5888,    
-                                  
-            L1P =     0.278704,   
-            L2P =     0.0707798,  
-            LinfP =   10.0543,    
-                                  
-            L1v =     0.0242779,  
-            L2v =     0.00819669, 
-            Linfv =   0.917158,   
-                                  
-            L1eps =   0.0211726,  
-            L2eps =   0.00273082, 
-            Linfeps = 0.325892,   
-                                  
-            L1h =     0.00131914, 
-            L2h =     0.000368327,
-            Linfh =   0.0267029,  
+            L1rho =   2.69219,   
+            L2rho =   0.281965,  
+            Linfrho = 30.5929,   
+                                 
+            L1P =     0.278906,  
+            L2P =     0.0707854, 
+            LinfP =   10.0544,   
+                                 
+            L1v =     0.0242732, 
+            L2v =     0.00819671,
+            Linfv =   0.91712,   
+                                 
+            L1eps =   0.0211726, 
+            L2eps =   0.00273052,
+            Linfeps = 0.325865,  
+                                 
+            L1h =     0.0013171, 
+            L2h =     0.00036826,
+            Linfh =   0.0267045, 
 
             tol = 1.0e-5,
 
@@ -679,8 +679,6 @@ if mpi.rank == 0 :
                                                                                             Linf,
                                                                                             Linfexpect))
                     failure = True
-                if failure:
-                    raise ValueError("Error bounds violated.")
 
             if fsisph or gsph: # for fsi check if the norms are order of mag same as sph 
             
@@ -699,20 +697,11 @@ if mpi.rank == 0 :
                                                                                             Linf,
                                                                                             Linfexpect))
                     failure = True
-                if failure:
-                    raise ValueError("Error bounds violated.")
-  
     if normOutputFile != "None":
        f.write("\n")
                                              
-    # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nr,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-    #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-    #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
-
-
-
-
-
+    if failure:
+        raise ValueError("Error bounds violated.")
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print("Total energy error: %g" % Eerror)

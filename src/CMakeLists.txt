@@ -36,10 +36,12 @@ list(APPEND _packages
   Physics
   Porosity
   RK
+  VoronoiCells
   SPH
   SolidMaterial
   Strength
   Utilities
+  SmoothingScale
   )
 
 if (SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION)

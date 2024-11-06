@@ -17,6 +17,7 @@ set(Utilities_inst
 set(Utilities_sources
     BuildData.cc
     DBC.cc
+    LinearInterpolator.cc
     QuadraticInterpolator.cc
     CubicHermiteInterpolator.cc
     KeyTraits.cc
@@ -43,6 +44,8 @@ set(Utilities_headers
     BuildData.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    LinearInterpolator.hh
+    LinearInterpolatorInline.hh
     QuadraticInterpolator.hh
     QuadraticInterpolatorInline.hh
     CubicHermiteInterpolator.hh
