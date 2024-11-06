@@ -10,6 +10,8 @@
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/ReproducingKernel.hh"
 #include "Utilities/DBC.hh"
 
 #include <algorithm>
@@ -21,10 +23,12 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
+using std::sort;
 
 namespace Spheral {
 
-// namespace {
+namespace {
+
 // //------------------------------------------------------------------------------
 // // Helper for copying a type, used in copyState
 // //------------------------------------------------------------------------------
@@ -39,7 +43,23 @@ namespace Spheral {
 //   }
 // }
 
-// }
+//------------------------------------------------------------------------------
+// Template to downselect comparison in our variant types
+//------------------------------------------------------------------------------
+template<typename T1>              bool safeCompare(T1& x, const T1& y) { return x == y; }
+template<typename T1, typename T2> bool safeCompare(T1& x, const T2& y) { VERIFY2(false, "Bad comparison!"); return false; }
+
+//------------------------------------------------------------------------------
+// Template to downselect assignment in our variant types
+//------------------------------------------------------------------------------
+template<typename T1>              void safeAssign(T1& x, const T1& y) { x = y; }
+template<typename T1, typename T2> void safeAssign(T1& x, const T2& y) { VERIFY2(false, "Bad assignment!"); }
+
+// Helper with overloading in std::visit
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
+
+}
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -47,8 +67,11 @@ namespace Spheral {
 template<typename Dimension>
 StateBase<Dimension>::
 StateBase():
-  mStorage(),
-  mCache(),
+  mFieldStorage(),
+  mFieldCache(),
+  mMiscStorage(),
+  mMiscCache(),
+  mNodeListPtrs(),
   mConnectivityMapPtr(),
   mMeshPtr(new MeshType()) {
 }
@@ -59,8 +82,10 @@ StateBase():
 template<typename Dimension>
 StateBase<Dimension>::
 StateBase(const StateBase<Dimension>& rhs):
-  mStorage(rhs.mStorage),
-  mCache(),
+  mFieldStorage(rhs.mFieldStorage),
+  mFieldCache(),
+  mMiscStorage(rhs.mMiscStorage),
+  mMiscCache(),
   mNodeListPtrs(rhs.mNodeListPtrs),
   mConnectivityMapPtr(rhs.mConnectivityMapPtr),
   mMeshPtr(rhs.mMeshPtr) {
@@ -82,8 +107,10 @@ StateBase<Dimension>&
 StateBase<Dimension>::
 operator=(const StateBase<Dimension>& rhs) {
   if (this != &rhs) {
-    mStorage = rhs.mStorage;
-    mCache = CacheType();
+    mFieldStorage = rhs.mFieldStorage;
+    mFieldCache = FieldCacheType();
+    mMiscStorage = rhs.mMiscStorage;
+    mMiscCache = MiscCacheType();
     mNodeListPtrs = rhs.mNodeListPtrs;
     mConnectivityMapPtr = rhs.mConnectivityMapPtr;
     mMeshPtr = rhs.mMeshPtr;
@@ -98,71 +125,95 @@ template<typename Dimension>
 bool
 StateBase<Dimension>::
 operator==(const StateBase<Dimension>& rhs) const {
-  if (mStorage.size() != rhs.mStorage.size()) {
-    cerr << "Storage sizes don't match." << endl;
+
+  // Compare raw sizes
+  if (mFieldStorage.size() != rhs.mFieldStorage.size()) {
+    cerr << "Field storage sizes don't match." << endl;
     return false;
   }
-  vector<KeyType> lhsKeys = keys();
-  vector<KeyType> rhsKeys = rhs.keys();
-  if (lhsKeys.size() != rhsKeys.size()) {
-    cerr << "Keys sizes don't match." << endl;
+  if (mMiscStorage.size() != rhs.mMiscStorage.size()) {
+    cerr << "Miscellaneous storage sizes don't match." << endl;
     return false;
   }
-  sort(lhsKeys.begin(), lhsKeys.end());
-  sort(rhsKeys.begin(), rhsKeys.end());
+
+  // Keys
+  auto lhsKeys = keys();
+  auto rhsKeys = rhs.keys();
   if (lhsKeys != rhsKeys) {
     cerr << "Keys don't match." << endl;
     return false;
   }
 
-  // Walk the keys, and rely on the virtual overloaded 
-  // Field::operator==(FieldBase) to do the right thing!
-  // We are also relying here on the fact that std::map with a given
-  // set of keys will always result in the same order.
-  bool result = true;
-  typename StorageType::const_iterator lhsItr, rhsItr;
-  for (rhsItr = rhs.mStorage.begin(), lhsItr = mStorage.begin();
-       rhsItr != rhs.mStorage.end();
-       ++rhsItr, ++lhsItr) {
-    try {
-      auto lhsPtr = boost::any_cast<FieldBase<Dimension>*>(lhsItr->second);
-      auto rhsPtr = boost::any_cast<FieldBase<Dimension>*>(rhsItr->second);
-      if (*lhsPtr != *rhsPtr) {
-        cerr << "Fields for " << lhsItr->first <<  " don't match." << endl;
-        result = false;
-      }
-    } catch (const boost::bad_any_cast&) {
-      try {
-        auto lhsPtr = boost::any_cast<vector<Vector>*>(lhsItr->second);
-        auto rhsPtr = boost::any_cast<vector<Vector>*>(rhsItr->second);
-        if (*lhsPtr != *rhsPtr) {
-          cerr << "vector<Vector> for " << lhsItr->first <<  " don't match." << endl;
-          result = false;
-        }
-      } catch (const boost::bad_any_cast&) {
-        try {
-          auto lhsPtr = boost::any_cast<Vector*>(lhsItr->second);
-          auto rhsPtr = boost::any_cast<Vector*>(rhsItr->second);
-          if (*lhsPtr != *rhsPtr) {
-            cerr << "Vector for " << lhsItr->first <<  " don't match." << endl;
-            result = false;
-          }
-        } catch (const boost::bad_any_cast&) {
-          try {
-            auto lhsPtr = boost::any_cast<Scalar*>(lhsItr->second);
-            auto rhsPtr = boost::any_cast<Scalar*>(rhsItr->second);
-            if (*lhsPtr != *rhsPtr) {
-              cerr << "Scalar for " << lhsItr->first <<  " don't match." << endl;
-              result = false;
-            }
-          } catch (const boost::bad_any_cast&) {
-            std::cerr << "StateBase::operator== WARNING: unable to compare values for " << lhsItr->first << "\n";
-          }
-        }
+  // Compare fields
+  {
+    auto lhsitr = mFieldStorage.begin();
+    auto rhsitr = rhs.mFieldStorage.begin();
+    for (; lhsitr != mFieldStorage.end(); ++lhsitr, ++rhsitr) {
+      CHECK(rhsitr != rhs.mFieldStorage.end());
+      CHECK(lhsitr->first == rhsitr->first);
+      if (*(lhsitr->second) != *(rhsitr->second)) {
+        cerr << "Fields don't match for key " << lhsitr->first << endl;
+        return false;
       }
     }
   }
-  return result;
+
+  // Compare the miscellaneous objects
+  {
+    auto lhsitr = mMiscStorage.begin();
+    auto rhsitr = rhs.mMiscStorage.begin();
+    for (; lhsitr != mMiscStorage.end(); ++lhsitr, ++rhsitr) {
+      CHECK(rhsitr != rhs.mMiscStorage.end());
+      CHECK(lhsitr->first == rhsitr->first);
+      auto result = std::visit([](auto& x, auto& y) -> bool { return safeCompare(x, y); }, *(lhsitr->second), *(rhsitr->second));
+      if (not result) {
+        cerr << "State does not match for key " << lhsitr->first << endl;
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+// Enroll a Field
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(FieldBase<Dimension>& field) {
+  const auto key = this->key(field);
+  mFieldStorage[key] = &field;
+  mNodeListPtrs.insert(field.nodeListPtr());
+  // std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
+  ENSURE(std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
+// Enroll a Field (shared_ptr).
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
+  const auto key = this->key(*fieldPtr);
+  mFieldStorage[key] = fieldPtr.get();
+  mNodeListPtrs.insert(fieldPtr->nodeListPtr());
+  mFieldCache.push_back(fieldPtr);
+  ENSURE(std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
+}
+
+//------------------------------------------------------------------------------
+// Add the fields from a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+StateBase<Dimension>::
+enroll(FieldListBase<Dimension>& fieldList) {
+  for (auto* fptr: range(fieldList.begin_base(), fieldList.end_base())) {
+    this->enroll(*fptr);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -172,7 +223,8 @@ template<typename Dimension>
 bool
 StateBase<Dimension>::
 registered(const StateBase<Dimension>::KeyType& key) const {
-  return (mStorage.find(key) != mStorage.end());
+  return (mFieldStorage.find(key) != mFieldStorage.end() or
+          mMiscStorage.find(key) != mMiscStorage.end());
 }
 
 //------------------------------------------------------------------------------
@@ -182,9 +234,8 @@ template<typename Dimension>
 bool
 StateBase<Dimension>::
 registered(const FieldBase<Dimension>& field) const {
-  const KeyType key = this->key(field);
-  typename StorageType::const_iterator itr = mStorage.find(key);
-  return (itr != mStorage.end());
+  const auto key = this->key(field);
+  return mFieldStorage.find(key) != mFieldStorage.end();
 }
 
 //------------------------------------------------------------------------------
@@ -206,58 +257,11 @@ bool
 StateBase<Dimension>::
 fieldNameRegistered(const FieldName& name) const {
   KeyType fieldName, nodeListName;
-  auto itr = mStorage.begin();
-  while (itr != mStorage.end()) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
+  for (auto [key, valptr]: mFieldStorage) {
+    splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) return true;
-    ++itr;
   }
   return false;
-}
-
-//------------------------------------------------------------------------------
-// Enroll a field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-StateBase<Dimension>::
-enroll(FieldBase<Dimension>& field) {
-  const KeyType key = this->key(field);
-  boost::any fieldptr;
-  fieldptr = &field;
-  mStorage[key] = fieldptr;
-  mNodeListPtrs.insert(field.nodeListPtr());
-  // std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
-  ENSURE(&(this->getAny<FieldBase<Dimension>>(key)) == &field);
-  ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
-}
-
-//------------------------------------------------------------------------------
-// Enroll a field (shared_ptr).
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-StateBase<Dimension>::
-enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
-  const KeyType key = this->key(*fieldPtr);
-  mStorage[key] = fieldPtr.get();
-  mNodeListPtrs.insert(fieldPtr->nodeListPtr());
-  mFieldCache.push_back(fieldPtr);
-  ENSURE(find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
-}
-
-//------------------------------------------------------------------------------
-// Add the fields from a FieldList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-StateBase<Dimension>::
-enroll(FieldListBase<Dimension>& fieldList) {
-  for (auto itr = fieldList.begin_base();
-       itr != fieldList.end_base();
-       ++itr) {
-    this->enroll(**itr);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -268,11 +272,32 @@ std::vector<typename StateBase<Dimension>::KeyType>
 StateBase<Dimension>::
 keys() const {
   vector<KeyType> result;
-  result.reserve(mStorage.size());
-  for (auto itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) result.push_back(itr->first);
-  ENSURE(result.size() == mStorage.size());
+  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) result.push_back(itr->first);
+  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) result.push_back(itr->first);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the full set of Field Keys (mangled with NodeList names)
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::vector<typename StateBase<Dimension>::KeyType>
+StateBase<Dimension>::
+fullFieldKeys() const {
+  vector<KeyType> result;
+  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) result.push_back(itr->first);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the set of non-field keys.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::vector<typename StateBase<Dimension>::KeyType>
+StateBase<Dimension>::
+miscKeys() const {
+  vector<KeyType> result;
+  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) result.push_back(itr->first);
   return result;
 }
 
@@ -282,15 +307,12 @@ keys() const {
 template<typename Dimension>
 std::vector<typename FieldBase<Dimension>::FieldName>
 StateBase<Dimension>::
-fieldKeys() const {
+fieldNames() const {
   KeyType fieldName, nodeListName;
-  vector<typename FieldBase<Dimension>::FieldName> result;
-  result.reserve(mStorage.size());
-  for (typename StorageType::const_iterator itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) {
+  vector<FieldName> result;
+  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) {
     splitFieldKey(itr->first, fieldName, nodeListName);
-    if (fieldName != "" and nodeListName != "") result.push_back(fieldName);
+    result.push_back(fieldName);
   }
 
   // Remove any duplicates.  This will happen when we've stored the same field
@@ -384,58 +406,41 @@ void
 StateBase<Dimension>::
 assign(const StateBase<Dimension>& rhs) {
 
-  // Extract the keys for each state, and verify they line up.
-  REQUIRE(mStorage.size() == rhs.mStorage.size());
-  vector<KeyType> lhsKeys = keys();
-  vector<KeyType> rhsKeys = rhs.keys();
-  REQUIRE(lhsKeys.size() == rhsKeys.size());
-  sort(lhsKeys.begin(), lhsKeys.end());
-  sort(rhsKeys.begin(), rhsKeys.end());
-  REQUIRE(lhsKeys == rhsKeys);
-
-  // Walk the keys, and rely on the underlying type to know how to copy itself.
-  for (typename StorageType::const_iterator itr = rhs.mStorage.begin();
-       itr != rhs.mStorage.end();
-       ++itr) {
-    auto& anylhs = mStorage[itr->first];
-    const auto& anyrhs = itr->second;
-    try {
-      auto lhsptr = boost::any_cast<FieldBase<Dimension>*>(anylhs);
-      const auto rhsptr = boost::any_cast<FieldBase<Dimension>*>(anyrhs);
-      *lhsptr = *rhsptr;
-    } catch(const boost::bad_any_cast&) {
-      try {
-        auto lhsptr = boost::any_cast<vector<Vector>*>(anylhs);
-        const auto rhsptr = boost::any_cast<vector<Vector>*>(anyrhs);
-        *lhsptr = *rhsptr;
-      } catch(const boost::bad_any_cast&) {
-        try {
-          auto lhsptr = boost::any_cast<Vector*>(anylhs);
-          const auto rhsptr = boost::any_cast<Vector*>(anyrhs);
-          *lhsptr = *rhsptr;
-        } catch(const boost::bad_any_cast&) {
-          try {
-            auto lhsptr = boost::any_cast<Scalar*>(anylhs);
-            const auto rhsptr = boost::any_cast<Scalar*>(anyrhs);
-            *lhsptr = *rhsptr;
-          } catch(const boost::bad_any_cast&) {
-          // We'll assume other things don't need to be assigned...
-          // VERIFY2(false, "StateBase::assign ERROR: unknown type for key " << itr->first << "\n");
-          }
-        }
-      }
+  // Fields
+  {
+    CHECK(mFieldStorage.size() == rhs.mFieldStorage.size());
+    auto lhsitr = mFieldStorage.begin();
+    auto rhsitr = rhs.mFieldStorage.begin();
+    for (; lhsitr != mFieldStorage.end(); ++lhsitr, ++rhsitr) {
+      CHECK(rhsitr != rhs.mFieldStorage.end());
+      CHECK(lhsitr->first == rhsitr->first);
+      *(lhsitr->second) = *(rhsitr->second);
     }
   }
+
+  // Miscellaneous state
+  {
+    // Depend on assignment working for our AllowedTypes
+    CHECK(mMiscStorage.size() == rhs.mMiscStorage.size());
+    auto lhsitr = mMiscStorage.begin();
+    auto rhsitr = rhs.mMiscStorage.begin();
+    for (; lhsitr != mMiscStorage.end(); ++lhsitr, ++rhsitr) {
+      CHECK(rhsitr != rhs.mMiscStorage.end());
+      CHECK(lhsitr->first == rhsitr->first);
+      std::visit([](auto& lhsval, auto& rhsval) { safeAssign(lhsval, rhsval); }, *(lhsitr->second), *(rhsitr->second));
+    }
+  }
+
   // Copy the connectivity (by reference).  This thing is too
   // big to carry around separate copies!
-  if (rhs.mConnectivityMapPtr != NULL) {
+  if (rhs.mConnectivityMapPtr != nullptr) {
     mConnectivityMapPtr = rhs.mConnectivityMapPtr;
   } else {
     mConnectivityMapPtr = ConnectivityMapPtr();
   }
 
   // Copy the mesh.
-  if (rhs.mMeshPtr != NULL) {
+  if (rhs.mMeshPtr != nullptr) {
     mMeshPtr = MeshPtr(new MeshType());
     *mMeshPtr = *(rhs.mMeshPtr);
   } else {
@@ -452,41 +457,37 @@ StateBase<Dimension>::
 copyState() {
 
   // Remove any pre-existing stuff.
-  mCache = CacheType();
   mFieldCache = FieldCacheType();
+  mMiscCache = MiscCacheType();
 
-  // Walk the registered state and copy it to our local cache.
-  for (auto itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) {
-    boost::any anythingPtr = itr->second;
+  // Fields
+  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) {
+    auto clone = itr->second->clone();
+    mFieldCache.push_back(clone);
+    itr->second = clone.get();
+  }
 
-    // Is this a Field?
-    try {
-      auto ptr = boost::any_cast<FieldBase<Dimension>*>(anythingPtr);
-      mFieldCache.push_back(ptr->clone());
-      itr->second = mFieldCache.back().get();
-
-    } catch (const boost::bad_any_cast&) {
-      try {
-        auto ptr = boost::any_cast<vector<Vector>*>(anythingPtr);
-        auto clone = std::shared_ptr<vector<Vector>>(new vector<Vector>(*ptr));
-        mCache.push_back(clone);
-        itr->second = clone.get();
-
-      } catch (const boost::bad_any_cast&) {
-      try {
-        auto ptr = boost::any_cast<Vector*>(anythingPtr);
-        auto clone = std::shared_ptr<Vector>(new Vector(*ptr));
-        mCache.push_back(clone);
-        itr->second = clone.get();
-
-        } catch (const boost::bad_any_cast&) {
-        // We'll assume other things don't need to be copied...
-        // VERIFY2(false, "StateBase::copyState ERROR: unrecognized type for " << itr->first << "\n");
-        }
-      }
-    }
+  // Misc
+  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) {
+    std::visit(overload{[](const Scalar& x)                       { return std::make_shared<AllowedType>(x); },
+                        [](const Vector& x)                       { return std::make_shared<AllowedType>(x); },
+                        [](const Tensor& x)                       { return std::make_shared<AllowedType>(x); },
+                        [](const SymTensor& x)                    { return std::make_shared<AllowedType>(x); },
+                        [](const vector<Scalar>& x)               { return std::make_shared<AllowedType>(x); },
+                        [](const vector<Vector>& x)               { return std::make_shared<AllowedType>(x); },
+                        [](const vector<Tensor>& x)               { return std::make_shared<AllowedType>(x); },
+                        [](const vector<SymTensor>& x)            { return std::make_shared<AllowedType>(x); },
+                        [](const set<int>& x)                     { return std::make_shared<AllowedType>(x); },
+                        [](const set<RKOrder>& x)                 { return std::make_shared<AllowedType>(x); },
+                        [](const ReproducingKernel<Dimension>& x) { return std::make_shared<AllowedType>(x); }
+      }, *(itr->second));
+    // [&](auto* xptr) {
+    //              // auto clone = makeClone(*xptr);
+    //              auto clone = std::shared_ptr<AllowedType>(makeClone(*xptr));  // new AllowedType(*xptr));
+    //              // auto clone = std::make_shared<AllowedType>(*xptr);
+    //              // mMiscCache.push_back(clone);
+    //              // itr->second = clone.get();
+    //            }, itr->second);
   }
 }
 

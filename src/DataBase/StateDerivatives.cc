@@ -20,6 +20,14 @@ using std::abs;
 
 namespace Spheral {
 
+namespace {
+
+// Helper with overloading in std::visit
+template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
+template<class... Ts> overload(Ts...) -> overload<Ts...>;
+
+}
+
 //------------------------------------------------------------------------------
 // Default constructor.
 //------------------------------------------------------------------------------
@@ -41,11 +49,7 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-
-  // Iterate over the physics packages, and have them register their derivatives.
-  for (PackageIterator itr = physicsPackages.begin();
-       itr != physicsPackages.end();
-       ++itr) (*itr)->registerDerivatives(dataBase, *this);
+  for (auto pkg: physicsPackages) pkg->registerDerivatives(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -59,11 +63,7 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-
-  // Iterate over the physics packages, and have them register their derivatives.
-  for (PackageIterator itr = physicsPackageBegin;
-       itr != physicsPackageEnd;
-       ++itr) (*itr)->registerDerivatives(dataBase, *this);
+  for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerDerivatives(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -159,29 +159,22 @@ StateDerivatives<Dimension>::
 Zero() {
 
   // Walk the state fields and zero them.
-  for (typename StateBase<Dimension>::StorageType::iterator itr = this->mStorage.begin();
-       itr != this->mStorage.end();
-       ++itr) {
+  for (auto [key, fptr]: mFieldStorage) fptr->Zero();
 
-    try {
-      auto ptr = boost::any_cast<FieldBase<Dimension>*>(itr->second);
-      ptr->Zero();
-
-    } catch (const boost::bad_any_cast&) {
-      try {
-        auto ptr = boost::any_cast<vector<Vector>*>(itr->second);
-        ptr->clear();
-
-      } catch (const boost::bad_any_cast&) {
-        try {
-          auto ptr = boost::any_cast<vector<Scalar>*>(itr->second);
-          ptr->clear();
-
-        } catch (const boost::bad_any_cast&) {
-          VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
-        }
-      }
-    }
+  // Same thing for the miscellaeneous types
+  for (auto [key, mptr]: mMiscStorage) {
+    std::visit(overload{[](Scalar& x)                       { x = 0.0; },
+                        [](Vector& x)                       { x = Vector::zero; },
+                        [](Tensor& x)                       { x = Tensor::zero; },
+                        [](SymTensor& x)                    { x = SymTensor::zero; },
+                        [](vector<Scalar>& x)               { x.clear(); },
+                        [](vector<Vector>& x)               { x.clear(); },
+                        [](vector<Tensor>& x)               { x.clear(); },
+                        [](vector<SymTensor>& x)            { x.clear(); },
+                        [](set<int>& x)                     { x.clear(); },
+                        [](set<RKOrder>& x)                 { },
+                        [](ReproducingKernel<Dimension>& x) { }
+      }, *mptr);
   }
 
   // Reinitialize the node pair interaction information.

@@ -1,27 +1,47 @@
 #include "boost/algorithm/string.hpp"
 #include "DataBase/UpdatePolicyBase.hh"
+#include "RK/RKCorrectionParams.hh"
+#include "RK/ReproducingKernel.hh"
 #include "Mesh/Mesh.hh"
+#include "Utilities/range.hh"
 #include "Utilities/DBC.hh"
 
 namespace Spheral {
+
+//------------------------------------------------------------------------------
+// Enroll an arbitrary type
+// Must be one of the supported types in StateBase::AllowedType
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename T>
+inline
+void
+StateBase<Dimension>::
+enroll(const KeyType& key, T& thing) {
+  mMiscStorage[key] = &thing;
+}
 
 //------------------------------------------------------------------------------
 // Return the Field for the given key.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename Value>
+inline
 Field<Dimension, Value>&
 StateBase<Dimension>::
-field(const typename StateBase<Dimension>::KeyType& key) const {
-  try {
-    return dynamic_cast<Field<Dimension, Value>&>(this->getAny<FieldBase<Dimension>>(key));
-  } catch (...) {
-    VERIFY2(false,"StateBase ERROR: unable to extract field for key " << key << "\n");
-  }
+field(const KeyType& key) const {
+  auto itr = mFieldStorage.find(key);
+  VERIFY2(itr != mFieldStorage.end(), "StateBase ERROR: failed lookup for Field " << key);
+  auto* fbasePtr = itr->second;
+  auto* resultPtr = dynamic_cast<Field<Dimension, Value>*>(fbasePtr);
+  VERIFY2(resultPtr != nullptr,
+          "StateBase::field ERROR: field type incorrect for key " << key);
+  return *resultPtr;
 }
 
 template<typename Dimension>
 template<typename Value>
+inline
 Field<Dimension, Value>&
 StateBase<Dimension>::
 field(const typename StateBase<Dimension>::KeyType& key, 
@@ -40,15 +60,9 @@ StateBase<Dimension>::
 allFields(const Value&) const {
   std::vector<Field<Dimension, Value>*> result;
   KeyType fieldName, nodeListName;
-  for (auto itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) {
-    try {
-      Field<Dimension, Value>* ptr = dynamic_cast<Field<Dimension, Value>*>(boost::any_cast<FieldBase<Dimension>*>(itr->second));
-      if (ptr != 0) result.push_back(ptr);
-    } catch (...) {
-      // The field must have been the wrong type.
-    }
+  for (auto [key, valptr]: mFieldStorage) {
+    auto* ptr = dynamic_cast<Field<Dimension, Value>*>(valptr);
+    if (ptr != nullptr) result.push_back(ptr);
   }
   return result;
 }
@@ -64,13 +78,13 @@ StateBase<Dimension>::
 fields(const std::string& name) const {
   FieldList<Dimension, Value> result;
   KeyType fieldName, nodeListName;
-  for (auto itr = mStorage.begin();
-       itr != mStorage.end();
-       ++itr) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
+  for (auto [key, valptr]: mFieldStorage) {
+    splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) {
       CHECK(nodeListName != "");
-      result.appendField(this->template field<Value>(itr->first));
+      auto* fptr = dynamic_cast<Field<Dimension, Value>*>(valptr);
+      CHECK(valptr != nullptr);
+      result.appendField(*fptr);
     }
   }
   return result;
@@ -86,40 +100,45 @@ fields(const std::string& name, const Value& dummy) const {
 }
 
 //------------------------------------------------------------------------------
-// Enroll an arbitrary type
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename Value>
-void
-StateBase<Dimension>::
-enrollAny(const typename StateBase<Dimension>::KeyType& key, Value& thing) {
-  mStorage[key] = &thing;
-}
-
-//------------------------------------------------------------------------------
 // Extract an arbitrary type
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename Value>
+inline
 Value&
 StateBase<Dimension>::
-getAny(const typename StateBase<Dimension>::KeyType& key) const {
-  try {
-    Value& result = *boost::any_cast<Value*>(mStorage.find(key)->second);
-    return result;
-  } catch (const boost::bad_any_cast&) {
-    VERIFY2(false, "StateBase::getAny ERROR: unable to extract Value for " << key << "\n");
-  }
+get(const typename StateBase<Dimension>::KeyType& key) const {
+  auto itr = mMiscStorage.find(key);
+  VERIFY2(itr != mMiscStorage.end(), "StateBase ERROR: failed lookup for key " << key);
+  auto* resultPtr = std::get_if<Value>(itr->second);
+  VERIFY2(resultPtr != nullptr, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
+  return *resultPtr;
 }
 
 // Same thing passing a dummy argument to help with template type
 template<typename Dimension>
 template<typename Value>
+inline
 Value&
 StateBase<Dimension>::
-getAny(const typename StateBase<Dimension>::KeyType& key,
-       const Value&) const {
-  return this->getAny<Value>(key);
+get(const typename StateBase<Dimension>::KeyType& key,
+    const Value&) const {
+  return this->get<Value>(key);
+}
+
+//------------------------------------------------------------------------------
+// Assign the Fields matching the given name of this State object to be equal to
+// the values in another.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename Value>
+inline
+void
+StateBase<Dimension>::
+assignFields(const StateBase<Dimension>& rhs, const std::string name) {
+  auto lhsfields = this->fields(name, Value());
+  auto rhsfields = rhs.fields(name, Value());
+  lhsfields.assignFields(rhsfields);
 }
 
 //------------------------------------------------------------------------------
@@ -143,21 +162,6 @@ StateBase<Dimension>::
 key(const FieldListBase<Dimension>& fieldList) {
   REQUIRE(fieldList.begin_base() != fieldList.end_base());
   return buildFieldKey((*fieldList.begin_base())->name(), UpdatePolicyBase<Dimension>::wildcard());
-}
-
-//------------------------------------------------------------------------------
-// Assign the Fields matching the given name of this State object to be equal to
-// the values in another.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-template<typename Value>
-inline
-void
-StateBase<Dimension>::
-assignFields(const StateBase<Dimension>& rhs, const std::string name) {
-  auto lhsfields = this->fields(name, Value());
-  auto rhsfields = rhs.fields(name, Value());
-  lhsfields.assignFields(rhsfields);
 }
 
 //------------------------------------------------------------------------------
