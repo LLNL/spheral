@@ -262,7 +262,8 @@ UNPACK view_t : public ::vvi::detail::ViewInterface< UNPACK impl_t> { \
 
 #define POINTER_SYNTAX_OPERATORS() \
 public: \
-  SPHERAL_HOST_DEVICE ImplType& operator*() const { return VVI_SPTR_DATA_REF__(); } \
+  SPHERAL_HOST_DEVICE ValueType& operator*() { return *reinterpret_cast<ValueType*>(this); } \
+  SPHERAL_HOST_DEVICE const ValueType& operator*() const { return *reinterpret_cast<const ValueType*>(this); } \
   SPHERAL_HOST_DEVICE ImplType* operator->() const { return &VVI_SPTR_DATA_REF__(); }
 
 

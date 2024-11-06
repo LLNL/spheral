@@ -10,12 +10,12 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename Value>
-Field<Dimension, Value>&
+FieldView<Dimension, Value>&
 StateBase<Dimension>::
 field(const typename StateBase<Dimension>::KeyType& key, 
       const Value&) const {
   try {
-    return dynamic_cast<Field<Dimension, Value>&>(this->getAny<FieldBase<Dimension>>(key));
+    return reinterpret_cast<FieldView<Dimension, Value>&>(this->getAny<FieldBaseView<Dimension>>(key));
   } catch (...) {
     VERIFY2(false,"StateBase ERROR: unable to extract field for key " << key << "\n");
   }

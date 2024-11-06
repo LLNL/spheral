@@ -13,6 +13,7 @@
 #include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DomainNode.hh"
 #include "Utilities/uniform_random.hh"
+#include "Utilities/ValueViewInterface.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/RKCoefficients.hh"
 
@@ -31,7 +32,9 @@
 
 namespace Spheral {
 
+VVI_IMPL_BEGIN
 template<typename Dimension, typename DataType> class Field;
+VVI_IMPL_END
 
 //------------------------------------------------------------------------------
 // A standalone method to pack a given DataType into a vector
@@ -734,7 +737,7 @@ unpackElement(uniform_random& value,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const Field<Dimension, DataType>& /*field*/,
+computeBufferSize(const ::Spheral::vvimpl::Field<Dimension, DataType>& /*field*/,
                   const std::vector<int>& packIndices,
                   const int /*sendProc*/,
                   const int /*recvProc*/) {
@@ -747,7 +750,7 @@ computeBufferSize(const Field<Dimension, DataType>& /*field*/,
 template<typename Dimension, typename DataType>
 inline
 int
-computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
+computeBufferSize(const ::Spheral::vvimpl::Field<Dimension, std::vector<DataType> >& field,
                   const std::vector<int>& packIndices,
                   const int sendProc,
                   const int recvProc) {
@@ -794,7 +797,7 @@ computeBufferSize(const Field<Dimension, std::vector<DataType> >& field,
 template<typename Dimension, typename DataType>
 inline
 std::vector<char>
-packFieldValues(const Field<Dimension, DataType>& field,
+packFieldValues(const ::Spheral::vvimpl::Field<Dimension, DataType>& field,
                 const std::vector<int>& packIndices) {
 
   // Prepare the return vector.
@@ -819,7 +822,7 @@ packFieldValues(const Field<Dimension, DataType>& field,
 template<typename Dimension, typename DataType>
 inline
 void
-unpackFieldValues(Field<Dimension, DataType>& field,
+unpackFieldValues(Spheral::vvimpl::Field<Dimension, DataType>& field,
                   const std::vector<int>& packIndices,
                   const std::vector<char>& packedValues) {
 

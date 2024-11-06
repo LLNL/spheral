@@ -15,8 +15,10 @@
 namespace Spheral {
 
 // Forward declarations
-template<typename Dimension> class NodeList;
 template<typename Dimension> class FieldListBase;
+template<typename Dimension> class NodeList;
+
+VVI_IMPL_BEGIN
 
 template<typename Dimension>
 class FieldBase : chai::CHAIPoly {
@@ -31,9 +33,6 @@ protected:
   FieldName mName;
   const NodeList<Dimension>* mNodeListPtr = 0;
 
-  // The set of FieldLists currently referencing this Field.
-  mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
-
   // Disallow the default constructor.
   FieldBase();
   // Constructors.
@@ -43,7 +42,7 @@ protected:
 
   FieldBase(const FieldBase& fieldBase);
   // Assignment operator.
-  virtual FieldBase& operator=(const FieldBase& rhs);
+  virtual FieldBase& operator=(const FieldBase& rhs) = default;
 
 
 public:
@@ -91,16 +90,29 @@ protected:
   //--------------------------- Protected Interface ---------------------------//
   void setFieldBaseNodeList(const NodeList<Dimension>& nodeListPtr);
 
-  // Make the FieldListBase a friend, so that it can use the registration
-  // methods.
-  friend class FieldListBase<Dimension>;
-  void registerFieldList(const FieldListBase<Dimension>& fieldList) const;
-  void unregisterFieldList(const FieldListBase<Dimension>& fieldList) const;
-  bool haveFieldList(const FieldListBase<Dimension>& fieldList) const;
-
 };
 
-}
+VVI_IMPL_END
+
+#ifdef VVI_ENABLED
+//-----------------------------------------------------------------------------
+// Interface to support porting to the GPU.
+//-----------------------------------------------------------------------------
+
+// We need to forward declare value classes for view interface definitions.
+template<typename Dimension>
+class FieldBase;
+
+// Define Metaclass macros for Value/View relationships
+template<typename Dimension>
+class PTR_VIEW_METACLASS_DEFAULT((FieldBase<Dimension>), (FieldBaseView), (vvimpl::FieldBase<Dimension>))
+
+template<typename Dimension>
+class PTR_VALUE_METACLASS_DELETED((FieldBase), (FieldBaseView<Dimension>), (vvimpl::FieldBase<Dimension>))
+
+#endif // !defined(SPHERAL_ENABLE_VVI)
+
+} // namespace Spheral
 
 #include "FieldBaseInline.hh"
 

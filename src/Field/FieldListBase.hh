@@ -10,15 +10,15 @@
 
 namespace Spheral {
 
-template<typename Dimension> class FieldBase;
+template<typename Dimension> class FieldBaseView;
 
 template<typename Dimension>
 class FieldListBase {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef FieldBase<Dimension>* ElementType;
-  typedef FieldBase<Dimension>* value_type;    // STL compatibility
+  typedef FieldBaseView<Dimension> ElementType;
+  typedef FieldBaseView<Dimension> value_type;    // STL compatibility
   typedef std::vector<ElementType> StorageType;
 
   typedef typename StorageType::iterator iterator;
@@ -53,8 +53,8 @@ protected:
   mutable bool mNewRefineNodes;
 
   // Provide methods for the FieldList to register with its member Fields.
-  void registerWithField(const FieldBase<Dimension>& fieldBase) const;
-  void unregisterFromField(const FieldBase<Dimension>& fieldBase) const;
+  //void registerWithField(const FieldBaseView<Dimension>& fieldBase) const;
+  //void unregisterFromField(const FieldBaseView<Dimension>& fieldBase) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

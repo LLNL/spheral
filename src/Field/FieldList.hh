@@ -28,9 +28,12 @@ template<typename Dimension> class GhostNodeIterator;
 template<typename Dimension> class MasterNodeIterator;
 template<typename Dimension> class CoarseNodeIterator;
 template<typename Dimension> class RefineNodeIterator;
-template<typename Dimension> class NodeList;
+//VVI_IMPL_BEGIN
+//template<typename Dimension> class NodeList;
+//VVI_IMPL_END
 template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldView;
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
@@ -50,9 +53,15 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
 
+#ifdef VVI_ENABLED
+  using BaseElementType = typename FieldBase<Dimension>::ViewType;
+  using ElementType = typename Field<Dimension, DataType>::ViewType;
+  using value_type = ElementType;
+#else
   typedef FieldBase<Dimension>* BaseElementType;
   typedef Field<Dimension, DataType>* ElementType;
   typedef Field<Dimension, DataType>* value_type;    // STL compatibility
+#endif
   typedef std::vector<ElementType> StorageType;
 
   typedef typename StorageType::iterator iterator;
@@ -86,7 +95,7 @@ public:
   void copyFields(const FieldList<Dimension, DataType>& fieldList);
 
   // Test if the given field (or NodeList) is part of a FieldList.
-  bool haveField(const Field<Dimension, DataType>& field) const;
+  bool haveField(const FieldView<Dimension, DataType>& field) const;
   bool haveNodeList(const NodeList<Dimension>& nodeList) const;
 
   // Force the Field members of this FieldList to be equal to those of
@@ -97,8 +106,8 @@ public:
   void referenceFields(const FieldList& fieldList);
 
   // Convenience methods to add and delete Fields.
-  void appendField(const Field<Dimension, DataType>& field);
-  void deleteField(const Field<Dimension, DataType>& field);
+  void appendField(const FieldView<Dimension, DataType>& field);
+  void deleteField(const FieldView<Dimension, DataType>& field);
 
   // Construct a new field and add it to the FieldList.
   // Note this only makes sense when we're storing fields as copies!
@@ -282,7 +291,7 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
+  typedef std::list<chai::ManagedSharedPtr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeList<Dimension>*, int> HashMapType;
 
   std::vector<ElementType> mFieldPtrs;

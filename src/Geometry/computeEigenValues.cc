@@ -12,17 +12,17 @@ namespace Spheral {
 
 template<typename Dimension>
 void
-computeEigenValues(const Field<Dimension, typename Dimension::SymTensor>& field,
-                   Field<Dimension, typename Dimension::Vector>& eigenValues,
-                   Field<Dimension, typename Dimension::Tensor>& eigenVectors) {
+computeEigenValues(const FieldView<Dimension, typename Dimension::SymTensor>& field,
+                   FieldView<Dimension, typename Dimension::Vector>& eigenValues,
+                   FieldView<Dimension, typename Dimension::Tensor>& eigenVectors) {
 
   // Pre-conditions.
-  VERIFY(eigenValues.nodeListPtr() == field.nodeListPtr());
-  VERIFY(eigenVectors.nodeListPtr() == field.nodeListPtr());
+  VERIFY(eigenValues->nodeListPtr() == field->nodeListPtr());
+  VERIFY(eigenVectors->nodeListPtr() == field->nodeListPtr());
 
   // Do them all one by one.
   typename Dimension::SymTensor::EigenStructType eigen;
-  for (unsigned i = 0; i != field.numElements(); ++i) {
+  for (unsigned i = 0; i != field->numElements(); ++i) {
     eigen = field(i).eigenVectors();
     eigenValues(i) = eigen.eigenValues;
     eigenVectors(i) = eigen.eigenVectors;
@@ -32,8 +32,8 @@ computeEigenValues(const Field<Dimension, typename Dimension::SymTensor>& field,
 //------------------------------------------------------------------------------
 // Explicit instantiation.
 //------------------------------------------------------------------------------
-template void computeEigenValues(const Field<Dim<1>, Dim<1>::SymTensor>&, Field<Dim<1>, Dim<1>::Vector>&, Field<Dim<1>, Dim<1>::Tensor>&);
-template void computeEigenValues(const Field<Dim<2>, Dim<2>::SymTensor>&, Field<Dim<2>, Dim<2>::Vector>&, Field<Dim<2>, Dim<2>::Tensor>&);
-template void computeEigenValues(const Field<Dim<3>, Dim<3>::SymTensor>&, Field<Dim<3>, Dim<3>::Vector>&, Field<Dim<3>, Dim<3>::Tensor>&);
+template void computeEigenValues(const FieldView<Dim<1>, Dim<1>::SymTensor>&, FieldView<Dim<1>, Dim<1>::Vector>&, FieldView<Dim<1>, Dim<1>::Tensor>&);
+template void computeEigenValues(const FieldView<Dim<2>, Dim<2>::SymTensor>&, FieldView<Dim<2>, Dim<2>::Vector>&, FieldView<Dim<2>, Dim<2>::Tensor>&);
+template void computeEigenValues(const FieldView<Dim<3>, Dim<3>::SymTensor>&, FieldView<Dim<3>, Dim<3>::Vector>&, FieldView<Dim<3>, Dim<3>::Tensor>&);
 
 }

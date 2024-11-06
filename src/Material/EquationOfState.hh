@@ -41,15 +41,15 @@ public:
   virtual ~EquationOfState();
 
   // We require any equation of state to define the following methods for Fields.
-  virtual void setPressure(Field<Dimension, Scalar>& Pressure,
-                           const Field<Dimension, Scalar>& massDensity,
-                           const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setPressure(FieldView<Dimension, Scalar>& Pressure,
+                           const FieldView<Dimension, Scalar>& massDensity,
+                           const FieldView<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
-  virtual void setPressureAndDerivs(Field<Dimension, Scalar>& Pressure,           // set pressure
-                                    Field<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
-                                    Field<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
-                                    const Field<Dimension, Scalar>& massDensity,
-                                    const Field<Dimension, Scalar>& specificThermalEnergy) const = 0;
+  virtual void setPressureAndDerivs(FieldView<Dimension, Scalar>& Pressure,           // set pressure
+                                    FieldView<Dimension, Scalar>& dPdu,               // set (\partial P)/(\partial u) (specific thermal energy)
+                                    FieldView<Dimension, Scalar>& dPdrho,             // set (\partial P)/(\partial rho) (density)
+                                    const FieldView<Dimension, Scalar>& massDensity,
+                                    const FieldView<Dimension, Scalar>& specificThermalEnergy) const = 0;
 
   virtual void setTemperature(Field<Dimension, Scalar>& temperature,
                               const Field<Dimension, Scalar>& massDensity,

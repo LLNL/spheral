@@ -19,7 +19,7 @@ namespace Spheral {
 // Forward decalarations.
 template<typename Dimension> class NodeList;
 template<typename Dimension> class FluidNodeList;
-template<typename Dimension> class FieldBase;
+template<typename Dimension> class FieldBaseView;
 
 template<typename Dimension>
 class NodeListRegistrar {
@@ -41,8 +41,8 @@ public:
                    const NodeList<Dimension>* nodeListPtr2) const {
       return nodeListPtr1->name() < nodeListPtr2->name();
     }
-    int operator()(const FieldBase<Dimension>* fieldPtr1,
-                   const FieldBase<Dimension>* fieldPtr2) const {
+    int operator()(const FieldBaseView<Dimension>& fieldPtr1,
+                   const FieldBaseView<Dimension>& fieldPtr2) const {
       return fieldPtr1->nodeListPtr()->name() < fieldPtr2->nodeListPtr()->name();
     }
   };
@@ -120,13 +120,13 @@ public:
 
   static
   NodeList<Dimension>* 
-  getNodeListPtr(FieldBase<Dimension>* thingy) {
+  getNodeListPtr(FieldBaseView<Dimension>& thingy) {
     return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
   }
 
   static
   NodeList<Dimension>* 
-  getNodeListPtr(const FieldBase<Dimension>* thingy) {
+  getNodeListPtr(const FieldBaseView<Dimension>& thingy) {
     return const_cast<NodeList<Dimension>*>(thingy->nodeListPtr());
   }
 

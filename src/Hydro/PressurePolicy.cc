@@ -59,7 +59,7 @@ update(const KeyType& key,
   auto& P = state.field(key, Scalar());
 
   // Get the eos.  This cast is ugly, but is a work-around for now.
-  const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(P.nodeListPtr());
+  const auto* fluidNodeListPtr = dynamic_cast<const FluidNodeList<Dimension>*>(P->nodeListPtr());
   CHECK(fluidNodeListPtr != nullptr);
   const auto& eos = fluidNodeListPtr->equationOfState();
 
@@ -99,7 +99,7 @@ update(const KeyType& key,
   // Is someone trying to keep the damaged pressure in an independent Field?
   // (I'm looking at you FSISPH)
   const auto separateDamage = state.registered(buildKey(SolidFieldNames::damagedPressure));
-  Field<Dimension, Scalar>* PdPtr = nullptr;
+  FieldView<Dimension, Scalar> PdPtr;
   if (separateDamage) PdPtr = &state.field(buildKey(SolidFieldNames::damagedPressure), 0.0);
 
   // If there's damage for this material, apply it to the pressure
@@ -117,7 +117,7 @@ update(const KeyType& key,
                              Pmin);
                        
     // Scale by the damage.
-    const auto ni = P.numInternalElements();
+    const auto ni = P->numInternalElements();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
       const auto Di = std::max(0.0, std::min(1.0, D(i).eigenValues().maxElement()));

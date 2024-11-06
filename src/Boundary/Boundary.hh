@@ -76,40 +76,40 @@ public:
   //****************************************************************************
   // Apply the boundary condition to the ghost node values in the given Field.
   // Catch all method for Fields, assumes copy control->ghost
-  virtual void applyGhostBoundary(FieldBase<Dimension>& fieldBase) const;                
+  virtual void applyGhostBoundary(FieldBaseView<Dimension>& fieldBase) const;                
 
   // Specific Field ValueTypes -- default to just calling base method
-  virtual void applyGhostBoundary(Field<Dimension, int>& field) const                       { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, SymTensor>& field) const                 { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, ThirdRankTensor>& field) const           { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, FourthRankTensor>& field) const          { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, FifthRankTensor>& field) const           { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, FacetedVolume>& field) const             { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Scalar>>& field) const       { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, std::vector<Vector>>& field) const       { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void applyGhostBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, int>& field) const                       { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, Scalar>& field) const                    { this->applyGhostBoundary(field); }
+  virtual void applyGhostBoundary(FieldView<Dimension, Vector>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, Tensor>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, SymTensor>& field) const                 { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, ThirdRankTensor>& field) const           { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, FourthRankTensor>& field) const          { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, FifthRankTensor>& field) const           { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, FacetedVolume>& field) const             { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, std::vector<Scalar>>& field) const       { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, std::vector<Vector>>& field) const       { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(FieldView<Dimension, RKCoefficients<Dimension>>& field) const { this->applyGhostBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
   
   //****************************************************************************
   // Apply the boundary condition to the violation node values in the given Field.
   // Catch all method for Fields, assumes noop
-  virtual void enforceBoundary(FieldBase<Dimension>& ) const {};
+  virtual void enforceBoundary(FieldBaseView<Dimension>& ) const {};
 
   // Specific Field ValueTypes -- default to just calling base method
-  virtual void enforceBoundary(Field<Dimension, int>& field) const                       { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, Scalar>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, Vector>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, Tensor>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, SymTensor>& field) const                 { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, ThirdRankTensor>& field) const           { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, FourthRankTensor>& field) const          { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, FifthRankTensor>& field) const           { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, FacetedVolume>& field) const             { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, std::vector<Scalar>>& field) const       { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, std::vector<Vector>>& field) const       { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
-  virtual void enforceBoundary(Field<Dimension, RKCoefficients<Dimension>>& field) const { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, int>& field) const                       { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, Scalar>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, Vector>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, Tensor>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, SymTensor>& field) const                 { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, ThirdRankTensor>& field) const           { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, FourthRankTensor>& field) const          { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, FifthRankTensor>& field) const           { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, FacetedVolume>& field) const             { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, std::vector<Scalar>>& field) const       { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, std::vector<Vector>>& field) const       { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
+  virtual void enforceBoundary(FieldView<Dimension, RKCoefficients<Dimension>>& field) const { this->enforceBoundary(dynamic_cast<FieldBaseView<Dimension>&>(field)); }
 
   //****************************************************************************
   // Set the ghost and violation nodes based on the FluidNodeLists in the given DataBase.

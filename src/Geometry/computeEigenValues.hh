@@ -10,6 +10,7 @@
 namespace Spheral {
 
 template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldView;
 
 template<typename Dimension>
 void

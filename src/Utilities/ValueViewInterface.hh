@@ -136,7 +136,7 @@ using SPHERALCopyable = chai::CHAICopyable;
 // This is used for allowing implicit upcast conversions to a Base Class
 #define VVI_UPCAST_CONVERSION_OP(parent_t) \
 public: \
-  operator parent_t() const {return parent_t(this->sptr());}
+  operator UNPACK parent_t() const {return UNPACK parent_t(this->sptr());}
 
 // This is used when declaring a Value interface of an abstract class.
 #define VVI_DELETED_INTERFACE(type) \

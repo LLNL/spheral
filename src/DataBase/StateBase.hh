@@ -36,6 +36,7 @@ namespace Spheral {
 template<typename Dimension> class NodeList;
 template<typename Dimension> class FieldListBase;
 template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldView;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class ConnectivityMap;
 template<typename Dimension> class Mesh;
@@ -61,7 +62,7 @@ public:
   typedef std::shared_ptr<MeshType> MeshPtr;
 
   typedef std::string KeyType;
-  typedef typename FieldBase<Dimension>::FieldName FieldName;
+  typedef typename FieldBase<Dimension>::ImplType::FieldName FieldName;
 
   // Constructors, destructor.
   StateBase();
@@ -88,7 +89,7 @@ public:
 
   // Return the field for the given key.
   template<typename Value>
-  Field<Dimension, Value>& field(const KeyType& key,
+  FieldView<Dimension, Value>& field(const KeyType& key,
                                  const Value& dummy) const;
 
   // Return all the fields of the given Value.

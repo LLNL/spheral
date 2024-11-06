@@ -24,6 +24,8 @@ extern "C" {
 // Inlined methods.
 namespace Spheral {
 
+VVI_IMPL_BEGIN
+
 // Construct with name.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -1992,5 +1994,6 @@ getAxomTypeID() const {
   return DataTypeTraits<DataType>::axomTypeID();
 }
 
+VVI_IMPL_END
 
 } // namespace Spheral

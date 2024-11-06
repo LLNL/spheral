@@ -82,7 +82,10 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
       for (typename FieldCacheType::const_iterator itr = rhs.mFieldCache.begin();
            itr != rhs.mFieldCache.end();
            ++itr) {
-        auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
+        auto newField = chai::make_shared<Field<Dimension, DataType>>();
+        *newField = **itr;
+        //auto newField = chai::make_shared<Field<Dimension, DataType>>(**itr);
+        //auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
         mFieldCache.push_back(newField);
       }
 
@@ -92,8 +95,8 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
       auto fieldCacheItr = mFieldCache.begin();
       for(; fieldPtrItr != this->end(); ++fieldPtrItr, ++fieldBasePtrItr, ++fieldCacheItr) {
         CHECK(fieldCacheItr != mFieldCache.end());
-        (*fieldPtrItr) = fieldCacheItr->get();
-        (*fieldBasePtrItr) = fieldCacheItr->get();
+        (*fieldPtrItr) = &*fieldCacheItr->get();
+        (*fieldBasePtrItr) = &*fieldCacheItr->get();
       }
 
       CHECK(fieldPtrItr == this->end() &&
@@ -172,9 +175,9 @@ operator=(const FieldList<Dimension, DataType>& rhs) {
         for (auto itr = rhs.mFieldCache.begin();
              itr != rhs.mFieldCache.end();
              ++itr) {
-          auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
+          auto newField = chai::make_shared<Field<Dimension, DataType>>(**itr);
           mFieldCache.push_back(newField);
-          mFieldPtrs.push_back(newField.get());
+          mFieldPtrs.push_back(*newField);
         }
         NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());
         for (auto fptr: mFieldPtrs) mFieldBasePtrs.push_back(fptr);
@@ -236,10 +239,10 @@ FieldList<Dimension, DataType>::copyFields() {
     auto itr = begin();
     auto baseItr = begin_base();
     for (; itr != end(); ++itr, ++baseItr) {
-      auto newField = std::make_shared<Field<Dimension, DataType>>(**itr);
+      auto newField = chai::make_shared<Field<Dimension, DataType>>(**itr);
       mFieldCache.push_back(newField);
-      *itr = mFieldCache.back().get();
-      *baseItr = mFieldCache.back().get();
+      *itr = &*mFieldCache.back().get();
+      *baseItr = &*mFieldCache.back().get();
     }
 
     // Make sure the FieldPtrs are in the correct order.
@@ -276,10 +279,10 @@ FieldList<Dimension, DataType>::copyFields(const FieldList<Dimension, DataType>&
 
   // Store new copies of the Fields from the other FieldList
   for (const auto& fieldPtr: fieldList.mFieldPtrs) {
-    auto newFieldPtr = std::make_shared<Field<Dimension, DataType>>(*fieldPtr);
+    auto newFieldPtr = chai::make_shared<Field<Dimension, DataType>>(*fieldPtr);
     mFieldCache.push_back(newFieldPtr);
-    mFieldPtrs.push_back(newFieldPtr.get());
-    mFieldBasePtrs.push_back(newFieldPtr.get());
+    mFieldPtrs.push_back(*newFieldPtr);
+    mFieldBasePtrs.push_back(*newFieldPtr);
   }
 }
 
@@ -290,7 +293,7 @@ template<typename Dimension, typename DataType>
 inline
 bool
 FieldList<Dimension, DataType>::
-haveField(const Field<Dimension, DataType>& field) const {
+haveField(const FieldView<Dimension, DataType>& field) const {
   auto fieldListItr = std::find(this->begin(), this->end(), &field);
   return fieldListItr != this->end();
 }
@@ -348,7 +351,7 @@ referenceFields(const FieldList<Dimension, DataType>& fieldList) {
 template<typename Dimension, typename DataType>
 inline
 void
-FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& field) {
+FieldList<Dimension, DataType>::appendField(const FieldView<Dimension, DataType>& field) {
   if (haveField(field)) {
     std::cerr << "FieldList::appendField Warning: attempt to append field " << &field
               << " to FieldList " << this
@@ -358,7 +361,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 
   // Determine the order this Field should be in.
   const NodeListRegistrar<Dimension>& nlr = NodeListRegistrar<Dimension>::instance();
-  auto orderItr = nlr.findInsertionPoint(&field,
+  auto orderItr = nlr.findInsertionPoint(field,
                                          begin(),
                                          end());
   const auto delta = std::distance(begin(), orderItr);
@@ -366,15 +369,16 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
   // Insert the field.
   switch(storageType()) {
   case FieldStorageType::ReferenceFields:
-    mFieldPtrs.insert(orderItr, const_cast<Field<Dimension, DataType>*>(&field));
-    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, const_cast<FieldBase<Dimension>*>(dynamic_cast<const FieldBase<Dimension>*>(&field)));
+    mFieldPtrs.insert(orderItr, field);
+    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, field);
+    //mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, const_cast<FieldBaseView<Dimension>>(dynamic_cast<const FieldBase<Dimension>>(&field)));
     break;
 
   case FieldStorageType::CopyFields:
-    auto newField = std::make_shared<Field<Dimension, DataType>>(field);
+    auto newField = chai::make_shared<Field<Dimension, DataType>>(*field);
     mFieldCache.push_back(newField);
-    mFieldPtrs.insert(orderItr, newField.get());
-    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, newField.get());
+    mFieldPtrs.insert(orderItr, *newField);
+    mFieldBasePtrs.insert(mFieldBasePtrs.begin() + delta, *newField);
   }
 
 //   registerWithField(*mFieldPtrs.back());
@@ -404,7 +408,7 @@ FieldList<Dimension, DataType>::appendField(const Field<Dimension, DataType>& fi
 template<typename Dimension, typename DataType>
 inline
 void
-FieldList<Dimension, DataType>::deleteField(const Field<Dimension, DataType>& field) {
+FieldList<Dimension, DataType>::deleteField(const FieldView<Dimension, DataType>& field) {
   if (!haveField(field)) {
     std::cerr << "FieldList::deleteField Warning: attempt to delete field " << &field
               << " from FieldList " << this
@@ -450,8 +454,8 @@ appendNewField(const typename Field<Dimension, DataType>::FieldName name,
   VERIFY(mStorageType == FieldStorageType::CopyFields);
 
   // Create the field in our cache.
-  mFieldCache.push_back(std::make_shared<Field<Dimension, DataType>>(name, nodeList, value));
-  Field<Dimension, DataType>* fieldPtr = mFieldCache.back().get();
+  mFieldCache.push_back(chai::make_shared<Field<Dimension, DataType>>(name, nodeList, value));
+  ElementType fieldPtr = &*mFieldCache.back().get();
 
   mFieldPtrs.push_back(fieldPtr);
   NodeListRegistrar<Dimension>::sortInNodeListOrder(mFieldPtrs.begin(), mFieldPtrs.end());

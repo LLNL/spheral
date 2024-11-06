@@ -3,6 +3,8 @@
 
 namespace Spheral {
 
+VVI_IMPL_BEGIN
+
 //------------------------------------------------------------------------------
 // Construct with the given name.
 //------------------------------------------------------------------------------
@@ -11,9 +13,8 @@ inline
 FieldBase<Dimension>::
 FieldBase(typename FieldBase<Dimension>::FieldName name):
   mName(name),
-  mNodeListPtr(0),
-  mFieldListBaseList() {
-}
+  mNodeListPtr(0)
+{}
 
 //------------------------------------------------------------------------------
 // Construct for a given NodeList.
@@ -24,9 +25,10 @@ FieldBase<Dimension>::
 FieldBase(typename FieldBase<Dimension>::FieldName name,
           const NodeList<Dimension>& nodeList):
   mName(name),
-  mNodeListPtr(&nodeList),
-  mFieldListBaseList() {
+  mNodeListPtr(&nodeList) {
+#ifndef VVI_ENABLED
   mNodeListPtr->registerField(*this);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -36,9 +38,10 @@ template<typename Dimension>
 inline
 FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
   mName(fieldBase.name()),
-  mNodeListPtr(fieldBase.nodeListPtr()),
-  mFieldListBaseList() {
+  mNodeListPtr(fieldBase.nodeListPtr()) {
+#ifndef VVI_ENABLED
   mNodeListPtr->registerField(*this);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -47,22 +50,23 @@ FieldBase<Dimension>::FieldBase(const FieldBase& fieldBase):
 template<typename Dimension>
 inline
 FieldBase<Dimension>::~FieldBase() {
+#ifndef VVI_ENABLED
   if (mNodeListPtr) mNodeListPtr->unregisterField(*this);
+#endif
 }
 
 //------------------------------------------------------------------------------
 // Assignment operator.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-FieldBase<Dimension>&
-FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
-  if (this != &rhs) {
-    mNodeListPtr = rhs.mNodeListPtr;
-    mFieldListBaseList = std::vector<const FieldListBase<Dimension>*>();
-  }
-  return *this;
-}
+//template<typename Dimension>
+//inline
+//FieldBase<Dimension>&
+//FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
+//  if (this != &rhs) {
+//    mNodeListPtr = rhs.mNodeListPtr;
+//  }
+//  return *this;
+//}
 
 //------------------------------------------------------------------------------
 // !=
@@ -122,7 +126,9 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::unregisterNodeList() {
+#ifndef VVI_ENABLED
   mNodeListPtr->unregisterField(*this);
+#endif
   mNodeListPtr = 0;
 }
 
@@ -133,50 +139,16 @@ template<typename Dimension>
 inline
 void
 FieldBase<Dimension>::setFieldBaseNodeList(const NodeList<Dimension>& nodeList) {
+#ifndef VVI_ENABLED
   if (mNodeListPtr != 0) unregisterNodeList();
+#endif
   mNodeListPtr = &nodeList;
+#ifndef VVI_ENABLED
   nodeList.registerField(*this);
+#endif
 }
 
-//------------------------------------------------------------------------------
-// Register a new FieldList as containing this Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-FieldBase<Dimension>::
-registerFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  REQUIRE(!haveFieldList(fieldListBase));
-  mFieldListBaseList.push_back(&fieldListBase);
-}
 
-//------------------------------------------------------------------------------
-// Unregister a FieldList from this Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-FieldBase<Dimension>::
-unregisterFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  typename std::vector<const FieldListBase<Dimension>*>::iterator itr = std::find(mFieldListBaseList.begin(),
-                                                                                  mFieldListBaseList.end(),
-                                                                                  &fieldListBase);
-  REQUIRE(itr != mFieldListBaseList.end());
-  mFieldListBaseList.erase(itr);
-  ENSURE(!haveFieldList(fieldListBase));
-}
+VVI_IMPL_END
 
-//------------------------------------------------------------------------------
-// Test if a given FieldList is registered with this Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-FieldBase<Dimension>::
-haveFieldList(const FieldListBase<Dimension>& fieldListBase) const {
-  return std::find(mFieldListBaseList.begin(),
-                   mFieldListBaseList.end(),
-                   &fieldListBase) != mFieldListBaseList.end();
-}
-
-}
+} // namespace Spheral

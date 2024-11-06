@@ -3,6 +3,8 @@
 
 namespace Spheral {
 
+//VVI_IMPL_BEGIN
+
 //------------------------------------------------------------------------------
 // Get the name of the NodeList.
 //------------------------------------------------------------------------------
@@ -267,4 +269,5 @@ NodeList<Dimension>::operator!=(const NodeList<Dimension>& rhs) const {
   return not (*this == rhs);
 }
 
-}
+//VVI_IMPL_END
+} // namespace Spheral

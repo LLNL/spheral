@@ -30,7 +30,7 @@ using std::endl;
 
 namespace Spheral {
 
-
+VVI_IMPL_BEGIN
 //------------------------------------------------------------------------------
 // Constructor with optional numInternal nodes, numGhost nodes, and name.
 //------------------------------------------------------------------------------
@@ -345,7 +345,7 @@ NodeList<Dimension>::numFields() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
+NodeList<Dimension>::registerField(Spheral::vvimpl::FieldBase<Dimension>& field) const {
   if (haveField(field)) {
     cerr << "WARNING: Attempt to register field " << &field
          << " with NodeList " << this << " that already has it." 
@@ -361,7 +361,7 @@ NodeList<Dimension>::registerField(FieldBase<Dimension>& field) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-NodeList<Dimension>::unregisterField(FieldBase<Dimension>& field) const {
+NodeList<Dimension>::unregisterField(Spheral::vvimpl::FieldBase<Dimension>& field) const {
 #pragma omp critical
   {
     if (!haveField(field)) {
@@ -688,4 +688,5 @@ restoreState(const FileIO& file, const string& pathName) {
 //     (*fieldItr)->notifyNewRefineNodes();
 //   }
 // }
+VVI_IMPL_END
 }
