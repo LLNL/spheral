@@ -152,16 +152,12 @@ def main():
             timeLimit = timeLimit if timeLimit else 120
             mac_args = [f"--numNodes {numNodes}"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-            if (ciRun):
-                launch_cmd += "-p pdebug "
         elif any(x in hostname for x in blueos_machine_names):
             blueOS = True
             numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 60
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
             launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
-            if (ciRun):
-                launch_cmd += "-q pdebug "
         ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
