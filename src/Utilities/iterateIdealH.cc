@@ -218,7 +218,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Output the statitics.
     if (Process::getRank() == 0 && maxIterations > 1)
-      cerr << "iterateIdealH: (iteration, deltaH) = ("
+      cout << "iterateIdealH: (iteration, deltaH) = ("
            << itr << ", "
            << maxDeltaH << ")"
            << endl;
@@ -275,7 +275,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Report the final timing.
   const auto t1 = clock();
   if (Process::getRank() == 0 && maxIterations > 1)
-    cerr << "iterateIdealH: required a total of "
+    cout << "iterateIdealH: required a total of "
          << (t1 - t0)/CLOCKS_PER_SEC
          << " seconds."
          << endl;
