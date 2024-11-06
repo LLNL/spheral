@@ -89,9 +89,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   //auto  HStretchTensor = derivatives.fields("HStretchTensor", SymTensor::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
-  auto& pairMassFlux = derivatives.getAny(GSPHFieldNames::pairMassFlux, vector<Scalar>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairDepsDt = derivatives.get(HydroFieldNames::pairWork, vector<Scalar>());
+  auto& pairMassFlux = derivatives.get(GSPHFieldNames::pairMassFlux, vector<Scalar>());
 
   CHECK(DrhoDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);

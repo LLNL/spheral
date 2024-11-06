@@ -341,7 +341,7 @@ evaluateDerivatives(const Scalar time,
   auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   CHECK(DvDt.size() == numNodeLists);
   CHECK(DepsDt.size() == numNodeLists);
 
