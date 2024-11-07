@@ -6,7 +6,7 @@
     - ruby
     - shell
   variables:
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user --deadline=now+1hour -N 2 -t 60"
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t 60"
     HOSTNAME: 'ruby'
   extends: [.on_toss_4_x86]
 
@@ -16,7 +16,7 @@
     - shell
   variables:
     SCHEDULER_PARAMETERS: "-nnodes 1 -W 60 -q pci -alloc_flags atsdisable"
-    LSB_JOB_STARTER: [ "ENVIRONMENT=BATCH" ]
+    LSB_JOB_STARTER: "ENVIRONMENT=BATCH /usr/tcetmp/bin/bsub_job_starter %USRCMD"
     ENVIRONMENT: "BATCH"
     HOSTNAME: 'lassen'
     LC_MODULES: "cuda/11.1.0"
