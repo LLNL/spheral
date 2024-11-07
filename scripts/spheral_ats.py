@@ -126,6 +126,8 @@ def main():
     parser.add_argument("--timeLimit", type=int,
                         default=None,
                         help="Time limit for allocation.")
+    parser.add_argument("--ciRun", action="store_true",
+                        help="Option to only be used by the CI")
     parser.add_argument("--perfTest", action="store_true",
                         help="Turn on if doing a performance test.")
     parser.add_argument("--atsHelp", action="store_true",
@@ -141,9 +143,12 @@ def main():
     ats_args = install_ats_args()
     numNodes = options.numNodes
     timeLimit = options.timeLimit
-    ciRun = False if options.perfTest else True
     launch_cmd = ""
     blueOS = False
+    # These are environment variables to suggest we are in an allocation already
+    # NOTE: CI runs should already be in an allocation so the launch cmd is
+    # unused in those cases
+    inAllocVars = []
 
     if hostname:
         mac_args = []
@@ -151,11 +156,15 @@ def main():
             numNodes = numNodes if numNodes else 2
             timeLimit = timeLimit if timeLimit else 120
             mac_args = [f"--numNodes {numNodes}"]
+            inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (options.ciRun):
+                launch_cmd += "-p pdebug "
         elif any(x in hostname for x in blueos_machine_names):
             blueOS = True
             numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 60
+            inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
             launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
         ats_args.extend(mac_args)
@@ -164,7 +173,7 @@ def main():
     # Launch ATS
     #---------------------------------------------------------------------------
     # If doing a CI run, set some more options
-    if (ciRun):
+    if (not options.perfTest):
         if ("--logs" not in unknown_options):
             ats_args.append(f"--logs {test_log_name}")
             log_name = test_log_name
@@ -176,14 +185,20 @@ def main():
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
-    if blueOS:
-        # Launches using Bsub have issues with '<' being in command
-        # so entire run statment must be in quotes
-        run_command = f"{launch_cmd} '{cmd}'"
+    # Check if are already in an allocation
+    inAlloc = any(e in list(os.environ.keys()) for e in inAllocVars)
+    # If already in allocation, do not do a launch
+    if inAlloc:
+        run_command = cmd
     else:
-        run_command = f"{launch_cmd}{cmd}"
+        if blueOS:
+            # Launches using Bsub have issues with '<' being in command
+            # so entire run statment must be in quotes
+            run_command = f"{launch_cmd} '{cmd}'"
+        else:
+            run_command = f"{launch_cmd}{cmd}"
     print(f"\nRunning: {run_command}\n")
-    if (ciRun):
+    if (options.ciRun):
         run_and_report(run_command, log_name, 0)
     else:
         try:

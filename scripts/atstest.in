@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 
-# Running with exec bash -l prevents blueOS from printing stty error messages
-exec bash -l @CMAKE_INSTALL_PREFIX@/spheral @CMAKE_INSTALL_PREFIX@/scripts/spheral_ats.py "$@"
+@CMAKE_INSTALL_PREFIX@/spheral @CMAKE_INSTALL_PREFIX@/scripts/spheral_ats.py "$@"

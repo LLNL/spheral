@@ -6,10 +6,8 @@
     - ruby
     - shell
   variables:
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user --deadline=now+1hour -N 2 -t 60"
     HOSTNAME: 'ruby'
-    PARTITION: pdebug
-    BUILD_ALLOC: srun -N 1 -c 36 -p pdebug -t 60
-    CLEAN_ALLOC: srun -n 20
   extends: [.on_toss_4_x86]
 
 .on_lassen:
@@ -17,9 +15,10 @@
     - lassen
     - shell
   variables:
+    SCHEDULER_PARAMETERS: "-nnodes 1 -W 60 -q pci -alloc_flags atsdisable"
+    LSB_JOB_STARTER: [ "ENVIRONMENT=BATCH" ]
+    ENVIRONMENT: "BATCH"
     HOSTNAME: 'lassen'
-    BUILD_ALLOC: lalloc 1 -W 60
-    CLEAN_ALLOC: lalloc 1 lrun -n 20
     LC_MODULES: "cuda/11.1.0"
   extends: [.on_blueos_3_ppc64]
 
