@@ -4,6 +4,7 @@
 .on_ruby:
   tags:
     - ruby
+    - batch
   variables:
     SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t 60"
     HOSTNAME: 'ruby'
@@ -12,6 +13,7 @@
 .on_lassen:
   tags:
     - lassen
+    - batch
   variables:
     SCHEDULER_PARAMETERS: "-nnodes 1 -W 60 -q pci -alloc_flags atsdisable"
     LSB_JOB_STARTER: "ENVIRONMENT=BATCH /usr/tcetmp/bin/bsub_job_starter %USRCMD"
