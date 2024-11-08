@@ -229,7 +229,7 @@ function(spheral_add_pybind11_library package_name module_list_name)
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS} #python_build_env
+                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS}
                             PYTHONPATH      ${PYTHON_ENV_STR}
                             INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${${package_name}_INCLUDES} ${PYBIND11_ROOT_DIR}/include
                             COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${SPHERAL_PYB11_TARGET_FLAGS}>"

@@ -75,34 +75,12 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
   )
 
+  # Install Runtime python dependencies into the Install directory.
   Spheral_Python_Env(python_runtime_env runtime-requirements.txt ${CMAKE_INSTALL_PREFIX})
 
   install(FILES ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
     DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
-    #install(DIRECTORY ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope
-    #DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}
-    )
-
-  #install(CODE "execute_process( \
-  #  COMMAND ${Python3_EXECUTABLE} -m venv ${CMAKE_INSTALL_PREFIX}/.venv --prompt 'Spheral>';
-  #  COMMAND . ${CMAKE_INSTALL_PREFIX}/.venv/bin/activate &&
-  #          python -m pip install --upgrade pip &&
-  #          python -m pip install -r ${SPHERAL_ROOT_DIR}/scripts/requirements.txt
-  #  )"
-  #)
-
-  #foreach(_venv_dir ${VIRTUALENV_PYTHONPATH_COPY})
-  #  if(NOT ${_venv_dir} MATCHES "sphinx")
-  #    install(DIRECTORY ${_venv_dir}
-  #      USE_SOURCE_PERMISSIONS
-  #      MESSAGE_NEVER
-  #      DESTINATION "${CMAKE_INSTALL_PREFIX}/.venv"
-  #      PATTERN "*\/.spack*" EXCLUDE
-  #      PATTERN "*\/tests\/*" EXCLUDE
-  #      PATTERN "*.pyc" EXCLUDE
-  #    )
-  #  endif()
-  #endforeach()
+  )
 
   install(CODE "execute_process( \
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh)"
