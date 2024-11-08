@@ -121,7 +121,7 @@ commandLine(nr = 20,                     # Radial resolution of the shell in poi
             clearDirectories = False,
             dataDirBase = "dumps-Verney-Be-R",
             outputFile = "Verney-Be-R.gnu",
-            comparisonFile = "None",
+            comparisonFile = None,
 
             # Testing
             checkRestart = False,
@@ -432,7 +432,7 @@ print("Total energy error: %g" % Eerror)
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
@@ -475,7 +475,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

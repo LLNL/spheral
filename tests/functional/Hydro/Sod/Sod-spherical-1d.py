@@ -116,7 +116,7 @@ commandLine(nr1 = 800,
             restartStep = 10000,
             dataDirBase = "dumps-Sod-spherical",
             restartBaseName = "Sod-spherical-1d-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
 
             graphics = True,
@@ -601,7 +601,7 @@ print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 # rmax = x2
 # if mpi.rank == 0:
 #     multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-#     if outputFile != "None":
+#     if outputFile:
 #         outputFile = os.path.join(dataDir, outputFile)
 #         f = open(outputFile, "w")
 #         f.write(("#  " + 19*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", "mo",

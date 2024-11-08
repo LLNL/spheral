@@ -171,8 +171,8 @@ commandLine(length = 3.0,
             clearDirectories = False,
             referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240816.gnu",
             dataDirBase = "dumps-TensileRod-1d",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             )
 
 # On the IBM BlueOS machines we have some tolerance issues...
@@ -744,7 +744,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
@@ -786,7 +786,7 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file for
         # bit level consistency.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
+        if comparisonFile and BuildData.cxx_compiler_id != "IntelLLVM":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

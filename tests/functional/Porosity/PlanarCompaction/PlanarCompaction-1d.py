@@ -106,8 +106,8 @@ commandLine(nx = 500,                          # Number of internal free points
             dataDirBase = "dumps-PlanarCompaction-1d",
             checkError = False,
             checkRestart = False,
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
 
             # Parameters for the test acceptance.,
             tol = 1.0e-5,

@@ -104,7 +104,7 @@ commandLine(seed = "lattice",
             useVoronoiOutput = False,
             clearDirectories = False,
             dataDirBase = "dumps-cylindrical-Sedov",
-            outputFile = "None",
+            outputFile = None,
             serialDump=True,
 
             xlmin = 0.4,
@@ -527,7 +527,7 @@ Aans = mpi.bcast(Aans, 0)
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None" and mpi.rank == 0:
+if outputFile and mpi.rank == 0:
     outputFile = os.path.join(dataDir, outputFile)
     f = open(outputFile, "w")
     f.write(("# " + 17*"%16s " + "\n") % ("r", "x", "y", "rho", "m", "P", "v", "eps", "A", "hr", "ht",

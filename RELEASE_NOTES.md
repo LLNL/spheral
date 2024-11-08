@@ -57,6 +57,8 @@ Notable changes include:
     * Clang C++ warnings have eliminated, so the Clang CI tests have been updated to treat warnings as errors.
     * Fix for installing libraries when building individual package WITH ENABLE_DEV_BUILD=On.
     * Bugfix for RZ solid CRKSPH with compatible energy.
+    * Parsing of None string now always becomes None python type. Tests have been updated accordingly.
+    * IO for checkpoints and visuzalization can now be properly turned off through SpheralController input options.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================

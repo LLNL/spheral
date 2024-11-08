@@ -67,7 +67,7 @@ commandLine(
 
     graphics = True,
     plotKernels = False,
-    outputFile = "None",
+    outputFile = None,
 )
 
 assert testCase in ("linear", "quadratic", "step")
@@ -465,7 +465,7 @@ if graphics:
         p7.plot(xvals, WR, "g-", label="RK")
         p7.axes.legend()
         plt.title("Kernel")
-        if outputFile != "None":
+        if outputFile:
             f = open("Kernel_" + outputFile, "w")
             f.write(("#" + 3*' "%20s"' + "\n") % ("eta", "Wj", "WRj"))
             for xi, Wi, WRi in zip(xvals, W, WR):
@@ -473,7 +473,7 @@ if graphics:
             f.close()
 
     # We may want a gnu/pdv style text file.
-    if outputFile != "None" and testDim == "2d":
+    if outputFile and testDim == "2d":
         of = open(outputFile, "w")
         of.write(('#' + 7*' "%20s"' + '\n') % ("x", "interp answer", "grad answer", "interp SPH", "interp CRK", "grad SPH", "grad CRK"))
         for iNodeList, nodes in enumerate(db.nodeLists()):
