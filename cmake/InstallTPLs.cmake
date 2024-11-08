@@ -39,8 +39,16 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION lib/cmake)
   set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
 
-  # Install Spheral Python Runtime Dependencies to virtual env in build tree.
-  Spheral_Python_Env(python_build_env build-requirements.txt ${CMAKE_BINARY_DIR})
+  # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
+  set(BUILD_REQ_LIST build-requirements.txt)
+  if(ENABLE_DOCS)
+    list(APPEND BUILD_REQ_LIST docs-requirements.txt)
+  endif()
+
+  Spheral_Python_Env(python_build_env 
+    REQUIREMENTS ${BUILD_REQ_LIST}
+    PREFIX ${CMAKE_BINARY_DIR}
+  )
 
 endif()
 

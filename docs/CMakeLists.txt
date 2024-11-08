@@ -1,11 +1,4 @@
 if(ENABLE_DOCS)
-  if(NOT DEFINED SPHINX_THEME)
-    set(SPHINX_THEME sphinx_rtd_theme)
-  endif()
-
-  if(NOT DEFINED SPHINX_THEME_DIR)
-    set(SPHINX_THEME_DIR)
-  endif()
 
   # configured documentation tools and intermediate build results
   set(BINARY_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/_build")
@@ -21,13 +14,13 @@ if(ENABLE_DOCS)
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
 
+  get_target_property(DOCS_ACTIVATE_VENV_CMD python_build_env ACTIVATE_VENV)
+
   add_custom_target(docs ALL
-    env PYTHONPATH=${SPACK_PYTHONPATH} ${PYTHON_EXE} -m sphinx
-    -q -b html
+    COMMAND ${DOCS_ACTIVATE_VENV_CMD} && python -m sphinx -q -b html
     -c "${BINARY_BUILD_DIR}"
-    -d "${SPHINX_CACHE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${SPHINX_HTML_DIR}"
-    DEPENDS ${DOC_DEPENDS}
+    DEPENDS ${DOC_DEPENDS} python_build_env
     COMMENT "Building HTML documentation with Sphinx")
 endif()

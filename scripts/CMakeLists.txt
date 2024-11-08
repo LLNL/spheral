@@ -1,13 +1,5 @@
 if (NOT ENABLE_CXXONLY)
 
-  # We use the spack generated build time python path to
-  # pick up all of the python modules needed for our runtime.
-  # Since some modules need to install from directories other than
-  # site-packages, we strip away site-packages and pack and
-  # copy the full contents of the python library prefix to
-  # our virtual env in spheral-setup-venv.sh
-  string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" ";" VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
-
   set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -76,7 +68,10 @@ if (NOT ENABLE_CXXONLY)
   )
 
   # Install Runtime python dependencies into the Install directory.
-  Spheral_Python_Env(python_runtime_env runtime-requirements.txt ${CMAKE_INSTALL_PREFIX})
+  Spheral_Python_Env(python_runtime_env 
+    REQUIREMENTS runtime-requirements.txt 
+    PREFIX ${CMAKE_INSTALL_PREFIX}
+  )
 
   install(FILES ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
     DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/

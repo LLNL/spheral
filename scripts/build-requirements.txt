@@ -1,4 +1,1 @@
 decorator
-sphinx
-sphinx-rtd-theme
-
