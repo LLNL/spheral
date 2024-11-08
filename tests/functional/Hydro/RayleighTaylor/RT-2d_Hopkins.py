@@ -157,7 +157,7 @@ commandLine(nx1 = 128,
             sampleFreq = 20,
             dataDir = "dumps-Rayleigh-Taylor-2d_hopkins",
             outputFile = "RT_Hopkins.txt",
-            comparisonFile = "None",
+            comparisonFile = None,
             
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             useVoronoiOutput = False,
