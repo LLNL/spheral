@@ -64,7 +64,7 @@ update(const KeyType& key,
 
   // Find all the available matching derivative Field keys.
   const auto incrementKey = prefix() + fieldKey;
-  const auto allkeys = derivs.fieldKeys();
+  const auto allkeys = derivs.fullFieldKeys();
   vector<string> incrementKeys;
   for (const auto& key: allkeys) {
     if (key.compare(0, incrementKey.size(), incrementKey) == 0) {

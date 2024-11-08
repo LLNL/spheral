@@ -22,6 +22,33 @@ namespace Spheral {
 
 namespace {
 
+//------------------------------------------------------------------------------
+// Collect visitor methods to apply to std::any object holders
+//------------------------------------------------------------------------------
+// 2 args
+template<typename RETURNT, typename ARG1, typename ARG2>
+class AnyVisitor2 {
+public:
+  using VisitorFunc = std::function<RETURNT (ARG1, ARG2)>;
+
+  RETURNT visit(ARG1 value1, ARG2 value2) const {
+    auto it = mVisitors.find(std::type_index(value1.type()));
+    if (it != mVisitors.end()) {
+      return it->second(value1, value2);
+    }
+    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
+  }
+
+  template<typename T>
+  void addVisitor(VisitorFunc visitor) {
+    mVisitors[std::type_index(typeid(T))] = visitor;
+  }
+
+
+private:
+  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
+};
+
 // Helper with overloading in std::visit
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<class... Ts> overload(Ts...) -> overload<Ts...>;
@@ -158,23 +185,24 @@ void
 StateDerivatives<Dimension>::
 Zero() {
 
-  // Walk the state fields and zero them.
-  for (auto [key, fptr]: mFieldStorage) fptr->Zero();
+  // Build a visitor to zero each data type
+  AnyVisitor2<void, std::any&, std::any&> ZERO;
+  ZERO.addVisitor<FieldBase<Dimension>*>         ([](const std::any& x, const std::any& y) { std::any_cast<FieldBase<Dimension>*>(x)->Zero(); });
+  ZERO.addVisitor<Scalar*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Scalar*>(x) = 0.0; });
+  ZERO.addVisitor<Vector*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Vector*>(x) = Vector::zero; });
+  ZERO.addVisitor<Tensor*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Tensor*>(x) = Tensor::zero; });
+  ZERO.addVisitor<SymTensor*>                    ([](const std::any& x, const std::any& y) { *std::any_cast<SymTensor*>(x) = SymTensor::zero; });
+  ZERO.addVisitor<vector<Scalar>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Scalar>*>(x)->clear(); });
+  ZERO.addVisitor<vector<Vector>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Vector>*>(x)->clear(); });
+  ZERO.addVisitor<vector<Tensor>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Tensor>*>(x)->clear(); });
+  ZERO.addVisitor<vector<SymTensor>*>            ([](const std::any& x, const std::any& y) { std::any_cast<vector<SymTensor>*>(x)->clear(); });
+  ZERO.addVisitor<set<int>*>                     ([](const std::any& x, const std::any& y) { std::any_cast<set<int>*>(x)->clear(); });
+  ZERO.addVisitor<set<RKOrder>*>                 ([](const std::any& x, const std::any& y) { std::any_cast<set<int>*>(x)->clear(); });
+  ZERO.addVisitor<ReproducingKernel<Dimension>*> ([](const std::any& x, const std::any& y) { });
 
-  // Same thing for the miscellaeneous types
-  for (auto [key, mptr]: mMiscStorage) {
-    std::visit(overload{[](Scalar& x)                       { x = 0.0; },
-                        [](Vector& x)                       { x = Vector::zero; },
-                        [](Tensor& x)                       { x = Tensor::zero; },
-                        [](SymTensor& x)                    { x = SymTensor::zero; },
-                        [](vector<Scalar>& x)               { x.clear(); },
-                        [](vector<Vector>& x)               { x.clear(); },
-                        [](vector<Tensor>& x)               { x.clear(); },
-                        [](vector<SymTensor>& x)            { x.clear(); },
-                        [](set<int>& x)                     { x.clear(); },
-                        [](set<RKOrder>& x)                 { },
-                        [](ReproducingKernel<Dimension>& x) { }
-      }, *mptr);
+  // Walk the state fields and zero them.
+  for (auto [key, anyvalptr]: mStorage) {
+    ZERO.visit(anyvalptr, anyvalptr);
   }
 
   // Reinitialize the node pair interaction information.

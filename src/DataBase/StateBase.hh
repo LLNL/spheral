@@ -18,6 +18,8 @@
 
 #include "Field/FieldBase.hh"
 
+#include <any>
+#include <variant>
 #include <string>
 #include <utility>
 #include <memory>
@@ -25,7 +27,6 @@
 #include <map>
 #include <list>
 #include <set>
-#include <variant>
 
 namespace Spheral {
 
@@ -61,26 +62,11 @@ public:
   using KeyType = std::string;
   using FieldName = typename FieldBase<Dimension>::FieldName;
 
-  // The allowed miscellaneous types beyond Fields and FieldLists State can handle
-  using AllowedType = std::variant<Scalar,
-                                   Vector,
-                                   Tensor,
-                                   SymTensor,
-                                   std::vector<Scalar>,
-                                   std::vector<Vector>,
-                                   std::vector<Tensor>,
-                                   std::vector<SymTensor>,
-                                   std::set<int>,
-                                   std::set<RKOrder>,
-                                   ReproducingKernel<Dimension>>;
-
   // Constructors, destructor.
   StateBase();
-  StateBase(const StateBase& rhs);
-  virtual ~StateBase();
-
-  // Assignment.
-  StateBase& operator=(const StateBase& rhs);
+  StateBase(const StateBase& rhs) = default;
+  StateBase& operator=(const StateBase& rhs) = default;
+  virtual ~StateBase() {}
 
   // Test if two StateBases have equivalent fields.
   virtual bool operator==(const StateBase& rhs) const;
@@ -90,7 +76,7 @@ public:
   virtual              void enroll(FieldBase<Dimension>& field);
   virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr);
   virtual              void enroll(FieldListBase<Dimension>& fieldList);
-  template<typename T> void enroll(const KeyType& key, T& thing);          // T has to be one of AllowedTypes
+  template<typename T> void enroll(const KeyType& key, T& thing);
 
   //............................................................................
   // Access Fields
@@ -99,6 +85,7 @@ public:
                                                           const Value& dummy) const;
 
   // Get all registered fields of the given data type
+  template<typename Value> std::vector<Field<Dimension, Value>*> allFields() const;
   template<typename Value> std::vector<Field<Dimension, Value>*> allFields(const Value& dummy) const;
 
   //............................................................................
@@ -171,17 +158,12 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  using FieldStorageType = std::map<KeyType, FieldBase<Dimension>*>;
-  using FieldCacheType = std::list<std::shared_ptr<FieldBase<Dimension>>>;
-
-  using MiscStorageType = std::map<KeyType, AllowedType*>;
-  using MiscCacheType = std::list<std::shared_ptr<AllowedType>>;
+  using StorageType = std::map<KeyType, std::any>;
+  using CacheType = std::list<std::any>;
 
   // Protected data.
-  FieldStorageType     mFieldStorage;
-  FieldCacheType       mFieldCache;
-  MiscStorageType      mMiscStorage;
-  MiscCacheType        mMiscCache;
+  StorageType     mStorage;
+  CacheType       mCache;
   std::set<const NodeList<Dimension>*> mNodeListPtrs;
   ConnectivityMapPtr mConnectivityMapPtr;
   MeshPtr mMeshPtr;

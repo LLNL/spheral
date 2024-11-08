@@ -81,8 +81,7 @@ private:
   using SignificantNeighborMapType = std::map<NodeIteratorBase<Dimension>, int>;
   SignificantNeighborMapType mNumSignificantNeighbors;
 
-  using StateBase<Dimension>::mFieldStorage;
-  using StateBase<Dimension>::mMiscStorage;
+  using StateBase<Dimension>::mStorage;
 };
 
 }

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <sstream>
+
 using std::vector;
 using std::cout;
 using std::cerr;
@@ -24,10 +25,66 @@ using std::min;
 using std::max;
 using std::abs;
 using std::sort;
+using std::shared_ptr;
+using std::make_shared;
+using std::any;
+using std::any_cast;
 
 namespace Spheral {
 
 namespace {
+
+//------------------------------------------------------------------------------
+// Collect visitor methods to apply to std::any object holders
+//------------------------------------------------------------------------------
+// 2 args
+template<typename RETURNT, typename ARG1, typename ARG2>
+class AnyVisitor2 {
+public:
+  using VisitorFunc = std::function<RETURNT (ARG1, ARG2)>;
+
+  RETURNT visit(ARG1 value1, ARG2 value2) const {
+    auto it = mVisitors.find(std::type_index(value1.type()));
+    if (it != mVisitors.end()) {
+      return it->second(value1, value2);
+    }
+    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
+  }
+
+  template<typename T>
+  void addVisitor(VisitorFunc visitor) {
+    mVisitors[std::type_index(typeid(T))] = visitor;
+  }
+
+
+private:
+  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
+};
+
+//..............................................................................
+// 4 args
+template<typename RETURNT, typename ARG1, typename ARG2, typename ARG3, typename ARG4>
+class AnyVisitor4 {
+public:
+  using VisitorFunc = std::function<RETURNT (ARG1, ARG2, ARG3, ARG4)>;
+
+  RETURNT visit(ARG1 value1, ARG2 value2, ARG3 value3, ARG4 value4) const {
+    auto it = mVisitors.find(std::type_index(value1.type()));
+    if (it != mVisitors.end()) {
+      return it->second(value1, value2, value3, value4);
+    }
+    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
+  }
+
+  template<typename T>
+  void addVisitor(VisitorFunc visitor) {
+    mVisitors[std::type_index(typeid(T))] = visitor;
+  }
+
+
+private:
+  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
+};
 
 // //------------------------------------------------------------------------------
 // // Helper for copying a type, used in copyState
@@ -44,6 +101,20 @@ namespace {
 // }
 
 //------------------------------------------------------------------------------
+// Template for generic cloning during copyState
+//------------------------------------------------------------------------------
+template<typename T>
+void
+genericClone(std::any& x,
+             const std::string& key,
+             typename std::map<std::string, std::any>& storage,
+             typename std::list<std::any>& cache) {
+  auto clone = std::make_shared<T>(*std::any_cast<T*>(x));
+  cache.push_back(clone);
+  storage[key] = clone.get();
+}
+
+//------------------------------------------------------------------------------
 // Template to downselect comparison in our variant types
 //------------------------------------------------------------------------------
 template<typename T1>              bool safeCompare(T1& x, const T1& y) { return x == y; }
@@ -55,7 +126,16 @@ template<typename T1, typename T2> bool safeCompare(T1& x, const T2& y) { VERIFY
 template<typename T1>              void safeAssign(T1& x, const T1& y) { x = y; }
 template<typename T1, typename T2> void safeAssign(T1& x, const T2& y) { VERIFY2(false, "Bad assignment!"); }
 
+template<typename T1>              T1& safePointer(T1* xptr, const T1* yptr) { return yptr; }
+template<typename T1, typename T2> T1& safePointer(T1* xptr, const T2* yptr) { VERIFY2(false, "Bad assignment!"); return xptr; }
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+template<typename ResultT, typename T1> std::shared_ptr<ResultT> safeClone(const T1& x, const ResultT& dummy) { return std::make_shared<ResultT>(x); }
+
+//------------------------------------------------------------------------------
 // Helper with overloading in std::visit
+//------------------------------------------------------------------------------
 template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
 template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
@@ -67,55 +147,11 @@ template<class... Ts> overload(Ts...) -> overload<Ts...>;
 template<typename Dimension>
 StateBase<Dimension>::
 StateBase():
-  mFieldStorage(),
-  mFieldCache(),
-  mMiscStorage(),
-  mMiscCache(),
+  mStorage(),
+  mCache(),
   mNodeListPtrs(),
   mConnectivityMapPtr(),
   mMeshPtr(new MeshType()) {
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateBase<Dimension>::
-StateBase(const StateBase<Dimension>& rhs):
-  mFieldStorage(rhs.mFieldStorage),
-  mFieldCache(),
-  mMiscStorage(rhs.mMiscStorage),
-  mMiscCache(),
-  mNodeListPtrs(rhs.mNodeListPtrs),
-  mConnectivityMapPtr(rhs.mConnectivityMapPtr),
-  mMeshPtr(rhs.mMeshPtr) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateBase<Dimension>::
-~StateBase() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateBase<Dimension>&
-StateBase<Dimension>::
-operator=(const StateBase<Dimension>& rhs) {
-  if (this != &rhs) {
-    mFieldStorage = rhs.mFieldStorage;
-    mFieldCache = FieldCacheType();
-    mMiscStorage = rhs.mMiscStorage;
-    mMiscCache = MiscCacheType();
-    mNodeListPtrs = rhs.mNodeListPtrs;
-    mConnectivityMapPtr = rhs.mConnectivityMapPtr;
-    mMeshPtr = rhs.mMeshPtr;
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -127,12 +163,8 @@ StateBase<Dimension>::
 operator==(const StateBase<Dimension>& rhs) const {
 
   // Compare raw sizes
-  if (mFieldStorage.size() != rhs.mFieldStorage.size()) {
-    cerr << "Field storage sizes don't match." << endl;
-    return false;
-  }
-  if (mMiscStorage.size() != rhs.mMiscStorage.size()) {
-    cerr << "Miscellaneous storage sizes don't match." << endl;
+  if (mStorage.size() != rhs.mStorage.size()) {
+    cerr << "Storage sizes don't match." << endl;
     return false;
   }
 
@@ -144,32 +176,30 @@ operator==(const StateBase<Dimension>& rhs) const {
     return false;
   }
 
-  // Compare fields
-  {
-    auto lhsitr = mFieldStorage.begin();
-    auto rhsitr = rhs.mFieldStorage.begin();
-    for (; lhsitr != mFieldStorage.end(); ++lhsitr, ++rhsitr) {
-      CHECK(rhsitr != rhs.mFieldStorage.end());
-      CHECK(lhsitr->first == rhsitr->first);
-      if (*(lhsitr->second) != *(rhsitr->second)) {
-        cerr << "Fields don't match for key " << lhsitr->first << endl;
-        return false;
-      }
-    }
-  }
-
-  // Compare the miscellaneous objects
-  {
-    auto lhsitr = mMiscStorage.begin();
-    auto rhsitr = rhs.mMiscStorage.begin();
-    for (; lhsitr != mMiscStorage.end(); ++lhsitr, ++rhsitr) {
-      CHECK(rhsitr != rhs.mMiscStorage.end());
-      CHECK(lhsitr->first == rhsitr->first);
-      auto result = std::visit([](auto& x, auto& y) -> bool { return safeCompare(x, y); }, *(lhsitr->second), *(rhsitr->second));
-      if (not result) {
-        cerr << "State does not match for key " << lhsitr->first << endl;
-        return false;
-      }
+  // Build up a visitor to compare each type of state data we support holding
+  AnyVisitor2<bool, const std::any&, const std::any&> EQUAL;
+  EQUAL.addVisitor<FieldBase<Dimension>*>        ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<FieldBase<Dimension>*>(x)         == *std::any_cast<FieldBase<Dimension>*>(y); });
+  EQUAL.addVisitor<Scalar*>                      ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<Scalar*>(x)                       == *std::any_cast<Scalar*>(y); });
+  EQUAL.addVisitor<Vector*>                      ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<Vector*>(x)                       == *std::any_cast<Vector*>(y); });
+  EQUAL.addVisitor<Tensor*>                      ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<Tensor*>(x)                       == *std::any_cast<Tensor*>(y); });
+  EQUAL.addVisitor<SymTensor*>                   ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<SymTensor*>(x)                    == *std::any_cast<SymTensor*>(y); });
+  EQUAL.addVisitor<vector<Scalar>*>              ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<vector<Scalar>*>(x)               == *std::any_cast<vector<Scalar>*>(y); });
+  EQUAL.addVisitor<vector<Vector>*>              ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<vector<Vector>*>(x)               == *std::any_cast<vector<Vector>*>(y); });
+  EQUAL.addVisitor<vector<Tensor>*>              ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<vector<Tensor>*>(x)               == *std::any_cast<vector<Tensor>*>(y); });
+  EQUAL.addVisitor<vector<SymTensor>*>           ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<vector<SymTensor>*>(x)            == *std::any_cast<vector<SymTensor>*>(y); });
+  EQUAL.addVisitor<set<int>*>                    ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<set<int>*>(x)                     == *std::any_cast<set<int>*>(y); });
+  EQUAL.addVisitor<set<RKOrder>*>                ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<set<RKOrder>*>(x)                 == *std::any_cast<set<RKOrder>*>(y); });
+  EQUAL.addVisitor<ReproducingKernel<Dimension>*>([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<ReproducingKernel<Dimension>*>(x) == *std::any_cast<ReproducingKernel<Dimension>*>(y); });
+  
+  // Apply the equality visitor to all the stored State data
+  auto lhsitr = mStorage.begin();
+  auto rhsitr = rhs.mStorage.begin();
+  for (; lhsitr != mStorage.end(); ++lhsitr, ++rhsitr) {
+    CHECK(rhsitr != rhs.mStorage.end());
+    CHECK(lhsitr->first == rhsitr->first);
+    if (not EQUAL.visit(lhsitr->second, rhsitr->second)) {
+      cerr << "States don't match for key " << lhsitr->first << endl;
+      return false;
     }
   }
 
@@ -184,7 +214,7 @@ void
 StateBase<Dimension>::
 enroll(FieldBase<Dimension>& field) {
   const auto key = this->key(field);
-  mFieldStorage[key] = &field;
+  mStorage[key] = &field;
   mNodeListPtrs.insert(field.nodeListPtr());
   // std::cerr << "StateBase::enroll field:  " << key << " at " << &field << std::endl;
   ENSURE(std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), field.nodeListPtr()) != mNodeListPtrs.end());
@@ -198,9 +228,9 @@ void
 StateBase<Dimension>::
 enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) {
   const auto key = this->key(*fieldPtr);
-  mFieldStorage[key] = fieldPtr.get();
+  mStorage[key] = fieldPtr.get();
   mNodeListPtrs.insert(fieldPtr->nodeListPtr());
-  mFieldCache.push_back(fieldPtr);
+  mCache.push_back(fieldPtr);
   ENSURE(std::find(mNodeListPtrs.begin(), mNodeListPtrs.end(), fieldPtr->nodeListPtr()) != mNodeListPtrs.end());
 }
 
@@ -223,8 +253,7 @@ template<typename Dimension>
 bool
 StateBase<Dimension>::
 registered(const StateBase<Dimension>::KeyType& key) const {
-  return (mFieldStorage.find(key) != mFieldStorage.end() or
-          mMiscStorage.find(key) != mMiscStorage.end());
+  return mStorage.find(key) != mStorage.end();
 }
 
 //------------------------------------------------------------------------------
@@ -235,7 +264,7 @@ bool
 StateBase<Dimension>::
 registered(const FieldBase<Dimension>& field) const {
   const auto key = this->key(field);
-  return mFieldStorage.find(key) != mFieldStorage.end();
+  return this->registered(key);
 }
 
 //------------------------------------------------------------------------------
@@ -257,7 +286,7 @@ bool
 StateBase<Dimension>::
 fieldNameRegistered(const FieldName& name) const {
   KeyType fieldName, nodeListName;
-  for (auto [key, valptr]: mFieldStorage) {
+  for (auto [key, valptr]: mStorage) {
     splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) return true;
   }
@@ -272,8 +301,7 @@ std::vector<typename StateBase<Dimension>::KeyType>
 StateBase<Dimension>::
 keys() const {
   vector<KeyType> result;
-  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) result.push_back(itr->first);
-  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) result.push_back(itr->first);
+  for (auto itr = mStorage.begin(); itr != mStorage.end(); ++itr) result.push_back(itr->first);
   return result;
 }
 
@@ -285,7 +313,9 @@ std::vector<typename StateBase<Dimension>::KeyType>
 StateBase<Dimension>::
 fullFieldKeys() const {
   vector<KeyType> result;
-  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) result.push_back(itr->first);
+  for (auto [key, aptr]: mStorage) {
+    if (std::any_cast<FieldBase<Dimension>*>(aptr) != nullptr) result.push_back(key);
+  }
   return result;
 }
 
@@ -297,7 +327,9 @@ std::vector<typename StateBase<Dimension>::KeyType>
 StateBase<Dimension>::
 miscKeys() const {
   vector<KeyType> result;
-  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) result.push_back(itr->first);
+  for (auto [key, aptr]: mStorage) {
+    if (std::any_cast<FieldBase<Dimension>*>(aptr) == nullptr) result.push_back(key);
+  }
   return result;
 }
 
@@ -308,11 +340,10 @@ template<typename Dimension>
 std::vector<typename FieldBase<Dimension>::FieldName>
 StateBase<Dimension>::
 fieldNames() const {
-  KeyType fieldName, nodeListName;
   vector<FieldName> result;
-  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) {
-    splitFieldKey(itr->first, fieldName, nodeListName);
-    result.push_back(fieldName);
+  for (auto [key, aptr]: mStorage) {
+    auto* fptr = std::any_cast<FieldBase<Dimension>*>(aptr);
+    if (fptr != nullptr) result.push_back(fptr->name());
   }
 
   // Remove any duplicates.  This will happen when we've stored the same field
@@ -406,28 +437,31 @@ void
 StateBase<Dimension>::
 assign(const StateBase<Dimension>& rhs) {
 
-  // Fields
-  {
-    CHECK(mFieldStorage.size() == rhs.mFieldStorage.size());
-    auto lhsitr = mFieldStorage.begin();
-    auto rhsitr = rhs.mFieldStorage.begin();
-    for (; lhsitr != mFieldStorage.end(); ++lhsitr, ++rhsitr) {
-      CHECK(rhsitr != rhs.mFieldStorage.end());
-      CHECK(lhsitr->first == rhsitr->first);
-      *(lhsitr->second) = *(rhsitr->second);
-    }
-  }
+  // Build a visitor that knows how to assign each of our datatypes
+  AnyVisitor2<void, std::any&, const std::any&> ASSIGN;
+  ASSIGN.addVisitor<FieldBase<Dimension>*>        ([](std::any& x, const std::any& y) { *std::any_cast<FieldBase<Dimension>*>(x)         = *std::any_cast<FieldBase<Dimension>*>(y); });
+  ASSIGN.addVisitor<Scalar*>                      ([](std::any& x, const std::any& y) { *std::any_cast<Scalar*>(x)                       = *std::any_cast<Scalar*>(y); });
+  ASSIGN.addVisitor<Vector*>                      ([](std::any& x, const std::any& y) { *std::any_cast<Vector*>(x)                       = *std::any_cast<Vector*>(y); });
+  ASSIGN.addVisitor<Tensor*>                      ([](std::any& x, const std::any& y) { *std::any_cast<Tensor*>(x)                       = *std::any_cast<Tensor*>(y); });
+  ASSIGN.addVisitor<SymTensor*>                   ([](std::any& x, const std::any& y) { *std::any_cast<SymTensor*>(x)                    = *std::any_cast<SymTensor*>(y); });
+  ASSIGN.addVisitor<vector<Scalar>*>              ([](std::any& x, const std::any& y) { *std::any_cast<vector<Scalar>*>(x)               = *std::any_cast<vector<Scalar>*>(y); });
+  ASSIGN.addVisitor<vector<Vector>*>              ([](std::any& x, const std::any& y) { *std::any_cast<vector<Vector>*>(x)               = *std::any_cast<vector<Vector>*>(y); });
+  ASSIGN.addVisitor<vector<Tensor>*>              ([](std::any& x, const std::any& y) { *std::any_cast<vector<Tensor>*>(x)               = *std::any_cast<vector<Tensor>*>(y); });
+  ASSIGN.addVisitor<vector<SymTensor>*>           ([](std::any& x, const std::any& y) { *std::any_cast<vector<SymTensor>*>(x)            = *std::any_cast<vector<SymTensor>*>(y); });
+  ASSIGN.addVisitor<set<int>*>                    ([](std::any& x, const std::any& y) { *std::any_cast<set<int>*>(x)                     = *std::any_cast<set<int>*>(y); });
+  ASSIGN.addVisitor<set<RKOrder>*>                ([](std::any& x, const std::any& y) { *std::any_cast<set<RKOrder>*>(x)                 = *std::any_cast<set<RKOrder>*>(y); });
+  ASSIGN.addVisitor<ReproducingKernel<Dimension>*>([](std::any& x, const std::any& y) { *std::any_cast<ReproducingKernel<Dimension>*>(x) = *std::any_cast<ReproducingKernel<Dimension>*>(y); });
 
-  // Miscellaneous state
-  {
-    // Depend on assignment working for our AllowedTypes
-    CHECK(mMiscStorage.size() == rhs.mMiscStorage.size());
-    auto lhsitr = mMiscStorage.begin();
-    auto rhsitr = rhs.mMiscStorage.begin();
-    for (; lhsitr != mMiscStorage.end(); ++lhsitr, ++rhsitr) {
-      CHECK(rhsitr != rhs.mMiscStorage.end());
-      CHECK(lhsitr->first == rhsitr->first);
-      std::visit([](auto& lhsval, auto& rhsval) { safeAssign(lhsval, rhsval); }, *(lhsitr->second), *(rhsitr->second));
+  // Apply the assignment visitor to all the stored State data
+  auto lhsitr = mStorage.begin();
+  auto rhsitr = rhs.mStorage.begin();
+  for (; lhsitr != mStorage.end(); ++lhsitr, ++rhsitr) {
+    CHECK(rhsitr != rhs.mStorage.end());
+    CHECK(lhsitr->first == rhsitr->first);
+    try {
+      ASSIGN.visit(lhsitr->second, rhsitr->second);
+    } catch(...) {
+      CHECK(false);
     }
   }
 
@@ -457,37 +491,30 @@ StateBase<Dimension>::
 copyState() {
 
   // Remove any pre-existing stuff.
-  mFieldCache = FieldCacheType();
-  mMiscCache = MiscCacheType();
+  mCache = CacheType();
 
-  // Fields
-  for (auto itr = mFieldStorage.begin(); itr != mFieldStorage.end(); ++itr) {
-    auto clone = itr->second->clone();
-    mFieldCache.push_back(clone);
-    itr->second = clone.get();
-  }
+  // Build a visitor to clone each type of state data
+  AnyVisitor4<void, std::any&, const KeyType&, StorageType&, CacheType&> CLONE;
+  CLONE.addVisitor<FieldBase<Dimension>*>            ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) {
+                                                        auto clone = std::any_cast<FieldBase<Dimension>*>(x)->clone();
+                                                        cache.push_back(clone);
+                                                        storage[key] = clone.get();
+                                                      });
+  CLONE.addVisitor<Scalar*>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Scalar>(x, key, storage, cache); });
+  CLONE.addVisitor<Vector*>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Vector>(x, key, storage, cache); });
+  CLONE.addVisitor<Tensor*>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Tensor>(x, key, storage, cache); });
+  CLONE.addVisitor<SymTensor*>                       ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<SymTensor>(x, key, storage, cache); });
+  CLONE.addVisitor<vector<Scalar>*>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Scalar>>(x, key, storage, cache); });
+  CLONE.addVisitor<vector<Vector>*>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Vector>>(x, key, storage, cache); });
+  CLONE.addVisitor<vector<Tensor>*>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Tensor>>(x, key, storage, cache); });
+  CLONE.addVisitor<vector<SymTensor>*>               ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<SymTensor>>(x, key, storage, cache); });
+  CLONE.addVisitor<set<int>*>                        ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<set<int>>(x, key, storage, cache); });
+  CLONE.addVisitor<set<RKOrder>*>                    ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<set<RKOrder>>(x, key, storage, cache); });
+  CLONE.addVisitor<ReproducingKernel<Dimension>*>    ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<ReproducingKernel<Dimension>>(x, key, storage, cache); });
 
-  // Misc
-  for (auto itr = mMiscStorage.begin(); itr != mMiscStorage.end(); ++itr) {
-    std::visit(overload{[](const Scalar& x)                       { return std::make_shared<AllowedType>(x); },
-                        [](const Vector& x)                       { return std::make_shared<AllowedType>(x); },
-                        [](const Tensor& x)                       { return std::make_shared<AllowedType>(x); },
-                        [](const SymTensor& x)                    { return std::make_shared<AllowedType>(x); },
-                        [](const vector<Scalar>& x)               { return std::make_shared<AllowedType>(x); },
-                        [](const vector<Vector>& x)               { return std::make_shared<AllowedType>(x); },
-                        [](const vector<Tensor>& x)               { return std::make_shared<AllowedType>(x); },
-                        [](const vector<SymTensor>& x)            { return std::make_shared<AllowedType>(x); },
-                        [](const set<int>& x)                     { return std::make_shared<AllowedType>(x); },
-                        [](const set<RKOrder>& x)                 { return std::make_shared<AllowedType>(x); },
-                        [](const ReproducingKernel<Dimension>& x) { return std::make_shared<AllowedType>(x); }
-      }, *(itr->second));
-    // [&](auto* xptr) {
-    //              // auto clone = makeClone(*xptr);
-    //              auto clone = std::shared_ptr<AllowedType>(makeClone(*xptr));  // new AllowedType(*xptr));
-    //              // auto clone = std::make_shared<AllowedType>(*xptr);
-    //              // mMiscCache.push_back(clone);
-    //              // itr->second = clone.get();
-    //            }, itr->second);
+  // Clone all our stored data to cache
+  for (auto& [key, anyvalptr]: mStorage) {
+    CLONE.visit(anyvalptr, key, mStorage, mCache);
   }
 }
 
