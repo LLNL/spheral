@@ -225,15 +225,6 @@ function(spheral_add_pybind11_library package_name module_list_name)
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   list(APPEND SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
 
-  set(PYTHON_EXE_BAK ${PYTHON_EXE})
-
-  
-  get_target_property(PYTHON_EXE python_build_env EXECUTABLE)
-
-  message("---------")
-  message("${PYTHON_EXE}")
-
-
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
@@ -245,10 +236,9 @@ function(spheral_add_pybind11_library package_name module_list_name)
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             INSTALL         OFF
+                            VIRTUAL_ENV     python_build_env
                             )
   target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
-
-  set(PYTHON_EXE ${PYTHON_EXE_BAK})
 
   install(TARGETS     ${MODULE_NAME}
           DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
