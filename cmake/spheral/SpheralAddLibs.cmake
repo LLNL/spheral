@@ -175,7 +175,6 @@ function(spheral_add_pybind11_library package_name module_list_name)
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
       ${EXTRA_PYB11_SPHERAL_ENV_VARS}
-      "${BUILDTIME_PYTHONENV_STR}:"
       "${SPHERAL_ROOT_DIR}/src/PYB11:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/${PYB11_MODULE_NAME}:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/polytope:"
@@ -226,11 +225,20 @@ function(spheral_add_pybind11_library package_name module_list_name)
   get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
   list(APPEND SPHERAL_DEPENDS Spheral_CXX ${${package_name}_DEPENDS})
 
+  set(PYTHON_EXE_BAK ${PYTHON_EXE})
+
+  
+  get_target_property(PYTHON_EXE python_build_env EXECUTABLE)
+
+  message("---------")
+  message("${PYTHON_EXE}")
+
+
   set(MODULE_NAME Spheral${package_name})
   PYB11Generator_add_module(${package_name}
                             MODULE          ${MODULE_NAME}
                             SOURCE          ${package_name}_PYB11.py
-                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS}
+                            DEPENDS         ${SPHERAL_CXX_DEPENDS} ${EXTRA_BLT_DEPENDS} ${SPHERAL_DEPENDS} #python_build_env
                             PYTHONPATH      ${PYTHON_ENV_STR}
                             INCLUDES        ${CMAKE_CURRENT_SOURCE_DIR} ${${package_name}_INCLUDES} ${PYBIND11_ROOT_DIR}/include
                             COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CXX>:${SPHERAL_PYB11_TARGET_FLAGS}>"
@@ -239,6 +247,8 @@ function(spheral_add_pybind11_library package_name module_list_name)
                             INSTALL         OFF
                             )
   target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
+
+  set(PYTHON_EXE ${PYTHON_EXE_BAK})
 
   install(TARGETS     ${MODULE_NAME}
           DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral

@@ -11,6 +11,7 @@ set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleExt.cmake)
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralPRT.cmake)
 
 #-----------------------------------------------------------------------------------
 # Submodules
@@ -37,6 +38,10 @@ if (NOT ENABLE_CXXONLY)
     EXPORT spheral_cxx-targets
     DESTINATION lib/cmake)
   set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
+
+  # Install Spheral Python Runtime Dependencies to virtual env in build tree.
+  Spheral_Python_Env(python_build_env build-requirements.txt ${CMAKE_BINARY_DIR})
+
 endif()
 
 # This is currently unfilled in spheral

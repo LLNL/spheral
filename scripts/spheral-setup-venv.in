@@ -8,9 +8,9 @@ cp --symbolic-link @CMAKE_INSTALL_PREFIX@/@SPHERAL_SITE_PACKAGES_PATH@/Spheral/*
 cd - > /dev/null 
 
 # We need to reconfigure ATS to use our virtual env python otherwise ats will not be able to launch properly.
-echo "Reconfigure ATS executing python to virtual env python..."
-sed -i '2s/.*/XXXXXX/' .venv/bin/ats
-sed -i 's|XXXXXX|\x27\x27\x27exec\x27 @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$0" "$@"|' .venv/bin/ats
+# echo "Reconfigure ATS executing python to virtual env python..."
+# sed -i '2s/.*/XXXXXX/' .venv/bin/ats
+# sed -i 's|XXXXXX|\x27\x27\x27exec\x27 @CMAKE_INSTALL_PREFIX@/.venv/bin/python "$0" "$@"|' .venv/bin/ats
 
 echo "Creating spheral symlink to spheral-env script ..."
 cd @CMAKE_INSTALL_PREFIX@

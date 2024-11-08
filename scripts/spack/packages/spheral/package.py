@@ -29,6 +29,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     variant('openmp', default=True, description='Enable OpenMP Support.')
     variant('docs', default=False, description='Enable building Docs.')
     variant('shared', default=True, description='Build C++ libs as shared.')
+    variant('python', default=True, description='Build Python Dependencies.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -71,24 +72,24 @@ class Spheral(CachedCMakePackage, CudaPackage):
             depends_on(f"{ctpl} ~cuda", type='build')
 
     depends_on('opensubdiv@3.4.3', type='build')
-    depends_on('polytope@0.7.3 +python', type='build')
-
-    extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
-
-    depends_on('py-numpy@1.23.4', type='build')
-    depends_on('py-numpy-stl@3.0.0', type='build')
-    depends_on('py-pillow@9.5.0', type='build')
-    depends_on('py-matplotlib@3.7.4 backend=tkagg +fonts', type='build')
-    depends_on('py-h5py@3.9.0', type='build')
-    depends_on('py-docutils@0.18.1', type='build')
-    depends_on('py-scipy@1.12.0', type='build')
-    depends_on('py-ats@exit', type='build')
-    depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
-
-    depends_on('py-sphinx', type='build')
-    depends_on('py-sphinx-rtd-theme', type='build')
-
     depends_on('netlib-lapack', type='build')
+
+    with when("+python"):
+        extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
+        depends_on('polytope@0.7.3 +python', type='build', when='+python')
+
+        #depends_on('py-numpy@1.23.4', type='build')
+        #depends_on('py-numpy-stl@3.0.0', type='build')
+        #depends_on('py-pillow@9.5.0', type='build')
+        #depends_on('py-matplotlib@3.7.4 backend=tkagg +fonts', type='build')
+        #depends_on('py-h5py@3.9.0', type='build')
+        #depends_on('py-docutils@0.18.1', type='build')
+        #depends_on('py-scipy@1.12.0', type='build')
+        #depends_on('py-ats@exit', type='build')
+        #depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
+
+        #depends_on('py-sphinx', type='build')
+        #depends_on('py-sphinx-rtd-theme', type='build')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -168,8 +169,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
-        entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
-
         entries.append(cmake_cache_path('boost_DIR', spec['boost'].prefix))
 
         entries.append(cmake_cache_path('qhull_DIR', spec['qhull'].prefix))
@@ -206,7 +205,9 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_option('ENABLE_OPENMP', '+openmp' in spec))
         entries.append(cmake_cache_option('ENABLE_DOCS', '+docs' in spec))
 
-        entries.append(cmake_cache_path('SPACK_PYTHONPATH', os.environ.get('PYTHONPATH')))
+        if "+python" in spec:
+            entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
+        #    entries.append(cmake_cache_path('SPACK_PYTHONPATH', os.environ.get('PYTHONPATH')))
 
         return entries
 
