@@ -1,6 +1,36 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Functors in a detail namespace to help with partial specialization
+//------------------------------------------------------------------------------
+namespace Detail {
+    
+template<typename Dimension, typename T>
+struct EnrollAny {
+  void operator()(State<Dimension>& state,
+                  const typename State<Dimension>::KeyType& key,
+                  T& thing) {
+    dynamic_cast<StateBase<Dimension>*>(&state)->enroll(key, thing);
+  }
+};
+
+template<typename Dimension, typename T>
+struct EnrollAny<Dimension, std::shared_ptr<T>> {
+  void operator()(State<Dimension>& state,
+                  const typename State<Dimension>::KeyType& key,
+                  std::shared_ptr<T>& thing) {
+    auto UPP = std::dynamic_pointer_cast<UpdatePolicyBase<Dimension>>(thing);
+    if (UPP) {
+      state.enroll(key, UPP);
+    } else {
+      dynamic_cast<StateBase<Dimension>*>(&state)->enroll(key, thing);
+    }
+  }
+};
+
+}
+
+//------------------------------------------------------------------------------
 // Enroll the given field and policy.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -62,4 +92,16 @@ policy(const Field<Dimension, Value>& field) const {
   return this->policy(key);
 }
   
+//------------------------------------------------------------------------------
+// Enroll an arbitrary type
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename T>
+inline
+void
+State<Dimension>::
+enroll(const KeyType& key, T& thing) {
+  Detail::EnrollAny<Dimension, T>()(*this, key, thing);
+}
+
 }

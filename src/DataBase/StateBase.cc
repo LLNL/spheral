@@ -73,7 +73,7 @@ public:
     if (it != mVisitors.end()) {
       return it->second(value1, value2, value3, value4);
     }
-    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
+    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data of typeid " << std::quoted(value1.type().name()));
   }
 
   template<typename T>

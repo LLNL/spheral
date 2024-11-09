@@ -40,9 +40,6 @@ public:
   using PackageIterator = typename PackageList::iterator;
   using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
-  // Promote base overloaded enroll methods
-  using StateBase<Dimension>::enroll;
-
   // Constructors, destructor.
   State();
   State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
@@ -104,6 +101,14 @@ public:
   // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
   bool timeAdvanceOnly()              const { return mTimeAdvanceOnly; }
   void timeAdvanceOnly(const bool x)        { mTimeAdvanceOnly = x; }
+
+  //...........................................................................
+  // Expose the StateBase enroll methods
+  using StateBase<Dimension>::enroll;
+  // virtual              void enroll(FieldBase<Dimension>& field) override                     { StateBase<Dimension>::enroll(field); }
+  // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
+  // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
+  template<typename T> void enroll(const KeyType& key, T& thing);
 
 private:
   //--------------------------- Private Interface ---------------------------//

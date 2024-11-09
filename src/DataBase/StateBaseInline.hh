@@ -18,6 +18,7 @@ inline
 void
 StateBase<Dimension>::
 enroll(const KeyType& key, T& thing) {
+  std::cerr << "StateBase::enroll " << key << std::endl;
   mStorage[key] = &thing;
 }
 
