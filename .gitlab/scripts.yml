@@ -38,7 +38,7 @@
 
 .build_and_test:
   extends: [.build]
-  script:
+  after_script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
 
