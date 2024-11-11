@@ -851,7 +851,7 @@ nodeListIndex(const NodeList<Dimension>& nodeList) const {
   ConstNodeListIterator itr = find(nodeListBegin(),
                                    nodeListEnd(),
                                    &nodeList);
-  ASSERT(itr != nodeListEnd());
+  VERIFY(itr != nodeListEnd());
   return std::distance(nodeListBegin(), itr);
 }
 
