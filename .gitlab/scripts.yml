@@ -27,10 +27,7 @@
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
-    - ./$SCRIPT_DIR/devtools/host-config-build.py --no-clean --host-config gitlab.cmake $EXTRA_CMAKE_ARGS
-    - cd build_gitlab/build
-    - make -j $NPROC
-    - make -j $NPROC install
+    - ./$SCRIPT_DIR/devtools/host-config-build.py --no-clean --build --nprocs $NPROCS --host-config gitlab.cmake $EXTRA_CMAKE_ARGS
   artifacts:
     paths:
       - ci-dir.txt
