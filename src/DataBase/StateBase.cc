@@ -12,6 +12,7 @@
 #include "Mesh/Mesh.hh"
 #include "RK/RKCorrectionParams.hh"
 #include "RK/ReproducingKernel.hh"
+#include "Utilities/AnyVisitor.hh"
 #include "Utilities/DBC.hh"
 
 #include <algorithm>
@@ -35,72 +36,6 @@ namespace Spheral {
 namespace {
 
 //------------------------------------------------------------------------------
-// Collect visitor methods to apply to std::any object holders
-//------------------------------------------------------------------------------
-// 2 args
-template<typename RETURNT, typename ARG1, typename ARG2>
-class AnyVisitor2 {
-public:
-  using VisitorFunc = std::function<RETURNT (ARG1, ARG2)>;
-
-  RETURNT visit(ARG1 value1, ARG2 value2) const {
-    auto it = mVisitors.find(std::type_index(value1.type()));
-    if (it != mVisitors.end()) {
-      return it->second(value1, value2);
-    }
-    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
-  }
-
-  template<typename T>
-  void addVisitor(VisitorFunc visitor) {
-    mVisitors[std::type_index(typeid(T))] = visitor;
-  }
-
-
-private:
-  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
-};
-
-//..............................................................................
-// 4 args
-template<typename RETURNT, typename ARG1, typename ARG2, typename ARG3, typename ARG4>
-class AnyVisitor4 {
-public:
-  using VisitorFunc = std::function<RETURNT (ARG1, ARG2, ARG3, ARG4)>;
-
-  RETURNT visit(ARG1 value1, ARG2 value2, ARG3 value3, ARG4 value4) const {
-    auto it = mVisitors.find(std::type_index(value1.type()));
-    if (it != mVisitors.end()) {
-      return it->second(value1, value2, value3, value4);
-    }
-    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data of typeid " << std::quoted(value1.type().name()));
-  }
-
-  template<typename T>
-  void addVisitor(VisitorFunc visitor) {
-    mVisitors[std::type_index(typeid(T))] = visitor;
-  }
-
-
-private:
-  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
-};
-
-// //------------------------------------------------------------------------------
-// // Helper for copying a type, used in copyState
-// //------------------------------------------------------------------------------
-// template<typename T>
-// T*
-// extractType(boost::any& anyT) {
-//   try {
-//     T* result = boost::any_cast<T*>(anyT);
-//     return result;
-//   } catch (boost::any_cast_error) {
-//     return NULL;
-//   }
-// }
-
-//------------------------------------------------------------------------------
 // Template for generic cloning during copyState
 //------------------------------------------------------------------------------
 template<typename T>
@@ -113,31 +48,6 @@ genericClone(std::any& x,
   cache.push_back(clone);
   storage[key] = clone.get();
 }
-
-//------------------------------------------------------------------------------
-// Template to downselect comparison in our variant types
-//------------------------------------------------------------------------------
-template<typename T1>              bool safeCompare(T1& x, const T1& y) { return x == y; }
-template<typename T1, typename T2> bool safeCompare(T1& x, const T2& y) { VERIFY2(false, "Bad comparison!"); return false; }
-
-//------------------------------------------------------------------------------
-// Template to downselect assignment in our variant types
-//------------------------------------------------------------------------------
-template<typename T1>              void safeAssign(T1& x, const T1& y) { x = y; }
-template<typename T1, typename T2> void safeAssign(T1& x, const T2& y) { VERIFY2(false, "Bad assignment!"); }
-
-template<typename T1>              T1& safePointer(T1* xptr, const T1* yptr) { return yptr; }
-template<typename T1, typename T2> T1& safePointer(T1* xptr, const T2* yptr) { VERIFY2(false, "Bad assignment!"); return xptr; }
-
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-template<typename ResultT, typename T1> std::shared_ptr<ResultT> safeClone(const T1& x, const ResultT& dummy) { return std::make_shared<ResultT>(x); }
-
-//------------------------------------------------------------------------------
-// Helper with overloading in std::visit
-//------------------------------------------------------------------------------
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...) -> overload<Ts...>;
 
 }
 
@@ -177,7 +87,7 @@ operator==(const StateBase<Dimension>& rhs) const {
   }
 
   // Build up a visitor to compare each type of state data we support holding
-  AnyVisitor2<bool, const std::any&, const std::any&> EQUAL;
+  AnyVisitor<bool, const std::any&, const std::any&> EQUAL;
   EQUAL.addVisitor<FieldBase<Dimension>*>        ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<FieldBase<Dimension>*>(x)         == *std::any_cast<FieldBase<Dimension>*>(y); });
   EQUAL.addVisitor<Scalar*>                      ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<Scalar*>(x)                       == *std::any_cast<Scalar*>(y); });
   EQUAL.addVisitor<Vector*>                      ([](const std::any& x, const std::any& y) -> bool { return *std::any_cast<Vector*>(x)                       == *std::any_cast<Vector*>(y); });
@@ -447,7 +357,7 @@ StateBase<Dimension>::
 assign(const StateBase<Dimension>& rhs) {
 
   // Build a visitor that knows how to assign each of our datatypes
-  AnyVisitor2<void, std::any&, const std::any&> ASSIGN;
+  AnyVisitor<void, std::any&, const std::any&> ASSIGN;
   ASSIGN.addVisitor<FieldBase<Dimension>*>        ([](std::any& x, const std::any& y) { *std::any_cast<FieldBase<Dimension>*>(x)         = *std::any_cast<FieldBase<Dimension>*>(y); });
   ASSIGN.addVisitor<Scalar*>                      ([](std::any& x, const std::any& y) { *std::any_cast<Scalar*>(x)                       = *std::any_cast<Scalar*>(y); });
   ASSIGN.addVisitor<Vector*>                      ([](std::any& x, const std::any& y) { *std::any_cast<Vector*>(x)                       = *std::any_cast<Vector*>(y); });
@@ -503,7 +413,7 @@ copyState() {
   mCache = CacheType();
 
   // Build a visitor to clone each type of state data
-  AnyVisitor4<void, std::any&, const KeyType&, StorageType&, CacheType&> CLONE;
+  AnyVisitor<void, std::any&, const KeyType&, StorageType&, CacheType&> CLONE;
   CLONE.addVisitor<FieldBase<Dimension>*>            ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) {
                                                         auto clone = std::any_cast<FieldBase<Dimension>*>(x)->clone();
                                                         cache.push_back(clone);

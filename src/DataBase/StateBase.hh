@@ -19,7 +19,6 @@
 #include "Field/FieldBase.hh"
 
 #include <any>
-#include <variant>
 #include <string>
 #include <utility>
 #include <memory>

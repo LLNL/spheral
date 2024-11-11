@@ -131,6 +131,7 @@ set(Utilities_headers
     timingUtilities.hh
     uniform_random.hh
     uniform_random_Inline.hh
+    AnyVisitor.hh
     )
 
 spheral_install_python_files(fitspline.py)

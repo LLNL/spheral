@@ -9,6 +9,7 @@
 #include "DataBase.hh"
 #include "Physics/Physics.hh"
 #include "Field/Field.hh"
+#include "Utilities/AnyVisitor.hh"
 
 using std::vector;
 using std::cout;
@@ -19,41 +20,6 @@ using std::max;
 using std::abs;
 
 namespace Spheral {
-
-namespace {
-
-//------------------------------------------------------------------------------
-// Collect visitor methods to apply to std::any object holders
-//------------------------------------------------------------------------------
-// 2 args
-template<typename RETURNT, typename ARG1, typename ARG2>
-class AnyVisitor2 {
-public:
-  using VisitorFunc = std::function<RETURNT (ARG1, ARG2)>;
-
-  RETURNT visit(ARG1 value1, ARG2 value2) const {
-    auto it = mVisitors.find(std::type_index(value1.type()));
-    if (it != mVisitors.end()) {
-      return it->second(value1, value2);
-    }
-    VERIFY2(false, "AnyVisitor ERROR in StateBase: unable to process unknown data");
-  }
-
-  template<typename T>
-  void addVisitor(VisitorFunc visitor) {
-    mVisitors[std::type_index(typeid(T))] = visitor;
-  }
-
-
-private:
-  std::unordered_map<std::type_index, VisitorFunc> mVisitors;
-};
-
-// Helper with overloading in std::visit
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...) -> overload<Ts...>;
-
-}
 
 //------------------------------------------------------------------------------
 // Default constructor.
@@ -186,7 +152,7 @@ StateDerivatives<Dimension>::
 Zero() {
 
   // Build a visitor to zero each data type
-  AnyVisitor2<void, std::any&, std::any&> ZERO;
+  AnyVisitor<void, std::any&, std::any&> ZERO;
   ZERO.addVisitor<FieldBase<Dimension>*>         ([](const std::any& x, const std::any& y) { std::any_cast<FieldBase<Dimension>*>(x)->Zero(); });
   ZERO.addVisitor<Scalar*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Scalar*>(x) = 0.0; });
   ZERO.addVisitor<Vector*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Vector*>(x) = Vector::zero; });
