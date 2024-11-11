@@ -18,7 +18,7 @@ inline
 void
 StateBase<Dimension>::
 enroll(const KeyType& key, T& thing) {
-  std::cerr << "StateBase::enroll " << key << std::endl;
+  // std::cerr << "StateBase::enroll " << key << std::endl;
   mStorage[key] = &thing;
 }
 
@@ -60,10 +60,13 @@ allFields() const {
   std::vector<Field<Dimension, Value>*> result;
   KeyType fieldName, nodeListName;
   for (auto [key, aptr]: mStorage) {
-    auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
-    if (fbptr != nullptr) {
-      auto* fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
-      if (fptr != nullptr) result.push_back(fptr);
+    try {
+      auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
+      if (fbptr != nullptr) {
+        auto* fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
+        if (fptr != nullptr) result.push_back(fptr);
+      }
+    } catch(const std::bad_any_cast& e) {
     }
   }
   return result;
@@ -93,10 +96,13 @@ fields(const std::string& name) const {
     splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) {
       CHECK(nodeListName != "");
-      auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
-      if (fbptr != nullptr) {
-        auto fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
-        if (fptr != nullptr) result.appendField(*fptr);
+      try {
+        auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
+        if (fbptr != nullptr) {
+          auto fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
+          if (fptr != nullptr) result.appendField(*fptr);
+        }
+      } catch(const std::bad_any_cast& e) {
       }
     }
   }
@@ -123,9 +129,12 @@ StateBase<Dimension>::
 get(const typename StateBase<Dimension>::KeyType& key) const {
   auto itr = mStorage.find(key);
   VERIFY2(itr != mStorage.end(), "StateBase ERROR: failed lookup for key " << key);
-  auto* resultPtr = std::any_cast<Value*>(itr->second);
-  VERIFY2(resultPtr != nullptr, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
-  return *resultPtr;
+  try {
+    auto* resultPtr = std::any_cast<Value*>(itr->second);
+    return *resultPtr;
+  } catch(const std::bad_any_cast& e) {
+    VERIFY2(false, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
+  }
 }
 
 // Same thing passing a dummy argument to help with template type

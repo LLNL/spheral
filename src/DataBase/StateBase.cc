@@ -314,7 +314,10 @@ StateBase<Dimension>::
 fullFieldKeys() const {
   vector<KeyType> result;
   for (auto [key, aptr]: mStorage) {
-    if (std::any_cast<FieldBase<Dimension>*>(aptr) != nullptr) result.push_back(key);
+    try {
+      if (std::any_cast<FieldBase<Dimension>*>(aptr) != nullptr) result.push_back(key);
+    } catch (const std::bad_any_cast& e) {
+    }
   }
   return result;
 }
@@ -328,7 +331,10 @@ StateBase<Dimension>::
 miscKeys() const {
   vector<KeyType> result;
   for (auto [key, aptr]: mStorage) {
-    if (std::any_cast<FieldBase<Dimension>*>(aptr) == nullptr) result.push_back(key);
+    try {
+      if (std::any_cast<FieldBase<Dimension>*>(aptr) == nullptr) result.push_back(key);
+    } catch(const std::bad_any_cast& e) {
+    }
   }
   return result;
 }
@@ -342,8 +348,11 @@ StateBase<Dimension>::
 fieldNames() const {
   vector<FieldName> result;
   for (auto [key, aptr]: mStorage) {
-    auto* fptr = std::any_cast<FieldBase<Dimension>*>(aptr);
-    if (fptr != nullptr) result.push_back(fptr->name());
+    try {
+      auto* fptr = std::any_cast<FieldBase<Dimension>*>(aptr);
+      if (fptr != nullptr) result.push_back(fptr->name());
+    } catch (const std::bad_any_cast& e) {
+    }
   }
 
   // Remove any duplicates.  This will happen when we've stored the same field
