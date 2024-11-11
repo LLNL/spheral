@@ -73,9 +73,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
     depends_on('opensubdiv@3.4.3', type='build')
 
-    with when("+python"):
-        extends('python@3.9.10 +zlib +shared +ssl +tkinter', type='build')
-        depends_on('polytope@0.7.3 +python', type='build', when='+python')
+    depends_on('polytope@0.7.3 +python', type='build', when='+python')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -193,7 +191,6 @@ class Spheral(CachedCMakePackage, CudaPackage):
 
         if "+python" in spec:
             entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
-        #    entries.append(cmake_cache_path('SPACK_PYTHONPATH', os.environ.get('PYTHONPATH')))
 
         return entries
 
