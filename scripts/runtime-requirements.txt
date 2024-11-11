@@ -1,8 +1,8 @@
-numpy == 1.23.4
-numpy-stl == 3.0.0
-matplotlib ==3.7.4
-h5py == 3.9.0
-scipy == 1.12.0
-mpi4py == 3.1.5
+numpy
+numpy-stl
+matplotlib
+h5py
+scipy 
+mpi4py
 ats @ git+https://github.com/LLNL/ATS@7.0.116
 
