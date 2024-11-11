@@ -163,7 +163,7 @@ commandLine(
     dataDir = "dumps-yeevortex-xy",
     graphics = True,
     smooth = False,
-    outputFileBase = ".out",
+    outputFile = ".out",
     convergenceFileBase = "xstaglattice_converge.txt",
     )
 
@@ -598,7 +598,7 @@ else:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(baseDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes)

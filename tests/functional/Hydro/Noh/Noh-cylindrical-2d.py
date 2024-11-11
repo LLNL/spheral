@@ -169,8 +169,9 @@ commandLine(seed = "constantDTheta",
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-cylindrical-Noh",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
+            doCompare = True,
 
             graphics = True,
             )
@@ -219,19 +220,23 @@ if asph:
 if solid:
     hydroname = "Solid" + hydroname
 
-dataDir = os.path.join(dataDir,
-                       hydroname,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "xfilter=%f" % xfilter,
-                       "fhourglass=%f" % fhourglass,
-                       "%s" % nodeMotion,
-                       "nrad=%i_ntheta=%i" % (nRadial, nTheta))
-restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
+if dataDir:
+    dataDir = os.path.join(dataDir,
+                           hydroname,
+                           "nPerh=%f" % nPerh,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "xfilter=%f" % xfilter,
+                           "fhourglass=%f" % fhourglass,
+                           "%s" % nodeMotion,
+                           "nrad=%i_ntheta=%i" % (nRadial, nTheta))
+    restartDir = os.path.join(dataDir, "restarts")
+    restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
+    vizDir = os.path.join(dataDir, "visit")
+else:
+    restartBaseName = None
+    vizDir = None    
 
-vizDir = os.path.join(dataDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
@@ -240,7 +245,7 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 and dataDir:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
@@ -613,6 +618,10 @@ else:
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
 
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
+
 #-------------------------------------------------------------------------------
 # Plot the results.
 #-------------------------------------------------------------------------------
@@ -726,7 +735,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -780,7 +789,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

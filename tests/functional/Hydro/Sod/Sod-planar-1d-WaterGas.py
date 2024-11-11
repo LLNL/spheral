@@ -130,7 +130,7 @@ commandLine(nx1 = 1000,     # number of nodes
             restartStep = 10000,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
             graphics = True,
             )
@@ -610,7 +610,7 @@ rmin = x0
 rmax = x2
 if mpi.rank == 0:
     multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-    if outputFile != "None":
+    if outputFile:
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
         f.write(("#  " + 17*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "h", "mo",

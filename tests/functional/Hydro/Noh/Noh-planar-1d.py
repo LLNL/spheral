@@ -174,10 +174,11 @@ commandLine(KernelConstructor = NBSplineKernel,
             restartBaseName = "Noh-planar-1d",
             restartFileConstructor = SiloFileIO,
             SPIOFileCountPerTimeslice = None,
-            outputFile = "None",
-            comparisonFile = "None",
-            normOutputFile = "None",
+            outputFile = None,
+            comparisonFile = None,
+            normOutputFile = None,
             writeOutputLabel = True,
+            doCompare = True,
 
             # Parameters for the test acceptance.,
             tol = 1.0e-5,
@@ -206,15 +207,20 @@ elif hydroType in ("GSPH", "MFM"):
 if solid:
     hydroPath = "Solid" + hydroPath
 
-dataDir = os.path.join(dataDirBase,
-                       hydroPath,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "fhourglass=%s" % fhourglass,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "filter=%f" % filter)
-restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
+if dataDirBase:
+    dataDir = os.path.join(dataDirBase,
+                           hydroPath,
+                           "nPerh=%f" % nPerh,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "fhourglass=%s" % fhourglass,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "filter=%f" % filter)
+    restartDir = os.path.join(dataDir, "restarts")
+    restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
+else:
+    dataDir = None
+    restartDir = None
+    restartBaseName = None
 
 dx = (x1 - x0)/nx1
 
@@ -672,6 +678,9 @@ else:
         control.step(5)
         control.advance(goalTime, maxSteps)
 
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Compute the analytic answer.
@@ -699,12 +708,12 @@ xans, vans, uans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
 Aans = [Pi/rhoi**gamma for (Pi, rhoi) in zip(Pans,  rhoans)]
 L1 = 0.0
 for i in range(len(rho)):
-  L1 = L1 + abs(rho[i]-rhoans[i])
+    L1 = L1 + abs(rho[i]-rhoans[i])
 L1_tot = L1 / len(rho)
-if mpi.rank == 0 and outputFile != "None":
- print("L1=",L1_tot,"\n")
- with open("Converge.txt", "a") as myfile:
-    myfile.write("%s %s\n" % (nx1, L1_tot))
+if mpi.rank == 0 and outputFile:
+    print("L1=",L1_tot,"\n")
+    with open("Converge.txt", "a") as myfile:
+        myfile.write("%s %s\n" % (nx1, L1_tot))
 
 #-------------------------------------------------------------------------------
 # Plot the final state.
@@ -778,7 +787,7 @@ xprof = mpi.reduce([x.x for x in nodes1.positions().internalValues()], mpi.SUM)
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     mof = mortonOrderIndices(db)
@@ -815,7 +824,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
@@ -830,7 +839,7 @@ if mpi.rank == 0 :
     print("Quantity \t\tL1 \t\t\t\tL2 \t\t\t\tLinf")
     failure = False
 
-    if normOutputFile != "None":
+    if normOutputFile:
        f = open(normOutputFile, "a")
        if writeOutputLabel:
           f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
@@ -852,7 +861,7 @@ if mpi.rank == 0 :
         L2 = Pn.gridpnorm(2, rmin, rmax)
         Linf = Pn.gridpnorm("inf", rmin, rmax)
         print(f"{name}\t\t{L1} \t\t{L2} \t\t{Linf}")
-        if normOutputFile != "None":
+        if normOutputFile:
            f.write((3*"%16.12e ") % (L1, L2, Linf))
 
         if checkError and not (np.allclose(L1, LnormRef[hydroType][name]["L1"], tol, tol) and
@@ -861,7 +870,7 @@ if mpi.rank == 0 :
             print("Failing Lnorm tolerance for ", name, (L1, L2, Linf), LnormRef[hydroType][name])
             failure = True
   
-    if normOutputFile != "None":
+    if normOutputFile:
        f.write("\n")
 
     if checkError and failure:

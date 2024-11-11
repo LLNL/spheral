@@ -60,6 +60,7 @@ spheral_install_python_files(
   SpheralPolytopeSiloDump.py
   Spheral1dVizDump.py
   SpheralMatplotlib.py
+  SpheralTimingParser.py
   findLastRestart.py
   Pnorm.py
   filearraycmp.py
