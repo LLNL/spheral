@@ -6,10 +6,10 @@
     - ruby
     - batch
   variables:
-    ALLOC_TIME: 120
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t $ALLOC_TIME"
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t 120"
     NPROC: 112
     HOSTNAME: 'ruby'
+  timeout: 119 minutes
   extends: [.on_toss_4_x86]
 
 .on_lassen:
@@ -17,13 +17,13 @@
     - lassen
     - batch
   variables:
-    ALLOC_TIME: 150
-    SCHEDULER_PARAMETERS: "-nnodes 1 -W $ALLOC_TIME -q pci -alloc_flags atsdisable"
+    SCHEDULER_PARAMETERS: "-nnodes 1 -W 150 -q pci -alloc_flags atsdisable"
     LSB_JOB_STARTER: "ENVIRONMENT=BATCH /usr/tcetmp/bin/bsub_job_starter %USRCMD"
     NPROC: 40
     ENVIRONMENT: "BATCH"
     HOSTNAME: 'lassen'
     LC_MODULES: "cuda/11.1.0"
+  timeout: 149 minutes
   extends: [.on_blueos_3_ppc64]
 
 # ------------------------------------------------------------------------------

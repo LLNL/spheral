@@ -24,7 +24,6 @@
   stage: build_and_install
   variables:
     GIT_STRATEGY: none
-  timeout: $ALLOC_TIME minutes
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
