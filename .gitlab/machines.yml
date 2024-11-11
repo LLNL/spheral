@@ -6,7 +6,8 @@
     - ruby
     - batch
   variables:
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t 60"
+    ALLOC_TIME: 120
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t $ALLOC_TIME"
     NPROC: 112
     HOSTNAME: 'ruby'
   extends: [.on_toss_4_x86]
@@ -16,7 +17,8 @@
     - lassen
     - batch
   variables:
-    SCHEDULER_PARAMETERS: "-nnodes 1 -W 150 -q pci -alloc_flags atsdisable"
+    ALLOC_TIME: 150
+    SCHEDULER_PARAMETERS: "-nnodes 1 -W $ALLOC_TIME -q pci -alloc_flags atsdisable"
     LSB_JOB_STARTER: "ENVIRONMENT=BATCH /usr/tcetmp/bin/bsub_job_starter %USRCMD"
     NPROC: 40
     ENVIRONMENT: "BATCH"
