@@ -9,7 +9,7 @@
     SCHEDULER_PARAMETERS: "--res=ci --exclusive=user -N 2 -t 120"
     NPROC: 112
     HOSTNAME: 'ruby'
-  timeout: 119 minutes
+  timeout: 120 minutes
   extends: [.on_toss_4_x86]
 
 .on_lassen:
@@ -23,7 +23,7 @@
     ENVIRONMENT: "BATCH"
     HOSTNAME: 'lassen'
     LC_MODULES: "cuda/11.1.0"
-  timeout: 149 minutes
+  timeout: 150 minutes
   extends: [.on_blueos_3_ppc64]
 
 # ------------------------------------------------------------------------------
