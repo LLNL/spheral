@@ -27,7 +27,6 @@ public:
   QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
   QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
   SPHERAL_HOST_DEVICE QuadraticInterpolator() = default;
-  ~QuadraticInterpolator();
 
   // Initialize after construction, either with a function or tabulated values
   template<typename Func>
