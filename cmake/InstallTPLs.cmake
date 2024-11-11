@@ -19,8 +19,7 @@ include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralPRT.cmake)
 
 if (NOT ENABLE_CXXONLY)
   # Find the appropriate Python
-  find_package(Python3 COMPONENTS Interpreter Development)
-  set(PYTHON_EXE ${Python3_EXECUTABLE})
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set(SPHERAL_SITE_PACKAGES_PATH "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   list(APPEND SPHERAL_CXX_DEPENDS Python3::Python)
 
@@ -31,6 +30,7 @@ if (NOT ENABLE_CXXONLY)
   # Set the pybind11 path
   if (NOT PYBIND11_ROOT_DIR)
     set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+    set(PYBIND11_NOPYTHON TRUE)
   endif()
   include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
   list(APPEND SPHERAL_CXX_DEPENDS pybind11_headers)
