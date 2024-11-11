@@ -17,11 +17,10 @@ function(Spheral_Python_Env target_name)
   endforeach()
 
   add_custom_target(${target_name} ALL
-    COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
+    COMMAND ${Python3_EXECUTABLE} -m venv --system-site-packages ${${target_name}_PREFIX}/.venv;
     COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
-            python -m pip install --upgrade pip &&
-            python -m pip install ${REQUIREMENTS_ARGS}
-    VERBATIM
+            python -m pip install --cache-dir ~/spheral-pip-cache --upgrade pip &&
+            python -m pip install --cache-dir ~/spheral-pip-cache ${REQUIREMENTS_ARGS}
     DEPENDS Python3::Python
   )
   set_property(TARGET ${target_name} PROPERTY EXECUTABLE python)
