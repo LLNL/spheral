@@ -40,6 +40,10 @@ RUN locale-gen en_US.UTF-8
 WORKDIR /home/spheral/workspace/
 COPY scripts scripts
 COPY .uberenv_config.json .
+
+RUN apt-get install -y python3-dev python3-venv python3-pip
+RUN python3 -m pip install -r scripts/build-requirements.txt -r scripts/runtime-requirements.txt
+
 RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir /home
 
 # Clean workspace once dependencies are installed
@@ -68,12 +72,13 @@ RUN python3 scripts/devtools/host-config-build.py --host-config $HOST_CONFIG.cma
 
 # Build Spheral
 WORKDIR build_$HOST_CONFIG/build
+RUN make python_build_env
+RUN make python_runtime_env
 RUN make -j $JCXX Spheral_CXX
 RUN make -j $JPY
 RUN make install
 
 # Run ATS testing suite.
 WORKDIR ../install
-ENV MPLBACKEND=agg
 RUN ./spheral-atstest --filter="level<100" tests/integration.ats
 # -----------------------------------------------------------------------------
