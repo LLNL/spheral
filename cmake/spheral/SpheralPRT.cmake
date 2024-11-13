@@ -32,17 +32,14 @@ function(Spheral_Python_Env target_name)
   #TODO: Remove this once blueos3 is no longer supported.
   set(SPHERAL_USE_SITE_PACKAGES_OPT )
   if($ENV{SYS_TYPE} STREQUAL "blueos_3_ppc64le_ib_p9")
-    set(SPHERAL_USE_SITE_PACKAGES_OPT --system-site-packages)
     set(PIP_INSTALL_CMD env MPICC=${MPI_C_COMPILER} MPICXX=${MPI_CXX_COMPILER} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} 
                         python -m pip install 
                         --disable-pip-version-check 
-                        --no-build-isolation 
-                        -f ${SPHERAL_PIP_CACHE_DIR})
+                        )
 
     add_custom_target(${target_name} ALL
       COMMAND ${Python3_EXECUTABLE} -m venv --system-site-packages ${${target_name}_PREFIX}/.venv;
       COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
-
       ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
       DEPENDS Python3::Python
