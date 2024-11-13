@@ -18,7 +18,7 @@
 .on_blueos_3_ppc64:
   variables:
     ARCH: 'blueos_3_ppc64le_ib_p9'
-    GCC_VERSION: '8.3.1'
+    GCC_VERSION: '10.2.1'
     CLANG_VERSION: '9.0.0'
     SPHERAL_BUILDS_DIR: /p/gpfs1/sphapp/spheral-ci-builds
   extends: [.sys_config]
