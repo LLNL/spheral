@@ -31,7 +31,8 @@ function(Spheral_Python_Env target_name)
 
   #TODO: Remove this once blueos3 is no longer supported.
   set(SPHERAL_USE_SITE_PACKAGES_OPT )
-  if($ENV{SYS_TYPE} STREQUAL "blueos_3_ppc64le_ib_p9")
+  set(SPHERAL_ENV_SYS_TYPE ENV{SYS_TYPE})
+  if(${SPHERAL_ENV_SYS_TYPE} STREQUAL "blueos_3_ppc64le_ib_p9")
     set(PIP_INSTALL_CMD env MPICC=${MPI_C_COMPILER} MPICXX=${MPI_CXX_COMPILER} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} 
                         python -m pip install 
                         --disable-pip-version-check 
