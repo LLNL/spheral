@@ -10,7 +10,6 @@ namespace Spheral {
 
 //------------------------------------------------------------------------------
 // Enroll an arbitrary type
-// Must be one of the supported types in StateBase::AllowedType
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename T>
@@ -19,7 +18,7 @@ void
 StateBase<Dimension>::
 enroll(const KeyType& key, T& thing) {
   // std::cerr << "StateBase::enroll " << key << std::endl;
-  mStorage[key] = &thing;
+  mStorage[key] = std::ref(thing);
 }
 
 //------------------------------------------------------------------------------
@@ -31,8 +30,8 @@ inline
 Field<Dimension, Value>&
 StateBase<Dimension>::
 field(const KeyType& key) const {
-  FieldBase<Dimension>& fbase = this->template get<FieldBase<Dimension>>(key);
-  auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fbase);
+  FieldBase<Dimension>& fb = this->template get<FieldBase<Dimension>>(key);
+  auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fb);
   VERIFY2(fptr != nullptr,
           "StateBase::field ERROR: field type incorrect for key " << key);
   return *fptr;
@@ -59,13 +58,11 @@ StateBase<Dimension>::
 allFields() const {
   std::vector<Field<Dimension, Value>*> result;
   KeyType fieldName, nodeListName;
-  for (auto [key, aptr]: mStorage) {
+  for (auto [key, aref]: mStorage) {
     try {
-      auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
-      if (fbptr != nullptr) {
-        auto* fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
-        if (fptr != nullptr) result.push_back(fptr);
-      }
+      auto fb = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
+      auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fb.get());
+      if (fptr != nullptr) result.push_back(fptr);
     } catch(const std::bad_any_cast& e) {
     }
   }
@@ -92,16 +89,14 @@ StateBase<Dimension>::
 fields(const std::string& name) const {
   FieldList<Dimension, Value> result;
   KeyType fieldName, nodeListName;
-  for (auto [key, aptr]: mStorage) {
+  for (auto [key, aref]: mStorage) {
     splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) {
       CHECK(nodeListName != "");
       try {
-        auto* fbptr = std::any_cast<FieldBase<Dimension>*>(aptr);
-        if (fbptr != nullptr) {
-          auto fptr = dynamic_cast<Field<Dimension, Value>*>(fbptr);
-          if (fptr != nullptr) result.appendField(*fptr);
-        }
+        auto fb = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
+        auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fb.get());
+        if (fptr != nullptr) result.appendField(*fptr);
       } catch(const std::bad_any_cast& e) {
       }
     }
@@ -130,8 +125,7 @@ get(const typename StateBase<Dimension>::KeyType& key) const {
   auto itr = mStorage.find(key);
   VERIFY2(itr != mStorage.end(), "StateBase ERROR: failed lookup for key " << key);
   try {
-    auto* resultPtr = std::any_cast<Value*>(itr->second);
-    return *resultPtr;
+    return std::any_cast<std::reference_wrapper<Value>>(itr->second);
   } catch(const std::bad_any_cast& e) {
     VERIFY2(false, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
   }

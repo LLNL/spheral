@@ -152,23 +152,23 @@ StateDerivatives<Dimension>::
 Zero() {
 
   // Build a visitor to zero each data type
-  AnyVisitor<void, std::any&, std::any&> ZERO;
-  ZERO.addVisitor<FieldBase<Dimension>*>         ([](const std::any& x, const std::any& y) { std::any_cast<FieldBase<Dimension>*>(x)->Zero(); });
-  ZERO.addVisitor<Scalar*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Scalar*>(x) = 0.0; });
-  ZERO.addVisitor<Vector*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Vector*>(x) = Vector::zero; });
-  ZERO.addVisitor<Tensor*>                       ([](const std::any& x, const std::any& y) { *std::any_cast<Tensor*>(x) = Tensor::zero; });
-  ZERO.addVisitor<SymTensor*>                    ([](const std::any& x, const std::any& y) { *std::any_cast<SymTensor*>(x) = SymTensor::zero; });
-  ZERO.addVisitor<vector<Scalar>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Scalar>*>(x)->clear(); });
-  ZERO.addVisitor<vector<Vector>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Vector>*>(x)->clear(); });
-  ZERO.addVisitor<vector<Tensor>*>               ([](const std::any& x, const std::any& y) { std::any_cast<vector<Tensor>*>(x)->clear(); });
-  ZERO.addVisitor<vector<SymTensor>*>            ([](const std::any& x, const std::any& y) { std::any_cast<vector<SymTensor>*>(x)->clear(); });
-  ZERO.addVisitor<set<int>*>                     ([](const std::any& x, const std::any& y) { std::any_cast<set<int>*>(x)->clear(); });
-  ZERO.addVisitor<set<RKOrder>*>                 ([](const std::any& x, const std::any& y) { std::any_cast<set<int>*>(x)->clear(); });
-  ZERO.addVisitor<ReproducingKernel<Dimension>*> ([](const std::any& x, const std::any& y) { });
+  AnyVisitor<void, std::any&> ZERO;
+  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>         ([](const std::any& x) { std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<Scalar>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Scalar>>(x).get() = 0.0; });
+  ZERO.addVisitor<std::reference_wrapper<Vector>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Vector>>(x).get() = Vector::zero; });
+  ZERO.addVisitor<std::reference_wrapper<Tensor>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Tensor>>(x).get() = Tensor::zero; });
+  ZERO.addVisitor<std::reference_wrapper<SymTensor>>                    ([](const std::any& x) { std::any_cast<std::reference_wrapper<SymTensor>>(x).get() = SymTensor::zero; });
+  ZERO.addVisitor<std::reference_wrapper<vector<Scalar>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Scalar>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<Vector>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Vector>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<Tensor>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Tensor>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<SymTensor>>>            ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<SymTensor>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<set<int>>>                     ([](const std::any& x) { std::any_cast<std::reference_wrapper<set<int>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<set<RKOrder>>>                 ([](const std::any& x) { std::any_cast<std::reference_wrapper<set<int>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>> ([](const std::any& x) { } );
 
-  // Walk the state fields and zero them.
-  for (auto [key, anyvalptr]: mStorage) {
-    ZERO.visit(anyvalptr, anyvalptr);
+  // Walk the state values and zero them
+  for (auto itr: mStorage) {
+    ZERO.visit(itr.second);
   }
 
   // Reinitialize the node pair interaction information.
