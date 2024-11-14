@@ -25,6 +25,7 @@ public:
   // Constructors, destructors
   template<typename Func>
   QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
+
   QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
   SPHERAL_HOST_DEVICE QuadraticInterpolator() = default;
 
@@ -88,6 +89,11 @@ class QuadraticInterpolator__(
                         const size_t n,
                         const Func& F) 
   : VVI_VALUE_CTOR_ARGS((xmin,xmax,n,F)) {}
+
+  QuadraticInterpolator(double xmin,
+                        double xmax,
+                        const std::vector<double>& yvals)
+  : VVI_VALUE_CTOR_ARGS((xmin,xmax,yvals)) {}
 
   VVI_VALUE_DEF_CTOR(QuadraticInterpolator)
 

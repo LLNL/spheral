@@ -169,6 +169,30 @@ gradf1Integral(const KernelType& W,
                                                                      numbins);
 }
 
+//------------------------------------------------------------------------------
+// Functors for building interpolation of kernel
+//------------------------------------------------------------------------------
+template<typename KernelType>
+struct Wlookup {
+  const KernelType& mW;
+  Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW(x, 1.0); }
+};
+
+template<typename KernelType>
+struct gradWlookup {
+  const KernelType& mW;
+  gradWlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad(x, 1.0); }
+};
+
+template<typename KernelType>
+struct grad2Wlookup {
+  const KernelType& mW;
+  grad2Wlookup(const KernelType& W): mW(W) {}
+  double operator()(const double x) const { return mW.grad2(x, 1.0); }
+};
+
 }  // anonymous
 
 //------------------------------------------------------------------------------
@@ -184,9 +208,9 @@ TableKernel<Dimension>::TableKernel(const KernelType& kernel,
   mNumPoints(numPoints),
   mMinNperh(std::max(minNperh, 1.1/kernel.kernelExtent())),
   mMaxNperh(maxNperh),
-  mInterp(0.0, kernel.kernelExtent(), numPoints,      [&](const double x) { return kernel(x, 1.0); }),
-  mGradInterp(0.0, kernel.kernelExtent(), numPoints,  [&](const double x) { return kernel.grad(x, 1.0); }),
-  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, [&](const double x) { return kernel.grad2(x, 1.0); }),
+  mInterp(0.0, kernel.kernelExtent(), numPoints, Wlookup<KernelType>(kernel)),
+  mGradInterp(0.0, kernel.kernelExtent(), numPoints, gradWlookup<KernelType>(kernel)),
+  mGrad2Interp(0.0, kernel.kernelExtent(), numPoints, grad2Wlookup<KernelType>(kernel)),
   mNperhLookup(),
   mWsumLookup() {
 
