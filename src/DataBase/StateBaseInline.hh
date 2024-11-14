@@ -59,11 +59,10 @@ allFields() const {
   std::vector<Field<Dimension, Value>*> result;
   KeyType fieldName, nodeListName;
   for (auto [key, aref]: mStorage) {
-    try {
+    if (aref.type() == typeid(std::reference_wrapper<FieldBase<Dimension>>)) {
       auto fb = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
       auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fb.get());
       if (fptr != nullptr) result.push_back(fptr);
-    } catch(const std::bad_any_cast& e) {
     }
   }
   return result;
@@ -93,11 +92,10 @@ fields(const std::string& name) const {
     splitFieldKey(key, fieldName, nodeListName);
     if (fieldName == name) {
       CHECK(nodeListName != "");
-      try {
+      if (aref.type() == typeid(std::reference_wrapper<FieldBase<Dimension>>)) {
         auto fb = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
         auto* fptr = dynamic_cast<Field<Dimension, Value>*>(&fb.get());
         if (fptr != nullptr) result.appendField(*fptr);
-      } catch(const std::bad_any_cast& e) {
       }
     }
   }
@@ -124,11 +122,10 @@ StateBase<Dimension>::
 get(const typename StateBase<Dimension>::KeyType& key) const {
   auto itr = mStorage.find(key);
   VERIFY2(itr != mStorage.end(), "StateBase ERROR: failed lookup for key " << key);
-  try {
+  if (itr->second.type() == typeid(std::reference_wrapper<Value>)) {
     return std::any_cast<std::reference_wrapper<Value>>(itr->second);
-  } catch(const std::bad_any_cast& e) {
-    VERIFY2(false, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
   }
+  VERIFY2(false, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
 }
 
 // Same thing passing a dummy argument to help with template type

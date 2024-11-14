@@ -224,11 +224,8 @@ StateBase<Dimension>::
 fullFieldKeys() const {
   vector<KeyType> result;
   for (auto [key, aref]: mStorage) {
-    try {
-      auto xref = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
+    if (aref.type() == typeid(std::reference_wrapper<FieldBase<Dimension>>)) {
       result.push_back(key);
-      CONTRACT_VAR(xref);
-    } catch (const std::bad_any_cast& e) {
     }
   }
   return result;
@@ -243,11 +240,8 @@ StateBase<Dimension>::
 miscKeys() const {
   vector<KeyType> result;
   for (auto [key, aref]: mStorage) {
-    try {
-      auto xref = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
+    if (aref.type() != typeid(std::reference_wrapper<FieldBase<Dimension>>)) {
       result.push_back(key);
-      CONTRACT_VAR(xref);
-    } catch(const std::bad_any_cast& e) {
     }
   }
   return result;
@@ -261,11 +255,12 @@ std::vector<typename FieldBase<Dimension>::FieldName>
 StateBase<Dimension>::
 fieldNames() const {
   vector<FieldName> result;
+  KeyType fieldName, nodeListName;
   for (auto [key, aref]: mStorage) {
-    try {
+    if (aref.type() == typeid(std::reference_wrapper<FieldBase<Dimension>>)) {
       auto fref = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(aref);
-      result.push_back(fref.get().name());
-    } catch (const std::bad_any_cast& e) {
+      splitFieldKey(fref.get().name(), fieldName, nodeListName);
+      result.push_back(fieldName);
     }
   }
 
@@ -381,11 +376,7 @@ assign(const StateBase<Dimension>& rhs) {
   for (; lhsitr != mStorage.end(); ++lhsitr, ++rhsitr) {
     CHECK(rhsitr != rhs.mStorage.end());
     CHECK(lhsitr->first == rhsitr->first);
-    try {
-      ASSIGN.visit(lhsitr->second, rhsitr->second);
-    } catch(...) {
-      CHECK(false);
-    }
+    ASSIGN.visit(lhsitr->second, rhsitr->second);
   }
 
   // Copy the connectivity (by reference).  This thing is too
