@@ -23,3 +23,6 @@ def caliper_module_path():
         return os.path.join(caliper_loc, "lib64/caliper")
     else:
         return None
+
+def test_install_path():
+    return "@SPHERAL_TEST_INSTALL_PREFIX@"

@@ -113,7 +113,7 @@ def main():
     #---------------------------------------------------------------------------
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      usage="""
-                                     ./spheral spheral_ats.py --numNodes 2 tests/integration.ats --filter="level<100"
+                                     ./spheral-ats --numNodes 2 tests/integration.ats --filter="level<100"
                                      """,
                                      description="""
                                      Launches and runs Spheral using the ATS system.
