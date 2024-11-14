@@ -14,7 +14,7 @@ template<typename T>
 class ManagedVectorTypedTest : public::testing::Test {};
 
 // All ManagedVectorTets cases will run over each type in EXEC_TYPES.
-TYPED_TEST_CASE(ManagedVectorTypedTest, EXEC_TYPES);
+TYPED_TEST_SUITE(ManagedVectorTypedTest, EXEC_TYPES,);
 
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, DefaultConstructor)
