@@ -128,8 +128,6 @@ def main():
                         help="Time limit for allocation.")
     parser.add_argument("--ciRun", action="store_true",
                         help="Option to only be used by the CI")
-    parser.add_argument("--perfTest", action="store_true",
-                        help="Turn on if doing a performance test.")
     parser.add_argument("--atsHelp", action="store_true",
                         help="Print the help output for ATS. Useful for seeing ATS options.")
     options, unknown_options = parser.parse_known_args()
@@ -173,7 +171,7 @@ def main():
     # Launch ATS
     #---------------------------------------------------------------------------
     # If doing a CI run, set some more options
-    if (not options.perfTest):
+    if (options.ciRun):
         if ("--logs" not in unknown_options):
             ats_args.append(f"--logs {test_log_name}")
             log_name = test_log_name

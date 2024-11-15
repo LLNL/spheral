@@ -53,9 +53,6 @@ elif ("broadwell" in spheral_sys_arch):
     num_nodes = 2
     num_cores = 36
 
-# NOH tests
-test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
-
 # Select which timing regions to compare (for CI)
 regions = ["CheapRK2",
            "CheapRK2PreInit",
@@ -65,6 +62,41 @@ regions = ["CheapRK2",
            "CheapRK2EndStep"]
 # Select which timers to compare (for CI)
 timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
+
+# 3D convection test
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "unit/Boundary")
+
+group(name="3D Convection test")
+test_file = "testPeriodicBoundary-3d.py"
+test_path = os.path.join(test_dir, test_file)
+test_name = "3DCONV"
+
+# Test with varying number of ranks
+ranks = [1, 2, 4]
+# We want 20 points per unit length
+ref_len = 1.
+sph_point_rho = 20. / ref_len
+sph_per_core = 300
+for i, n in enumerate(ranks):
+    caliper_filename = f"{test_name}_{i}_{int(time.time())}.cali"
+    timer_cmds = add_timer_cmds(caliper_filename, test_name)
+    ncores = int(num_nodes*num_cores/n)
+    total_sph_nodes = sph_per_core * ncores
+    npd = int(np.cbrt(total_sph_nodes))
+    new_len = npd * ref_len / sph_point_rho
+    inps = f"--nx {npd} --ny {npd} --nz {npd} --x1 {new_len} --y1 {new_len} --z1 {new_len} --steps 100 {timer_cmds}"
+    t = test(script=test_path, clas=inps,
+             label=test_name,
+             np=ncores,
+             caliper_filename=caliper_filename,
+             regions=regions,
+             timers=timers,
+             install_config=spheral_install_config)
+
+endgroup()
+
+# NOH tests
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
 
 # General input for all Noh tests
 gen_noh_inps = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
@@ -108,7 +140,7 @@ for i, n in enumerate(npcore):
     npd = int(np.cbrt(total_sph_nodes))
     node_inps = f"--nx {npd} --ny {npd} --nz {npd}"
     timer_cmds = add_timer_cmds(caliper_filename, test_name)
-    inps = f"{gen_noh_inps} {node_inps} --steps 3 {timer_cmds}"
+    inps = f"{gen_noh_inps} {node_inps} --steps 10 {timer_cmds}"
     # WIP: Path to benchmark timing data
     t = test(script=test_path, clas=inps,
              label=test_name,
