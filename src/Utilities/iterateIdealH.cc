@@ -236,7 +236,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
       const auto hminratio = nodeListPtr->hminratio();
       const auto nPerh = nodeListPtr->nodesPerSmoothingScale();
 
-#pragma omp parallel for
+#pragma omp parallel for reduction(max:maxDeltaH)
       for (auto i = 0u; i < ni; ++i) {
         if (flagNodeDone(nodeListi, i) == 0) {
           zerothMoment(nodeListi, i) = Dimension::rootnu(zerothMoment(nodeListi, i));
