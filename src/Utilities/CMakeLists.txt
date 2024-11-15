@@ -131,6 +131,7 @@ set(Utilities_headers
     timingUtilities.hh
     uniform_random.hh
     uniform_random_Inline.hh
+    range.hh
     AnyVisitor.hh
     )
 
