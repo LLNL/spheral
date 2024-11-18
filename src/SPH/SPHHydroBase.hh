@@ -109,6 +109,14 @@ public:
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivs) const override;
 
+  // Stuff to do post-state updates
+  virtual 
+  bool postStateUpdate(const Scalar time, 
+                       const Scalar dt,
+                       const DataBase<Dimension>& dataBase, 
+                       State<Dimension>& state,
+                       StateDerivatives<Dimension>& derivatives) override;
+
   // Apply boundary conditions to the physics specific fields.
   virtual
   void applyGhostBoundaries(State<Dimension>& state,

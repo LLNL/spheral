@@ -178,6 +178,10 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   updateStateFields(HydroFieldNames::pressure, state, derivs);
   updateStateFields(HydroFieldNames::soundSpeed, state, derivs);
 
+  // If we're using the grad-h corrections they need to be initialized.  Our
+  // postStateUpdate already does this.
+  this->postStateUpdate(0.0, 1.0, dataBase, state, derivs);
+
   // dataBase.fluidEntropy(mEntropy);
 
   // // In some cases we need the volume per node as well.
@@ -385,12 +389,12 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
       auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
       computeSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
       if (densityUpdate() == MassDensityType::CorrectedSumDensity) {
         correctSPHSumMassDensity(connectivityMap, this->kernel(), mSumMassDensityOverAllNodeLists, position, mass, H, massDensity);
-        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-        for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+        for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+        for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
       }
     }
     break;
@@ -401,8 +405,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto massDensitySum = derivs.fields(ReplaceState<Dimension, Field<Dimension, Field<Dimension, Scalar> > >::prefix() + 
                                                 HydroFieldNames::massDensity, 0.0);
       massDensity.assignFields(massDensitySum);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
     }
     break;
 
@@ -419,8 +423,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
           if (normalization(nodeListi, i) > 0.95) massDensity(nodeListi, i) = massDensitySum(nodeListi, i);
         }
       }
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
     }
     break;
 
@@ -431,8 +435,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto volume = state.fields(HydroFieldNames::volume, 0.0);
       auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
       massDensity = mass / volume;
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
     }
     break;
 
@@ -446,8 +450,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
       auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
       computeSumVoronoiCellMassDensity(connectivityMap, this->kernel(), position, mass, volume, H, massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->applyFieldListGhostBoundary(massDensity);
-      for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
+      for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
     }
     break;
 
@@ -549,23 +553,9 @@ initialize(const typename Dimension::Scalar time,
            StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHinitialize");
 
-  // Initialize the grad h corrrections if needed.
-  //const TableKernel<Dimension>& W = this->kernel();
-  const TableKernel<Dimension>& WPi = this->PiKernel();
-
-  if (mGradhCorrection) {
-    const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
-    const FieldList<Dimension, Vector> position = state.fields(HydroFieldNames::position, Vector::zero);
-    const FieldList<Dimension, SymTensor> H = state.fields(HydroFieldNames::H, SymTensor::zero);
-    FieldList<Dimension, Scalar> omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
-    computeSPHOmegaGradhCorrection(connectivityMap, this->kernel(), position, H, omega);
-    for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-         boundItr != this->boundaryEnd();
-         ++boundItr) (*boundItr)->applyFieldListGhostBoundary(omega);
-  }
-
   // Get the artificial viscosity and initialize it.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  const auto& WPi = this->PiKernel();
+  auto& Q =         this->artificialViscosity();
   Q.initialize(dataBase, 
                state,
                derivs,
@@ -996,6 +986,36 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
   TIME_END("SPHfinalizeDerivs");
+}
+
+//------------------------------------------------------------------------------
+// Post-state update work
+//------------------------------------------------------------------------------
+template<typename Dimension>
+bool
+SPHHydroBase<Dimension>::
+postStateUpdate(const typename Dimension::Scalar time,
+                const typename Dimension::Scalar dt,
+                const DataBase<Dimension>& dataBase,
+                State<Dimension>& state,
+                StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("SPHpostStateUpdate");
+
+  // Compute the grad h corrrections if needed.  We have to do this in the post-state update
+  // because we need boundary conditions applied to position and H first.
+  if (mGradhCorrection) {
+    const auto& WT = this->kernel();
+    const auto& connectivityMap = dataBase.connectivityMap();
+    const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+    const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+    auto        omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+    computeSPHOmegaGradhCorrection(connectivityMap, WT, position, H, omega);
+    return true;
+  } else {
+    return false;
+  }
+
+  TIME_END("SPHpostStateUpdate");
 }
 
 //------------------------------------------------------------------------------

@@ -198,11 +198,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 template<typename Dimension>
 bool
 PSPHHydroBase<Dimension>::
-postStateUpdate(const Scalar /*time*/, 
-                const Scalar /*dt*/,
+postStateUpdate(const Scalar t, 
+                const Scalar dt,
                 const DataBase<Dimension>& dataBase, 
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& /*derivatives*/) {
+                StateDerivatives<Dimension>& derivs) {
+
+  // Check if the base class needs anything
+  SPHHydroBase<Dimension>::postStateUpdate(t, dt, dataBase, state, derivs);
 
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();

@@ -102,6 +102,15 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
+    def postStateUpdate(time = "const Scalar",
+                        dt = "const Scalar",
+                        dataBase = "const DataBase<%(Dimension)s>&",
+                        state = "State<%(Dimension)s>&",
+                        derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Post-state update. For SPH this is where we recompute the omega (grad h) corrections."
+        return "bool"
+               
+    @PYB11virtual
     def applyGhostBoundaries(state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
