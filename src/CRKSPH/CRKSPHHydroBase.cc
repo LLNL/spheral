@@ -263,7 +263,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
-  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
 }
 
 //------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   if (mDensityUpdate == MassDensityType::RigorousSumDensity or
       mDensityUpdate == MassDensityType::VoronoiCellDensity) {
     auto        massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
+    const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
     const auto& W = WR.kernel();
     const auto& connectivityMap = dataBase.connectivityMap();
     const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -311,7 +311,7 @@ initialize(const typename Dimension::Scalar time,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   // Initialize the artificial viscosity
-  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
+  const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
   auto&       Q = this->artificialViscosity();
   Q.initialize(dataBase, 
                state,

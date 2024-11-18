@@ -13,7 +13,6 @@
 #include "Material/EquationOfState.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/safeInv.hh"
-#include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/globalNodeIDs.hh"
