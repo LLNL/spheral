@@ -10,6 +10,20 @@ if (DEFINED ENV{SYS_TYPE})
 endif()
 set(SPHERAL_PIP_CACHE_DIR ${SPHERAL_PIP_CACHE_DIR}/${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION})
 
+# Determine Network Connectivity
+message("*** Checking Network Connectivity ***")
+execute_process(
+    COMMAND ping www.google.com -c 2 -w 1000
+    RESULT_VARIABLE PING_RESULT
+)
+if(PING_RESULT GREATER 0)
+  message("Network Connection : False")
+  set(SPHERAL_NETWORK_CONNECTED False)
+else()
+  message("Network Connection : True")
+  set(SPHERAL_NETWORK_CONNECTED True)
+endif()
+
 
 add_custom_target(clean_pip_cache
   COMMAND rm -rf ${SPHERAL_PIP_CACHE_DIR}
@@ -56,24 +70,38 @@ function(Spheral_Python_Env target_name)
                         --disable-pip-version-check 
                         --no-build-isolation 
                         --no-index 
+                        --cache-dir ${SPHERAL_PIP_CACHE_DIR}
                         -f ${SPHERAL_PIP_CACHE_DIR})
 
-    add_custom_target(${target_name} ALL
-      COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
-      COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
+    if(SPHERAL_NETWORK_CONNECTED)
+      add_custom_target(${target_name} ALL
+        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
+        COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
-      ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
-      ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
+        ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
+        ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
 
-      ${PIP_DOWNLOAD_CMD} ${REQUIREMENTS_ARGS} &&
-      ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
+        ${PIP_DOWNLOAD_CMD} ${REQUIREMENTS_ARGS} &&
+        ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
-      DEPENDS Python3::Python
-    )
+        DEPENDS Python3::Python
+      )
+    else()
+      add_custom_target(${target_name} ALL
+        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
+        COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
+
+        ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
+
+        ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
+
+        DEPENDS Python3::Python
+      )
+    endif()
   endif()
 
   add_custom_target(clean_${target_name}
-    COMMAND rm -rf ${${target_name}_PREFIX}
+    COMMAND rm -rf ${${target_name}_PREFIX}/.venv
   )
 
   set_property(TARGET ${target_name} PROPERTY EXECUTABLE python)
