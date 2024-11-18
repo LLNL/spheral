@@ -54,34 +54,38 @@ macro(spheral_add_test)
   set(original_src ${arg_SOURCES})
   set(original_deps ${arg_DEPENDS_ON})
 
-  get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
-
-  blt_add_library(
-    NAME ${original_test_name}_lib
-    SOURCES ${TEST_LIB_SOURCE}
-    SOURCES ${SPHERAL_ROOT_DIR}/src/spheralCXX.cc
-    DEPENDS_ON ${SPHERAL_BLT_DEPENDS} ${original_deps}
-    SHARED False 
-    )
-
-  target_link_options(${original_test_name}_lib PRIVATE "-Wl,--unresolved-symbols=ignore-in-object-files")
-
-  spheral_add_executable(
-    NAME ${original_test_name}.exe
-    SOURCES ${original_src}
-    DEPENDS_ON gtest ${CMAKE_THREAD_LIBS_INIT} ${original_test_name}_lib
-    TEST On)
-
-  blt_add_test(
-    NAME ${original_test_name}
-    COMMAND ${TEST_DRIVER} ${original_test_name}.exe)
-
-  target_include_directories(${original_test_name}.exe SYSTEM PRIVATE ${SPHERAL_ROOT_DIR}/tests/cpp/include)
-
-  if (${arg_DEBUG_LINKER})
-    target_link_options(${original_test_name}.exe PUBLIC "-Wl,--warn-unresolved-symbols")
+  if (ENABLE_DEV_BUILD)
+    message("Skipping ${original_test_name} : NOT compatible with ENABLE_DEV_BUILD.")
   else()
-    target_link_options(${original_test_name}.exe PUBLIC "-Wl,--unresolved-symbols=ignore-all")
+    get_property(SPHERAL_BLT_DEPENDS GLOBAL PROPERTY SPHERAL_BLT_DEPENDS)
+
+    blt_add_library(
+      NAME ${original_test_name}_lib
+      SOURCES ${TEST_LIB_SOURCE}
+      SOURCES ${SPHERAL_ROOT_DIR}/src/spheralCXX.cc
+      DEPENDS_ON ${SPHERAL_BLT_DEPENDS} ${original_deps}
+      SHARED False
+      )
+
+    target_link_options(${original_test_name}_lib PRIVATE "-Wl,--unresolved-symbols=ignore-in-object-files")
+
+    spheral_add_executable(
+      NAME ${original_test_name}.exe
+      SOURCES ${original_src}
+      DEPENDS_ON gtest ${CMAKE_THREAD_LIBS_INIT} ${original_test_name}_lib
+      TEST On)
+
+    blt_add_test(
+      NAME ${original_test_name}
+      COMMAND ${TEST_DRIVER} ${original_test_name}.exe)
+
+    target_include_directories(${original_test_name}.exe SYSTEM PRIVATE ${SPHERAL_ROOT_DIR}/tests/cpp/include)
+
+    if (${arg_DEBUG_LINKER})
+      target_link_options(${original_test_name}.exe PUBLIC "-Wl,--warn-unresolved-symbols")
+    else()
+      target_link_options(${original_test_name}.exe PUBLIC "-Wl,--unresolved-symbols=ignore-all")
+    endif()
   endif()
 
 endmacro(spheral_add_test)
