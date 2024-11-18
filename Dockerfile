@@ -38,13 +38,21 @@ RUN locale-gen en_US.UTF-8
 
 # Set up TPLs for SPEC
 WORKDIR /home/spheral/workspace/
-COPY scripts scripts
-COPY .uberenv_config.json .
+COPY . .
 
 RUN apt-get install -y python3-dev python3-venv python3-pip
 RUN python3 -m pip install -r scripts/build-requirements.txt -r scripts/runtime-requirements.txt
 
 RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir /home
+
+# Configure Spheral with SPEC TPLs.
+RUN mv *.cmake $HOST_CONFIG.cmake
+RUN python3 scripts/devtools/host-config-build.py --host-config $HOST_CONFIG.cmake
+
+# First time install of Spheral pip dependencies
+WORKDIR build_$HOST_CONFIG/build
+RUN make python_build_env
+RUN make python_runtime_env
 
 # Clean workspace once dependencies are installed
 RUN rm -rf /home/spheral/workspace/*
