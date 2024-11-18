@@ -1,5 +1,6 @@
 # SpheralTestUtilities -- small helper functions used in Spheral unit tests.
 
+import mpi
 import sys
 from math import *
 from collections import Iterable
@@ -132,7 +133,6 @@ def checkNeighbors(neighborList, answer):
 # Print statistic about the H tensors for a set of NodeLists.
 #-------------------------------------------------------------------------------
 def hstats(nodeSet):
-    import mpi
     for nodes in nodeSet:
         hmin, hmax, havg = 1e50, -1e50, 0.0
         hratmin, hratmax, hratavg = 1e50, -1e50, 0.0
