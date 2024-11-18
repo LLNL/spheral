@@ -87,9 +87,9 @@ registerState(DataBase<Dimension>& dataBase,
   const auto clipPointKey = boundaryKey +"_clipPoint";
   const auto velocityKey = boundaryKey +"_velocity";
 
-  state.enrollAny(pointKey,mCenter);
-  state.enrollAny(clipPointKey,mClipPoint);
-  state.enrollAny(pointKey,mVelocity);
+  state.enroll(pointKey,mCenter);
+  state.enroll(clipPointKey,mClipPoint);
+  state.enroll(pointKey,mVelocity);
 
 }
 

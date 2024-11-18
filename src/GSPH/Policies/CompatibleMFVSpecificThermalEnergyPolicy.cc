@@ -84,9 +84,9 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  DmassDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::mass, 0.0);
   const auto  DmomentumDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
-  const auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto& pairDepsDt = derivs.getAny(HydroFieldNames::pairWork, vector<Scalar>());
-  const auto& pairMassFlux = derivs.getAny(GSPHFieldNames::pairMassFlux, vector<Scalar>());
+  const auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairDepsDt = derivs.get(HydroFieldNames::pairWork, vector<Scalar>());
+  const auto& pairMassFlux = derivs.get(GSPHFieldNames::pairMassFlux, vector<Scalar>());
 
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();

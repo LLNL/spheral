@@ -29,6 +29,9 @@ Notable changes include:
         updates the Voronoi information is automatically added to the package list by the SpheralController (similar to how the
         Reproducing Kernel corrections are handled).
     * Command line options are now consistent. Default values of a string "None" are no longer allowed and any input through the command line of "None" will become the python NoneType None.
+    * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
+      during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
+      is correct.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
