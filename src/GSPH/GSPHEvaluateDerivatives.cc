@@ -72,8 +72,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairDepsDt = derivatives.get(HydroFieldNames::pairWork, vector<Scalar>());
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  newRiemannDpDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);

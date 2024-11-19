@@ -219,7 +219,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
   // The kernels and such.
   //const auto  order = this->correctionOrder();
-  const auto& WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
+  const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
 
   // A few useful constants we'll use in the following loop.
   //const auto tiny = 1.0e-30;
@@ -263,7 +263,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
