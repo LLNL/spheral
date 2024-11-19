@@ -291,7 +291,7 @@ del n
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(3), 1000)
+WT = TableKernel(NBSplineKernel(3), 100)
 output('WT')
 
 #-------------------------------------------------------------------------------
