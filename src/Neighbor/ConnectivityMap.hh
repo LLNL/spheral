@@ -189,7 +189,7 @@ private:
   ConnectivityStorageType mConnectivity;
 
   // List of Node conncetion pairs.
-  NodePairList mNodePairList;
+  std::shared_ptr<NodePairList> mNodePairListPtr;
 
   // Same for overlap connectivity.
   ConnectivityStorageType mOverlapConnectivity;

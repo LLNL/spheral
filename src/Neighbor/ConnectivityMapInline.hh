@@ -130,7 +130,8 @@ inline
 const NodePairList&
 ConnectivityMap<Dimension>::
 nodePairList() const {
-  return mNodePairList;
+  REQUIRE(mNodePairListPtr);
+  return *mNodePairListPtr;
 }
 
 //------------------------------------------------------------------------------

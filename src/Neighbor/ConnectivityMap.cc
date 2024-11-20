@@ -258,17 +258,22 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   }
   
   // We also need to patch the node pair structure
-  NodePairList culledPairs;
+  // Note here we deliberately reallocate the NodePairList, which will invalidate any
+  // PairFields pointing at the original pairs.
+  REQUIRE(mNodePairListPtr);
+  auto culledPairListPtr = std::make_shared<NodePairList>();
+  NodePairList& currentPairs = *mNodePairListPtr;
+  NodePairList& culledPairs = *culledPairListPtr;
 #pragma omp parallel
   {
     NodePairList culledPairs_thread;
-    const auto npairs = mNodePairList.size();
+    const auto npairs = currentPairs.size();
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
-      const auto iNodeList = mNodePairList[k].i_list;
-      const auto jNodeList = mNodePairList[k].j_list;
-      const auto i = mNodePairList[k].i_node;
-      const auto j = mNodePairList[k].j_node;
+      const auto iNodeList = currentPairs[k].i_list;
+      const auto jNodeList = currentPairs[k].j_list;
+      const auto i = currentPairs[k].i_node;
+      const auto j = currentPairs[k].j_node;
       if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
         culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
                                                      old2new(jNodeList, j), jNodeList));
@@ -279,15 +284,18 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
     }
   }
-  mNodePairList = culledPairs;
+  mNodePairListPtr = culledPairListPtr;
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
-  if (domainDecompIndependent) {
-    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
-    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
-    sortPairs(mNodePairList, mKeys);
-  } else {
-    std::sort(mNodePairList.begin(), mNodePairList.end());
+  {
+    auto& pairs = *mNodePairListPtr;
+    if (domainDecompIndependent) {
+      // sort(pairs.begin(), pairs.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+      // sort(pairs.begin(), pairs.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+      sortPairs(pairs, mKeys);
+    } else {
+      std::sort(pairs.begin(), pairs.end());
+    }
   }
 
   // Patch the intersection lists if we're maintaining them
@@ -804,13 +812,13 @@ computeConnectivity() {
     mConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
     mNodeTraversalIndices = vector<vector<int> >(numNodeLists);
   }
-  mNodePairList.clear();
+  mNodePairListPtr = std::make_shared<NodePairList>();
   mIntersectionConnectivity.clear();
 
   // If we're trying to be domain decomposition independent, we need a key to sort
   // by that will give us a unique ordering regardless of position.  The Morton ordered
   // hash fills the bill.
-  typedef typename KeyTraits::Key Key;
+  using Key = typename KeyTraits::Key;
   if (domainDecompIndependent) mKeys = mortonOrderIndices(dataBase);
 
   // Fill in the ordering for walking the nodes.
@@ -951,7 +959,7 @@ computeConnectivity() {
             
             // Merge the NodePairList
 #pragma omp critical
-            mNodePairList.insert(mNodePairList.end(), nodePairs_private.begin(), nodePairs_private.end());
+            mNodePairListPtr->insert(mNodePairListPtr->end(), nodePairs_private.begin(), nodePairs_private.end());
           } // end OMP parallel
         }
       }
@@ -972,7 +980,7 @@ computeConnectivity() {
   //             auto& neighborsj = mConnectivity[mOffsets[jNodeList] + j];
   //             CHECK(neighborsj.size() == numNodeLists);
   //             neighborsj[iNodeList].push_back(i);
-  //             // mNodePairList.push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
+  //             // mNodePairListPtr->push_back(NodePairIdxType(i, iNodeList, j, jNodeList));
   //           }
   //         }
   //       }
@@ -1016,11 +1024,11 @@ computeConnectivity() {
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
   if (domainDecompIndependent) {
-    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
-    // sort(mNodePairList.begin(), mNodePairList.end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
-    sortPairs(mNodePairList, mKeys);
+    // sort(mNodePairListPtr->begin(), mNodePairListPtr->end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return (mKeys(a.i_list, a.i_node) + mKeys(a.j_list, a.j_node)) < (mKeys(b.i_list, b.i_node) + mKeys(b.j_list, b.j_node)); });
+    // sort(mNodePairListPtr->begin(), mNodePairListPtr->end(), [this](const NodePairIdxType& a, const NodePairIdxType& b) { return hashKeys(mKeys(a.i_list, a.i_node), mKeys(a.j_list, a.j_node)) < hashKeys(mKeys(b.i_list, b.i_node), mKeys(b.j_list, b.j_node)); });
+    sortPairs(*mNodePairListPtr, mKeys);
   } else {
-    std::sort(mNodePairList.begin(), mNodePairList.end());
+    std::sort(mNodePairListPtr->begin(), mNodePairListPtr->end());
   }
 
   // Do we need overlap connectivity?
@@ -1094,14 +1102,15 @@ computeConnectivity() {
   // Are we building intersection connectivity?
   if (mBuildIntersectionConnectivity) {
     TIME_BEGIN("ConnectivityMap_precomputeIntersectionConnectivity");
-    const auto npairs = mNodePairList.size();
+    auto& pairs = *mNodePairListPtr;
+    const auto npairs = pairs.size();
 #pragma omp parallel
     {
       IntersectionConnectivityContainer intersection_private;
       Vector b;
 #pragma omp for
       for (auto k = 0u; k < npairs; ++k) {
-        const auto& pair = mNodePairList[k];
+        const auto& pair = pairs[k];
         intersection_private[pair] = this->connectivityIntersectionForNodes(pair.i_list, pair.i_node,
                                                                             pair.j_list, pair.j_node,
                                                                             position);
