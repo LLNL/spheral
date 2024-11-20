@@ -41,7 +41,7 @@ function(Spheral_Python_Env target_name)
   set(REQUIREMENTS_ARGS)
   foreach(_req ${${target_name}_REQUIREMENTS})
     list(APPEND REQUIREMENTS_ARGS -r)
-    list(APPEND REQUIREMENTS_ARGS ${SPHERAL_ROOT_DIR}/scripts/${_req})
+    list(APPEND REQUIREMENTS_ARGS ${_req})
   endforeach()
 
   #TODO: Remove this once blueos3 is no longer supported.

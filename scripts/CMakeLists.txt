@@ -69,7 +69,7 @@ if (NOT ENABLE_CXXONLY)
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt"
+    "${CMAKE_CURRENT_BINARY_DIR}/runtime-requirements.txt"
   )
 
   # Install Runtime python dependencies into the Install directory.

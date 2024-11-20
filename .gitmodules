@@ -17,3 +17,6 @@
 	url = https://github.com/llnl/chai
 	branch = feature/ManagedSharedPtr
         ignore = all
+[submodule "extern/ATS"]
+	path = extern/ATS
+	url = https://github.com/LLNL/ATS

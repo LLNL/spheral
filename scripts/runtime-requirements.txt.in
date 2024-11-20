@@ -4,7 +4,7 @@ matplotlib
 h5py
 scipy 
 mpi4py
-ats @ git+file://@SPHERAL_ROOT_DIR@/extern/ats@7.0.116
+ats @ git+file://@SPHERAL_ROOT_DIR@/extern/ATS@7.0.116
 #ats git+file://@SPHERAL_ROOT_DIR@/extern/ats
 #ats @ git+https://github.com/LLNL/ATS@7.0.116
 
