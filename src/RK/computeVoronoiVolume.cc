@@ -686,7 +686,15 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // surface detection.
       for (auto nodeListi = 0u; nodeListi != numNodeLists; ++nodeListi) {
         const auto n = vol[nodeListi]->numInternalElements();
-#pragma omp parallel for
+
+// TODO: Fix the data races in this loop reported on the following lines.
+//       There may be other data races as well.
+//
+// ClippingType<Dimension>::moments(vol0, deltaMedian(nodeListi, i), celli);
+// ClippingType<Dimension>::moments(vol1, deltaMedian(nodeListi, i), celli);
+// surfacePoint(nodeListi, i) |= 1;
+//
+// #pragma omp parallel for
         for (auto i = 0u; i < n; ++i) {
           const auto& ri = position(nodeListi, i);
           const auto& Hi = H(nodeListi, i);
