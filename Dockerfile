@@ -32,18 +32,20 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get install -y build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev libbz2-dev locales python python3 unzip libtool wget curl tk-dev
+RUN apt-get install -y python3-dev python3-venv python3-pip
+RUN apt-get install -y iputils-ping
 
 # Setup system locale for pip package encoding/decoding 
 RUN locale-gen en_US.UTF-8
 
 # Set up TPLs for SPEC
 WORKDIR /home/spheral/workspace/
-COPY . .
-
-RUN apt-get install -y python3-dev python3-venv python3-pip
-RUN python3 -m pip install -r scripts/build-requirements.txt -r scripts/runtime-requirements.txt
+COPY scripts scripts
+COPY .uberenv_config.json .
 
 RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir /home
+
+COPY . .
 
 # Configure Spheral with SPEC TPLs.
 RUN mv *.cmake $HOST_CONFIG.cmake
@@ -55,6 +57,8 @@ RUN make python_build_env
 RUN make python_runtime_env
 
 # Clean workspace once dependencies are installed
+WORKDIR /home/spheral/workspace/
+
 RUN rm -rf /home/spheral/workspace/*
 # -----------------------------------------------------------------------------
 
@@ -69,6 +73,8 @@ ARG SPEC=gcc
 ARG HOST_CONFIG=docker-$SPEC
 ARG JCXX=8
 ARG JPY=1
+
+WORKDIR /home/spheral/workspace/
 
 # Copy Spheral source and generate host config from tpl-manager (all dependencies should already be installed).
 COPY . .

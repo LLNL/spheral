@@ -67,6 +67,11 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
   )
 
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt"
+  )
+
   # Install Runtime python dependencies into the Install directory.
   Spheral_Python_Env(python_runtime_env 
     REQUIREMENTS runtime-requirements.txt 

@@ -1,9 +1,0 @@
-numpy
-numpy-stl
-matplotlib
-h5py
-scipy 
-mpi4py
-ats @ https://github.com/LLNL/ATS/archive/refs/tags/7.0.116.tar.gz
-#ats @ git+https://github.com/LLNL/ATS@7.0.116
-

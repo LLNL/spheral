@@ -17,10 +17,10 @@ execute_process(
     RESULT_VARIABLE PING_RESULT
 )
 if(PING_RESULT GREATER 0)
-  message("Network Connection : False")
+  message("Network Connection : False : ${PING_RESULT}")
   set(SPHERAL_NETWORK_CONNECTED False)
 else()
-  message("Network Connection : True")
+  message("Network Connection : True : ${PING_RESULT}")
   set(SPHERAL_NETWORK_CONNECTED True)
 endif()
 
@@ -78,6 +78,11 @@ function(Spheral_Python_Env target_name)
         COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
         COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
+        # pip @ 24.1 is the first version that supports local repo paths in requirements
+        # files. ATS will fail to install otherwise.
+        ${PIP_DOWNLOAD_CMD} pip==24.1 &&
+        ${PIP_INSTALL_CMD} pip==24.1 &&
+
         ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
         ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
 
@@ -90,6 +95,8 @@ function(Spheral_Python_Env target_name)
       add_custom_target(${target_name} ALL
         COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
         COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
+
+        ${PIP_INSTALL_CMD} pip==24.1 &&
 
         ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
 
