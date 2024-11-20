@@ -10,20 +10,10 @@ if (DEFINED ENV{SYS_TYPE})
 endif()
 set(SPHERAL_PIP_CACHE_DIR ${SPHERAL_PIP_CACHE_DIR}/${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION})
 
-# Determine Network Connectivity
-message("*** Checking Network Connectivity ***")
-execute_process(
-    COMMAND ping www.google.com -c 2 -w 1000
-    RESULT_VARIABLE PING_RESULT
-)
-if(PING_RESULT GREATER 0)
-  message("Network Connection : False : ${PING_RESULT}")
-  set(SPHERAL_NETWORK_CONNECTED False)
-else()
-  message("Network Connection : True : ${PING_RESULT}")
+# Assume we have network connectivity.
+if(NOT DEFINED SPHERAL_NETWORK_CONNECTED)
   set(SPHERAL_NETWORK_CONNECTED True)
 endif()
-
 
 add_custom_target(clean_pip_cache
   COMMAND rm -rf ${SPHERAL_PIP_CACHE_DIR}

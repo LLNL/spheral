@@ -82,7 +82,7 @@ RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --upstream-dir /home/sp
 
 # Configure Spheral with SPEC TPLs.
 RUN mv *.cmake $HOST_CONFIG.cmake
-RUN python3 scripts/devtools/host-config-build.py --host-config $HOST_CONFIG.cmake
+RUN python3 scripts/devtools/host-config-build.py --host-config $HOST_CONFIG.cmake -DSPHERAL_NETWORK_CONNECTED=Off
 
 # Build Spheral
 WORKDIR build_$HOST_CONFIG/build
