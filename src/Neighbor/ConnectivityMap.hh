@@ -74,7 +74,10 @@ public:
 
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+
+  // The set of pairs
   const NodePairList& nodePairList() const;
+  std::shared_ptr<NodePairList> nodePairListPtr() const;
 
   // A functor to specify the coupling between nodes
   NodeCoupling& coupling();

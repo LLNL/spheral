@@ -29,6 +29,8 @@ set(Neighbor_headers
     NodePairIdxType.hh
     NodePairList.hh
     TreeNeighbor.hh
+    PairwiseField.hh
+    PairwiseFieldInline.hh
     )
 
 spheral_add_obj_library(Neighbor SPHERAL_OBJ_LIBS)
