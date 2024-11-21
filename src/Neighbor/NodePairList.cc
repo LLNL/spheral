@@ -1,18 +1,28 @@
 #include "NodePairList.hh"
+#include "Utilities/DBC.hh"
 
 namespace Spheral {
   
-  NodePairIdxType::NodePairIdxType(size_t i_n, size_t i_l, size_t j_n, size_t j_l, double f) :
-    i_node(i_n), i_list(i_l), j_node(j_n), j_list(j_l), f_couple(f) {}
+//------------------------------------------------------------------------------
+// index
+//------------------------------------------------------------------------------
+size_t
+NodePairList::index(const NodePairIdxType& x) const {
+  auto itr = mPair2Index.find(x);
+  CHECK(itr != mPair2Index.end());
+  return itr->second;
+}
 
-  NodePairList::NodePairList(){}
-
-  void NodePairList::push_back(NodePairIdxType nodePair) {
-    mNodePairList.push_back(nodePair);
-  } 
-
-  void NodePairList::clear() {
-    mNodePairList.clear();
+//------------------------------------------------------------------------------
+// Recompute the lookup table for NodePair->index
+//------------------------------------------------------------------------------
+void
+NodePairList::computeLookup() {
+  mPair2Index.clear();
+  const auto n = this->size();
+  for (size_t k = 0u; k < n; ++k) {
+    mPair2Index[mNodePairList[k]] = k;
   }
+}
 
 }
