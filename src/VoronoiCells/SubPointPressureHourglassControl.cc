@@ -349,14 +349,6 @@ evaluateDerivatives(const Scalar time,
   const auto compatibleEnergy = pairAccelerations.size() > 0u;
   CHECK((not compatibleEnergy) or pairAccelerations.size() == npairs);
 
-  // Find the mapping between node pairs and pair acceleration index
-  unordered_map<size_t, size_t> pairIndices;
-  if (compatibleEnergy) {
-    for (auto [kk, pair]: enumerate(pairs)) {
-      pairIndices[pair.hash()] = kk;
-    }
-  }
-
   // // BLAGO
   // {
   //   int nodeListi, i, nodeListj, j, cellFace;
@@ -443,11 +435,7 @@ evaluateDerivatives(const Scalar time,
               DepsDt(nodeListi, i) -= vel(nodeListi, i).dot(aij);
               DepsDt(nodeListj, j) -= vel(nodeListj, j).dot(aji);
               if (compatibleEnergy) {
-                const auto hashij = NodePairIdxType(i, nodeListi, j, nodeListj).hash();
-                CHECK2(pairIndices.find(hashij) != pairIndices.end(),
-                       "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij
-                       << " --- " << DvDt[nodeListi]->numInternalElements() << " " << DvDt[nodeListi]->numGhostElements());
-                const auto kk = pairIndices[hashij];
+                const auto kk = pairs.index(NodePairIdxType(i, nodeListi, j, nodeListj));
                 CHECK((nodeListi == int(pairs[kk].i_list) and i == int(pairs[kk].i_node)) or
                       (nodeListi == int(pairs[kk].j_list) and i == int(pairs[kk].j_node)));
                 const bool flip = (nodeListi == int(pairs[kk].j_list) and i == int(pairs[kk].j_node));
