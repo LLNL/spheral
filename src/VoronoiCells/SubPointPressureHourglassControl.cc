@@ -448,9 +448,9 @@ evaluateDerivatives(const Scalar time,
                        "(" << nodeListi << " " << i << ") (" << nodeListj << " " << j << ")" << " " << hashij
                        << " --- " << DvDt[nodeListi]->numInternalElements() << " " << DvDt[nodeListi]->numGhostElements());
                 const auto kk = pairIndices[hashij];
-                CHECK((nodeListi == pairs[kk].i_list and i == pairs[kk].i_node) or
-                      (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node));
-                const bool flip = (nodeListi == pairs[kk].j_list and i == pairs[kk].j_node);
+                CHECK((nodeListi == int(pairs[kk].i_list) and i == int(pairs[kk].i_node)) or
+                      (nodeListi == int(pairs[kk].j_list) and i == int(pairs[kk].j_node)));
+                const bool flip = (nodeListi == int(pairs[kk].j_list) and i == int(pairs[kk].j_node));
                 pairAccelerations[kk] += (flip ? aji : aij);
               }
               // if (barf) cerr << "[" << i << " " << j << "] : " << aij << " " << aij.dot(comi - xi) << " : " << DvDt(nodeListi, i) << " " << DvDt(nodeListj, j);
