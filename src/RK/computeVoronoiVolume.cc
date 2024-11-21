@@ -629,7 +629,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       for (const auto& bc: boundaries) bc->finalizeGhostBoundary();
     }
 
-#pragma omp parallel
+// #pragma omp parallel
     {
       //==========================================================================
       // Third pass: clip by any void points.
@@ -637,7 +637,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- void clipping" << endl;
       int i, j, nodeListi, nodeListj;
       auto voidPlanes_thread = voidPlanes.threadCopy();
-#pragma omp for
+// #pragma omp for
       for (auto kk = 0u; kk < npairs; ++kk) {
         i = pairs[kk].i_node;
         j = pairs[kk].j_node;
@@ -675,12 +675,12 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
         }
       }
 
-#pragma omp critical (computeVoronoiVolume_pass3_reduce_voidPlanes)
+// #pragma omp critical (computeVoronoiVolume_pass3_reduce_voidPlanes)
       {
         voidPlanes_thread.threadReduce();
       }
       // cerr << " --> " << omp_get_thread_num() << " THIRD PASS -- finished building voidPlanes" << endl;
-#pragma omp barrier
+// #pragma omp barrier
 
       // Now we can do the void clipping, compute the final volumes, and finalize
       // surface detection.
@@ -712,7 +712,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           }
 
           PolyVolume celli;
-#pragma omp critical (computeVoronoiVolume_polycells)
+// #pragma omp critical (computeVoronoiVolume_polycells)
           {
             celli = polycells(nodeListi, i);         // Deliberate copy for thread safety
           }
@@ -741,7 +741,7 @@ computeVoronoiVolume(const FieldList<Dimension, typename Dimension::Vector>& pos
           // If requested, we can return the cell geometries.
           if (returnCells) {
             // ClippingType<Dimension>::collapseDegenerates(celli, 1.0e-10);
-#pragma omp critical (computeVoronoiVolume_pass3)
+// #pragma omp critical (computeVoronoiVolume_pass3)
             {
               auto vertexClips = convertFromPolyClipper(cells(nodeListi, i), celli);
               cells(nodeListi, i) += ri;
