@@ -216,6 +216,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
   // Get the state and derivative FieldLists.
   // State FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -248,7 +252,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);
@@ -265,10 +269,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
+  CHECK(not mCompatibleEnergyEvolution or pairAccelerations.size() == npairs);
 
   // Size up the pair-wise accelerations before we start.
   const auto nnodes = dataBase.numFluidInternalNodes();

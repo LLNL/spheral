@@ -1,5 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
 // SPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// 
+// This class uses the Curiously Recursive Template Pattern to allow the
+// derived classes to define the type of the pair-wise accelerations. This
+// turns out to be useful for letting us generalize across curvilinear (where
+// pair-wise accelerations are not symmetric per pair) and cartesian (where
+// they are symmetric).
 //
 // Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
@@ -19,26 +25,29 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename DataType> class PairwiseField;
 class FileIO;
 
-template<typename Dimension>
+#include <memory>
+
+template<typename Dimension, typename Derived>
 class SPHHydroBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using PairAccelerationsType = typename Derived::PairwiseAccelerationType;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
   SPHHydroBase(DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dimension>& Q,
                const TableKernel<Dimension>& W,
                const TableKernel<Dimension>& WPi,
-               const double filter,
                const double cfl,
                const bool useVelocityMagnitudeForDt,
                const bool compatibleEnergyEvolution,
@@ -167,10 +176,6 @@ public:
   bool sumMassDensityOverAllNodeLists() const;
   void sumMassDensityOverAllNodeLists(bool val);
 
-  // Fraction of position filtering to apply.
-  double filter() const;
-  void filter(double val);
-
   // Parameters for the tensile correction force at small scales.
   Scalar epsilonTensile() const;
   void epsilonTensile(Scalar val);
@@ -190,30 +195,30 @@ public:
   const TableKernel<Dimension>& PiKernel() const;
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldList<Dimension, Scalar>&    pressure() const;
-  const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    omegaGradh() const;
-  const FieldList<Dimension, Scalar>&    entropy() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    massDensityCorrection() const;
-  const FieldList<Dimension, Scalar>&    viscousWork() const;
-  const FieldList<Dimension, Scalar>&    massDensitySum() const;
-  const FieldList<Dimension, Scalar>&    normalization() const;
-  const FieldList<Dimension, Scalar>&    XSPHWeightSum() const;
-  const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
-  const FieldList<Dimension, Tensor>&    M() const;
-  const FieldList<Dimension, Tensor>&    localM() const;
-  const FieldList<Dimension, Vector>&    DxDt() const;
-  const FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
-  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const FieldList<Dimension, Vector>&    gradRho() const;
-  const std::vector<Vector>&             pairAccelerations() const;
+  const FieldList<Dimension, int>&          timeStepMask() const;
+  const FieldList<Dimension, Scalar>&       pressure() const;
+  const FieldList<Dimension, Scalar>&       soundSpeed() const;
+  const FieldList<Dimension, Scalar>&       volume() const;
+  const FieldList<Dimension, Scalar>&       omegaGradh() const;
+  const FieldList<Dimension, Scalar>&       entropy() const;
+  const FieldList<Dimension, Scalar>&       maxViscousPressure() const;
+  const FieldList<Dimension, Scalar>&       effectiveViscousPressure() const;
+  const FieldList<Dimension, Scalar>&       massDensityCorrection() const;
+  const FieldList<Dimension, Scalar>&       viscousWork() const;
+  const FieldList<Dimension, Scalar>&       massDensitySum() const;
+  const FieldList<Dimension, Scalar>&       normalization() const;
+  const FieldList<Dimension, Scalar>&       XSPHWeightSum() const;
+  const FieldList<Dimension, Vector>&       XSPHDeltaV() const;
+  const FieldList<Dimension, Tensor>&       M() const;
+  const FieldList<Dimension, Tensor>&       localM() const;
+  const FieldList<Dimension, Vector>&       DxDt() const;
+  const FieldList<Dimension, Vector>&       DvDt() const;
+  const FieldList<Dimension, Scalar>&       DmassDensityDt() const;
+  const FieldList<Dimension, Scalar>&       DspecificThermalEnergyDt() const;
+  const FieldList<Dimension, Tensor>&       DvDx() const;
+  const FieldList<Dimension, Tensor>&       internalDvDx() const;
+  const FieldList<Dimension, Vector>&       gradRho() const;
+  const PairAccelerationsType&              pairAccelerations() const;
 
   //****************************************************************************
   // Methods required for restarting.
@@ -243,9 +248,6 @@ protected:
   MassDensityType mDensityUpdate;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mGradhCorrection, mXSPH, mCorrectVelocityGradient, mSumMassDensityOverAllNodeLists;
 
-  // Magnitude of the hourglass/parasitic mode filter.
-  double mfilter;
-
   // Tensile correction.
   Scalar mEpsTensile, mnTensile;
 
@@ -253,40 +255,40 @@ protected:
   Vector mxmin, mxmax;
 
   // Some internal scratch fields.
-  FieldList<Dimension, int>       mTimeStepMask;
-  FieldList<Dimension, Scalar>    mPressure;
-  FieldList<Dimension, Scalar>    mSoundSpeed;
-  FieldList<Dimension, Scalar>    mOmegaGradh;
-  FieldList<Dimension, Scalar>    mEntropy;
+  FieldList<Dimension, int>                mTimeStepMask;
+  FieldList<Dimension, Scalar>             mPressure;
+  FieldList<Dimension, Scalar>             mSoundSpeed;
+  FieldList<Dimension, Scalar>             mOmegaGradh;
+  FieldList<Dimension, Scalar>             mEntropy;
 
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffViscousPressure;
-  FieldList<Dimension, Scalar>    mMassDensityCorrection;
-  FieldList<Dimension, Scalar>    mViscousWork;
-  FieldList<Dimension, Scalar>    mMassDensitySum;
-  FieldList<Dimension, Scalar>    mNormalization;
+  FieldList<Dimension, Scalar>             mMaxViscousPressure;
+  FieldList<Dimension, Scalar>             mEffViscousPressure;
+  FieldList<Dimension, Scalar>             mMassDensityCorrection;
+  FieldList<Dimension, Scalar>             mViscousWork;
+  FieldList<Dimension, Scalar>             mMassDensitySum;
+  FieldList<Dimension, Scalar>             mNormalization;
 
-  FieldList<Dimension, Scalar>    mWeightedNeighborSum;
-  FieldList<Dimension, Vector>    mMassFirstMoment;
-  FieldList<Dimension, SymTensor> mMassSecondMomentEta;
-  FieldList<Dimension, SymTensor> mMassSecondMomentLab;
+  FieldList<Dimension, Scalar>             mWeightedNeighborSum;
+  FieldList<Dimension, Vector>             mMassFirstMoment;
+  FieldList<Dimension, SymTensor>          mMassSecondMomentEta;
+  FieldList<Dimension, SymTensor>          mMassSecondMomentLab;
 
-  FieldList<Dimension, Scalar>    mXSPHWeightSum;
-  FieldList<Dimension, Vector>    mXSPHDeltaV;
+  FieldList<Dimension, Scalar>             mXSPHWeightSum;
+  FieldList<Dimension, Vector>             mXSPHDeltaV;
 
-  FieldList<Dimension, Vector>    mDxDt;
-  FieldList<Dimension, Vector>    mDvDt;
-  FieldList<Dimension, Scalar>    mDmassDensityDt;
-  FieldList<Dimension, Scalar>    mDspecificThermalEnergyDt;
-  FieldList<Dimension, Tensor>    mDvDx;
-  FieldList<Dimension, Tensor>    mInternalDvDx;
-  FieldList<Dimension, Vector>    mGradRho;
-  FieldList<Dimension, Tensor>    mM;
-  FieldList<Dimension, Tensor>    mLocalM;
+  FieldList<Dimension, Vector>             mDxDt;
+  FieldList<Dimension, Vector>             mDvDt;
+  FieldList<Dimension, Scalar>             mDmassDensityDt;
+  FieldList<Dimension, Scalar>             mDspecificThermalEnergyDt;
+  FieldList<Dimension, Tensor>             mDvDx;
+  FieldList<Dimension, Tensor>             mInternalDvDx;
+  FieldList<Dimension, Vector>             mGradRho;
+  FieldList<Dimension, Tensor>             mM;
+  FieldList<Dimension, Tensor>             mLocalM;
 
-  FieldList<Dimension, Scalar>    mVolume;
+  FieldList<Dimension, Scalar>             mVolume;
 
-  std::vector<Vector>             mPairAccelerations;
+  std::unique_ptr<PairAccelerationsType>   mPairAccelerationsPtr;
 
 protected:
   //--------------------------- Protected Interface ---------------------------//

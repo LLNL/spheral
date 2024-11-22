@@ -11,7 +11,7 @@ def SPH(W,
         WGrad = None,
         dataBase = None,
         Q = None,
-        filter = 0.0,
+        filter = None,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
@@ -40,6 +40,10 @@ def SPH(W,
         print("           If you want some fluids active, provide SolidNodeList without a strength option specfied,")
         print("           which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
+
+    # Check for deprecated arguments
+    if not filter is None:
+        print("SPH DEPRECATION WARNING: filter is no longer used -- ignoring")
 
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
@@ -93,7 +97,6 @@ def SPH(W,
               "WPi" : WPi,
               "dataBase" : dataBase,
               "Q" : Q,
-              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,

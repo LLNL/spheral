@@ -11,18 +11,18 @@ from RestartMethods import *
 class SPHHydroBase(GenericHydro):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+  using PairAccelerationType = typename SPHHydroBase<%(Dimension)s>::PairAcclerationType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -149,7 +149,6 @@ boundary conditions."""
                                             doc="Flag to determine if we're applying the linear correction for the velocity gradient.")
     sumMassDensityOverAllNodeLists = PYB11property("bool", "sumMassDensityOverAllNodeLists", "sumMassDensityOverAllNodeLists",
                                                    doc="Flag to determine if the sum density definition extends over neighbor NodeLists.")
-    filter = PYB11property("double", "filter", "filter", doc="Fraction of position filtering to apply.")
     epsilonTensile = PYB11property("double", "epsilonTensile", "epsilonTensile",
                                    doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("double", "nTensile", "nTensile",
@@ -183,7 +182,7 @@ boundary conditions."""
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
-    pairAccelerations =            PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
+    pairAccelerations =            PYB11property("const PairAccelerationType&",               "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

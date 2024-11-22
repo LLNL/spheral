@@ -38,7 +38,6 @@ public:
                 ArtificialViscosity<Dimension>& Q,
                 const TableKernel<Dimension>& W,
                 const TableKernel<Dimension>& WPi,
-                const double filter,
                 const double cfl,
                 const bool useVelocityMagnitudeForDt,
                 const bool compatibleEnergyEvolution,

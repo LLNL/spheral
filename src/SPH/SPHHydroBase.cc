@@ -98,7 +98,6 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mXSPH(XSPH),
   mCorrectVelocityGradient(correctVelocityGradient),
   mSumMassDensityOverAllNodeLists(sumMassDensityOverAllNodeLists),
-  mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mxmin(xmin),
@@ -126,7 +125,7 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
   mVolume(FieldStorageType::CopyFields),
-  mPairAccelerations(),
+  mPairAccelerationsPtr(),
   mRestart(registerWithRestart(*this)) {
 
   // Create storage for our internal state.
@@ -150,7 +149,7 @@ SPHHydroBase(DataBase<Dimension>& dataBase,
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mGradRho = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massDensityGradient);
-  mPairAccelerations.clear();
+  // mPairAccelerations.clear();
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
 }
@@ -358,7 +357,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mGradRho);
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
-  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
   TIME_END("SPHregisterDerivs");
 }
 
@@ -373,6 +372,10 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHpreStepInitialize");
 
+  // If needed prepare the pair-accelerations
+  const auto& connectivityMap = state.connectivityMap();
+  if (mCompatibleEnergyEvolution) mPairAccelerationsPtr = std::make_unique<PairwiseAcceleationType>(connectivityMap.nodePairListPtr());
+
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   switch(densityUpdate()) {
@@ -383,7 +386,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   case MassDensityType::RigorousSumDensity:
   case MassDensityType::CorrectedSumDensity:
     {
-      const auto& connectivityMap = dataBase.connectivityMap();
       const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
       const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
       const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
@@ -601,6 +603,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
 
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
   // Get the state and derivative FieldLists.
   // State FieldLists.
   const auto mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -635,7 +641,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);
@@ -654,14 +660,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
+  CHECK(not mCompatibleEnergyEvolution or pairAccelerations.size() == npairs);
 
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-
-  // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(npairs);
-  
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
   const auto  nPerh = nodeList.nodesPerSmoothingScale();

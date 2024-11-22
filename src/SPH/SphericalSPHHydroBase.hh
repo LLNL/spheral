@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
-//                          specialized for 1D Spherical (r) geometry.
+// SphericalSPH -- An SPH/ASPH hydrodynamic package for Spheral++ specialized
+//                 for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
 // Omang, M., Børve, S., & Trulsen, J. (2006). SPH in spherical and cylindrical coordinates.
@@ -14,7 +14,8 @@
 #ifndef __Spheral_SphericalSPHHydroBase_hh__
 #define __Spheral_SphericalSPHHydroBase_hh__
 
-#include <string>
+#include <utility>   // pair
+#INCLUDE <string>
 
 #include "SPHHydroBase.hh"
 #include "Kernel/SphericalKernel.hh"
@@ -22,24 +23,24 @@
 
 namespace Spheral {
 
-class SphericalSPHHydroBase: public SPHHydroBase<Dim<1>> {
+class SphericalSPH: public SPHHydroBase<Dim<1>, SphericalSPH> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef Dim<1> Dimension;
-  typedef Dimension::Scalar Scalar;
-  typedef Dimension::Vector Vector;
-  typedef Dimension::Tensor Tensor;
-  typedef Dimension::SymTensor SymTensor;
+  using Dimension = Dim<1>;
+  using Scalar = Dimension::Scalar;
+  using Vector = Dimension::Vector;
+  using Tensor = Dimension::Tensor;
+  using SymTensor = Dimension::SymTensor;
 
-  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
+  using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
   SphericalSPHHydroBase(DataBase<Dimension>& dataBase,
                         ArtificialViscosity<Dimension>& Q,
                         const SphericalKernel& W,
                         const SphericalKernel& WPi,
-                        const double filter,
                         const double cfl,
                         const bool useVelocityMagnitudeForDt,
                         const bool compatibleEnergyEvolution,

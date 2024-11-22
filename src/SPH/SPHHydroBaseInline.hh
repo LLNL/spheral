@@ -124,24 +124,6 @@ SPHHydroBase<Dimension>::sumMassDensityOverAllNodeLists(bool val) {
 }
 
 //------------------------------------------------------------------------------
-// Fraction of the centroidal filtering to apply.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-double
-SPHHydroBase<Dimension>::filter() const {
-  return mfilter;
-}
-
-template<typename Dimension>
-inline
-void
-SPHHydroBase<Dimension>::filter(double val) {
-  VERIFY(val >= 0.0 and val <= 1.0);
-  mfilter = val;
-}
-
-//------------------------------------------------------------------------------
 // Parameter to determine the magnitude of the tensile small scale correction.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -427,7 +409,8 @@ inline
 const std::vector<typename Dimension::Vector>&
 SPHHydroBase<Dimension>::
 pairAccelerations() const {
-  return mPairAccelerations;
+  VERIFY2(mPairAcceleartionsPtr, "SPH Error: pairAcceleartions empty");
+  return *mPairAccelerationsPtr;
 }
 
 }
