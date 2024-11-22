@@ -54,9 +54,9 @@ registerState(DataBase<Dimension>& dataBase,
   const auto pointKey = boundaryKey +"_point";
   const auto velocityKey = boundaryKey +"_velocity";
   const auto normalKey = boundaryKey +"_normal";
-  state.enrollAny(pointKey,mPoint);
-  state.enrollAny(velocityKey,mVelocity);
-  state.enrollAny(normalKey,mNormal);
+  state.enroll(pointKey,mPoint);
+  state.enroll(velocityKey,mVelocity);
+  state.enroll(normalKey,mNormal);
 }
 
 template<typename Dimension>
