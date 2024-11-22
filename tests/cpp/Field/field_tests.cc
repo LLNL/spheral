@@ -125,7 +125,9 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField)
 
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType)
 {
-  using WORK_EXEC_POLICY = TypeParam;
+  // Field is not inplemented with VVI at this time 
+  // only run on host.
+  //using WORK_EXEC_POLICY = TypeParam;
 
   {
     std::string field_name = "Field::AssignmentContainer";
@@ -142,7 +144,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType)
     field = data;
     auto field_v = &field;
 
-    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0,10), 
+    RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0,10), 
       [=] SPHERAL_HOST_DEVICE (int i) {
         field_v->at(i) *= 2;
       });
