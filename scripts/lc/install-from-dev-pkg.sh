@@ -2,6 +2,7 @@ trap 'echo "# $BASH_COMMAND"' DEBUG
 
 SPACK_PKG_NAME=${SPACK_PKG_NAME:-'spheral'}
 SPACK_URL=${SPACK_URL:-'https://github.com/spack/spack'}
+BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 
 if [[ -z "${SPEC}" ]]; then
@@ -19,6 +20,7 @@ echo $SPEC
 echo $SPACK_URL
 echo $INSTALL_DIR
 echo $SCRIPT_DIR
+echo $BUILD_ALLOC
 
 rm -rf $INSTALL_DIR
 mkdir -p $INSTALL_DIR
@@ -34,12 +36,12 @@ spack mirror add --unsigned spheral-mirror $PWD/resources/mirror
 spack mirror add --unsigned spheral-cache $PWD/resources
 spack buildcache update-index $PWD/resources/mirror
 
-spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
+$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
 
-./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls --spec $SPEC
+$BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls --spec $SPEC
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
-./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
+$BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
 
 
 

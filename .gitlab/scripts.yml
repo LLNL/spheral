@@ -84,10 +84,8 @@
 
 .update_tpls:
   stage: update_tpls
-  variables:
-    GIT_STRATEGY: none
   script:
-    - ./$SCRIPT_DIR/devtools/tpl-manager.py --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --no-upstream --spec-list="$SCRIPT_DIR/devtools/spec-list.json" --spheral-spack-dir=$UPSTREAM_DIR
 
 .toss_update_permissions:
   stage: update_permissions
@@ -114,8 +112,6 @@
 
 .build_dev_pkg:
   stage: generate_buildcache
-  variables:
-    GIT_STRATEGY: none
   extends: [.spheral_rev_str]
   script:
     - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
@@ -145,7 +141,7 @@
     - tar -xzf $DEV_PKG_NAME.tar.gz
     - cd $DEV_PKG_NAME
 
-    - env INSTALL_DIR=$INSTALL_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME SCRIPT_DIR=$SCRIPT_DIR
+    - env INSTALL_DIR=$INSTALL_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
 
   artifacts:

@@ -67,7 +67,7 @@ def main():
         # Get historical timing data
         cali_ref_dir = os.path.join(benchmark_dir, install_config, test_name)
         if (not os.path.exists(cali_ref_dir)):
-            os.mkdir(cali_ref_dir)
+            os.makedirs(cali_ref_dir)
         shutils.copyfile(cfile, os.path.join(cali_ref_dir, cali_file))
 
 if __name__=="__main__":
