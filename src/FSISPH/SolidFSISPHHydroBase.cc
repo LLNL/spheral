@@ -445,8 +445,8 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
 
   CHECK(not derivs.registered(mDvDt));
 
-  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  derivs.enrollAny(HydroFieldNames::pairWork,          mPairDepsDt);
+  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairWork,          mPairDepsDt);
 
   derivs.enroll(plasticStrainRate);
   derivs.enroll(mXSPHDeltaV);

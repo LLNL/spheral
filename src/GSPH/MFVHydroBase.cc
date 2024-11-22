@@ -228,7 +228,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
   //derivs.enroll(mHStretchTensor);
-  derivs.enrollAny(GSPHFieldNames::pairMassFlux, mPairMassFlux);
+  derivs.enroll(GSPHFieldNames::pairMassFlux, mPairMassFlux);
 }
 
 //------------------------------------------------------------------------------

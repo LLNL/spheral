@@ -94,9 +94,7 @@ State(DataBase<Dimension>& dataBase,
   mPolicyMap(),
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
-  for (PackageIterator itr = physicsPackages.begin();
-       itr != physicsPackages.end();
-       ++itr) (*itr)->registerState(dataBase, *this);
+  for (auto pkg: physicsPackages) pkg->registerState(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -111,9 +109,7 @@ State(DataBase<Dimension>& dataBase,
   mPolicyMap(),
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
-  for (PackageIterator itr = physicsPackageBegin;
-       itr != physicsPackageEnd;
-       ++itr) (*itr)->registerState(dataBase, *this);
+  for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerState(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -158,6 +154,105 @@ bool
 State<Dimension>::
 operator==(const StateBase<Dimension>& rhs) const {
   return StateBase<Dimension>::operator==(rhs);
+}
+
+//------------------------------------------------------------------------------
+// The set of keys for all registered policies.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+vector<typename State<Dimension>::KeyType>
+State<Dimension>::
+policyKeys() const {
+  vector<KeyType> result;
+  for (const auto itr: mPolicyMap) result.push_back(itr.first);
+  ENSURE(result.size() == mPolicyMap.size());
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the policy for the given key.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename State<Dimension>::PolicyPointer
+State<Dimension>::
+policy(const typename State<Dimension>::KeyType& key) const {
+  KeyType fieldKey, nodeKey;
+  this->splitFieldKey(key, fieldKey, nodeKey);
+  const auto outerItr = mPolicyMap.find(fieldKey);
+  if (outerItr == mPolicyMap.end()) return PolicyPointer();
+  // VERIFY2(outerItr != mPolicyMap.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  const auto& key2policies = outerItr->second;
+  const auto innerItr = key2policies.find(key);
+  if (innerItr == key2policies.end()) return PolicyPointer();
+  // VERIFY2(innerItr != policies.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  return innerItr->second;
+}
+
+//------------------------------------------------------------------------------
+// Return all the policies for the given field key.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+std::map<typename State<Dimension>::KeyType, typename State<Dimension>::PolicyPointer>
+State<Dimension>::
+policies(const typename State<Dimension>::KeyType& fieldKey) const {
+  const auto outerItr = mPolicyMap.find(fieldKey);
+  if (outerItr == mPolicyMap.end()) return std::map<KeyType, PolicyPointer>();
+  // VERIFY2(outerItr != mPolicyMap.end(),
+  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
+  return outerItr->second;
+}
+
+//------------------------------------------------------------------------------
+// Remove the policy associated with the given key.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(const typename State<Dimension>::KeyType& key) {
+  KeyType fieldKey, nodeKey;
+  this->splitFieldKey(key, fieldKey, nodeKey);
+  typename PolicyMapType::iterator outerItr = mPolicyMap.find(fieldKey);
+  VERIFY2(outerItr != mPolicyMap.end(),
+          "State ERROR: attempted to remove non-existent policy for field key " << fieldKey);
+  std::map<KeyType, PolicyPointer>& policies = outerItr->second;
+  typename std::map<KeyType, PolicyPointer>::iterator innerItr = policies.find(key);
+  if (innerItr == policies.end()) {
+    cerr << "State ERROR: attempted to remove non-existent policy for inner key " << key << endl
+         << "Known keys are: " << endl;
+    for (auto itr = policies.begin(); itr != policies.end(); ++itr) cerr << " --> " << itr->first << endl;
+    VERIFY(innerItr != policies.end());
+  }
+  policies.erase(innerItr);
+  if (policies.size() == 0) mPolicyMap.erase(outerItr);
+}
+
+//------------------------------------------------------------------------------
+// Remove the policy associated with a Field.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(FieldBase<Dimension>& field) {
+  this->removePolicy(StateBase<Dimension>::key(field));
+}
+
+//------------------------------------------------------------------------------
+// Remove the policy associated with a FieldList.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+removePolicy(FieldListBase<Dimension>& fieldList,
+             const bool clonePerField) {
+  if (clonePerField) {
+    for (auto fieldPtrItr = fieldList.begin_base();
+         fieldPtrItr < fieldList.end_base();
+         ++fieldPtrItr) this->removePolicy(**fieldPtrItr);
+  } else {
+    this->removePolicy(StateBase<Dimension>::key(fieldList));
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -270,105 +365,6 @@ update(StateDerivatives<Dimension>& derivs,
     fieldsToBeCompleted = vector<KeyType>();
     for (const auto& itr: stateToBeCompleted) fieldsToBeCompleted.push_back(itr.first);
     CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
-  }
-}
-
-//------------------------------------------------------------------------------
-// The set of keys for all registered policies.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-vector<typename State<Dimension>::KeyType>
-State<Dimension>::
-policyKeys() const {
-  vector<KeyType> result;
-  for (const auto itr: mPolicyMap) result.push_back(itr.first);
-  ENSURE(result.size() == mPolicyMap.size());
-  return result;
-}
-
-//------------------------------------------------------------------------------
-// Return the policy for the given key.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-typename State<Dimension>::PolicyPointer
-State<Dimension>::
-policy(const typename State<Dimension>::KeyType& key) const {
-  KeyType fieldKey, nodeKey;
-  this->splitFieldKey(key, fieldKey, nodeKey);
-  const auto outerItr = mPolicyMap.find(fieldKey);
-  if (outerItr == mPolicyMap.end()) return PolicyPointer();
-  // VERIFY2(outerItr != mPolicyMap.end(),
-  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
-  const auto& key2policies = outerItr->second;
-  const auto innerItr = key2policies.find(key);
-  if (innerItr == key2policies.end()) return PolicyPointer();
-  // VERIFY2(innerItr != policies.end(),
-  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
-  return innerItr->second;
-}
-
-//------------------------------------------------------------------------------
-// Return all the policies for the given field key.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-std::map<typename State<Dimension>::KeyType, typename State<Dimension>::PolicyPointer>
-State<Dimension>::
-policies(const typename State<Dimension>::KeyType& fieldKey) const {
-  const auto outerItr = mPolicyMap.find(fieldKey);
-  if (outerItr == mPolicyMap.end()) return std::map<KeyType, PolicyPointer>();
-  // VERIFY2(outerItr != mPolicyMap.end(),
-  //         "State ERROR: attempted to retrieve non-existent policy for key " << key);
-  return outerItr->second;
-}
-
-//------------------------------------------------------------------------------
-// Remove the policy associated with the given key.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-State<Dimension>::
-removePolicy(const typename State<Dimension>::KeyType& key) {
-  KeyType fieldKey, nodeKey;
-  this->splitFieldKey(key, fieldKey, nodeKey);
-  typename PolicyMapType::iterator outerItr = mPolicyMap.find(fieldKey);
-  VERIFY2(outerItr != mPolicyMap.end(),
-          "State ERROR: attempted to remove non-existent policy for field key " << fieldKey);
-  std::map<KeyType, PolicyPointer>& policies = outerItr->second;
-  typename std::map<KeyType, PolicyPointer>::iterator innerItr = policies.find(key);
-  if (innerItr == policies.end()) {
-    cerr << "State ERROR: attempted to remove non-existent policy for inner key " << key << endl
-         << "Known keys are: " << endl;
-    for (auto itr = policies.begin(); itr != policies.end(); ++itr) cerr << " --> " << itr->first << endl;
-    VERIFY(innerItr != policies.end());
-  }
-  policies.erase(innerItr);
-  if (policies.size() == 0) mPolicyMap.erase(outerItr);
-}
-
-//------------------------------------------------------------------------------
-// Remove the policy associated with a Field.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-State<Dimension>::
-removePolicy(FieldBase<Dimension>& field) {
-  this->removePolicy(StateBase<Dimension>::key(field));
-}
-
-//------------------------------------------------------------------------------
-// Remove the policy associated with a FieldList.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-State<Dimension>::
-removePolicy(FieldListBase<Dimension>& fieldList,
-             const bool clonePerField) {
-  if (clonePerField) {
-    for (auto fieldPtrItr = fieldList.begin_base();
-         fieldPtrItr < fieldList.end_base();
-         ++fieldPtrItr) this->removePolicy(**fieldPtrItr);
-  } else {
-    this->removePolicy(StateBase<Dimension>::key(fieldList));
   }
 }
 
