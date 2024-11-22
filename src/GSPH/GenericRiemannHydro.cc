@@ -302,8 +302,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mM);
-  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  derivs.enrollAny(HydroFieldNames::pairWork, mPairDepsDt);
+  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairWork, mPairDepsDt);
 }
 
 //------------------------------------------------------------------------------

@@ -37,6 +37,9 @@ Notable changes include:
       * Physics packages can indicate if they require Voronoi cell information be available.  If so, a new package which computes and
         updates the Voronoi information is automatically added to the package list by the SpheralController (similar to how the
         Reproducing Kernel corrections are handled).
+    * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
+      during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
+      is correct.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.

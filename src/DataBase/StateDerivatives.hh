@@ -26,16 +26,16 @@ class StateDerivatives: public StateBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Vector3d Vector3d;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Vector3d = typename Dimension::Vector3d;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef std::vector<Physics<Dimension>*> PackageList;
-  typedef typename PackageList::iterator PackageIterator;
+  using PackageList = std::vector<Physics<Dimension>*>;
+  using PackageIterator = typename PackageList::iterator;
 
-  typedef typename StateBase<Dimension>::KeyType KeyType;
+  using KeyType = typename StateBase<Dimension>::KeyType;
 
   // Constructors, destructor.
   StateDerivatives();
@@ -73,16 +73,14 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Map for storing information about pairs of nodes that have already been
   // calculated.
-  typedef std::map<NodeIteratorBase<Dimension>,
-                   std::vector<NodeIteratorBase<Dimension> > > CalculatedPairType;
+  using CalculatedPairType = std::map<NodeIteratorBase<Dimension>,
+                                      std::vector<NodeIteratorBase<Dimension>>>;
   CalculatedPairType mCalculatedNodePairs;
 
   // Map for maintaining the number of significant neighbors per node.
-  typedef std::map<NodeIteratorBase<Dimension>, int> SignificantNeighborMapType;
-
+  using SignificantNeighborMapType = std::map<NodeIteratorBase<Dimension>, int>;
   SignificantNeighborMapType mNumSignificantNeighbors;
 
-  using typename StateBase<Dimension>::StorageType;
   using StateBase<Dimension>::mStorage;
 };
 
