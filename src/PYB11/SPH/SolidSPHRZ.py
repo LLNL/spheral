@@ -1,22 +1,23 @@
 #-------------------------------------------------------------------------------
-# SolidSPHHydroBaseRZ
+# SolidSPHRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidSPHHydroBase import *
+from SolidSPH import *
 from RestartMethods import *
 
-@PYB11template()            # Override the fact SolidSPHHydroBase is templated
+@PYB11template()            # Override the fact SolidSPH is templated
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
+class SolidSPHRZ(SolidSPH):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+  using PairAccelerationsType = typename SolidSPHRZ::PairAccelerationsType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -24,7 +25,6 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
                WGrad = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -40,7 +40,7 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
                strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SolidSPHHydroBaseRZ constructor"
+        "SolidSPHRZ constructor"
 
     #...........................................................................
     # Virtual methods
@@ -48,6 +48,12 @@ class SolidSPHHydroBaseRZ(SolidSPHHydroBase):
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
         "Register the state Hydro expects to use and evolve."
+        return "void"
+
+    @PYB11virtual
+    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Register the derivatives/change fields for updating state."
         return "void"
 
     @PYB11virtual
@@ -81,8 +87,12 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
+    #...........................................................................
+    # Properties
+    pairAccelerations = PYB11property("const PairAccelerationsType&", "pairAccelerations", returnpolicy="reference_internal")
+    selfAccelerations = PYB11property("const FieldList<%(Dimension)s, Vector>&", "selfAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidSPHHydroBaseRZ)
+PYB11inject(RestartMethods, SolidSPHRZ)

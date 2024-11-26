@@ -1,28 +1,28 @@
 #-------------------------------------------------------------------------------
-# SPHHydroBaseRZ
+# SphericalSPHHydroBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHHydroBase import *
+from SPHBase import *
 
-@PYB11template()            # Override the fact SPHHydroBase is templated
-@PYB11template_dict({"Dimension" : "Dim<2>"})
+@PYB11template()            # Override the fact SPHBase is templated
+@PYB11template_dict({"Dimension" : "Dim<1>"})
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class SPHHydroBaseRZ(SPHHydroBase):
+class SphericalSPH(SPHBase):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+  using PairAccelerationsType = typename SphericalSPH::PairAccelerationsType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const TableKernel<%(Dimension)s>&",
-               WPi = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
+               W = "const SphericalKernel&",
+               WPi = "const SphericalKernel&",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -36,7 +36,7 @@ class SPHHydroBaseRZ(SPHHydroBase):
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SPHHydroBaseRZ constructor"
+        "Spherical SPH constructor"
 
     #...........................................................................
     # Virtual methods
@@ -44,6 +44,12 @@ class SPHHydroBaseRZ(SPHHydroBase):
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
         "Register the state Hydro expects to use and evolve."
+        return "void"
+
+    @PYB11virtual
+    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Register the derivatives/change fields for updating state."
         return "void"
 
     @PYB11virtual
@@ -81,3 +87,11 @@ mass density, velocity, and specific thermal energy."""
     @PYB11const
     def label(self):
         return "std::string"
+
+    #...........................................................................
+    # Properties
+    kernel = PYB11property("const SphericalKernel&", "kernel", doc="The interpolation kernel")
+    PiKernel = PYB11property("const SphericalKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
+    Qself = PYB11property("double", "Qself", "Qself", doc="Multiplier for Q self-interaction near the origin")
+    pairAccelerations = PYB11property("const PairAccelerationsType&", "pairAccelerations", returnpolicy="reference_internal")
+    selfAccelerations = PYB11property("const FieldList<%(Dimension)s, Vector>&", "selfAccelerations", returnpolicy="reference_internal")

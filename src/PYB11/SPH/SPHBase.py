@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# SPHHydroBase
+# SPHBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericHydro import *
@@ -8,7 +8,7 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class SPHHydroBase(GenericHydro):
+class SPHBase(GenericHydro):
 
     PYB11typedefs = """
   using Scalar = typename %(Dimension)s::Scalar;
@@ -16,7 +16,6 @@ class SPHHydroBase(GenericHydro):
   using Tensor = typename %(Dimension)s::Tensor;
   using SymTensor = typename %(Dimension)s::SymTensor;
   using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
-  using PairAccelerationType = typename SPHHydroBase<%(Dimension)s>::PairAcclerationType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -36,7 +35,7 @@ class SPHHydroBase(GenericHydro):
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SPHHydroBase constructor"
+        "SPHBase constructor"
 
     #...........................................................................
     # Virtual methods
@@ -80,17 +79,6 @@ temperature or pressure."""
         "Initialize the Hydro before we start a derivative evaluation."
         return "void"
                        
-    @PYB11virtual
-    @PYB11const
-    def evaluateDerivatives(time = "const Scalar",
-                            dt = "const Scalar",
-                            dataBase = "const DataBase<%(Dimension)s>&",
-                            state = "const State<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        """Evaluate the derivatives for the principle hydro 
-mass density, velocity, and specific thermal energy."""
-        return "void"
-
     @PYB11virtual
     @PYB11const
     def finalizeDerivatives(time = "const Scalar",
@@ -182,9 +170,8 @@ boundary conditions."""
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
-    pairAccelerations =            PYB11property("const PairAccelerationType&",               "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SPHHydroBase)
+PYB11inject(RestartMethods, SPHBase)

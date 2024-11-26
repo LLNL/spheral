@@ -1,14 +1,15 @@
 #-------------------------------------------------------------------------------
-# SolidSphericalSPHHydroBase
+# SolidSPH
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidSPHHydroBase import *
+from SPHBase import *
+from RestartMethods import *
 
-@PYB11template()            # Override the fact SolidSPHHydroBase is templated
-@PYB11template_dict({"Dimension" : "Dim<1>"})
+@PYB11template("Dimension")
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class SolidSphericalSPHHydroBase(SolidSPHHydroBase):
+class SolidSPH(SPHBase):
+    "SolidSPH -- The SPH/ASPH solid material hydrodynamic package for Spheral++."
 
     PYB11typedefs = """
   typedef typename %(Dimension)s::Scalar Scalar;
@@ -20,9 +21,9 @@ class SolidSphericalSPHHydroBase(SolidSPHHydroBase):
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
-               W = "const SphericalKernel&",
-               WPi = "const SphericalKernel&",
-               WGrad = "const SphericalKernel&",
+               W = "const TableKernel<%(Dimension)s>&",
+               WPi = "const TableKernel<%(Dimension)s>&",
+               WGrad = "const TableKernel<%(Dimension)s>&",
                filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -39,10 +40,21 @@ class SolidSphericalSPHHydroBase(SolidSPHHydroBase):
                strengthInDamage = "const bool",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "Solid Spherical SPHHydroBase constructor"
+        "SolidSPH constructor"
 
     #...........................................................................
     # Virtual methods
+    @PYB11virtual
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
+        return "void"
+
     @PYB11virtual 
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
@@ -50,11 +62,9 @@ class SolidSphericalSPHHydroBase(SolidSPHHydroBase):
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&", 
-                          state = "State<%(Dimension)s>&",
-                          derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Optional hook to be called at the beginning of a time step."
+    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
+                            derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Register the derivatives/change fields for updating state."
         return "void"
 
     @PYB11virtual
@@ -80,14 +90,22 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
-
     #...........................................................................
     # Properties
-    kernel = PYB11property("const SphericalKernel&", "kernel", doc="The interpolation kernel")
-    PiKernel = PYB11property("const SphericalKernel&", "PiKernel", doc="The interpolation kernel for the artificial viscosity")
-    GradKernel = PYB11property("const SphericalKernel&", "GradKernel", doc="The interpolation kernel for computing the velocity gradient")
-    Qself = PYB11property("double", "Qself", "Qself", doc="Multiplier for Q self-interaction near the origin")
+    GradKernel = PYB11property("const TableKernel<%(Dimension)s>&", "GradKernel",
+                               doc="Kernel for estimating velocity gradient")
+    damageRelieveRubble = PYB11property("bool", "damageRelieveRubble", "damageRelieveRubble", 
+                                        doc="Control whether allow damaged material to have stress relieved.")
+    strengthInDamage = PYB11property("bool", "strengthInDamage", "strengthInDamage", 
+                                     doc="Should we allow damaged material to support strength?")
+
+    DdeviatoricStressDt =  PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DdeviatoricStressDt", returnpolicy="reference_internal")
+    bulkModulus =          PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "bulkModulus",         returnpolicy="reference_internal")
+    shearModulus =         PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "shearModulus",        returnpolicy="reference_internal")
+    yieldStrength =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "yieldStrength",       returnpolicy="reference_internal")
+    plasticStrain0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "plasticStrain0",      returnpolicy="reference_internal")
+
+#-------------------------------------------------------------------------------
+# Inject methods
+#-------------------------------------------------------------------------------
+PYB11inject(RestartMethods, SolidSPH)
