@@ -3,6 +3,11 @@
 
 # Modified version to be compatible with the pybindgen version of Spheral++.
 
+# ------------------------------------------------------------------------------
+# Load up MPI.
+# ------------------------------------------------------------------------------
+import mpi
+
 from SpheralUtilities import BuildData
 
 if not BuildData.cxx_compiler_id == "GNU":
@@ -12,11 +17,6 @@ if not BuildData.cxx_compiler_id == "GNU":
     except:
         print("WARNING: unable to set python dl flags on Spheral import.")
         pass
-
-# ------------------------------------------------------------------------------
-# Load up MPI.
-# ------------------------------------------------------------------------------
-import mpi
 
 # ------------------------------------------------------------------------------
 # Import a scipy module to initialize scipy's shared qhull library before

@@ -25,6 +25,22 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py)
 
+# Configure SpheralConfigs.py.in
+set(SPHERAL_COMP_CONFIG)
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"FSISPH\"")
+endif()
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"GSPH\"")
+endif()
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"SVPH\"")
+endif()
+string(REPLACE ";" ", " SPHERAL_COMP_CONFIG_STR "${SPHERAL_COMP_CONFIG}")
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
+
 set(_dims 1)
 if(ENABLE_2D)
    list(APPEND _dims 2)
@@ -80,4 +96,5 @@ spheral_install_python_files(
   CaptureStdout.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py
   )
