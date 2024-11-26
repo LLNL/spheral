@@ -35,6 +35,7 @@ class HydroFieldNames:
     soundSpeed = PYB11readonly(static=True, returnpolicy="copy")
     pairAccelerations = PYB11readonly(static=True, returnpolicy="copy")
     pairWork = PYB11readonly(static=True, returnpolicy="copy")
+    selfAccelerations = PYB11readonly(static=True, returnpolicy="copy")
     gamma = PYB11readonly(static=True, returnpolicy="copy")
     entropy = PYB11readonly(static=True, returnpolicy="copy")
     PSPHcorrection = PYB11readonly(static=True, returnpolicy="copy")

@@ -2,10 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "SPH/PSPH.cc"
+#include "SPH/SPH.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class PSPH<Dim<%(ndim)s>>;
+  template class SPH<%(Dim)s>;
 }
 """

@@ -1,20 +1,18 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHHydroBase -- The SPH/ASPH hydrodynamic package for Spheral++.
+// SPHBase -- Base class for SPH/ASPH hydrodynamic packages for Spheral++.
 // 
-// This class uses the Curiously Recursive Template Pattern to allow the
-// derived classes to define the type of the pair-wise accelerations. This
-// turns out to be useful for letting us generalize across curvilinear (where
-// pair-wise accelerations are not symmetric per pair) and cartesian (where
-// they are symmetric).
+// This class contains most of the boilerplate storage for SPH specliazations
+// to inherit and use, with the exception of pair-wise accelerations for
+// the compatible energy discretization.
 //
 // Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SPHHydroBase_hh__
-#define __Spheral_SPHHydroBase_hh__
-
-#include <string>
+#ifndef __Spheral_SPHBase__
+#define __Spheral_SPHBase__
 
 #include "Physics/GenericHydro.hh"
+
+#include <string>
 
 namespace Spheral {
 
@@ -23,15 +21,12 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension, typename DataType> class PairwiseField;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
 class FileIO;
 
-#include <memory>
-
-template<typename Dimension, typename Derived>
-class SPHHydroBase: public GenericHydro<Dimension> {
+template<typename Dimension>
+class SPHBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,45 +35,45 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
 
-  using PairAccelerationsType = typename Derived::PairwiseAccelerationType;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SPHHydroBase(DataBase<Dimension>& dataBase,
-               ArtificialViscosity<Dimension>& Q,
-               const TableKernel<Dimension>& W,
-               const TableKernel<Dimension>& WPi,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool evolveTotalEnergy,
-               const bool gradhCorrection,
-               const bool XSPH,
-               const bool correctVelocityGradient,
-               const bool sumMassDensityOverAllNodeLists,
-               const MassDensityType densityUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax);
+  SPHBase(DataBase<Dimension>& dataBase,
+          ArtificialViscosity<Dimension>& Q,
+          const TableKernel<Dimension>& W,
+          const TableKernel<Dimension>& WPi,
+          const double cfl,
+          const bool useVelocityMagnitudeForDt,
+          const bool compatibleEnergyEvolution,
+          const bool evolveTotalEnergy,
+          const bool gradhCorrection,
+          const bool XSPH,
+          const bool correctVelocityGradient,
+          const bool sumMassDensityOverAllNodeLists,
+          const MassDensityType densityUpdate,
+          const double epsTensile,
+          const double nTensile,
+          const Vector& xmin,
+          const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  SPHHydroBase() = delete;
-  SPHHydroBase(const SPHHydroBase&) = delete;
-  SPHHydroBase& operator=(const SPHHydroBase&) = delete;
+  SPHBase() = delete;
+  SPHBase(const SPHBase&) = delete;
+  SPHBase& operator=(const SPHBase&) = delete;
 
   // Destructor.
-  virtual ~SPHHydroBase();
+  virtual ~SPHBase() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
   // One use for this hook is to fill in dependendent state using the State object, such as
   // temperature or pressure.
-  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
-                                                    State<Dimension>& state,
-                                                    StateDerivatives<Dimension>& derivs) override;
+  virtual
+  void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                            State<Dimension>& state,
+                                            StateDerivatives<Dimension>& derivs) override;
 
-  // Register the state Hydro expects to use and evolve.
+  // Register the state
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
@@ -101,15 +96,6 @@ public:
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) override;
                        
-  // Evaluate the derivatives for the principle hydro variables:
-  // mass density, velocity, and specific thermal energy.
-  virtual
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
-
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -141,105 +127,87 @@ public:
   void updateVolume(State<Dimension>& state,
                     const bool boundaries) const;
 
-  // Flag to choose whether we want to sum for density, or integrate
-  // the continuity equation.
-  MassDensityType densityUpdate() const;
-  void densityUpdate(MassDensityType type);
-
-  // Flag to select how we want to evolve the H tensor.
-  // the continuity equation.
-  HEvolutionType HEvolution() const;
-  void HEvolution(HEvolutionType type);
+  // Flag to choose whether we want to sum for density, or integrate the continuity equation.
+  MassDensityType densityUpdate()                                               const { return mDensityUpdate; }
+  void densityUpdate(MassDensityType x)                                               { mDensityUpdate = x; }
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
-  bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(bool val);
+  bool compatibleEnergyEvolution()                                              const { return mCompatibleEnergyEvolution; }
+  void compatibleEnergyEvolution(bool x)                                              { mCompatibleEnergyEvolution = x; }
 
   // Flag controlling if we evolve total or specific energy.
-  bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(bool val);
+  bool evolveTotalEnergy()                                                      const { return mEvolveTotalEnergy; }
+  void evolveTotalEnergy(bool x)                                                      { mEvolveTotalEnergy = x; }
 
   // Flag to determine if we're using the grad h correction.
-  bool gradhCorrection() const;
-  void gradhCorrection(bool val);
+  bool gradhCorrection()                                                        const { return mGradhCorrection; }
+  void gradhCorrection(bool x)                                                        { mGradhCorrection = x; }
 
   // Flag to determine if we're using the XSPH algorithm.
-  bool XSPH() const;
-  void XSPH(bool val);
+  bool XSPH()                                                                   const { return mXSPH; }
+  void XSPH(bool x)                                                                   { mXSPH = x; }
 
   // Flag to determine if we're applying the linear correction for the velocity gradient.
-  bool correctVelocityGradient() const;
-  void correctVelocityGradient(bool val);
+  bool correctVelocityGradient()                                                const { return mCorrectVelocityGradient; }
+  void correctVelocityGradient(bool x)                                                { mCorrectVelocityGradient = x; }
 
   // Flag to determine if the sum density definition extends over neighbor NodeLists.
-  bool sumMassDensityOverAllNodeLists() const;
-  void sumMassDensityOverAllNodeLists(bool val);
+  bool sumMassDensityOverAllNodeLists()                                         const { return mSumMassDensityOverAllNodeLists; }
+  void sumMassDensityOverAllNodeLists(bool x)                                         { mSumMassDensityOverAllNodeLists = x; }
 
   // Parameters for the tensile correction force at small scales.
-  Scalar epsilonTensile() const;
-  void epsilonTensile(Scalar val);
+  Scalar epsilonTensile()                                                       const { return mEpsTensile; }
+  void epsilonTensile(Scalar x)                                                       { mEpsTensile = x; }
 
-  Scalar nTensile() const;
-  void nTensile(Scalar val);
+  Scalar nTensile()                                                             const { return mnTensile; }
+  void nTensile(Scalar x)                                                             { mnTensile = x; }
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
-  const Vector& xmin() const;
-  const Vector& xmax() const;
-  void xmin(const Vector& x);
-  void xmax(const Vector& x);
+  const Vector& xmin()                                                          const { return mxmin; }
+  const Vector& xmax()                                                          const { return mxmax; }
+  void xmin(const Vector& x)                                                          { mxmin = x; }
+  void xmax(const Vector& x)                                                          { mxmax = x; }
 
   // Access the stored interpolation kernels.
-  const TableKernel<Dimension>& kernel() const;
-  const TableKernel<Dimension>& PiKernel() const;
+  const TableKernel<Dimension>& kernel()                                        const { return mKernel; }
+  const TableKernel<Dimension>& PiKernel()                                      const { return mPiKernel; }
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, int>&          timeStepMask() const;
-  const FieldList<Dimension, Scalar>&       pressure() const;
-  const FieldList<Dimension, Scalar>&       soundSpeed() const;
-  const FieldList<Dimension, Scalar>&       volume() const;
-  const FieldList<Dimension, Scalar>&       omegaGradh() const;
-  const FieldList<Dimension, Scalar>&       entropy() const;
-  const FieldList<Dimension, Scalar>&       maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&       effectiveViscousPressure() const;
-  const FieldList<Dimension, Scalar>&       massDensityCorrection() const;
-  const FieldList<Dimension, Scalar>&       viscousWork() const;
-  const FieldList<Dimension, Scalar>&       massDensitySum() const;
-  const FieldList<Dimension, Scalar>&       normalization() const;
-  const FieldList<Dimension, Scalar>&       XSPHWeightSum() const;
-  const FieldList<Dimension, Vector>&       XSPHDeltaV() const;
-  const FieldList<Dimension, Tensor>&       M() const;
-  const FieldList<Dimension, Tensor>&       localM() const;
-  const FieldList<Dimension, Vector>&       DxDt() const;
-  const FieldList<Dimension, Vector>&       DvDt() const;
-  const FieldList<Dimension, Scalar>&       DmassDensityDt() const;
-  const FieldList<Dimension, Scalar>&       DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, Tensor>&       DvDx() const;
-  const FieldList<Dimension, Tensor>&       internalDvDx() const;
-  const FieldList<Dimension, Vector>&       gradRho() const;
-  const PairAccelerationsType&              pairAccelerations() const;
+  const FieldList<Dimension, int>&          timeStepMask()                      const { return mTimeStepMask; }
+  const FieldList<Dimension, Scalar>&       pressure()                          const { return mPressure; }
+  const FieldList<Dimension, Scalar>&       soundSpeed()                        const { return mSoundSpeed; }
+  const FieldList<Dimension, Scalar>&       volume()                            const { return mVolume; }
+  const FieldList<Dimension, Scalar>&       omegaGradh()                        const { return mOmegaGradh; }
+  const FieldList<Dimension, Scalar>&       entropy()                           const { return mEntropy; }
+  const FieldList<Dimension, Scalar>&       maxViscousPressure()                const { return mMaxViscousPressure; }
+  const FieldList<Dimension, Scalar>&       effectiveViscousPressure()          const { return mEffViscousPressure; }
+  const FieldList<Dimension, Scalar>&       massDensityCorrection()             const { return mMassDensityCorrection; }
+  const FieldList<Dimension, Scalar>&       viscousWork()                       const { return mViscousWork; }
+  const FieldList<Dimension, Scalar>&       massDensitySum()                    const { return mMassDensitySum; }
+  const FieldList<Dimension, Scalar>&       normalization()                     const { return mNormalization; }
+  const FieldList<Dimension, Scalar>&       XSPHWeightSum()                     const { return mXSPHWeightSum; }
+  const FieldList<Dimension, Vector>&       XSPHDeltaV()                        const { return mXSPHDeltaV; }
+  const FieldList<Dimension, Tensor>&       M()                                 const { return mM; }
+  const FieldList<Dimension, Tensor>&       localM()                            const { return mLocalM; }
+  const FieldList<Dimension, Vector>&       DxDt()                              const { return mDxDt; }
+  const FieldList<Dimension, Vector>&       DvDt()                              const { return mDvDt; }
+  const FieldList<Dimension, Scalar>&       DmassDensityDt()                    const { return mDmassDensityDt; }
+  const FieldList<Dimension, Scalar>&       DspecificThermalEnergyDt()          const { return mDspecificThermalEnergyDt; }
+  const FieldList<Dimension, Tensor>&       DvDx()                              const { return mDvDx; }
+  const FieldList<Dimension, Tensor>&       internalDvDx()                      const { return mInternalDvDx; }
+  const FieldList<Dimension, Vector>&       gradRho()                           const { return mGradRho; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SPHHydroBase" ; }
+  virtual std::string label() const override { return "SPHBase" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
 protected:
   //---------------------------  Protected Interface ---------------------------//
-  // The templated derivative method, allowing us to use different types of kernels
-  template<typename KernelType>
-  void evaluateDerivativesImpl(const Scalar time,
-                               const Scalar dt,
-                               const DataBase<Dimension>& dataBase,
-                               const State<Dimension>& state,
-                               StateDerivatives<Dimension>& derivatives,
-                               const KernelType& W,
-                               const KernelType& WQ,
-                               const TableKernel<Dimension>& WT) const;
-
   // The interpolation kernels.
   const TableKernel<Dimension>& mKernel;
   const TableKernel<Dimension>& mPiKernel;
@@ -288,8 +256,6 @@ protected:
 
   FieldList<Dimension, Scalar>             mVolume;
 
-  std::unique_ptr<PairAccelerationsType>   mPairAccelerationsPtr;
-
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // The restart registration.
@@ -297,7 +263,5 @@ protected:
 };
 
 }
-
-#include "SPHHydroBaseInline.hh"
 
 #endif

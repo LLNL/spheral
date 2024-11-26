@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSPHHydroBaseRZ -- The axisymmetric (RZ) SPH/ASPH solid material
+// SolidSPHRZ -- The axisymmetric (RZ) SPH/ASPH solid material
 //                        hydrodynamic package for Spheral++.
 //
 // This RZ version is a naive area-weighting implementation, nothing as
@@ -10,13 +10,13 @@
 //
 // Created by JMO, Mon May  9 11:01:51 PDT 2016
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidSPHHydroBaseRZ_hh__
-#define __Spheral_SolidSPHHydroBaseRZ_hh__
+#ifndef __Spheral_SolidSPHRZ_hh__
+#define __Spheral_SolidSPHRZ_hh__
 
-#include <float.h>
+#include <memory>
 #include <string>
 
-#include "SolidSPHHydroBase.hh"
+#include "SolidSPH.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -30,25 +30,25 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
-class SolidSPHHydroBaseRZ: public SolidSPHHydroBase<Dim<2> > {
+class SolidSPHRZ: public SolidSPH<Dim<2>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef Dim<2> Dimension;
-  typedef Dimension::Scalar Scalar;
-  typedef Dimension::Vector Vector;
-  typedef Dimension::Tensor Tensor;
-  typedef Dimension::SymTensor SymTensor;
+  using Dimension = Dim<2>;
+  using Scalar = Dimension::Scalar;
+  using Vector = Dimension::Vector;
+  using Tensor = Dimension::Tensor;
+  using SymTensor = Dimension::SymTensor;
 
-  typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
+  using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
+  SolidSPHRZ(DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dimension>& Q,
                       const TableKernel<Dimension>& W,
                       const TableKernel<Dimension>& WPi,
                       const TableKernel<Dimension>& WGrad,
-                      const double filter,
                       const double cfl,
                       const bool useVelocityMagnitudeForDt,
                       const bool compatibleEnergyEvolution,
@@ -66,17 +66,22 @@ public:
                       const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  SolidSPHHydroBaseRZ() = delete;
-  SolidSPHHydroBaseRZ(const SolidSPHHydroBaseRZ&) = delete;
-  SolidSPHHydroBaseRZ& operator=(const SolidSPHHydroBaseRZ&) = delete;
+  SolidSPHRZ() = delete;
+  SolidSPHRZ(const SolidSPHRZ&) = delete;
+  SolidSPHRZ& operator=(const SolidSPHRZ&) = delete;
 
   // Destructor.
-  virtual ~SolidSPHHydroBaseRZ();
+  virtual ~SolidSPHRZ() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
+
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
 
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -102,9 +107,18 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  // Access our state.
+  const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
+  const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
+
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidSPHHydroBaseRZ"; }
+  virtual std::string label()                    const override { return "SolidSPHRZ"; }
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
+  FieldList<Dimension, Vector> mSelfAccelerations;
 };
 
 }

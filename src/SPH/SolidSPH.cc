@@ -3,9 +3,10 @@
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
+#include "SPH/SolidSPH.hh"
 #include "FileIO/FileIO.hh"
 #include "Utilities/NodeCoupling.hh"
-#include "SPH/SPHHydroBase.hh"
+#include "SPH/SPH.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
@@ -26,16 +27,13 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/Timer.hh"
 
-#include "SolidSPHHydroBase.hh"
-
-#include <limits.h>
-#include <float.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -125,46 +123,44 @@ inline Dim<3>::SymTensor oneMinusEigenvalues(const Dim<3>::SymTensor& x) {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SolidSPHHydroBase<Dimension>::
-SolidSPHHydroBase(DataBase<Dimension>& dataBase,
-                  ArtificialViscosity<Dimension>& Q,
-                  const TableKernel<Dimension>& W,
-                  const TableKernel<Dimension>& WPi,
-                  const TableKernel<Dimension>& WGrad,
-                  const double filter,
-                  const double cfl,
-                  const bool useVelocityMagnitudeForDt,
-                  const bool compatibleEnergyEvolution,
-                  const bool evolveTotalEnergy,
-                  const bool gradhCorrection,
-                  const bool XSPH,
-                  const bool correctVelocityGradient,
-                  const bool sumMassDensityOverAllNodeLists,
-                  const MassDensityType densityUpdate,
-                  const double epsTensile,
-                  const double nTensile,
-                  const bool damageRelieveRubble,
-                  const bool strengthInDamage,
-                  const Vector& xmin,
-                  const Vector& xmax):
-  SPHHydroBase<Dimension>(dataBase,
-                          Q,
-                          W,
-                          WPi,
-                          filter,
-                          cfl,
-                          useVelocityMagnitudeForDt,
-                          compatibleEnergyEvolution,
-                          evolveTotalEnergy,
-                          gradhCorrection,
-                          XSPH,
-                          correctVelocityGradient,
-                          sumMassDensityOverAllNodeLists,
-                          densityUpdate,
-                          epsTensile,
-                          nTensile,
-                          xmin,
-                          xmax),
+SolidSPH<Dimension>::
+SolidSPH(DataBase<Dimension>& dataBase,
+         ArtificialViscosity<Dimension>& Q,
+         const TableKernel<Dimension>& W,
+         const TableKernel<Dimension>& WPi,
+         const TableKernel<Dimension>& WGrad,
+         const double cfl,
+         const bool useVelocityMagnitudeForDt,
+         const bool compatibleEnergyEvolution,
+         const bool evolveTotalEnergy,
+         const bool gradhCorrection,
+         const bool XSPH,
+         const bool correctVelocityGradient,
+         const bool sumMassDensityOverAllNodeLists,
+         const MassDensityType densityUpdate,
+         const double epsTensile,
+         const double nTensile,
+         const bool damageRelieveRubble,
+         const bool strengthInDamage,
+         const Vector& xmin,
+         const Vector& xmax):
+  SPH<Dimension>(dataBase,
+                 Q,
+                 W,
+                 WPi,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 gradhCorrection,
+                 XSPH,
+                 correctVelocityGradient,
+                 sumMassDensityOverAllNodeLists,
+                 densityUpdate,
+                 epsTensile,
+                 nTensile,
+                 xmin,
+                 xmax),
   mDamageRelieveRubble(damageRelieveRubble),
   mStrengthInDamage(strengthInDamage),
   mGradKernel(WGrad),
@@ -183,26 +179,18 @@ SolidSPHHydroBase(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SolidSPHHydroBase<Dimension>::
-~SolidSPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SolidSPHinitializeStartup");
 
   // Call the ancestor.
-  SPHHydroBase<Dimension>::initializeProblemStartup(dataBase);
+  SPH<Dimension>::initializeProblemStartup(dataBase);
 
   // Set the moduli.
   updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
@@ -218,13 +206,13 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   TIME_BEGIN("SolidSPHregister");
 
   // Invoke SPHHydro's state.
-  SPHHydroBase<Dimension>::registerState(dataBase, state);
+  SPH<Dimension>::registerState(dataBase, state);
 
   // Create the local storage.
   dataBase.resizeFluidFieldList(mBulkModulus, 0.0, SolidFieldNames::bulkModulus, false);
@@ -267,13 +255,13 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SolidSPHregisterDerivs");
 
   // Call the ancestor method.
-  SPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
+  SPH<Dimension>::registerDerivatives(dataBase, derivs);
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -294,7 +282,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -319,6 +307,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto WQ0 = WQ(0.0, 1.0);
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
   const auto XSPH = this->XSPH();
 
   // The connectivity.
@@ -371,7 +360,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -396,9 +385,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
   const auto  npairs = pairs.size();
   // const auto& coupling = connectivityMap.coupling();
-
-  // Size up the pair-wise accelerations before we start.
-  if (compatibleEnergy) pairAccelerations.resize(npairs);
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -738,7 +724,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       DrhoDti = -rhoi*DvDxi.Trace();
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       DxDti = vi;
@@ -776,13 +762,13 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SolidSPHghostBounds");
 
   // Ancestor method.
-  SPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
+  SPH<Dimension>::applyGhostBoundaries(state, derivs);
 
   // Apply boundary conditions to our extra strength variables.
   auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -808,13 +794,13 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SolidSPHenforceBounds");
 
   // Ancestor method.
-  SPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
+  SPH<Dimension>::enforceBoundaries(state, derivs);
 
   // Enforce boundary conditions on the extra strength variable.s
   auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -840,11 +826,11 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   // Ancestor method.
-  SPHHydroBase<Dimension>::dumpState(file, pathName);
+  SPH<Dimension>::dumpState(file, pathName);
 
   file.write(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
   file.write(mBulkModulus, pathName + "/bulkModulus");
@@ -858,11 +844,11 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidSPHHydroBase<Dimension>::
+SolidSPH<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
  
   // Ancestor method.
-  SPHHydroBase<Dimension>::restoreState(file, pathName);
+  SPH<Dimension>::restoreState(file, pathName);
 
   file.read(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
   file.read(mBulkModulus, pathName + "/bulkModulus");

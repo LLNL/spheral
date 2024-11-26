@@ -11,12 +11,14 @@
 //
 // Created by JMO, Tue Apr 26 16:28:55 PDT 2022
 //----------------------------------------------------------------------------//
+#include "SPH/SolidSphericalSPH.hh"
 #include "FileIO/FileIO.hh"
 #include "computeSPHSumMassDensity.hh"
 #include "correctSPHSumMassDensity.hh"
 #include "Utilities/NodeCoupling.hh"
-#include "SPH/SPHHydroBase.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "Strength/SolidFieldNames.hh"
 #include "NodeList/SolidNodeList.hh"
 #include "Strength/DeviatoricStressPolicy.hh"
@@ -38,19 +40,15 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 #include "Utilities/Timer.hh"
 
-#include "SolidSphericalSPHHydroBase.hh"
-
-#include <limits.h>
-#include <float.h>
 #include <algorithm>
 #include <fstream>
-#include <map>
 #include <vector>
 using std::vector;
 using std::string;
@@ -86,82 +84,105 @@ tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SolidSphericalSPHHydroBase::
-SolidSphericalSPHHydroBase(DataBase<Dimension>& dataBase,
-                           ArtificialViscosity<Dimension>& Q,
-                           const SphericalKernel& W,
-                           const SphericalKernel& WPi,
-                           const SphericalKernel& WGrad,
-                           const double filter,
-                           const double cfl,
-                           const bool useVelocityMagnitudeForDt,
-                           const bool compatibleEnergyEvolution,
-                           const bool evolveTotalEnergy,
-                           const bool gradhCorrection,
-                           const bool XSPH,
-                           const bool correctVelocityGradient,
-                           const bool sumMassDensityOverAllNodeLists,
-                           const MassDensityType densityUpdate,
-                           const double epsTensile,
-                           const double nTensile,
-                           const bool damageRelieveRubble,
-                           const bool strengthInDamage,
-                           const Vector& xmin,
-                           const Vector& xmax):
-  SolidSPHHydroBase<Dim<1>>(dataBase,
-                            Q,
-                            W.baseKernel1d(),
-                            WPi.baseKernel1d(),
-                            WGrad.baseKernel1d(),
-                            filter,
-                            cfl,
-                            useVelocityMagnitudeForDt,
-                            compatibleEnergyEvolution,
-                            evolveTotalEnergy,
-                            gradhCorrection,
-                            XSPH,
-                            correctVelocityGradient,
-                            sumMassDensityOverAllNodeLists,
-                            densityUpdate,
-                            epsTensile,
-                            nTensile,
-                            damageRelieveRubble,
-                            strengthInDamage,
-                            xmin,
-                            xmax),
+SolidSphericalSPH::
+SolidSphericalSPH(DataBase<Dimension>& dataBase,
+                  ArtificialViscosity<Dimension>& Q,
+                  const SphericalKernel& W,
+                  const SphericalKernel& WPi,
+                  const SphericalKernel& WGrad,
+                  const double cfl,
+                  const bool useVelocityMagnitudeForDt,
+                  const bool compatibleEnergyEvolution,
+                  const bool evolveTotalEnergy,
+                  const bool gradhCorrection,
+                  const bool XSPH,
+                  const bool correctVelocityGradient,
+                  const bool sumMassDensityOverAllNodeLists,
+                  const MassDensityType densityUpdate,
+                  const double epsTensile,
+                  const double nTensile,
+                  const bool damageRelieveRubble,
+                  const bool strengthInDamage,
+                  const Vector& xmin,
+                  const Vector& xmax):
+  SolidSPH<Dim<1>>(dataBase,
+                   Q,
+                   W.baseKernel1d(),
+                   WPi.baseKernel1d(),
+                   WGrad.baseKernel1d(),
+                   cfl,
+                   useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution,
+                   evolveTotalEnergy,
+                   gradhCorrection,
+                   XSPH,
+                   correctVelocityGradient,
+                   sumMassDensityOverAllNodeLists,
+                   densityUpdate,
+                   epsTensile,
+                   nTensile,
+                   damageRelieveRubble,
+                   strengthInDamage,
+                   xmin,
+                   xmax),
   mQself(2.0),
   mKernel(W),
   mPiKernel(WPi),
-  mGradKernel(WGrad) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-SolidSphericalSPHHydroBase::
-~SolidSphericalSPHHydroBase() {
+  mGradKernel(WGrad),
+  mPairAccelerationsPtr(),
+  mSelfAccelerations(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPH::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
   // The base class does most of it.
-  SolidSPHHydroBase<Dim<1>>::registerState(dataBase, state);
+  SolidSPH<Dim<1>>::registerState(dataBase, state);
 
   // Re-regsiter the position update to prevent things going through the origin
   auto position = dataBase.fluidPosition();
   state.enroll(position, make_policy<SphericalPositionPolicy>());
 
-  // Are we using the compatible energy evolution scheme?
-  // If so we need to override the ordinary energy registration with a specialized version.
-  if (mCompatibleEnergyEvolution) {
-    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  // We have to choose either compatible or total energy evolution.
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  VERIFY2(not (compatibleEnergy and evolveTotalEnergy),
+          "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
+
+  // Register the specific thermal energy.
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  if (compatibleEnergy) {
     state.enroll(specificThermalEnergy, make_policy<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase));
+
+  } else if (evolveTotalEnergy) {
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
+    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
+
+  } else {
+    // Otherwise we're just time-evolving the specific energy.
+    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Register the state derivative fields.
+//------------------------------------------------------------------------------
+void
+SolidSphericalSPH::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+  SolidSPH<Dimension>::registerDerivatives(dataBase, derivs);
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    CHECK(mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
   }
 }
 
@@ -169,7 +190,7 @@ registerState(DataBase<Dim<1>>& dataBase,
 // Stuff that occurs the beginning of a timestep
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPH::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -214,13 +235,20 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     VERIFY2(false, "Unsupported mass density definition for Spherical SPH");
     break;
   }
+
+  // If needed prepare the pair-accelerations
+  if (this->compatibleEnergyEvolution()) {
+    const auto& connectivityMap = state.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
+  }
 }
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPH::
 evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
@@ -247,12 +275,18 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   const auto tiny = 1.0e-30;
   const auto epsTensile = this->epsilonTensile();
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
   const auto XSPH = this->XSPH();
+  const auto correctVelocityGradient = this->correctVelocityGradient();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
+
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -294,7 +328,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
-  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto  selfAccelerations = derivatives.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -313,15 +348,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-
-  // The set of interacting node pairs.
-  auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
-  const auto  npairs = pairs.size();
-  // const auto& coupling = connectivityMap.coupling();
-
-  // Size up the pair-wise accelerations before we start.
-  const auto nnodes = dataBase.numFluidInternalNodes();
-  if (compatibleEnergy) pairAccelerations.resize(2u*npairs + nnodes);
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy     and selfAccelerations.size() == 0u) or
+        (not compatibleEnergy and selfAccelerations.size() == numNodeLists));
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -512,10 +541,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDtj = mi*(sigmarhoj*gradWij + sigmarhoi*gradWii - (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) {
-        pairAccelerations[2*kk] = deltaDvDti;
-        pairAccelerations[2*kk+1] = deltaDvDtj;
-      }
+      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution.
       DepsDti -= mj*(sigmarhoi.xx() - 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
@@ -560,7 +586,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
   // Finish up the derivatives for each point.
   TIME_BEGIN("SolidSphericalSPHevalDerivs_final");
-  size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
@@ -632,7 +657,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      if (this->mCorrectVelocityGradient and
+      if (correctVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
@@ -640,7 +665,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       } else {
         DvDxi /= rhoi;
       }
-      if (this->mCorrectVelocityGradient and
+      if (correctVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         localMi = localMi.Inverse();
@@ -667,14 +692,14 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii) +  // self-interaction because kernel is not symmetric
                               3.0*Si.xx()/rhoi*riInv;                                         // hoop terms from theta & phi directions
       DvDti += deltaDvDti;
-      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
+      if (mCompatibleEnergyEvolution) selfAccelerations(nodeListi, i) = deltaDvDti;
 
       // Specific thermal energy
       DepsDti -= 2.0*mi/(rhoi*rhoi)*(sigmai.xx() - 0.5*Qi)*vi.dot(gradWii) +
                  2.0*(0.5*Si.xx() + Pi)/rhoi*vi.x()*riInv;
 
       // If needed finish the total energy derivative.
-      if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
@@ -702,7 +727,6 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       // // In the presence of damage, add a term to reduce the stress on this point.
       // DSDti = (1.0 - Di)*DSDti - 0.25/dt*Di*Si;
     }
-    offset += ni;
   }
   TIME_END("SolidSphericalSPHevalDerivs_final");
   TIME_END("SolidSphericalSPHevalDerivs");
@@ -712,7 +736,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPH::
 applyGhostBoundaries(State<Dim<1>>& state,
                      StateDerivatives<Dim<1>>& derivs) {
   // Convert the mass to mass/length^2 before BCs are applied.
@@ -729,7 +753,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SolidSPHHydroBase<Dim<1>>::applyGhostBoundaries(state, derivs);
+  SolidSPH<Dim<1>>::applyGhostBoundaries(state, derivs);
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
@@ -747,7 +771,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SolidSphericalSPHHydroBase::
+SolidSphericalSPH::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   // Convert the mass to mass/length^2 before BCs are applied.
@@ -764,7 +788,7 @@ enforceBoundaries(State<Dimension>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SolidSPHHydroBase<Dim<1>>::applyGhostBoundaries(state, derivs);
+  SolidSPH<Dim<1>>::applyGhostBoundaries(state, derivs);
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
@@ -776,48 +800,6 @@ enforceBoundaries(State<Dimension>& state,
       mass(nodeListi, i) *= dA;
     }
   }
-}
-
-//------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
-//------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
-kernel() const {
-  return mKernel;
-}
-
-//------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
-//------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
-PiKernel() const {
-  return mPiKernel;
-}
-
-//------------------------------------------------------------------------------
-// Access the kernel used for the velocity gradient
-//------------------------------------------------------------------------------
-const SphericalKernel&
-SolidSphericalSPHHydroBase::
-GradKernel() const {
-  return mGradKernel;
-}
-
-//------------------------------------------------------------------------------
-// The self-Q multiplier
-//------------------------------------------------------------------------------
-double
-SolidSphericalSPHHydroBase::
-Qself() const {
-  return mQself;
-}
-
-void
-SolidSphericalSPHHydroBase::
-Qself(const double x) {
-  mQself = x;
 }
 
 }

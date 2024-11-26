@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSphericalSPHHydroBase -- The SPH/ASPH solid material SPH hydrodynamic
-//                               specialized for 1D Spherical (r) geometry.
+// SolidSphericalSPH -- The SPH/ASPH solid material SPH hydrodynamic
+//                      specialized for 1D Spherical (r) geometry.
 //
 // Based on the algorithm described in
 // Omang, M., Børve, S., & Trulsen, J. (2006). SPH in spherical and cylindrical coordinates.
@@ -11,19 +11,19 @@
 //
 // Created by JMO, Tue Apr 26 16:28:55 PDT 2022
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidSphericalSPHHydroBase_hh__
-#define __Spheral_SolidSphericalSPHHydroBase_hh__
+#ifndef __Spheral_SolidSphericalSPH_hh__
+#define __Spheral_SolidSphericalSPH_hh__
 
 #include <float.h>
 #include <string>
 
-#include "SPH/SolidSPHHydroBase.hh"
+#include "SPH/SolidSPH.hh"
 #include "Kernel/SphericalKernel.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
 
-class SolidSphericalSPHHydroBase: public SolidSPHHydroBase<Dim<1>> {
+class SolidSphericalSPH: public SolidSPH<Dim<1>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -33,43 +33,48 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
 
+  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidSphericalSPHHydroBase(DataBase<Dimension>& dataBase,
-                             ArtificialViscosity<Dimension>& Q,
-                             const SphericalKernel& W,
-                             const SphericalKernel& WPi,
-                             const SphericalKernel& WGrad,
-                             const double filter,
-                             const double cfl,
-                             const bool useVelocityMagnitudeForDt,
-                             const bool compatibleEnergyEvolution,
-                             const bool evolveTotalEnergy,
-                             const bool gradhCorrection,
-                             const bool XSPH,
-                             const bool correctVelocityGradient,
-                             const bool sumMassDensityOverAllNodeLists,
-                             const MassDensityType densityUpdate,
-                             const double epsTensile,
-                             const double nTensile,
-                             const bool damageRelieveRubble,
-                             const bool strengthInDamage,
-                             const Vector& xmin,
-                             const Vector& xmax);
+  SolidSphericalSPH(DataBase<Dimension>& dataBase,
+                    ArtificialViscosity<Dimension>& Q,
+                    const SphericalKernel& W,
+                    const SphericalKernel& WPi,
+                    const SphericalKernel& WGrad,
+                    const double cfl,
+                    const bool useVelocityMagnitudeForDt,
+                    const bool compatibleEnergyEvolution,
+                    const bool evolveTotalEnergy,
+                    const bool gradhCorrection,
+                    const bool XSPH,
+                    const bool correctVelocityGradient,
+                    const bool sumMassDensityOverAllNodeLists,
+                    const MassDensityType densityUpdate,
+                    const double epsTensile,
+                    const double nTensile,
+                    const bool damageRelieveRubble,
+                    const bool strengthInDamage,
+                    const Vector& xmin,
+                    const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  SolidSphericalSPHHydroBase() = delete;
-  SolidSphericalSPHHydroBase(const SolidSphericalSPHHydroBase&) = delete;
-  SolidSphericalSPHHydroBase& operator=(const SolidSphericalSPHHydroBase&) = delete;
+  SolidSphericalSPH() = delete;
+  SolidSphericalSPH(const SolidSphericalSPH&) = delete;
+  SolidSphericalSPH& operator=(const SolidSphericalSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidSphericalSPHHydroBase();
+  virtual ~SolidSphericalSPH() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
+
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
 
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -97,17 +102,21 @@ public:
 
   // Access the stored interpolation kernels.
   // These hide the base class "kernel" methods which return vanilla TableKernels.
-  const SphericalKernel& kernel() const;
-  const SphericalKernel& PiKernel() const;
-  const SphericalKernel& GradKernel() const;
+  const SphericalKernel& kernel()               const { return mKernel; }
+  const SphericalKernel& PiKernel()             const { return mPiKernel; }
+  const SphericalKernel& GradKernel()           const { return mGradKernel; }
 
   // We also have a funny self-Q term for interactions near the origin.
-  double Qself() const;
-  void Qself(const double x);
+  double Qself()                                const { return mQself; }
+  void Qself(const double x)                          { mQself = x; }
+
+  // Access our state.
+  const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
+  const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidSphericalSPHHydroBase"; }
+  virtual std::string label()          const override { return "SolidSphericalSPH"; }
   //****************************************************************************
 
 private:
@@ -118,6 +127,9 @@ private:
   const SphericalKernel& mKernel;
   const SphericalKernel& mPiKernel;
   const SphericalKernel& mGradKernel;
+
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
+  FieldList<Dimension, Vector> mSelfAccelerations;
 };
 
 }

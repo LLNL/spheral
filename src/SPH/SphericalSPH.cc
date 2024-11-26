@@ -1,6 +1,6 @@
 //---------------------------------Spheral++----------------------------------//
-// SphericalSPHHydroBase -- An SPH/ASPH hydrodynamic package for Spheral++,
-//                          specialized for 1D Spherical (r) geometry.
+// SphericalSPH -- An SPH/ASPH hydrodynamic package for Spheral++,
+//                 specialized for 1D Spherical (r) geometry.
 //
 // Note this version is currently abusing our ordinary 1D geometric types,
 // implicitly mapping x->r.
@@ -13,7 +13,8 @@
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
 #include "Hydro/HydroFieldNames.hh"
-#include "Physics/GenericHydro.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -26,6 +27,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
@@ -34,17 +36,13 @@
 #include "CRKSPH/volumeSpacing.hh"
 #include "Utilities/Timer.hh"
 
-#include "SphericalSPHHydroBase.hh"
+#include "SphericalSPH.hh"
 
-#include <limits.h>
-#include <float.h>
 #include <algorithm>
 #include <fstream>
-#include <map>
 #include <vector>
 #include <memory>
 using std::vector;
-using std::map;
 using std::string;
 using std::pair;
 using std::make_pair;
@@ -60,75 +58,98 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-SphericalSPHHydroBase::
-SphericalSPHHydroBase(DataBase<Dimension>& dataBase,
-                      ArtificialViscosity<Dim<1>>& Q,
-                      const SphericalKernel& W,
-                      const SphericalKernel& WPi,
-                      const double filter,
-                      const double cfl,
-                      const bool useVelocityMagnitudeForDt,
-                      const bool compatibleEnergyEvolution,
-                      const bool evolveTotalEnergy,
-                      const bool gradhCorrection,
-                      const bool XSPH,
-                      const bool correctVelocityGradient,
-                      const bool sumMassDensityOverAllNodeLists,
-                      const MassDensityType densityUpdate,
-                      const double epsTensile,
-                      const double nTensile,
-                      const Vector& xmin,
-                      const Vector& xmax):
-  SPHHydroBase<Dim<1>>(dataBase,
-                       Q,
-                       W.baseKernel1d(),
-                       WPi.baseKernel1d(),
-                       filter,
-                       cfl,
-                       useVelocityMagnitudeForDt,
-                       compatibleEnergyEvolution,
-                       evolveTotalEnergy,
-                       gradhCorrection,
-                       XSPH,
-                       correctVelocityGradient,
-                       sumMassDensityOverAllNodeLists,
-                       densityUpdate,
-                       epsTensile,
-                       nTensile,
-                       xmin,
-                       xmax),
+SphericalSPH::
+SphericalSPH(DataBase<Dimension>& dataBase,
+             ArtificialViscosity<Dim<1>>& Q,
+             const SphericalKernel& W,
+             const SphericalKernel& WPi,
+             const double cfl,
+             const bool useVelocityMagnitudeForDt,
+             const bool compatibleEnergyEvolution,
+             const bool evolveTotalEnergy,
+             const bool gradhCorrection,
+             const bool XSPH,
+             const bool correctVelocityGradient,
+             const bool sumMassDensityOverAllNodeLists,
+             const MassDensityType densityUpdate,
+             const double epsTensile,
+             const double nTensile,
+             const Vector& xmin,
+             const Vector& xmax):
+  SPHBase<Dim<1>>(dataBase,
+                  Q,
+                  W.baseKernel1d(),
+                  WPi.baseKernel1d(),
+                  cfl,
+                  useVelocityMagnitudeForDt,
+                  compatibleEnergyEvolution,
+                  evolveTotalEnergy,
+                  gradhCorrection,
+                  XSPH,
+                  correctVelocityGradient,
+                  sumMassDensityOverAllNodeLists,
+                  densityUpdate,
+                  epsTensile,
+                  nTensile,
+                  xmin,
+                  xmax),
   mQself(2.0),
   mKernel(W),
-  mPiKernel(WPi) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-SphericalSPHHydroBase::
-~SphericalSPHHydroBase() {
+  mPiKernel(WPi),
+  mPairAccelerationsPtr(),
+  mSelfAccelerations(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPH::
 registerState(DataBase<Dim<1>>& dataBase,
               State<Dim<1>>& state) {
 
   // The base class does most of it.
-  SPHHydroBase<Dim<1>>::registerState(dataBase, state);
+  SPHBase<Dim<1>>::registerState(dataBase, state);
 
   // Re-regsiter the position update to prevent things going through the origin
   auto position = dataBase.fluidPosition();
   state.enroll(position, make_policy<SphericalPositionPolicy>());
 
-  // Are we using the compatible energy evolution scheme?
-  // If so we need to override the ordinary energy registration with a specialized version.
-  if (mCompatibleEnergyEvolution) {
-    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  // We have to choose either compatible or total energy evolution.
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  VERIFY2(not (compatibleEnergy and evolveTotalEnergy),
+          "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
+
+  // Register the specific thermal energy.
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  if (compatibleEnergy) {
     state.enroll(specificThermalEnergy, make_policy<NonSymmetricSpecificThermalEnergyPolicy<Dim<1>>>(dataBase));
+
+  } else if (evolveTotalEnergy) {
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
+    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
+
+  } else {
+    // Otherwise we're just time-evolving the specific energy.
+    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Register the state derivative fields.
+//------------------------------------------------------------------------------
+void
+SphericalSPH::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+  SPHBase<Dimension>::registerDerivatives(dataBase, derivs);
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    CHECK(mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
   }
 }
 
@@ -136,7 +157,7 @@ registerState(DataBase<Dim<1>>& dataBase,
 // Stuff that occurs the beginning of a timestep
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPH::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
@@ -181,13 +202,20 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     VERIFY2(false, "Unsupported mass density definition for Spherical SPH");
     break;
   }
+
+  // If needed prepare the pair-accelerations
+  if (this->compatibleEnergyEvolution()) {
+    const auto& connectivityMap = state.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
+  }
 }
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPH::
 evaluateDerivatives(const Dim<1>::Scalar time,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
@@ -196,7 +224,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   TIME_BEGIN("SphericalSPHevalDerivs");
   TIME_BEGIN("SphericalSPHevalDerivs_initial");
 
-  //static double totalLoopTime = 0.0;
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
@@ -210,6 +237,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
   // A few useful constants we'll use in the following loop.
   const auto tiny = 1.0e-30;
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto XSPH = this->XSPH();
+  const auto correctVelocityGradient = this->correctVelocityGradient();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -253,6 +284,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);
@@ -269,14 +301,10 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(not mCompatibleEnergyEvolution or pairAccelerations.size() == npairs);
-
-  // Size up the pair-wise accelerations before we start.
-  const auto nnodes = dataBase.numFluidInternalNodes();
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(2u*npairs + nnodes);
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy     and selfAccelerations.size() == 0u) or
+        (not compatibleEnergy and selfAccelerations.size() == numNodeLists));
   TIME_END("SphericalSPHevalDerivs_initial");
-
-  Vector gradSum_check;
 
   // Walk all the interacting pairs.
   TIME_BEGIN("SphericalSPHevalDerivs_pairs");
@@ -428,10 +456,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) {
-        pairAccelerations[2*kk] = deltaDvDti;
-        pairAccelerations[2*kk+1] = deltaDvDtj;
-      }
+      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution
       DepsDti += mj*(Prhoi + 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
@@ -450,7 +475,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       }
 
       // Estimate of delta v (for XSPH).
-      if (mXSPH and (sameMatij)) {
+      if (XSPH and (sameMatij)) {
         const auto wXSPHij = 0.5*(mi/rhoi*Wji + mj/rhoj*Wij);
         XSPHWeightSumi += wXSPHij;
         XSPHWeightSumj += wXSPHij;
@@ -478,7 +503,6 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
   // Finish up the derivatives for each point.
   TIME_BEGIN("SphericalSPHevalDerivs_final");
-  size_t offset = 2u*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
@@ -530,7 +554,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 
       // Finish the gradient of the velocity.
       CHECK(rhoi > 0.0);
-      if (this->mCorrectVelocityGradient and
+      if (correctVelocityGradient and
           std::abs(Mi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         Mi = Mi.Inverse();
@@ -538,7 +562,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       } else {
         DvDxi /= rhoi;
       }
-      if (this->mCorrectVelocityGradient and
+      if (correctVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
           numNeighborsi > Dimension::pownu(2)) {
         localMi = localMi.Inverse();
@@ -562,16 +586,16 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       // Self-interaction for momentum (cause curvilinear coordinates are weird)
       const auto deltaDvDti = -mi*safeOmegai/(rhoi*rhoi)*(2.0*Pi*gradWii + Qi*gradWQii);
       DvDti += deltaDvDti;
-      if (mCompatibleEnergyEvolution) pairAccelerations[offset + i] = deltaDvDti;
+      if (compatibleEnergy) selfAccelerations(nodeListi, i) = deltaDvDti;
 
       // Specific thermal energy
       DepsDti += 2.0*mi/(rhoi*rhoi)*(Pi + 0.5*Qi)*vi.dot(gradWii) - 2.0*Pi/rhoi*vi.x()*riInv;
 
       // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
-      if (mXSPH) {
+      if (XSPH) {
         XSPHWeightSumi += mi/rhoi*Wii;
         CHECK2(XSPHWeightSumi != 0.0, i << " " << XSPHWeightSumi);
         DxDti = vi + XSPHDeltaVi/max(tiny, XSPHWeightSumi);
@@ -579,9 +603,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
         DxDti = vi;
       }
     }
-    offset += ni;
   }
-  CHECK(offset == 2u*npairs + nnodes);
   TIME_END("SphericalSPHevalDerivs_final");
   TIME_END("SphericalSPHevalDerivs");
 }
@@ -590,7 +612,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPH::
 applyGhostBoundaries(State<Dim<1>>& state,
                      StateDerivatives<Dim<1>>& derivs) {
 
@@ -608,7 +630,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SPHHydroBase<Dim<1>>::applyGhostBoundaries(state, derivs);
+  SPHBase<Dim<1>>::applyGhostBoundaries(state, derivs);
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
@@ -626,7 +648,7 @@ applyGhostBoundaries(State<Dim<1>>& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-SphericalSPHHydroBase::
+SphericalSPH::
 enforceBoundaries(State<Dim<1>>& state,
                   StateDerivatives<Dim<1>>& derivs) {
 
@@ -644,7 +666,7 @@ enforceBoundaries(State<Dim<1>>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SPHHydroBase<Dim<1>>::enforceBoundaries(state, derivs);
+  SPHBase<Dim<1>>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
@@ -655,39 +677,6 @@ enforceBoundaries(State<Dim<1>>& state,
       mass(nodeListi, i) *= dA;
     }
   }
-}
-
-//------------------------------------------------------------------------------
-// Access the main kernel used for (A)SPH field estimates.
-//------------------------------------------------------------------------------
-const SphericalKernel&
-SphericalSPHHydroBase::
-kernel() const {
-  return mKernel;
-}
-
-//------------------------------------------------------------------------------
-// Access the kernel used for artificial viscosity gradients.
-//------------------------------------------------------------------------------
-const SphericalKernel&
-SphericalSPHHydroBase::
-PiKernel() const {
-  return mPiKernel;
-}
-
-//------------------------------------------------------------------------------
-// The self-Q multiplier
-//------------------------------------------------------------------------------
-double
-SphericalSPHHydroBase::
-Qself() const {
-  return mQself;
-}
-
-void
-SphericalSPHHydroBase::
-Qself(const double x) {
-  mQself = x;
 }
 
 }

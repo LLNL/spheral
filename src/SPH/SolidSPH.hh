@@ -1,15 +1,15 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidSPHHydroBase -- The SPH/ASPH solid material hydrodynamic package for Spheral++.
+// SolidSPH -- The SPH/ASPH solid material hydrodynamic package for Spheral++.
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidSPHHydroBase_hh__
-#define __Spheral_SolidSPHHydroBase_hh__
+#ifndef __Spheral_SolidSPH_hh__
+#define __Spheral_SolidSPH_hh__
 
 #include <float.h>
 #include <string>
 
-#include "SPH/SPHHydroBase.hh"
+#include "SPH/SPH.hh"
 
 namespace Spheral {
 
@@ -20,50 +20,51 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename Value> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
-class SolidSPHHydroBase: public SPHHydroBase<Dimension> {
+class SolidSPH: public SPH<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidSPHHydroBase(DataBase<Dimension>& dataBase,
-                    ArtificialViscosity<Dimension>& Q,
-                    const TableKernel<Dimension>& W,
-                    const TableKernel<Dimension>& WPi,
-                    const TableKernel<Dimension>& WGrad,
-                    const double filter,
-                    const double cfl,
-                    const bool useVelocityMagnitudeForDt,
-                    const bool compatibleEnergyEvolution,
-                    const bool evolveTotalEnergy,
-                    const bool gradhCorrection,
-                    const bool XSPH,
-                    const bool correctVelocityGradient,
-                    const bool sumMassDensityOverAllNodeLists,
-                    const MassDensityType densityUpdate,
-                    const double epsTensile,
-                    const double nTensile,
-                    const bool damageRelieveRubble,
-                    const bool strengthInDamage,
-                    const Vector& xmin,
-                    const Vector& xmax);
+  SolidSPH(DataBase<Dimension>& dataBase,
+           ArtificialViscosity<Dimension>& Q,
+           const TableKernel<Dimension>& W,
+           const TableKernel<Dimension>& WPi,
+           const TableKernel<Dimension>& WGrad,
+           const double cfl,
+           const bool useVelocityMagnitudeForDt,
+           const bool compatibleEnergyEvolution,
+           const bool evolveTotalEnergy,
+           const bool gradhCorrection,
+           const bool XSPH,
+           const bool correctVelocityGradient,
+           const bool sumMassDensityOverAllNodeLists,
+           const MassDensityType densityUpdate,
+           const double epsTensile,
+           const double nTensile,
+           const bool damageRelieveRubble,
+           const bool strengthInDamage,
+           const Vector& xmin,
+           const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  SolidSPHHydroBase() = delete;
-  SolidSPHHydroBase(const SolidSPHHydroBase&) = delete;
-  SolidSPHHydroBase& operator=(const SolidSPHHydroBase&) = delete;
+  SolidSPH() = delete;
+  SolidSPH(const SolidSPH&) = delete;
+  SolidSPH& operator=(const SolidSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidSPHHydroBase();
+  virtual ~SolidSPH() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -105,23 +106,23 @@ public:
   const TableKernel<Dimension>& GradKernel() const;
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, Scalar>& bulkModulus() const;
-  const FieldList<Dimension, Scalar>& shearModulus() const;
-  const FieldList<Dimension, Scalar>& yieldStrength() const;
-  const FieldList<Dimension, Scalar>& plasticStrain0() const;
+  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const { return mDdeviatoricStressDt; }
+  const FieldList<Dimension, Scalar>& bulkModulus()            const { return mBulkModulus; }
+  const FieldList<Dimension, Scalar>& shearModulus()           const { return mShearModulus; }
+  const FieldList<Dimension, Scalar>& yieldStrength()          const { return mYieldStrength; }
+  const FieldList<Dimension, Scalar>& plasticStrain0()         const { return mPlasticStrain0; }
 
   // Control whether allow damaged material to have stress relieved.
-  bool damageRelieveRubble() const;
-  void damageRelieveRubble(bool x);
+  bool damageRelieveRubble()                                   const { return mDamageRelieveRubble; }
+  void damageRelieveRubble(bool x)                                   { mDamageRelieveRubble = x; }
 
   // Do we allow damaged material to have strength?
-  bool strengthInDamage() const;
-  void strengthInDamage(bool x);
+  bool strengthInDamage()                                      const { return mStrengthInDamage; }
+  void strengthInDamage(bool x)                                      { mStrengthInDamage = x; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidSPHHydroBase"; }
+  virtual std::string label()                                 const override { return "SolidSPH"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
@@ -144,7 +145,5 @@ private:
 };
 
 }
-
-#include "SolidSPHHydroBaseInline.hh"
 
 #endif

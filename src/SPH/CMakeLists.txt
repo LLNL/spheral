@@ -1,6 +1,7 @@
 include_directories(.)
 set(SPH_inst
     SPHBase
+    SPH
     PSPH
     SolidSPH
     computeSPHOmegaGradhCorrection
@@ -9,7 +10,6 @@ set(SPH_inst
     computePSPHCorrections
     computeSumVoronoiCellMassDensity
     )
-
 
 set(SPH_sources )
 
@@ -38,13 +38,10 @@ instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
     PSPH.hh
-    PSPHInline.hh
     SPHBase.hh
-    SPHBaseInline.hh
     SPHRZ.hh
     SphericalSPH.hh
     SolidSPH.hh
-    SolidSPHInline.hh
     SolidSPHRZ.hh
     SolidSphericalSPH.hh
     computeHydrostaticEquilibriumPressure.hh

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "SPHHydroBase.hh"
+#include "SPHBase.hh"
 
 namespace Spheral {
 
@@ -17,12 +17,13 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension, typename Value> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
-class PSPHHydroBase: public SPHHydroBase<Dimension> {
+class PSPH: public SPHBase<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -31,45 +32,52 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
 
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  PSPHHydroBase(DataBase<Dimension>& dataBase,
-                ArtificialViscosity<Dimension>& Q,
-                const TableKernel<Dimension>& W,
-                const TableKernel<Dimension>& WPi,
-                const double cfl,
-                const bool useVelocityMagnitudeForDt,
-                const bool compatibleEnergyEvolution,
-                const bool evolveTotalEnergy,
-                const bool XSPH,
-                const bool correctVelocityGradient,
-                const bool HopkinsConductivity,
-                const bool sumMassDensityOverAllNodeLists,
-                const MassDensityType densityUpdate,
-                const Vector& xmin,
-                const Vector& xmax);
+  PSPH(DataBase<Dimension>& dataBase,
+       ArtificialViscosity<Dimension>& Q,
+       const TableKernel<Dimension>& W,
+       const TableKernel<Dimension>& WPi,
+       const double cfl,
+       const bool useVelocityMagnitudeForDt,
+       const bool compatibleEnergyEvolution,
+       const bool evolveTotalEnergy,
+       const bool XSPH,
+       const bool correctVelocityGradient,
+       const bool HopkinsConductivity,
+       const bool sumMassDensityOverAllNodeLists,
+       const MassDensityType densityUpdate,
+       const Vector& xmin,
+       const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  PSPHHydroBase() = delete;
-  PSPHHydroBase(const PSPHHydroBase&) = delete;
-  PSPHHydroBase& operator=(const PSPHHydroBase&) = delete;
+  PSPH() = delete;
+  PSPH(const PSPH&) = delete;
+  PSPH& operator=(const PSPH&) = delete;
 
   // Destructor.
-  virtual ~PSPHHydroBase();
+  virtual ~PSPH() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
+
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
   // One use for this hook is to fill in dependendent state using the State object, such as
   // temperature or pressure.
-  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
-                                                    State<Dimension>& state,
-                                                    StateDerivatives<Dimension>& derivs) override;
+  virtual
+  void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                            State<Dimension>& state,
+                                            StateDerivatives<Dimension>& derivs) override;
 
   // Pre-step initializations.
   virtual 
@@ -113,16 +121,17 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
   // Flag determining if we're applying Hopkins 2014 conductivity.
-  bool HopkinsConductivity() const;
-  void HopkinsConductivity(bool val);
+  bool HopkinsConductivity()                                        const { return mHopkinsConductivity; }
+  void HopkinsConductivity(bool x)                                        { mHopkinsConductivity = x; }
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, Scalar>&    gamma() const;
-  const FieldList<Dimension, Scalar>&    PSPHcorrection() const;
+  const FieldList<Dimension, Scalar>&    gamma()                    const { return mGamma; }
+  const FieldList<Dimension, Scalar>&    PSPHcorrection()           const { return mPSPHcorrection; }
+  const PairAccelerationsType&           pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "PSPHHydroBase"; }
+  virtual std::string label()                                       const override { return "PSPH"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
@@ -134,10 +143,9 @@ protected:
   //PSPH Fields
   FieldList<Dimension, Scalar>    mGamma;
   FieldList<Dimension, Scalar>    mPSPHcorrection;
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
 };
 
 }
-
-#include "PSPHHydroBaseInline.hh"
 
 #endif
