@@ -50,9 +50,9 @@ def SPH(W,
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
         if nsolid > 0:
-            constructor = SolidSphericalSPHHydroBase
+            constructor = SolidSphericalSPH
         else:
-            constructor = SphericalSPHHydroBase
+            constructor = SphericalSPH
 
         # Build the spherical kernels
         print("Constructing Spherical kernels...")
@@ -68,15 +68,15 @@ def SPH(W,
     elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
         if nsolid > 0:
-            constructor = SolidSPHHydroBaseRZ
+            constructor = SolidSPHRZ
         else:
-            constructor = SPHHydroBaseRZ
+            constructor = SPHRZ
 
     else:
         if nsolid > 0:
-            constructor = eval("SolidSPHHydroBase%id" % ndim)
+            constructor = eval("SolidSPH%id" % ndim)
         else:
-            constructor = eval("SPHHydroBase%id" % ndim)
+            constructor = eval("SPH%id" % ndim)
 
     # Fill out the set of kernels
     if WPi is None:
