@@ -18,6 +18,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
@@ -79,7 +80,7 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, Vector>>(HydroFieldNames::pairAccelerations);
   const auto& pairDepsDt = derivs.get(HydroFieldNames::pairWork, vector<Scalar>());
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
