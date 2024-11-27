@@ -33,7 +33,7 @@ foreach(test ${gtest_spheral_tests})
 
   if (NOT ENABLE_CXXONLY)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pyRunCXXTest.in"
-                   "${SPHERAL_TEST_INSTALL_PREFIX}/tests/unit/CXXTests/${test_name}.py"
+                   "${SPHERAL_TEST_INSTALL_PREFIX}/unit/CXXTests/${test_name}.py"
                    )
   endif()
   
@@ -50,6 +50,6 @@ string(REPLACE ";" ", " TEST_LIST "${TESTS}")
 
 if (NOT ENABLE_CXXONLY)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/runCXXTests.in"
-                 "${SPHERAL_TEST_INSTALL_PREFIX}/tests/unit/CXXTests/runCXXTests.ats"
+                 "${SPHERAL_TEST_INSTALL_PREFIX}/unit/CXXTests/runCXXTests.ats"
                  )
 endif()

@@ -25,9 +25,10 @@ Notable changes include:
       * Physics::postStateUpdate now returns a bool indicating if boundary conditions should be enforced again.
       * Physics packages can now have Physics sub-packages, which can be run before or after the main package.  The SpheralController
         now checks for these packages and adds them to the physics package list as needed.
-      * Physics packages can indicate if they require Voronoi cell information be available.  If so, a new package which computes and
+      * Physics packages can indicate if they require Voronoi cell information be available. If so, a new package which computes and
         updates the Voronoi information is automatically added to the package list by the SpheralController (similar to how the
         Reproducing Kernel corrections are handled).
+    * Command line options are now consistent. Default values of a string "None" are no longer allowed and any input through the command line of "None" will become the python NoneType None.
     * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
       during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
       is correct.
@@ -43,13 +44,16 @@ Notable changes include:
     * ENABLE\_DEV\_BUILD can now export targets properly.
     * Added a GCC flag to prevent building variable tracking symbols when building PYB11 modules.  This is unnecessary, and
       on some platforms trying to build such symbols is very expensive and in some cases fails.
+    * Consolidates lcatstest.in and run\_ats.py into a single spheral\_ats.py script.
+    * SPHERAL\_TEST\_INSTALL\_PREFIX now includes the tests directory.
+    * Removed most configured files and added a SpheralConfigs.py file to use at runtime instead.
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.
     * Time step estimate due to velocity divergence in RZ space has been fixed.
     * Fixed tolerances for ANEOS equation of state temperature lookup
     * Clang C++ warnings have eliminated, so the Clang CI tests have been updated to treat warnings as errors.
-    * Fix for installing libraries when building individual package WITH ENABLE_DEV_BUILD=On.
+    * Fix for installing libraries when building individual package with ENABLE\_DEV\_BUILD=On.
     * Bugfix for RZ solid CRKSPH with compatible energy.
     * Parsing of None string now always becomes None python type. Tests have been updated accordingly.
     * IO for checkpoints and visuzalization can now be properly turned off through SpheralController input options.

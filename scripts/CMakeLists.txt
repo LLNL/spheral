@@ -8,71 +8,29 @@ if (NOT ENABLE_CXXONLY)
   # our virtual env in spheral-setup-venv.sh
   string(REGEX REPLACE "lib\/python3.9\/site-packages\/?[A-Za-z]*:" ";" VIRTUALENV_PYTHONPATH_COPY "${SPACK_PYTHONPATH}:")
 
-  set(SPHERAL_ATS_BUILD_CONFIG_ARGS )
-
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"level<100\"'")
-  endif()
-
-  if (NOT ENABLE_MPI)
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"np<2\"'")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_FSISPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not fsisph\"'")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_GSPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not gsph\"'")
-  endif()
-
-  if (NOT SPHERAL_ENABLE_SVPH)
-     list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--filter='\"not svph\"'")
-  endif()
-
-  if ($ENV{SYS_TYPE} MATCHES ".*blueos.*")
-    list(APPEND SPHERAL_ATS_BUILD_CONFIG_ARGS "--addOp --smpi_off")
-  endif()
-
-  string(REPLACE ";" " " SPHERAL_ATS_BUILD_CONFIG_ARGS_STRING "${SPHERAL_ATS_BUILD_CONFIG_ARGS}")
-
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-setup-venv.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
-    )
+  )
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-env.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
-    )
+  )
 
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/atstest.in"
     "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
-    )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/lcatstest.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
   )
 
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/performance/performance.py.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-  )
-
-  install(FILES
+  install(FILES 
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
-      "${CMAKE_CURRENT_BINARY_DIR}/lcatstest.sh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/lc/lcats"
+      "${CMAKE_CURRENT_SOURCE_DIR}/spheral_ats.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/gitlab/performance_analysis.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/spheralutils.py"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
-  )
-
-  install(FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
   )
 
   install(CODE "execute_process( \
@@ -80,6 +38,7 @@ if (NOT ENABLE_CXXONLY)
     'Spheral>')"
   )
 
+  # Copy over all of the python TPL files, with a few exceptions
   foreach(_venv_dir ${VIRTUALENV_PYTHONPATH_COPY})
     if(NOT ${_venv_dir} MATCHES "sphinx")
       install(DIRECTORY ${_venv_dir}
