@@ -146,6 +146,22 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Register the state derivative fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+PSPH<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+  SPHBase<Dimension>::registerDerivatives(dataBase, derivs);
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    CHECK(mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Pre-step initializations.  Since the topology has just been changed we need
 // to recompute the PSPH corrections.
 //------------------------------------------------------------------------------

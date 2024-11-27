@@ -10,6 +10,7 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 from SPHBase import *
+from SPH import *
 from PSPH import *
 from SolidSPH import *
 from SolidSphericalSPH import *
@@ -18,6 +19,7 @@ from SolidSphericalSPH import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"SPH/SPHBase.hh"',
+                  '"SPH/SPH.hh"',
                   '"SPH/PSPH.hh"',
                   '"SPH/computeSPHSumMassDensity.hh"',
                   '"SPH/computeSPHOmegaGradhCorrection.hh"',
@@ -27,7 +29,8 @@ PYB11includes += ['"SPH/SPHBase.hh"',
                   '"SPH/SolidSPHRZ.hh"',
                   '"SPH/SolidSphericalSPH.hh"',
                   '"FileIO/FileIO.hh"',
-                  '"ArtificialViscosity/ArtificialViscosity.hh"']
+                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"Neighbor/PairwiseField.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -63,6 +66,7 @@ def computeSPHOmegaGradhCorrection(connectivityMap = "const ConnectivityMap<%(Di
 for ndim in dims:
     exec('''
 SPHBase%(ndim)id = PYB11TemplateClass(SPHBase, template_parameters="%(Dimension)s")
+SPH%(ndim)id = PYB11TemplateClass(SPH, template_parameters="%(Dimension)s")
 PSPH%(ndim)id = PYB11TemplateClass(PSPH, template_parameters="%(Dimension)s")
 SolidSPH%(ndim)id = PYB11TemplateClass(SolidSPH, template_parameters="%(Dimension)s")
 

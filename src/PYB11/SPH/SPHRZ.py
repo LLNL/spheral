@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# SPHHydroBaseRZ
+# SPHRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from SPHBase import *
@@ -23,7 +23,6 @@ class SPHRZ(SPHBase):
                Q = "ArtificialViscosity<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",

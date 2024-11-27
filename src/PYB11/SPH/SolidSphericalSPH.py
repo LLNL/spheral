@@ -16,7 +16,7 @@ class SolidSphericalSPH(SolidSPH):
   using Tensor = typename %(Dimension)s::Tensor;
   using SymTensor = typename %(Dimension)s::SymTensor;
   using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
-  using PairAccelerationsType = PairwiseField<%(Dimension)s, Vector>;
+  using PairAccelerationsType = typename SolidSphericalSPH::PairAccelerationsType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",

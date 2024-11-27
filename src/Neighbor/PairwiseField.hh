@@ -10,6 +10,7 @@
 #ifndef _Spheral_NeighborSpace_PairwiseField_hh_
 #define _Spheral_NeighborSpace_PairwiseField_hh_
 
+#include "Utilities/DataTypeTraits.hh"
 #include "Utilities/DBC.hh"
 
 #include <vector>
@@ -19,6 +20,7 @@ namespace Spheral {
 
 // Forward declarations
 template<typename Dimension> class ConnectivityMap;
+struct NodePairIdxType;
 class NodePairList;
 
 template<typename Dimension, typename Value>
@@ -41,28 +43,35 @@ public:
   PairwiseField& operator=(const PairwiseField& rhs)                       = default;
 
   // Access the data
-  const Value& operator[](const size_t k) const                            { REQUIRE(k < mValues.size()); return mValues[k]; }
+  const Value& operator[](const size_t k) const                            { REQUIRE(!mPairsPtr.expired() and k < mValues.size()); return mValues[k]; }
   const Value& operator()(const size_t k) const                            { return (*this)[k]; }
   const Value& operator()(const NodePairIdxType& x) const;
 
-  Value& operator[](const size_t k)                                        { REQUIRE(k < mValues.size()); return mValues[k]; }
+  Value& operator[](const size_t k)                                        { REQUIRE(!mPairsPtr.expired() and k < mValues.size()); return mValues[k]; }
   Value& operator()(const size_t k)                                        { return (*this)[k]; }
   Value& operator()(const NodePairIdxType& x);
 
-  // Iterators
-  const_iterator begin() const                                             { return mValues.begin(); }
-  const_iterator end() const                                               { return mValues.end(); }
-  const_iterator rbegin() const                                            { return mValues.rbegin(); }
-  const_iterator rend() const                                              { return mValues.rend(); }
+  // Comparators
+  bool operator==(const PairwiseField& rhs)                                { REQUIRE(!mPairsPtr.expired()); return mValues == rhs.mValues; }
+  bool operator!=(const PairwiseField& rhs)                                { REQUIRE(!mPairsPtr.expired()); return mValues != rhs.mValues; }
 
-  iterator begin()                                                         { return mValues.begin(); }
-  iterator end()                                                           { return mValues.end(); }
-  iterator rbegin()                                                        { return mValues.rbegin(); }
-  iterator rend()                                                          { return mValues.rend(); }
+  // Iterators
+  const_iterator begin() const                                             { REQUIRE(!mPairsPtr.expired()); return mValues.begin(); }
+  const_iterator end() const                                               { REQUIRE(!mPairsPtr.expired()); return mValues.end(); }
+  const_iterator rbegin() const                                            { REQUIRE(!mPairsPtr.expired()); return mValues.rbegin(); }
+  const_iterator rend() const                                              { REQUIRE(!mPairsPtr.expired()); return mValues.rend(); }
+
+  iterator begin()                                                         { REQUIRE(!mPairsPtr.expired()); return mValues.begin(); }
+  iterator end()                                                           { REQUIRE(!mPairsPtr.expired()); return mValues.end(); }
+  iterator rbegin()                                                        { REQUIRE(!mPairsPtr.expired()); return mValues.rbegin(); }
+  iterator rend()                                                          { REQUIRE(!mPairsPtr.expired()); return mValues.rend(); }
 
   // Other methods
   const NodePairList& pairs() const;
-  size_t size() const                                                      { return mValues.size(); }
+  size_t size() const                                                      { REQUIRE(!mPairsPtr.expired()); return mValues.size(); }
+
+  // Zero the Field
+  void Zero()                                                              { for (auto& x: mValues) x = DataTypeTraits<Value>::zero(); }
 
   // Forbidden methods
   PairwiseField()                                                          = delete;

@@ -1,14 +1,14 @@
 #-------------------------------------------------------------------------------
-# PSPHHydroBase
+# PSPH
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHHydroBase import *
+from SPHBase import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class PSPHHydroBase(SPHHydroBase):
+class PSPH(SPHBase):
 
     PYB11typedefs = """
   using Scalar = typename %(Dimension)s::Scalar;
@@ -34,7 +34,7 @@ class PSPHHydroBase(SPHHydroBase):
                densityUpdate = "const MassDensityType",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "PSPHHydroBase constructor"
+        "PSPH constructor"
 
     #...........................................................................
     # Virtual methods
@@ -133,4 +133,4 @@ mass density, velocity, and specific thermal energy."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, PSPHHydroBase)
+PYB11inject(RestartMethods, PSPH)

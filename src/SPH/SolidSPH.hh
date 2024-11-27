@@ -103,7 +103,7 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
   // Gradient kernel
-  const TableKernel<Dimension>& GradKernel() const;
+  const TableKernel<Dimension>& GradKernel()                   const { return mGradKernel; }
 
   // The state field lists we're maintaining.
   const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const { return mDdeviatoricStressDt; }

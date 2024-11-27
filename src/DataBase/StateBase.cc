@@ -8,6 +8,7 @@
 #include "StateBase.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Mesh/Mesh.hh"
 #include "RK/RKCorrectionParams.hh"
@@ -30,23 +31,48 @@ using std::shared_ptr;
 using std::make_shared;
 using std::any;
 using std::any_cast;
+using std::reference_wrapper;
+using std::string;
+using std::map;
+using std::list;
 
 namespace Spheral {
 
 namespace {
 
 //------------------------------------------------------------------------------
-// Template for generic cloning during copyState
+// Comparison
 //------------------------------------------------------------------------------
-template<typename T>
-void
-genericClone(std::any& x,
-             const std::string& key,
-             typename std::map<std::string, std::any>& storage,
-             typename std::list<std::any>& cache) {
-  auto clone = std::make_shared<T>(std::any_cast<std::reference_wrapper<T>>(x).get());
-  cache.push_back(clone);
-  storage[key] = std::ref(*clone);
+template<typename VisitorType, typename T>
+static void addCompare(VisitorType& visitor) {
+  visitor.template addVisitor<reference_wrapper<T>>([](const any& x, const any& y) -> bool {
+                                                      return any_cast<reference_wrapper<T>>(x).get() == any_cast<reference_wrapper<T>>(y).get();
+                                                    });
+}
+
+//------------------------------------------------------------------------------
+// Assignment
+//------------------------------------------------------------------------------
+template<typename VisitorType, typename T>
+static void addAssign(VisitorType& visitor) {
+  visitor.template addVisitor<reference_wrapper<T>>([](any& x, const any& y) {
+                                                      any_cast<reference_wrapper<T>>(x).get() = any_cast<reference_wrapper<T>>(y).get();
+                                                    });
+}
+
+//------------------------------------------------------------------------------
+// Clone
+//------------------------------------------------------------------------------
+template<typename VisitorType, typename T>
+void addClone(VisitorType& visitor) {
+  visitor.template addVisitor<reference_wrapper<T>>([](std::any& x,
+                                                       const std::string& key,
+                                                       std::map<std::string, std::any>& storage,
+                                                       std::list<std::any>& cache) {
+                                                      auto clone = make_shared<T>(any_cast<reference_wrapper<T>>(x).get());
+                                                      cache.push_back(clone);
+                                                      storage[key] = std::ref(*clone);
+                                                    });
 }
 
 }
@@ -87,19 +113,22 @@ operator==(const StateBase<Dimension>& rhs) const {
   }
 
   // Build up a visitor to compare each type of state data we support holding
-  AnyVisitor<bool, const std::any&, const std::any&> EQUAL;
-  EQUAL.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>        ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get()         == std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<Scalar>>                      ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<Scalar>>(x).get()                       == std::any_cast<std::reference_wrapper<Scalar>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<Vector>>                      ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<Vector>>(x).get()                       == std::any_cast<std::reference_wrapper<Vector>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<Tensor>>                      ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<Tensor>>(x).get()                       == std::any_cast<std::reference_wrapper<Tensor>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<SymTensor>>                   ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<SymTensor>>(x).get()                    == std::any_cast<std::reference_wrapper<SymTensor>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<vector<Scalar>>>              ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<vector<Scalar>>>(x).get()               == std::any_cast<std::reference_wrapper<vector<Scalar>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<vector<Vector>>>              ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<vector<Vector>>>(x).get()               == std::any_cast<std::reference_wrapper<vector<Vector>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<vector<Tensor>>>              ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<vector<Tensor>>>(x).get()               == std::any_cast<std::reference_wrapper<vector<Tensor>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<vector<SymTensor>>>           ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<vector<SymTensor>>>(x).get()            == std::any_cast<std::reference_wrapper<vector<SymTensor>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<set<int>>>                    ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<set<int>>>(x).get()                     == std::any_cast<std::reference_wrapper<set<int>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<set<RKOrder>>>                ([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<set<RKOrder>>>(x).get()                 == std::any_cast<std::reference_wrapper<set<RKOrder>>>(y).get(); });
-  EQUAL.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>([](const std::any& x, const std::any& y) -> bool { return std::any_cast<std::reference_wrapper<ReproducingKernel<Dimension>>>(x).get() == std::any_cast<std::reference_wrapper<ReproducingKernel<Dimension>>>(y).get(); });
+  using VisitorType = AnyVisitor<bool, const std::any&, const std::any&>;
+  VisitorType EQUAL;
+  addCompare<VisitorType, FieldBase<Dimension>>                          (EQUAL);
+  addCompare<VisitorType, Scalar>                                        (EQUAL);
+  addCompare<VisitorType, Vector>                                        (EQUAL);
+  addCompare<VisitorType, Tensor>                                        (EQUAL);
+  addCompare<VisitorType, SymTensor>                                     (EQUAL);
+  addCompare<VisitorType, vector<Scalar>>                                (EQUAL);
+  addCompare<VisitorType, vector<Vector>>                                (EQUAL);
+  addCompare<VisitorType, vector<Tensor>>                                (EQUAL);
+  addCompare<VisitorType, vector<SymTensor>>                             (EQUAL);
+  addCompare<VisitorType, set<int>>                                      (EQUAL);
+  addCompare<VisitorType, set<RKOrder>>                                  (EQUAL);
+  addCompare<VisitorType, ReproducingKernel<Dimension>>                  (EQUAL);
+  addCompare<VisitorType, PairwiseField<Dimension, Vector>>              (EQUAL);
+  addCompare<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(EQUAL);
   
   // Apply the equality visitor to all the stored State data
   auto lhsitr = mStorage.begin();
@@ -356,19 +385,22 @@ StateBase<Dimension>::
 assign(const StateBase<Dimension>& rhs) {
 
   // Build a visitor that knows how to assign each of our datatypes
-  AnyVisitor<void, std::any&, const std::any&> ASSIGN;
-  ASSIGN.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>        ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get()         = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<Scalar>>                      ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<Scalar>>(x).get()                       = std::any_cast<std::reference_wrapper<Scalar>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<Vector>>                      ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<Vector>>(x).get()                       = std::any_cast<std::reference_wrapper<Vector>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<Tensor>>                      ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<Tensor>>(x).get()                       = std::any_cast<std::reference_wrapper<Tensor>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<SymTensor>>                   ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<SymTensor>>(x).get()                    = std::any_cast<std::reference_wrapper<SymTensor>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<vector<Scalar>>>              ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<vector<Scalar>>>(x).get()               = std::any_cast<std::reference_wrapper<vector<Scalar>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<vector<Vector>>>              ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<vector<Vector>>>(x).get()               = std::any_cast<std::reference_wrapper<vector<Vector>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<vector<Tensor>>>              ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<vector<Tensor>>>(x).get()               = std::any_cast<std::reference_wrapper<vector<Tensor>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<vector<SymTensor>>>           ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<vector<SymTensor>>>(x).get()            = std::any_cast<std::reference_wrapper<vector<SymTensor>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<set<int>>>                    ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<set<int>>>(x).get()                     = std::any_cast<std::reference_wrapper<set<int>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<set<RKOrder>>>                ([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<set<RKOrder>>>(x).get()                 = std::any_cast<std::reference_wrapper<set<RKOrder>>>(y).get(); });
-  ASSIGN.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>([](std::any& x, const std::any& y) { std::any_cast<std::reference_wrapper<ReproducingKernel<Dimension>>>(x).get() = std::any_cast<std::reference_wrapper<ReproducingKernel<Dimension>>>(y).get(); });
+  using VisitorType = AnyVisitor<void, std::any&, const std::any&>;
+  VisitorType ASSIGN;
+  addAssign<VisitorType, FieldBase<Dimension>>                          (ASSIGN);
+  addAssign<VisitorType, Scalar>                                        (ASSIGN);
+  addAssign<VisitorType, Vector>                                        (ASSIGN);
+  addAssign<VisitorType, Tensor>                                        (ASSIGN);
+  addAssign<VisitorType, SymTensor>                                     (ASSIGN);
+  addAssign<VisitorType, vector<Scalar>>                                (ASSIGN);
+  addAssign<VisitorType, vector<Vector>>                                (ASSIGN);
+  addAssign<VisitorType, vector<Tensor>>                                (ASSIGN);
+  addAssign<VisitorType, vector<SymTensor>>                             (ASSIGN);
+  addAssign<VisitorType, set<int>>                                      (ASSIGN);
+  addAssign<VisitorType, set<RKOrder>>                                  (ASSIGN);
+  addAssign<VisitorType, ReproducingKernel<Dimension>>                  (ASSIGN);
+  addAssign<VisitorType, PairwiseField<Dimension, Vector>>              (ASSIGN);
+  addAssign<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(ASSIGN);
 
   // Apply the assignment visitor to all the stored State data
   auto lhsitr = mStorage.begin();
@@ -408,23 +440,26 @@ copyState() {
   mCache = CacheType();
 
   // Build a visitor to clone each type of state data
-  AnyVisitor<void, std::any&, const KeyType&, StorageType&, CacheType&> CLONE;
-  CLONE.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>            ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) {
-                                                                               auto clone = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get().clone();
-                                                                               cache.push_back(clone);
-                                                                               storage[key] = std::ref(*clone);
-                                                                             });
-  CLONE.addVisitor<std::reference_wrapper<Scalar>>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Scalar>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<Vector>>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Vector>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<Tensor>>                          ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<Tensor>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<SymTensor>>                       ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<SymTensor>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<vector<Scalar>>>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Scalar>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<vector<Vector>>>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Vector>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<vector<Tensor>>>                  ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<Tensor>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<vector<SymTensor>>>               ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<vector<SymTensor>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<set<int>>>                        ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<set<int>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<set<RKOrder>>>                    ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<set<RKOrder>>(x, key, storage, cache); });
-  CLONE.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>    ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) { genericClone<ReproducingKernel<Dimension>>(x, key, storage, cache); });
+  using VisitorType = AnyVisitor<void, any&, const KeyType&, StorageType&, CacheType&>;
+  VisitorType CLONE;
+  CLONE.addVisitor<reference_wrapper<FieldBase<Dimension>>>            ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) {
+                                                                          auto clone = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get().clone();
+                                                                          cache.push_back(clone);
+                                                                          storage[key] = std::ref(*clone);
+                                                                        });
+  addClone<VisitorType, Scalar>                                        (CLONE);
+  addClone<VisitorType, Vector>                                        (CLONE);
+  addClone<VisitorType, Tensor>                                        (CLONE);
+  addClone<VisitorType, SymTensor>                                     (CLONE);
+  addClone<VisitorType, vector<Scalar>>                                (CLONE);
+  addClone<VisitorType, vector<Vector>>                                (CLONE);
+  addClone<VisitorType, vector<Tensor>>                                (CLONE);
+  addClone<VisitorType, vector<SymTensor>>                             (CLONE);
+  addClone<VisitorType, set<int>>                                      (CLONE);
+  addClone<VisitorType, set<RKOrder>>                                  (CLONE);
+  addClone<VisitorType, ReproducingKernel<Dimension>>                  (CLONE);
+  addClone<VisitorType, PairwiseField<Dimension, Vector>>              (CLONE);
+  addClone<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(CLONE);
 
   // Clone all our stored data to cache
   for (auto& [key, anyval]: mStorage) {
