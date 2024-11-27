@@ -73,17 +73,6 @@ namespace {
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State():
-  StateBase<Dimension>(),
-  mPolicyMap(),
-  mTimeAdvanceOnly(false) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the state for the given set of Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -121,14 +110,6 @@ State(const State<Dimension>& rhs):
   StateBase<Dimension>(rhs),
   mPolicyMap(rhs.mPolicyMap),
   mTimeAdvanceOnly(rhs.mTimeAdvanceOnly) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-~State() {
 }
 
 //------------------------------------------------------------------------------

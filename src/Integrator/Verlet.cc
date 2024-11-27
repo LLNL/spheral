@@ -118,11 +118,11 @@ step(typename Dimension::Scalar maxTime,
   TIME_END("VerletDt");
 
   // If we're doing dt checking, we need to copy the initial state.
-  State<Dimension> state0;
+  std::unique_ptr<State<Dimension>> state0;
   if (dtcheck) {
     TIME_BEGIN("VerletCopyState0");
-    state0 = state;
-    state0.copyState();
+    state0 = std::make_unique<State<Dimension>>(state);
+    state0->copyState();
     TIME_END("VerletCopyState0");
   }
 
@@ -156,7 +156,7 @@ step(typename Dimension::Scalar maxTime,
                                       derivs);
     if (dtnew < dtcheckFrac*dt0) {
       this->currentTime(t);
-      state.assign(state0);
+      state.assign(*state0);
       return false;
       TIME_END("VerletDtCheck");
     }
@@ -207,7 +207,7 @@ step(typename Dimension::Scalar maxTime,
                                       derivs);
     if (dtnew < dtcheckFrac*dt0) {
       this->currentTime(t);
-      state.assign(state0);
+      state.assign(*state0);
       TIME_END("VerletDtCheck");
       return false;
     }

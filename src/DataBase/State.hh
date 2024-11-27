@@ -41,13 +41,12 @@ public:
   using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
   // Constructors, destructor.
-  State();
   State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
   State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
   State(const State& rhs);
-  virtual ~State();
+  virtual ~State() = default;
 
   // Assignment.
   State& operator=(const State& rhs);
@@ -109,6 +108,9 @@ public:
   // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
   // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
   template<typename T> void enroll(const KeyType& key, T& thing);
+
+  // Forbidden methods
+  State() = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//

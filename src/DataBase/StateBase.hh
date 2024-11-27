@@ -65,7 +65,7 @@ public:
   StateBase();
   StateBase(const StateBase& rhs) = default;
   StateBase& operator=(const StateBase& rhs) = default;
-  virtual ~StateBase() {}
+  virtual ~StateBase() = default;
 
   // Test if two StateBases have equivalent fields.
   virtual bool operator==(const StateBase& rhs) const;

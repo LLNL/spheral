@@ -40,17 +40,6 @@ void addZero(VisitorType& visitor) {
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateDerivatives<Dimension>::
-StateDerivatives():
-  StateBase<Dimension>(),
-  mCalculatedNodePairs(),
-  mNumSignificantNeighbors() {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the derivatives for the given set of Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -86,14 +75,6 @@ StateDerivatives(const StateDerivatives<Dimension>& rhs):
   StateBase<Dimension>(rhs),
   mCalculatedNodePairs(rhs.mCalculatedNodePairs),
   mNumSignificantNeighbors(rhs.mNumSignificantNeighbors) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateDerivatives<Dimension>::
-~StateDerivatives() {
 }
 
 //------------------------------------------------------------------------------

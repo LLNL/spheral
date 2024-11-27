@@ -38,13 +38,12 @@ public:
   using KeyType = typename StateBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  StateDerivatives();
   StateDerivatives(DataBase<Dimension>& dataBase, PackageList& physicsPackage);
   StateDerivatives(DataBase<Dimension>& dataBase,
                    PackageIterator physicsPackageBegin,
                    PackageIterator physicsPackageEnd);
   StateDerivatives(const StateDerivatives& rhs);
-  virtual ~StateDerivatives();
+  virtual ~StateDerivatives() = default;
 
   // Assignment.
   StateDerivatives& operator=(const StateDerivatives& rhs);
@@ -68,6 +67,9 @@ public:
 
   // Force all derivative FieldLists to zero.
   void Zero();
+
+  // Forbidden methods
+  StateDerivatives() = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//
