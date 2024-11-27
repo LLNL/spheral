@@ -35,12 +35,25 @@ endif()
 
 string(REPLACE ";" " " DIMS "${_dims}")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
 
+# Generate the Spheral.py master file with some conditional imports based on our configuration
+set(HYDRO_IMPORTS "SPHHydros PSPHHydros CRKSPHHydros DEM SPHUtilities")
+if (SPHERAL_ENABLE_FSISPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} FSISPHHydros SlideSurfaces")
+endif()
+if (SPHERAL_ENABLE_GSPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} GSPHHydros")
+endif()
+if (SPHERAL_ENABLE_SVPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} SVPHHydros")
+endif()
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py)
 
 spheral_install_python_files(
-  Spheral.py
   Spheral1d.py
   Spheral2d.py
   Spheral3d.py
@@ -78,6 +91,7 @@ spheral_install_python_files(
   writeSiloQuadMesh.py
   buildOrderedDict.py
   CaptureStdout.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
   )
