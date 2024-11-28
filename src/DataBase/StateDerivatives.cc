@@ -50,6 +50,8 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
   for (auto pkg: physicsPackages) pkg->registerDerivatives(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
@@ -64,6 +66,8 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
   for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerDerivatives(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------

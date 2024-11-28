@@ -29,25 +29,25 @@ template<typename Dimension>
 class DataBase {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename std::vector<NodeList<Dimension>*>::iterator NodeListIterator;
-  typedef typename std::vector<NodeList<Dimension>*>::const_iterator ConstNodeListIterator;
+  using NodeListIterator = typename std::vector<NodeList<Dimension>*>::iterator;
+  using ConstNodeListIterator = typename std::vector<NodeList<Dimension>*>::const_iterator;
 
-  typedef typename std::vector<FluidNodeList<Dimension>*>::iterator FluidNodeListIterator;
-  typedef typename std::vector<FluidNodeList<Dimension>*>::const_iterator ConstFluidNodeListIterator;
+  using FluidNodeListIterator = typename std::vector<FluidNodeList<Dimension>*>::iterator;
+  using ConstFluidNodeListIterator = typename std::vector<FluidNodeList<Dimension>*>::const_iterator;
 
-  typedef typename std::vector<SolidNodeList<Dimension>*>::iterator SolidNodeListIterator;
-  typedef typename std::vector<SolidNodeList<Dimension>*>::const_iterator ConstSolidNodeListIterator;
+  using SolidNodeListIterator = typename std::vector<SolidNodeList<Dimension>*>::iterator;
+  using ConstSolidNodeListIterator = typename std::vector<SolidNodeList<Dimension>*>::const_iterator;
 
-  typedef typename std::vector<DEMNodeList<Dimension>*>::iterator DEMNodeListIterator;
-  typedef typename std::vector<DEMNodeList<Dimension>*>::const_iterator ConstDEMNodeListIterator;
+  using DEMNodeListIterator = typename std::vector<DEMNodeList<Dimension>*>::iterator;
+  using ConstDEMNodeListIterator = typename std::vector<DEMNodeList<Dimension>*>::const_iterator;
 
-  typedef ConnectivityMap<Dimension> ConnectivityMapType;
-  typedef std::shared_ptr<ConnectivityMapType> ConnectivityMapPtr;
+  using ConnectivityMapType = ConnectivityMap<Dimension>;
+  using ConnectivityMapPtr = std::shared_ptr<ConnectivityMapType>;
   
   // It is convenient to be able to query the DataBase for the problem
   // dimensionality for Python.
@@ -57,10 +57,10 @@ public:
   DataBase();
 
   // Destructor.
-  ~DataBase();
+  ~DataBase() = default;
 
   // Assignment.
-  DataBase& operator=(const DataBase& rhs);
+  DataBase& operator=(const DataBase& rhs) = default;
 
   // Number of NodeLists we have in the DataBase.
   unsigned int numNodeLists() const;
@@ -179,6 +179,7 @@ public:
 
   // Get the connectivity map.
   const ConnectivityMapType& connectivityMap() const;
+  ConnectivityMapPtr connectivityMapPtr() const;
   const ConnectivityMapType& connectivityMap(const bool computeGhostConnectivity,
                                              const bool computeOverlapConnectivity,
                                              const bool computeIntersectionConnectivity) const;
@@ -385,6 +386,9 @@ public:
   // valid state.
   bool valid() const;
 
+  // Prevent copying.
+  DataBase(const DataBase& rhs) = delete;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<NodeList<Dimension>*> mNodeListPtrs;
@@ -398,11 +402,7 @@ private:
   std::vector<DEMNodeList<Dimension>*> mDEMNodeListPtrs;
   std::vector<NodeList<Dimension>*> mDEMNodeListAsNodeListPtrs;
 
-
   mutable ConnectivityMapPtr mConnectivityMapPtr;
-
-  // Prevent copying.
-  DataBase(const DataBase& rhs);
 };
 
 //------------------------------------------------------------------------------

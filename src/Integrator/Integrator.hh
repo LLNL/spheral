@@ -31,28 +31,23 @@ template<typename Dimension>
 class Integrator {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
-  typedef typename std::vector<Physics<Dimension>*>::iterator PackageIterator;
-  typedef typename std::vector<Physics<Dimension>*>::const_iterator ConstPackageIterator;
+  using PackageIterator = typename std::vector<Physics<Dimension>*>::iterator;
+  using ConstPackageIterator = typename std::vector<Physics<Dimension>*>::const_iterator;
 
-  typedef typename std::vector<Boundary<Dimension>*>::iterator BoundaryIterator;
-  typedef typename std::vector<Boundary<Dimension>*>::const_iterator ConstBoundaryIterator;
+  using BoundaryIterator = typename std::vector<Boundary<Dimension>*>::iterator;
+  using ConstBoundaryIterator = typename std::vector<Boundary<Dimension>*>::const_iterator;
 
   // Constructors.
-  Integrator();
   Integrator(DataBase<Dimension>& dataBase);
   Integrator(DataBase<Dimension>& dataBase,
              const std::vector<Physics<Dimension>*>& physicsPackages);
-
-  // Destructor.
-  virtual ~Integrator();
-
-  // Assignment.
-  Integrator& operator=(const Integrator& rhs);
+  Integrator& operator=(const Integrator& rhs) = default;
+  virtual ~Integrator() = default;
 
   // All Integrator classes must define the dt and step methods.
   virtual bool step(Scalar maxTime,
@@ -217,6 +212,9 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
+  // Forbiddent methods
+  Integrator() = delete;
+
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Allow write access to the DataBase for descendent classes.
@@ -227,9 +225,9 @@ private:
   Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtMultiplier, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mAllowDtCheck, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity;
-  DataBase<Dimension>* mDataBasePtr;
+  std::reference_wrapper<DataBase<Dimension>> mDataBase;
   std::vector<Physics<Dimension>*> mPhysicsPackages;
-  bool mRigorousBoundaries, mCullGhostNodes;
+  bool mCullGhostNodes;
 
   // The restart registration.
   RestartRegistrationType mRestart;

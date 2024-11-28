@@ -130,12 +130,12 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHregisterDerivs");
   SPHBase<Dimension>::registerDerivatives(dataBase, derivs);
-  // const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  // if (compatibleEnergy) {
-  //   const auto& connectivityMap = dataBase.connectivityMap();
-  //   mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-  //   derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-  // }
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+  }
   TIME_END("SPHregisterDerivs");
 }
 
@@ -149,13 +149,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHpreStepInitialize");
+  SPHBase<Dimension>::preStepInitialize(dataBase, state, derivs);
 
-  // If needed prepare the pair-accelerations
-  if (this->compatibleEnergyEvolution()) {
-    const auto& connectivityMap = state.connectivityMap();
-    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-  }
+  // // If needed prepare the pair-accelerations
+  // if (this->compatibleEnergyEvolution()) {
+  //   const auto& connectivityMap = state.connectivityMap();
+  //   mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+  //   derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+  // }
   TIME_END("SPHpreStepInitialize");
 }
 

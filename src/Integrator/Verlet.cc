@@ -34,14 +34,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>::Verlet():
-  Integrator<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -58,26 +50,6 @@ Verlet<Dimension>::
 Verlet(DataBase<Dimension>& dataBase,
                const vector<Physics<Dimension>*>& physicsPackages):
   Integrator<Dimension>(dataBase, physicsPackages) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>::~Verlet() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>&
-Verlet<Dimension>::
-operator=(const Verlet<Dimension>& rhs) {
-  if (this != &rhs) {
-    Integrator<Dimension>::operator=(rhs);
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------

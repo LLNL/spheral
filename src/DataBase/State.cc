@@ -84,6 +84,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: physicsPackages) pkg->registerState(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
@@ -99,6 +101,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerState(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
