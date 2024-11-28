@@ -73,12 +73,6 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
-  // This method is called once at the beginning of a timestep, after all state registration.
-  virtual
-  void preStepInitialize(const DataBase<Dimension>& dataBase, 
-                         State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs) override;
-
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual

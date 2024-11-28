@@ -140,28 +140,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// This method is called once at the beginning of a timestep, after all state registration.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPH<Dimension>::
-preStepInitialize(const DataBase<Dimension>& dataBase, 
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) {
-  TIME_BEGIN("SPHpreStepInitialize");
-  SPHBase<Dimension>::preStepInitialize(dataBase, state, derivs);
-
-  // // If needed prepare the pair-accelerations
-  // if (this->compatibleEnergyEvolution()) {
-  //   const auto& connectivityMap = state.connectivityMap();
-  //   mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-  //   derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-  // }
-  TIME_END("SPHpreStepInitialize");
-}
-
-
-//------------------------------------------------------------------------------
 // evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>

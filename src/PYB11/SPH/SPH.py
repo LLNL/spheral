@@ -52,14 +52,6 @@ class SPH(SPHBase):
         return "void"
 
     @PYB11virtual
-    def preStepInitialize(self,
-                          dataBase = "const DataBase<%(Dimension)s>&", 
-                          state = "State<%(Dimension)s>&",
-                          derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Optional hook to be called at the beginning of a time step."
-        return "void"
-
-    @PYB11virtual
     @PYB11const
     def evaluateDerivatives(time = "const Scalar",
                             dt = "const Scalar",
