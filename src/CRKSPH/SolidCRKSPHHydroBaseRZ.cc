@@ -370,9 +370,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const NodeCoupling coupling;
 
   // Walk all the interacting pairs.
-
-// TODO: Fix the data races
-// #pragma omp parallel
+#pragma omp parallel
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
@@ -394,8 +392,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
     auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
-// TODO: Fix the data races in the following loop.
-// #pragma omp for
+#pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
       i = pairs[kk].i_node;
       j = pairs[kk].j_node;
@@ -591,9 +588,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     }
 
     const auto ni = nodeList.numInternalNodes();
-
-// TODO: Fix the data races in the following loop.
-// #pragma omp parallel for
+#pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
