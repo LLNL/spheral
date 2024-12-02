@@ -8,9 +8,9 @@
 import Spheral
 from SpheralTestUtilities import *
 from SpheralOptionParser import *
-from SpheralUtilities import TimerMgr
 from SpheralUtilities import *
 import mpi
+import SpheralConfigs
 
 import sys, os, time
 
@@ -51,11 +51,11 @@ if (do_timers and TimerMgr.get_filename()):
     adiak_fini()
     TimerMgr.fini()
     mpi.barrier()
-    caliper_loc = "@CONFIG_CALIPER_DIR@"
-    sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+    caliper_loc = SpheralConfigs.caliper_module_path()
+    if (not caliper_loc):
+        raise FileNotFoundError("Caliper file not found")
+    sys.path.append(caliper_loc)
     import caliperreader as cr
-    if (not os.path.exists(caliper_file)):
-        raise ValueError("Caliper file not found")
     r = cr.CaliperReader()
     r.read(caliper_file)
     records = r.records
@@ -85,4 +85,3 @@ if (do_timers and TimerMgr.get_filename()):
     if ("adiakData" in adiak_inp):
         assert adiak_data_dict.items() <= adiak_inp.items(),\
             "incorrect adiakData inputs found in Caliper file Adiak values"
-
