@@ -251,7 +251,7 @@ registerState(DataBase<Dimension>& dataBase,
   // checked.
   state.enroll(mTimeStepMask);
 
-  // Compute and register the pressure and sound speed.
+  // Register the pressure and sound speed.
   state.enroll(mPressure, make_policy<PressurePolicy<Dimension>>());
   state.enroll(mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>());
 
