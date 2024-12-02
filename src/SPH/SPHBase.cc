@@ -237,8 +237,9 @@ registerState(DataBase<Dimension>& dataBase,
   if (updateVolume) state.enroll(mVolume);
 
   // Register the position update.
+  // We make this dependent on specific thermal energy to cover cases like the RZ specialization
   auto position = dataBase.fluidPosition();
-  state.enroll(position, make_policy<IncrementState<Dimension, Vector>>());
+  state.enroll(position, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy}));
 
   // Register the velocity
   // We make this dependent on the thermal energy in case we're using the compatible energy update

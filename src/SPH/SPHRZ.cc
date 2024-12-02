@@ -106,8 +106,6 @@ SPHRZ::
 registerState(DataBase<Dim<2>>& dataBase,
               State<Dim<2>>& state) {
 
-  using KeyType = State<Dimension>::KeyType;
-
   // The base class does most of it.
   SPHBase<Dim<2>>::registerState(dataBase, state);
 
@@ -118,19 +116,11 @@ registerState(DataBase<Dim<2>>& dataBase,
           "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
 
   // Register the specific thermal energy.
+  // Note in RZ we require the specific thermal energy go before the position so we can use the r position
+  // during update.  This is why we make position update dependent on the thermal energy in SPHBase.
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   if (compatibleEnergy) {
     state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
-
-    // Get the policy for the position, and add the specific energy as a dependency.
-    const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
-    for (const auto fptr: pos) {
-      auto positionPolicy = state.policy(*fptr);
-      auto key = State<Dimension>::key(*fptr);
-      KeyType fkey, nodeListKey;
-      State<Dimension>::splitFieldKey(key, fkey, nodeListKey);
-      positionPolicy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
-    }
 
   } else if (evolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the

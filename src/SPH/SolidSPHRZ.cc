@@ -126,8 +126,6 @@ SolidSPHRZ::
 registerState(DataBase<Dim<2>>& dataBase,
               State<Dim<2>>& state) {
 
-  using KeyType = typename State<Dimension>::KeyType;
-
   // Call the ancestor.
   SolidSPH<Dim<2>>::registerState(dataBase, state);
 
@@ -150,16 +148,6 @@ registerState(DataBase<Dim<2>>& dataBase,
   auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
   if (compatibleEnergy) {
     state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
-
-    // Get the policy for the position, and add the specific energy as a dependency.
-    const auto pos = state.fields(HydroFieldNames::position, Vector::zero);
-    for (const auto fptr: pos) {
-      auto positionPolicy = state.policy(*fptr);
-      auto key = State<Dimension>::key(*fptr);
-      KeyType fkey, nodeListKey;
-      State<Dimension>::splitFieldKey(key, fkey, nodeListKey);
-      positionPolicy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
-    }
 
   } else if (evolveTotalEnergy) {
     // If we're doing total energy, we register the specific energy to advance with the
