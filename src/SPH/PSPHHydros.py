@@ -10,6 +10,7 @@ def PSPH(dataBase,
          W,
          WPi = None,
          Q = None,
+         filter = None,
          cfl = 0.25,
          useVelocityMagnitudeForDt = False,
          compatibleEnergyEvolution = True,
@@ -39,7 +40,7 @@ def PSPH(dataBase,
 
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
-    constructor = eval("PSPHHydroBase%id" % ndim)
+    constructor = eval("PSPH%id" % ndim)
 
     # Fill out the set of kernels
     if WPi is None:

@@ -180,7 +180,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   SolidSPH<Dimension>::registerDerivatives(dataBase, derivs);
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   if (compatibleEnergy) {
-    CHECK(mPairAccelerationsPtr);
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
     derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
     derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
   }
@@ -234,13 +236,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   default:
     VERIFY2(false, "Unsupported mass density definition for Spherical SPH");
     break;
-  }
-
-  // If needed prepare the pair-accelerations
-  if (this->compatibleEnergyEvolution()) {
-    const auto& connectivityMap = state.connectivityMap();
-    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-    dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
   }
 }
 

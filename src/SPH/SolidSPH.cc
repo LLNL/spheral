@@ -314,6 +314,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto numNodeLists = nodeLists.size();
+  auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
+  const auto  npairs = pairs.size();
+  // const auto& coupling = connectivityMap.coupling();
 
   // Get the state and derivative FieldLists.
   // State FieldLists.
@@ -380,11 +383,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-
-  // The set of interacting node pairs.
-  auto&       pairs = const_cast<NodePairList&>(connectivityMap.nodePairList());
-  const auto  npairs = pairs.size();
-  // const auto& coupling = connectivityMap.coupling();
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();

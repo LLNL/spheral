@@ -156,7 +156,8 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   SPHBase<Dimension>::registerDerivatives(dataBase, derivs);
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
   if (compatibleEnergy) {
-    CHECK(mPairAccelerationsPtr);
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
     derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
   }
 }
