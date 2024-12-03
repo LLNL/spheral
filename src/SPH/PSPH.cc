@@ -110,7 +110,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
 
-  SPHBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
+  // SPHBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // The SPH class tries to update these using the policies, but since PSPH
   // handles them differently we have to override that behavior here and do
