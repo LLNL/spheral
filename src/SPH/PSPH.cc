@@ -72,27 +72,26 @@ PSPH(DataBase<Dimension>& dataBase,
      const MassDensityType densityUpdate,
      const Vector& xmin,
      const Vector& xmax):
-  SPHBase<Dimension>(dataBase,
-                     Q,
-                     W,
-                     WPi,
-                     cfl,
-                     useVelocityMagnitudeForDt,
-                     compatibleEnergyEvolution,
-                     evolveTotalEnergy,
-                     true,
-                     XSPH,
-                     correctVelocityGradient,
-                     sumMassDensityOverAllNodeLists,
-                     densityUpdate,
-                     0.0,
-                     1.0,
-                     xmin,
-                     xmax),
+  SPH<Dimension>(dataBase,
+                 Q,
+                 W,
+                 WPi,
+                 cfl,
+                 useVelocityMagnitudeForDt,
+                 compatibleEnergyEvolution,
+                 evolveTotalEnergy,
+                 true,
+                 XSPH,
+                 correctVelocityGradient,
+                 sumMassDensityOverAllNodeLists,
+                 densityUpdate,
+                 0.0,
+                 1.0,
+                 xmin,
+                 xmax),
   mHopkinsConductivity(HopkinsConductivity),
   mGamma(FieldStorageType::CopyFields),
-  mPSPHcorrection(FieldStorageType::CopyFields),
-  mPairAccelerationsPtr() {
+  mPSPHcorrection(FieldStorageType::CopyFields) {
 
   // Create storage for our internal state.
   mGamma = dataBase.newFluidFieldList(0.0, HydroFieldNames::gamma);
@@ -110,7 +109,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
 
-  // SPHBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
+  // SPH<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // The SPH class tries to update these using the policies, but since PSPH
   // handles them differently we have to override that behavior here and do
@@ -129,7 +128,7 @@ registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   // SPH does most of it.
-  SPHBase<Dimension>::registerState(dataBase, state);
+  SPH<Dimension>::registerState(dataBase, state);
 
   // Make sure we're the right size.
   dataBase.resizeFluidFieldList(mGamma, 0.0, HydroFieldNames::gamma, false);
@@ -146,23 +145,6 @@ registerState(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Register the state derivative fields.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-PSPH<Dimension>::
-registerDerivatives(DataBase<Dimension>& dataBase,
-                    StateDerivatives<Dimension>& derivs) {
-  SPHBase<Dimension>::registerDerivatives(dataBase, derivs);
-  const auto compatibleEnergy = this->compatibleEnergyEvolution();
-  if (compatibleEnergy) {
-    const auto& connectivityMap = dataBase.connectivityMap();
-    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-  }
-}
-
-//------------------------------------------------------------------------------
 // Pre-step initializations.  Since the topology has just been changed we need
 // to recompute the PSPH corrections.
 //------------------------------------------------------------------------------
@@ -174,12 +156,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& derivs) {
 
   // Base class
-  SPHBase<Dimension>::preStepInitialize(dataBase, state, derivs);
-
-  if (this->compatibleEnergyEvolution()) {
-    const auto& connectivityMap = state.connectivityMap();
-    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
-  }
+  SPH<Dimension>::preStepInitialize(dataBase, state, derivs);
 
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
@@ -219,7 +196,7 @@ postStateUpdate(const Scalar t,
                 StateDerivatives<Dimension>& derivs) {
 
   // Check if the base class needs anything
-  SPHBase<Dimension>::postStateUpdate(t, dt, dataBase, state, derivs);
+  SPH<Dimension>::postStateUpdate(t, dt, dataBase, state, derivs);
 
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
@@ -624,31 +601,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 }
 
 //------------------------------------------------------------------------------
-// Finalize the derivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-PSPH<Dimension>::
-finalizeDerivatives(const typename Dimension::Scalar /*time*/,
-                    const typename Dimension::Scalar /*dt*/,
-                    const DataBase<Dimension>& /*dataBase*/,
-                    const State<Dimension>& /*state*/,
-                    StateDerivatives<Dimension>& derivs) const {
-
-  // If we're using the compatible energy discretization, we need to enforce
-  // boundary conditions on the accelerations.
-  if (this->mCompatibleEnergyEvolution) {
-    auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-    auto DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-    for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-      boundaryPtr->applyFieldListGhostBoundary(accelerations);
-      boundaryPtr->applyFieldListGhostBoundary(DepsDt);
-    }
-    for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
-  }
-}
-
-//------------------------------------------------------------------------------
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -658,7 +610,7 @@ applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
   // SPH does most of it.
-  SPHBase<Dimension>::applyGhostBoundaries(state, derivs);
+  SPH<Dimension>::applyGhostBoundaries(state, derivs);
 
   // Apply boundary conditions to the PSPH corrections.
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
@@ -679,7 +631,7 @@ enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
   // SPH does most of it.
-  SPHBase<Dimension>::enforceBoundaries(state, derivs);
+  SPH<Dimension>::enforceBoundaries(state, derivs);
 
   // Enforce boundary conditions on the PSPH corrections.
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
@@ -700,7 +652,7 @@ PSPH<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   // SPH does most of it.
-  SPHBase<Dimension>::dumpState(file, pathName);
+  SPH<Dimension>::dumpState(file, pathName);
 
   file.write(mGamma, pathName + "/gamma");
   file.write(mPSPHcorrection, pathName + "/PSPHcorrection");
@@ -715,7 +667,7 @@ PSPH<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
  
   // SPH does most of it.
-  SPHBase<Dimension>::restoreState(file, pathName);
+  SPH<Dimension>::restoreState(file, pathName);
 
   file.read(mGamma, pathName + "/gamma");
   file.read(mPSPHcorrection, pathName + "/PSPHcorrection");

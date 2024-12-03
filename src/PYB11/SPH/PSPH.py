@@ -2,13 +2,13 @@
 # PSPH
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SPHBase import *
+from SPH import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralSPH")
 @PYB11dynamic_attr
-class PSPH(SPHBase):
+class PSPH(SPH):
 
     PYB11typedefs = """
   using Scalar = typename %(Dimension)s::Scalar;
@@ -56,12 +56,6 @@ temperature or pressure."""
         return "void"
 
     @PYB11virtual
-    def registerDerivatives(dataBase = "DataBase<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Register the derivatives/change fields for updating state."
-        return "void"
-
-    @PYB11virtual
     def initializeProblemStartupDependencies(self,
                                              dataBase = "DataBase<%(Dimension)s>&",
                                              state = "State<%(Dimension)s>&",
@@ -101,15 +95,6 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     @PYB11virtual
-    def postStateUpdate(time = "const Scalar",
-                        dt = "const Scalar",
-                        dataBase = "const DataBase<%(Dimension)s>&",
-                        state = "State<%(Dimension)s>&",
-                        derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections."
-        return "bool"
-               
-    @PYB11virtual
     def applyGhostBoundaries(state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):
         "Apply boundary conditions to the physics specific fields."
@@ -128,7 +113,6 @@ mass density, velocity, and specific thermal energy."""
 
     gamma =             PYB11property("const FieldList<%(Dimension)s, Scalar>&", "gamma",             returnpolicy="reference_internal")
     PSPHcorrection =    PYB11property("const FieldList<%(Dimension)s, Scalar>&", "PSPHcorrection",    returnpolicy="reference_internal")
-    pairAccelerations = PYB11property("const PairAccelerationsType&",            "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods

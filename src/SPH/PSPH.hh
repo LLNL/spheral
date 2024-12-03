@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "SPHBase.hh"
+#include "SPH.hh"
 
 namespace Spheral {
 
@@ -19,11 +19,10 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
 template<typename Dimension, typename Value> class FieldList;
-template<typename Dimension, typename Value> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
-class PSPH: public SPHBase<Dimension> {
+class PSPH: public SPH<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -65,11 +64,6 @@ public:
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
 
-  // Register the derivatives/change fields for updating state.
-  virtual
-  void registerDerivatives(DataBase<Dimension>& dataBase,
-                           StateDerivatives<Dimension>& derivs) override;
-
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
   // One use for this hook is to fill in dependendent state using the State object, such as
@@ -93,14 +87,6 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
-
-  // Finalize the derivatives.
-  virtual
-  void finalizeDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const override;
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 
@@ -127,7 +113,6 @@ public:
   // The state field lists we're maintaining.
   const FieldList<Dimension, Scalar>&    gamma()                    const { return mGamma; }
   const FieldList<Dimension, Scalar>&    PSPHcorrection()           const { return mPSPHcorrection; }
-  const PairAccelerationsType&           pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
 
   //****************************************************************************
   // Methods required for restarting.
@@ -143,7 +128,6 @@ protected:
   //PSPH Fields
   FieldList<Dimension, Scalar>    mGamma;
   FieldList<Dimension, Scalar>    mPSPHcorrection;
-  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
 };
 
 }
