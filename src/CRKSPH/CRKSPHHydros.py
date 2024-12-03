@@ -36,26 +36,30 @@ def CRKSPH(dataBase,
         print("             which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
+    # Check for deprecated arguments
+    if not filter is None:
+        print("CRKSPH DEPRECATION WARNING: filter is no longer used -- ignoring")
+
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
     if GeometryRegistrar.coords() == CoordinateType.RZ:
         # RZ ----------------------------------------
         assert ndim == 2
         if nsolid > 0:
-            constructor = SolidCRKSPHHydroBaseRZ
+            constructor = SolidCRKSPHRZ
         else:
-            constructor = CRKSPHHydroBaseRZ
+            constructor = CRKSPHRZ
     else:
         # Cartesian ---------------------------------
         crktype = crktype.lower()
         assert crktype in ("default", "variant")
         if nsolid > 0:
-            constructor = eval("SolidCRKSPHHydroBase%id" % ndim)
+            constructor = eval("SolidCRKSPH%id" % ndim)
         else:
             if crktype == "variant":
                 constructor = eval("CRKSPHVariant%id" % ndim)
             else:
-                constructor = eval("CRKSPHHydroBase%id" % ndim)
+                constructor = eval("CRKSPH%id" % ndim)
 
     # Artificial viscosity.
     if not Q:
@@ -67,7 +71,6 @@ def CRKSPH(dataBase,
     kwargs = {"dataBase" : dataBase,
               "Q" : Q,
               "order" : order,
-              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,

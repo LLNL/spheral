@@ -1,17 +1,17 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidCRKSPHHydroBase -- The CRKSPH/ACRKSPH solid material hydrodynamic
+// SolidCRKSPHRZ -- The CRKSPH/ACRKSPH solid material hydrodynamic
 // package for Spheral++.
 //
 // This is the area-weighted RZ specialization.
 //
 // Created by JMO, Fri May 13 10:50:36 PDT 2016
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidCRKSPHHydroBaseRZ_hh__
-#define __Spheral_SolidCRKSPHHydroBaseRZ_hh__
+#ifndef __Spheral_SolidCRKSPHRZ_hh__
+#define __Spheral_SolidCRKSPHRZ_hh__
 
-#include "CRKSPH/SolidCRKSPHHydroBase.hh"
+#include "CRKSPH/SolidCRKSPH.hh"
 
-#include <float.h>
+#include <memory>
 #include <string>
 
 namespace Spheral {
@@ -23,9 +23,10 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename DataType> class PairwiseField;
 class FileIO;
 
-class SolidCRKSPHHydroBaseRZ: public SolidCRKSPHHydroBase<Dim<2> > {
+class SolidCRKSPHRZ: public SolidCRKSPH<Dim<2>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -38,13 +39,13 @@ public:
   using FourthRankTensor = Dimension::FourthRankTensor;
   using FifthRankTensor = Dimension::FifthRankTensor;
 
+  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidCRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
+  SolidCRKSPHRZ(DataBase<Dimension>& dataBase,
                          ArtificialViscosity<Dimension>& Q,
                          const RKOrder order,
-                         const double filter,
                          const double cfl,
                          const bool useVelocityMagnitudeForDt,
                          const bool compatibleEnergyEvolution,
@@ -56,18 +57,12 @@ public:
                          const bool damageRelieveRubble);
 
   // No default constructor, copying, or assignment.
-  SolidCRKSPHHydroBaseRZ() = delete;
-  SolidCRKSPHHydroBaseRZ(const SolidCRKSPHHydroBaseRZ&) = delete;
-  SolidCRKSPHHydroBaseRZ& operator=(const SolidCRKSPHHydroBaseRZ&) = delete;
+  SolidCRKSPHRZ() = delete;
+  SolidCRKSPHRZ(const SolidCRKSPHRZ&) = delete;
+  SolidCRKSPHRZ& operator=(const SolidCRKSPHRZ&) = delete;
 
   // Destructor.
-  virtual ~SolidCRKSPHHydroBaseRZ();
-
-  // An optional hook to initialize once when the problem is starting up.
-  // Typically this is used to size arrays once all the materials and NodeLists have
-  // been created.  It is assumed after this method has been called it is safe to
-  // call Physics::registerState for instance to create full populated State objects.
-  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  virtual ~SolidCRKSPHRZ() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -81,6 +76,11 @@ public:
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
+
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
 
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -106,10 +106,19 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  // Access our state.
+  const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SolidCRKSPHRZ ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
+  const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
+
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidCRKSPHHydroBaseRZ"; }
+  virtual std::string label() const override { return "SolidCRKSPHRZ"; }
   //****************************************************************************
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
+  FieldList<Dimension, Vector> mSelfAccelerations;
 };
 
 }

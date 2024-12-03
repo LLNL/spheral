@@ -1,22 +1,163 @@
+//---------------------------------Spheral++----------------------------------//
+// CRKSPHBase -- Base class for the CRKSPH/ACRKSPH hydrodynamic packages
+//
+// Created by JMO, Mon Jul 19 21:52:29 PDT 2010
+//----------------------------------------------------------------------------//
+#include "CRKSPH/CRKSPH.hh"
+
+#include "FileIO/FileIO.hh"
+#include "RK/ReproducingKernel.hh"
+#include "RK/RKFieldNames.hh"
+#include "CRKSPH/computeCRKSPHSumMassDensity.hh"
+#include "Hydro/HydroFieldNames.hh"
+#include "Hydro/entropyWeightingFunction.hh"
+#include "Strength/SolidFieldNames.hh"
+#include "DataBase/State.hh"
+#include "DataBase/StateDerivatives.hh"
+#include "DataBase/IncrementState.hh"
+#include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceState.hh"
+#include "DataBase/ReplaceBoundedState.hh"
+#include "DataBase/updateStateFields.hh"
+#include "Hydro/SpecificThermalEnergyPolicy.hh"
+#include "Hydro/SpecificFromTotalThermalEnergyPolicy.hh"
+#include "Hydro/PressurePolicy.hh"
+#include "Hydro/SoundSpeedPolicy.hh"
+#include "Hydro/EntropyPolicy.hh"
+#include "RK/ContinuityVolumePolicy.hh"
+#include "ArtificialViscosity/ArtificialViscosity.hh"
+#include "DataBase/DataBase.hh"
+#include "Field/FieldList.hh"
+#include "Field/NodeIterators.hh"
+#include "Boundary/Boundary.hh"
+#include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
+#include "Utilities/safeInv.hh"
+#include "Utilities/range.hh"
+#include "Utilities/newtonRaphson.hh"
+#include "Utilities/SpheralFunctions.hh"
+#include "Utilities/computeShepardsInterpolation.hh"
+#include "Geometry/innerProduct.hh"
+#include "Geometry/outerProduct.hh"
+
+#include <algorithm>
+#include <fstream>
+#include <map>
+#include <vector>
+
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+using std::abs;
+
 namespace Spheral {
+
+//------------------------------------------------------------------------------
+// Construct with the given artificial viscosity and kernels.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+CRKSPH<Dimension>::
+CRKSPH(DataBase<Dimension>& dataBase,
+       ArtificialViscosity<Dimension>& Q,
+       const RKOrder order,
+       const double cfl,
+       const bool useVelocityMagnitudeForDt,
+       const bool compatibleEnergyEvolution,
+       const bool evolveTotalEnergy,
+       const bool XSPH,
+       const MassDensityType densityUpdate,
+       const double epsTensile,
+       const double nTensile):
+  CRKSPHBase<Dimension>(dataBase,
+                        Q,
+                        order,
+                        cfl,
+                        useVelocityMagnitudeForDt,
+                        compatibleEnergyEvolution,
+                        evolveTotalEnergy,
+                        XSPH,
+                        densityUpdate,
+                        epsTensile,
+                        nTensile),
+  mPairAccelerationsPtr() {
+}
+
+//------------------------------------------------------------------------------
+// Register the state we need/are going to evolve.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CRKSPH<Dimension>::
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
+
+  CRKSPHBase<Dimension>::registerState(dataBase, state);
+
+  // We have to choose either compatible or total energy evolution.
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  VERIFY2(not (compatibleEnergy and evolveTotalEnergy),
+          "CRKSPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
+
+  // Register the specific thermal energy
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  if (compatibleEnergy) {
+    // The compatible energy update.
+    state.enroll(specificThermalEnergy, make_policy<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
+
+  } else if (evolveTotalEnergy) {
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
+    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
+
+  } else {
+    // Otherwise we're just time-evolving the specific energy.
+    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Register the state derivative fields.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+CRKSPH<Dimension>::
+registerDerivatives(DataBase<Dimension>& dataBase,
+                    StateDerivatives<Dimension>& derivs) {
+
+  CRKSPHBase<Dimension>::registerDerivatives(dataBase, derivs);
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+  }
+}
 
 //------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPH<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivatives) const {
+                    StateDerivatives<Dimension>& derivs) const {
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
 
   // The kernels and such.
-  const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
+  const auto order = this->correctionOrder();
+  const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(order));
 
   // A few useful constants we'll use in the following loop.
   //const double tiny = 1.0e-30;
@@ -42,7 +183,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const auto corrections = state.fields(RKFieldNames::rkCorrections(mOrder), RKCoefficients<Dimension>());
+  const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -56,17 +197,17 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
+  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -77,9 +218,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-
-  // Size up the pair-wise accelerations before we start.
-  if (compatibleEnergy) pairAccelerations.resize(npairs);
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -273,3 +412,4 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 }
 
 }
+

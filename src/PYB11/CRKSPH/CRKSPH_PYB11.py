@@ -9,16 +9,18 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from CRKSPHHydroBase import *
-from SolidCRKSPHHydroBase import *
+from CRKSPHBase import *
+from CRKSPH import *
+from SolidCRKSPH import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"CRKSPH/CRKSPHHydroBase.hh"',
-                  '"CRKSPH/CRKSPHHydroBaseRZ.hh"',
-                  '"CRKSPH/SolidCRKSPHHydroBase.hh"',
-                  '"CRKSPH/SolidCRKSPHHydroBaseRZ.hh"',
+PYB11includes += ['"CRKSPH/CRKSPHBase.hh"',
+                  '"CRKSPH/CRKSPH.hh"',
+                  '"CRKSPH/CRKSPHRZ.hh"',
+                  '"CRKSPH/SolidCRKSPH.hh"',
+                  '"CRKSPH/SolidCRKSPHRZ.hh"',
                   '"CRKSPH/computeCRKSPHSumMassDensity.hh"',
                   '"CRKSPH/computeSolidCRKSPHSumMassDensity.hh"',
                   '"CRKSPH/detectSurface.hh"',
@@ -27,6 +29,7 @@ PYB11includes += ['"CRKSPH/CRKSPHHydroBase.hh"',
                   '"CRKSPH/zerothOrderSurfaceCorrections.hh"',
                   '"Utilities/NodeCoupling.hh"',
                   '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"Neighbor/PairwiseField.hh"',
                   '"FileIO/FileIO.hh"',
                   '<iterator>']
 
@@ -108,8 +111,9 @@ For such points:
 #-------------------------------------------------------------------------------
 for ndim in dims:
     exec('''
-CRKSPHHydroBase%(ndim)id = PYB11TemplateClass(CRKSPHHydroBase, template_parameters="%(Dimension)s")
-SolidCRKSPHHydroBase%(ndim)id = PYB11TemplateClass(SolidCRKSPHHydroBase, template_parameters="%(Dimension)s")
+CRKSPHBase%(ndim)id = PYB11TemplateClass(CRKSPHBase, template_parameters="%(Dimension)s")
+CRKSPH%(ndim)id = PYB11TemplateClass(CRKSPH, template_parameters="%(Dimension)s")
+SolidCRKSPH%(ndim)id = PYB11TemplateClass(SolidCRKSPH, template_parameters="%(Dimension)s")
 
 @PYB11pycppname("centerOfMass")
 def centerOfMass%(ndim)id(polyvol = "const %(Dimension)s::FacetedVolume&",
@@ -129,5 +133,5 @@ zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfac
 # 2D
 #-------------------------------------------------------------------------------
 if 2 in dims:
-    from CRKSPHHydroBaseRZ import *
-    from SolidCRKSPHHydroBaseRZ import *
+    from CRKSPHRZ import *
+    from SolidCRKSPHRZ import *

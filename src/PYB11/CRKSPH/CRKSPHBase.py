@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# CRKSPHHydroBase
+# CRKSPHBase
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericHydro import *
@@ -8,8 +8,8 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralCRKSPH")
 @PYB11dynamic_attr
-class CRKSPHHydroBase(GenericHydro):
-    "CRKSPHHydroBase -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++."
+class CRKSPHBase(GenericHydro):
+    "CRKSPHBase -- Base class for the CRKSPH/ACRKSPH hydrodynamic packages"
 
     PYB11typedefs = """
     using Scalar = typename %(Dimension)s::Scalar;
@@ -27,7 +27,6 @@ class CRKSPHHydroBase(GenericHydro):
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                order = "const RKOrder",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -85,18 +84,6 @@ temperature or pressure."""
                           
     @PYB11virtual
     @PYB11const
-    def evaluateDerivatives(self,
-                            time = "const Scalar",
-                            dt = "const Scalar",
-                            dataBase = "const DataBase<%(Dimension)s>&",
-                            state = "const State<%(Dimension)s>&",
-                            derivs = "StateDerivatives<%(Dimension)s>&"):
-        """Evaluate the derivatives for the principle hydro variables:
-mass density, velocity, and specific thermal energy."""
-        return "void"
-
-    @PYB11virtual
-    @PYB11const
     def finalizeDerivatives(self,
                             time = "const Scalar",
                             dt = "const Scalar",
@@ -106,16 +93,6 @@ mass density, velocity, and specific thermal energy."""
         "Finalize the derivatives."
         return "void"
 
-    @PYB11virtual
-    def postStateUpdate(self,
-                        time = "const Scalar",
-                        dt = "const Scalar",
-                        dataBase = "const DataBase<%(Dimension)s>&",
-                        state = "State<%(Dimension)s>&",
-                        derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
-        return "bool"
-                  
     @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
@@ -138,18 +115,16 @@ mass density, velocity, and specific thermal energy."""
 
     #...........................................................................
     # Properties
-    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
-                                  doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     correctionOrder = PYB11property("RKOrder", "correctionOrder", "correctionOrder",
                                     doc="Flag to choose CRK Correction Order")
+    densityUpdate = PYB11property("MassDensityType", "densityUpdate", "densityUpdate",
+                                  doc="Flag to choose whether we want to sum for density, or integrate the continuity equation.")
     compatibleEnergyEvolution = PYB11property("bool", "compatibleEnergyEvolution", "compatibleEnergyEvolution",
                                               doc="Flag to determine if we're using the total energy conserving compatible energy evolution scheme.")
     evolveTotalEnergy = PYB11property("bool", "evolveTotalEnergy", "evolveTotalEnergy",
                                       doc="Flag controlling if we evolve total or specific energy.")
     XSPH = PYB11property("bool", "XSPH", "XSPH",
                          doc="Flag to determine if we're using the XSPH algorithm.")
-    filter = PYB11property("double", "filter", "filter",
-                           doc="Fraction of centroidal filtering to apply.")
     epsilonTensile = PYB11property("Scalar", "epsilonTensile", "epsilonTensile",
                                    doc="Parameters for the tensile correction force at small scales.")
     nTensile = PYB11property("Scalar", "nTensile", "nTensile",
@@ -170,10 +145,9 @@ mass density, velocity, and specific thermal energy."""
     DspecificThermalEnergyDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx", returnpolicy="reference_internal")
     internalDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "internalDvDx", returnpolicy="reference_internal")
-    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
 
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, CRKSPHHydroBase)
+PYB11inject(RestartMethods, CRKSPHBase)
 

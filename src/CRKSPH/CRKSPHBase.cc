@@ -1,8 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// Hydro -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++.
+// CRKSPHBase -- Base class for the CRKSPH/ACRKSPH hydrodynamic packages
 //
-// Created by JMO, Mon Jul 19 22:11:09 PDT 2010
+// Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
+#include "CRKSPH/CRKSPHBase.hh"
+
 #include "FileIO/FileIO.hh"
 #include "RK/ReproducingKernel.hh"
 #include "RK/RKFieldNames.hh"
@@ -38,10 +40,6 @@
 #include "Geometry/innerProduct.hh"
 #include "Geometry/outerProduct.hh"
 
-#include "CRKSPHHydroBase.hh"
-
-#include <limits.h>
-#include <float.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -64,26 +62,24 @@ namespace Spheral {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-CRKSPHHydroBase<Dimension>::
-CRKSPHHydroBase(DataBase<Dimension>& dataBase,
-                ArtificialViscosity<Dimension>& Q,
-                const RKOrder order,
-                const double filter,
-                const double cfl,
-                const bool useVelocityMagnitudeForDt,
-                const bool compatibleEnergyEvolution,
-                const bool evolveTotalEnergy,
-                const bool XSPH,
-                const MassDensityType densityUpdate,
-                const double epsTensile,
-                const double nTensile):
+CRKSPHBase<Dimension>::
+CRKSPHBase(DataBase<Dimension>& dataBase,
+           ArtificialViscosity<Dimension>& Q,
+           const RKOrder order,
+           const double cfl,
+           const bool useVelocityMagnitudeForDt,
+           const bool compatibleEnergyEvolution,
+           const bool evolveTotalEnergy,
+           const bool XSPH,
+           const MassDensityType densityUpdate,
+           const double epsTensile,
+           const double nTensile):
   GenericHydro<Dimension>(Q, cfl, useVelocityMagnitudeForDt),
   mOrder(order),
   mDensityUpdate(densityUpdate),
   mCompatibleEnergyEvolution(compatibleEnergyEvolution),
   mEvolveTotalEnergy(evolveTotalEnergy),
   mXSPH(XSPH),
-  mfilter(filter),
   mEpsTensile(epsTensile),
   mnTensile(nTensile),
   mTimeStepMask(FieldStorageType::CopyFields),
@@ -100,7 +96,6 @@ CRKSPHHydroBase(DataBase<Dimension>& dataBase,
   mDspecificThermalEnergyDt(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mInternalDvDx(FieldStorageType::CopyFields),
-  mPairAccelerations(),
   mRestart(registerWithRestart(*this)) {
 
   // Create storage for our internal state.
@@ -118,15 +113,6 @@ CRKSPHHydroBase(DataBase<Dimension>& dataBase,
   mDspecificThermalEnergyDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy);
   mDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
-  mPairAccelerations.clear();
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CRKSPHHydroBase<Dimension>::
-~CRKSPHHydroBase() {
 }
 
 //------------------------------------------------------------------------------
@@ -134,7 +120,7 @@ CRKSPHHydroBase<Dimension>::
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
@@ -150,7 +136,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
@@ -184,39 +170,25 @@ registerState(DataBase<Dimension>& dataBase,
   }
 
   // Position
+  // We make this dependent on the thermal energy in case we're using the compatible energy update in RZ
   auto position = dataBase.fluidPosition();
-  state.enroll(position, make_policy<IncrementState<Dimension, Vector>>());
+  state.enroll(position, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy}));
+
+  // Register the velocity
+  // We make this dependent on the thermal energy in case we're using the compatible energy update
+  auto velocity = dataBase.fluidVelocity();
+  state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::position,
+                                                                         HydroFieldNames::specificThermalEnergy},
+                                                                        true));  // Use all DvDt sources (wildcard)
 
   // Register the entropy.
   state.enroll(mEntropy, make_policy<EntropyPolicy<Dimension>>());
-
-  // Are we using the compatible energy evolution scheme?
-  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
-  auto velocity = dataBase.fluidVelocity();
-  if (compatibleEnergyEvolution()) {
-    // The compatible energy update.
-    state.enroll(specificThermalEnergy, make_policy<SpecificThermalEnergyPolicy<Dimension>>(dataBase));
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy},
-                                                                          true));
-
-  } else if (mEvolveTotalEnergy) {
-    // If we're doing total energy, we register the specific energy to advance with the
-    // total energy policy.
-    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>({HydroFieldNames::specificThermalEnergy},
-                                                                          true));
-
-  } else {
-    // Otherwise we're just time-evolving the specific energy.
-    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
-    state.enroll(velocity, make_policy<IncrementState<Dimension, Vector>>(true));
-  }
 
   // Register the time step mask, initialized to 1 so that everything defaults to being
   // checked.
   state.enroll(mTimeStepMask);
 
-  // Compute and register the pressure and sound speed.
+  // Register the pressure and sound speed.
   state.enroll(mPressure, make_policy<PressurePolicy<Dimension>>());
   state.enroll(mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>());
 }
@@ -226,7 +198,7 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
@@ -263,7 +235,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
-  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
 }
 
 //------------------------------------------------------------------------------
@@ -271,7 +242,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
@@ -304,7 +275,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
@@ -328,7 +299,7 @@ initialize(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar /*dt*/,
                     const DataBase<Dimension>& /*dataBase*/,
@@ -353,7 +324,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
 
@@ -379,7 +350,7 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
 
@@ -405,7 +376,7 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 std::set<RKOrder>
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 requireReproducingKernels() const {
   return std::set<RKOrder>({RKOrder::ZerothOrder, mOrder});
 }
@@ -415,7 +386,7 @@ requireReproducingKernels() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mTimeStepMask, pathName + "/timeStepMask");
   file.write(mPressure, pathName + "/pressure");
@@ -439,7 +410,7 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-CRKSPHHydroBase<Dimension>::
+CRKSPHBase<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mTimeStepMask, pathName + "/timeStepMask");
   file.read(mPressure, pathName + "/pressure");

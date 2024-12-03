@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "CRKSPHHydroBase.hh"
+#include "CRKSPH/CRKSPHBase.hh"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
@@ -21,12 +21,10 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename Value> class PairwiseField;
 class FileIO;
-}
 
-namespace Spheral {
-
-class CRKSPHHydroBaseRZ: public CRKSPHHydroBase<Dim<2> > {
+class CRKSPHRZ: public CRKSPHBase<Dim<2>> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -40,13 +38,13 @@ public:
   using SymTensor = Dimension::SymTensor;
   using FacetedVolume = Dimension::FacetedVolume;
 
+  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
+  CRKSPHRZ(DataBase<Dimension>& dataBase,
                     ArtificialViscosity<Dimension>& Q,
                     const RKOrder order,
-                    const double filter,
                     const double cfl,
                     const bool useVelocityMagnitudeForDt,
                     const bool compatibleEnergyEvolution,
@@ -57,18 +55,12 @@ public:
                     const double nTensile);
 
   // No default constructor, copying, or assignment.
-  CRKSPHHydroBaseRZ() = delete;
-  CRKSPHHydroBaseRZ(const CRKSPHHydroBaseRZ&) = delete;
-  CRKSPHHydroBaseRZ& operator=(const CRKSPHHydroBaseRZ&) = delete;
+  CRKSPHRZ() = delete;
+  CRKSPHRZ(const CRKSPHRZ&) = delete;
+  CRKSPHRZ& operator=(const CRKSPHRZ&) = delete;
 
   // Destructor.
-  virtual ~CRKSPHHydroBaseRZ();
-
-  // An optional hook to initialize once when the problem is starting up.
-  // Typically this is used to size arrays once all the materials and NodeLists have
-  // been created.  It is assumed after this method has been called it is safe to
-  // call Physics::registerState for instance to create full populated State objects.
-  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
+  virtual ~CRKSPHRZ() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -82,6 +74,11 @@ public:
   virtual 
   void registerState(DataBase<Dimension>& dataBase,
                      State<Dimension>& state) override;
+
+  // Register the derivatives/change fields for updating state.
+  virtual
+  void registerDerivatives(DataBase<Dimension>& dataBase,
+                           StateDerivatives<Dimension>& derivs) override;
 
   // This method is called once at the beginning of a timestep, after all state registration.
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
@@ -107,10 +104,17 @@ public:
   void enforceBoundaries(State<Dimension>& state,
                          StateDerivatives<Dimension>& derivs) override;
 
+  // Access our state.
+  const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
+
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "CRKSPHHydroBaseRZ"; }
+  virtual std::string label() const override { return "CRKSPHRZ"; }
   //****************************************************************************
+
+private:
+  //--------------------------- Private Interface ---------------------------//
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
 };
 
 }

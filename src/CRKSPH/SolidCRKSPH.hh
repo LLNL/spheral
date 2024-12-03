@@ -6,7 +6,7 @@
 #ifndef __Spheral_SolidCRKSPHHydroBase_hh__
 #define __Spheral_SolidCRKSPHHydroBase_hh__
 
-#include "CRKSPH/CRKSPHHydroBase.hh"
+#include "CRKSPH/CRKSPH.hh"
 
 #include <string>
 
@@ -18,13 +18,14 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename Value> class PairwiseField;
 class FileIO;
 }
 
 namespace Spheral {
 
 template<typename Dimension>
-class SolidCRKSPHHydroBase: public CRKSPHHydroBase<Dimension> {
+class SolidCRKSPH: public CRKSPH<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,13 +37,13 @@ public:
   using FourthRankTensor = typename Dimension::FourthRankTensor;
   using FifthRankTensor = typename Dimension::FifthRankTensor;
 
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  SolidCRKSPHHydroBase(DataBase<Dimension>& dataBase,
+  SolidCRKSPH(DataBase<Dimension>& dataBase,
                        ArtificialViscosity<Dimension>& Q,
                        const RKOrder order,
-                       const double filter,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
                        const bool compatibleEnergyEvolution,
@@ -54,12 +55,12 @@ public:
                        const bool damageRelieveRubble);
 
   // No default constructor, copying, or assignment.
-  SolidCRKSPHHydroBase() = delete;
-  SolidCRKSPHHydroBase(const SolidCRKSPHHydroBase&) = delete;
-  SolidCRKSPHHydroBase& operator=(const SolidCRKSPHHydroBase&) = delete;
+  SolidCRKSPH() = delete;
+  SolidCRKSPH(const SolidCRKSPH&) = delete;
+  SolidCRKSPH& operator=(const SolidCRKSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidCRKSPHHydroBase();
+  virtual ~SolidCRKSPH() = default;
 
   // Tasks we do once on problem startup.
   virtual
@@ -97,19 +98,19 @@ public:
                          StateDerivatives<Dimension>& derivs) override;
 
   // The state field lists we're maintaining.
-  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt() const;
-  const FieldList<Dimension, Scalar>&    bulkModulus() const;
-  const FieldList<Dimension, Scalar>&    shearModulus() const;
-  const FieldList<Dimension, Scalar>&    yieldStrength() const;
-  const FieldList<Dimension, Scalar>&    plasticStrain0() const;
+  const FieldList<Dimension, SymTensor>& DdeviatoricStressDt()    const { return mDdeviatoricStressDt; }
+  const FieldList<Dimension, Scalar>&    bulkModulus()            const { return mBulkModulus; }
+  const FieldList<Dimension, Scalar>&    shearModulus()           const { return mShearModulus; }
+  const FieldList<Dimension, Scalar>&    yieldStrength()          const { return mYieldStrength; }
+  const FieldList<Dimension, Scalar>&    plasticStrain0()         const { return mPlasticStrain0; }
 
   // Control whether allow damaged material to have stress relieved.
-  bool damageRelieveRubble() const;
-  void damageRelieveRubble(bool x);
+  bool damageRelieveRubble()                                      const { return mDamageRelieveRubble; }
+  void damageRelieveRubble(bool x)                                      { mDamageRelieveRubble = x; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidCRKSPHHydroBase"; }
+  virtual std::string label()                            const override { return "SolidCRKSPH"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
@@ -129,7 +130,5 @@ private:
 };
 
 }
-
-#include "SolidCRKSPHHydroBaseInline.hh"
 
 #endif

@@ -1,10 +1,10 @@
 //---------------------------------Spheral++----------------------------------//
-// CRKSPHHydroBase -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++.
+// CRKSPHBase -- Base class for the CRKSPH/ACRKSPH hydrodynamic packages
 //
 // Created by JMO, Mon Jul 19 21:52:29 PDT 2010
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_CRKSPHHydroBase_hh__
-#define __Spheral_CRKSPHHydroBase_hh__
+#ifndef __Spheral_CRKSPHBase_hh__
+#define __Spheral_CRKSPHBase_hh__
 
 #include "Physics/GenericHydro.hh"
 #include "Geometry/CellFaceFlag.hh"
@@ -26,7 +26,7 @@ class FileIO;
 namespace Spheral {
 
 template<typename Dimension>
-class CRKSPHHydroBase: public GenericHydro<Dimension> {
+class CRKSPHBase: public GenericHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -42,10 +42,9 @@ public:
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  CRKSPHHydroBase(DataBase<Dimension>& dataBase,
+  CRKSPHBase(DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
-                  const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
@@ -56,12 +55,12 @@ public:
                   const double nTensile);
 
   // No default constructor, copying, or assignment.
-  CRKSPHHydroBase() = delete;
-  CRKSPHHydroBase(const CRKSPHHydroBase&) = delete;
-  CRKSPHHydroBase& operator=(const CRKSPHHydroBase&) = delete;
+  CRKSPHBase() = delete;
+  CRKSPHBase(const CRKSPHBase&) = delete;
+  CRKSPHBase& operator=(const CRKSPHBase&) = delete;
 
   // Destructor.
-  virtual ~CRKSPHHydroBase();
+  virtual ~CRKSPHBase() = default;
 
   // Tasks we do once on problem startup.
   virtual
@@ -92,15 +91,6 @@ public:
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) override;
                           
-  // Evaluate the derivatives for the principle hydro variables:
-  // mass density, velocity, and specific thermal energy.
-  virtual
-  void evaluateDerivatives(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivatives) const override;
-
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -123,59 +113,54 @@ public:
   virtual std::set<RKOrder> requireReproducingKernels() const override;
 
   // The spatial order
-  RKOrder correctionOrder() const;
-  void correctionOrder(RKOrder val);
+  RKOrder correctionOrder()                                             const { return mOrder; }
+  void correctionOrder(RKOrder x)                                             { mOrder = x; }
 
   // Flag to choose whether we want to sum for density, or integrate
   // the continuity equation.
-  MassDensityType densityUpdate() const;
-  void densityUpdate(MassDensityType type);
+  MassDensityType densityUpdate()                                       const { return mDensityUpdate; }
+  void densityUpdate(MassDensityType x)                                       { mDensityUpdate = x; }
 
   // Flag to determine if we're using the total energy conserving compatible energy
   // evolution scheme.
-  bool compatibleEnergyEvolution() const;
-  void compatibleEnergyEvolution(bool val);
+  bool compatibleEnergyEvolution()                                      const { return mCompatibleEnergyEvolution; }
+  void compatibleEnergyEvolution(bool x)                                      { mCompatibleEnergyEvolution = x; }
 
   // Flag controlling if we evolve total or specific energy.
-  bool evolveTotalEnergy() const;
-  void evolveTotalEnergy(bool val);
+  bool evolveTotalEnergy()                                              const { return mEvolveTotalEnergy; }
+  void evolveTotalEnergy(bool x)                                              { mEvolveTotalEnergy = x; }
 
   // Flag to determine if we're using the XSPH algorithm.
-  bool XSPH() const;
-  void XSPH(bool val);
-
-  // Fraction of centroidal filtering to apply.
-  double filter() const;
-  void filter(double val);
+  bool XSPH()                                                           const { return mXSPH; }
+  void XSPH(bool x)                                                           { mXSPH = x; }
 
   // Parameters for the tensile correction force at small scales.
-  Scalar epsilonTensile() const;
-  void epsilonTensile(Scalar val);
+  Scalar epsilonTensile()                                               const { return mEpsTensile; }
+  void epsilonTensile(Scalar x)                                               { mEpsTensile = x; }
 
-  Scalar nTensile() const;
-  void nTensile(Scalar val);
+  Scalar nTensile()                                                     const { return mnTensile; }
+  void nTensile(Scalar x)                                                     { mnTensile = x; }
     
   // The state field lists we're maintaining.
-  const FieldList<Dimension, int>&       timeStepMask() const;
-  const FieldList<Dimension, Scalar>&    pressure() const;
-  const FieldList<Dimension, Scalar>&    soundSpeed() const;
-  const FieldList<Dimension, Scalar>&    entropy() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    viscousWork() const;
-  const FieldList<Dimension, Vector>&    XSPHDeltaV() const;
+  const FieldList<Dimension, int>&       timeStepMask()                 const { return mTimeStepMask; }
+  const FieldList<Dimension, Scalar>&    pressure()                     const { return mPressure; }
+  const FieldList<Dimension, Scalar>&    soundSpeed()                   const { return mSoundSpeed; }
+  const FieldList<Dimension, Scalar>&    entropy()                      const { return mEntropy; }
+  const FieldList<Dimension, Scalar>&    maxViscousPressure()           const { return mMaxViscousPressure; }
+  const FieldList<Dimension, Scalar>&    effectiveViscousPressure()     const { return mEffViscousPressure; }
+  const FieldList<Dimension, Scalar>&    viscousWork()                  const { return mViscousWork; }
+  const FieldList<Dimension, Vector>&    XSPHDeltaV()                   const { return mXSPHDeltaV; }
 
-  const FieldList<Dimension, Vector>&    DxDt() const;
-  const FieldList<Dimension, Vector>&    DvDt() const;
-  const FieldList<Dimension, Scalar>&    DmassDensityDt() const;
-  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
-  const FieldList<Dimension, Tensor>&    DvDx() const;
-  const FieldList<Dimension, Tensor>&    internalDvDx() const;
-  const std::vector<Vector>&             pairAccelerations() const;
+  const FieldList<Dimension, Vector>&    DxDt()                         const { return mDxDt; }
+  const FieldList<Dimension, Vector>&    DvDt()                         const { return mDvDt; }
+  const FieldList<Dimension, Scalar>&    DmassDensityDt()               const { return mDmassDensityDt; }
+  const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt()     const { return mDspecificThermalEnergyDt; }
+  const FieldList<Dimension, Tensor>&    DvDx()                         const { return mDvDx; }
+  const FieldList<Dimension, Tensor>&    internalDvDx()                 const { return mInternalDvDx; }
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "CRKSPHHydroBase"; }
+  virtual std::string label()                                  const override { return "CRKSPHBase"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
@@ -186,7 +171,6 @@ protected:
   RKOrder mOrder;
   MassDensityType mDensityUpdate;
   bool mCompatibleEnergyEvolution, mEvolveTotalEnergy, mXSPH;
-  double mfilter;
   Scalar mEpsTensile, mnTensile;
 
   // Some internal scratch fields.
@@ -209,8 +193,6 @@ protected:
   FieldList<Dimension, Tensor>    mDvDx;
   FieldList<Dimension, Tensor>    mInternalDvDx;
 
-  std::vector<Vector>             mPairAccelerations;
-
 private:
   //--------------------------- Private Interface ---------------------------//
   // The restart registration.
@@ -219,7 +201,5 @@ private:
 };
 
 }
-
-#include "CRKSPHHydroBaseInline.hh"
 
 #endif

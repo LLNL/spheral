@@ -3,9 +3,9 @@ text = """
 // Explict instantiation.
 //------------------------------------------------------------------------------
 #include "Geometry/Dimension.hh"
-#include "CRKSPH/SolidCRKSPHHydroBase.cc"
+#include "CRKSPH/SolidCRKSPH.cc"
 
 namespace Spheral {
-template class SolidCRKSPHHydroBase< Dim< %(ndim)s > >;
+template class SolidCRKSPH< Dim< %(ndim)s > >;
 }
 """

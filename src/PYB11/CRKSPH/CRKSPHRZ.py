@@ -1,33 +1,32 @@
 #-------------------------------------------------------------------------------
-# SolidCRKSPHHydroBaseRZ
+# CRKSPHRZ
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from SolidCRKSPHHydroBase import *
-from RestartMethods import *
+from CRKSPHBase import *
 
 @PYB11template()
 @PYB11template_dict({"Dimension" : "Dim<2>"})
 @PYB11module("SpheralCRKSPH")
 @PYB11dynamic_attr
-class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
-    "An area weighted RZ specialization of solid CRKSPH for cylindrical coordinates"
+class CRKSPHRZ(CRKSPHBase):
+    "An area weighted RZ specialization of CRKSPH for cylindrical coordinates"
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
-    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = %(Dimension)s::Scalar;
+    using Vector = %(Dimension)s::Vector;
+    using Tensor = %(Dimension)s::Tensor;
+    using SymTensor = %(Dimension)s::SymTensor;
+    using ThirdRankTensor = %(Dimension)s::ThirdRankTensor;
+    using FourthRankTensor = %(Dimension)s::FourthRankTensor;
+    using FifthRankTensor = %(Dimension)s::FifthRankTensor;
+    using TimeStepType = Physics<%(Dimension)s>::TimeStepType;
+    using PairAccelerationsType = typename CRKSPHRZ::PairAccelerationsType;
 """
 
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosity<%(Dimension)s>&",
                order = "const RKOrder",
-               filter = "const double",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -35,22 +34,11 @@ class SolidCRKSPHHydroBaseRZ(CRKSPHHydroBase):
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
                epsTensile = "const double",
-               nTensile = "const double",
-               damageRelieveRubble = "const bool"):
+               nTensile = "const double"):
         "Constructor"
 
     #...........................................................................
     # Virtual methods
-    @PYB11virtual
-    def initializeProblemStartup(self,
-                                 dataBase = "DataBase<%(Dimension)s>&"):
-        """An optional hook to initialize once when the problem is starting up.
-Typically this is used to size arrays once all the materials and NodeLists have
-been created.  It is assumed after this method has been called it is safe to
-call Physics::registerState for instance to create full populated State objects."""
-
-        return "void"
-
     @PYB11virtual
     def initializeProblemStartupDependencies(self,
                                              dataBase = "DataBase<%(Dimension)s>&",
@@ -69,11 +57,11 @@ temperature or pressure."""
         "Register the state Hydro expects to use and evolve."
         return "void"
 
-    @PYB11virtual
+    @PYB11virtual 
     def registerDerivatives(self,
                             dataBase = "DataBase<%(Dimension)s>&",
                             derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Register the derivatives/change fields for updating state."
+        "Register the derivatives Hydro expects to use and evolve."
         return "void"
 
     @PYB11virtual
@@ -110,8 +98,11 @@ mass density, velocity, and specific thermal energy."""
         "Enforce boundary conditions for the physics specific fields."
         return "void"
 
-#-------------------------------------------------------------------------------
-# Inject methods
-#-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidCRKSPHHydroBaseRZ)
+    @PYB11virtual
+    @PYB11const
+    def label(self):
+        return "std::string"
 
+    #...........................................................................
+    # Properties
+    pairAccelerations = PYB11property("const PairAccelerationsType&", "pairAccelerations", returnpolicy="reference_internal")

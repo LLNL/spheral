@@ -3,8 +3,9 @@
 //
 // Created by JMO, Fri Jul 30 11:07:33 PDT 2010
 //----------------------------------------------------------------------------//
+#include "CRKSPH/SolidCRKSPH.hh"
 #include "FileIO/FileIO.hh"
-#include "CRKSPH/CRKSPHHydroBase.hh"
+#include "CRKSPH/CRKSPH.hh"
 #include "RK/ReproducingKernel.hh"
 #include "RK/RKFieldNames.hh"
 #include "CRKSPH/computeCRKSPHSumMassDensity.hh"
@@ -31,14 +32,11 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
 
-#include "SolidCRKSPHHydroBase.hh"
-
-#include <limits.h>
-#include <float.h>
 #include <algorithm>
 #include <fstream>
 #include <map>
@@ -100,32 +98,30 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SolidCRKSPHHydroBase<Dimension>::
-SolidCRKSPHHydroBase(DataBase<Dimension>& dataBase,
-                     ArtificialViscosity<Dimension>& Q,
-                     const RKOrder order,
-                     const double filter,
-                     const double cfl,
-                     const bool useVelocityMagnitudeForDt,
-                     const bool compatibleEnergyEvolution,
-                     const bool evolveTotalEnergy,
-                     const bool XSPH,
-                     const MassDensityType densityUpdate,
-                     const double epsTensile,
-                     const double nTensile,
-                     const bool damageRelieveRubble):
-  CRKSPHHydroBase<Dimension>(dataBase,
-                             Q,
-                             order,
-                             filter,
-                             cfl,
-                             useVelocityMagnitudeForDt,
-                             compatibleEnergyEvolution,
-                             evolveTotalEnergy,
-                             XSPH,
-                             densityUpdate,
-                             epsTensile,
-                             nTensile),
+SolidCRKSPH<Dimension>::
+SolidCRKSPH(DataBase<Dimension>& dataBase,
+            ArtificialViscosity<Dimension>& Q,
+            const RKOrder order,
+            const double cfl,
+            const bool useVelocityMagnitudeForDt,
+            const bool compatibleEnergyEvolution,
+            const bool evolveTotalEnergy,
+            const bool XSPH,
+            const MassDensityType densityUpdate,
+            const double epsTensile,
+            const double nTensile,
+            const bool damageRelieveRubble):
+  CRKSPH<Dimension>(dataBase,
+                    Q,
+                    order,
+                    cfl,
+                    useVelocityMagnitudeForDt,
+                    compatibleEnergyEvolution,
+                    evolveTotalEnergy,
+                    XSPH,
+                    densityUpdate,
+                    epsTensile,
+                    nTensile),
   mDamageRelieveRubble(damageRelieveRubble),
   mDdeviatoricStressDt(FieldStorageType::CopyFields),
   mBulkModulus(FieldStorageType::CopyFields),
@@ -142,25 +138,17 @@ SolidCRKSPHHydroBase(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SolidCRKSPHHydroBase<Dimension>::
-~SolidCRKSPHHydroBase() {
-}
-
-//------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
 
   // Call the ancestor.
-  CRKSPHHydroBase<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
+  CRKSPH<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // Set the moduli.
   updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
@@ -174,12 +162,12 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
 
   // Invoke CRKSPHHydro's state.
-  CRKSPHHydroBase<Dimension>::registerState(dataBase, state);
+  CRKSPH<Dimension>::registerState(dataBase, state);
 
   // Create the local storage.
   dataBase.resizeFluidFieldList(mBulkModulus, 0.0, SolidFieldNames::bulkModulus, false);
@@ -213,7 +201,7 @@ registerState(DataBase<Dimension>& dataBase,
   // And finally the intial plastic strain.
   mPlasticStrain0 = ps;
   mPlasticStrain0.copyFields();
-  for (auto itr = mPlasticStrain0.begin(); itr != mPlasticStrain0.end(); ++itr) (**itr).name(SolidFieldNames::plasticStrain + "0");
+  for (auto* fptr: mPlasticStrain0) fptr->name(SolidFieldNames::plasticStrain + "0");
   state.enroll(mPlasticStrain0);
 }
 
@@ -222,12 +210,12 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 
   // Call the ancestor method.
-  CRKSPHHydroBase<Dimension>::registerDerivatives(dataBase, derivs);
+  CRKSPH<Dimension>::registerDerivatives(dataBase, derivs);
 
   // Create the scratch fields.
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
@@ -246,7 +234,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
@@ -318,7 +306,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(DxDt.size() == numNodeLists);
@@ -332,9 +320,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-
-  // Size up the pair-wise accelerations before we start.
-  if (compatibleEnergy) pairAccelerations.resize(npairs);
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -574,12 +560,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
 
   // Ancestor method.
-  CRKSPHHydroBase<Dimension>::applyGhostBoundaries(state, derivs);
+  CRKSPH<Dimension>::applyGhostBoundaries(state, derivs);
 
   // Apply boundary conditions to our extra strength variables.
   auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -604,12 +590,12 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
 
   // Ancestor method.
-  CRKSPHHydroBase<Dimension>::enforceBoundaries(state, derivs);
+  CRKSPH<Dimension>::enforceBoundaries(state, derivs);
 
   // Enforce boundary conditions on the extra strength variables.
   auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -634,11 +620,11 @@ enforceBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
 
   // Ancestor method.
-  CRKSPHHydroBase<Dimension>::dumpState(file, pathName);
+  CRKSPH<Dimension>::dumpState(file, pathName);
 
   file.write(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
   file.write(mBulkModulus, pathName + "/bulkModulus");
@@ -652,11 +638,11 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SolidCRKSPHHydroBase<Dimension>::
+SolidCRKSPH<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
  
   // Ancestor method.
-  CRKSPHHydroBase<Dimension>::restoreState(file, pathName);
+  CRKSPH<Dimension>::restoreState(file, pathName);
 
   file.read(mDdeviatoricStressDt, pathName + "/DdeviatoricStressDt");
   file.read(mBulkModulus, pathName + "/bulkModulus");

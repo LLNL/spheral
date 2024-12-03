@@ -1,5 +1,5 @@
 //---------------------------------Spheral++----------------------------------//
-// CRKSPHHydroBaseRZ -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++.
+// CRKSPHRZ -- The CRKSPH/ACRKSPH hydrodynamic package for Spheral++.
 //
 // This is the area-weighted RZ specialization.
 //
@@ -28,6 +28,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "Utilities/newtonRaphson.hh"
@@ -36,7 +37,7 @@
 #include "Geometry/outerProduct.hh"
 #include "Geometry/GeometryRegistrar.hh"
 
-#include "CRKSPHHydroBaseRZ.hh"
+#include "CRKSPHRZ.hh"
 
 #include <limits.h>
 #include <float.h>
@@ -60,11 +61,10 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
-CRKSPHHydroBaseRZ::
-CRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
+CRKSPHRZ::
+CRKSPHRZ(DataBase<Dimension>& dataBase,
                   ArtificialViscosity<Dimension>& Q,
                   const RKOrder order,
-                  const double filter,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
                   const bool compatibleEnergyEvolution,
@@ -73,41 +73,25 @@ CRKSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                   const MassDensityType densityUpdate,
                   const double epsTensile,
                   const double nTensile):
-  CRKSPHHydroBase<Dim<2>>(dataBase,
-                          Q,
-                          order,
-                          filter,
-                          cfl,
-                          useVelocityMagnitudeForDt,
-                          compatibleEnergyEvolution,
-                          evolveTotalEnergy,
-                          XSPH,
-                          densityUpdate,
-                          epsTensile,
-                          nTensile) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-CRKSPHHydroBaseRZ::
-~CRKSPHHydroBaseRZ() {
-}
-
-//------------------------------------------------------------------------------
-// On problem start up, we set the RZ flag on the DataBase.
-//------------------------------------------------------------------------------
-void
-CRKSPHHydroBaseRZ::
-initializeProblemStartup(DataBase<Dim<2>>& dataBase) {
-  GeometryRegistrar::coords(CoordinateType::RZ);
+  CRKSPHBase<Dim<2>>(dataBase,
+                     Q,
+                     order,
+                     cfl,
+                     useVelocityMagnitudeForDt,
+                     compatibleEnergyEvolution,
+                     evolveTotalEnergy,
+                     XSPH,
+                     densityUpdate,
+                     epsTensile,
+                     nTensile),
+  mPairAccelerationsPtr() {
 }
 
 //------------------------------------------------------------------------------
 // On problem start up some dependent state needs to be calculated
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
+CRKSPHRZ::
 initializeProblemStartupDependencies(DataBase<Dim<2>>& dataBase,
                                      State<Dim<2>>& state,
                                      StateDerivatives<Dim<2>>& derivs) {
@@ -125,7 +109,7 @@ initializeProblemStartupDependencies(DataBase<Dim<2>>& dataBase,
   }
 
   // Do general initializations.
-  CRKSPHHydroBase<Dim<2> >::initializeProblemStartupDependencies(dataBase, state, derivs);
+  CRKSPHBase<Dim<2>>::initializeProblemStartupDependencies(dataBase, state, derivs);
 
   // Convert back to mass.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -141,30 +125,54 @@ initializeProblemStartupDependencies(DataBase<Dim<2>>& dataBase,
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
+CRKSPHRZ::
 registerState(DataBase<Dim<2>>& dataBase,
               State<Dim<2>>& state) {
 
   // The base class does most of it.
-  CRKSPHHydroBase<Dim<2> >::registerState(dataBase, state);
+  CRKSPHBase<Dim<2>>::registerState(dataBase, state);
 
   // Reregister the volume update
   auto vol = state.fields(HydroFieldNames::volume, 0.0);
   state.enroll(vol, make_policy<ContinuityVolumePolicyRZ>());
 
-  // Are we using the compatible energy evolution scheme?
-  // If so we need to override the ordinary energy registration with a specialized version.
-  if (mCompatibleEnergyEvolution) {
-    auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  // We have to choose either compatible or total energy evolution.
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  VERIFY2(not (compatibleEnergy and evolveTotalEnergy),
+          "SPH error : you cannot simultaneously use both compatibleEnergyEvolution and evolveTotalEnergy");
+
+  // Register the specific thermal energy.
+  // Note in RZ we require the specific thermal energy go before the position so we can use the r position
+  // during update.  This is why we make position update dependent on the thermal energy in SPHBase.
+  auto specificThermalEnergy = dataBase.fluidSpecificThermalEnergy();
+  if (compatibleEnergy) {
     state.enroll(specificThermalEnergy, make_policy<RZNonSymmetricSpecificThermalEnergyPolicy>(dataBase));
 
-    // Get the policy for the position, and add the specific energy as a dependency.
-    const auto posPolicies = state.policies(HydroFieldNames::position);      // map<Key, Policy>
-    State<Dimension>::KeyType fkey, nodeListKey;
-    for (auto& [key, policy]: posPolicies) {
-      State<Dimension>::splitFieldKey(key, fkey, nodeListKey);
-      policy->addDependency(State<Dimension>::buildFieldKey(HydroFieldNames::specificThermalEnergy, nodeListKey));
-    }
+  } else if (evolveTotalEnergy) {
+    // If we're doing total energy, we register the specific energy to advance with the
+    // total energy policy.
+    state.enroll(specificThermalEnergy, make_policy<SpecificFromTotalThermalEnergyPolicy<Dimension>>());
+
+  } else {
+    // Otherwise we're just time-evolving the specific energy.
+    state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Register the state derivative fields.
+//------------------------------------------------------------------------------
+void
+CRKSPHRZ::
+registerDerivatives(DataBase<Dim<2>>& dataBase,
+                    StateDerivatives<Dim<2>>& derivs) {
+  CRKSPHBase<Dimension>::registerDerivatives(dataBase, derivs);
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  if (compatibleEnergy) {
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
   }
 }
 
@@ -172,7 +180,7 @@ registerState(DataBase<Dim<2>>& dataBase,
 // This method is called once at the beginning of a timestep, after all state registration.
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
+CRKSPHRZ::
 preStepInitialize(const DataBase<Dim<2>>& dataBase, 
                   State<Dim<2>>& state,
                   StateDerivatives<Dim<2>>& derivs) {
@@ -190,7 +198,7 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
   }
 
   // Base class does most of the work.
-  CRKSPHHydroBase<Dimension>::preStepInitialize(dataBase, state, derivs);
+  CRKSPHBase<Dimension>::preStepInitialize(dataBase, state, derivs);
 
   // Now convert back to true masses.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
@@ -207,12 +215,12 @@ preStepInitialize(const DataBase<Dim<2>>& dataBase,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
+CRKSPHRZ::
 evaluateDerivatives(const Dim<2>::Scalar /*time*/,
                     const Dim<2>::Scalar /*dt*/,
-                    const DataBase<Dim<2> >& dataBase,
-                    const State<Dim<2> >& state,
-                    StateDerivatives<Dim<2> >& derivatives) const {
+                    const DataBase<Dim<2>>& dataBase,
+                    const State<Dim<2>>& state,
+                    StateDerivatives<Dim<2>>& derivatives) const {
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -223,6 +231,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
   // A few useful constants we'll use in the following loop.
   //const auto tiny = 1.0e-30;
+  const auto compatibleEnergy = this->compatibleEnergyEvolution();
+  const auto evolveTotalEnergy = this->evolveTotalEnergy();
+  const auto XSPH = this->XSPH();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -263,7 +274,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -275,9 +286,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-
-  // Size up the pair-wise accelerations before we start.
-  if (mCompatibleEnergyEvolution) pairAccelerations.resize(2*npairs);
+  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -407,16 +416,13 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
       DvDti -= forceij/mRZi; //CRK Acceleration
       DvDtj += forceij/mRZj; //CRK Acceleration
-      if (mCompatibleEnergyEvolution) {
-        pairAccelerations[2*kk]   = -forceij/mRZi;
-        pairAccelerations[2*kk+1] =  forceij/mRZj;
-      }
+      if (compatibleEnergy) pairAccelerations[kk] = std::make_pair(-forceij/mRZi, forceij/mRZj);
 
       DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mRZi;    // CRK Q
       DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mRZj;    // CRK Q
 
       // Estimate of delta v (for XSPH).
-      if ((mXSPH and (nodeListi == nodeListj)) or min(zetai, zetaj) < 1.0) {
+      if ((XSPH and (nodeListi == nodeListj)) or min(zetai, zetaj) < 1.0) {
         XSPHDeltaVi -= weightj*Wj*vij;
         XSPHDeltaVj += weighti*Wi*vij;
       }
@@ -465,7 +471,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       DepsDti -= Pi/rhoi*vri*riInv;
 
       // If needed finish the total energy derivative.
-      if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
+      if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
@@ -481,9 +487,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 // Apply the ghost boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
-applyGhostBoundaries(State<Dim<2> >& state,
-                     StateDerivatives<Dim<2> >& derivs) {
+CRKSPHRZ::
+applyGhostBoundaries(State<Dim<2>>& state,
+                     StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -499,7 +505,7 @@ applyGhostBoundaries(State<Dim<2> >& state,
   }
 
   // Apply ordinary CRKSPH BCs.
-  CRKSPHHydroBase<Dim<2> >::applyGhostBoundaries(state, derivs);
+  CRKSPHBase<Dim<2>>::applyGhostBoundaries(state, derivs);
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
@@ -517,9 +523,9 @@ applyGhostBoundaries(State<Dim<2> >& state,
 // Enforce the boundary conditions for hydro state fields.
 //------------------------------------------------------------------------------
 void
-CRKSPHHydroBaseRZ::
-enforceBoundaries(State<Dim<2> >& state,
-                  StateDerivatives<Dim<2> >& derivs) {
+CRKSPHRZ::
+enforceBoundaries(State<Dim<2>>& state,
+                  StateDerivatives<Dim<2>>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -535,7 +541,7 @@ enforceBoundaries(State<Dim<2> >& state,
   }
 
   // Apply ordinary CRKSPH BCs.
-  CRKSPHHydroBase<Dim<2> >::enforceBoundaries(state, derivs);
+  CRKSPHBase<Dim<2>>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   // We also ensure no point approaches the z-axis too closely.
