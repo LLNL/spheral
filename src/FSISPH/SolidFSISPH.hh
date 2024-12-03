@@ -1,18 +1,18 @@
 //---------------------------------Spheral++----------------------------------//
-// SolidFSISPHHydroBase -- SolidSPHHydro modified to better handle 
-//                         multimaterial material problems with interfaces
-//                         and large density ratios. 
+// SolidFSISPH -- SolidSPHHydro modified to better handle 
+//                multimaterial material problems with interfaces
+//                and large density ratios. 
 //
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_SolidFSISPHHydroBase_hh__
-#define __Spheral_SolidFSISPHHydroBase_hh__
-
-#include <float.h>
-#include <string>
-#include <vector>
+#ifndef __Spheral_SolidFSISPH_hh__
+#define __Spheral_SolidFSISPH_hh__
 
 #include "Physics/GenericHydro.hh"
+
+#include <string>
+#include <vector>
+#include <memory>
 
 namespace Spheral {
 
@@ -42,10 +42,11 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename DataType> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
-class SolidFSISPHHydroBase: public GenericHydro<Dimension> {
+class SolidFSISPH: public GenericHydro<Dimension> {
 
 public:
 
@@ -57,38 +58,41 @@ public:
 
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using PairWorkType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
+
   // Constructors.
-  SolidFSISPHHydroBase(DataBase<Dimension>& dataBase,
-                       ArtificialViscosity<Dimension>& Q,
-                       SlideSurface<Dimension>& slide,
-                       const TableKernel<Dimension>& W,
-                       const double cfl,
-                       const double surfaceForceCoefficient,
-                       const double densityStabilizationCoefficient,
-                       const double specificThermalEnergyDiffusionCoefficient,
-                       const double xsphCoefficient,
-                       const InterfaceMethod interfaceMethod,
-                       const KernelAveragingMethod kernelAveragingMethod,
-                       const std::vector<int> sumDensityNodeLists,
-                       const bool useVelocityMagnitudeForDt,
-                       const bool compatibleEnergyEvolution,
-                       const bool evolveTotalEnergy,
-                       const bool linearCorrectGradients,
-                       const bool planeStrain,
-                       const double interfacePmin,
-                       const double interfaceNeighborAngleThreshold,
-                       const FSIMassDensityMethod densityUpdate,
-                       const double epsTensile,
-                       const double nTensile,
-                       const Vector& xmin,
-                       const Vector& xmax);
+  SolidFSISPH(DataBase<Dimension>& dataBase,
+              ArtificialViscosity<Dimension>& Q,
+              SlideSurface<Dimension>& slide,
+              const TableKernel<Dimension>& W,
+              const double cfl,
+              const double surfaceForceCoefficient,
+              const double densityStabilizationCoefficient,
+              const double specificThermalEnergyDiffusionCoefficient,
+              const double xsphCoefficient,
+              const InterfaceMethod interfaceMethod,
+              const KernelAveragingMethod kernelAveragingMethod,
+              const std::vector<int> sumDensityNodeLists,
+              const bool useVelocityMagnitudeForDt,
+              const bool compatibleEnergyEvolution,
+              const bool evolveTotalEnergy,
+              const bool linearCorrectGradients,
+              const bool planeStrain,
+              const double interfacePmin,
+              const double interfaceNeighborAngleThreshold,
+              const FSIMassDensityMethod densityUpdate,
+              const double epsTensile,
+              const double nTensile,
+              const Vector& xmin,
+              const Vector& xmax);
 
   // No default constructor, copying, or assignment.
-  SolidFSISPHHydroBase() = delete;
-  SolidFSISPHHydroBase(const SolidFSISPHHydroBase&) = delete;
-  SolidFSISPHHydroBase& operator=(const SolidFSISPHHydroBase&) = delete;
+  SolidFSISPH() = delete;
+  SolidFSISPH(const SolidFSISPH&) = delete;
+  SolidFSISPH& operator=(const SolidFSISPH&) = delete;
 
-  virtual ~SolidFSISPHHydroBase();
+  virtual ~SolidFSISPH() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -218,8 +222,8 @@ public:
   void xmin(const Vector& x);
   void xmax(const Vector& x);
 
-  const std::vector<Vector>&             pairAccelerations() const;
-  const std::vector<Scalar>&             pairDepsDt() const;
+  const PairAccelerationsType&           pairAccelerations() const;
+  const PairWorkType&                    pairDepsDt() const;
 
   const FieldList<Dimension, int>&       timeStepMask() const;
   const FieldList<Dimension, Scalar>&    pressure() const;
@@ -263,7 +267,7 @@ public:
   
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "SolidFSISPHHydroBase"; }
+  virtual std::string label() const override { return "SolidFSISPH"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
  //****************************************************************************
@@ -296,8 +300,8 @@ private:
   Vector mxmin;
   Vector mxmax;
 
-  std::vector<Vector> mPairAccelerations;              // store pairwise contribution to DvDt for compatible
-  std::vector<Scalar> mPairDepsDt;                     // store pairwise contribution to DepsDt for compatible
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;    // store pairwise contribution to DvDt for compatible
+  std::unique_ptr<PairWorkType>          mPairDepsDtPtr;           // store pairwise contribution to DepsDt for compatible
 
   FieldList<Dimension, int>       mTimeStepMask;
   FieldList<Dimension, Scalar>    mPressure;
@@ -348,6 +352,6 @@ protected:
 }
 
 
-#include "SolidFSISPHHydroBaseInline.hh"
+#include "SolidFSISPHInline.hh"
 
 #endif

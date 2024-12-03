@@ -2,11 +2,11 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "FSISPH/SolidFSISPHHydroBase.cc"
+#include "FSISPH/SolidFSISPH.cc"
 #include "FSISPH/SolidFSISPHEvaluateDerivatives.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class SolidFSISPHHydroBase< Dim< %(ndim)s > >;
+  template class SolidFSISPH<Dim<%(ndim)s>>;
 }
 """

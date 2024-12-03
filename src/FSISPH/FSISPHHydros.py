@@ -71,7 +71,7 @@ def FSISPH(dataBase,
     else:
         # Cartesian ---------------------------------
         if nsolid > 0:
-            Constructor = eval("SolidFSISPHHydroBase%id" % ndim)
+            Constructor = eval("SolidFSISPH%id" % ndim)
         else:
             raise RuntimeError("currently only implemented for solid nodelists")
 

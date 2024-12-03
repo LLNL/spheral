@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# SolidFSISPHHydroBase
+# SolidFSISPH
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericHydro import *
@@ -8,15 +8,17 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralFSISPH")
 @PYB11dynamic_attr
-class SolidFSISPHHydroBase(GenericHydro):
-    "SolidFSISPHHydroBase -- SolidSPHHydro modified for large density discontinuities"
+class SolidFSISPH(GenericHydro):
+    "SolidFSISPH -- SolidSPHHydro modified for large density discontinuities"
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+  using PairAccelerationsType = typename SolidFSISPH<%(Dimension)s>::PairAccelerationsType;
+  using PairWorkType = typename SolidFSISPH<%(Dimension)s>::PairWorkType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -43,7 +45,7 @@ class SolidFSISPHHydroBase(GenericHydro):
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "SolidFSISPHHydroBase constructor"
+        "SolidFSISPH constructor"
 
     #...........................................................................
     # Virtual methods
@@ -120,8 +122,8 @@ temperature or pressure."""
     xmin = PYB11property("const Vector&", "xmin", "xmin",returnpolicy="reference_internal",doc="Optional minimum coordinate for bounding box for use generating the mesh for the Voronoi mass density update.")
     xmax = PYB11property("const Vector&", "xmax", "xmax",returnpolicy="reference_internal",doc="Optional maximum coordinate for bounding box for use generating the mesh for the Voronoi mass density update.")
     
-    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
-    pairDepsDt = PYB11property("const std::vector<Scalar>&", "pairDepsDt", returnpolicy="reference_internal")
+    pairAccelerations = PYB11property("const PairAccelerationsType&", "pairAccelerations", returnpolicy="reference_internal")
+    pairDepsDt = PYB11property("const PairWorkType&", "pairDepsDt", returnpolicy="reference_internal")
 
     timeStepMask =                 PYB11property("const FieldList<%(Dimension)s, int>&",      "timeStepMask",         returnpolicy="reference_internal")
     pressure =                     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "pressure",             returnpolicy="reference_internal")
@@ -163,4 +165,4 @@ temperature or pressure."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, SolidFSISPHHydroBase)
+PYB11inject(RestartMethods, SolidFSISPH)

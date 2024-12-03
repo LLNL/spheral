@@ -22,7 +22,9 @@ PYB11includes += ['"Geometry/GeomPlane.hh"',
                   '"Neighbor/ConnectivityMap.hh"',
                   '"Neighbor/NodePairIdxType.hh"',
                   '"Neighbor/NodePairList.hh"',
-                  '"Neighbor/PairwiseField.hh"']
+                  '"Neighbor/PairwiseField.hh"',
+                  '<utility>']
+                  
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -63,8 +65,12 @@ vector_of_GridCellIndex{suffix} = PYB11_bind_vector("GridCellIndex<{Dimension}>"
 vector_of_vector_of_GridCellIndex{suffix} = PYB11_bind_vector("std::vector<GridCellIndex<{Dimension}>>", opaque=True, local=False)
 ''')
 
-    for Value in ("Scalar", ): #"Vector", "Tensor", "SymTensor"):
+    for Value in ("Scalar", "Vector", "Tensor", "SymTensor"):
         V = f"{Dimension}::{Value}"
         exec(f'''
 {Value}PairwiseField{suffix} = PYB11TemplateClass(PairwiseField, template_parameters=("{Dimension}", "{V}"))
+''')
+
+    exec(f'''
+PairwiseFieldScalarScalar{suffix} = PYB11TemplateClass(PairwiseField, template_parameters=("{Dimension}", "std::pair<{Dimension}::Scalar, {Dimension}::Scalar>"))
 ''')

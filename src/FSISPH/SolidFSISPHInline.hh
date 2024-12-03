@@ -7,7 +7,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 const TableKernel<Dimension>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 kernel() const {
   return mKernel;
 }
@@ -18,7 +18,7 @@ kernel() const {
 template<typename Dimension>
 inline
 SlideSurface<Dimension>&
-SolidFSISPHHydroBase<Dimension>::slideSurface() const {
+SolidFSISPH<Dimension>::slideSurface() const {
   return mSlideSurface;
 }
 
@@ -29,14 +29,14 @@ SolidFSISPHHydroBase<Dimension>::slideSurface() const {
 template<typename Dimension>
 inline
 FSIMassDensityMethod
-SolidFSISPHHydroBase<Dimension>::densityUpdate() const {
+SolidFSISPH<Dimension>::densityUpdate() const {
   return mDensityUpdate;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 densityUpdate(FSIMassDensityMethod type) {
   mDensityUpdate = type;
 }
@@ -47,14 +47,14 @@ densityUpdate(FSIMassDensityMethod type) {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceMethod(InterfaceMethod x) {
   mInterfaceMethod = x;
 }
 template<typename Dimension>
 inline
 InterfaceMethod
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceMethod() const {
   return mInterfaceMethod;
 }
@@ -65,14 +65,14 @@ interfaceMethod() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 kernelAveragingMethod(KernelAveragingMethod x) {
   mKernelAveragingMethod = x;
 }
 template<typename Dimension>
 inline
 KernelAveragingMethod
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 kernelAveragingMethod() const {
   return mKernelAveragingMethod;
 }
@@ -84,14 +84,14 @@ kernelAveragingMethod() const {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::compatibleEnergyEvolution() const {
+SolidFSISPH<Dimension>::compatibleEnergyEvolution() const {
   return mCompatibleEnergyEvolution;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
+SolidFSISPH<Dimension>::compatibleEnergyEvolution(bool val) {
   mCompatibleEnergyEvolution = val;
 }
 
@@ -101,14 +101,14 @@ SolidFSISPHHydroBase<Dimension>::compatibleEnergyEvolution(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy() const {
+SolidFSISPH<Dimension>::evolveTotalEnergy() const {
   return mEvolveTotalEnergy;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
+SolidFSISPH<Dimension>::evolveTotalEnergy(bool val) {
   mEvolveTotalEnergy = val;
 }
 
@@ -118,14 +118,14 @@ SolidFSISPHHydroBase<Dimension>::evolveTotalEnergy(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::linearCorrectGradients() const {
+SolidFSISPH<Dimension>::linearCorrectGradients() const {
   return mLinearCorrectGradients;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::linearCorrectGradients(bool val) {
+SolidFSISPH<Dimension>::linearCorrectGradients(bool val) {
   mLinearCorrectGradients = val;
 }
 
@@ -135,14 +135,14 @@ SolidFSISPHHydroBase<Dimension>::linearCorrectGradients(bool val) {
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::planeStrain() const {
+SolidFSISPH<Dimension>::planeStrain() const {
   return mPlaneStrain;
 }
 
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::planeStrain(bool val) {
+SolidFSISPH<Dimension>::planeStrain(bool val) {
   mPlaneStrain = val;
 }
 
@@ -153,14 +153,14 @@ SolidFSISPHHydroBase<Dimension>::planeStrain(bool val) {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 applySelectSumDensity(bool x) {
   mApplySelectDensitySum = x;
 }
 template<typename Dimension>
 inline
 bool
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 applySelectSumDensity() const {
   return mApplySelectDensitySum;
 }
@@ -168,14 +168,14 @@ applySelectSumDensity() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 sumDensityNodeLists(std::vector<int> x) {
   mSumDensityNodeLists = x;
 }
 template<typename Dimension>
 inline
 std::vector<int>
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 sumDensityNodeLists() const {
   return mSumDensityNodeLists;
 }
@@ -186,14 +186,14 @@ sumDensityNodeLists() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 surfaceForceCoefficient(double x) {
   mSurfaceForceCoefficient = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 surfaceForceCoefficient() const {
   return mSurfaceForceCoefficient;
 }
@@ -201,14 +201,14 @@ surfaceForceCoefficient() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 densityStabilizationCoefficient(double x) {
   mDensityStabilizationCoefficient = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 densityStabilizationCoefficient() const {
   return mDensityStabilizationCoefficient;
 }
@@ -216,14 +216,14 @@ densityStabilizationCoefficient() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 specificThermalEnergyDiffusionCoefficient(double x) {
   mSpecificThermalEnergyDiffusionCoefficient = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 specificThermalEnergyDiffusionCoefficient() const {
   return mSpecificThermalEnergyDiffusionCoefficient;
 }
@@ -231,14 +231,14 @@ specificThermalEnergyDiffusionCoefficient() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xsphCoefficient(double x) {
   mXSPHCoefficient = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xsphCoefficient() const {
   return mXSPHCoefficient;
 }
@@ -246,14 +246,14 @@ xsphCoefficient() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfacePmin(double x) {
   mInterfacePmin = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfacePmin() const {
   return mInterfacePmin;
 }
@@ -261,14 +261,14 @@ interfacePmin() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceNeighborAngleThreshold(double x) {
   mInterfaceNeighborAngleThreshold = x;
 }
 template<typename Dimension>
 inline
 double
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceNeighborAngleThreshold() const {
   return mInterfaceNeighborAngleThreshold;
 }
@@ -279,14 +279,14 @@ interfaceNeighborAngleThreshold() const {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 epsilonTensile() const {
   return mEpsTensile;
 }
 
 template<typename Dimension>
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 epsilonTensile(typename Dimension::Scalar val) {
   mEpsTensile = val;
 }
@@ -297,7 +297,7 @@ epsilonTensile(typename Dimension::Scalar val) {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 nTensile() const {
   return mnTensile;
 }
@@ -305,7 +305,7 @@ nTensile() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 nTensile(typename Dimension::Scalar val) {
   mnTensile = val;
 }
@@ -316,7 +316,7 @@ nTensile(typename Dimension::Scalar val) {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xmin() const {
   return mxmin;
 }
@@ -324,7 +324,7 @@ xmin() const {
 template<typename Dimension>
 inline
 const typename Dimension::Vector&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xmax() const {
   return mxmax;
 }
@@ -332,7 +332,7 @@ xmax() const {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xmin(const typename Dimension::Vector& x) {
   mxmin = x;
 }
@@ -340,7 +340,7 @@ xmin(const typename Dimension::Vector& x) {
 template<typename Dimension>
 inline
 void
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 xmax(const typename Dimension::Vector& x) {
   mxmax = x;
 }
@@ -350,24 +350,26 @@ xmax(const typename Dimension::Vector& x) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+const typename SolidFSISPH<Dimension>::PairAccelerationsType&
+SolidFSISPH<Dimension>::
 pairAccelerations() const {
-  return mPairAccelerations;
+  VERIFY2(mPairAccelerationsPtr, "SolidFSISPH ERROR: attempt to access uninitialized pairAccelerations");
+  return *mPairAccelerationsPtr;
 }
 
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+const typename SolidFSISPH<Dimension>::PairWorkType&
+SolidFSISPH<Dimension>::
 pairDepsDt() const {
-  return mPairDepsDt;
+  VERIFY2(mPairDepsDtPtr, "SolidFSISPH ERROR: attempt to access uninitialized pairDepsDt");
+  return *mPairDepsDtPtr;
 }
 
 template<typename Dimension>
 inline
 const FieldList<Dimension, int>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 timeStepMask() const {
   return mTimeStepMask;
 }
@@ -375,7 +377,7 @@ timeStepMask() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 pressure() const {
   return mPressure;
 }
@@ -383,7 +385,7 @@ pressure() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 damagedPressure() const {
   return mDamagedPressure;
 }
@@ -391,7 +393,7 @@ damagedPressure() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 soundSpeed() const {
   return mSoundSpeed;
 }
@@ -399,7 +401,7 @@ soundSpeed() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 bulkModulus() const {
   return mBulkModulus;
 }
@@ -407,7 +409,7 @@ bulkModulus() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 shearModulus() const {
   return mShearModulus;
 }
@@ -415,7 +417,7 @@ shearModulus() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 yieldStrength() const {
   return mYieldStrength;
 }
@@ -423,7 +425,7 @@ yieldStrength() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 plasticStrain0() const {
   return mPlasticStrain0;
 }
@@ -431,7 +433,7 @@ plasticStrain0() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension, typename Dimension::Scalar>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // inverseEquivalentDeviatoricStress() const {
 //   return mInverseEquivalentDeviatoricStress;
 // }
@@ -439,7 +441,7 @@ plasticStrain0() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 volume() const {
   return mVolume;
 }
@@ -447,7 +449,7 @@ volume() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DxDt() const {
   return mDxDt;
 }
@@ -455,7 +457,7 @@ DxDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 XSPHDeltaV() const {
   return mXSPHDeltaV;
 }
@@ -463,7 +465,7 @@ XSPHDeltaV() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 XSPHWeightSum() const {
   return mXSPHWeightSum;
 }
@@ -471,7 +473,7 @@ XSPHWeightSum() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DvDt() const {
   return mDvDt;
 }
@@ -479,7 +481,7 @@ DvDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
 }
@@ -487,7 +489,7 @@ DmassDensityDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DspecificThermalEnergyDt() const {
   return mDspecificThermalEnergyDt;
 }
@@ -495,7 +497,7 @@ DspecificThermalEnergyDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::SymTensor>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DdeviatoricStressDt() const {
   return mDdeviatoricStressDt;
 }
@@ -503,7 +505,7 @@ DdeviatoricStressDt() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DPDx() const {
   return mDPDx;
 }
@@ -511,7 +513,7 @@ DPDx() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DepsDx() const {
   return mDepsDx;
 }
@@ -519,7 +521,7 @@ DepsDx() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 DvDx() const {
   return mDvDx;
 }
@@ -527,7 +529,7 @@ DvDx() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 internalDvDx() const {
   return mInternalDvDx;
 }
@@ -535,7 +537,7 @@ internalDvDx() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 M() const {
   return mM;
 }
@@ -543,7 +545,7 @@ M() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Tensor>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 localM() const {
   return mLocalM;
 }
@@ -551,7 +553,7 @@ localM() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 maxViscousPressure() const {
   return mMaxViscousPressure;
 }
@@ -559,7 +561,7 @@ maxViscousPressure() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 effectiveViscousPressure() const {
   return mEffViscousPressure;
 }
@@ -567,7 +569,7 @@ effectiveViscousPressure() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 normalization() const {
   return mNormalization;
 }
@@ -575,7 +577,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Vector>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // interfaceNormals() const {
 //   return mInterfaceNormals;
 // }
@@ -583,7 +585,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Scalar>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // interfaceFraction() const {
 //   return mInterfaceFraction;
 // }
@@ -591,7 +593,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Scalar>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // interfaceSmoothness() const {
 //   return mInterfaceSmoothness;
 // }
@@ -599,7 +601,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Vector>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // newInterfaceNormals() const {
 //   return mNewInterfaceNormals;
 // }
@@ -607,7 +609,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Vector>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // smoothedInterfaceNormals() const {
 //   return mSmoothedInterfaceNormals;
 // }
@@ -615,7 +617,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Scalar>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // newInterfaceFraction() const {
 //   return mNewInterfaceFraction;
 // }
@@ -623,7 +625,7 @@ normalization() const {
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension,  typename Dimension::Scalar>&
-// SolidFSISPHHydroBase<Dimension>::
+// SolidFSISPH<Dimension>::
 // newInterfaceSmoothness() const {
 //   return mNewInterfaceSmoothness;
 // }
@@ -632,7 +634,7 @@ normalization() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  int>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceFlags() const {
   return mInterfaceFlags;
 }
@@ -640,7 +642,7 @@ interfaceFlags() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceAreaVectors() const {
   return mInterfaceAreaVectors;
 }
@@ -648,7 +650,7 @@ interfaceAreaVectors() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceNormals() const {
   return mInterfaceNormals;
 }
@@ -656,7 +658,7 @@ interfaceNormals() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceSmoothness() const {
   return mInterfaceSmoothness;
 }
@@ -664,7 +666,7 @@ interfaceSmoothness() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  int>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 newInterfaceFlags() const {
   return mNewInterfaceFlags;
 }
@@ -672,7 +674,7 @@ newInterfaceFlags() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 newInterfaceAreaVectors() const {
   return mNewInterfaceAreaVectors;
 }
@@ -680,7 +682,7 @@ newInterfaceAreaVectors() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Vector>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 newInterfaceNormals() const {
   return mNewInterfaceNormals;
 }
@@ -688,7 +690,7 @@ newInterfaceNormals() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceSmoothnessNormalization() const {
   return mInterfaceSmoothnessNormalization;
 }
@@ -696,7 +698,7 @@ interfaceSmoothnessNormalization() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceFraction() const {
   return mInterfaceFraction;
 }
@@ -704,7 +706,7 @@ interfaceFraction() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 newInterfaceSmoothness() const {
   return mNewInterfaceSmoothness;
 }
@@ -712,7 +714,7 @@ newInterfaceSmoothness() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension,  typename Dimension::Scalar>&
-SolidFSISPHHydroBase<Dimension>::
+SolidFSISPH<Dimension>::
 interfaceAngles() const {
   return mInterfaceAngles;
 }

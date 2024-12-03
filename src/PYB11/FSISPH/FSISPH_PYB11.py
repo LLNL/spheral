@@ -9,17 +9,18 @@ from spheralDimensions import *
 dims = spheralDimensions()
 
 
-from SolidFSISPHHydroBase import *
+from SolidFSISPH import *
 from SlideSurface import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
-PYB11includes += ['"FSISPH/SolidFSISPHHydroBase.hh"',
+PYB11includes += ['"FSISPH/SolidFSISPH.hh"',
                   '"FSISPH/FSIFieldNames.hh"',
                   '"FSISPH/SlideSurface.hh"',
                   '"FileIO/FileIO.hh"',
-                  '"ArtificialViscosity/ArtificialViscosity.hh"']
+                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"Neighbor/PairwiseField.hh"']
 
 #-------------------------------------------------------------------------------
 # Enums
@@ -47,7 +48,7 @@ PYB11namespaces = ["Spheral"]
 for ndim in dims:
     exec('''
 SlideSurface%(ndim)id = PYB11TemplateClass(SlideSurface, template_parameters="%(Dimension)s")
-SolidFSISPHHydroBase%(ndim)id = PYB11TemplateClass(SolidFSISPHHydroBase, template_parameters="%(Dimension)s")
+SolidFSISPH%(ndim)id = PYB11TemplateClass(SolidFSISPH, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : "Dim<" + str(ndim) + ">"})
 

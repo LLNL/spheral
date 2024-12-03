@@ -66,6 +66,9 @@ update(const KeyType& key,
        const double /*t*/,
        const double /*dt*/) {
 
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using PairWorkType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
+
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
   REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
@@ -80,14 +83,14 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, Vector>>(HydroFieldNames::pairAccelerations);
-  const auto& pairDepsDt = derivs.get(HydroFieldNames::pairWork, vector<Scalar>());
+  const auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  const auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
 
   CHECK(pairAccelerations.size() == npairs);
-  CHECK(pairDepsDt.size() == 2*npairs);
+  CHECK(pairDepsDt.size() == npairs);
 
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   DepsDt.Zero();
@@ -108,8 +111,8 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       const auto& paccij = pairAccelerations[kk];
-      const auto& DepsDt0i = pairDepsDt[2*kk];
-      const auto& DepsDt0j = pairDepsDt[2*kk+1];
+      const auto& DepsDt0i = pairDepsDt[kk].first;
+      const auto& DepsDt0j = pairDepsDt[kk].second;
 
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);

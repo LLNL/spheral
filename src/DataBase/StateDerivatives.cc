@@ -157,7 +157,7 @@ Zero() {
   // Build a visitor to zero each data type
   using VisitorType = AnyVisitor<void, std::any&>;
   VisitorType ZERO;
-  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>                         ([](const any& x) { any_cast<reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>                          ([](const any& x) { any_cast<reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
   addZero<VisitorType, Scalar>           (ZERO);
   addZero<VisitorType, Vector>           (ZERO);
   addZero<VisitorType, Tensor>           (ZERO);
@@ -170,7 +170,9 @@ Zero() {
   addZero<VisitorType, set<RKOrder>>     (ZERO);
   ZERO.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>                  ([](const any& x) { } );
   ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Vector>>>              ([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, Vector>>>(x).get().Zero(); });
-  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, Vector>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Scalar>>>              ([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, Scalar>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>(x).get().Zero(); });
 
   // Walk the state values and zero them
   for (auto itr: mStorage) {
