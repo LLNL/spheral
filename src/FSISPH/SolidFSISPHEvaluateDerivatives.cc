@@ -233,6 +233,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       j = pairs[kk].j_node;
       nodeListi = pairs[kk].i_list;
       nodeListj = pairs[kk].j_list;
+      if (pairs[kk].f_couple < 1.0e-16)
+      {
+         continue;
+      }
 
       // Get the state for node i.
       const auto& interfaceFlagsi = interfaceFlags(nodeListi,i);
@@ -556,8 +560,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         if (freeParticle) {
           DvDti += mj*deltaDvDt;
           DvDtj -= mi*deltaDvDt;
-        } 
-      
+        }
+
         // Velocity Gradient
         //-----------------------------------------------------------
         // construct our interface velocity 
