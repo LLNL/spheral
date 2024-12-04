@@ -278,7 +278,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
                     const Dim<2>::Scalar dt,
                     const DataBase<Dim<2>>& dataBase,
                     const State<Dim<2>>& state,
-                    StateDerivatives<Dim<2>>& derivatives) const {
+                    StateDerivatives<Dim<2>>& derivs) const {
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -335,19 +335,19 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(surfacePoint.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
-  auto  selfAccelerations = derivatives.fields(HydroFieldNames::selfAccelerations, Vector::zero);
-  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
+  auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  DSDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -359,7 +359,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
   CHECK((compatibleEnergy     and selfAccelerations.size() == 0u) or
         (not compatibleEnergy and selfAccelerations.size() == numNodeLists));
 
@@ -520,8 +520,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
         DvDti -= forceij/mRZi;
         DvDtj += forceji/mRZj;
       }
-      if (compatibleEnergy) pairAccelerations[kk] = std::make_pair(-forceij/mRZi,
-                                                                    forceji/mRZj);
+      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair(-forceij/mRZi,
+                                                                         forceji/mRZj);
 
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?

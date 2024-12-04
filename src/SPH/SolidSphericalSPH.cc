@@ -248,7 +248,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
                     const Dim<1>::Scalar dt,
                     const DataBase<Dim<1>>& dataBase,
                     const State<Dim<1>>& state,
-                    StateDerivatives<Dim<1>>& derivatives) const {
+                    StateDerivatives<Dim<1>>& derivs) const {
 
   TIME_BEGIN("SolidSphericalSPHevalDerivs");
   TIME_BEGIN("SolidSphericalSPHevalDerivs_initial");
@@ -311,23 +311,23 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   CHECK(damage.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  rhoSum = derivatives.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  rhoSumCorrection = derivatives.fields(HydroFieldNames::massDensityCorrection, 0.0);
-  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
-  auto  selfAccelerations = derivatives.fields(HydroFieldNames::selfAccelerations, Vector::zero);
-  auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
-  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
+  auto  rhoSum = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  M = derivs.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  rhoSumCorrection = derivs.fields(HydroFieldNames::massDensityCorrection, 0.0);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
+  auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
+  auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  DSDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
@@ -343,7 +343,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
   CHECK((compatibleEnergy     and selfAccelerations.size() == numNodeLists) or
         (not compatibleEnergy and selfAccelerations.size() == 0u));
 
@@ -536,7 +536,7 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDtj = mi*(sigmarhoj*gradWij + sigmarhoi*gradWii - (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
+      if (mCompatibleEnergyEvolution) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution.
       DepsDti -= mj*(sigmarhoi.xx() - 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));

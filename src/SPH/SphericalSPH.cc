@@ -278,7 +278,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
@@ -296,7 +296,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
   CHECK((compatibleEnergy     and selfAccelerations.size() == numNodeLists) or
         (not compatibleEnergy and selfAccelerations.size() == 0u));
   TIME_END("SphericalSPHevalDerivs_initial");
@@ -451,7 +451,7 @@ evaluateDerivatives(const Dim<1>::Scalar time,
       const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) pairAccelerations[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
+      if (mCompatibleEnergyEvolution) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution
       DepsDti += mj*(Prhoi + 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));

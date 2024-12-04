@@ -206,8 +206,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -218,7 +218,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -352,7 +352,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                  mj*weighti*((Pj - Pi)/rhoj*gradWi - rhoj*QPiji.dot(gradWi)));       // RK
       DvDti -= forceij/mi;
       DvDtj += forceji/mj; 
-      if (compatibleEnergy) pairAccelerations[kk] = -forceij/mi;                     // Acceleration for i (j anti-symmetric)
+      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = -forceij/mi;               // Acceleration for i (j anti-symmetric)
 
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ? 

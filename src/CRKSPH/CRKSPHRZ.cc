@@ -220,7 +220,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
                     const Dim<2>::Scalar /*dt*/,
                     const DataBase<Dim<2>>& dataBase,
                     const State<Dim<2>>& state,
-                    StateDerivatives<Dim<2>>& derivatives) const {
+                    StateDerivatives<Dim<2>>& derivs) const {
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -265,17 +265,17 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(corrections.size() == numNodeLists);
 
   // Derivative FieldLists.
-  auto  DxDt = derivatives.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
-  auto  DrhoDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
-  auto  DvDt = derivatives.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-  auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
-  auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
+  auto  DrhoDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
+  auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
+  auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
+  auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
+  auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
+  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
+  auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   CHECK(DxDt.size() == numNodeLists);
   CHECK(DrhoDt.size() == numNodeLists);
   CHECK(DvDt.size() == numNodeLists);
@@ -286,7 +286,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
 
   // Walk all the interacting pairs.
 #pragma omp parallel
@@ -416,7 +416,7 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       const auto forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
       DvDti -= forceij/mRZi; //CRK Acceleration
       DvDtj += forceij/mRZj; //CRK Acceleration
-      if (compatibleEnergy) pairAccelerations[kk] = std::make_pair(-forceij/mRZi, forceij/mRZj);
+      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair(-forceij/mRZi, forceij/mRZj);
 
       DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mRZi;    // CRK Q
       DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mRZj;    // CRK Q

@@ -147,7 +147,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  DSDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto* pairAccelerationsPtr = (compatibleEnergy ?
+                                &derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations) :
+                                nullptr);
   auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
   
   CHECK(M.size() == numNodeLists);
@@ -175,7 +177,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == numPairs);
+  CHECK(not compatibleEnergy or pairAccelerationsPtr->size() == numPairs);
   CHECK(not compatibleEnergy or pairDepsDt.size() == numPairs);
 
   //this->computeMCorrection(time,dt,dataBase,state,derivs);
@@ -594,7 +596,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         DepsDtj -= mi*deltaDepsDtj;
 
         if(compatibleEnergy){
-          pairAccelerations[kk] = - deltaDvDt;
+          (*pairAccelerationsPtr)[kk] = - deltaDvDt;
           pairDepsDt[kk].first  = - deltaDepsDti; 
           pairDepsDt[kk].second = - deltaDepsDtj;
         }

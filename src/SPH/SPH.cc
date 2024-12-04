@@ -213,7 +213,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);
@@ -232,7 +232,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();
@@ -406,7 +406,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       const auto deltaDvDt = Prhoi*gradWi + Prhoj*gradWj + Qacci + Qaccj;
       DvDti -= mj*deltaDvDt;
       DvDtj += mi*deltaDvDt;
-      if (compatibleEnergy) pairAccelerations[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
+      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = -mj*deltaDvDt;  // Acceleration for i (j anti-symmetric)
 
       // Specific thermal energy evolution.
       // const Scalar workQij = 0.5*(mj*workQi + mi*workQj);

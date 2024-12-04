@@ -89,7 +89,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   //auto  HStretchTensor = derivs.fields("HStretchTensor", SymTensor::zero);
   auto  newRiemannDpDx = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
   auto  newRiemannDvDx = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient,Tensor::zero);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
   auto& pairMassFlux = derivs.template get<PairMassFluxType>(GSPHFieldNames::pairMassFlux);
 
@@ -105,7 +105,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   //CHECK(HStretchTensor.size() == numNodeLists);
   CHECK(newRiemannDpDx.size() == numNodeLists);
   CHECK(newRiemannDvDx.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
   CHECK(not compatibleEnergy or pairDepsDt.size() == npairs);
 
   // Walk all the interacting pairs.
@@ -306,7 +306,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
      
       if(compatibleEnergy){
         pairMassFlux[kk] = massFlux;
-        pairAccelerations[kk] = deltaDvDt;
+        (*pairAccelerationsPtr)[kk] = deltaDvDt;
         pairDepsDt[kk].first  = deltaDepsDti;
         pairDepsDt[kk].second = deltaDepsDtj;
       }

@@ -73,7 +73,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-  auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  newRiemannDpDx = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient,Vector::zero);
@@ -90,7 +90,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(newRiemannDpDx.size() == numNodeLists);
   CHECK(newRiemannDvDx.size() == numNodeLists);
-  CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
+  CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
   CHECK(not compatibleEnergy or pairDepsDt.size() == npairs);
 
   this->computeMCorrection(time,dt,dataBase,state,derivs);
@@ -254,7 +254,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       if(compatibleEnergy){
         const auto invmij = 1.0/(mi*mj);
-        pairAccelerations[kk] = deltaDvDt*invmij; 
+        (*pairAccelerationsPtr)[kk] = deltaDvDt*invmij; 
         pairDepsDt[kk].first   = deltaDepsDti*invmij; 
         pairDepsDt[kk].second  = deltaDepsDtj*invmij; 
       }
