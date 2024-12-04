@@ -1,13 +1,13 @@
 //---------------------------------Spheral++----------------------------------//
-// MFMHydroBase -- spheralized verions of "Meshless Finite Mass" 
+// MFM -- spheralized verions of "Meshless Finite Mass" 
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
 //
 // J.M. Pearl 2022
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_MFMHydroBase_hh__
-#define __Spheral_MFMHydroBase_hh__
+#ifndef __Spheral_MFM_hh__
+#define __Spheral_MFM_hh__
 
 #include <string>
 
@@ -25,7 +25,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class MFMHydroBase: public GenericRiemannHydro<Dimension> {
+class MFM: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -38,32 +38,35 @@ public:
   using TimeStepType = typename GenericRiemannHydro<Dimension>::TimeStepType;
   using ConstBoundaryIterator = typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator;
 
+  using PairAccelerationsType = typename GenericRiemannHydro<Dimension>::PairAccelerationsType;
+  using PairWorkType = typename GenericRiemannHydro<Dimension>::PairWorkType;
+
   // Constructors.
-  MFMHydroBase(DataBase<Dimension>& dataBase,
-               RiemannSolverBase<Dimension>& riemannSolver,
-               const TableKernel<Dimension>& W,
-               const Scalar epsDiffusionCoeff,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool evolveTotalEnergy,
-               const bool XSPH,
-               const bool correctVelocityGradient,
-               const GradientType gradType,
-               const MassDensityType densityUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax);
+  MFM(DataBase<Dimension>& dataBase,
+      RiemannSolverBase<Dimension>& riemannSolver,
+      const TableKernel<Dimension>& W,
+      const Scalar epsDiffusionCoeff,
+      const double cfl,
+      const bool useVelocityMagnitudeForDt,
+      const bool compatibleEnergyEvolution,
+      const bool evolveTotalEnergy,
+      const bool XSPH,
+      const bool correctVelocityGradient,
+      const GradientType gradType,
+      const MassDensityType densityUpdate,
+      const double epsTensile,
+      const double nTensile,
+      const Vector& xmin,
+      const Vector& xmax);
 
 
   // No default constructor, copying, or assignment.
-  MFMHydroBase() = delete;
-  MFMHydroBase(const MFMHydroBase&) = delete;
-  MFMHydroBase& operator=(const MFMHydroBase&) = delete;
+  MFM() = delete;
+  MFM(const MFM&) = delete;
+  MFM& operator=(const MFM&) = delete;
 
   // Destructor.
-  virtual ~MFMHydroBase();
+  virtual ~MFM() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -134,7 +137,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "MFMHydroBase" ; }
+  virtual std::string label() const override { return "MFM" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
@@ -145,6 +148,6 @@ private:
 
 }
 
-#include "MFMHydroBaseInline.hh"
+#include "MFMInline.hh"
 
 #endif

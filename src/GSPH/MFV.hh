@@ -1,21 +1,21 @@
 //---------------------------------Spheral++----------------------------------//
-// MFVHydroBase -- This is an Arbitrary Eulerian-Lagrangian extension of the
-//                 MFV approach of Hopkins 2015. Its got several node-motion
-//                 approaches which promote more regular particle distributions.
+// MFV -- This is an Arbitrary Eulerian-Lagrangian extension of the
+//        MFV approach of Hopkins 2015. Its got several node-motion
+//        approaches which promote more regular particle distributions.
 //
-//                 Each of the ALE options defines the velocity of the nodes 
-//                 differently. The flux that results from the difference
-//                 between the nodes velocities and the fluid velocity.
-//                 The velocities are defined as follows for the 
-//                 NodeMotionTypes:
+//        Each of the ALE options defines the velocity of the nodes 
+//        differently. The flux that results from the difference
+//        between the nodes velocities and the fluid velocity.
+//        The velocities are defined as follows for the 
+//        NodeMotionTypes:
 //
-//                 1) Eulerian ---- static Nodes
-//                 2) Lagrangian -- nodal velocity = fluid velocity. (This is
-//                                  a spheralized version of MFV so there
-//                                  is some flux between nodes)
-//                 3) Fician ------ nodal velocity = fluid velocity + Fician
-//                                  PST correction
-//                 4) XSPH -------- nodal velocity = xsph velocity
+//        1) Eulerian ---- static Nodes
+//        2) Lagrangian -- nodal velocity = fluid velocity. (This is
+//                         a spheralized version of MFV so there
+//                         is some flux between nodes)
+//        3) Fician ------ nodal velocity = fluid velocity + Fician
+//                         PST correction
+//        4) XSPH -------- nodal velocity = xsph velocity
 //
 //   Hopkins P.F. (2015) "A New Class of Accurate, Mesh-Free Hydrodynamic 
 //   Simulation Methods," MNRAS, 450(1):53-110
@@ -29,10 +29,11 @@
 //   4 treatment for material interfaces
 //---------------------------------------------------------------------------//
 
-#ifndef __Spheral_MFVHydroBase_hh__
-#define __Spheral_MFVHydroBase_hh__
+#ifndef __Spheral_MFV_hh__
+#define __Spheral_MFV_hh__
 
 #include <string>
+#include <memory>
 
 #include "GSPH/GenericRiemannHydro.hh"
 
@@ -54,10 +55,11 @@ template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename DataType> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
-class MFVHydroBase: public GenericRiemannHydro<Dimension> {
+class MFV: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -70,8 +72,12 @@ public:
   typedef typename GenericRiemannHydro<Dimension>::TimeStepType TimeStepType;
   typedef typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
+  using PairAccelerationsType = typename GenericRiemannHydro<Dimension>::PairAccelerationsType;
+  using PairWorkType = typename GenericRiemannHydro<Dimension>::PairWorkType;
+  using PairMassFluxType = PairwiseField<Dimension, Scalar>;
+
   // Constructors.
-  MFVHydroBase(DataBase<Dimension>& dataBase,
+  MFV(DataBase<Dimension>& dataBase,
                RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
                const Scalar epsDiffusionCoeff,
@@ -90,8 +96,13 @@ public:
                const Vector& xmin,
                const Vector& xmax);
 
+  // No default constructor, copying, or assignment.
+  MFV() = delete;
+  MFV(const MFV&) = delete;
+  MFV& operator=(const MFV&) = delete;
+
   // Destructor.
-  virtual ~MFVHydroBase();
+  virtual ~MFV() = default;
 
   // Tasks we do once on problem startup.
   virtual
@@ -174,11 +185,11 @@ public:
   const FieldList<Dimension,Scalar>& DvolumeDt() const;
   //const FieldList<Dimension,SymTensor>& HStretchTensor() const;
 
-  const std::vector<Scalar>& pairMassFlux() const;
+  const PairMassFluxType& pairMassFlux() const;
   
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "MFVHydroBase" ; }
+  virtual std::string label() const override { return "MFV" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************           
@@ -195,23 +206,11 @@ private:
   FieldList<Dimension, Scalar> mDvolumeDt;
   //FieldList<Dimension, SymTensor> mHStretchTensor;
 
-  std::vector<Scalar> mPairMassFlux;
-  
-  // No default constructor, copying, or assignment.
-  MFVHydroBase();
-  MFVHydroBase(const MFVHydroBase&);
-  MFVHydroBase& operator=(const MFVHydroBase&);
+  std::unique_ptr<PairMassFluxType> mPairMassFluxPtr;
 };
 
 }
 
-#include "MFVHydroBaseInline.hh"
-
-#else
-
-// Forward declaration.
-namespace Spheral {
-  template<typename Dimension> class MFVHydroBase;
-}
+#include "MFVInline.hh"
 
 #endif

@@ -1,28 +1,3 @@
-#include "Hydro/HydroFieldNames.hh"
-
-#include "Strength/SolidFieldNames.hh"
-
-#include "DataBase/DataBase.hh"
-#include "DataBase/State.hh"
-#include "DataBase/StateDerivatives.hh"
-
-#include "ArtificialViscosity/ArtificialViscosity.hh"
-#include "Field/FieldList.hh"
-#include "Neighbor/ConnectivityMap.hh"
-#include "Neighbor/PairwiseField.hh"
-#include "Utilities/safeInv.hh"
-#include "Utilities/Timer.hh"
-#include "Utilities/range.hh"
-
-#include "FSISPH/SolidFSISPH.hh"
-#include "FSISPH/FSIFieldNames.hh"
-#include "FSISPH/SlideSurface.hh"
-
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <vector>
-
 namespace Spheral {
 
 template<typename Dimension>

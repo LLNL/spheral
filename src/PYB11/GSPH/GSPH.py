@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# GSPHHydroBase
+# GSPH
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericRiemannHydro import *
@@ -8,14 +8,14 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
 @PYB11dynamic_attr
-class GSPHHydroBase(GenericRiemannHydro):
+class GSPH(GenericRiemannHydro):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -34,7 +34,7 @@ class GSPHHydroBase(GenericRiemannHydro):
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "GSPHHydroBase constructor"
+        "GSPH constructor"
 
     #...........................................................................
     # Virtual methods
@@ -117,4 +117,4 @@ mass density, velocity, and specific thermal energy."""
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, GSPHHydroBase)
+PYB11inject(RestartMethods, GSPH)

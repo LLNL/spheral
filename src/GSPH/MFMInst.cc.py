@@ -2,11 +2,11 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "GSPH/GSPHHydroBase.cc"
-#include "GSPH/GSPHEvaluateDerivatives.cc"
+#include "GSPH/MFM.cc"
+#include "GSPH/MFMEvaluateDerivatives.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class GSPHHydroBase< Dim< %(ndim)s > >;
+  template class MFM<Dim<%(ndim)s>>;
 }
 """

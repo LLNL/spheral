@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# GSPHHydroBase
+# MFM
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
 from GenericRiemannHydro import *
@@ -8,14 +8,14 @@ from RestartMethods import *
 @PYB11template("Dimension")
 @PYB11module("SpheralGSPH")
 @PYB11dynamic_attr
-class MFVHydroBase(GenericRiemannHydro):
+class MFM(GenericRiemannHydro):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -28,22 +28,26 @@ class MFVHydroBase(GenericRiemannHydro):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                correctVelocityGradient = "const bool",
-               nodeMotionCoefficient = "const double",
-               nodeMotionType = "const NodeMotionType",
                gradType = "const GradientType",
                densityUpdate = "const MassDensityType",
                epsTensile = "const double",
                nTensile = "const double",
                xmin = "const Vector&",
                xmax = "const Vector&"):
-        "GSPHHydroBase constructor"
+        "MFM constructor"
 
     #...........................................................................
     # Virtual methods
 
     @PYB11virtual
-    def initializeProblemStartup(dataBase = "DataBase<%(Dimension)s>&"):
-        "Tasks we do once on problem startup."
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
+        """A second optional method to be called on startup, after Physics::initializeProblemStartup has
+been called.
+One use for this hook is to fill in dependendent state using the State object, such as
+temperature or pressure."""
         return "void"
 
     @PYB11virtual 
@@ -109,10 +113,8 @@ mass density, velocity, and specific thermal energy."""
         return "void"
 
     DvolumeDt = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "DvolumeDt", returnpolicy="reference_internal")
-    nodeMotionCoefficient = PYB11property("double", "nodeMotionCoefficient", "nodeMotionCoefficient",doc="multiplier for XSPH and Fician node motion schemes.")
-    nodeMotionType = PYB11property("NodeMotionType","nodeMotionType","nodeMotionType")
     
 #-------------------------------------------------------------------------------
 # Inject methods
 #-------------------------------------------------------------------------------
-PYB11inject(RestartMethods, MFVHydroBase)
+PYB11inject(RestartMethods, MFM)

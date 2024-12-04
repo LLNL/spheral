@@ -7,8 +7,8 @@
 // J.M. Pearl 2021
 //----------------------------------------------------------------------------//
 
-#ifndef __Spheral_GSPHHydroBase_hh__
-#define __Spheral_GSPHHydroBase_hh__
+#ifndef __Spheral_GSPH_hh__
+#define __Spheral_GSPH_hh__
 
 #include <string>
 
@@ -26,7 +26,7 @@ template<typename Dimension, typename DataType> class FieldList;
 class FileIO;
 
 template<typename Dimension>
-class GSPHHydroBase: public GenericRiemannHydro<Dimension> {
+class GSPH: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -39,8 +39,11 @@ public:
   using TimeStepType = typename GenericRiemannHydro<Dimension>::TimeStepType;
   using ConstBoundaryIterator = typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator;
 
+  using PairAccelerationsType = typename GenericRiemannHydro<Dimension>::PairAccelerationsType;
+  using PairWorkType = typename GenericRiemannHydro<Dimension>::PairWorkType;
+
   // Constructors.
-  GSPHHydroBase(DataBase<Dimension>& dataBase,
+  GSPH(DataBase<Dimension>& dataBase,
                 RiemannSolverBase<Dimension>& riemannSolver,
                 const TableKernel<Dimension>& W,
                 const Scalar epsDiffusionCoeff,
@@ -59,12 +62,12 @@ public:
 
   
   // No default constructor, copying, or assignment.
-  GSPHHydroBase() = delete;
-  GSPHHydroBase(const GSPHHydroBase&) = delete;
-  GSPHHydroBase& operator=(const GSPHHydroBase&) = delete;
+  GSPH() = delete;
+  GSPH(const GSPH&) = delete;
+  GSPH& operator=(const GSPH&) = delete;
 
   // Destructor.
-  virtual ~GSPHHydroBase();
+  virtual ~GSPH() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.
@@ -137,7 +140,7 @@ public:
 
   //****************************************************************************
   // Methods required for restarting.
-  virtual std::string label() const override { return "GSPHHydroBase" ; }
+  virtual std::string label() const override { return "GSPH" ; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const override;
   virtual void restoreState(const FileIO& file, const std::string& pathName) override;
   //****************************************************************************
@@ -148,6 +151,6 @@ private:
 
 }
 
-#include "GSPHHydroBaseInline.hh"
+#include "GSPHInline.hh"
 
 #endif

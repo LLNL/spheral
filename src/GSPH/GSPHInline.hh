@@ -6,7 +6,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-GSPHHydroBase<Dimension>::
+GSPH<Dimension>::
 DmassDensityDt() const {
   return mDmassDensityDt;
 }

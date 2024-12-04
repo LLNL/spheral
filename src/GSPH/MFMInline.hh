@@ -5,7 +5,7 @@ namespace Spheral {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-MFMHydroBase<Dimension>::
+MFM<Dimension>::
 DvolumeDt() const {
   return mDvolumeDt;
 }

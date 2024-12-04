@@ -7,14 +7,14 @@ namespace Spheral {
 template<typename Dimension>
 inline
 typename Dimension::Scalar
-MFVHydroBase<Dimension>::nodeMotionCoefficient() const {
+MFV<Dimension>::nodeMotionCoefficient() const {
   return mNodeMotionCoefficient;
 }
 
 template<typename Dimension>
 inline
 void
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 nodeMotionCoefficient(typename Dimension::Scalar x) {
   mNodeMotionCoefficient = x;
 }
@@ -25,7 +25,7 @@ nodeMotionCoefficient(typename Dimension::Scalar x) {
 template<typename Dimension>
 inline
 NodeMotionType
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 nodeMotionType() const {
   return mNodeMotionType;
 }
@@ -33,7 +33,7 @@ nodeMotionType() const {
 template<typename Dimension>
 inline
 void
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 nodeMotionType(NodeMotionType x) {
   mNodeMotionType=x;
 }
@@ -44,7 +44,7 @@ nodeMotionType(NodeMotionType x) {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 nodalVelocity() const {
   return mNodalVelocity;
 }
@@ -52,42 +52,44 @@ nodalVelocity() const {
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 DmassDt() const {
   return mDmassDt;
 }
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 DthermalEnergyDt() const {
   return mDthermalEnergyDt;
 }
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Vector>&
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 DmomentumDt() const {
   return mDmomentumDt;
 }
 template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
-MFVHydroBase<Dimension>::
+MFV<Dimension>::
 DvolumeDt() const {
   return mDvolumeDt;
 }
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
-MFVHydroBase<Dimension>::
+const typename MFV<Dimension>::PairMassFluxType&
+MFV<Dimension>::
 pairMassFlux() const {
-  return mPairMassFlux;
+  VERIFY2(mPairMassFluxPtr, "MFV ERROR: attempt to access uninitialized pairMassFlux");
+  return *mPairMassFluxPtr;
 }
+
 // template<typename Dimension>
 // inline
 // const FieldList<Dimension, typename Dimension::SymTensor>&
-// MFVHydroBase<Dimension>::
+// MFV<Dimension>::
 // HStretchTensor() const {
 //   return mHStretchTensor;
 // }
