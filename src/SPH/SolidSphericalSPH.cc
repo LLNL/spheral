@@ -184,7 +184,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
     dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
     derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-    derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
+    derivs.enroll(mSelfAccelerations);
   }
 }
 
@@ -344,8 +344,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
   CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
-  CHECK((compatibleEnergy     and selfAccelerations.size() == 0u) or
-        (not compatibleEnergy and selfAccelerations.size() == numNodeLists));
+  CHECK((compatibleEnergy     and selfAccelerations.size() == numNodeLists) or
+        (not compatibleEnergy and selfAccelerations.size() == 0u));
 
   // The scale for the tensile correction.
   const auto& nodeList = mass[0]->nodeList();

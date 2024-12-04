@@ -151,7 +151,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
     dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero, HydroFieldNames::selfAccelerations, false);
     derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
-    derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
+    derivs.enroll(mSelfAccelerations);
   }
 }
 
@@ -297,8 +297,8 @@ evaluateDerivatives(const Dim<1>::Scalar time,
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(not compatibleEnergy or pairAccelerations.size() == npairs);
-  CHECK((compatibleEnergy     and selfAccelerations.size() == 0u) or
-        (not compatibleEnergy and selfAccelerations.size() == numNodeLists));
+  CHECK((compatibleEnergy     and selfAccelerations.size() == numNodeLists) or
+        (not compatibleEnergy and selfAccelerations.size() == 0u));
   TIME_END("SphericalSPHevalDerivs_initial");
 
   // Walk all the interacting pairs.
