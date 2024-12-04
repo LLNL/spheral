@@ -99,6 +99,12 @@ public:
   template<typename Value> Value& get(const KeyType& key, const Value& dummy) const;
 
   //............................................................................
+  // Access an arbitrary type as a pointer.
+  // Returns nullptr on failure
+  template<typename Value> Value* getPtr(const KeyType& key) const;
+  template<typename Value> Value* getPtr(const KeyType& key, const Value& dummy) const;
+
+  //............................................................................
   // Test if the specified Field or key is currently registered.
   bool registered(const KeyType& key) const;
   bool registered(const FieldBase<Dimension>& field) const;
