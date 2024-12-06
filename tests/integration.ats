@@ -7,6 +7,10 @@
 glue(fsisph = False)
 glue(gsph = False)
 glue(svph = False)
+glue(independent = True)
+
+# Fail test to make sure tests are working
+source("unit/Utilities/testFails.py")
 
 # Fail test to make sure tests are working
 source("unit/Utilities/testFails.py")
