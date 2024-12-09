@@ -87,7 +87,7 @@ Region timers can be added inside the python code using the following function c
 ::
 
    from SpheralUtilities import TimerMgr
-   TimerMgr.timer_start("timer_name")
+   TimerMgr.timer_begin("timer_name")
    some_function_call()
    TimerMgr.timer_end("timer_name")
 

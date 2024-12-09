@@ -53,7 +53,7 @@ class TimerMgr:
         "Return whether the code has been compiled with timers turned on"
         return "bool"
     @PYB11static
-    def timer_start(self, region_name = "std::string"):
+    def timer_begin(self, region_name = "std::string"):
         "Start custom region Caliper timer, must have corresponding timer_end call"
         return "void"
 

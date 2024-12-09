@@ -38,7 +38,7 @@ public:
     static TimerMgr theInstance;
     return theInstance;
   }
-  static void timer_start(std::string regionName) {
+  static void timer_begin(std::string regionName) {
     TIME_BEGIN(regionName.c_str());
   }
   static void timer_end(std::string regionName) {
