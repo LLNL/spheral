@@ -31,8 +31,18 @@
 #
 # GSPH
 #
-#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=4.0", np=8, gsph=True)
-#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=4.0, restart test", np=8, gsph=True)
+#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.5", np=8, gsph=True)
+#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFM
+#
+#ATS:mfm0 = test(         SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFM, nPerh=2.5", np=8, gsph=True)
+#ATS:mfm1 = testif(gsph0, SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFM, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFV
+#
+#ATS:mfv0 = test(         SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFV, nPerh=2.5", np=8, gsph=True)
+#ATS:mfv1 = testif(gsph0, SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFV, nPerh=2.5, restart test", np=8, gsph=True)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -383,7 +393,7 @@ elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   interfaceMethod = HLLCModulus,
+                   interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.1,
                    compatibleEnergyEvolution = compatibleEnergy,

@@ -280,12 +280,11 @@ if svph:
 elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
+                   order = correctionOrder,
                    filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
