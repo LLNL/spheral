@@ -381,8 +381,10 @@ else:
 output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-if not (gsph or mfm or mfv or fsisph):
+try:
     output("hydro.PiKernel")
+except:
+    pass
 if not fsisph:
     output("hydro.densityUpdate")
 output("hydro._smoothingScaleMethod.HEvolution")
