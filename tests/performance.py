@@ -18,7 +18,9 @@ opts = getOptions()
 
 # For CI runs, automatically copy caliper files to benchmark location
 output_loc = None
+test_runs = 1 # Number of times to run each test
 if "cirun" in opts and opts["cirun"]:
+    test_runs = 5
     output_loc = SpheralConfigs.benchmark_data()
 
 # Current system architecture from Spack
@@ -69,11 +71,11 @@ def gather_files(manager):
         shutil.copy(cfile, outfile)
         os.chmod(outfile, perms)
 
-def spheral_setup_test(test_path, test_name, inps, ncores, threads=1, **kwargs):
+def spheral_setup_test(test_path, test_name, test_num, inps, ncores, threads=1, **kwargs):
     '''
     General method for creating an individual performance test
     '''
-    cali_name = f"{test_name}_{int(time.time())}.cali"
+    cali_name = f"{test_name}_{test_num}{int(time.time())}.cali"
     timer_cmds = f"--caliperFilename {cali_name} --adiakData 'test_name: {test_name}'"
     finps = f"{inps} {timer_cmds}"
     t = test(script=test_path, clas=finps,
@@ -113,9 +115,10 @@ gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
 
 # Test variations
 test_inp = {"CRK": "--crksph True", "FSI": "--fsisph True"}
-for tname, tinp in test_inp.items():
-    inps = f"{gen_inps} {tinp}"
-    t = spheral_setup_test(test_path, test_name+tname, inps, num_cores)
+for i in range(test_runs):
+    for tname, tinp in test_inp.items():
+        inps = f"{gen_inps} {tinp}"
+        t = spheral_setup_test(test_path, test_name+tname, i, inps, num_cores)
 
 #---------------------------------------------------------------------------
 # 3D convection test
@@ -132,9 +135,10 @@ npd = int(np.cbrt(Ntotal))
 steps = 10
 inps = f"--nx {npd} --ny {npd} --nz {npd} --steps {steps}"
 thrs = [1, 2]
-for thr in thrs:
-    ncores = int(num_cores / thr)
-    t = spheral_setup_test(test_path, test_name+f"THR{thr}", inps, ncores, thr)
+for i in range(test_runs):
+    for thr in thrs:
+        ncores = int(num_cores / thr)
+        t = spheral_setup_test(test_path, test_name+f"THR{thr}", i, inps, ncores, thr)
 
 #---------------------------------------------------------------------------
 # NOH tests
@@ -172,9 +176,10 @@ nRadial = num_2d_cyl_nodes(rmin, rmax, thetaFactor*np.pi, 100, Ntotal2d)
 gen_inps = f"{gen_noh_inps} --nRadial {nRadial} --steps {steps}"
 
 # Test with different hydro options
-for tname, tinp in fluid_variations.items():
-    inps = gen_inps + " " + tinp
-    t = spheral_setup_test(test_path, test_name+tname, inps, ncores, independent=True)
+for i in range(test_runs):
+    for tname, tinp in fluid_variations.items():
+        inps = gen_inps + " " + tinp
+        t = spheral_setup_test(test_path, test_name+tname, i, inps, ncores, independent=True)
 
 #++++++++++++++++++++
 # Noh spherical 3d
@@ -187,8 +192,9 @@ test_name = "NS3D"
 steps = 10
 gen_inps = f"{gen_noh_inps} --nx {npd} --ny {npd} --nz {npd} --steps {steps}"
 # Test with different hydro options
-for tname, tinp in fluid_variations.items():
-    inps = gen_inps + " " + tinp
-    t = spheral_setup_test(test_path, test_name+tname, inps, num_cores)
+for i in range(test_runs):
+    for tname, tinp in fluid_variations.items():
+        inps = gen_inps + " " + tinp
+        t = spheral_setup_test(test_path, test_name+tname, i, inps, num_cores)
 # Add a wait to ensure all timer files are done
 wait()

@@ -295,7 +295,6 @@ elif fsisph:
                    interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
-                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    linearCorrectGradients = correctVelocityGradient,
@@ -380,7 +379,6 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 if not (gsph or mfm or mfv or fsisph):

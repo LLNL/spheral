@@ -95,10 +95,10 @@ def num_3d_cyl_nodes(rmin, rmax, zmin, zmax, thetamin, thetamax, nr0, nz0, Ntot)
         return abs(new_tot*nz - Ntot)
     result = basinhopping(calc_ntot, ig, take_step=takestep())
     if is_2d:
-        return result.x, 0
+        return int(result.x), 0
     else:
         nr, nz = result.x[0], result.x[1]
-        return nr, nz
+        return int(nr), int(nz)
 
 def num_2d_cyl_nodes(rmin, rmax, thetamax, nr0, Ntot):
     nr, nz = num_3d_cyl_nodes(rmin, rmax, 0., -1., 0., thetamax, nr0, 1, Ntot)
