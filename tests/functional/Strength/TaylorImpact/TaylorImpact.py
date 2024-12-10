@@ -189,6 +189,8 @@ if mpi.rank == 0 and dataDir:
         os.makedirs(dataDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
+mpi.barrier()
+if dataDir:
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
 mpi.barrier()
