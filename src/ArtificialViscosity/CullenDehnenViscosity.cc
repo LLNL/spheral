@@ -34,16 +34,18 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 CullenDehnenViscosity<Dimension>::
-CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
-                      const TableKernel<Dimension>& W,
-                      const Scalar alphMax, //Parameter = 2.0 in Hopkins 2014 and Price 2004, = 1.5 in Rosswog 2000
-                      const Scalar alphMin, //Parameter = 0.02 in Hopkins 2014  
-                      const Scalar betaC, //Parameter = 0.7 Hopkins 2014
-                      const Scalar betaD, //Parameter = 0.05 Hopkins 2014
-                      const Scalar betaE, //Parameter = 1.0 in Hopkins 2014, = 2.0 in Cullen 2010
-                      const Scalar fKern, //Parameter = 1/3 Hopkins 2014 for quinitc spline
+CullenDehnenViscosity(const TableKernel<Dimension>& WT,
+                      const Scalar alphMax,    //Parameter = 2.0 in Hopkins 2014 and Price 2004, = 1.5 in Rosswog 2000
+                      const Scalar alphMin,    //Parameter = 0.02 in Hopkins 2014  
+                      const Scalar betaC,      //Parameter = 0.7 Hopkins 2014
+                      const Scalar betaD,      //Parameter = 0.05 Hopkins 2014
+                      const Scalar betaE,      //Parameter = 1.0 in Hopkins 2014, = 2.0 in Cullen 2010
+                      const Scalar fKern,      //Parameter = 1/3 Hopkins 2014 for quinitc spline
                       const bool boolHopkins): //use Hopkins Reformulation
   Physics<Dimension>(),
+  mWT(WT),
+  mClMultiplier(FieldStorageType::CopyFields),
+  mCqMultiplier(FieldStorageType::CopyFields),
   mPrevDvDt(FieldStorageType::CopyFields),
   mPrevDivV(FieldStorageType::CopyFields),
   mCullAlpha(FieldStorageType::CopyFields),
@@ -60,19 +62,9 @@ CullenDehnenViscosity(ArtificialViscosity<Dimension>& q,
   mbetaE(betaE),
   mfKern(fKern),
   mboolHopkins(boolHopkins),
-  myq(q),
-  mKernel(W),
   mRestart(registerWithRestart(*this)){
 }
 
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CullenDehnenViscosity<Dimension>::
-~CullenDehnenViscosity() {
-}
- 
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
@@ -80,6 +72,8 @@ template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  mClMultiplier = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousClMultiplier);
+  mCqMultiplier = dataBase.newFluidFieldList(0.0, HydroFieldNames::ArtificialViscousCqMultiplier);
   mPrevDvDt = dataBase.newFluidFieldList(Vector::zero, "mPrevDvDt");
   mPrevDivV = dataBase.newFluidFieldList(0.0, "mPrevDivV");
   mCullAlpha = dataBase.newFluidFieldList(1.0, "mCullAlpha");
@@ -89,11 +83,6 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
   mAlphaLocal = dataBase.newFluidFieldList(0.0, "Cullen alpha local");
   mR = dataBase.newFluidFieldList(0.0, "mR");
   mVsig = dataBase.newFluidFieldList(0.0, "mVsig");
-
-  auto& rvQ = myq.CqMultiplier();
-  auto& rvL = myq.ClMultiplier();
-  rvQ = dataBase.newFluidFieldList(malphMin, HydroFieldNames::ArtificialViscousCqMultiplier);  // This will override the Q initializer intializing these to unity.
-  rvL = dataBase.newFluidFieldList(malphMin, HydroFieldNames::ArtificialViscousClMultiplier);
 }
 
 //------------------------------------------------------------------------------
@@ -104,17 +93,16 @@ void
 CullenDehnenViscosity<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  CHECK(mClMultiplier.numFields() == dataBase.numFluidNodeLists());
+  CHECK(mCqMultiplier.numFields() == dataBase.numFluidNodeLists());
   CHECK(mPrevDvDt.numFields() == dataBase.numFluidNodeLists());
   CHECK(mPrevDivV.numFields() == dataBase.numFluidNodeLists());
   CHECK(mCullAlpha.numFields() == dataBase.numFluidNodeLists());
+  state.enroll(mCqMultiplier, make_policy<IncrementCullenMultipliers<Dimension>>(malphMin, malphMax, mboolHopkins));
+  state.enroll(mClMultiplier);
   state.enroll(mPrevDvDt);
   state.enroll(mPrevDivV);
   state.enroll(mCullAlpha);
-
-  auto& rvQ = myq.CqMultiplier();
-  auto& rvL = myq.ClMultiplier();
-  state.enroll(rvQ, make_policy<IncrementCullenMultipliers<Dimension>>(malphMin, malphMax, mboolHopkins));
-  state.enroll(rvL);
 }
     
 //------------------------------------------------------------------------------
@@ -139,6 +127,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mVsig);
 }
 
+//------------------------------------------------------------------------------
+// We don't have any derivative work
+//------------------------------------------------------------------------------
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
@@ -371,13 +362,15 @@ template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
-    file.write(mPrevDvDt, pathName + "/prevDvDt");
-    file.write(mPrevDivV, pathName + "/prevDivV");
-    file.write(mCullAlpha, pathName + "/cullAlpha");
-    file.write(mPrevDivV2, pathName + "/prevDivV2");
-    file.write(mCullAlpha2, pathName + "/cullAlpha2");
-    file.write(mDalphaDt, pathName + "/DalphaDt");
-    file.write(mAlphaLocal, pathName + "/alphaLocal");
+  file.write(mClMultiplier, pathName + "/ClMultiplier");
+  file.write(mCqMultiplier, pathName + "/CqMultiplier");
+  file.write(mPrevDvDt, pathName + "/prevDvDt");
+  file.write(mPrevDivV, pathName + "/prevDivV");
+  file.write(mCullAlpha, pathName + "/cullAlpha");
+  file.write(mPrevDivV2, pathName + "/prevDivV2");
+  file.write(mCullAlpha2, pathName + "/cullAlpha2");
+  file.write(mDalphaDt, pathName + "/DalphaDt");
+  file.write(mAlphaLocal, pathName + "/alphaLocal");
 }
     
 //------------------------------------------------------------------------------
@@ -387,13 +380,15 @@ template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
-    file.read(mPrevDvDt, pathName + "/prevDvDt");
-    file.read(mPrevDivV, pathName + "/prevDivV");
-    file.read(mCullAlpha, pathName + "/cullAlpha");
-    file.read(mPrevDivV2, pathName + "/prevDivV2");
-    file.read(mCullAlpha2, pathName + "/cullAlpha2");
-    file.read(mDalphaDt, pathName + "/DalphaDt");
-    file.read(mAlphaLocal, pathName + "/alphaLocal");
+  file.read(mClMultiplier, pathName + "/ClMultiplier");
+  file.read(mCqMultiplier, pathName + "/CqMultiplier");
+  file.read(mPrevDvDt, pathName + "/prevDvDt");
+  file.read(mPrevDivV, pathName + "/prevDivV");
+  file.read(mCullAlpha, pathName + "/cullAlpha");
+  file.read(mPrevDivV2, pathName + "/prevDivV2");
+  file.read(mCullAlpha2, pathName + "/cullAlpha2");
+  file.read(mDalphaDt, pathName + "/DalphaDt");
+  file.read(mAlphaLocal, pathName + "/alphaLocal");
 }
     
 //------------------------------------------------------------------------------
@@ -403,45 +398,46 @@ template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs)
-{
-    FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-    FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha = state.fields("mCullAlpha", 0.0);
-    FieldList<Dimension, Scalar> prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDvDt);
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDivV);
-      (*boundaryItr)->applyFieldListGhostBoundary(cullAlpha);
-      (*boundaryItr)->applyFieldListGhostBoundary(prevDivV2);
-      (*boundaryItr)->applyFieldListGhostBoundary(cullAlpha2);
-    }
-
+                     StateDerivatives<Dimension>& derivs) {
+  auto ClMult = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  auto CqMult = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  auto prevDvDt = state.fields("mPrevDvDt", Vector::zero);
+  auto prevDivV = state.fields("mPrevDivV", 0.0);
+  auto cullAlpha = state.fields("mCullAlpha", 0.0);
+  auto prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
+  auto cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
+  for (auto* bcPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    bcPtr->applyFieldListGhostBoundary(ClMult);
+    bcPtr->applyFieldListGhostBoundary(CqMult);
+    bcPtr->applyFieldListGhostBoundary(prevDvDt);
+    bcPtr->applyFieldListGhostBoundary(prevDivV);
+    bcPtr->applyFieldListGhostBoundary(cullAlpha);
+    bcPtr->applyFieldListGhostBoundary(prevDivV2);
+    bcPtr->applyFieldListGhostBoundary(cullAlpha2);
+  }
 }
     
 template<typename Dimension>
 void
 CullenDehnenViscosity<Dimension>::
 enforceBoundaries(State<Dimension>& state,
-                     StateDerivatives<Dimension>& derivs)
-{
-    FieldList<Dimension, Vector> prevDvDt = state.fields("mPrevDvDt", Vector::zero);
-    FieldList<Dimension, Scalar> prevDivV = state.fields("mPrevDivV", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha = state.fields("mCullAlpha", 0.0);
-    FieldList<Dimension, Scalar> prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
-    FieldList<Dimension, Scalar> cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-      (*boundaryItr)->enforceFieldListBoundary(prevDvDt);
-      (*boundaryItr)->enforceFieldListBoundary(prevDivV);
-      (*boundaryItr)->enforceFieldListBoundary(cullAlpha);
-      (*boundaryItr)->enforceFieldListBoundary(prevDivV2);
-      (*boundaryItr)->enforceFieldListBoundary(cullAlpha2);
-    }
+                  StateDerivatives<Dimension>& derivs) {
+  auto ClMult = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  auto CqMult = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  auto prevDvDt = state.fields("mPrevDvDt", Vector::zero);
+  auto prevDivV = state.fields("mPrevDivV", 0.0);
+  auto cullAlpha = state.fields("mCullAlpha", 0.0);
+  auto prevDivV2 = derivs.fields("mPrevDivV2", 0.0);
+  auto cullAlpha2 = derivs.fields("mCullAlpha2", 0.0);
+  for (auto* bcPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    bcPtr->enforceFieldListBoundary(ClMult);
+    bcPtr->enforceFieldListBoundary(CqMult);
+    bcPtr->enforceFieldListBoundary(prevDvDt);
+    bcPtr->enforceFieldListBoundary(prevDivV);
+    bcPtr->enforceFieldListBoundary(cullAlpha);
+    bcPtr->enforceFieldListBoundary(prevDivV2);
+    bcPtr->enforceFieldListBoundary(cullAlpha2);
+  }
 }
     
 //------------------------------------------------------------------------------
@@ -454,7 +450,7 @@ dt(const DataBase<Dimension>& /*dataBase*/,
    const State<Dimension>& /*state*/,
    const StateDerivatives<Dimension>& /*derivs*/,
    const Scalar /*currentTime*/) const {
-    return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
+  return TimeStepType(1.0e100, "Rate of viscosity change -- NO VOTE.");
 }
 
 }

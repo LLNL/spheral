@@ -5,8 +5,8 @@
 //
 // Created by JMO, Thu Nov 20 14:13:18 PST 2014
 //----------------------------------------------------------------------------//
-#ifndef LimitedMonaghanGingoldViscosity_HH
-#define LimitedMonaghanGingoldViscosity_HH
+#ifndef __Spheral_LimitedMonaghanGingoldViscosity__
+#define __Spheral_LimitedMonaghanGingoldViscosity__
 
 #include "MonaghanGingoldViscosity.hh"
 
@@ -16,14 +16,15 @@ template<typename Dimension>
 class LimitedMonaghanGingoldViscosity: public MonaghanGingoldViscosity<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
-  typedef typename Dimension::FourthRankTensor FourthRankTensor;
-  typedef typename Dimension::FifthRankTensor FifthRankTensor;
-  typedef typename ArtificialViscosity<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
+  using FourthRankTensor = typename Dimension::FourthRankTensor;
+  using FifthRankTensor = typename Dimension::FifthRankTensor;
+  using ConstBoundaryIterator = typename ArtificialViscosity<Dimension>::ConstBoundaryIterator;
+  using PairQPiType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
 
   // Constructors.
   LimitedMonaghanGingoldViscosity(const Scalar Clinear,
@@ -31,59 +32,42 @@ public:
                                   const bool linearInExpansion,
                                   const bool quadraticInExpansion,
                                   const Scalar etaCritFrac,
-                                  const Scalar etaFoldFrac);
+                                  const Scalar etaFoldFrac,
+                                  const TableKernel<Dimension>& kernel);
+  virtual ~LimitedMonaghanGingoldViscosity() = default;
 
-  // Destructor.
-  virtual ~LimitedMonaghanGingoldViscosity();
+  // No default construction, copying, or assignment
+  LimitedMonaghanGingoldViscosity() = delete;
+  LimitedMonaghanGingoldViscosity(const LimitedMonaghanGingoldViscosity&) = delete;
+  LimitedMonaghanGingoldViscosity& operator=(const LimitedMonaghanGingoldViscosity&) = delete;
 
-  // Initialize the artificial viscosity for all FluidNodeLists in the given
-  // DataBase.
-  virtual void initialize(const DataBase<Dimension>& dataBase,
-                          const State<Dimension>& state,
-                          const StateDerivatives<Dimension>& derivs,
-                          ConstBoundaryIterator boundaryBegin,
-                          ConstBoundaryIterator boundaryEnd,
-                          const Scalar time,
-                          const Scalar dt,
-                          const TableKernel<Dimension>& W);
+  // We need the velocity gradient
+  virtual bool requireVelocityGradient() const override { return true; }
 
-  // The required method to compute the artificial viscous P/rho^2.
-  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
-                                         const unsigned nodeListj, const unsigned j,
-                                         const Vector& xi,
-                                         const Vector& etai,
-                                         const Vector& vi,
-                                         const Scalar rhoi,
-                                         const Scalar csi,
-                                         const SymTensor& Hi,
-                                         const Vector& xj,
-                                         const Vector& etaj,
-                                         const Vector& vj,
-                                         const Scalar rhoj,
-                                         const Scalar csj,
-                                         const SymTensor& Hj) const;
+  // Add our contribution to the derivatives
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives) const override;
 
-  // Access the fractions setting the critical spacing for kicking the
-  // viscosity back on full force.
-  double etaCritFrac() const;
-  void etaCritFrac(double val);
 
-  double etaFoldFrac() const;
-  void etaFoldFrac(double val);
+  // Access our data
+  Scalar etaCritFrac()              const { return mEtaCritFrac; }
+  Scalar etaFoldFrac()              const { return mEtaFoldFrac; }
+
+  void etaCritFrac(const Scalar x)        { mEtaCritFrac = x; }
+  void etaFoldFrac(const Scalar x)        { mEtaFoldFrac = x; }
 
   // Restart methods.
-  virtual std::string label() const { return "LimitedMonaghanGingoldViscosity"; }
+  virtual std::string label()       const { return "LimitedMonaghanGingoldViscosity"; }
 
 protected:
   //--------------------------- Private Interface ---------------------------//
-  double mEtaCritFrac, mEtaFoldFrac, mEtaCrit, mEtaFold;
-  FieldList<Dimension, Tensor> mGradVel;
+  double mEtaCritFrac, mEtaFoldFrac;
 
-private:
-  //--------------------------- Private Interface ---------------------------//
-  LimitedMonaghanGingoldViscosity();
-  LimitedMonaghanGingoldViscosity(const LimitedMonaghanGingoldViscosity&);
-  LimitedMonaghanGingoldViscosity& operator=(const LimitedMonaghanGingoldViscosity&) const;
+  using MonaghanGingoldViscosity<Dimension>::mLinearInExpansion;
+  using MonaghanGingoldViscosity<Dimension>::mQuadraticInExpansion;
 };
 
 }

@@ -4,52 +4,64 @@
 //
 // Created by J. Michael Owen, Mon Sep  2 14:45:35 PDT 2002
 //----------------------------------------------------------------------------//
-#ifndef TensorMonaghanGingoldViscosity_HH
-#define TensorMonaghanGingoldViscosity_HH
+#ifndef __Spheral_TensorMonaghanGingoldViscosity__
+#define __Spheral_TensorMonaghanGingoldViscosity__
 
 #include "ArtificialViscosity.hh"
 
+#include <memory>
+
 namespace Spheral {
+
+template<typename Dimension, typename Value> class PairwiseField;
 
 template<typename Dimension>
 class TensorMonaghanGingoldViscosity: public ArtificialViscosity<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using PairQPiType = PairwiseField<Dimension, std::pair<Tensor, Tensor>>;
 
-  // Constructors.
-  TensorMonaghanGingoldViscosity(Scalar Clinear, Scalar Cquadratic);
+  // Constructors and destuctor
+  TensorMonaghanGingoldViscosity(const Scalar Clinear,
+                                 const Scalar Cquadratic,
+                                 const TableKernel<Dimension>& kernel);
+  ~TensorMonaghanGingoldViscosity() = default;
 
-  // Destructor.
-  ~TensorMonaghanGingoldViscosity();
+  // No default construction, copying, or assignment
+  TensorMonaghanGingoldViscosity() = delete;
+  TensorMonaghanGingoldViscosity(const TensorMonaghanGingoldViscosity&) = delete;
+  TensorMonaghanGingoldViscosity& operator=(const TensorMonaghanGingoldViscosity&) = delete;
 
-  // Required method to compute the tensor viscous P/rho^2.
-  virtual std::pair<Tensor, Tensor> Piij(const unsigned nodeListi, const unsigned i, 
-                                         const unsigned nodeListj, const unsigned j,
-                                         const Vector& xi,
-                                         const Vector& etai,
-                                         const Vector& vi,
-                                         const Scalar rhoi,
-                                         const Scalar csi,
-                                         const SymTensor& Hi,
-                                         const Vector& xj,
-                                         const Vector& etaj,
-                                         const Vector& vj,
-                                         const Scalar rhoj,
-                                         const Scalar csj,
-                                         const SymTensor& Hj) const;
+  // We compute a Tensor for QPi
+  virtual std::type_index QPiType()      const override { return std::type_index(typeid(Tensor)); }
+
+  // We need the velocity gradient
+  virtual bool requireVelocityGradient() const override { return true; }
+
+  // Register the derivatives/change fields for updating state.
+  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
+                                   StateDerivatives<Dimension>& derivs) override;
+
+  // Add our contribution to the derivatives
+  virtual void evaluateDerivatives(const Scalar time,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives) const override;
 
   // Restart methods.
-  virtual std::string label() const { return "TensorMonaghanGingoldViscosity"; }
+  virtual std::string label() const override { return "TensorMonaghanGingoldViscosity"; }
+
+  // Access data members
+  const PairQPiType& pairQPi()         const { VERIFY2(mPairQPiPtr, "TensorMonaghanGingoldViscosity pairQPi unintialized");  return *mPairQPiPtr; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  TensorMonaghanGingoldViscosity();
-  TensorMonaghanGingoldViscosity(const TensorMonaghanGingoldViscosity&);
-  TensorMonaghanGingoldViscosity& operator=(const TensorMonaghanGingoldViscosity&) const;
+  std::unique_ptr<PairQPiType> mPairQPiPtr;
 };
 
 }

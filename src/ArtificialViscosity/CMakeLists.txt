@@ -1,11 +1,11 @@
 include_directories(.)
 set(ArtificialViscosity_inst
     ArtificialViscosity
+    MonaghanGingoldViscosity
     LimitedMonaghanGingoldViscosity
     CullenDehnenViscosity
     FiniteVolumeViscosity
     IncrementCullenMultipliers
-    MonaghanGingoldViscosity
     MorrisMonaghanReducingViscosity
     TensorSVPHViscosity
     TensorCRKSPHViscosity
@@ -16,11 +16,11 @@ set(ArtificialViscosity_inst
 
 set(ArtificialViscosity_sources )
 
-if(ENABLE_2D)
-  list(APPEND ArtificialViscosity_sources
-       MonaghanGingoldViscosityGSRZ.cc
-      )
-endif()
+# if(ENABLE_2D)
+#   list(APPEND ArtificialViscosity_sources
+#        MonaghanGingoldViscosityGSRZ.cc
+#       )
+# endif()
 
 instantiate(ArtificialViscosity_inst ArtificialViscosity_sources)
 

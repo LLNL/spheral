@@ -12,11 +12,13 @@
 #include "DataBase/StateDerivatives.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Neighbor/Neighbor.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Material/EquationOfState.hh"
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/IncrementState.hh"
 #include "Mesh/Mesh.hh"
+#include "Utilities/Timer.hh"
 
 using std::vector;
 using std::string;
@@ -38,99 +40,148 @@ template<typename Dimension>
 FiniteVolumeViscosity<Dimension>::
 FiniteVolumeViscosity(const Scalar Clinear,
                       const Scalar Cquadratic,
-                      const bool scalar):
-  ArtificialViscosity<Dimension>(Clinear, Cquadratic),
-  mScalar(scalar),
-  mDvDx(FieldStorageType::CopyFields) {
+                      const TableKernel<Dimension>& WT):
+  ArtificialViscosity<Dimension>(Clinear, Cquadratic, WT) {
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-FiniteVolumeViscosity<Dimension>::
-~FiniteVolumeViscosity() {
-}
-
-//------------------------------------------------------------------------------
-// The required method to compute the artificial viscous P/rho^2.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-pair<typename Dimension::Tensor,
-     typename Dimension::Tensor>
-FiniteVolumeViscosity<Dimension>::
-Piij(const unsigned nodeListi, const unsigned i, 
-     const unsigned nodeListj, const unsigned j,
-     const Vector& xi,
-     const Vector& /*etai*/,
-     const Vector& vi,
-     const Scalar rhoi,
-     const Scalar csi,
-     const SymTensor& Hi,
-     const Vector& xj,
-     const Vector& /*etaj*/,
-     const Vector& vj,
-     const Scalar rhoj,
-     const Scalar csj,
-     const SymTensor& Hj) const {
-
-  double Cl = this->mClinear;
-  double Cq = this->mCquadratic;
-  //const double eps2 = this->mEpsilon2;
-
-  // Grab the FieldLists scaling the coefficients.
-  // These incorporate things like the Balsara shearing switch or Morris & Monaghan time evolved
-  // coefficients.
-  const Scalar fCli = this->mClMultiplier(nodeListi, i);
-  const Scalar fCqi = this->mCqMultiplier(nodeListi, i);
-  const Scalar fClj = this->mClMultiplier(nodeListj, j);
-  const Scalar fCqj = this->mCqMultiplier(nodeListj, j);
-  const Scalar fshear = std::max(this->mShearCorrection(nodeListi, i), this->mShearCorrection(nodeListj, j));
-  Cl *= 0.5*(fCli + fClj)*fshear;
-  Cq *= 0.5*(fCqi + fCqj)*fshear;
-
-  const Vector vij = vi - vj;
-  const Vector xji = xj - xi;
-  const Vector xjihat = xji.unitVector();
-  const Scalar hi = 1.0/(Hi*xjihat).magnitude();
-  const Scalar hj = 1.0/(Hj*xjihat).magnitude();
-  const Scalar DvDxi = min(0.0, mDvDx(nodeListi, i).Trace());
-  const Scalar DvDxj = min(0.0, mDvDx(nodeListj, j).Trace());
-  const Scalar Pii = (-Cl*csi*DvDxi + Cq*fCqi*hi*DvDxi*DvDxi)*hi/rhoi;
-  const Scalar Pij = (-Cl*csj*DvDxj + Cq*fCqj*hj*DvDxj*DvDxj)*hj/rhoj;
-  return make_pair(Pii*Tensor::one, Pij*Tensor::one);
-}
-
-//------------------------------------------------------------------------------
-// Initialize for the FluidNodeLists in the given DataBase.
+// Add our time derivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 FiniteVolumeViscosity<Dimension>::
-initialize(const DataBase<Dimension>& dataBase,
-           const State<Dimension>& state,
-           const StateDerivatives<Dimension>& derivs,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryBegin,
-           typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundaryEnd,
-	   const typename Dimension::Scalar time,
-	   const typename Dimension::Scalar dt,
-           const TableKernel<Dimension>& W) {
+evaluateDerivatives(const Scalar time,
+                    const Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivs) const {
+  TIME_BEGIN("FiniteVolumeViscosity_evalDerivs")
 
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Face Face;
+  // A few useful constants
+  const auto Cl = this->mClinear;
+  const auto Cq = this->mCquadratic;
+  const auto balsaraCorrection = this->balsaraShearCorrection();
 
-  // Call the ancestor.
-  ArtificialViscosity<Dimension>::initialize(dataBase,
-                                             state,
-                                             derivs,
-                                             boundaryBegin,
-                                             boundaryEnd,
-                                             time,
-                                             dt,
-                                             W);
+  // The connectivity.
+  const auto& connectivityMap = dataBase.connectivityMap();
+  const auto& nodeLists = connectivityMap.nodeLists();
+  const auto  numNodeLists = nodeLists.size();
 
-  // Prepare our result.
-  dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, "FV DvDx", true);
+  // The set of interacting node pairs.
+  const auto& pairs = connectivityMap.nodePairList();
+  const auto  npairs = pairs.size();
+
+  // Get the state and derivative FieldLists.
+  // State FieldLists.
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto ClMultiplier = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto CqMultiplier = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDx = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
+  CHECK(position.size() == numNodeLists);
+  CHECK(velocity.size() == numNodeLists);
+  CHECK(massDensity.size() == numNodeLists);
+  CHECK(H.size() == numNodeLists);
+  CHECK(soundSpeed.size() == numNodeLists);
+  CHECK(ClMultiplier.size() == CqMultiplier.size());
+  CHECK(DvDx.size() == numNodeLists);
+
+  // Derivative FieldLists.
+  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
+  auto& QPi = derivs.template get<PairQPiType>(HydroFieldNames::pairQPi);
+  CHECK(maxViscousPressure.size() == numNodeLists);
+  CHECK(QPi.size() == npairs);
+
+  // Check if someone is evolving Cl and Cq coefficients
+  const auto noClCqMult = ClMultiplier.size() == 0u;
+  CHECK(noClCqMult or ClMultiplier.size() == numNodeLists);
+
+  // Walk all the interacting pairs.
+#pragma omp parallel
+  {
+
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
+    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
+
+#pragma omp for
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      const auto i = pairs[kk].i_node;
+      const auto j = pairs[kk].j_node;
+      const auto nodeListi = pairs[kk].i_list;
+      const auto nodeListj = pairs[kk].j_list;
+
+      const auto& xi = position(nodeListi, i);
+      const auto& vi = velocity(nodeListi, i);
+      const auto  rhoi = massDensity(nodeListi, i);
+      const auto  ci = soundSpeed(nodeListi, i);
+      const auto& Hi = H(nodeListi, i);
+      const auto  fCli = noClCqMult ? 1.0 : ClMultiplier(nodeListi, i);
+      const auto  fCqi = noClCqMult ? 1.0 : CqMultiplier(nodeListi, i);
+      auto&       maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+
+      const auto& xj = position(nodeListj, j);
+      const auto& vj = velocity(nodeListj, j);
+      const auto  rhoj = massDensity(nodeListj, j);
+      const auto  cj = soundSpeed(nodeListj, j);
+      const auto& Hj = H(nodeListj, j);
+      const auto  fClj = noClCqMult ? 1.0 : ClMultiplier(nodeListj, j);
+      const auto  fCqj = noClCqMult ? 1.0 : CqMultiplier(nodeListj, j);
+      auto&       maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+
+      // Find the locally scaled coefficients
+      const auto fshear = (balsaraCorrection ?
+                           0.5*(this->calcBalsaraShearCorrection(DvDx(nodeListi, i), Hi, ci) +
+                                this->calcBalsaraShearCorrection(DvDx(nodeListj, j), Hj, cj)) :
+                           1.0);
+      const auto Clij = 0.5*(fCli + fClj)*fshear * Cl;
+      const auto Cqij = 0.5*(fCqi + fCqj)*fshear * Cq;
+
+
+      // Compute the pair QPi
+      const auto vij = vi - vj;
+      const auto xji = xj - xi;
+      const auto xjihat = xji.unitVector();
+      const auto hi = 1.0/(Hi*xjihat).magnitude();
+      const auto hj = 1.0/(Hj*xjihat).magnitude();
+      const auto DvDxi = min(0.0, DvDx(nodeListi, i).Trace());
+      const auto DvDxj = min(0.0, DvDx(nodeListj, j).Trace());
+      QPi[kk].first  = (-Clij*ci*DvDxi + Cqij*hi*DvDxi*DvDxi)*hi/rhoi;
+      QPi[kk].second = (-Clij*cj*DvDxj + Cqij*hj*DvDxj*DvDxj)*hj/rhoj;
+
+      // Stuff for time step constraints
+      maxViscousPressurei = std::max(maxViscousPressurei, rhoi*rhoi*QPi[kk].first);
+      maxViscousPressurej = std::max(maxViscousPressurej, rhoj*rhoj*QPi[kk].second);
+    }
+
+    // Reduce the thread values to the master.
+    threadReduceFieldLists<Dimension>(threadStack);
+
+  }      // OpenMP parallel region
+
+  TIME_END("FiniteVolumeViscosity_evalDerivs")
+}
+
+//------------------------------------------------------------------------------
+// Override the base method of computing the velocity gradient with a
+// finite-volume approach
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+FiniteVolumeViscosity<Dimension>::
+updateVelocityGradient(const DataBase<Dimension>& dataBase,
+                       const State<Dimension>& state,
+                       const StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("FiniteVolumeViscosity_updateVelocityGradient")
+
+  using Zone = typename Mesh<Dimension>::Zone;
+  using Face = typename Mesh<Dimension>::Face;
+
+  // Grab the DvDx for updating
+  auto DvDx = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
+  DvDx.Zero();
 
   // Make a finite-volume estimate of the local (to each Voronoi cell) velocity
   // gradient.
@@ -143,7 +194,7 @@ initialize(const DataBase<Dimension>& dataBase,
     const unsigned n = velocity[nodeListi]->numInternalElements();
     for (unsigned i = 0; i != n; ++i) {
       const Vector& vi = velocity(nodeListi, i);
-      Tensor& DvDxi = mDvDx(nodeListi, i);
+      Tensor& DvDxi = DvDx(nodeListi, i);
       const Zone& zonei = mesh.zone(nodeListi, i);
       const vector<int>& faces = zonei.faceIDs();
       Vi = zonei.volume();
@@ -166,81 +217,7 @@ initialize(const DataBase<Dimension>& dataBase,
       DvDxi /= Vi;
     }
   }
-
-  // // Apply boundary conditions to our intermediate estimate.
-  // for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-  //      boundItr != boundaryEnd;
-  //      ++boundItr) {
-  //   (*boundItr)->applyFieldListGhostBoundary(mDvDx);
-  // }
-
-  // for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-  //      boundItr != boundaryEnd;
-  //      ++boundItr) {
-  //   (*boundItr)->finalizeGhostBoundary();
-  // }
-
-  // // Make a simple smoothing iteration over DvDx.
-  // FieldList<Dimension, Tensor> DvDx_smooth(mDvDx);
-  // DvDx_smooth.copyFields();
-  // for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
-  //   const unsigned n = velocity[nodeListi]->numInternalElements();
-  //   for (unsigned i = 0; i != n; ++i) {
-  //     const Zone& zonei = mesh.zone(nodeListi, i);
-  //     const vector<int>& faces = zonei.faceIDs();
-  //     Vi = zonei.volume();
-  //     Scalar Vtot = Vi;
-  //     DvDx_smooth(nodeListi, i) = Vi*mDvDx(nodeListi, i);
-  //     for (vector<int>::const_iterator fitr = faces.begin();
-  //          fitr != faces.end();
-  //          ++fitr) {
-  //       const Face& faceij = mesh.face(*fitr);
-  //       const int oppZoneID = faceij.oppositeZoneID(zonei.ID());
-  //       if (Mesh<Dimension>::positiveID(oppZoneID) == Mesh<Dimension>::UNSETID) {
-  //         nodeListj = nodeListi;
-  //         j = i;
-  //         Vj = Vi;
-  //       } else {
-  //         mesh.lookupNodeListID(Mesh<Dimension>::positiveID(oppZoneID), nodeListj, j);
-  //         Vj = mesh.zone(Mesh<Dimension>::positiveID(oppZoneID)).volume();
-  //       }
-  //       Vtot += Vj;
-  //       DvDx_smooth(nodeListi, i) += Vj*mDvDx(nodeListj, j);
-  //     }
-  //     DvDx_smooth(nodeListi, i) /= Vtot;
-  //   }
-  // }
-  // mDvDx = DvDx_smooth;
-
-  // Apply boundary conditions.  We depend on someone else finalizing these 
-  // between now and calls to Piij.
-  for (typename ArtificialViscosity<Dimension>::ConstBoundaryIterator boundItr = boundaryBegin;
-       boundItr != boundaryEnd;
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(mDvDx);
-  }
-
-}
-
-
-//------------------------------------------------------------------------------
-// Are we enforcing scalar Q?
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-FiniteVolumeViscosity<Dimension>::
-scalar() const {
-  return mScalar;
-}
-
-//------------------------------------------------------------------------------
-// The finite-volume gradient of the velocity.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const FieldList<Dimension, typename Dimension::Tensor>&
-FiniteVolumeViscosity<Dimension>::
-DvDx() const {
-  return mDvDx;
+  TIME_END("FiniteVolumeViscosity_updateVelocityGradient")
 }
 
 }

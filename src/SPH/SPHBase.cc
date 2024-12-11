@@ -99,10 +99,7 @@ SPHBase(DataBase<Dimension>& dataBase,
   mSoundSpeed(FieldStorageType::CopyFields),
   mOmegaGradh(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldStorageType::CopyFields),
   mMassDensityCorrection(FieldStorageType::CopyFields),
-  mViscousWork(FieldStorageType::CopyFields),
   mMassDensitySum(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
   mXSPHWeightSum(FieldStorageType::CopyFields),
@@ -125,10 +122,7 @@ SPHBase(DataBase<Dimension>& dataBase,
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mOmegaGradh = dataBase.newFluidFieldList(1.0, HydroFieldNames::omegaGradh);
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
-  mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-  mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mMassDensityCorrection = dataBase.newFluidFieldList(0.0, HydroFieldNames::massDensityCorrection);
-  mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mMassDensitySum = dataBase.newFluidFieldList(0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
   mXSPHWeightSum = dataBase.newFluidFieldList(0.0, HydroFieldNames::XSPHWeightSum);
@@ -277,10 +271,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensityCorrection, 0.0, HydroFieldNames::massDensityCorrection, false);
-  dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mXSPHWeightSum, 0.0, HydroFieldNames::XSPHWeightSum, false);
@@ -293,10 +284,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mGradRho, Vector::zero, HydroFieldNames::massDensityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
-  derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mEffViscousPressure);
   derivs.enroll(mMassDensityCorrection);
-  derivs.enroll(mViscousWork);
   derivs.enroll(mMassDensitySum);
   derivs.enroll(mNormalization);
   derivs.enroll(mXSPHWeightSum);
@@ -758,7 +746,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mNormalization, pathName + "/normalization");
   file.write(mXSPHWeightSum, pathName + "/XSPHWeightSum");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
-
   file.write(mOmegaGradh, pathName + "/omegaGradh");
   file.write(mDxDt, pathName + "/DxDt");
   file.write(mDvDt, pathName + "/DvDt");
@@ -767,10 +754,7 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mDvDx, pathName + "/DvDx");
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mGradRho, pathName + "/gradRho");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.write(mMassDensityCorrection, pathName + "/massDensityCorrection");
-  file.write(mViscousWork, pathName + "/viscousWork");
   file.write(mM, pathName + "/M");
   file.write(mLocalM, pathName + "/localM");
 }
@@ -800,7 +784,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mDvDx, pathName + "/DvDx");
   file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mGradRho, pathName + "/gradRho");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.read(mMassDensityCorrection, pathName + "/massDensityCorrection");
   file.read(mM, pathName + "/M");
   file.read(mLocalM, pathName + "/localM");
 
