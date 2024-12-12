@@ -8,7 +8,7 @@ import spack
 import socket
 import os
 
-class Spheral(CachedCMakePackage, CudaPackage):
+class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     """Spheral++ provides a steerable parallel environment for performing coupled hydrodynamical and gravitational numerical simulations."""
 
     homepage = "https://spheral.readthedocs.io/"
@@ -36,50 +36,55 @@ class Spheral(CachedCMakePackage, CudaPackage):
     # DEPENDS
     # -------------------------------------------------------------------------
     depends_on('mpi', when='+mpi')
+
     depends_on('cmake@3.21.0:', type='build')
 
-    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('zlib@1.3 +shared +pic', type='build')
 
     depends_on('qhull@2020.2 +pic', type='build')
+
     depends_on('m-aneos@1.0')
+
     depends_on('eigen@3.4.0', type='build')
-    depends_on('hdf5@1.8.19 +hl', type='build')
 
-    depends_on('silo@4.10.2 +hdf5', type='build')
+    depends_on('hdf5 +hl', type='build')
 
-    # Zlib fix has been merged into conduit, using develop until next release.
+    depends_on('silo +hdf5', type='build')
+
     depends_on('conduit@0.9.1 +shared +hdf5~hdf5_compat -test ~parmetis', type='build')
-    depends_on('conduit +hdf5', type='build', when='^hdf5@1.8.0:1.8')
+
     depends_on('axom@0.9.0 +hdf5 -lua -examples -python -fortran', type='build')
     depends_on('axom +shared', when='~cuda', type='build')
     depends_on('axom ~shared', when='+cuda', type='build')
+
     depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic', type='build')
+
+    depends_on("raja@2024.02.0", type="build")
+
+    depends_on('opensubdiv@3.4.3', type='build')
+
+    depends_on('polytope +python', type='build', when='+python')
+
+    # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "caliper", "adiak~shared"]
     for ctpl in mpi_tpl_list:
         for mpiv in ["+mpi", "~mpi"]:
             depends_on(f"{ctpl} {mpiv}", type='build', when=f"{mpiv}")
 
-    depends_on("raja@2024.02.0", type="build")
-    cuda_tpl_list = ["raja", "umpire", "axom"]
-    with when("+cuda"):
-        depends_on('caliper ~cuda', type="build")
-        for ctpl in cuda_tpl_list:
-            for val in CudaPackage.cuda_arch_values:
-                depends_on(f"{ctpl} +cuda cuda_arch={val}", type='build', when=f"+cuda cuda_arch={val}")
-    with when("~cuda"):
-        for ctpl in cuda_tpl_list:
-            depends_on(f"{ctpl} ~cuda", type='build')
-
-    depends_on('opensubdiv@3.4.3', type='build')
-
-    depends_on('polytope@0.7.3 +python', type='build', when='+python')
+    # Forward CUDA/ROCM Variants
+    gpu_tpl_list = ["raja", "umpire", "axom"]
+    for ctpl in gpu_tpl_list:
+        for val in CudaPackage.cuda_arch_values:
+            depends_on(f"{ctpl} +cuda cuda_arch={val}", type='build', when=f"+cuda cuda_arch={val}")
+        for val in ROCmPackage.amdgpu_targets:
+            depends_on(f"{ctpl} +rocm amdgpu_target={val}", type='build', when=f"+rocm amdgpu_target={val}")
 
     # -------------------------------------------------------------------------
-    # DEPENDS
+    # Conflicts
     # -------------------------------------------------------------------------
-    conflicts('cuda_arch=none', when='+cuda', msg='CUDA architecture is required')
+    conflicts("+cuda", when="+rocm")
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -139,6 +144,18 @@ class Spheral(CachedCMakePackage, CudaPackage):
     def initconfig_hardware_entries(self):
         spec = self.spec
         entries = super(Spheral, self).initconfig_hardware_entries()
+
+        if '+rocm' in spec:
+            entries.append(cmake_cache_option("ENABLE_HIP", True))
+            hip_root = spec["hip"].prefix
+ 
+            hip_link_flags = ""
+            # Additional libraries for TOSS4
+            hip_link_flags += " -L{0}/../lib64 -Wl,-rpath,{0}/../lib64 ".format(hip_root)
+            hip_link_flags += " -L{0}/../lib -Wl,-rpath,{0}/../lib ".format(hip_root)
+            hip_link_flags += "-lamd_comgr -lhsa-runtime64 "
+
+            entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
 
         if '+cuda' in spec:
             entries.append(cmake_cache_option("ENABLE_CUDA", True))

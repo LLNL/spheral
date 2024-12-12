@@ -4,7 +4,7 @@
 namespace Spheral
 {
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) or defined(__HIPCC__)
 __device__ void add(int a, int b, int *c);
 
 __global__ void launch(int a, int b, int *c);

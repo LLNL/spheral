@@ -100,6 +100,7 @@ def install_ats_args():
 def main():
     test_log_name = "test-logs"
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
+    toss_cray_machine_names = ["rzadams"]
     blueos_machine_names = ["rzansel", "lassen"]
     temp_uname = os.uname()
     hostname = temp_uname[1]
@@ -156,6 +157,15 @@ def main():
             mac_args = [f"--numNodes {numNodes}"]
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (options.ciRun):
+                launch_cmd += "-p pdebug "
+        elif any(x in hostname for x in toss_cray_machine_names):
+            os.environ['MACHINE_TYPE'] = 'flux00'
+            numNodes = numNodes if numNodes else 2
+            timeLimit = timeLimit if timeLimit else 120
+            #mac_args = [f"--nn={numNodes} --gpus_per_task=1 -n=64 --timelimit={timeLimit}m"]
+            #inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
+            launch_cmd = f"flux alloc --exclusive -N {numNodes} -t {timeLimit} "
             if (options.ciRun):
                 launch_cmd += "-p pdebug "
         elif any(x in hostname for x in blueos_machine_names):

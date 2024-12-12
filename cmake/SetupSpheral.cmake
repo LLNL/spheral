@@ -87,6 +87,11 @@ if(ENABLE_CUDA)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
 endif()
 
+if(ENABLE_HIP)
+  list(APPEND SPHERAL_CXX_DEPENDS blt::hip)
+  list(APPEND SPHERAL_CXX_DEPENDS blt::hip_runtime)
+endif()
+
 #-------------------------------------------------------------------------------#
 # Set a default build type if none was specified
 #-------------------------------------------------------------------------------#
