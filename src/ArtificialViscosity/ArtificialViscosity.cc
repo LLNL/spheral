@@ -34,8 +34,8 @@ using std::vector;
 //------------------------------------------------------------------------------
 // Construct with the given value for the linear and quadratic coefficients.
 //------------------------------------------------------------------------------
-template<typename Dimension>
-ArtificialViscosity<Dimension>::
+template<typename Dimension, typename QPiType>
+ArtificialViscosity<Dimension, QPiType>::
 ArtificialViscosity(const Scalar Clinear,
                     const Scalar Cquadratic,
                     const TableKernel<Dimension>& kernel):
@@ -56,9 +56,9 @@ ArtificialViscosity(const Scalar Clinear,
 // Vote on a timestep.  We assume the hydro accounts for our contribution to the
 // timestep, so by default no-vote.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 typename Physics<Dimension>::TimeStepType
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 dt(const DataBase<Dimension>& dataBase,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
@@ -69,9 +69,9 @@ dt(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Register state
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   if (this->requireVelocityGradient() or
@@ -81,9 +81,9 @@ registerState(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Register derivatives
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mMaxViscousPressure);
@@ -92,9 +92,9 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Apply ghost boundaries
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
   if (this->requireVelocityGradient() or
@@ -109,9 +109,9 @@ applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 // Initialize for the FluidNodeLists in the given DataBase.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
@@ -130,9 +130,9 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Post-state update.  Update the velocity gradient if needed.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 bool
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 postStateUpdate(const Scalar t,
                 const Scalar dt,
                 const DataBase<Dimension>& dataBase,
@@ -151,12 +151,15 @@ postStateUpdate(const Scalar t,
 //------------------------------------------------------------------------------
 // Update our velocity gradient
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 updateVelocityGradient(const DataBase<Dimension>& dataBase,
                        const State<Dimension>& state,
                        const StateDerivatives<Dimension>& derivs) {
+
+  auto DvDx_AV = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
+
   if (mRigorousVelocityGradient) {
 
     // Measure a linearly corrected velocity gradient based on the corrected SPH form.
@@ -175,7 +178,7 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
     const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
 
     // Clear our current estimate
-    mDvDx.Zero();
+    DvDx_AV.Zero();
     mM.Zero();
 
 #pragma omp parallel
@@ -187,7 +190,7 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
       Tensor QPiij, QPiji;
 
       typename SpheralThreads<Dimension>::FieldListStack threadStack;
-      auto DvDx_thread = mDvDx.threadCopy(threadStack);
+      auto DvDx_thread = DvDx_AV.threadCopy(threadStack);
       auto M_thread = mM.threadCopy(threadStack);
 
 #pragma omp for
@@ -253,7 +256,7 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
 
     // Finish up the gradient for each point.
     for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-      const auto ni = mDvDx[nodeListi]->numInternalElements();
+      const auto ni = DvDx_AV[nodeListi]->numInternalElements();
 #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
 
@@ -264,7 +267,7 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
         CHECK(mi > 0.0);
         CHECK(rhoi > 0.0);
 
-        auto& DvDxi = mDvDx(nodeListi, i);
+        auto& DvDxi = DvDx_AV(nodeListi, i);
         auto& Mi = mM(nodeListi, i);
 
         // Finish the gradient of the velocity.
@@ -284,8 +287,8 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
     // Just copy the hydro estimate for the velocity gradient. This option incurs being
     // a bit off in the time level of DvDx during an integration cycle but is cheaper.
     const auto DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
-    mDvDx.assignFields(DvDx);
-    for (auto* fptr: mDvDx) fptr->name(HydroFieldNames::ArtificialViscosityVelocityGradient);
+    DvDx_AV.assignFields(DvDx);
+    for (auto* fptr: DvDx_AV) fptr->name(HydroFieldNames::ArtificialViscosityVelocityGradient);
 
   }
 
@@ -294,9 +297,9 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 // Dump the current state of the Q to the given file.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {
@@ -307,9 +310,9 @@ dumpState(FileIO& file, const string& pathName) const {
 //------------------------------------------------------------------------------
 // Restore the state of the NodeList from the given file.
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 void
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {

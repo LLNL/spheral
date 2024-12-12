@@ -9,59 +9,64 @@
 
 #include "ArtificialViscosity.hh"
 
-#include <memory>
-
 namespace Spheral {
 
-template<typename Dimension, typename Value> class PairwiseField;
-
 template<typename Dimension>
-class TensorMonaghanGingoldViscosity: public ArtificialViscosity<Dimension> {
+class TensorMonaghanGingoldViscosity: public ArtificialViscosity<Dimension, typename Dimension::Tensor> {
 public:
   //--------------------------- Public Interface ---------------------------//
   using Scalar = typename Dimension::Scalar;
   using Vector = typename Dimension::Vector;
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
-  using PairQPiType = PairwiseField<Dimension, std::pair<Tensor, Tensor>>;
 
   // Constructors and destuctor
   TensorMonaghanGingoldViscosity(const Scalar Clinear,
                                  const Scalar Cquadratic,
                                  const TableKernel<Dimension>& kernel);
-  ~TensorMonaghanGingoldViscosity() = default;
+  virtual ~TensorMonaghanGingoldViscosity() = default;
 
   // No default construction, copying, or assignment
   TensorMonaghanGingoldViscosity() = delete;
   TensorMonaghanGingoldViscosity(const TensorMonaghanGingoldViscosity&) = delete;
   TensorMonaghanGingoldViscosity& operator=(const TensorMonaghanGingoldViscosity&) = delete;
 
-  // We compute a Tensor for QPi
-  virtual std::type_index QPiType()      const override { return std::type_index(typeid(Tensor)); }
-
   // We need the velocity gradient
   virtual bool requireVelocityGradient() const override { return true; }
 
-  // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs) override;
-
-  // Add our contribution to the derivatives
-  virtual void evaluateDerivatives(const Scalar time,
-                                   const Scalar dt,
-                                   const DataBase<Dimension>& dataBase,
-                                   const State<Dimension>& state,
-                                   StateDerivatives<Dimension>& derivatives) const override;
+  // All ArtificialViscosities must provide the pairwise QPi term (pressure/rho^2)
+  // Returns the pair values QPiij and QPiji by reference as the first two arguments.
+  // Note the final FieldLists (fCl, fCQ, DvDx) should be the special versions registered
+  // by the ArtficialViscosity (particularly DvDx).
+  virtual void QPiij(Tensor& QPiij, Tensor& QPiji,      // result for QPi (Q/rho^2)
+                     Scalar& Qij, Scalar& Qji,          // result for viscous pressure
+                     const unsigned nodeListi, const unsigned i, 
+                     const unsigned nodeListj, const unsigned j,
+                     const Vector& xi,
+                     const SymTensor& Hi,
+                     const Vector& etai,
+                     const Vector& vi,
+                     const Scalar rhoi,
+                     const Scalar csi,
+                     const Vector& xj,
+                     const SymTensor& Hj,
+                     const Vector& etaj,
+                     const Vector& vj,
+                     const Scalar rhoj,
+                     const Scalar csj,
+                     const FieldList<Dimension, Scalar>& fCl,
+                     const FieldList<Dimension, Scalar>& fCq,
+                     const FieldList<Dimension, Tensor>& DvDx) const override;
 
   // Restart methods.
   virtual std::string label() const override { return "TensorMonaghanGingoldViscosity"; }
 
-  // Access data members
-  const PairQPiType& pairQPi()         const { VERIFY2(mPairQPiPtr, "TensorMonaghanGingoldViscosity pairQPi unintialized");  return *mPairQPiPtr; }
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  std::unique_ptr<PairQPiType> mPairQPiPtr;
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  using ArtificialViscosity<Dimension, Tensor>::mClinear;
+  using ArtificialViscosity<Dimension, Tensor>::mCquadratic;
+  using ArtificialViscosity<Dimension, Tensor>::mEpsilon2;
+  using ArtificialViscosity<Dimension, Tensor>::mBalsaraShearCorrection;
 };
 
 }

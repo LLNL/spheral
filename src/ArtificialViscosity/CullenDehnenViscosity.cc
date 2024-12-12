@@ -13,6 +13,7 @@
 #include "Material/EquationOfState.hh"
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Utilities/range.hh"
 
 #include "CullenDehnenViscosity.hh"
 
@@ -193,14 +194,8 @@ finalizeDerivatives(const Scalar /*time*/,
   FieldList<Dimension, Tensor> DvDx = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
 
   // Apply boundaries to DvDx.
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(DvDx);
-  }
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+  for (auto* bcPtr: range(this->boundaryBegin(), this->boundaryEnd())) bcPtr->applyFieldListGhostBoundary(DvDx);
+  for (auto* bcPtr: range(this->boundaryBegin(), this->boundaryEnd())) bcPtr->finalizeGhostBoundary();
 
   for (size_t nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
     //const int firstGhostNodei = DvDx[nodeListi]->nodeList().firstGhostNode();

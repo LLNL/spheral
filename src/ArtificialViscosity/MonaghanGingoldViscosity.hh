@@ -13,18 +13,14 @@
 
 namespace Spheral {
 
-template<typename Dimension, typename Value> class PairwiseField;
-
 template<typename Dimension>
-class MonaghanGingoldViscosity: public ArtificialViscosity<Dimension> {
+class MonaghanGingoldViscosity: public ArtificialViscosity<Dimension, typename Dimension::Scalar> {
 public:
   //--------------------------- Public Interface ---------------------------//
   using Scalar = typename Dimension::Scalar;
   using Vector = typename Dimension::Vector;
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
-  using ConstBoundaryIterator = typename ArtificialViscosity<Dimension>::ConstBoundaryIterator;
-  using PairQPiType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
 
   // Constructors.
   MonaghanGingoldViscosity(const Scalar Clinear,
@@ -39,19 +35,29 @@ public:
   MonaghanGingoldViscosity(const MonaghanGingoldViscosity&) = delete;
   MonaghanGingoldViscosity& operator=(const MonaghanGingoldViscosity&) = delete;
 
-  // We compute a Scalar for QPi
-  virtual std::type_index QPiType()      const override { return std::type_index(typeid(Scalar)); }
-
-  // Register the derivatives/change fields for updating state.
-  virtual void registerDerivatives(DataBase<Dimension>& dataBase,
-                                   StateDerivatives<Dimension>& derivs) override;
-
-  // Add our contribution to the derivatives
-  virtual void evaluateDerivatives(const Scalar time,
-                                   const Scalar dt,
-                                   const DataBase<Dimension>& dataBase,
-                                   const State<Dimension>& state,
-                                   StateDerivatives<Dimension>& derivatives) const override;
+  // All ArtificialViscosities must provide the pairwise QPi term (pressure/rho^2)
+  // Returns the pair values QPiij and QPiji by reference as the first two arguments.
+  // Note the final FieldLists (fCl, fCQ, DvDx) should be the special versions registered
+  // by the ArtficialViscosity (particularly DvDx).
+  virtual void QPiij(Scalar& QPiij, Scalar& QPiji,      // result for QPi (Q/rho^2)
+                     Scalar& Qij, Scalar& Qji,          // result for viscous pressure
+                     const unsigned nodeListi, const unsigned i, 
+                     const unsigned nodeListj, const unsigned j,
+                     const Vector& xi,
+                     const SymTensor& Hi,
+                     const Vector& etai,
+                     const Vector& vi,
+                     const Scalar rhoi,
+                     const Scalar csi,
+                     const Vector& xj,
+                     const SymTensor& Hj,
+                     const Vector& etaj,
+                     const Vector& vj,
+                     const Scalar rhoj,
+                     const Scalar csj,
+                     const FieldList<Dimension, Scalar>& fCl,
+                     const FieldList<Dimension, Scalar>& fCq,
+                     const FieldList<Dimension, Tensor>& DvDx) const override;
 
   // Restart methods.
   virtual std::string label()             const { return "MonaghanGingoldViscosity"; }
@@ -62,12 +68,14 @@ public:
   void linearInExpansion(const bool x)          { mLinearInExpansion = x; }
   void quadraticInExpansion(const bool x)       { mQuadraticInExpansion = x; }
 
-  const PairQPiType& pairQPi()            const { VERIFY2(mPairQPiPtr, "MonaghanGingoldViscosity pairQPi unintialized");  return *mPairQPiPtr; }
-
 protected:
   //--------------------------- Protected Interface ---------------------------//
   bool mLinearInExpansion, mQuadraticInExpansion;
-  std::unique_ptr<PairQPiType> mPairQPiPtr;
+
+  using ArtificialViscosity<Dimension, Scalar>::mClinear;
+  using ArtificialViscosity<Dimension, Scalar>::mCquadratic;
+  using ArtificialViscosity<Dimension, Scalar>::mEpsilon2;
+  using ArtificialViscosity<Dimension, Scalar>::mBalsaraShearCorrection;
 };
 
 }

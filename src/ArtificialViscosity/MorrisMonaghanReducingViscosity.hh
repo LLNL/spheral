@@ -8,10 +8,9 @@
 //
 // Created by CDR, Aug 8th, 2014
 //----------------------------------------------------------------------------//
-#ifndef __MorrisMonaghanReducingViscosity__
-#define __MorrisMonaghanReducingViscosity__
+#ifndef __Spheral_MorrisMonaghanReducingViscosity__
+#define __Spheral_MorrisMonaghanReducingViscosity__
 
-#include "ArtificialViscosity.hh"
 #include "Physics/Physics.hh"
 
 namespace Spheral {
@@ -26,8 +25,6 @@ public:
   using SymTensor = typename Dimension::SymTensor;
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
 
-  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
-    
   // Constructors & Destructors
   MorrisMonaghanReducingViscosity(const Scalar nhQ,
                                   const Scalar nhL,

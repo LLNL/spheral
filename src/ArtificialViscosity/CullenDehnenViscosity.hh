@@ -8,23 +8,20 @@
 #ifndef __Spheral_CullenDehnenViscosity__
 #define __Spheral_CullenDehnenViscosity__
 
-#include "ArtificialViscosity.hh"
 #include "Physics/Physics.hh"
 
 namespace Spheral {
-  template<typename Dimension> class State;
-  template<typename Dimension> class StateDerivatives;
-  template<typename Dimension> class SmoothingScaleBase;
-  template<typename Dimension> class ArtificialViscosity;
-  template<typename Dimension> class TableKernel;
-  template<typename Dimension> class DataBase;
-  template<typename Dimension, typename DataType> class Field;
-  template<typename Dimension, typename DataType> class FieldList;
-  class FileIO;
-}
-
-namespace Spheral {
     
+// Forward declarations
+template<typename Dimension> class State;
+template<typename Dimension> class StateDerivatives;
+template<typename Dimension> class SmoothingScaleBase;
+template<typename Dimension> class TableKernel;
+template<typename Dimension> class DataBase;
+template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldList;
+class FileIO;
+
 template<typename Dimension>
 class CullenDehnenViscosity: public Physics<Dimension>{
 public:
@@ -35,8 +32,6 @@ public:
   using SymTensor = typename Dimension::SymTensor;
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
         
-  using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
-    
   // Constructors & Destructors
   CullenDehnenViscosity(const TableKernel<Dimension>& WT,
                         const Scalar alphMax,

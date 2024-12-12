@@ -4,42 +4,51 @@
 
 namespace Spheral {
 
+namespace ArtificialViscosityDetail {
+
 //------------------------------------------------------------------------------
 // Calculate the curl of the velocity given the stress tensor.
 //------------------------------------------------------------------------------
-template<>
 inline
 Dim<1>::Scalar
-ArtificialViscosity< Dim<1> >::
-curlVelocityMagnitude(const Dim<1>::Tensor& /*DvDx*/) const {
+curlVelocityMagnitude(const Dim<1>::Tensor& DvDx) {
   return 0.0;
 }
 
-template<>
 inline
 Dim<2>::Scalar
-ArtificialViscosity< Dim<2> >::
-curlVelocityMagnitude(const Dim<2>::Tensor& DvDx) const {
+curlVelocityMagnitude(const Dim<2>::Tensor& DvDx) {
   return std::abs(DvDx.yx() - DvDx.xy());
 }
 
-template<>
 inline
 Dim<3>::Scalar
-ArtificialViscosity< Dim<3> >::
-curlVelocityMagnitude(const Dim<3>::Tensor& DvDx) const {
+curlVelocityMagnitude(const Dim<3>::Tensor& DvDx) {
   return sqrt(FastMath::square(DvDx.zy() - DvDx.yz()) +
               FastMath::square(DvDx.xz() - DvDx.zx()) +
               FastMath::square(DvDx.yx() - DvDx.xy()));
 }
 
+}  // ArtificialVicosityDetail
+
+//------------------------------------------------------------------------------
+// Calculate the curl of the velocity given the stress tensor.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename QPiType>
+inline
+typename Dimension::Scalar
+ArtificialViscosity<Dimension, QPiType>::
+curlVelocityMagnitude(const Tensor& DvDx) const {
+  return ArtificialViscosityDetail::curlVelocityMagnitude(DvDx);
+}
+
 //------------------------------------------------------------------------------
 // Compute the Balsara shear correction term
 //------------------------------------------------------------------------------
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 inline
 typename Dimension::Scalar
-ArtificialViscosity<Dimension>::
+ArtificialViscosity<Dimension, QPiType>::
 calcBalsaraShearCorrection(const Tensor& DvDx,
                            const SymTensor& H,
                            const Scalar& cs) const {

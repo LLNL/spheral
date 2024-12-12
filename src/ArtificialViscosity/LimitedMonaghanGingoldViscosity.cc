@@ -23,8 +23,6 @@
 
 using std::vector;
 using std::string;
-using std::pair;
-using std::make_pair;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -124,171 +122,107 @@ LimitedMonaghanGingoldViscosity(const Scalar Clinear,
 }
 
 //------------------------------------------------------------------------------
-// Add our time derivatives
+// Main method -- compute the QPi (P/rho^2) artificial viscosity
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
 LimitedMonaghanGingoldViscosity<Dimension>::
-evaluateDerivatives(const Scalar time,
-                    const Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
-  TIME_BEGIN("LimitedMonaghanGingoldViscosity_evalDerivs");
+QPiij(Scalar& QPiij, Scalar& QPiji,      // result for QPi (Q/rho^2)
+      Scalar& Qij, Scalar& Qji,          // result for viscous pressure
+      const unsigned nodeListi, const unsigned i, 
+      const unsigned nodeListj, const unsigned j,
+      const Vector& xi,
+      const SymTensor& Hi,
+      const Vector& etai,
+      const Vector& vi,
+      const Scalar rhoi,
+      const Scalar csi,
+      const Vector& xj,
+      const SymTensor& Hj,
+      const Vector& etaj,
+      const Vector& vj,
+      const Scalar rhoj,
+      const Scalar csj,
+      const FieldList<Dimension, Scalar>& fCl,
+      const FieldList<Dimension, Scalar>& fCq,
+      const FieldList<Dimension, Tensor>& DvDx) const {
+
+  // Preconditions
+  REQUIRE(fCl.size() == fCq.size());
+  REQUIRE(DvDx.size() > std::max(nodeListi, nodeListj));
 
   // A few useful constants
-  const auto Cl = this->mClinear;
-  const auto Cq = this->mCquadratic;
-  const auto eps2 = this->mEpsilon2;
-  const auto balsaraCorrection = this->balsaraShearCorrection();
-
-  // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto  numNodeLists = nodeLists.size();
-
-  // The set of interacting node pairs.
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  npairs = pairs.size();
-
-  // Get the state and derivative FieldLists.
-  // State FieldLists.
-  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-  const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
-  const auto ClMultiplier = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
-  const auto CqMultiplier = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
-  const auto DvDx = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
-  CHECK(position.size() == numNodeLists);
-  CHECK(velocity.size() == numNodeLists);
-  CHECK(massDensity.size() == numNodeLists);
-  CHECK(H.size() == numNodeLists);
-  CHECK(soundSpeed.size() == numNodeLists);
-  CHECK(ClMultiplier.size() == CqMultiplier.size());
-  CHECK(DvDx.size() == numNodeLists);
-
-  // Derivative FieldLists.
-  auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
-  auto& QPi = derivs.template get<PairQPiType>(HydroFieldNames::pairQPi);
-  CHECK(maxViscousPressure.size() == numNodeLists);
-  CHECK(QPi.size() == npairs);
-
-  // Check if someone is evolving Cl and Cq coefficients
-  const auto noClCqMult = ClMultiplier.size() == 0u;
-  CHECK(noClCqMult or ClMultiplier.size() == numNodeLists);
+  const auto multipliers = fCl.size() == 0u;
 
   // We need nPerh to figure out our critical folding distance. We assume the first NodeList value for this is
   // correct for all of them...
-  const auto nPerh = position[0]->nodeList().nodesPerSmoothingScale();
+  const auto nPerh = DvDx[0]->nodeList().nodesPerSmoothingScale();
   const auto etaCrit = mEtaCritFrac/nPerh;
   const auto etaFold = mEtaFoldFrac/nPerh;
   CHECK(etaFold > 0.0);
 
-  // Walk all the interacting pairs.
-#pragma omp parallel
-  {
+  // Find our linear and quadratic coefficients
+  const auto fCli = multipliers ? fCl(nodeListi, i) : 1.0;
+  const auto fCqi = multipliers ? fCq(nodeListi, i) : 1.0;
+  const auto fClj = multipliers ? fCl(nodeListj, j) : 1.0;
+  const auto fCqj = multipliers ? fCq(nodeListj, j) : 1.0;
+  const auto& DvDxi = DvDx(nodeListi, i);
+  const auto& DvDxj = DvDx(nodeListj, j);
+  const auto fshear = (mBalsaraShearCorrection ?
+                       0.5*(this->calcBalsaraShearCorrection(DvDxi, Hi, csi) +
+                            this->calcBalsaraShearCorrection(DvDxj, Hj, csj)) :
+                       1.0);
+  const auto Clij = 0.5*(fCli + fClj)*fshear * mClinear;
+  const auto Cqij = 0.5*(fCqi + fCqj)*fshear * mCquadratic;
 
-    typename SpheralThreads<Dimension>::FieldListStack threadStack;
-    auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
-
-#pragma omp for
-    for (auto kk = 0u; kk < npairs; ++kk) {
-      const auto i = pairs[kk].i_node;
-      const auto j = pairs[kk].j_node;
-      const auto nodeListi = pairs[kk].i_list;
-      const auto nodeListj = pairs[kk].j_list;
-
-      const auto& xi = position(nodeListi, i);
-      const auto& vi = velocity(nodeListi, i);
-      const auto  rhoi = massDensity(nodeListi, i);
-      const auto  ci = soundSpeed(nodeListi, i);
-      const auto& Hi = H(nodeListi, i);
-      const auto  fCli = noClCqMult ? 1.0 : ClMultiplier(nodeListi, i);
-      const auto  fCqi = noClCqMult ? 1.0 : CqMultiplier(nodeListi, i);
-      const auto& DvDxi = DvDx(nodeListi, i);
-      auto&       maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
-
-      const auto& xj = position(nodeListj, j);
-      const auto& vj = velocity(nodeListj, j);
-      const auto  rhoj = massDensity(nodeListj, j);
-      const auto  cj = soundSpeed(nodeListj, j);
-      const auto& Hj = H(nodeListj, j);
-      const auto  fClj = noClCqMult ? 1.0 : ClMultiplier(nodeListj, j);
-      const auto  fCqj = noClCqMult ? 1.0 : CqMultiplier(nodeListj, j);
-      const auto& DvDxj = DvDx(nodeListj, j);
-      auto&       maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
-
-      // Find the locally scaled coefficients
-      const auto fshear = (balsaraCorrection ?
-                           0.5*(this->calcBalsaraShearCorrection(DvDxi, Hi, ci) +
-                                this->calcBalsaraShearCorrection(DvDxj, Hj, cj)) :
-                           1.0);
-      const auto Clij = 0.5*(fCli + fClj)*fshear * Cl;
-      const auto Cqij = 0.5*(fCqi + fCqj)*fshear * Cq;
-
-      // Displacement
-      const auto xij = xi - xj;
-      const auto etai = Hi*xij;
-      const auto etaj = Hj*xij;
-
-      // Compute the corrected velocity difference.
-      const auto gradi = (DvDxi.dot(xij)).dot(xij);
-      const auto gradj = (DvDxj.dot(xij)).dot(xij);
-      const auto ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
-      const auto rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
-      CHECK(min(ri, rj) <= 1.0);
-      // const Scalar phi = limiterMM(min(ri, rj));
-      auto phi = limiterVL(min(ri, rj));
+  // Compute our limited velocity gradient along the line connecting these points
+  const auto xij = 0.5*(xi - xj);  // midpoint distance
+  const auto gradi = (DvDxi.dot(xij)).dot(xij);
+  const auto gradj = (DvDxj.dot(xij)).dot(xij);
+  const auto ri = gradi/(sgn(gradj)*max(1.0e-30, abs(gradj)));
+  const auto rj = gradj/(sgn(gradi)*max(1.0e-30, abs(gradi)));
+  CHECK(min(ri, rj) <= 1.0);
+  // const Scalar phi = limiterMM(min(ri, rj));
+  auto phi =  limiterVL(min(ri, rj));
   
-      // const auto xjihat = -xij.unitVector();
-      // auto phi = limiterConservative((vj - vi).dot(xjihat), (DvDxi*xjihat).dot(xjihat), (DvDxj*xjihat).dot(xjihat));
+  // const auto xjihat = -xij.unitVector();
+  // auto phi = limiterConservative((vj - vi).dot(xjihat), (DvDxi*xjihat).dot(xjihat), (DvDxj*xjihat).dot(xjihat));
 
-      // If the points are getting too close, we let the Q come back full force.
-      const auto etaij = min(etai.magnitude(), etaj.magnitude());
-      // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
-      // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
-      if (etaij < etaCrit) {
-        phi *= exp(-FastMath::square((etaij - etaCrit)/etaFold));
-      }
+  // If the points are getting too close, we let the Q come back full force.
+  const auto etaij = min(etai.magnitude(), etaj.magnitude());
+  // phi *= (etaij2 < etaCrit2 ? 0.0 : 1.0);
+  // phi *= min(1.0, etaij2*etaij2/(etaCrit2etaCrit2));
+  if (etaij < etaCrit) {
+    phi *= exp(-FastMath::square((etaij - etaCrit)/etaFold));
+  }
 
-      // "Mike" method.
-      const auto vi1 = vi - phi*DvDxi*xij;
-      const auto vj1 = vj + phi*DvDxj*xij;
+  // Compute the corrected velocity difference.
+  // "Mike" method.
+  const auto vi1 = vi - phi*DvDxi*xij;
+  const auto vj1 = vj + phi*DvDxj*xij;
 
-      // const Vector vi1 = vi - phi*DvDxi*xij;
-      // const Vector vj1 = vj + phi*DvDxj*xij;
+  // const Vector vi1 = vi - phi*DvDxi*xij;
+  // const Vector vj1 = vj + phi*DvDxj*xij;
   
-      const auto vij = vi1 - vj1;
+  const auto vij = vi1 - vj1;
   
-      // Compute mu.
-      const auto mui = vij.dot(etai)/(etai.magnitude2() + eps2);
-      const auto muj = vij.dot(etaj)/(etaj.magnitude2() + eps2);
+  // Compute mu.
+  const auto mui = vij.dot(etai)/(etai.magnitude2() + mEpsilon2);
+  const auto muj = vij.dot(etaj)/(etaj.magnitude2() + mEpsilon2);
 
-      // The artificial internal energy.
-      const auto ei = -Clij*ci*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
-                       Cqij   *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
-      const auto ej = -Clij*cj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
-                       Cqij   *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
-      CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << ci << " " << mui);
-      CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << cj << " " << muj);
+  // The artificial internal energy.
+  const auto ei = -Clij*csi*(mLinearInExpansion    ? mui                : min(0.0, mui)) +
+                   Cqij    *(mQuadraticInExpansion ? -sgn(mui)*mui*mui  : FastMath::square(min(0.0, mui)));
+  const auto ej = -Clij*csj*(mLinearInExpansion    ? muj                : min(0.0, muj)) +
+                   Cqij    *(mQuadraticInExpansion ? -sgn(muj)*muj*muj  : FastMath::square(min(0.0, muj)));
+  CHECK2(ei >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ei << " " << csi << " " << mui);
+  CHECK2(ej >= 0.0 or (mLinearInExpansion or mQuadraticInExpansion), ej << " " << csj << " " << muj);
 
-      // Set the QPi value
-      QPi[kk].first  = ei/rhoi;
-      QPi[kk].second = ej/rhoj;
-
-      // Stuff for time step constraints
-      maxViscousPressurei = std::max(maxViscousPressurei, rhoi*rhoi*QPi[kk].first);
-      maxViscousPressurej = std::max(maxViscousPressurej, rhoj*rhoj*QPi[kk].second);
-    }
-
-    // Reduce the thread values to the master.
-    threadReduceFieldLists<Dimension>(threadStack);
-
-  }      // OpenMP parallel region
-
-  TIME_END("LimitedMonaghanGingoldViscosity_evalDerivs");
+  // Set the return values
+  QPiij = ei/rhoi;
+  QPiji = ej/rhoj;
+  Qij = rhoi*ei;
+  Qji = rhoj*ej;
 }
 
 }

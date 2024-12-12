@@ -25,7 +25,7 @@ template<typename Dimension> class ConnectivityMap;
 template<typename Dimension> class Boundary;
 class FileIO;
 
-template<typename Dimension>
+template<typename Dimension, typename QPiType>
 class ArtificialViscosity: public Physics<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -36,6 +36,7 @@ public:
 
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
+  using ReturnType = QPiType;
 
   // Constructors, destructor
   ArtificialViscosity(const Scalar Clinear,
@@ -50,30 +51,32 @@ public:
 
   //...........................................................................
   // Virtual meethods we expect ArtificialViscosities to provide
-  // Require all ArtificialViscosities to provide the type of QPi it computes.
-  // Expected to be either Scalar or Tensor.
-  virtual std::type_index QPiType() const = 0;
-
   // Some AVs need the velocity gradient computed, so they should override this to true
   virtual bool requireVelocityGradient()                                  const { return false; }
 
   // All ArtificialViscosities must provide the pairwise QPi term (pressure/rho^2)
   // Returns the pair values QPiij and QPiji by reference as the first two arguments.
-  virtual void QPiij(Tensor& QPiij, Tensor& QPiji,    // return values
+  // Note the final FieldLists (fCl, fCQ, DvDx) should be the special versions registered
+  // by the ArtficialViscosity (particularly DvDx).
+  virtual void QPiij(QPiType& QPiij, QPiType& QPiji,    // result for QPi (Q/rho^2)
+                     Scalar& Qij, Scalar& Qji,          // result for viscous pressure
                      const unsigned nodeListi, const unsigned i, 
                      const unsigned nodeListj, const unsigned j,
                      const Vector& xi,
+                     const SymTensor& Hi,
                      const Vector& etai,
                      const Vector& vi,
                      const Scalar rhoi,
                      const Scalar csi,
-                     const SymTensor& Hi,
                      const Vector& xj,
+                     const SymTensor& Hj,
                      const Vector& etaj,
                      const Vector& vj,
                      const Scalar rhoj,
                      const Scalar csj,
-                     const SymTensor& Hj) const = 0;
+                     const FieldList<Dimension, Scalar>& fCl,
+                     const FieldList<Dimension, Scalar>& fCq,
+                     const FieldList<Dimension, Tensor>& DvDx) const = 0;
 
   //...........................................................................
   // Standard Physics package methods
