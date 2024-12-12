@@ -41,13 +41,14 @@ function(Spheral_Python_Env target_name)
                         --disable-pip-version-check 
                         )
 
-    add_custom_target(${target_name} ALL
+    add_custom_command(
+      OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
       COMMAND ${Python3_EXECUTABLE} -m venv --system-site-packages ${${target_name}_PREFIX}/.venv;
       COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
       ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
-      DEPENDS Python3::Python
+      DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
     )
   else()
     set(PIP_DOWNLOAD_CMD python -m pip download 
@@ -64,25 +65,37 @@ function(Spheral_Python_Env target_name)
                         -f ${SPHERAL_PIP_CACHE_DIR})
 
     if(SPHERAL_NETWORK_CONNECTED)
-      add_custom_target(${target_name} ALL
-        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
-        COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
+      add_custom_command(
+        OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+
+        # Create the virtual env and activate it.
+        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv &&
+        . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
         # pip @ 24.1 is the first version that supports local repo paths in requirements
         # files. ATS will fail to install otherwise.
         ${PIP_DOWNLOAD_CMD} pip==24.1 &&
         ${PIP_INSTALL_CMD} pip==24.1 &&
 
+        # Initial packages neede before any of our requirements files.
         ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
         ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
 
+        # Install reuiqrements to virtual env.
         ${PIP_DOWNLOAD_CMD} ${REQUIREMENTS_ARGS} &&
         ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
-        DEPENDS Python3::Python
+        # Generate a stamp file inside the virtual environment.
+        # Existence of this stamp file confirms the environment installed correctly.
+        # Deletion of the venv dir will then trigger a re-installation.
+        COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+
+        # Changed to the input requirements files will trigger re-installation.
+        DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
       )
     else()
-      add_custom_target(${target_name} ALL
+      add_custom_command(
+        OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
         COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
         COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
@@ -92,10 +105,15 @@ function(Spheral_Python_Env target_name)
 
         ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
-        DEPENDS Python3::Python
+        COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+
+        DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
       )
     endif()
   endif()
+  add_custom_target(${target_name} ALL
+    DEPENDS ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+  )
 
   add_custom_target(clean_${target_name}
     COMMAND rm -rf ${${target_name}_PREFIX}/.venv
