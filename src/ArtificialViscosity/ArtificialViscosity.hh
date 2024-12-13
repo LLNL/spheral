@@ -50,7 +50,7 @@ public:
   ArtificialViscosity& operator=(const ArtificialViscosity&) = delete;
 
   //...........................................................................
-  // Virtual meethods we expect ArtificialViscosities to provide
+  // Virtual methods we expect ArtificialViscosities to provide
   // Some AVs need the velocity gradient computed, so they should override this to true
   virtual bool requireVelocityGradient()                                  const { return false; }
 

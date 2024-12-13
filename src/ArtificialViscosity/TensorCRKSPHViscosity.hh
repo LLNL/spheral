@@ -33,16 +33,19 @@ public:
   TensorCRKSPHViscosity(const TensorCRKSPHViscosity&);
   TensorCRKSPHViscosity& operator=(const TensorCRKSPHViscosity&) const;
 
+  // We do require the velocity gradient
+  virtual bool requireVelocityGradient()                const override { return true; }
+
   // Override the method for computing the velocity gradient
   virtual void updateVelocityGradient(const DataBase<Dimension>& db,
                                       const State<Dimension>& state,
                                       const StateDerivatives<Dimension>& derivs) override;
 
   // Override the method listing our RK requirements
-  virtual std::set<RKOrder> requireReproducingKernels() const override  { return std::set<RKOrder>({mOrder}); }
+  virtual std::set<RKOrder> requireReproducingKernels() const override { return std::set<RKOrder>({mOrder}); }
 
-  RKOrder order()                                       const           { return mOrder; }
-  void order(const RKOrder x)                                           { mOrder = x; }
+  RKOrder order()                                       const          { return mOrder; }
+  void order(const RKOrder x)                                          { mOrder = x; }
 
   // Restart methods.
   virtual std::string label() const { return "TensorCRKSPHViscosity"; }
