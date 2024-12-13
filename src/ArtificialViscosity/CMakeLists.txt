@@ -1,6 +1,6 @@
 include_directories(.)
 set(ArtificialViscosity_inst
-    ArtificialViscosity
+    ArtificialViscosityHandle
     CullenDehnenViscosity
     IncrementCullenMultipliers
     MorrisMonaghanReducingViscosity
@@ -24,8 +24,9 @@ set(ArtificialViscosity_sources )
 instantiate(ArtificialViscosity_inst ArtificialViscosity_sources)
 
 set(ArtificialViscosity_headers
+    ArtificialViscosityHandle.hh
+    ArtificialViscosityHandleInline.hh
     ArtificialViscosity.hh
-    ArtificialViscosityInline.hh
     LimitedMonaghanGingoldViscosity.hh
     LimitedMonaghanGingoldViscosityRZ.hh
     CullenDehnenViscosity.hh

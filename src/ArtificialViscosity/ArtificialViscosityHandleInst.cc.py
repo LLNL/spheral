@@ -2,11 +2,10 @@ text = """
 //------------------------------------------------------------------------------
 // Explict instantiation.
 //------------------------------------------------------------------------------
-#include "ArtificialViscosity/ArtificialViscosity.cc"
+#include "ArtificialViscosity/ArtificialViscosityHandle.cc"
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
-  template class ArtificialViscosity<Dim<%(ndim)s>, Dim<%(ndim)s>::Scalar>;
-  template class ArtificialViscosity<Dim<%(ndim)s>, Dim<%(ndim)s>::Tensor>;
+  template class ArtificialViscosityHandle<Dim<%(ndim)s>>;
 }
 """
