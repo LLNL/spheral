@@ -21,8 +21,6 @@ PYB11includes += ['"ArtificialViscosity/ArtificialViscosity.hh"',
                   '"ArtificialViscosity/FiniteVolumeViscosity.hh"',
                   '"ArtificialViscosity/TensorSVPHViscosity.hh"',
                   '"ArtificialViscosity/TensorCRKSPHViscosity.hh"',
-                  '"ArtificialViscosity/VonNeumanViscosity.hh"',
-                  '"ArtificialViscosity/MonaghanGingoldViscosityGSRZ.hh"',
                   '"FileIO/FileIO.hh"']
 
 #-------------------------------------------------------------------------------
@@ -42,7 +40,6 @@ from CullenDehnenViscosity import *
 from FiniteVolumeViscosity import *
 from TensorSVPHViscosity import *
 from TensorCRKSPHViscosity import *
-from VonNeumanViscosity import *
 
 for ndim in dims:
     exec('''
@@ -55,6 +52,5 @@ CullenDehnenViscosity%(ndim)id = PYB11TemplateClass(CullenDehnenViscosity, templ
 FiniteVolumeViscosity%(ndim)id = PYB11TemplateClass(FiniteVolumeViscosity, template_parameters="%(Dimension)s")
 TensorSVPHViscosity%(ndim)id = PYB11TemplateClass(TensorSVPHViscosity, template_parameters="%(Dimension)s")
 TensorCRKSPHViscosity%(ndim)id = PYB11TemplateClass(TensorCRKSPHViscosity, template_parameters="%(Dimension)s")
-VonNeumanViscosity%(ndim)id = PYB11TemplateClass(VonNeumanViscosity, template_parameters="%(Dimension)s")
 ''' % {"ndim"      : ndim,
        "Dimension" : ("Dim<" + str(ndim) +">")})

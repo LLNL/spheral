@@ -6,14 +6,15 @@ from ArtificialViscosity import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension")
+@PYB11template_dict({"QPiType", "typename %(Dimension)s::Scalar"})
 class MonaghanGingoldViscosity(ArtificialViscosity):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
 """
 
     #...........................................................................
@@ -24,7 +25,6 @@ class MonaghanGingoldViscosity(ArtificialViscosity):
                linearInExpansion = ("bool", "false"),
                quadraticInExpansion = ("bool", "false")):
         "MonaghanGingoldViscosity constructor"
-
 
     #...........................................................................
     # Methods
