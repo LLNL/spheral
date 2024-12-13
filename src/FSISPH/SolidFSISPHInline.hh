@@ -554,22 +554,6 @@ template<typename Dimension>
 inline
 const FieldList<Dimension, typename Dimension::Scalar>&
 SolidFSISPH<Dimension>::
-maxViscousPressure() const {
-  return mMaxViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPH<Dimension>::
-effectiveViscousPressure() const {
-  return mEffViscousPressure;
-}
-
-template<typename Dimension>
-inline
-const FieldList<Dimension, typename Dimension::Scalar>&
-SolidFSISPH<Dimension>::
 normalization() const {
   return mNormalization;
 }

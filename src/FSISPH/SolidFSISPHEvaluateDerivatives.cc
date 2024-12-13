@@ -1,3 +1,5 @@
+#include <variant>
+
 namespace Spheral {
 
 template<typename Dimension>
@@ -8,8 +10,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
+
   this->firstDerivativesLoop(time,dt,dataBase,state,derivatives);
-  this->secondDerivativesLoop(time,dt,dataBase,state,derivatives);
+
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->secondDerivativesLoop(time,dt,dataBase,state,derivatives,Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->secondDerivativesLoop(time,dt,dataBase,state,derivatives,Q);
+  }
+
   //this->setH(time,dt,dataBase,state,derivatves)
 }
 
@@ -17,16 +32,17 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
+template<typename QType>
 void
 SolidFSISPH<Dimension>::
 secondDerivativesLoop(const typename Dimension::Scalar time,
                       const typename Dimension::Scalar dt,
                       const DataBase<Dimension>& dataBase,
                       const State<Dimension>& state,
-                      StateDerivatives<Dimension>& derivs) const { 
+                      StateDerivatives<Dimension>& derivs,
+                      const QType& Q) const { 
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  using QPiType = typename QType::ReturnType;
 
   // Get the SlideSurfaces.
   auto& slides = this->slideSurface();
@@ -98,6 +114,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
+
   //const auto yield = state.fields(SolidFieldNames::yieldStrength, 0.0);
   //const auto invJ2 = state.fields(FSIFieldNames::inverseEquivalentDeviatoricStress, 0.0);
 
@@ -187,9 +207,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 #pragma omp parallel
   {
     // Thread private  scratch variables.
-    int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, Wj, gWj, PLineari, PLinearj, epsLineari, epsLinearj;
-    Tensor QPiij, QPiji;
+    unsigned i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, Wj, gWj, PLineari, PLinearj, epsLineari, epsLinearj, Qi, Qj;
+    QPiType QPiij, QPiji;
     SymTensor sigmai, sigmaj;
     Vector sigmarhoi, sigmarhoj;
 
@@ -453,9 +473,11 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         const auto vij = vi - vj;
 
         // raw AV
-        std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                        ri, etaij, vi, rhoij, cij, Hij,  
-                                        rj, etaij, vj, rhoij, cij, Hij); 
+        Q.QPiij(QPiij, QPiji, Qi, Qj,
+                nodeListi, i, nodeListj, j,
+                ri, Hij, etaij, vi, rhoij, cij,  
+                rj, Hij, etaij, vj, rhoij, cij,
+                fClQ, fCqQ, DvDxQ); 
 
         // slide correction
         if (slides.isSlideSurface(nodeListi,nodeListj)){
@@ -470,14 +492,11 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         }
 
         // save our max pressure from the AV for each node
-        {
-          const auto Qi = rhoi*rhoj * QPiij.diagonalElements().maxAbsElement();
-          const auto Qj = rhoi*rhoj * QPiji.diagonalElements().maxAbsElement();
-          maxViscousPressurei = max(maxViscousPressurei, Qi);
-          maxViscousPressurej = max(maxViscousPressurej, Qj);
-          effViscousPressurei += volj * Qi * Wi;
-          effViscousPressurej += voli * Qj * Wj;
-        }
+        maxViscousPressurei = max(maxViscousPressurei, Qi);
+        maxViscousPressurej = max(maxViscousPressurej, Qj);
+        effViscousPressurei += volj * Qi * Wi;
+        effViscousPressurej += voli * Qj * Wj;
+
         // stress tensor
         //{
           // apply yield pairwise 
@@ -515,8 +534,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         //---------------------------------------------------------------
         const auto rhoirhoj = 1.0/(rhoi*rhoj);
         const auto sf = (sameMatij ? 1.0 : 1.0 + surfaceForceCoeff*abs((rhoi-rhoj)/(rhoi+rhoj+tiny)));
-        sigmarhoi = sf*(rhoirhoj*sigmai-0.5*QPiij)*gradWiMi;
-        sigmarhoj = sf*(rhoirhoj*sigmaj-0.5*QPiji)*gradWjMj;
+        sigmarhoi = sf*(rhoirhoj*sigmai*gradWiMi - 0.5*QPiij*gradWiMi);
+        sigmarhoj = sf*(rhoirhoj*sigmaj*gradWjMj - 0.5*QPiji*gradWjMj);
 
         if (averageKernelij){
           const auto sigmarhoij = 0.5*(sigmarhoi+sigmarhoj);

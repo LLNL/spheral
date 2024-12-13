@@ -120,7 +120,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidFSISPH<Dimension>::
 SolidFSISPH(DataBase<Dimension>& dataBase,
-            ArtificialViscosity<Dimension>& Q,
+            ArtificialViscosityHandle<Dimension>& Q,
             SlideSurface<Dimension>& slides,
             const TableKernel<Dimension>& W,
             const double cfl,
@@ -190,8 +190,6 @@ SolidFSISPH(DataBase<Dimension>& dataBase,
   mInternalDvDx(FieldStorageType::CopyFields),
   mM(FieldStorageType::CopyFields),
   mLocalM(FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldStorageType::CopyFields),
   mNormalization(FieldStorageType::CopyFields),
   mInterfaceFlags(FieldStorageType::CopyFields),
   mInterfaceAreaVectors(FieldStorageType::CopyFields),
@@ -229,8 +227,6 @@ SolidFSISPH(DataBase<Dimension>& dataBase,
   mInternalDvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::internalVelocityGradient);
   mM = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::M_SPHCorrection);
   mLocalM = dataBase.newFluidFieldList(Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection);
-  mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-  mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mNormalization = dataBase.newFluidFieldList(0.0, HydroFieldNames::normalization);
   mInterfaceFlags = dataBase.newFluidFieldList(int(0),  FSIFieldNames::interfaceFlags);
   mInterfaceAreaVectors = dataBase.newFluidFieldList(Vector::one,  FSIFieldNames::interfaceAreaVectors);
@@ -407,8 +403,6 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
   dataBase.resizeFluidFieldList(mM, Tensor::zero, HydroFieldNames::M_SPHCorrection, false);
   dataBase.resizeFluidFieldList(mLocalM, Tensor::zero, "local " + HydroFieldNames::M_SPHCorrection, false);
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mNormalization, 0.0, HydroFieldNames::normalization, false);
   dataBase.resizeFluidFieldList(mNewInterfaceFlags, int(0),  PureReplaceState<Dimension,int>::prefix() + FSIFieldNames::interfaceFlags,false);
   dataBase.resizeFluidFieldList(mNewInterfaceAreaVectors, Vector::zero,  PureReplaceState<Dimension,Vector>::prefix() + FSIFieldNames::interfaceAreaVectors,false);
@@ -446,8 +440,6 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
   derivs.enroll(mInternalDvDx);
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
-  derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mEffViscousPressure);
   derivs.enroll(mNormalization);
   derivs.enroll(mNewInterfaceFlags);
   derivs.enroll(mNewInterfaceAreaVectors);
@@ -528,35 +520,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   }
   }
   TIME_END("SolidFSISPHpreStepInitialize");
-}
-
-//------------------------------------------------------------------------------
-// FSI specialized of the initialize method
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SolidFSISPH<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-
-  TIME_BEGIN("SolidFSISPHinitialize");
-  const TableKernel<Dimension>& W = this->kernel();
-
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               W);
-  
-  TIME_END("SolidFSISPHinitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -719,8 +682,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mInternalDvDx, pathName + "/internalDvDx");
   file.write(mM, pathName + "/M");
   file.write(mLocalM, pathName + "/localM");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.write(mNormalization, pathName + "/normalization");
   file.write(mInterfaceFlags, pathName + "/interfaceFlags");
   file.write(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");
@@ -767,8 +728,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mInternalDvDx, pathName + "/internalDvDx");
   file.read(mM, pathName + "/M");
   file.read(mLocalM, pathName + "/localM");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.read(mEffViscousPressure, pathName + "/effectiveViscousPressure");
   file.read(mNormalization, pathName + "/normalization");
   file.read(mInterfaceFlags, pathName + "/interfaceFlags");
   file.read(mInterfaceAreaVectors, pathName + "/interfaceAreaVectors");

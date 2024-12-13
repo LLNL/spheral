@@ -36,7 +36,7 @@ enum class FSIMassDensityMethod {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class SlideSurface;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -63,7 +63,7 @@ public:
 
   // Constructors.
   SolidFSISPH(DataBase<Dimension>& dataBase,
-              ArtificialViscosity<Dimension>& Q,
+              ArtificialViscosityHandle<Dimension>& Q,
               SlideSurface<Dimension>& slide,
               const TableKernel<Dimension>& W,
               const double cfl,
@@ -115,28 +115,23 @@ public:
                                State<Dimension>& state,
                                StateDerivatives<Dimension>& derivs) override;
   virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                        State<Dimension>& state,
-                        StateDerivatives<Dimension>& derivs) override;
-
-  virtual
   void evaluateDerivatives(const Scalar time,
                            const Scalar dt,
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivatives) const override;
   void firstDerivativesLoop(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivatives) const;
+                            const Scalar dt,
+                            const DataBase<Dimension>& dataBase,
+                            const State<Dimension>& state,
+                                  StateDerivatives<Dimension>& derivatives) const;
+  template<typename QType>
   void secondDerivativesLoop(const Scalar time,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivatives) const;
+                             const Scalar dt,
+                             const DataBase<Dimension>& dataBase,
+                             const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivatives,
+                             const QType& Q) const;
 
   virtual 
   void finalizeDerivatives(const Scalar time, 
@@ -248,8 +243,6 @@ public:
   const FieldList<Dimension, Tensor>&    internalDvDx() const;
   const FieldList<Dimension, Tensor>&    M() const;
   const FieldList<Dimension, Tensor>&    localM() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure() const;
   const FieldList<Dimension, Scalar>&    normalization() const;
 
   const FieldList<Dimension, int>& interfaceFlags() const;
@@ -326,8 +319,6 @@ private:
   FieldList<Dimension, Tensor>    mInternalDvDx;
   FieldList<Dimension, Tensor>    mM;
   FieldList<Dimension, Tensor>    mLocalM;
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffViscousPressure;
   FieldList<Dimension, Scalar>    mNormalization;
 
   FieldList<Dimension, int> mInterfaceFlags;                  // flags indicating interface type

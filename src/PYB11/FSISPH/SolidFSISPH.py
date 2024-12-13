@@ -73,16 +73,6 @@ temperature or pressure."""
         return "void"
 
     @PYB11virtual
-    def initialize(time = "const Scalar",
-                   dt = "const Scalar",
-                   dataBase = "const DataBase<%(Dimension)s>&",
-                   state = "State<%(Dimension)s>&",
-                   derivs = "StateDerivatives<%(Dimension)s>&"):
-        "calculates surface normals"
-        return "void"
-
-    
-    @PYB11virtual
     def registerState(dataBase = "DataBase<%(Dimension)s>&",
                       state = "State<%(Dimension)s>&"):
         "register the surface normals"
@@ -148,8 +138,6 @@ temperature or pressure."""
     internalDvDx =                 PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "internalDvDx",         returnpolicy="reference_internal")
     M =                            PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "M",                    returnpolicy="reference_internal")
     localM =                       PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "localM",               returnpolicy="reference_internal")
-    maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
-    effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure",   returnpolicy="reference_internal")
     normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
     interfaceFraction =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "interfaceFraction",    returnpolicy="reference_internal")
     interfaceFlags =                   PYB11property("const FieldList<%(Dimension)s, int>&",      "interfaceFlags",       returnpolicy="reference_internal")
