@@ -98,6 +98,8 @@ class ArtificialViscosityHandle:
                                          doc="The negligible sound speed parameter for use in the limiter")
     maxViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "maxViscousPressure",
                                        doc="Store the maximum viscous pressure (Q) on each point")
+    effViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effViscousPressure",
+                                       doc="Store the effective (averaged) viscous pressure (Q) on each point")
     DvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&", "DvDx",
                          doc="The velocity gradient used for AV")
     rigorousVelocityGradient = PYB11property("bool", "rigorousVelocityGradient", "rigorousVelocityGradient",

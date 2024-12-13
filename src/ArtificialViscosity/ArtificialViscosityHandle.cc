@@ -50,6 +50,7 @@ ArtificialViscosityHandle(const Scalar Clinear,
   mEpsilon2(1.0e-2),
   mNegligibleSoundSpeed(1e-10),
   mMaxViscousPressure(FieldStorageType::CopyFields),
+  mEffViscousPressure(FieldStorageType::CopyFields),
   mRigorousVelocityGradient(false),
   mWT(kernel),
   mDvDx(FieldStorageType::CopyFields),
@@ -91,6 +92,7 @@ ArtificialViscosityHandle<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   derivs.enroll(mMaxViscousPressure);
+  derivs.enroll(mEffViscousPressure);
 }
 
 //------------------------------------------------------------------------------
@@ -121,6 +123,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      StateDerivatives<Dimension>& derivs) {
   // Size our internal state fields
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
+  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
 
   // Prepare the initial velocity gradient
   if (this->requireVelocityGradient() or
@@ -306,6 +309,7 @@ void
 ArtificialViscosityHandle<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.write(mEffViscousPressure, pathName + "/effViscousPressure");
   if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {
     file.write(mDvDx, pathName + "/velocity_gradient");
   }
@@ -319,6 +323,7 @@ void
 ArtificialViscosityHandle<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
+  file.read(mEffViscousPressure, pathName + "/effViscousPressure");
   if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {
     file.read(mDvDx, pathName + "/velocity_gradient");
   }

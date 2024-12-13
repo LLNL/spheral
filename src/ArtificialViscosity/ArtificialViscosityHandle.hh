@@ -119,6 +119,7 @@ public:
   Scalar epsilon2()                                                       const { return mEpsilon2; }
   Scalar negligibleSoundSpeed()                                           const { return mNegligibleSoundSpeed; }
   const FieldList<Dimension, Scalar>& maxViscousPressure()                const { return mMaxViscousPressure; }
+  const FieldList<Dimension, Scalar>& effViscousPressure()                const { return mEffViscousPressure; }
   const FieldList<Dimension, Tensor>& DvDx()                              const { return mDvDx; }
 
   bool                                rigorousVelocityGradient()          const { return mRigorousVelocityGradient; }
@@ -151,6 +152,7 @@ protected:
     
   // Maintain the last max viscous pressure for timestep control
   FieldList<Dimension, Scalar> mMaxViscousPressure;
+  FieldList<Dimension, Scalar> mEffViscousPressure;
 
   // State for maintaining the velocity gradient
   bool mRigorousVelocityGradient;
