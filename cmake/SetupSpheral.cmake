@@ -161,7 +161,6 @@ if (ENABLE_TESTS)
     PATTERN "*.in" EXCLUDE
     PATTERN "*.pyc" EXCLUDE
     PATTERN "*~" EXCLUDE)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit)
 endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

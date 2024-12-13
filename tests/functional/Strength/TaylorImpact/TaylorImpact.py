@@ -300,7 +300,6 @@ del n
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(NBSplineKernel(3), 1000)
-output('WT')
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
@@ -547,7 +546,6 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
-output("control")
 
 #-------------------------------------------------------------------------------
 # In the two material case, it's useful to smooth the initial velocity field

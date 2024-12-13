@@ -5,27 +5,22 @@
 
 import sys, shutil, os, time, stat
 import numpy as np
-spheral_path = "../lib/python3.9/site-packages/Spheral"
-sys.path.append(spheral_path)
 import SpheralConfigs
-sys.path.append("../scripts")
-from spheralutils import num_3d_cyl_nodes
-from spheralutils import num_2d_cyl_nodes
+from SpheralTestUtilities import num_3d_cyl_nodes
 from ats import configuration
 
 # Get options from ats
 opts = getOptions()
 
-# For CI runs, automatically copy caliper files to benchmark location
-output_loc = None
+# For CI runs, automatically copy Caliper files to benchmark location
+benchmark_dir = None
 test_runs = 1 # Number of times to run each test
 if "cirun" in opts and opts["cirun"]:
     test_runs = 5
-    output_loc = SpheralConfigs.benchmark_data()
+    benchmark_dir = opts["benchmark_dir"]
 
-# Current system architecture from Spack
-spheral_sys_arch = SpheralConfigs.sys_arch()
 # Current install configuration from Spack
+# This should be {$SYS_TYPE}_{compiler name}_{compiler version}_{mpi or cuda info}
 spheral_install_config = SpheralConfigs.config()
 
 # Retrieve the host name and remove any numbers
@@ -46,47 +41,64 @@ except:
 # General number of SPH nodes per core
 n_per_core_3d = 8000
 n_per_core_2d = 1000
-# Do not test SVPH
-# Test all others with and without solid if possible
 # 5k-10k nodes per core for 3d, 1k nodes per core for 2d
 
 def gather_files(manager):
     '''
-    Function to gather Caliper file when ATS is finished running
+    Function to gather Caliper file when ATS is finished running.
+    Used by ATS for gathering benchmarks.
     '''
+    instpath = os.path.join(benchmark_dir, spheral_install_config)
+    macpath = os.path.join(instpath, hostname)
+    outdir = os.path.join(macpath, "latest")
+    if (os.path.exists(outdir)):
+        # Move existing benchmark data to a different directory
+        log(f"Renaming existing {outdir} to {int(time.time())}")
+        os.rename(outdir, os.path.join(macpath, f"{int(time.time())}"))
+    log(f"Creating {outdir}")
+    os.makedirs(outdir)
     filtered = [test for test in manager.testlist if test.status is PASSED]
-    # Set read/write permissions for owner and read/write permissions for group
-    perms = stat.S_IRUSR | stat.S_IWUSR | stat.S_IWGRP | stat.S_IRGRP
+    # Set read/write/execute permissions for owner and group
+    perms = stat.S_IRWXU | stat.S_IRWXG
     for test in filtered:
         run_dir = test.directory
         cali_filename = test.options["caliper_filename"]
         cfile = os.path.join(run_dir, cali_filename)
         test_name = test.options["label"]
-        outdir = os.path.join(output_loc, spheral_install_config)
-        if (not os.path.exists(outdir)):
-            log(f"Creating {outdir}")
-            os.makedirs(outdir)
         outfile = os.path.join(outdir, cali_filename)
         log(f"Copying {cali_filename} to {outdir}")
         shutil.copy(cfile, outfile)
         os.chmod(outfile, perms)
+        shutil.chown(cfile, group="sduser")
+    cpaths = [outdir, macpath, instpath, benchmark_dir]
+    for p in cpaths:
+        os.chmod(p, perms)
+        shutil.chown(p, group="sduser")
 
 def spheral_setup_test(test_path, test_name, test_num, inps, ncores, threads=1, **kwargs):
     '''
     General method for creating an individual performance test
+    Parameters:
+    test_path: Path to testing script
+    test_name: Unique name for test, will be used in Caliper file name
+    test_num: Current test number
+    inps: Command line inputs for test
+    ncores: Total number of cores to use for the test, not number of ranks
+    threads: Number of threads per rank
     '''
-    cali_name = f"{test_name}_{test_num}{int(time.time())}.cali"
+    cali_name = f"{test_name}_{test_num}_{int(time.time())}.cali"
+    ccores = int(ncores / threads)
     timer_cmds = f"--caliperFilename {cali_name} --adiakData 'test_name: {test_name}'"
     finps = f"{inps} {timer_cmds}"
     t = test(script=test_path, clas=finps,
              label=test_name,
-             np=ncores,
+             np=ccores,
              nt=threads,
              caliper_filename=cali_name,
              **kwargs)
     return t
 
-if (output_loc):
+if (benchmark_dir):
     onExit(gather_files)
 glue(keep=True)
 
@@ -107,7 +119,9 @@ test_name = "3DTAYLOR"
 rlen = 0.945
 zlen = 7.5
 steps = 10
-nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, 10, 80, Ntotal)
+# Mimic the 3D cylindrical node generator
+nz0 = int(np.cbrt(Ntotal))
+nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, nz0, nz0, Ntotal)
 gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
     "--densityUpdate SumVoronoiCellDensity --clearDirectories False --baseDir None "+\
     "--vizTime None --vizCycle None --siloSnapShotFile None "+\
@@ -134,11 +148,11 @@ test_name = "3DCONV"
 npd = int(np.cbrt(Ntotal))
 steps = 10
 inps = f"--nx {npd} --ny {npd} --nz {npd} --steps {steps}"
+# Assumes OpenMP is always turned on
 thrs = [1, 2]
 for i in range(test_runs):
     for thr in thrs:
-        ncores = int(num_cores / thr)
-        t = spheral_setup_test(test_path, test_name+f"THR{thr}", i, inps, ncores, thr)
+        t = spheral_setup_test(test_path, test_name+f"THR{thr}", i, inps, num_cores, thr)
 
 #---------------------------------------------------------------------------
 # NOH tests
@@ -172,7 +186,10 @@ thetaFactor = 0.5
 # Only use half the number of cores
 ncores = int(num_cores/2)
 Ntotal2d = n_per_core_2d*ncores
-nRadial = num_2d_cyl_nodes(rmin, rmax, thetaFactor*np.pi, 100, Ntotal2d)
+# Mimic constantDTheta distribution
+area = np.pi*rmax**2*thetaFactor/2.
+dr = np.sqrt(area/Ntotal2d)
+nRadial = int(rmax/dr)
 gen_inps = f"{gen_noh_inps} --nRadial {nRadial} --steps {steps}"
 
 # Test with different hydro options

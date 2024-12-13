@@ -22,7 +22,7 @@
 
 #endif // TIMER
 // Note: This class is initialized in
-// SimulationControl/SpheralOptionParser.py
+// SimulationControl/SpheralTimingParser.py
 namespace Spheral {
 class TimerMgr {
 private:

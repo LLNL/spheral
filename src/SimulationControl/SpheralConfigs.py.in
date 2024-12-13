@@ -24,9 +24,6 @@ def caliper_module_path():
     else:
         return None
 
-def benchmark_data():
-    return "/usr/gapps/Spheral/benchmarks"
-
 def version():
     return "@spheralversion@"
 

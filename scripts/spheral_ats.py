@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-import os, time, sys
-import argparse
+import os, time, sys, subprocess, argparse
 import ats.util.generic_utils as ats_utils
 import SpheralConfigs
 import mpi
@@ -14,7 +13,6 @@ max_test_failures = 10
 # Number of times to rerun the ATS tests
 max_reruns = 1
 
-# Use current path to find spheralutils module
 cur_dir = os.path.dirname(__file__)
 # Set current directory to install prefix
 if (os.path.islink(__file__)):
@@ -22,8 +20,10 @@ if (os.path.islink(__file__)):
 install_prefix = os.path.join(cur_dir, "..")
 ats_exe = os.path.join(install_prefix, ".venv/bin/ats")
 spheral_exe = os.path.join(install_prefix, "spheral")
-sys.path.append(cur_dir)
-from spheralutils import sexe
+
+# Benchmark file directory
+# This is passed into both ATS and Caliper
+benchmark_dir = "/usr/WS2/sduser/Spheral/benchmarks"
 
 #------------------------------------------------------------------------------
 # Run ats.py to check results and return the number of failed tests
@@ -54,7 +54,7 @@ def run_and_report(run_command, ci_output, num_runs):
         new_run_command = f"{run_command} {ats_cont_file}"
         print("Restarting from previous job")
     try:
-        sexe(new_run_command)
+        subprocess.run(new_run_command, shell=True, check=True, text=True)
     except Exception as e:
         print(e)
     tests_passed = report_results(ci_output)
@@ -132,7 +132,7 @@ def main():
                         help="Print the help output for ATS. Useful for seeing ATS options.")
     options, unknown_options = parser.parse_known_args()
     if (options.atsHelp):
-        sexe(f"{ats_exe} --help")
+        subprocess.run(f"{ats_exe} --help", shell=True, check=True, text=True)
         return
 
     #---------------------------------------------------------------------------
@@ -182,6 +182,7 @@ def main():
         ats_args.append('--continueFreq=15')
         # Pass flag to tell tests this is a CI run
         ats_args.append('--glue="cirun=True"')
+    ats_args.append(f'''--glue="benchmark_dir='{benchmark_dir}'"''')
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
@@ -202,7 +203,7 @@ def main():
         run_and_report(run_command, log_name, 0)
     else:
         try:
-            sexe(run_command)
+            subprocess.run(run_command, shell=True, check=True, text=True)
         except Exception as e:
             print(e)
 
