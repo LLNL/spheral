@@ -29,6 +29,8 @@ procs = comm.Get_size()
 MIN = MPI.MIN
 MAX = MPI.MAX
 SUM = MPI.SUM
+MINLOC = MPI.MINLOC
+MAXLOC = MPI.MAXLOC
 
 #-------------------------------------------------------------------------------
 # Prepare files to keep the stdout and stderr streams in.
