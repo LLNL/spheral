@@ -75,10 +75,10 @@ tensileStressCorrection(const Dim<2>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidSPHRZ::
 SolidSPHRZ(DataBase<Dimension>& dataBase,
-           ArtificialViscosity<Dim<2> >& Q,
-           const TableKernel<Dim<2> >& W,
-           const TableKernel<Dim<2> >& WPi,
-           const TableKernel<Dim<2> >& WGrad,
+           ArtificialViscosityHandle<Dimension>& Q,
+           const TableKernel<Dimension>& W,
+           const TableKernel<Dimension>& WPi,
+           const TableKernel<Dimension>& WGrad,
            const double cfl,
            const bool useVelocityMagnitudeForDt,
            const bool compatibleEnergyEvolution,
@@ -94,26 +94,26 @@ SolidSPHRZ(DataBase<Dimension>& dataBase,
            const bool strengthInDamage,
            const Vector& xmin,
            const Vector& xmax):
-  SolidSPH<Dim<2>>(dataBase,
-                   Q,
-                   W,
-                   WPi,
-                   WGrad,
-                   cfl,
-                   useVelocityMagnitudeForDt,
-                   compatibleEnergyEvolution,
-                   evolveTotalEnergy,
-                   gradhCorrection,
-                   XSPH,
-                   correctVelocityGradient,
-                   sumMassDensityOverAllNodeLists,
-                   densityUpdate,
-                   epsTensile,
-                   nTensile,
-                   damageRelieveRubble,
-                   strengthInDamage,
-                   xmin,
-                   xmax),
+  SolidSPH<Dimension>(dataBase,
+                      Q,
+                      W,
+                      WPi,
+                      WGrad,
+                      cfl,
+                      useVelocityMagnitudeForDt,
+                      compatibleEnergyEvolution,
+                      evolveTotalEnergy,
+                      gradhCorrection,
+                      XSPH,
+                      correctVelocityGradient,
+                      sumMassDensityOverAllNodeLists,
+                      densityUpdate,
+                      epsTensile,
+                      nTensile,
+                      damageRelieveRubble,
+                      strengthInDamage,
+                      xmin,
+                      xmax),
   mPairAccelerationsPtr(),
   mSelfAccelerations(FieldStorageType::CopyFields) {
 }
@@ -123,18 +123,18 @@ SolidSPHRZ(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SolidSPHRZ::
-registerState(DataBase<Dim<2>>& dataBase,
-              State<Dim<2>>& state) {
+registerState(DataBase<Dimension>& dataBase,
+              State<Dimension>& state) {
 
   // Call the ancestor.
-  SolidSPH<Dim<2>>::registerState(dataBase, state);
+  SolidSPH<Dimension>::registerState(dataBase, state);
 
   // // Reregister the plastic strain policy to the RZ specialized version
   // // that accounts for the theta-theta component of the stress.  Also the deviatoric stress.
   // auto ps = state.fields(SolidFieldNames::plasticStrain, 0.0);
   // auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   // PolicyPointer plasticStrainPolicy(new RZPlasticStrainPolicy());
-  // PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dim<2>>(false));
+  // PolicyPointer deviatoricStressPolicy(new DeviatoricStressPolicy<Dimension>(false));
   // state.enroll(ps, plasticStrainPolicy);
   // state.enroll(S, deviatoricStressPolicy);
 
@@ -231,14 +231,39 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SolidSPHRZ::
-evaluateDerivatives(const Dim<2>::Scalar /*time*/,
-                    const Dim<2>::Scalar dt,
-                    const DataBase<Dim<2>>& dataBase,
-                    const State<Dim<2>>& state,
-                    StateDerivatives<Dim<2>>& derivs) const {
+evaluateDerivatives(const Dimension::Scalar time,
+                    const Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Determine the principle derivatives.
+//------------------------------------------------------------------------------
+template<typename QType>
+void
+SolidSPHRZ::
+evaluateDerivativesImpl(const Dimension::Scalar time,
+                        const Dimension::Scalar dt,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs,
+                        const QType& Q) const {
+
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -283,6 +308,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -297,6 +325,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(damage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  CHECK(fClQ.size() == 0 or fClQ.size() == numNodeLists);
+  CHECK(fCqQ.size() == 0 or fCqQ.size() == numNodeLists);
+  CHECK(DvDxQ.size() == 0 or DvDxQ.size() == numNodeLists);
 
   // const auto& Hfield0 = this->Hfield0();
 
@@ -313,7 +344,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  rhoSumCorrection = derivs.fields(HydroFieldNames::massDensityCorrection, 0.0);
-  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
   auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
@@ -331,7 +361,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(rhoSumCorrection.size() == numNodeLists);
-  CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
@@ -351,10 +380,11 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Vector gradWi, gradWj, gradWQi, gradWQj, gradWGi, gradWGj;
-    Tensor QPiij, QPiji;
+    Scalar Qi, Qj;
+    QPiType QPiij, QPiji;
     SymTensor sigmai, sigmaj;
 
-    typename SpheralThreads<Dim<2>>::FieldListStack threadStack;
+    typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
     auto DvDt_thread = DvDt.threadCopy(threadStack);
     auto DepsDt_thread = DepsDt.threadCopy(threadStack);
@@ -365,7 +395,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
     auto rhoSumCorrection_thread = rhoSumCorrection.threadCopy(threadStack);
-    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
     auto DSDt_thread = DSDt.threadCopy(threadStack);
@@ -411,7 +440,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
       auto& rhoSumCorrectioni = rhoSumCorrection_thread(nodeListi, i);
-      auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
 
@@ -449,7 +477,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
       auto& rhoSumCorrectionj = rhoSumCorrection_thread(nodeListj, j);
-      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
 
@@ -509,21 +536,19 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
-      std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      posi, etai, vi, rhoi, ci, Hi,
-                                      posj, etaj, vj, rhoj, cj, Hj);
+      Q.QPiij(QPiij, QPiji, Qi, Qj,
+              nodeListi, i, nodeListj, j,
+              posi, Hi, etai, vi, rhoi, ci,  
+              posj, Hj, etaj, vj, rhoj, cj,
+              fClQ, fCqQ, DvDxQ); 
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       const auto workQi = vij.dot(Qacci);
       const auto workQj = vij.dot(Qaccj);
-      const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-      const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mRZj*Qi*WQi/rhoj;
       effViscousPressurej += mRZi*Qj*WQj/rhoi;
-      viscousWorki += mRZj*workQi;
-      viscousWorkj += mRZi*workQj;
 
       // Compute the stress tensors.
       if (sameMatij) {
@@ -736,8 +761,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 //------------------------------------------------------------------------------
 void
 SolidSPHRZ::
-applyGhostBoundaries(State<Dim<2>>& state,
-                     StateDerivatives<Dim<2>>& derivs) {
+applyGhostBoundaries(State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -757,7 +782,7 @@ applyGhostBoundaries(State<Dim<2>>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SolidSPH<Dim<2>>::applyGhostBoundaries(state, derivs);
+  SolidSPH<Dimension>::applyGhostBoundaries(state, derivs);
   for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
@@ -780,8 +805,8 @@ applyGhostBoundaries(State<Dim<2>>& state,
 //------------------------------------------------------------------------------
 void
 SolidSPHRZ::
-enforceBoundaries(State<Dim<2>>& state,
-                  StateDerivatives<Dim<2>>& derivs) {
+enforceBoundaries(State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs) {
 
   // Convert the mass to mass/length before BCs are applied.
   FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
@@ -801,7 +826,7 @@ enforceBoundaries(State<Dim<2>>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SolidSPH<Dim<2>>::enforceBoundaries(state, derivs);
+  SolidSPH<Dimension>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   // We also ensure no point approaches the z-axis too closely.

@@ -79,14 +79,6 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) override;
-                       
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -95,6 +87,12 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives) const;
 
   // Finalize the derivatives.
   virtual
@@ -164,7 +162,6 @@ public:
   const FieldList<Dimension, Scalar>&    pressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
@@ -207,7 +204,6 @@ protected:
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
 
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mMassDensitySum;
 
   FieldList<Dimension, Vector>    mXSVPHDeltaV;

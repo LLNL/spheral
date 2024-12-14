@@ -79,6 +79,12 @@ tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
   }
 }
 
+//------------------------------------------------------------------------------
+// Compute a scalar sum for scalars or tensors
+//------------------------------------------------------------------------------
+Dim<1>::Scalar scalarSum(const Dim<1>::Scalar& x, const Dim<1>::Scalar& y) { return x + y; }
+Dim<1>::Scalar scalarSum(const Dim<1>::Tensor& x, const Dim<1>::Tensor& y) { return x.xx() + y.xx(); }
+
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +92,7 @@ tensileStressCorrection(const Dim<1>::SymTensor& sigma) {
 //------------------------------------------------------------------------------
 SolidSphericalSPH::
 SolidSphericalSPH(DataBase<Dimension>& dataBase,
-                  ArtificialViscosity<Dimension>& Q,
+                  ArtificialViscosityHandle<Dimension>& Q,
                   const SphericalKernel& W,
                   const SphericalKernel& WPi,
                   const SphericalKernel& WGrad,
@@ -244,17 +250,42 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SolidSphericalSPH::
-evaluateDerivatives(const Dim<1>::Scalar /*time*/,
-                    const Dim<1>::Scalar dt,
-                    const DataBase<Dim<1>>& dataBase,
-                    const State<Dim<1>>& state,
-                    StateDerivatives<Dim<1>>& derivs) const {
+evaluateDerivatives(const Dimension::Scalar time,
+                    const Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
+
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Determine the principle derivatives.
+//------------------------------------------------------------------------------
+template<typename QType>
+void
+SolidSphericalSPH::
+evaluateDerivativesImpl(const Dim<1>::Scalar /*time*/,
+                        const Dim<1>::Scalar dt,
+                        const DataBase<Dim<1>>& dataBase,
+                        const State<Dim<1>>& state,
+                        StateDerivatives<Dim<1>>& derivs,
+                        const QType& Q) const {
 
   TIME_BEGIN("SolidSphericalSPHevalDerivs");
   TIME_BEGIN("SolidSphericalSPHevalDerivs_initial");
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -297,6 +328,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
   const auto mu = state.fields(SolidFieldNames::shearModulus, 0.0);
   const auto damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -309,6 +343,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
   CHECK(S.size() == numNodeLists);
   CHECK(mu.size() == numNodeLists);
   CHECK(damage.size() == numNodeLists);
+  CHECK(fClQ.size() == 0 or fClQ.size() == numNodeLists);
+  CHECK(fCqQ.size() == 0 or fCqQ.size() == numNodeLists);
+  CHECK(DvDxQ.size() == 0 or DvDxQ.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  rhoSum = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -363,7 +400,8 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
     Vector gradWji, gradWjj, gradWQji, gradWQjj, gradWGji, gradWGjj;
     Scalar Wii, gWii, WQii, gWQii, Wji, gWji, WQji, gWQji, WGii, gWGii, WGji, gWGji;
     Scalar Wij, gWij, WQij, gWQij, Wjj, gWjj, WQjj, gWQjj, WGij, gWGij, WGjj, gWGjj;
-    Tensor QPiij, QPiji;
+    Scalar Qi, Qj;
+    QPiType QPiij, QPiji;
     SymTensor sigmai, sigmaj, sigmarhoi, sigmarhoj;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
@@ -496,11 +534,11 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
-      std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etaii - etaji, vi, rhoi, ci, Hi,
-                                      rj, etaij - etajj, vj, rhoj, cj, Hj);
-      const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-      const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
+      Q.QPiij(QPiij, QPiji, Qi, Qj,
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etaii - etaji, vi, rhoi, ci,  
+              rj, Hj, etaij - etajj, vj, rhoj, cj,
+              fClQ, fCqQ, DvDxQ);
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mj*Qi*WQii/rhoj;
@@ -539,8 +577,9 @@ evaluateDerivatives(const Dim<1>::Scalar /*time*/,
       if (mCompatibleEnergyEvolution) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution.
-      DepsDti -= mj*(sigmarhoi.xx() - 0.25*(QPiij.xx() + QPiji.xx()))*(vj.dot(gradWij) + vi.dot(gradWjj));
-      DepsDtj -= mi*(sigmarhoj.xx() - 0.25*(QPiji.xx() + QPiij.xx()))*(vi.dot(gradWji) + vj.dot(gradWii));
+      const auto QPisum = scalarSum(QPiij, QPiji);
+      DepsDti -= mj*(sigmarhoi.xx() - 0.25*QPisum)*(vj.dot(gradWij) + vi.dot(gradWjj));
+      DepsDtj -= mi*(sigmarhoj.xx() - 0.25*QPisum)*(vi.dot(gradWji) + vj.dot(gradWii));
 
       // Velocity gradient.
       const auto deltaDvDxi = -fDij * mj*vij.dyad(gradWGjj);

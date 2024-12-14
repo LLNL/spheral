@@ -39,7 +39,7 @@ public:
 
   // Constructors.
   SphericalSPH(DataBase<Dimension>& dataBase,
-               ArtificialViscosity<Dimension>& Q,
+               ArtificialViscosityHandle<Dimension>& Q,
                const SphericalKernel& W,
                const SphericalKernel& WPi,
                const double cfl,
@@ -87,6 +87,13 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const QType& Q) const;
 
   // Apply boundary conditions to the physics specific fields.
   virtual

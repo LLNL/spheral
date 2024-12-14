@@ -14,7 +14,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
@@ -36,7 +36,7 @@ public:
 
   // Constructors.
   PSPH(DataBase<Dimension>& dataBase,
-       ArtificialViscosity<Dimension>& Q,
+       ArtificialViscosityHandle<Dimension>& Q,
        const TableKernel<Dimension>& W,
        const TableKernel<Dimension>& WPi,
        const double cfl,
@@ -87,6 +87,13 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const QType& Q) const;
 
   // Post-state update. For PSPH this is where we recompute the PSPH pressure and corrections.
   virtual 

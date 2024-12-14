@@ -88,7 +88,7 @@ def SPH(W,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
@@ -119,6 +119,9 @@ def SPH(W,
     # Build the SPH hydro
     result = constructor(**kwargs)
     result.Q = Q
+
+    # Add the Q as a sub-package (to run before the hydro)
+    result.prependSubPackage(Q)
 
     # Smoothing scale update
     if smoothingScaleMethod is None:

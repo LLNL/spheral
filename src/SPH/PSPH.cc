@@ -58,7 +58,7 @@ namespace Spheral {
 template<typename Dimension>
 PSPH<Dimension>::
 PSPH(DataBase<Dimension>& dataBase,
-     ArtificialViscosity<Dimension>& Q,
+     ArtificialViscosityHandle<Dimension>& Q,
      const TableKernel<Dimension>& W,
      const TableKernel<Dimension>& WPi,
      const double cfl,
@@ -224,14 +224,40 @@ postStateUpdate(const Scalar t,
 template<typename Dimension>
 void
 PSPH<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
-                    const typename Dimension::Scalar /*dt*/,
+evaluateDerivatives(const typename Dimension::Scalar time,
+                    const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+                    StateDerivatives<Dimension>& derivatives) const {
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// The actual implementation
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename QType>
+void
+PSPH<Dimension>::
+evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
+                        const typename Dimension::Scalar /*dt*/,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs,
+                        const QType& Q) const {
+
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -266,6 +292,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
   const auto reducingViscosityMultiplierQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
   const auto reducingViscosityMultiplierL = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
 
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
@@ -318,9 +345,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 #pragma omp parallel
   {
     // Thread private scratch variables
-    int i, j, nodeListi, nodeListj;
-    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
-    Tensor QPiij, QPiji;
+    unsigned i, j, nodeListi, nodeListj;
+    Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj, Qi, Qj;
+    QPiType QPiij, QPiji;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
@@ -437,17 +464,17 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
-      std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
+      Q.QPiij(QPiij, QPiji, Qi, Qj,
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etai, vi, rhoi, ci,  
+              rj, Hj, etaj, vj, rhoj, cj,
+              reducingViscosityMultiplierL, reducingViscosityMultiplierQ, DvDxQ); 
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);
       // const auto workQj = 0.5*(QPiji*vij).dot(gradWQj);
       const auto workQi = vij.dot(Qacci);
       const auto workQj = vij.dot(Qaccj);
-      const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-      const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mj*Qi*WQi/rhoj;

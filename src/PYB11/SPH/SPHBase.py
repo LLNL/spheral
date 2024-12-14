@@ -19,7 +19,7 @@ class SPHBase(GenericHydro):
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                WPi = "const TableKernel<%(Dimension)s>&",
                cfl = "const double",
@@ -70,15 +70,6 @@ temperature or pressure."""
         "Optional hook to be called at the beginning of a time step."
         return "void"
 
-    @PYB11virtual
-    def initialize(time = "const Scalar",
-                   dt = "const Scalar",
-                   dataBase = "const DataBase<%(Dimension)s>&",
-                   state = "State<%(Dimension)s>&",
-                   derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Initialize the Hydro before we start a derivative evaluation."
-        return "void"
-                       
     @PYB11virtual
     @PYB11const
     def finalizeDerivatives(time = "const Scalar",

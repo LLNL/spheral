@@ -18,7 +18,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
@@ -39,7 +39,7 @@ public:
 
   // Constructors.
   SPHBase(DataBase<Dimension>& dataBase,
-          ArtificialViscosity<Dimension>& Q,
+          ArtificialViscosityHandle<Dimension>& Q,
           const TableKernel<Dimension>& W,
           const TableKernel<Dimension>& WPi,
           const double cfl,
@@ -88,14 +88,6 @@ public:
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) override;
-                       
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -181,10 +173,7 @@ public:
   const FieldList<Dimension, Scalar>&       volume()                            const { return mVolume; }
   const FieldList<Dimension, Scalar>&       omegaGradh()                        const { return mOmegaGradh; }
   const FieldList<Dimension, Scalar>&       entropy()                           const { return mEntropy; }
-  const FieldList<Dimension, Scalar>&       maxViscousPressure()                const { return mMaxViscousPressure; }
-  const FieldList<Dimension, Scalar>&       effectiveViscousPressure()          const { return mEffViscousPressure; }
   const FieldList<Dimension, Scalar>&       massDensityCorrection()             const { return mMassDensityCorrection; }
-  const FieldList<Dimension, Scalar>&       viscousWork()                       const { return mViscousWork; }
   const FieldList<Dimension, Scalar>&       massDensitySum()                    const { return mMassDensitySum; }
   const FieldList<Dimension, Scalar>&       normalization()                     const { return mNormalization; }
   const FieldList<Dimension, Scalar>&       XSPHWeightSum()                     const { return mXSPHWeightSum; }
@@ -229,10 +218,7 @@ protected:
   FieldList<Dimension, Scalar>             mOmegaGradh;
   FieldList<Dimension, Scalar>             mEntropy;
 
-  FieldList<Dimension, Scalar>             mMaxViscousPressure;
-  FieldList<Dimension, Scalar>             mEffViscousPressure;
   FieldList<Dimension, Scalar>             mMassDensityCorrection;
-  FieldList<Dimension, Scalar>             mViscousWork;
   FieldList<Dimension, Scalar>             mMassDensitySum;
   FieldList<Dimension, Scalar>             mNormalization;
 

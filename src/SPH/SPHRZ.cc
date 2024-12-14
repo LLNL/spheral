@@ -62,7 +62,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 SPHRZ::
 SPHRZ(DataBase<Dimension>& dataBase,
-               ArtificialViscosity<Dim<2>>& Q,
+               ArtificialViscosityHandle<Dim<2>>& Q,
                const TableKernel<Dim<2>>& W,
                const TableKernel<Dim<2>>& WPi,
                const double cfl,
@@ -202,14 +202,39 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 void
 SPHRZ::
-evaluateDerivatives(const Dim<2>::Scalar /*time*/,
-                    const Dim<2>::Scalar /*dt*/,
-                    const DataBase<Dim<2>>& dataBase,
-                    const State<Dim<2>>& state,
-                    StateDerivatives<Dim<2>>& derivs) const {
+evaluateDerivatives(const Dimension::Scalar time,
+                    const Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Determine the principle derivatives.
+//------------------------------------------------------------------------------
+template<typename QType>
+void
+SPHRZ::
+evaluateDerivativesImpl(const Dim<2>::Scalar time,
+                        const Dim<2>::Scalar dt,
+                        const DataBase<Dim<2>>& dataBase,
+                        const State<Dim<2>>& state,
+                        StateDerivatives<Dim<2>>& derivs,
+                        const QType& Q) const {
+
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -243,6 +268,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -251,6 +279,9 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(pressure.size() == numNodeLists);
   CHECK(soundSpeed.size() == numNodeLists);
   CHECK(omega.size() == numNodeLists);
+  CHECK(fClQ.size() == 0 or fClQ.size() == numNodeLists);
+  CHECK(fCqQ.size() == 0 or fCqQ.size() == numNodeLists);
+  CHECK(DvDxQ.size() == 0 or DvDxQ.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  rhoSum = derivs.fields(ReplaceState<Dimension, Scalar>::prefix() + HydroFieldNames::massDensity, 0.0);
@@ -265,7 +296,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  localM = derivs.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
   auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
@@ -281,7 +311,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(localM.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
-  CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
@@ -293,7 +322,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     int i, j, nodeListi, nodeListj;
     Scalar Wi, gWi, WQi, gWQi, Wj, gWj, WQj, gWQj;
     Vector gradWi, gradWj, gradWQi, gradWQj;
-    Tensor QPiij, QPiji;
+    Scalar Qi, Qj;
+    QPiType QPiij, QPiji;
 
     typename SpheralThreads<Dim<2>>::FieldListStack threadStack;
     auto rhoSum_thread = rhoSum.threadCopy(threadStack);
@@ -306,7 +336,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto localM_thread = localM.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
-    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
 
@@ -345,7 +374,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& localMi = localM_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
-      auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
 
@@ -377,7 +405,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& localMj = localM_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
-      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
 
@@ -422,23 +449,21 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
 
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
-      std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      posi, etai, vi, rhoi, ci, Hi,
-                                      posj, etaj, vj, rhoj, cj, Hj);
+      Q.QPiij(QPiij, QPiji, Qi, Qj,
+              nodeListi, i, nodeListj, j,
+              posi, Hi, etai, vi, rhoi, ci,  
+              posj, Hj, etaj, vj, rhoj, cj,
+              fClQ, fCqQ, DvDxQ); 
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);
       // const auto workQj = 0.5*(QPiji*vij).dot(gradWQj);
       const auto workQi = vij.dot(Qacci);
       const auto workQj = vij.dot(Qaccj);
-      const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-      const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mRZj*Qi*WQi/rhoj;
       effViscousPressurej += mRZi*Qj*WQj/rhoi;
-      viscousWorki += mRZj*workQi;
-      viscousWorkj += mRZi*workQj;
 
       // Acceleration.
       CHECK(rhoi > 0.0);

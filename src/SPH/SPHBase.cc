@@ -64,7 +64,7 @@ namespace Spheral {
 template<typename Dimension>
 SPHBase<Dimension>::
 SPHBase(DataBase<Dimension>& dataBase,
-        ArtificialViscosity<Dimension>& Q,
+        ArtificialViscosityHandle<Dimension>& Q,
         const TableKernel<Dimension>& W,
         const TableKernel<Dimension>& WPi,
         const double cfl,
@@ -487,35 +487,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   //   this->enforceBoundaries(state, derivs);
   // }
   TIME_END("SPHBasePreStepInitialize");
-}
-
-//------------------------------------------------------------------------------
-// Initialize the hydro before calling evaluateDerivatives
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SPHBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-  TIME_BEGIN("SPHBaseInitialize");
-
-  // Get the artificial viscosity and initialize it.
-  const auto& WPi = this->PiKernel();
-  auto& Q =         this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               WPi);
-
-  // We depend on the caller knowing to finalize the ghost boundaries!
-  TIME_END("SPHBaseInitialize");
 }
 
 //------------------------------------------------------------------------------

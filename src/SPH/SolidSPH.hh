@@ -15,7 +15,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -38,7 +38,7 @@ public:
 
   // Constructors.
   SolidSPH(DataBase<Dimension>& dataBase,
-           ArtificialViscosity<Dimension>& Q,
+           ArtificialViscosityHandle<Dimension>& Q,
            const TableKernel<Dimension>& W,
            const TableKernel<Dimension>& WPi,
            const TableKernel<Dimension>& WGrad,
@@ -91,6 +91,13 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const QType& Q) const;
 
   // Apply boundary conditions to the physics specific fields.
   virtual

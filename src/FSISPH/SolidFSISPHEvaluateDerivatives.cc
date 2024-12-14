@@ -140,6 +140,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(damage.size() == numNodeLists);
   CHECK(fragIDs.size() == numNodeLists);
   CHECK(pTypes.size() == numNodeLists);
+  CHECK(fClQ.size() == 0 or fClQ.size() == numNodeLists);
+  CHECK(fCqQ.size() == 0 or fCqQ.size() == numNodeLists);
+  CHECK(DvDxQ.size() == 0 or DvDxQ.size() == numNodeLists);
   //CHECK(yield.size() == numNodeLists);
   //CHECK(invJ2.size() == numNodeLists);
 
