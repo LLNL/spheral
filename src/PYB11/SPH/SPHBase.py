@@ -148,7 +148,6 @@ boundary conditions."""
     maxViscousPressure =           PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "maxViscousPressure",   returnpolicy="reference_internal")
     effectiveViscousPressure =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "effectiveViscousPressure", returnpolicy="reference_internal")
     massDensityCorrection =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensityCorrection",returnpolicy="reference_internal")
-    viscousWork =                  PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "viscousWork",          returnpolicy="reference_internal")
     massDensitySum =               PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "massDensitySum",       returnpolicy="reference_internal")
     normalization =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "normalization",        returnpolicy="reference_internal")
     XSPHWeightSum =                PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "XSPHWeightSum",        returnpolicy="reference_internal")

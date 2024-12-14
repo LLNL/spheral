@@ -100,7 +100,7 @@ tensileStressCorrection(const Dim<3>::SymTensor& sigma) {
 template<typename Dimension>
 SolidCRKSPH<Dimension>::
 SolidCRKSPH(DataBase<Dimension>& dataBase,
-            ArtificialViscosity<Dimension>& Q,
+            ArtificialViscosityHandle<Dimension>& Q,
             const RKOrder order,
             const double cfl,
             const bool useVelocityMagnitudeForDt,
@@ -235,14 +235,40 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 template<typename Dimension>
 void
 SolidCRKSPH<Dimension>::
-evaluateDerivatives(const typename Dimension::Scalar /*time*/,
+evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
-                    StateDerivatives<Dimension>& derivs) const {
+                    StateDerivatives<Dimension>& derivatives) const {
 
-  // Get the ArtificialViscosity.
-  auto& Q = this->artificialViscosity();
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Determine the principle derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename QType>
+void
+SolidCRKSPH<Dimension>::
+evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
+                        const typename Dimension::Scalar dt,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivs,
+                        const QType& Q) const {
+
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const auto  order = this->correctionOrder();
@@ -280,6 +306,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   const auto pTypes = state.fields(SolidFieldNames::particleTypes, int(0));
   const auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
   const auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -295,6 +324,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(pTypes.size() == numNodeLists);
   CHECK(corrections.size() == numNodeLists);
   CHECK(surfacePoint.size() == numNodeLists);
+  CHECK(fClQ.size() == 0 or fClQ.size() == numNodeLists);
+  CHECK(fCqQ.size() == 0 or fCqQ.size() == numNodeLists);
+  CHECK(DvDxQ.size() == 0 or DvDxQ.size() == numNodeLists);
 
   // Derivative FieldLists.
   auto  DxDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, Vector::zero);
@@ -305,7 +337,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  localDvDx = derivs.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
-  auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   auto  DSDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
   auto* pairAccelerationsPtr = derivs.template getPtr<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
@@ -317,7 +348,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
-  CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
   CHECK((compatibleEnergy and pairAccelerationsPtr->size() == npairs) or not compatibleEnergy);
@@ -327,8 +357,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   {
     // Thread private scratch variables
     int i, j, nodeListi, nodeListj;
-    Scalar Wi, Wj;
-    Tensor QPiij, QPiji;
+    Scalar Wi, Wj, Qi, Qj;
+    QPiType QPiij, QPiji;
     Vector gradWi, gradWj;
     Vector deltagrad, forceij, forceji;
     Vector rij, vij, etai, etaj;
@@ -341,7 +371,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
-    auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
 
 #pragma omp for
@@ -374,7 +403,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
-      auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
 
       // Get the state for node j
@@ -400,7 +428,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
-      auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
 
       // Node displacement.
@@ -425,23 +452,21 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       CHECK(fDij >= 0.0 and fDij <= 1.0);
 
       // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
-      std::tie(QPiij, QPiji) = Q.Piij(nodeListi, i, nodeListj, j,
-                                      ri, etai, vi, rhoi, ci, Hi,
-                                      rj, etaj, vj, rhoj, cj, Hj);
-      const auto Qaccij = (rhoi*rhoi*QPiij + rhoj*rhoj*QPiji).dot(deltagrad);
+      Q.QPiij(QPiij, QPiji, Qi, Qj,
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etai, vi, rhoi, ci,  
+              rj, Hj, etaj, vj, rhoj, cj,
+              fClQ, fCqQ, DvDxQ); 
+      const auto Qaccij = (rhoi*rhoi*QPiij + rhoj*rhoj*QPiji)*deltagrad;
       // const auto workQij = 0.5*(vij.dot(Qaccij));
-      const auto workQi = rhoj*rhoj*QPiji.dot(vij).dot(deltagrad);                // CRK
-      const auto workQj = rhoi*rhoi*QPiij.dot(vij).dot(deltagrad);                // CRK
+      const auto workQi = (rhoj*rhoj*QPiji*vij).dot(deltagrad);                // CRK
+      const auto workQj = (rhoi*rhoi*QPiij*vij).dot(deltagrad);                // CRK
       // const auto workQVi =  vij.dot((rhoj*rhoj*QPiji).dot(gradWj));               //RK V and RK I Work
       // const auto workQVj =  vij.dot((rhoi*rhoi*QPiij).dot(gradWi));               //RK V and RK I Work
-      const auto Qi = rhoi*rhoi*(QPiij.diagonalElements().maxAbsElement());
-      const auto Qj = rhoj*rhoj*(QPiji.diagonalElements().maxAbsElement());
       maxViscousPressurei = max(maxViscousPressurei, 4.0*Qi);                     // We need tighter timestep controls on the Q with CRK
       maxViscousPressurej = max(maxViscousPressurej, 4.0*Qj);
       effViscousPressurei += weightj * Qi * Wj;
       effViscousPressurej += weighti * Qj * Wi;
-      viscousWorki += 0.5*weighti*weightj/mi*workQi;
-      viscousWorkj += 0.5*weighti*weightj/mj*workQj;
 
       // Velocity gradient.
       DvDxi -= fDij * weightj*vij.dyad(gradWj);
@@ -468,10 +493,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Momentum
       forceij = (true ? // surfacePoint(nodeListi, i) <= 1 ? 
                  0.5*weighti*weightj*(-(sigmai + sigmaj)*deltagrad + Qaccij) :                                    // Type III CRK interpoint force.
-                 -mi*weightj*((sigmaj - sigmai)*gradWj/rhoi + rhoi*QPiij.dot(gradWj)));                           // RK
+                 -mi*weightj*((sigmaj - sigmai)*gradWj/rhoi + rhoi*QPiij*gradWj));                                // RK
       forceji = (true ? // surfacePoint(nodeListj, j) <= 1 ?
                  0.5*weighti*weightj*(-(sigmai + sigmaj)*deltagrad + Qaccij) :                                    // Type III CRK interpoint force.
-                 -mj*weighti*((sigmaj - sigmai)*gradWi/rhoj - rhoj*QPiji.dot(gradWi)));                           // RK
+                 -mj*weighti*((sigmaj - sigmai)*gradWi/rhoj - rhoj*QPiji*gradWi));                                // RK
       if (freeParticle) {
         DvDti -= forceij/mi;
         DvDtj += forceji/mj;
@@ -481,10 +506,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
                   0.5*weighti*weightj*(-sigmaj.dot(vij).dot(deltagrad) + workQi)/mi :                             // CRK
-                  weightj*rhoi*QPiij.dot(vij).dot(gradWj));                                                       // RK, Q term only -- adiabatic portion added later
+                  (weightj*rhoi*QPiij*vij).dot(gradWj));                                                          // RK, Q term only -- adiabatic portion added later
       DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ?
                   0.5*weighti*weightj*(-sigmai.dot(vij).dot(deltagrad) + workQj)/mj :                             // CRK
-                  -weighti*rhoj*QPiji.dot(vij).dot(gradWi));                                                      // RK, Q term only -- adiabatic portion added later
+                  (-weighti*rhoj*QPiji*vij).dot(gradWi));                                                         // RK, Q term only -- adiabatic portion added later
 
       // Estimate of delta v (for XSPH).
       XSPHDeltaVi -= fDij*weightj*Wj*vij;

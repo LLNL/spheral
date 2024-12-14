@@ -15,7 +15,7 @@
 namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -43,7 +43,7 @@ public:
 
   // Constructors.
   CRKSPHBase(DataBase<Dimension>& dataBase,
-                  ArtificialViscosity<Dimension>& Q,
+                  ArtificialViscosityHandle<Dimension>& Q,
                   const RKOrder order,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -83,14 +83,6 @@ public:
                                  State<Dimension>& state,
                                  StateDerivatives<Dimension>& derivs) override;
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) override;
-                          
   // Finalize the derivatives.
   virtual
   void finalizeDerivatives(const Scalar time,
@@ -148,7 +140,6 @@ public:
   const FieldList<Dimension, Scalar>&    entropy()                      const { return mEntropy; }
   const FieldList<Dimension, Scalar>&    maxViscousPressure()           const { return mMaxViscousPressure; }
   const FieldList<Dimension, Scalar>&    effectiveViscousPressure()     const { return mEffViscousPressure; }
-  const FieldList<Dimension, Scalar>&    viscousWork()                  const { return mViscousWork; }
   const FieldList<Dimension, Vector>&    XSPHDeltaV()                   const { return mXSPHDeltaV; }
 
   const FieldList<Dimension, Vector>&    DxDt()                         const { return mDxDt; }
@@ -181,7 +172,6 @@ protected:
 
   FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mEffViscousPressure;
-  FieldList<Dimension, Scalar>    mViscousWork;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;

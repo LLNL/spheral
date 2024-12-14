@@ -64,7 +64,7 @@ namespace Spheral {
 template<typename Dimension>
 CRKSPHBase<Dimension>::
 CRKSPHBase(DataBase<Dimension>& dataBase,
-           ArtificialViscosity<Dimension>& Q,
+           ArtificialViscosityHandle<Dimension>& Q,
            const RKOrder order,
            const double cfl,
            const bool useVelocityMagnitudeForDt,
@@ -88,7 +88,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mEntropy(FieldStorageType::CopyFields),
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mEffViscousPressure(FieldStorageType::CopyFields),
-  mViscousWork(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
@@ -105,7 +104,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
   mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
   mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
-  mViscousWork = dataBase.newFluidFieldList(0.0, HydroFieldNames::viscousWork);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
@@ -211,7 +209,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // the ArtificialVisocisity::initialize step).
   dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
-  dataBase.resizeFluidFieldList(mViscousWork, 0.0, HydroFieldNames::viscousWork, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -222,7 +219,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   derivs.enroll(mMaxViscousPressure);
   derivs.enroll(mEffViscousPressure);
-  derivs.enroll(mViscousWork);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -268,30 +264,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->applyFieldListGhostBoundary(massDensity);
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
-}
-
-//------------------------------------------------------------------------------
-// Initialize the hydro before evaluating derivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-CRKSPHBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-  // Initialize the artificial viscosity
-  const auto& WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(mOrder));
-  auto&       Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               WR.kernel());
 }
 
 //------------------------------------------------------------------------------
@@ -394,7 +366,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mEntropy, pathName + "/entropy");
   file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mEffViscousPressure, pathName + "/effViscousPressure");
-  file.write(mViscousWork, pathName + "/viscousWork");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
@@ -418,7 +389,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mEntropy, pathName + "/entropy");
   file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mEffViscousPressure, pathName + "/effViscousPressure");
-  file.read(mViscousWork, pathName + "/viscousWork");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");

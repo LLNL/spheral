@@ -15,7 +15,7 @@
 namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -45,7 +45,7 @@ public:
 
   // Constructors.
   CRKSPH(DataBase<Dimension>& dataBase,
-                  ArtificialViscosity<Dimension>& Q,
+                  ArtificialViscosityHandle<Dimension>& Q,
                   const RKOrder order,
                   const double cfl,
                   const bool useVelocityMagnitudeForDt,
@@ -82,6 +82,13 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const QType& Q) const;
     
   // The state field lists we're maintaining.
   const PairAccelerationsType& pairAccelerations() const { VERIFY2(mPairAccelerationsPtr, "CRKSPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }

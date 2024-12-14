@@ -13,7 +13,7 @@
 namespace Spheral {
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -42,17 +42,17 @@ public:
 
   // Constructors.
   SolidCRKSPH(DataBase<Dimension>& dataBase,
-                       ArtificialViscosity<Dimension>& Q,
-                       const RKOrder order,
-                       const double cfl,
-                       const bool useVelocityMagnitudeForDt,
-                       const bool compatibleEnergyEvolution,
-                       const bool evolveTotalEnergy,
-                       const bool XSPH,
-                       const MassDensityType densityUpdate,
-                       const double epsTensile,
-                       const double nTensile,
-                       const bool damageRelieveRubble);
+              ArtificialViscosityHandle<Dimension>& Q,
+              const RKOrder order,
+              const double cfl,
+              const bool useVelocityMagnitudeForDt,
+              const bool compatibleEnergyEvolution,
+              const bool evolveTotalEnergy,
+              const bool XSPH,
+              const MassDensityType densityUpdate,
+              const double epsTensile,
+              const double nTensile,
+              const bool damageRelieveRubble);
 
   // No default constructor, copying, or assignment.
   SolidCRKSPH() = delete;
@@ -86,6 +86,13 @@ public:
                            const DataBase<Dimension>& dataBase,
                            const State<Dimension>& state,
                            StateDerivatives<Dimension>& derivatives) const override;
+  template<typename QType>
+  void evaluateDerivativesImpl(const Scalar time,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               const State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivatives,
+                               const QType& Q) const;
 
   // Apply boundary conditions to the physics specific fields.
   virtual
