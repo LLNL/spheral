@@ -2,11 +2,10 @@
 # TensorCRKSPHViscosity
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from TensorMonaghanViscosity import *
+from TensorMonaghanGingoldViscosity import *
 
 @PYB11template("Dimension")
-@PYB11template_dict({"QPiType", "typename %(Dimension)s::Tensor"})
-class TensorCRKSPHViscosity(ArtificialViscosity):
+class TensorCRKSPHViscosity(TensorMonaghanGingoldViscosity):
 
     PYB11typedefs = """
     using Scalar = typename %(Dimension)s::Scalar;
@@ -14,6 +13,7 @@ class TensorCRKSPHViscosity(ArtificialViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using ReturnType = %(QPiType)s;
 """
 
     #...........................................................................
@@ -54,5 +54,5 @@ class TensorCRKSPHViscosity(ArtificialViscosity):
 
     #...........................................................................
     # Properties
-    order = PYB11Property("RKOrder", "order", "order",
+    order = PYB11property("RKOrder", "order", "order",
                           doc="RK order to use to estimate velocity gradient")

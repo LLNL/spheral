@@ -14,6 +14,7 @@ class ArtificialViscosityHandle:
   using Vector = typename %(Dimension)s::Vector;
   using Tensor = typename %(Dimension)s::Tensor;
   using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
 """
 
     #...........................................................................

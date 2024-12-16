@@ -6,7 +6,7 @@ from ArtificialViscosity import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension")
-@PYB11template_dict({"QPiType", "typename %(Dimension)s::Tensor"})
+@PYB11template_dict({"QPiType": "typename %(Dimension)s::Tensor"})
 class TensorSVPHViscosity(ArtificialViscosity):
 
     PYB11typedefs = """
@@ -15,6 +15,7 @@ class TensorSVPHViscosity(ArtificialViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using ReturnType = %(QPiType)s;
 """
 
     #...........................................................................
@@ -22,7 +23,7 @@ class TensorSVPHViscosity(ArtificialViscosity):
     def pyinit(self,
                Clinear = "const Scalar",
                Cquadratic = "const Scalar",
-               fslice = "const Scalar",,
+               fslice = "const Scalar",
                kernel = "const TableKernel<%(Dimension)s>&"):
         "TensorSVPHViscosity constructor"
 

@@ -6,7 +6,7 @@ from MonaghanGingoldViscosity import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension")
-@PYB11template_dict({"QPiType", "typename %(Dimension)s::Scalar"})
+@PYB11template_dict({"QPiType": "typename %(Dimension)s::Scalar"})
 class LimitedMonaghanGingoldViscosity(MonaghanGingoldViscosity):
 
     PYB11typedefs = """
@@ -15,6 +15,7 @@ class LimitedMonaghanGingoldViscosity(MonaghanGingoldViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using ReturnType = %(QPiType)s;
 """
 
     #...........................................................................
@@ -22,10 +23,11 @@ class LimitedMonaghanGingoldViscosity(MonaghanGingoldViscosity):
     def pyinit(self,
                Clinear = "const Scalar",
                Cquadratic = "const Scalar",
-               linearInExpansion = ("bool", "false"),
-               quadraticInExpansion = ("bool", "false"),
-               etaCritFrac = ("double", "1.0"),
-               etaFoldFrac = ("double", "0.2")):
+               linearInExpansion = "bool",
+               quadraticInExpansion = "bool",
+               etaCritFrac = "double",
+               etaFoldFrac = "double",
+               kernel = "const TableKernel<%(Dimension)s>&"):
         "LimitedMonaghanGingoldViscosity constructor"
 
     #...........................................................................

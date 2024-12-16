@@ -43,16 +43,16 @@ public:
 
   // Constructors.
   CRKSPHBase(DataBase<Dimension>& dataBase,
-                  ArtificialViscosityHandle<Dimension>& Q,
-                  const RKOrder order,
-                  const double cfl,
-                  const bool useVelocityMagnitudeForDt,
-                  const bool compatibleEnergyEvolution,
-                  const bool evolveTotalEnergy,
-                  const bool XSPH,
-                  const MassDensityType densityUpdate,
-                  const double epsTensile,
-                  const double nTensile);
+             ArtificialViscosityHandle<Dimension>& Q,
+             const RKOrder order,
+             const double cfl,
+             const bool useVelocityMagnitudeForDt,
+             const bool compatibleEnergyEvolution,
+             const bool evolveTotalEnergy,
+             const bool XSPH,
+             const MassDensityType densityUpdate,
+             const double epsTensile,
+             const double nTensile);
 
   // No default constructor, copying, or assignment.
   CRKSPHBase() = delete;

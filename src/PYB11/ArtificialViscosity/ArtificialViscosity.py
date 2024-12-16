@@ -13,7 +13,7 @@ class ArtificialViscosity:
   using Vector = typename %(Dimension)s::Vector;
   using Tensor = typename %(Dimension)s::Tensor;
   using SymTensor = typename %(Dimension)s::SymTensor;
-  using ReturnType = %(QPiType)s
+  using ReturnType = %(QPiType)s;
 """
 
     #...........................................................................

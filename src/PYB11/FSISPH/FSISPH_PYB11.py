@@ -19,7 +19,7 @@ PYB11includes += ['"FSISPH/SolidFSISPH.hh"',
                   '"FSISPH/FSIFieldNames.hh"',
                   '"FSISPH/SlideSurface.hh"',
                   '"FileIO/FileIO.hh"',
-                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"ArtificialViscosity/ArtificialViscosityHandle.hh"',
                   '"Neighbor/PairwiseField.hh"']
 
 #-------------------------------------------------------------------------------

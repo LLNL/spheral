@@ -28,7 +28,7 @@ PYB11includes += ['"CRKSPH/CRKSPHBase.hh"',
                   '"CRKSPH/editMultimaterialSurfaceTopology.hh"',
                   '"CRKSPH/zerothOrderSurfaceCorrections.hh"',
                   '"Utilities/NodeCoupling.hh"',
-                  '"ArtificialViscosity/ArtificialViscosity.hh"',
+                  '"ArtificialViscosity/ArtificialViscosityHandle.hh"',
                   '"Neighbor/PairwiseField.hh"',
                   '"FileIO/FileIO.hh"',
                   '<iterator>']
@@ -110,24 +110,24 @@ For such points:
 # Instantiate our types
 #-------------------------------------------------------------------------------
 for ndim in dims:
-    exec('''
-CRKSPHBase%(ndim)id = PYB11TemplateClass(CRKSPHBase, template_parameters="%(Dimension)s")
-CRKSPH%(ndim)id = PYB11TemplateClass(CRKSPH, template_parameters="%(Dimension)s")
-SolidCRKSPH%(ndim)id = PYB11TemplateClass(SolidCRKSPH, template_parameters="%(Dimension)s")
+    Dimension = f"Dim<{ndim}>"
+    exec(f'''
+CRKSPHBase{ndim}d = PYB11TemplateClass(CRKSPHBase, template_parameters="{Dimension}")
+CRKSPH{ndim}d = PYB11TemplateClass(CRKSPH, template_parameters="{Dimension}")
+SolidCRKSPH{ndim}d = PYB11TemplateClass(SolidCRKSPH, template_parameters="{Dimension}")
 
 @PYB11pycppname("centerOfMass")
-def centerOfMass%(ndim)id(polyvol = "const %(Dimension)s::FacetedVolume&",
-                          gradRhoi = "const %(Dimension)s::Vector&"):
+def centerOfMass{ndim}d(polyvol = "const {Dimension}::FacetedVolume&",
+                        gradRhoi = "const {Dimension}::Vector&"):
     "Compute the center of mass of a FacetedVolume assuming a linear mass density field."
-    return "%(Dimension)s::Vector"
+    return "{Dimension}::Vector"
 
-computeCRKSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeCRKSPHSumMassDensity, template_parameters="%(Dimension)s")
-computeSolidCRKSPHSumMassDensity%(ndim)id = PYB11TemplateFunction(computeSolidCRKSPHSumMassDensity, template_parameters="%(Dimension)s")
-detectSurface%(ndim)id = PYB11TemplateFunction(detectSurface, template_parameters="%(Dimension)s")
-editMultimaterialSurfaceTopology%(ndim)id = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="%(Dimension)s")
-zerothOrderSurfaceCorrections%(ndim)id = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="%(Dimension)s")
-''' % {"ndim"      : ndim,
-       "Dimension" : "Dim<" + str(ndim) + ">"})
+computeCRKSPHSumMassDensity{ndim}d = PYB11TemplateFunction(computeCRKSPHSumMassDensity, template_parameters="{Dimension}")
+computeSolidCRKSPHSumMassDensity{ndim}d = PYB11TemplateFunction(computeSolidCRKSPHSumMassDensity, template_parameters="{Dimension}")
+detectSurface{ndim}d = PYB11TemplateFunction(detectSurface, template_parameters="{Dimension}")
+editMultimaterialSurfaceTopology{ndim}d = PYB11TemplateFunction(editMultimaterialSurfaceTopology, template_parameters="{Dimension}")
+zerothOrderSurfaceCorrections{ndim}d = PYB11TemplateFunction(zerothOrderSurfaceCorrections, template_parameters="{Dimension}")
+''')
 
 #-------------------------------------------------------------------------------
 # 2D

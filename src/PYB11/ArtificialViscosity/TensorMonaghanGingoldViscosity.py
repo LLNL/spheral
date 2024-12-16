@@ -6,7 +6,7 @@ from ArtificialViscosity import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension")
-@PYB11template_dict({"QPiType", "typename %(Dimension)s::Tensor"})
+@PYB11template_dict({"QPiType": "typename %(Dimension)s::Tensor"})
 class TensorMonaghanGingoldViscosity(ArtificialViscosity):
     """A modified form of the Monaghan & Gingold viscosity, extended to tensor formalism.
 This method is described in
@@ -19,6 +19,7 @@ Owen, J Michael (2004), 'A tensor artficial visocity for SPH', Journal of Comput
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using ReturnType = %(QPiType)s;
 """
 
     #...........................................................................

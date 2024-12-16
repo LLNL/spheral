@@ -65,7 +65,7 @@ def CRKSPH(dataBase,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/4.0)
         Cq = 1.0*(dataBase.maxKernelExtent/4.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=W)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     kwargs = {"dataBase" : dataBase,
@@ -86,6 +86,9 @@ def CRKSPH(dataBase,
     # Build the thing.
     result = constructor(**kwargs)
     result.Q = Q
+
+    # Add the Q as a sub-package (to run before the hydro)
+    result.prependSubPackage(Q)
 
     # Smoothing scale update
     if smoothingScaleMethod is None:

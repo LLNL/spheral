@@ -25,7 +25,7 @@ public:
                       const Scalar Cquadratic,
                       const Scalar fslice,
                       const TableKernel<Dimension>& WT);
-  virtual ~TensorSVPHViscosity();
+  virtual ~TensorSVPHViscosity() = default;
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.

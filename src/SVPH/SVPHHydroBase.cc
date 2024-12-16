@@ -25,7 +25,7 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
-#include "ArtificialViscosity/ArtificialViscosity.hh"
+#include "ArtificialViscosity/ArtificialViscosityHandle.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -52,7 +52,7 @@ namespace Spheral {
 template<typename Dimension>
 SVPHHydroBase<Dimension>::
 SVPHHydroBase(const TableKernel<Dimension>& W,
-              ArtificialViscosity<Dimension>& Q,
+              ArtificialViscosityHandle<Dimension>& Q,
               const double cfl,
               const bool useVelocityMagnitudeForDt,
               const bool compatibleEnergyEvolution,

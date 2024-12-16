@@ -22,7 +22,7 @@ class SolidFSISPH(GenericHydro):
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                slides = "SlideSurface<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                cfl = "const double",

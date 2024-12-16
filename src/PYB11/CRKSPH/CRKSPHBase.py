@@ -25,7 +25,7 @@ class CRKSPHBase(GenericHydro):
 
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                order = "const RKOrder",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
@@ -72,16 +72,6 @@ temperature or pressure."""
         "Optional hook to be called at the beginning of a time step."
         return "void"
 
-    @PYB11virtual
-    def initialize(self,
-                   time = "const Scalar",
-                   dt = "const Scalar",
-                   dataBase = "const DataBase<%(Dimension)s>&",
-                   state = "State<%(Dimension)s>&",
-                   derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Initialize the Hydro before we start a derivative evaluation."
-        return "void"
-                          
     @PYB11virtual
     @PYB11const
     def finalizeDerivatives(self,
@@ -136,7 +126,6 @@ temperature or pressure."""
     entropy = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "entropy", returnpolicy="reference_internal")
     maxViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "maxViscousPressure", returnpolicy="reference_internal")
     effectiveViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "effectiveViscousPressure", returnpolicy="reference_internal")
-    viscousWork = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "viscousWork", returnpolicy="reference_internal")
     XSPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSPHDeltaV", returnpolicy="reference_internal")
 
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")

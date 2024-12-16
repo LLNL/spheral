@@ -25,7 +25,7 @@ class SolidCRKSPH(CRKSPH):
 
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                order = "const RKOrder",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
