@@ -139,6 +139,11 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries = []
         if "+mpi" in spec:
           entries = super(Spheral, self).initconfig_mpi_entries()
+          if "cray-mpich" in spec:
+            for e in entries:
+                if 'MPIEXEC_NUMPROC_FLAG' in e:
+                    entries.remove(e)
+            entries.append(cmake_cache_string('MPIEXEC_NUMPROC_FLAG', '-n'))
         return entries
 
     def initconfig_hardware_entries(self):
@@ -147,15 +152,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         if '+rocm' in spec:
             entries.append(cmake_cache_option("ENABLE_HIP", True))
-            hip_root = spec["hip"].prefix
- 
-            hip_link_flags = ""
-            # Additional libraries for TOSS4
-            hip_link_flags += " -L{0}/../lib64 -Wl,-rpath,{0}/../lib64 ".format(hip_root)
-            hip_link_flags += " -L{0}/../lib -Wl,-rpath,{0}/../lib ".format(hip_root)
-            hip_link_flags += "-lamd_comgr -lhsa-runtime64 "
-
-            entries.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
+            entries.append(cmake_cache_option("ROCM_PATH", spec["hip"].prefix))
 
         if '+cuda' in spec:
             entries.append(cmake_cache_option("ENABLE_CUDA", True))
