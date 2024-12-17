@@ -155,7 +155,7 @@ endif()
 if (ENABLE_TESTS)
   spheral_install_python_tests(${SPHERAL_ROOT_DIR}/tests ${SPHERAL_TEST_INSTALL_PREFIX})
   # Always install performance.py in the top of the testing script
-  install(FILES ${SPHERAL_ROOT_DIR}/performance.py
+  install(FILES ${SPHERAL_ROOT_DIR}/tests/performance.py
     USE_SOURCE_PERMISSIONS
     DESTINATION ${CMAKE_INSTALL_PREFIX}/tests)
 endif()
