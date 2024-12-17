@@ -138,12 +138,13 @@ Performance Regression Testing
 ==============================
 
 ``tests/performance.py`` contains a set of performance regression tests. These tests allow a developer to estimate the performance implications of code under development and compare it to the current development branch of Spheral.
+When a merge to the develop branch occurs, the CI runs this regression test multiple times to accumulate benchmark timing data in a centralized directory (``/usr/WS2/sduser/Spheral/benchmark``).
 The general procedure to comparing performance regression tests is:
 
-#. Run the performance regression tests from an installation using ``N`` nodes:
+#. Run the performance regression tests from an installation using 2 nodes (number of nodes used in benchmark run by CI):
    ::
 
-      ./spheral-ats --numNodes N --loc perftest tests/performance.py
+      ./spheral-ats --numNodes 2 --loc perftest tests/performance.py
 
 #. Once the tests are finished running, activate the Thicket virtual environment installed for Spheral developers
    ::
@@ -159,6 +160,6 @@ The general procedure to comparing performance regression tests is:
 #. Utilize Thicket to compare the newly run times with benchmark timings in ``/usr/WS2/sduser/Spheral/benchmark``
    ::
 
-      python3 /path/to/spheral/scripts/devtools/performance_analysis.py --perfdir perftest
+      python3 /path/to/spheral/scripts/devtools/performance_analysis.py --perf_dir perftest
 
    This will compare the ``main`` times for each test and display the timing tree for any tests that exceed the timing thresholds.

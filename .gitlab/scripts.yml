@@ -67,6 +67,22 @@
     exit_codes:
       - 80
 
+# Run the performance suite and move the resulting Caliper files into the benchmark location
+.run_perf:
+  stage: run_perf
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
+    - ./build_gitlab/install/spheral-ats --ciRun --numNodes 2 --logs perf_logs ./build_gitlab/install/$PERF_ATS_FILE
+  artifacts:
+    when: always
+    paths:
+      - ci-dir.txt
+      - perf_logs/
+
 .cleanup_dir:
   stage: cleanup
   variables:

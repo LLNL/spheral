@@ -17,7 +17,7 @@ Use on LC systems with the following steps:
 
   3. Run this script and point to the directory created by ATS in step 1
 
-     $> python3 performance_analysis.py --perfdir perftests
+     $> python3 performance_analysis.py --perf-dir perftests
 """
 
 import os, sys, shutil, glob
@@ -88,8 +88,9 @@ def remove_nans(gf, metric="Avg time/rank"):
 
 def filter_tests(data1, data2):
     """
-    Filters and removes NaNs from input data. Return two lists of Thickets
-    where each entry corresponds to a comparable test.
+    Filters and removes NaNs from input data. Returns two lists of Thickets
+    where each entry corresponds to a comparable test. Do not use for scaling
+    tests or comparisons between machines, specs, or configurations.
     """
     # Top level metadata comparisons, this should be implicitly handled
     # through benchmark data directory structures
@@ -112,8 +113,8 @@ def filter_tests(data1, data2):
             val1 = mdata1[k]
             val2 = mdata2[k]
             if (val1 != val2):
-                print(f"Warning: {k} does not match for test {test[0]}, {val1} != {val2}."+\
-                      " Skipping as tests are not compatible for comparison.")
+                print(f"Warning: {k} does not match for test {test[0]}, {val1} != {val2}.\n"+\
+                      "Skipping as tests are not compatible for comparison.")
                 do_comp = False
                 break
         if (not do_comp):
@@ -122,31 +123,11 @@ def filter_tests(data1, data2):
         filtered_data2.append(remove_nans(df2))
     return filtered_data1, filtered_data2
 
-def compare_tests(data1, data2):
-    """
-    Compare the setups between the tests in data1 and data2.
-    Make sure both tests have the same number of SPH nodes, time steps, and hardware
-    configuration. Should run this before doing any performance regression comparisons.
-    Not applicable if comparing across machines or for scaling tests.
-    """
-    cth = filter_tests(data1)
-    rth = filter_tests(data2)
-    comp_keys = ["numhosts", "jobsize", "total_internal_nodes", "total_steps", "threads_per_rank"]
-    test_names = list(data1.metadata["test_name"])
-    for t in test_names:
-        cth = data1.filter_metadata(lambda x: x["test_name"] == t])
-        rth = data2.filter_metadata(lambda x: x["test_name"] == t])
-        for k in comp_keys:
-            val1 = cth.metadata[k].iloc[0]
-            val2 = rth.metadata[k].iloc[0]
-            if (val1 != val2):
-                print(f"Warning: {k} differs for test {t}: {val1} != {val2}")
-
 #---------------------------------------------------------------------------
 # Setup argument parser
 #---------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
-parser.add_argument("--perfdir", type=str,
+parser.add_argument("--perf-dir", type=str,
                     help="Directory either containing an atsr.py file or a collection of Caliper files")
 parser.add_argument("--ref", type=str, default=None,
                     help="Directory of Caliper files to use as reference timings")
@@ -155,7 +136,7 @@ parser.add_argument("--display", action="store_true",
 args = parser.parse_args()
 # Create a Thicket of the current performance data
 cali_files = []
-atsFile = os.path.join(args.perfdir, "atsr.py")
+atsFile = os.path.join(args.perf_dir, "atsr.py")
 benchmarks = None
 if (os.path.exists(atsFile)):
     # Run atsr.py and put values into globals
@@ -172,7 +153,7 @@ if (os.path.exists(atsFile)):
         cfile = os.path.join(run_dir, cali_file)
         cali_files.append(cfile)
 else:
-    newpath = os.path.join(args.perfdir, "**/*.cali")
+    newpath = os.path.join(args.perf_dir, "**/*.cali")
     print(f"Searching {newpath}")
     cali_files = glob.glob(newpath, recursive=True)
 if (len(cali_files) == 0):
@@ -184,7 +165,7 @@ curdata = th.Thicket.from_caliperreader(cali_files)
 # Get install config and machine name from current data
 install_config = curdata.metadata["install_config"].iloc[0]
 machine_name = curdata.metadata["cluster"].iloc[0]
-# If no ref-files or benchmark_dir is provided, look for the benchmark in the
+# If no ref or benchmark_dir is provided, look for the benchmark in the
 # atsr.py file or a Caliper file
 ref_files = args.ref
 if (not ref_files):
@@ -196,8 +177,11 @@ if (not ref_files):
             ref_files = curdata.metadata["benchmark_dir"].iloc[0]
         except:
             pass
-cali_ref_files = glob.glob(os.path.join(ref_files, install_config, machine_name, "/latest/*.cali"),
-                           recursive=True)
+ref_loc = os.path.join(ref_files,
+                       install_config,
+                       machine_name,
+                       "/latest/*.cali")
+cali_ref_files = glob.glob(ref_loc, recursive=True)
 if (len(cali_ref_files) == 0):
     # Likely not pointing to benchmark directory so go searching for any Caliper files
     cali_ref_files = glob.glob(os.path.join(ref_files, "**/*.cali"), recursive=True)
@@ -210,7 +194,7 @@ else:
 # outputs for a specific run of performance.py
 # Each configuration is unique to an install config and machine name (cluster)
 # and contains at least one Caliper file per test.
-# Our current data, provided by the --perfdir input, should only have
+# Our current data, provided by the --perf_dir input, should only have
 # 1 configuration with 1 Caliper file per test
 
 # Filter both sets of data for tests that are compatible for comparison

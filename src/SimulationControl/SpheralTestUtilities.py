@@ -393,11 +393,12 @@ def num_3d_cyl_nodes(rmin, rmax, zmin, zmax, thetamin, thetamax, nr0, nz0, Ntot)
     from scipy.optimize import basinhopping
 
     class takestep:
-        def __init__(self):
-            self.rng = np.random.default_rng()
+        def __init__(self, x0):
+            self.x0 = int(x0)
         def __call__(self, x):
-            x += int(self.rng.uniform(0, 100)/10)
+            x += self.x0
             return x
+    x0 = 1 # Optimal step size
     ig = [nr0, nz0]
     zlen = zmax - zmin
     if nr0*nz0 > Ntot:
@@ -417,6 +418,6 @@ def num_3d_cyl_nodes(rmin, rmax, zmin, zmax, thetamin, thetamax, nr0, nz0, Ntot)
             n_th = max(mintheta, int(ri*Dtheta/maxd))
             new_tot += n_th
         return abs(new_tot*nz - Ntot)
-    result = basinhopping(calc_ntot, ig, take_step=takestep())
+    result = basinhopping(calc_ntot, ig, take_step=takestep(x0))
     nr, nz = result.x[0], result.x[1]
     return int(nr), int(nz)
