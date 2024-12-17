@@ -50,7 +50,7 @@ commandLine(nx1 = 100,
             restartStep = 10000,
             restartBaseName = "dumps-AcousticWave-1d",
 
-            graphics = "gnu",
+            graphics = True,
             )
 
 #-------------------------------------------------------------------------------
@@ -127,8 +127,8 @@ def checkRho(steps, t, dt):
     rhoMax = rho.max()
     #print "Rho range : [%16.12e, %16.12e]" % (rhoMin, rhoMax)
     if abs(rhoMin/rhoMax - 1.0) > tol:
-        if graphics == "gnu":
-            from SpheralGnuPlotUtilities import plotState
+        if graphics:
+            from SpheralMatplotlib import plotState
             state = State(db, integrator.physicsPackages())
             rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
         pos = nodes1.positions()
@@ -159,7 +159,7 @@ print("** PASS **")
 #-------------------------------------------------------------------------------
 # Plot the final state.
 #-------------------------------------------------------------------------------
-if graphics == "gnu":
-    from SpheralGnuPlotUtilities import *
+if graphics:
+    from SpheralMatplotlib import *
     state = State(db, integrator.physicsPackages())
     rhoPlot, velPlot, epsPlot, PPlot, HPlot = plotState(state, plotGhosts=True)
