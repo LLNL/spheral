@@ -92,6 +92,7 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
+  virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                                     State<Dimension>& state,
                                                     StateDerivatives<Dimension>& derivs) override;

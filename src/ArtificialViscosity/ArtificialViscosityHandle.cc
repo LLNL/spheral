@@ -119,13 +119,23 @@ applyGhostBoundaries(State<Dimension>& state,
 template<typename Dimension>
 void
 ArtificialViscosityHandle<Dimension>::
+initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
+  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
+  if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {
+    dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::ArtificialViscosityVelocityGradient, false);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Initialize dependent state for the FluidNodeLists in the given DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ArtificialViscosityHandle<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
-  // Size our internal state fields
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
-
   // Prepare the initial velocity gradient
   if (this->requireVelocityGradient() or
       this->balsaraShearCorrection()) {

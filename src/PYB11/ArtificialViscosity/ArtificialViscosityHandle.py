@@ -56,6 +56,12 @@ class ArtificialViscosityHandle(Physics):
         return "void"
 
     @PYB11virtual
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        "Initialize the artificial viscosity for all FluidNodeLists in the given DataBase"
+        return "void"
+
+    @PYB11virtual
     def initializeProblemStartupDependencies(self,
                                              dataBase = "DataBase<%(Dimension)s>&",
                                              state = "State<%(Dimension)s>&",
