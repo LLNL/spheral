@@ -89,16 +89,10 @@ db = DataBase()
 db.appendNodeList(nodes1)
 
 #-------------------------------------------------------------------------------
-# Construct the artificial viscosity.
-#-------------------------------------------------------------------------------
-q = MonaghanGingoldViscosity(0.0, 0.0)
-
-#-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
 hydro = SPH(dataBase = db,
             W = WT, 
-            Q = q,
             cfl = cfl,
             densityUpdate = densityUpdate,
             HUpdate = HEvolution)
