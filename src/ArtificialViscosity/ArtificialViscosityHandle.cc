@@ -279,10 +279,8 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
       for (auto i = 0u; i < ni; ++i) {
 
         // Get the state for node i.
-        const auto& mi = mass(nodeListi, i);
         const auto& rhoi = massDensity(nodeListi, i);
         const auto  numNeighborsi = connectivityMap.numNeighborsForNode(nodeListi, i);
-        CHECK(mi > 0.0);
         CHECK(rhoi > 0.0);
 
         auto& DvDxi = DvDx_AV(nodeListi, i);

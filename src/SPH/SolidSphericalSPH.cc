@@ -574,7 +574,7 @@ evaluateDerivativesImpl(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDtj = mi*(sigmarhoj*gradWij + sigmarhoi*gradWii - (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
+      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
 
       // Specific thermal energy evolution.
       const auto QPisum = scalarSum(QPiij, QPiji);
@@ -726,7 +726,7 @@ evaluateDerivativesImpl(const Dim<1>::Scalar /*time*/,
       const auto deltaDvDti = mi*safeOmegai/(rhoi*rhoi)*(2.0*sigmai*gradWii - Qi*gradWQii) +  // self-interaction because kernel is not symmetric
                               3.0*Si.xx()/rhoi*riInv;                                         // hoop terms from theta & phi directions
       DvDti += deltaDvDti;
-      if (mCompatibleEnergyEvolution) selfAccelerations(nodeListi, i) = deltaDvDti;
+      if (compatibleEnergy) selfAccelerations(nodeListi, i) = deltaDvDti;
 
       // Specific thermal energy
       DepsDti -= 2.0*mi/(rhoi*rhoi)*(sigmai.xx() - 0.5*Qi)*vi.dot(gradWii) +
