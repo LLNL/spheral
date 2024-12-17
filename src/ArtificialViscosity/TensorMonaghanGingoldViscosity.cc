@@ -92,7 +92,7 @@ QPiij(Tensor& QPiij, Tensor& QPiji,      // result for QPi (Q/rho^2)
 
   // A few useful constants
   const auto tiny = 1.0e-20;
-  const auto multipliers = fCl.size() == 0u;
+  const auto multipliers = fCl.size() > 0u;
 
   // If the nodes are not closing, then skip the rest and the Q for this pair is zero.
   const auto xij = xi - xj;

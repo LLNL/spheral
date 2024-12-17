@@ -15,6 +15,7 @@ class MonaghanGingoldViscosity(ArtificialViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
     using ReturnType = %(QPiType)s;
 """
 
@@ -23,9 +24,9 @@ class MonaghanGingoldViscosity(ArtificialViscosity):
     def pyinit(self,
                Clinear = "const Scalar",
                Cquadratic = "const Scalar",
+               kernel = "const TableKernel<%(Dimension)s>&",
                linearInExpansion = ("bool", "false"),
-               quadraticInExpansion = ("bool", "false"),
-               kernel = "const TableKernel<%(Dimension)s>&"):
+               quadraticInExpansion = ("bool", "false")):
         "MonaghanGingoldViscosity constructor"
 
     #...........................................................................

@@ -622,7 +622,6 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
   }   // OpenMP parallel region
 
   // Finish up the derivatives for each point.
-  auto offset = 2*npairs;
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
     const auto ni = nodeList.numInternalNodes();
@@ -752,7 +751,6 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
       // In the presence of damage, add a term to reduce the stress on this point.
       DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;
     }
-    offset += ni;
   }
 }
 

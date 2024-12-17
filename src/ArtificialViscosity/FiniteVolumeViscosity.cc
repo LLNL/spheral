@@ -74,7 +74,7 @@ QPiij(Scalar& QPiij, Scalar& QPiji,      // result for QPi (Q/rho^2)
   REQUIRE((not mBalsaraShearCorrection) or DvDx.size() > std::max(nodeListi, nodeListj));
 
   // A few useful constants
-  const auto multipliers = fCl.size() == 0u;
+  const auto multipliers = fCl.size() > 0u;
 
   // Find our linear and quadratic coefficients
   const auto fCli = multipliers ? fCl(nodeListi, i) : 1.0;

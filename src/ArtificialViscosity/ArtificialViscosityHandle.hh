@@ -12,6 +12,7 @@
 #include "Physics/Physics.hh"
 #include "Field/FieldList.hh"
 #include "DataOutput/registerWithRestart.hh"
+#include "Utilities/DeprecationWarning.hh"
 
 #include <utility>
 #include <typeindex>
@@ -132,9 +133,13 @@ public:
   void negligibleSoundSpeed(Scalar x)                                           { REQUIRE(x > 0.0); mNegligibleSoundSpeed = x; }
   void rigorousVelocityGradient(bool x)                                         { mRigorousVelocityGradient = x; }
 
+  // Deprecated options
+  bool                               limiter()                            const { DeprecationWarning("ArtificialViscosity::limiter"); return false; }
+  void                               limiter(const bool x)                      { DeprecationWarning("ArtificialViscosity::limiter"); }
+
   //...........................................................................
   // Methods required for restarting.
-  virtual std::string label()                                             const { return "ArtificialViscosityHandle"; }
+  virtual std::string label()                                    const override { return "ArtificialViscosityHandle"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 

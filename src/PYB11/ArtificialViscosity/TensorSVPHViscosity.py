@@ -15,6 +15,7 @@ class TensorSVPHViscosity(ArtificialViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
     using ReturnType = %(QPiType)s;
 """
 
@@ -23,8 +24,8 @@ class TensorSVPHViscosity(ArtificialViscosity):
     def pyinit(self,
                Clinear = "const Scalar",
                Cquadratic = "const Scalar",
-               fslice = "const Scalar",
-               kernel = "const TableKernel<%(Dimension)s>&"):
+               kernel = "const TableKernel<%(Dimension)s>&",
+               fslice = "const Scalar"):
         "TensorSVPHViscosity constructor"
 
     #...........................................................................

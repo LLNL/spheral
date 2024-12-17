@@ -25,9 +25,9 @@ public:
   // Constructors.
   MonaghanGingoldViscosity(const Scalar Clinear,
                            const Scalar Cquadratic,
+                           const TableKernel<Dimension>& kernel,
                            const bool linearInExpansion,
-                           const bool quadraticInExpansion,
-                           const TableKernel<Dimension>& kernel);
+                           const bool quadraticInExpansion);
   virtual ~MonaghanGingoldViscosity() = default;
 
   // No default construction, copying, or assignment
@@ -60,7 +60,7 @@ public:
                      const FieldList<Dimension, Tensor>& DvDx) const override;
 
   // Restart methods.
-  virtual std::string label()             const { return "MonaghanGingoldViscosity"; }
+  virtual std::string label()    const override { return "MonaghanGingoldViscosity"; }
 
   // Access data members
   bool linearInExpansion()                const { return mLinearInExpansion; }

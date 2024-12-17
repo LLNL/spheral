@@ -2,17 +2,19 @@
 # ArtificialViscosity
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from ArtificialViscosityHandle import *
 from ArtificialViscosityAbstractMethods import *
 
 @PYB11template("Dimension", "QPiType")
 @PYB11module("SpheralArtificialViscosity")
-class ArtificialViscosity:
+class ArtificialViscosity(ArtificialViscosityHandle):
 
     PYB11typedefs = """
   using Scalar = typename %(Dimension)s::Scalar;
   using Vector = typename %(Dimension)s::Vector;
   using Tensor = typename %(Dimension)s::Tensor;
   using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
   using ReturnType = %(QPiType)s;
 """
 

@@ -2,12 +2,13 @@
 # ArtificialViscosityHandle
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
+from Physics import *
 from PhysicsAbstractMethods import *
 from RestartMethods import *
 
 @PYB11template("Dimension")
 @PYB11module("SpheralArtificialViscosity")
-class ArtificialViscosityHandle:
+class ArtificialViscosityHandle(Physics):
 
     PYB11typedefs = """
   using Scalar = typename %(Dimension)s::Scalar;
@@ -64,7 +65,7 @@ class ArtificialViscosityHandle:
 
     @PYB11virtual
     def postStateUpdate(self,
-                        t = "const Scalar",
+                        time = "const Scalar",
                         dt = "const Scalar",
                         dataBase = "const DataBase<%(Dimension)s>&",
                         state = "State<%(Dimension)s>&",
@@ -93,6 +94,7 @@ class ArtificialViscosityHandle:
                        doc="The quadratic coefficient")
     balsaraShearCorrection = PYB11property("bool", "balsaraShearCorrection", "balsaraShearCorrection",
                                            doc="Toggle whether to use the Balsara suppression for shear flows")
+    limiter = PYB11property("bool", "limiter", "limiter", doc="Defunct option, to be removed")
     epsilon2 = PYB11property("Scalar", "epsilon2", "epsilon2",
                              doc="Safety factor in denominator for Q")
     negligibleSoundSpeed = PYB11property("Scalar", "negligibleSoundSpeed", "negligibleSoundSpeed",

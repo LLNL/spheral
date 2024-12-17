@@ -68,7 +68,7 @@ public:
                 const Scalar dt,
                 DataBase<Dimension>& dataBase,
                 State<Dimension>& state,
-                StateDerivatives<Dimension>& derivs);
+                StateDerivatives<Dimension>& derivs) override;
   virtual   
   void applyGhostBoundaries(State<Dimension>& state,
                             StateDerivatives<Dimension>& derivs) override;
@@ -95,7 +95,7 @@ public:
   //............................................................................
     
   // Restart methods.
-  virtual std::string label() const { return "CullenDehnenViscosity"; }
+  virtual std::string label() const override { return "CullenDehnenViscosity"; }
   virtual void dumpState(FileIO& file, const std::string& pathName) const;
   virtual void restoreState(const FileIO& file, const std::string& pathName);
 

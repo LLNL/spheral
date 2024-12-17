@@ -125,7 +125,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             etaCritFrac = None,
             linearInExpansion = None,
             quadraticInExpansion = None,
-            Qlimiter = None,
             balsaraCorrection = None,
             epsilon2 = None,
             QcorrectionOrder = None,
@@ -137,7 +136,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             fhourglass = 0.0,
-            filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -147,7 +145,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             dtMax = 0.1,
             dtGrowth = 2.0,
             dtverbose = False,
-            rigorousBoundaries = False,
             updateBoundaryFrequency = 1,
             maxSteps = None,
             statsStep = 1,
@@ -213,8 +210,7 @@ if dataDirBase:
                            "nPerh=%f" % nPerh,
                            "compatibleEnergy=%s" % compatibleEnergy,
                            "fhourglass=%s" % fhourglass,
-                           "Cullen=%s" % boolCullenViscosity,
-                           "filter=%f" % filter)
+                           "Cullen=%s" % boolCullenViscosity)
     restartDir = os.path.join(dataDir, "restarts")
     restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 else:
@@ -421,7 +417,6 @@ elif hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -433,7 +428,6 @@ elif hydroType == "CRKSPH":
 elif hydroType == "PSPH":
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = filter,
                  cfl = cfl,
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                  compatibleEnergyEvolution = compatibleEnergy,
@@ -499,18 +493,17 @@ else:
     assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
                 gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
-                HUpdate = HUpdate,
-                XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
+                HUpdate = HUpdate,
                 ASPH = asph)
 output("hydro")
 try:
@@ -536,8 +529,6 @@ if not hydroType in ("GSPH", "MFM"):
         q.Cq = Cq
     if not epsilon2 is None:
         q.epsilon2 = epsilon2
-    if not Qlimiter is None:
-        q.limiter = Qlimiter
     if not balsaraCorrection is None:
         q.balsaraShearCorrection = balsaraCorrection
     if not QcorrectionOrder is None:
@@ -546,7 +537,6 @@ if not hydroType in ("GSPH", "MFM"):
     output("q.Cl")
     output("q.Cq")
     output("q.epsilon2")
-    output("q.limiter")
     output("q.balsaraShearCorrection")
     if hasattr(q, "linearInExpansion") and not linearInExpansion is None:
         q.linearInExpansion = linearInExpansion
@@ -619,7 +609,6 @@ integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
-integrator.rigorousBoundaries = rigorousBoundaries
 integrator.updateBoundaryFrequency = updateBoundaryFrequency
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.cullGhostNodes = cullGhostNodes
@@ -629,7 +618,6 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
-output("integrator.rigorousBoundaries")
 output("integrator.updateBoundaryFrequency")
 output("integrator.domainDecompositionIndependent")
 output("integrator.cullGhostNodes")

@@ -48,7 +48,7 @@ public:
   void order(const RKOrder x)                                          { mOrder = x; }
 
   // Restart methods.
-  virtual std::string label() const { return "TensorCRKSPHViscosity"; }
+  virtual std::string label()                           const override { return "TensorCRKSPHViscosity"; }
 
 private:
   //--------------------------- Private Interface ---------------------------//

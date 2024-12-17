@@ -27,11 +27,11 @@ public:
   // Constructors.
   LimitedMonaghanGingoldViscosity(const Scalar Clinear,
                                   const Scalar Cquadratic,
+                                  const TableKernel<Dimension>& kernel,
                                   const bool linearInExpansion,
                                   const bool quadraticInExpansion,
                                   const Scalar etaCritFrac,
-                                  const Scalar etaFoldFrac,
-                                  const TableKernel<Dimension>& kernel);
+                                  const Scalar etaFoldFrac);
   virtual ~LimitedMonaghanGingoldViscosity() = default;
 
   // No default construction, copying, or assignment
@@ -67,14 +67,14 @@ public:
                      const FieldList<Dimension, Tensor>& DvDx) const override;
 
   // Access our data
-  Scalar etaCritFrac()              const { return mEtaCritFrac; }
-  Scalar etaFoldFrac()              const { return mEtaFoldFrac; }
+  Scalar etaCritFrac()                       const { return mEtaCritFrac; }
+  Scalar etaFoldFrac()                       const { return mEtaFoldFrac; }
 
-  void etaCritFrac(const Scalar x)        { mEtaCritFrac = x; }
-  void etaFoldFrac(const Scalar x)        { mEtaFoldFrac = x; }
+  void etaCritFrac(const Scalar x)                 { mEtaCritFrac = x; }
+  void etaFoldFrac(const Scalar x)                 { mEtaFoldFrac = x; }
 
   // Restart methods.
-  virtual std::string label()       const { return "LimitedMonaghanGingoldViscosity"; }
+  virtual std::string label()       const override { return "LimitedMonaghanGingoldViscosity"; }
 
 protected:
   //--------------------------- Private Interface ---------------------------//

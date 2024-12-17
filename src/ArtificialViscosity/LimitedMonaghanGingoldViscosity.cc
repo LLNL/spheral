@@ -110,13 +110,13 @@ template<typename Dimension>
 LimitedMonaghanGingoldViscosity<Dimension>::
 LimitedMonaghanGingoldViscosity(const Scalar Clinear,
                                 const Scalar Cquadratic,
+                                const TableKernel<Dimension>& kernel,
                                 const bool linearInExpansion,
                                 const bool quadraticInExpansion,
                                 const Scalar etaCritFrac,
-                                const Scalar etaFoldFrac,
-                                const TableKernel<Dimension>& kernel):
-  MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, 
-                                      linearInExpansion, quadraticInExpansion, kernel),
+                                const Scalar etaFoldFrac):
+  MonaghanGingoldViscosity<Dimension>(Clinear, Cquadratic, kernel, 
+                                      linearInExpansion, quadraticInExpansion),
   mEtaCritFrac(etaCritFrac),
   mEtaFoldFrac(etaFoldFrac) {
 }
@@ -152,7 +152,7 @@ QPiij(Scalar& QPiij, Scalar& QPiji,      // result for QPi (Q/rho^2)
   REQUIRE(DvDx.size() > std::max(nodeListi, nodeListj));
 
   // A few useful constants
-  const auto multipliers = fCl.size() == 0u;
+  const auto multipliers = fCl.size() > 0u;
 
   // We need nPerh to figure out our critical folding distance. We assume the first NodeList value for this is
   // correct for all of them...

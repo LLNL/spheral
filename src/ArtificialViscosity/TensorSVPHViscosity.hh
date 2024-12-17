@@ -23,8 +23,8 @@ public:
   // Constructors, destructor
   TensorSVPHViscosity(const Scalar Clinear,
                       const Scalar Cquadratic,
-                      const Scalar fslice,
-                      const TableKernel<Dimension>& WT);
+                      const TableKernel<Dimension>& WT,
+                      const Scalar fslice);
   virtual ~TensorSVPHViscosity() = default;
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given

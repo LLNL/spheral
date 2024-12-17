@@ -15,6 +15,7 @@ class FiniteVolumeViscosity(ArtificialViscosity):
     using Tensor = typename %(Dimension)s::Tensor;
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
     using ReturnType = %(QPiType)s;
 """
 

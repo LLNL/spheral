@@ -39,8 +39,8 @@ template<typename Dimension>
 TensorSVPHViscosity<Dimension>::
 TensorSVPHViscosity(const Scalar Clinear,
                     const Scalar Cquadratic,
-                    const Scalar fslice,
-                    const TableKernel<Dimension>& WT):
+                    const TableKernel<Dimension>& WT,
+                    const Scalar fslice):
   ArtificialViscosity<Dimension, Tensor>(Clinear, Cquadratic, WT),
   mfslice(fslice),
   mDvDx(),

@@ -48,6 +48,7 @@ ArtificialViscosity(const Scalar Clinear,
   mMaxViscousPressure(FieldStorageType::CopyFields),
   mRigorousVelocityGradient(false),
   mWT(kernel),
+  mM(FieldStorageType::CopyFields),
   mDvDx(FieldStorageType::CopyFields),
   mRestart(registerWithRestart(*this)) {
 }

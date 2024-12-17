@@ -93,10 +93,10 @@ def SPH(W,
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"W" : W,
-              "WPi" : WPi,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "Q" : Q,
+              "W" : W,
+              "WPi" : WPi,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -118,9 +118,9 @@ def SPH(W,
 
     # Build the SPH hydro
     result = constructor(**kwargs)
-    result.Q = Q
 
     # Add the Q as a sub-package (to run before the hydro)
+    result.Q = Q
     result.prependSubPackage(Q)
 
     # Smoothing scale update

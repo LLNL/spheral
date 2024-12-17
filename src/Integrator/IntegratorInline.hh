@@ -1,4 +1,5 @@
 #include "Utilities/DBC.hh"
+#include "Utilities/DeprecationWarning.hh"
 
 namespace Spheral {
 
@@ -191,7 +192,7 @@ template<typename Dimension>
 inline
 bool
 Integrator<Dimension>::rigorousBoundaries() const {
-  if (Process::getRank() == 0) std::cerr << "Integrator DEPRECATION warning: rigorousBoudaries is deprecated (has no effect)" << std::endl;
+  DeprecationWarning("Integrator::rigorousBoundaries");
   return false;
 }
 
@@ -200,7 +201,7 @@ inline
 void
 Integrator<Dimension>::
 rigorousBoundaries(bool value) {
-  if (Process::getRank() == 0) std::cerr << "Integrator DEPRECATION warning: rigorousBoudaries is deprecated (has no effect)" << std::endl;
+  DeprecationWarning("Integrator::rigorousBoundaries");
 }
 
 //------------------------------------------------------------------------------
