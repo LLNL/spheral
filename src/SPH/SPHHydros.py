@@ -88,7 +88,10 @@ def SPH(W,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi)" % (ndim, Cl, Cq))
+        if GeometryRegistrar.coords() == CoordinateType.Spherical:
+            Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi.baseKernel1d)" % (ndim, Cl, Cq))
+        else:
+            Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
