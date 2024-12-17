@@ -1,6 +1,10 @@
 #ifndef __Spheral_DeviceTest_hh__
 #define __Spheral_DeviceTest_hh__
 
+#if defined(SPHERAL_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#endif
+
 namespace Spheral
 {
 

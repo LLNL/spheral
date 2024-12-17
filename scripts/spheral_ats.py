@@ -162,7 +162,7 @@ def main():
         elif any(x in hostname for x in toss_cray_machine_names):
             os.environ['MACHINE_TYPE'] = 'flux00'
             numNodes = numNodes if numNodes else 2
-            timeLimit = timeLimit if timeLimit else 120
+            timeLimit = timeLimit if timeLimit else 60
             #mac_args = [f"--nn={numNodes} --gpus_per_task=1 -n=64 --timelimit={timeLimit}m"]
             #inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"flux alloc --exclusive -N {numNodes} -t {timeLimit} "

@@ -39,7 +39,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('cmake@3.21.0:', type='build')
 
-    depends_on('boost +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
+    depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
     depends_on('zlib@1.3 +shared +pic', type='build')
 
@@ -139,6 +139,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries = []
         if "+mpi" in spec:
           entries = super(Spheral, self).initconfig_mpi_entries()
+          # When on cray / flux systems we need to tell CMAKE the mpi flag explicitly
           if "cray-mpich" in spec:
             for e in entries:
                 if 'MPIEXEC_NUMPROC_FLAG' in e:
@@ -152,7 +153,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         if '+rocm' in spec:
             entries.append(cmake_cache_option("ENABLE_HIP", True))
-            entries.append(cmake_cache_option("ROCM_PATH", spec["hip"].prefix))
+            entries.append(cmake_cache_string("ROCM_PATH", spec["hip"].prefix))
 
         if '+cuda' in spec:
             entries.append(cmake_cache_option("ENABLE_CUDA", True))
