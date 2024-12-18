@@ -45,11 +45,10 @@ public:
   State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
-  State(const State& rhs);
+  State() = default;
+  State(const State& rhs) = default;
+  State& operator=(const State& rhs) = default;
   virtual ~State() = default;
-
-  // Assignment.
-  State& operator=(const State& rhs);
 
   // Override the base equivalence operator
   virtual bool operator==(const StateBase<Dimension>& rhs) const override;
@@ -108,9 +107,6 @@ public:
   // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
   // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
   template<typename T> void enroll(const KeyType& key, T& thing);
-
-  // Forbidden methods
-  State() = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -106,32 +106,6 @@ State(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State(const State<Dimension>& rhs):
-  StateBase<Dimension>(rhs),
-  mPolicyMap(rhs.mPolicyMap),
-  mTimeAdvanceOnly(rhs.mTimeAdvanceOnly) {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>&
-State<Dimension>::
-operator=(const State<Dimension>& rhs) {
-  if (this != &rhs) {
-    StateBase<Dimension>::operator=(rhs);
-    mPolicyMap = rhs.mPolicyMap;
-    mTimeAdvanceOnly = rhs.mTimeAdvanceOnly;
-  }
-  return *this;
-}
-
-//------------------------------------------------------------------------------
 // operator==
 //------------------------------------------------------------------------------
 template<typename Dimension>

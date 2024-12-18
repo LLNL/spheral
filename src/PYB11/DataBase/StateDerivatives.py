@@ -8,21 +8,24 @@ from StateBase import *
 class StateDerivatives(StateBase):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename StateBase<%(Dimension)s>::KeyType KeyType;
-    typedef typename StateBase<%(Dimension)s>::FieldName FieldName;
-    typedef typename StateBase<%(Dimension)s>::MeshPtr MeshPtr;
-    typedef typename StateDerivatives<%(Dimension)s>::PackageList PackageList;
+    using Scalar =typename %(Dimension)s::Scalar;
+    using Vector =typename %(Dimension)s::Vector;
+    using Tensor =typename %(Dimension)s::Tensor;
+    using SymTensor =typename %(Dimension)s::SymTensor;
+    using KeyType =typename StateBase<%(Dimension)s>::KeyType;
+    using FieldName =typename StateBase<%(Dimension)s>::FieldName;
+    using MeshPtr =typename StateBase<%(Dimension)s>::MeshPtr;
+    using PackageList =typename StateDerivatives<%(Dimension)s>::PackageList;
 """
 
     #...........................................................................
     # Constructors
-    def pyinit(self,
-               dataBase = "DataBase<%(Dimension)s>&",
-               physicsPackages = "PackageList&"):
+    def pyinit0(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                dataBase = "DataBase<%(Dimension)s>&",
+                physicsPackages = "PackageList&"):
         "Construct using the Physics::registerDerivatives methods of the packages"
 
     #...........................................................................
@@ -32,13 +35,6 @@ class StateDerivatives(StateBase):
 
     #...........................................................................
     # Methods
-    def initializeNodePairInformation(self):
-        return "void"
-
-    @PYB11const
-    def calculatedNodePairsSymmetric(self):
-        return "bool"
-
     def Zero(self):
         "Set all derivative Fields to zero"
         return "void"

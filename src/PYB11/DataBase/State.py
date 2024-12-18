@@ -21,9 +21,12 @@ class State(StateBase):
 
     #...........................................................................
     # Constructors
-    def pyinit(self,
-               dataBase = "DataBase<%(Dimension)s>&",
-               physicsPackages = "PackageList&"):
+    def pyinit0(self):
+        "Default constructor"
+
+    def pyinit1(self,
+                dataBase = "DataBase<%(Dimension)s>&",
+                physicsPackages = "PackageList&"):
         "Construct using the Physics::registerState methods of the packages"
 
     #...........................................................................

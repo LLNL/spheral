@@ -46,9 +46,7 @@ template<typename Dimension>
 StateDerivatives<Dimension>::
 StateDerivatives(DataBase<Dimension>& dataBase,
                  typename StateDerivatives<Dimension>::PackageList& physicsPackages):
-  StateBase<Dimension>(),
-  mCalculatedNodePairs(),
-  mNumSignificantNeighbors() {
+  StateBase<Dimension>() {
   for (auto pkg: physicsPackages) pkg->registerDerivatives(dataBase, *this);
   auto cmp = dataBase.connectivityMapPtr();
   if (cmp) this->enrollConnectivityMap(cmp);
@@ -62,38 +60,10 @@ StateDerivatives<Dimension>::
 StateDerivatives(DataBase<Dimension>& dataBase,
                  typename StateDerivatives<Dimension>::PackageIterator physicsPackageBegin,
                  typename StateDerivatives<Dimension>::PackageIterator physicsPackageEnd):
-  StateBase<Dimension>(),
-  mCalculatedNodePairs(),
-  mNumSignificantNeighbors() {
+  StateBase<Dimension>() {
   for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerDerivatives(dataBase, *this);
   auto cmp = dataBase.connectivityMapPtr();
   if (cmp) this->enrollConnectivityMap(cmp);
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateDerivatives<Dimension>::
-StateDerivatives(const StateDerivatives<Dimension>& rhs):
-  StateBase<Dimension>(rhs),
-  mCalculatedNodePairs(rhs.mCalculatedNodePairs),
-  mNumSignificantNeighbors(rhs.mNumSignificantNeighbors) {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-StateDerivatives<Dimension>&
-StateDerivatives<Dimension>::
-operator=(const StateDerivatives<Dimension>& rhs) {
-  if (this != &rhs) {
-    StateBase<Dimension>::operator=(rhs);
-    mCalculatedNodePairs = rhs.mCalculatedNodePairs;
-    mNumSignificantNeighbors = rhs.mNumSignificantNeighbors;
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -104,46 +74,6 @@ bool
 StateDerivatives<Dimension>::
 operator==(const StateBase<Dimension>& rhs) const {
   return StateBase<Dimension>::operator==(rhs);
-}
-
-//------------------------------------------------------------------------------
-// (Re)initialize the internal data structure for tracking calculated node 
-// pairs.  This also initializes the number of significant neighbor tracking.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-StateDerivatives<Dimension>::
-initializeNodePairInformation() {
-  // Clear out any existing info.
-  mCalculatedNodePairs = CalculatedPairType();
-  mNumSignificantNeighbors = SignificantNeighborMapType();
-
-}
-
-//------------------------------------------------------------------------------
-// Check to see if the node interaction map is symmetric.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-bool
-StateDerivatives<Dimension>::
-calculatedNodePairsSymmetric() const {
-  bool result = true;
-  typename CalculatedPairType::const_iterator itr = mCalculatedNodePairs.begin();
-  while (result && itr != mCalculatedNodePairs.end()) {
-    const NodeIteratorBase<Dimension> nodeI = itr->first;
-    const vector<NodeIteratorBase<Dimension> > neighbors = itr->second;
-    for (typename vector<NodeIteratorBase<Dimension> >::const_iterator nodeJItr = neighbors.begin();
-         (nodeJItr != neighbors.end()) && result;
-         ++nodeJItr) {
-      typename CalculatedPairType::const_iterator itr2 = mCalculatedNodePairs.find(*nodeJItr);
-      CONTRACT_VAR(itr2);
-      CHECK(itr2 != mCalculatedNodePairs.end());
-      const vector<NodeIteratorBase<Dimension> > neighborsJ = itr->second;
-      result = result && (find(neighborsJ.begin(), neighborsJ.end(), nodeI) != neighborsJ.end());
-    }
-    ++itr;
-  }
-  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -178,9 +108,6 @@ Zero() {
   for (auto itr: mStorage) {
     ZERO.visit(itr.second);
   }
-
-  // Reinitialize the node pair interaction information.
-  initializeNodePairInformation();
 }
 
 }
