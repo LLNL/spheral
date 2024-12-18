@@ -234,9 +234,13 @@ for test_key, ctest in cur_test_data.items():
     test_steps = test_key[2]
     if (test_key not in ref_test_data):
         # This means the test configurations differ (number of time steps etc)
-        rtest = filter_tests(refdata, test_name)
-        ftest_configs = compare_tests(ctest, rtest)
-        test_status.update({test_name: ("SKIPPED-TEST", ftest_configs)})
+        if (test_name not in refdata.get_unique_metadata()["test_name"]):
+            skip_msg = f"{test_name} not found in reference data"
+            test_status.update({test_name: ("SKIPPED-TEST", [skip_msg])})
+        else:
+            rtest = filter_tests(refdata, test_name)
+            ftest_configs = compare_tests(ctest, rtest)
+            test_status.update({test_name: ("SKIPPED-TEST", ftest_configs)})
         continue
     rtest = ref_test_data[test_key]
     if (not args.diff_configs):
