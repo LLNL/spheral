@@ -811,6 +811,20 @@ haveNodeList(const NodeList<Dimension>& nodeList) const {
 }
 
 //------------------------------------------------------------------------------
+// Get the NodeList index for the given NodeList
+//------------------------------------------------------------------------------
+template<typename Dimension>
+int
+DataBase<Dimension>::
+nodeListIndex(const NodeList<Dimension>& nodeList) const {
+  ConstNodeListIterator itr = find(nodeListBegin(),
+                                   nodeListEnd(),
+                                   &nodeList);
+  VERIFY(itr != nodeListEnd());
+  return std::distance(nodeListBegin(), itr);
+}
+
+//------------------------------------------------------------------------------
 // Return the const list of NodeList pointers.
 //------------------------------------------------------------------------------
 template<typename Dimension>
