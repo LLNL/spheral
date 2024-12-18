@@ -32,6 +32,11 @@ Notable changes include:
     * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
       during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
       is correct.
+    * Converted artificial viscosities to Physics packages, and add them as pre-subpackages to Hydro objects.
+    * Split artificial viscosities based on the type of pressure they compute (currently Scalar or Tensor), which is slightly more efficient.
+      * This required making the hydro packages evaluateDerivatives into templated methods based on the type of Q they are handed.
+      * Also introduced a new base class (ArtificialViscosityHandle), which provides a handle class not templated on the type
+        of Q pressure for Hydro objects to hold onto.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
