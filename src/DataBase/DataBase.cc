@@ -814,7 +814,7 @@ haveNodeList(const NodeList<Dimension>& nodeList) const {
 // Get the NodeList index for the given NodeList
 //------------------------------------------------------------------------------
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::
 nodeListIndex(const NodeList<Dimension>& nodeList) const {
   ConstNodeListIterator itr = find(nodeListBegin(),

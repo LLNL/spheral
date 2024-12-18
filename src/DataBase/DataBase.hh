@@ -199,7 +199,7 @@ public:
   void deleteNodeList(NodeList<Dimension>& nodeList);
 
   bool haveNodeList(const NodeList<Dimension>& nodeList) const;
-  int nodeListIndex(const NodeList<Dimension>& nodeList) const;
+  size_t nodeListIndex(const NodeList<Dimension>& nodeList) const;
 
   // Allow const access to the list of NodeList pointers.
   const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
