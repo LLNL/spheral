@@ -130,6 +130,8 @@ def main():
                         help="Option to only be used by the CI")
     parser.add_argument("--atsHelp", action="store_true",
                         help="Print the help output for ATS. Useful for seeing ATS options.")
+    parser.add_argument("--threads", type=int, default=None,
+                        help="Set number of threads per rank to use. Only used by performance.py")
     options, unknown_options = parser.parse_known_args()
     if (options.atsHelp):
         subprocess.run(f"{ats_exe} --help", shell=True, check=True, text=True)
@@ -182,6 +184,8 @@ def main():
         ats_args.append('--continueFreq=15')
         # Pass flag to tell tests this is a CI run
         ats_args.append('--glue="cirun=True"')
+    if (options.threads):
+        ats_args.append(f'--glue="threads={options.threads}"')
     ats_args.append(f'''--glue="benchmark_dir='{benchmark_dir}'"''')
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)

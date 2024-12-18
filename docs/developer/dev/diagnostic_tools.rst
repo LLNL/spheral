@@ -112,7 +112,7 @@ Adiak Key                Description
 ``user``                 User
 ``cluster``              Hostname (ie rzgenie)
 ``jobsize``              Number of ranks
-``numhosts``             Number of nodes
+``numhosts``             Number of allocated nodes
 ``total_internal_nodes`` Number of SPH nodes
 ``total_steps``          Number of time steps
 ``dim``                  Number of dimensions
@@ -137,6 +137,9 @@ As mentioned above, the Caliper timing manager is normally configured and starte
 Performance Regression Testing
 ==============================
 
+.. note::
+   The following is currently only applicable for use on LC machines at LLNL.
+
 ``tests/performance.py`` contains a set of performance regression tests. These tests allow a developer to estimate the performance implications of code under development and compare it to the current development branch of Spheral.
 When a merge to the develop branch occurs, the CI runs this regression test multiple times to accumulate benchmark timing data in a centralized directory (``/usr/WS2/sduser/Spheral/benchmark``).
 The general procedure to comparing performance regression tests is:
@@ -144,8 +147,9 @@ The general procedure to comparing performance regression tests is:
 #. Run the performance regression tests from an installation using 2 nodes (number of nodes used in benchmark run by CI):
    ::
 
-      ./spheral-ats --numNodes 2 --loc perftest tests/performance.py
+      ./spheral-ats --loc test_dir_name --numNodes 2 tests/performance.py
 
+   There is also a ``--threads`` option to specify a given number of threads per rank.
 #. Once the tests are finished running, activate the Thicket virtual environment installed for Spheral developers
    ::
 
@@ -157,9 +161,26 @@ The general procedure to comparing performance regression tests is:
       source /usr/gapps/Spheral/venv_timer/bin/activate.csh
 
    if using a csh/tcsh terminal.
-#. Utilize Thicket to compare the newly run times with benchmark timings in ``/usr/WS2/sduser/Spheral/benchmark``
+#. Utilize Thicket to compare the newly run times with reference times
    ::
 
-      python3 /path/to/spheral/scripts/devtools/performance_analysis.py --perf_dir perftest
+      python3 ./scripts/performance_analysis.py --perf-dir test_dir_name --ref /directory/of/reference/caliper/files/
 
-   This will compare the ``main`` times for each test and display the timing tree for any tests that exceed the timing thresholds.
+   The input to ``--ref`` can be also be an ATS directory created from running ``performance.py`` or just a directory of Caliper files.
+   Removing the ``--ref`` input will default to comparing to benchmark timings in ``/usr/WS2/sduser/Spheral/benchmark``.
+   If comparing tests across different hardware/compiler/etc., be sure to add ``--diff-configs`` to the command line.
+   The script above computes the mean (:math:`\mu`) and standard deviation (:math:`\sigma`) of the inclusive average time per rank (``Avg time/rank``) timers for each test in the reference (or benchmark) data.
+   It computes a timing threshold using:
+
+   .. math::
+
+      \delta_{\mathrm{thresh}} = 0.08 \mu + 2 \sigma
+
+   If the :math:`t_c - \mu > \delta_{\mathrm{thresh}}` for the ``main`` region, where :math:`t_c` is the new performance time from step 1, the test is considered to have failed and the timing tree of the exclusive average time per rank (``Avg time/rank (exc)``) will be displayed.
+   If the test configurations, like the number of time steps differed between the runs, or the hardware/install configurations did not match, it will consider the test skipped.
+   Otherwise, the test is considered to have passed.
+   If the :math:`t_c - \mu < -\delta_{\mathrm{thresh}}`, the performance improved significantly and the timing tree will be displayed.
+
+.. note::
+
+   If ``performance.py`` is run on a non-MPI Spheral build, it will only use 1 rank and will thread all other cores.

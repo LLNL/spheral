@@ -10,15 +10,18 @@ from SpheralUtilities import TimerMgr
 from SpheralTestUtilities import num_3d_cyl_nodes
 from ats import configuration
 
-if (mpi.is_fake_mpi()):
-    log("WARNING: MPI is not enabled, skipping performance tests", echo=True)
-    sys.exit(0)
-elif (not TimerMgr.timers_usable()):
+if (not TimerMgr.timers_usable()):
     log("WARNING: Timers not enabled, skipping performance tests", echo=True)
     sys.exit(0)
 
 # Get options from ats
 opts = getOptions()
+
+# Adding --threads to the command line arguments of spheral-ats
+# can force performance to use multiple threads per rank
+num_threads = 1
+if "threads" in opts:
+    num_threads = opts["threads"]
 
 # Adding --ciRun to the command line arguments of spheral-ats
 # triggers copy of Caliper files to benchmark location
@@ -27,8 +30,9 @@ test_runs = 1 # Number of times to run each test
 if "cirun" in opts and opts["cirun"]:
     test_runs = 5
     benchmark_dir = opts["benchmark_dir"]
-
-# Current install configuration from Spack
+#---------------------------------------------------------------------------
+# Hardware configuration
+#---------------------------------------------------------------------------
 # This should be {$SYS_TYPE}_{compiler name}_{compiler version}_{mpi or cuda info}
 spheral_install_config = SpheralConfigs.config()
 
@@ -36,13 +40,14 @@ spheral_install_config = SpheralConfigs.config()
 temp_uname = os.uname()
 hostname = "".join([i for i in temp_uname[1] if not i.isdigit()])
 mac_procs = {"rzhound": 112, "rzwhippet": 112, "ruby": 112,
-             "rzadams": 96, "rzvernal": 64, "tioga": 64,
+             "rzadams": 84, "rzvernal": 64, "tioga": 64,
              "rzansel": 40, "lassen": 40, "rzgenie": 36}
 # Find out how many nodes our allocation has grabbed
 num_nodes = max(1, configuration.machine.numNodes)
-if (num_nodes != 2):
-    log("WARNING: Performance regression benchmark tests are run with 2 nodes, "+\
-        "current performance test will not correspond to benchmarks.", echo=True)
+if (mpi.is_fake_mpi()):
+    if (num_nodes > 1):
+        raise Exception("Should not use more than 1 node when MPI is off")
+
 total_num_cores = 0
 try:
     total_num_cores = mac_procs[hostname] * num_nodes
@@ -50,10 +55,22 @@ except:
     log("Machine name not recognized", echo=True)
     raise Exception
 
+#---------------------------------------------------------------------------
+# Test configurations
+#---------------------------------------------------------------------------
 # General number of SPH nodes per core
 n_per_core_3d = 8000
 n_per_core_2d = 1000
 # 5k-10k nodes per core for 3d, 1k nodes per core for 2d
+
+# If MPI is turned off, thread the whole node
+if (mpi.is_fake_mpi()):
+    num_cores = int(total_num_cores)
+else:
+    # Ideally, tests should be run with 2 nodes and each test will
+    # use one entire node, except the 2D tests which use half a node
+    num_cores = int(total_num_cores/2)
+Ntotal = int(num_cores*n_per_core_3d)
 
 def gather_files(manager):
     '''
@@ -87,17 +104,20 @@ def gather_files(manager):
         os.chmod(p, perms)
         shutil.chown(p, group="sduser")
 
-def spheral_setup_test(test_path, test_name, inps, ncores, threads=1, **kwargs):
+def spheral_setup_test(test_file, test_name, inps, ncores, threads=1, **kwargs):
     '''
     General method for creating an individual performance test
     Parameters:
-    test_path: Path to testing script
+    test_file: Path to testing script
     test_name: Unique name for test, will be used in Caliper file name
     inps: Command line inputs for test
     ncores: Total number of cores to use for the test, not number of ranks
     threads: Number of threads per rank
     **kwargs: Any additional keyword arguments to pass to ATS tests routine
     '''
+    if (mpi.is_fake_mpi()):
+        threads = ncores
+        ncores = 1
     for i in range(test_runs):
         if (test_runs > 1):
             cali_name = f"{test_name}_{i}_{int(time.time())}.cali"
@@ -106,7 +126,7 @@ def spheral_setup_test(test_path, test_name, inps, ncores, threads=1, **kwargs):
         ccores = int(ncores / threads)
         timer_cmds = f"--caliperFilename {cali_name} --adiakData 'test_name: {test_name}'"
         finps = f"{inps} {timer_cmds}"
-        t = test(script=test_path, clas=finps,
+        t = test(script=test_file, clas=finps,
                  label=test_name,
                  np=ccores,
                  nt=threads,
@@ -118,11 +138,6 @@ if (benchmark_dir):
     onExit(gather_files)
 glue(keep=True, independent=True)
 
-# Ideally, tests should be run with 2 nodes and each test will
-# use one entire node, except the 2D tests which use half a node
-num_cores = int(total_num_cores/2)
-Ntotal = int(num_cores*n_per_core_3d)
-
 #---------------------------------------------------------------------------
 # Taylor impact test
 #---------------------------------------------------------------------------
@@ -132,13 +147,12 @@ test_file = "TaylorImpact.py"
 test_path = os.path.join(test_dir, test_file)
 test_name = "3DTAYLOR"
 
-# Estimate nr and nz for cylindrical node distribution to have Ntotal nodes
 rlen = 0.945
 zlen = 7.5
 steps = 5
-# Mimic the 3D cylindrical node generator
-nz0 = int(np.cbrt(Ntotal))
-nr0 = max(4, int(nz0/4))
+# Estimate nr and nz so the 3D cylindrical node generator creates Ntotal SPH nodes
+nz0 = int(np.cbrt(Ntotal)) # Initial guess for nz
+nr0 = max(4, int(nz0/4)) # Initial guess for nr
 nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, nz0, nz0, Ntotal)
 gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
     "--densityUpdate SumVoronoiCellDensity --clearDirectories False --baseDir None "+\
@@ -146,10 +160,12 @@ gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
     f"--rlength {rlen} --zlength {zlen} --nr {nr} --nz {nz}"
 
 # Test variations
-test_inp = {"CRK": "--crksph True", "FSI": "--fsisph True"}
+test_inp = {"CRK": "--crksph True",
+            "FSI": "--fsisph True",
+            "SOLIDSPH": "--fsisph False --crksph False"}
 for tname, tinp in test_inp.items():
     inps = f"{gen_inps} {tinp}"
-    spheral_setup_test(test_path, test_name+tname, inps, num_cores)
+    spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
 #---------------------------------------------------------------------------
 # 3D convection test
@@ -160,14 +176,11 @@ test_file = "testPeriodicBoundary-3d.py"
 test_path = os.path.join(test_dir, test_file)
 test_name = "3DCONV"
 
-# Test with 1 and 2 threads
+# Number of SPH nodes per direction
 npd = int(np.cbrt(Ntotal))
 steps = 10
 inps = f"--nx {npd} --ny {npd} --nz {npd} --steps {steps}"
-# Assumes OpenMP is always turned on
-thrs = [1, 2]
-for thr in thrs:
-    spheral_setup_test(test_path, test_name+f"THR{thr}", inps, num_cores, thr)
+spheral_setup_test(test_path, test_name, inps, num_cores, num_threads)
 
 #---------------------------------------------------------------------------
 # NOH tests
@@ -209,7 +222,7 @@ gen_inps = f"{gen_noh_inps} --nRadial {nRadial} --steps {steps}"
 # Test with different hydro options
 for tname, tinp in fluid_variations.items():
     inps = gen_inps + " " + tinp
-    spheral_setup_test(test_path, test_name+tname, inps, ncores)
+    spheral_setup_test(test_path, test_name+tname, inps, ncores, num_threads)
 
 #++++++++++++++++++++
 # Noh spherical 3d
@@ -223,9 +236,9 @@ gen_inps = f"{gen_noh_inps} --nx {npd} --ny {npd} --nz {npd} --steps {steps}"
 # Test with different hydro options
 for tname, tinp in fluid_variations.items():
     inps = gen_inps + " " + tinp
-    spheral_setup_test(test_path, test_name+tname, inps, num_cores)
+    spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
-# Check to see if LLNLSpheral performance test is here
+# Check to see if LLNLSpheral performance test file exists
 llnl_perf_file = "llnlperformance.py"
 if (os.path.exists(llnl_perf_file)):
     exec(open(llnl_perf_file).read())
