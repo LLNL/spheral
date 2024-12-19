@@ -20,8 +20,6 @@ using std::endl;
 using std::min;
 using std::max;
 using std::abs;
-using std::any;
-using std::any_cast;
 using std::reference_wrapper;
 
 namespace Spheral {
@@ -33,7 +31,7 @@ namespace {
 template<typename VisitorType, typename T>
 void addZero(VisitorType& visitor) {
   visitor.template addVisitor<reference_wrapper<T>>([](std::any& x) {
-                                                      any_cast<reference_wrapper<T>>(x).get() = DataTypeTraits<T>::zero();
+                                                      std::any_cast<reference_wrapper<T>>(x).get() = DataTypeTraits<T>::zero();
                                                     });
 }
 
@@ -87,7 +85,7 @@ Zero() {
   // Build a visitor to zero each data type
   using VisitorType = AnyVisitor<void, std::any&>;
   VisitorType ZERO;
-  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>                          ([](const any& x) { any_cast<reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>                          ([](const std::any& x) { std::any_cast<reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
   addZero<VisitorType, Scalar>           (ZERO);
   addZero<VisitorType, Vector>           (ZERO);
   addZero<VisitorType, Tensor>           (ZERO);
@@ -98,11 +96,11 @@ Zero() {
   addZero<VisitorType, vector<SymTensor>>(ZERO);
   addZero<VisitorType, set<int>>         (ZERO);
   addZero<VisitorType, set<RKOrder>>     (ZERO);
-  ZERO.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>                  ([](const any& x) { } );
-  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Vector>>>              ([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, Vector>>>(x).get().Zero(); });
-  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>(x).get().Zero(); });
-  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Scalar>>>              ([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, Scalar>>>(x).get().Zero(); });
-  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>([](const any& x) { any_cast<reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>>                  ([](const std::any& x) { } );
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Vector>>>              ([](const std::any& x) { std::any_cast<reference_wrapper<PairwiseField<Dimension, Vector>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>([](const std::any& x) { std::any_cast<reference_wrapper<PairwiseField<Dimension, pair<Vector, Vector>>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, Scalar>>>              ([](const std::any& x) { std::any_cast<reference_wrapper<PairwiseField<Dimension, Scalar>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>([](const std::any& x) { std::any_cast<reference_wrapper<PairwiseField<Dimension, pair<Scalar, Scalar>>>>(x).get().Zero(); });
 
   // Walk the state values and zero them
   for (auto itr: mStorage) {

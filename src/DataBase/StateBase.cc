@@ -23,18 +23,8 @@ using std::vector;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
-using std::abs;
-using std::sort;
-using std::shared_ptr;
-using std::make_shared;
-using std::any;
-using std::any_cast;
 using std::reference_wrapper;
 using std::string;
-using std::map;
-using std::list;
 
 namespace Spheral {
 
@@ -45,8 +35,8 @@ namespace {
 //------------------------------------------------------------------------------
 template<typename VisitorType, typename T>
 static void addCompare(VisitorType& visitor) {
-  visitor.template addVisitor<reference_wrapper<T>>([](const any& x, const any& y) -> bool {
-                                                      return any_cast<reference_wrapper<T>>(x).get() == any_cast<reference_wrapper<T>>(y).get();
+  visitor.template addVisitor<reference_wrapper<T>>([](const std::any& x, const std::any& y) -> bool {
+                                                      return std::any_cast<reference_wrapper<T>>(x).get() == std::any_cast<reference_wrapper<T>>(y).get();
                                                     });
 }
 
@@ -55,8 +45,8 @@ static void addCompare(VisitorType& visitor) {
 //------------------------------------------------------------------------------
 template<typename VisitorType, typename T>
 static void addAssign(VisitorType& visitor) {
-  visitor.template addVisitor<reference_wrapper<T>>([](any& x, const any& y) {
-                                                      any_cast<reference_wrapper<T>>(x).get() = any_cast<reference_wrapper<T>>(y).get();
+  visitor.template addVisitor<reference_wrapper<T>>([](std::any& x, const std::any& y) {
+                                                      std::any_cast<reference_wrapper<T>>(x).get() = std::any_cast<reference_wrapper<T>>(y).get();
                                                     });
 }
 
@@ -69,7 +59,7 @@ void addClone(VisitorType& visitor) {
                                                        const std::string& key,
                                                        std::map<std::string, std::any>& storage,
                                                        std::list<std::any>& cache) {
-                                                      auto clone = make_shared<T>(any_cast<reference_wrapper<T>>(x).get());
+                                                      auto clone = std::make_shared<T>(std::any_cast<reference_wrapper<T>>(x).get());
                                                       cache.push_back(clone);
                                                       storage[key] = std::ref(*clone);
                                                     });
@@ -297,7 +287,7 @@ fieldNames() const {
 
   // Remove any duplicates.  This will happen when we've stored the same field
   // for different NodeLists.
-  sort(result.begin(), result.end());
+  std::sort(result.begin(), result.end());
   result.erase(unique(result.begin(), result.end()), result.end());
 
   return result;
@@ -444,7 +434,7 @@ copyState() {
   mCache = CacheType();
 
   // Build a visitor to clone each type of state data
-  using VisitorType = AnyVisitor<void, any&, const KeyType&, StorageType&, CacheType&>;
+  using VisitorType = AnyVisitor<void, std::any&, const KeyType&, StorageType&, CacheType&>;
   VisitorType CLONE;
   CLONE.addVisitor<reference_wrapper<FieldBase<Dimension>>>            ([](std::any& x, const KeyType& key, StorageType& storage, CacheType& cache) {
                                                                           auto clone = std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get().clone();
