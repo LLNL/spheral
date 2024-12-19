@@ -1036,8 +1036,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::internalEnd() {
-  CHECK(this->nodeList().firstGhostNode() >= 0 &&
-         this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  CHECK(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
@@ -1098,8 +1097,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::internalEnd() const {
-  REQUIRE(this->nodeList().firstGhostNode() >= 0 &&
-          this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  REQUIRE(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
