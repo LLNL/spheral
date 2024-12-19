@@ -2,6 +2,8 @@ packages:
   all:
     compiler: [rocmcc]
     providers:
+      blas: [openblas]
+      lapack: [netlib-lapack]
       mpi: [cray-mpich]
       pkgconfig: [pkg-config]
       zlib-api: [zlib]
@@ -114,3 +116,14 @@ packages:
     - spec: m4@1.4.18
       prefix: /usr
     buildable: false
+
+  netlib-lapack:
+    buildable: false
+    externals:
+    - spec: netlib-lapack@3.9.0
+      prefix: /usr
+  openblas:
+    buildable: false
+    externals:
+    - prefix: /usr
+      spec: openblas@0.3.15

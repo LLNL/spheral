@@ -1,7 +1,8 @@
 #ifndef __Spheral_DeviceTest_hh__
 #define __Spheral_DeviceTest_hh__
+#include "RAJA/RAJA.hpp"
 
-#if defined(SPHERAL_ENABLE_HIP)
+#if defined(RAJA_ENABLE_HIP)
 #include <hip/hip_runtime.h>
 #endif
 

@@ -33,11 +33,6 @@ if (NOT ENABLE_CXXONLY)
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 
-  #install(FILES
-  #    "${CMAKE_CURRENT_BINARY_DIR}/performance/performance.py"
-  #  DESTINATION "${CMAKE_INSTALL_PREFIX}/tests"
-  #)
-
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt.in"
     "${CMAKE_CURRENT_BINARY_DIR}/runtime-requirements.txt"
