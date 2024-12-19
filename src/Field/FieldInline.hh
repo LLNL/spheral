@@ -1287,8 +1287,8 @@ void
 Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   const unsigned currentSize = this->size();
   const unsigned numInternalNodes = this->nodeList().numInternalNodes();
+  CHECK(currentSize >= numInternalNodes);
   const unsigned currentNumGhostNodes = currentSize - numInternalNodes;
-  REQUIRE(currentNumGhostNodes >= 0);
   const unsigned newSize = numInternalNodes + size;
   REQUIRE(newSize == this->nodeList().numNodes());
 
