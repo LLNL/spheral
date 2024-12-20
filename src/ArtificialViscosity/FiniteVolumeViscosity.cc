@@ -112,7 +112,7 @@ FiniteVolumeViscosity<Dimension>::
 updateVelocityGradient(const DataBase<Dimension>& dataBase,
                        const State<Dimension>& state,
                        const StateDerivatives<Dimension>& derivs) {
-  TIME_BEGIN("FiniteVolumeViscosity_updateVelocityGradient")
+  TIME_BEGIN("FiniteVolumeViscosity_updateVelocityGradient");
 
   using Zone = typename Mesh<Dimension>::Zone;
   using Face = typename Mesh<Dimension>::Face;
@@ -155,7 +155,7 @@ updateVelocityGradient(const DataBase<Dimension>& dataBase,
       DvDxi /= Vi;
     }
   }
-  TIME_END("FiniteVolumeViscosity_updateVelocityGradient")
+  TIME_END("FiniteVolumeViscosity_updateVelocityGradient");
 }
 
 }
