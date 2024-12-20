@@ -159,32 +159,40 @@ if asph:
     hydroname = "A" + hydroname
 
 # Restart and output files.
-dataDir = os.path.join(baseDir,
-                       geometry,
-                       hydroname,
-                       "XSPH=%s" % XSPH,
-                       "reflect=%s" % reflect,
-                       "%ix%i" % (nr, nz),
-                       "procs=%i" % mpi.procs)
-restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
-vizDir = os.path.join(dataDir, "viz")
-restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
+if baseDir:
+    dataDir = os.path.join(baseDir,
+                           geometry,
+                           hydroname,
+                           "XSPH=%s" % XSPH,
+                           "reflect=%s" % reflect,
+                           "%ix%i" % (nr, nz),
+                           "procs=%i" % mpi.procs)
+    restartDir = os.path.join(dataDir, "restarts", "proc-%04i" % mpi.rank)
+    vizDir = os.path.join(dataDir, "viz")
+    restartBaseName = os.path.join(restartDir, "TaylorImpact-%i-%i" % (nr, nz))
+else:
+    dataDir = None
+    restartBaseName = None
+    vizDir = None
+if vizTime is None and vizCycle is None:
+    vizBaseName = None
+else:
+    vizBaseName = "TaylorImpact"
 
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 and dataDir:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
     if not os.path.exists(dataDir):
         os.makedirs(dataDir)
     if not os.path.exists(vizDir):
         os.makedirs(vizDir)
+mpi.barrier()
+if dataDir:
     if not os.path.exists(restartDir):
         os.makedirs(restartDir)
-mpi.barrier()
-if not os.path.exists(restartDir):
-    os.makedirs(restartDir)
 mpi.barrier()
 
 #-------------------------------------------------------------------------------
@@ -292,7 +300,6 @@ del n
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
 WT = TableKernel(NBSplineKernel(3), 1000)
-output('WT')
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
@@ -535,11 +542,10 @@ control = SpheralController(integrator, WT,
                             redistributeStep = redistributeStep,
                             restartBaseName = restartBaseName,
                             restoreCycle = restoreCycle,
-                            vizBaseName = "TaylorImpact",
+                            vizBaseName = vizBaseName,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime)
-output("control")
 
 #-------------------------------------------------------------------------------
 # In the two material case, it's useful to smooth the initial velocity field

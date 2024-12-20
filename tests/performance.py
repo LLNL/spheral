@@ -3,143 +3,248 @@
 # This file runs and compares performance tests through the ats system.
 # Run using: ./spheral-ats tests/performance.py
 
-import sys, shutil, os, time
+import sys, shutil, os, time, stat
 import numpy as np
-spheral_path = "../lib/python3.9/site-packages/Spheral"
-sys.path.append(spheral_path)
-import SpheralConfigs
+import SpheralConfigs, mpi
+from SpheralUtilities import TimerMgr
+from SpheralTestUtilities import num_3d_cyl_nodes
+from ats import configuration
 
-# If desired, set a location to consolidate Caliper files, tthis is useful
-# when running scaling tests
-# This automatically creates directories based on the install configuration
-# and test names inside output_loc
-# WARNING: Be sure to remove older performance data in
-# output location beforehand
-#output_loc = "/home/user/scaling/test/files"
-output_loc = None
+if (not TimerMgr.timers_usable()):
+    log("WARNING: Timers not enabled, skipping performance tests", echo=True)
+    sys.exit(0)
 
-# Current system architecture from Spack
-spheral_sys_arch = SpheralConfigs.sys_arch()
-# Current install configuration from Spack
+# Get options from ats
+opts = getOptions()
+
+# Adding --threads to the command line arguments of spheral-ats
+# can force performance to use multiple threads per rank
+num_threads = 1
+if "threads" in opts:
+    num_threads = opts["threads"]
+
+# Adding --ciRun to the command line arguments of spheral-ats
+# triggers copy of Caliper files to benchmark location
+benchmark_dir = None
+test_runs = 1 # Number of times to run each test
+CIRun = False
+if "cirun" in opts and opts["cirun"]:
+    CIRun = True
+    test_runs = 5
+    benchmark_dir = opts["benchmark_dir"]
+#---------------------------------------------------------------------------
+# Hardware configuration
+#---------------------------------------------------------------------------
+# This should be {$SYS_TYPE}_{compiler name}_{compiler version}_{mpi or cuda info}
 spheral_install_config = SpheralConfigs.config()
 
-def add_timer_cmds(cali_name, test_name):
-    return f"--caliperFilename {cali_name} --adiakData 'test_name: {test_name}, install_config: {spheral_install_config}'"
+# Retrieve the host name and remove any numbers
+temp_uname = os.uname()
+hostname = "".join([i for i in temp_uname[1] if not i.isdigit()])
+mac_procs = {"rzhound": 112, "rzwhippet": 112, "ruby": 112,
+             "rzadams": 84, "rzvernal": 64, "tioga": 64,
+             "rzansel": 40, "lassen": 40, "rzgenie": 36}
+# Find out how many nodes our allocation has grabbed
+num_nodes = max(1, configuration.machine.numNodes)
+if (mpi.is_fake_mpi()):
+    if (num_nodes > 1):
+        raise Exception("Should not use more than 1 node when MPI is off")
 
-# Consolidate Caliper files after run
+total_num_cores = 0
+try:
+    total_num_cores = mac_procs[hostname] * num_nodes
+except:
+    log("Machine name not recognized", echo=True)
+    raise Exception
+# If MPI is turned off, thread the whole node
+if (mpi.is_fake_mpi()):
+    num_cores = int(total_num_cores)
+else:
+    # Ideally, tests should be run with 2 nodes and each test will
+    # use one entire node, except the 2D tests which use half a node
+    num_cores = int(total_num_cores/2)
+
+#---------------------------------------------------------------------------
+# Test configurations
+#---------------------------------------------------------------------------
+# General number of SPH nodes per core
+# 5k-10k nodes per core for 3d, 1k nodes per core for 2d
+n_per_core_3d = 8000
+n_per_core_2d = 1000
+
+Ntotal = int(num_cores*n_per_core_3d)
+
 def gather_files(manager):
+    '''
+    Function to gather Caliper file when ATS is finished running.
+    Used by ATS for gathering benchmark Caliper files.
+    '''
+    instpath = os.path.join(benchmark_dir, spheral_install_config)
+    macpath = os.path.join(instpath, hostname)
+    outdir = os.path.join(macpath, "latest")
+    if (os.path.exists(outdir)):
+        # Move existing benchmark data to a different directory
+        log(f"Renaming existing {outdir} to {int(time.time())}", echo=True)
+        os.rename(outdir, os.path.join(macpath, f"{int(time.time())}"))
+    log(f"Creating {outdir}", echo=True)
+    os.makedirs(outdir)
     filtered = [test for test in manager.testlist if test.status is PASSED]
+    # Set read/write/execute permissions for owner and group
+    perms = stat.S_IRWXU | stat.S_IRWXG
     for test in filtered:
         run_dir = test.directory
         cali_filename = test.options["caliper_filename"]
         cfile = os.path.join(run_dir, cali_filename)
         test_name = test.options["label"]
-        outdir = os.path.join(output_loc, spheral_install_config, test_name)
-        if (not os.path.exists(outdir)):
-            log(f"Creating {outdir}")
-            os.makedirs(outdir)
         outfile = os.path.join(outdir, cali_filename)
-        log(f"Copying {cali_filename} to {outdir}")
-        shutil.copy(cfile, outfile)
-# Setup Spheral performance tests
-def spheral_setup_test(test_path, test_name, test_num, inps, ncores, threads=1):
-    'General method for creating an individual performance test'
-    global regions, timers, spheral_install_config
-    caliper_filename = f"{test_name}_{test_num}_{int(time.time())}.cali"
-    timer_cmds = add_timer_cmds(caliper_filename, test_name)
-    finps = f"{inps} {timer_cmds}"
-    t = test(script=test_path, clas=finps,
-             label=test_name,
-             np=ncores,
-             nt=threads,
-             caliper_filename=caliper_filename,
-             regions=regions,
-             timers=timers,
-             install_config=spheral_install_config)
-    return t
+        log(f"Copying {cali_filename} to {outdir}", echo=True)
+        if (CIRun):
+            shutil.copy(cfile, outfile)
+            os.chmod(outfile, perms)
+            shutil.chown(outfile, group="sduser")
+    if (CIRun):
+        cpaths = [outdir, macpath, instpath, benchmark_dir]
+        for p in cpaths:
+            os.chmod(p, perms)
+            shutil.chown(p, group="sduser")
 
-def main():
-    if (output_loc):
-        onExit(gather_files)
-    glue(keep=True)
-    if ("power" in spheral_sys_arch):
-        num_nodes = 1
-        num_cores = 40
-    elif ("broadwell" in spheral_sys_arch):
-        num_nodes = 2
-        num_cores = 36
-    # Select which timing regions to compare (for CI)
-    regions = ["CheapRK2",
-               "CheapRK2PreInit",
-               "ConnectivityMap_computeConnectivity",
-               "ConnectivityMap_patch",
-               "CheapRK2EvalDerivs",
-               "CheapRK2EndStep"]
-    # Select which timers to compare (for CI)
-    timers = ["sum#inclusive#sum#time.duration"] # Means the sum of the time from all ranks
+def spheral_setup_test(test_file, test_name, inps, ncores, threads=1, **kwargs):
+    '''
+    General method for creating an individual performance test
+    Parameters:
+    test_file: Path to testing script
+    test_name: Unique name for test, will be used in Caliper file name
+    inps: Command line inputs for test
+    ncores: Total number of cores to use for the test, not number of ranks
+    threads: Number of threads per rank
+    **kwargs: Any additional keyword arguments to pass to ATS tests routine
+    '''
+    if (mpi.is_fake_mpi()):
+        threads = ncores
+        ncores = 1
+    for i in range(test_runs):
+        if (test_runs > 1):
+            cali_name = f"{test_name}_{i}_{int(time.time())}.cali"
+        else:
+            cali_name = f"{test_name}_{int(time.time())}.cali"
+        ccores = int(ncores / threads)
+        timer_cmds = f"--caliperFilename {cali_name} --adiakData 'test_name: {test_name}'"
+        finps = f"{inps} {timer_cmds}"
+        t = test(script=test_file, clas=finps,
+                 label=test_name,
+                 np=ccores,
+                 nt=threads,
+                 caliper_filename=cali_name,
+                 **kwargs)
 
-    # 3D convection test
-    test_dir = os.path.join(SpheralConfigs.test_install_path(), "unit/Boundary")
+# If running CI, run gather_files on exit
+if (benchmark_dir):
+    onExit(gather_files)
+glue(keep=True, independent=True)
 
-    group(name="3D Convection test")
-    test_file = "testPeriodicBoundary-3d.py"
-    test_path = os.path.join(test_dir, test_file)
-    test_name = "3DCONV"
+#---------------------------------------------------------------------------
+# Taylor impact test
+#---------------------------------------------------------------------------
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Strength/TaylorImpact")
 
-    # Test with varying number of ranks
-    ranks = [1, 2, 4]
-    # We want 20 points per unit length
-    ref_len = 1.
-    sph_point_rho = 20. / ref_len
-    sph_per_core = 300
-    for i, n in enumerate(ranks):
-        ncores = int(num_nodes*num_cores/n)
-        total_sph_nodes = sph_per_core * ncores
-        npd = int(np.cbrt(total_sph_nodes))
-        new_len = npd * ref_len / sph_point_rho
-        inps = f"--nx {npd} --ny {npd} --nz {npd} --x1 {new_len} --y1 {new_len} --z1 {new_len} --steps 100"
-        t = spheral_setup_test(test_path, test_name, i, inps, ncores)
-    endgroup()
+test_file = "TaylorImpact.py"
+test_path = os.path.join(test_dir, test_file)
+test_name = "3DTAYLOR"
 
-    # NOH tests
-    test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
+rlen = 0.945
+zlen = 7.5
+steps = 5
+# Estimate nr and nz so the 3D cylindrical node generator creates Ntotal SPH nodes
+nz0 = int(np.cbrt(Ntotal)) # Initial guess for nz
+nr0 = max(4, int(nz0/4)) # Initial guess for nr
+nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, nr0, nz0, Ntotal)
+gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
+    "--clearDirectories False --baseDir None "+\
+    "--vizTime None --vizCycle None --siloSnapShotFile None "+\
+    f"--rlength {rlen} --zlength {zlen} --nr {nr} --nz {nz}"
 
-    # General input for all Noh tests
-    gen_noh_inps = "--crksph False --cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
-        "--nPerh 2.01 --graphics False --clearDirectories False --doCompare False "+\
-        "--dataDir None --vizTime None --vizCycle None"
+# Test variations
+test_inp = {"CRK": "--crksph True --densityUpdate SumVoronoiCellDensity",
+            "FSI": "--fsisph True",
+            "SOLIDSPH": "--fsisph False --crksph False"}
+for tname, tinp in test_inp.items():
+    inps = f"{gen_inps} {tinp}"
+    spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
-    group(name="NOH 2D tests")
-    test_file = "Noh-cylindrical-2d.py"
-    nRadial = 100
-    test_path = os.path.join(test_dir, test_file)
-    test_name = "NC2D"
+#---------------------------------------------------------------------------
+# 3D convection test
+#---------------------------------------------------------------------------
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "unit/Boundary")
 
-    # Test with varying number of ranks
-    ranks = [1, 2, 4]
-    for i, n in enumerate(ranks):
-        inps = f"{gen_noh_inps} --nRadial {nRadial} --steps 10"
-        ncores = int(num_nodes*num_cores/n)
-        t = spheral_setup_test(test_path, test_name, i, inps, ncores)
+test_file = "testPeriodicBoundary-3d.py"
+test_path = os.path.join(test_dir, test_file)
+test_name = "3DCONV"
 
-    endgroup()
+# Number of SPH nodes per direction
+npd = int(np.cbrt(Ntotal))
+steps = 10
+inps = f"--nx {npd} --ny {npd} --nz {npd} --steps {steps}"
+spheral_setup_test(test_path, test_name, inps, num_cores, num_threads)
 
-    group(name="NOH 3D tests")
-    test_file = "Noh-spherical-3d.py"
-    test_path = os.path.join(test_dir, test_file)
-    test_name = "NS3D"
+#---------------------------------------------------------------------------
+# NOH tests
+#---------------------------------------------------------------------------
+fluid_variations = {"SPH": "--crksph False --solid True",
+                    "FSISPH": "--fsisph True --solid True",
+                    "CRKSPH": "--crksph True --solid True",
+                    "PSPH": "--psph True",
+                    "GSPH": "--gsph True",
+                    "MFM": "--mfm True",
+                    "MFV": "--mfv True"}
+test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
 
-    # Test with varying number of SPH nodes per rank
-    npcore = [100, 200, 300]
-    for i, n in enumerate(npcore):
-        ncores = int(num_nodes*num_cores)
-        total_sph_nodes = n*ncores
-        npd = int(np.cbrt(total_sph_nodes))
-        node_inps = f"--nx {npd} --ny {npd} --nz {npd}"
-        inps = f"{gen_noh_inps} {node_inps} --steps 10"
-        t = spheral_setup_test(test_path, test_name, i, inps, ncores)
-    # Add a wait to ensure all timer files are done
-    wait()
+# General input for all Noh tests
+gen_noh_inps = "--cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
+    "--nPerh 2.01 --graphics False --clearDirectories False --doCompare False "+\
+    "--dataDir None --vizTime None --vizCycle None"
 
-if __name__=="__main__":
-    main()
+#++++++++++++++++++++
+# Noh cylindrical 2d
+#++++++++++++++++++++
+test_file = "Noh-cylindrical-2d.py"
+test_path = os.path.join(test_dir, test_file)
+test_name = "NC2D"
+
+steps = 100
+rmin = 0.
+rmax = 1.
+thetaFactor = 0.5
+# Only use half the number of cores per node
+ncores = int(num_cores/2)
+Ntotal2d = n_per_core_2d*ncores
+# Determine nRadial to get Ntotal2d number of SPH nodes
+# for a constantDTheta distribution
+area = np.pi*rmax**2*thetaFactor/2.
+dr = np.sqrt(area/Ntotal2d)
+nRadial = int(rmax/dr)
+gen_inps = f"{gen_noh_inps} --nRadial {nRadial} --steps {steps}"
+# Test with different hydro options
+for tname, tinp in fluid_variations.items():
+    inps = gen_inps + " " + tinp
+    spheral_setup_test(test_path, test_name+tname, inps, ncores, num_threads)
+
+#++++++++++++++++++++
+# Noh spherical 3d
+#++++++++++++++++++++
+test_file = "Noh-spherical-3d.py"
+test_path = os.path.join(test_dir, test_file)
+test_name = "NS3D"
+
+steps = 10
+gen_inps = f"{gen_noh_inps} --nx {npd} --ny {npd} --nz {npd} --steps {steps}"
+# Test with different hydro options
+for tname, tinp in fluid_variations.items():
+    inps = gen_inps + " " + tinp
+    spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
+
+# Check to see if LLNLSpheral performance test file exists
+llnl_perf_file = "llnlperformance.py"
+if (os.path.exists(llnl_perf_file)):
+    exec(open(llnl_perf_file).read())
+# Add a wait to ensure all timer files are done
+wait()

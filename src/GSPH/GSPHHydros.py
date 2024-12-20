@@ -193,7 +193,8 @@ def MFV(dataBase,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
-        RZ = False):
+        RZ = False,
+        smoothingScaleMethod = None):
 
     # for now we'll just piggy back off this enum
     assert densityUpdate in (RigorousSumDensity,IntegrateDensity)
@@ -204,7 +205,7 @@ def MFV(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print("MFM  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("MFV  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
         print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
@@ -236,13 +237,11 @@ def MFV(dataBase,
               "nodeMotionType" : nodeMotionType,
               "gradType" : gradientType,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
-    #print(nodeMotionType)
     # Build and return the thing.
     result = Constructor(**kwargs)
 
@@ -268,3 +267,7 @@ def AGSPH(*args, **kwargs):
 def AMFM(*args, **kwargs):
     kwargs.update({"ASPH" : True})
     return MFM(*args, **kwargs)
+
+def AMFV(*args, **kwargs):
+    kwargs.update({"ASPH" : True})
+    return MFV(*args, **kwargs)

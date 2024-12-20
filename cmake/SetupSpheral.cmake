@@ -153,15 +153,10 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
-  install(DIRECTORY ${SPHERAL_ROOT_DIR}/tests/
-    USE_SOURCE_PERMISSIONS
-    DESTINATION "${SPHERAL_TEST_INSTALL_PREFIX}"
-    PATTERN "*CMakeLists.txt*" EXCLUDE
-    PATTERN "*.cmake" EXCLUDE
-    PATTERN "*.in" EXCLUDE
-    PATTERN "*.pyc" EXCLUDE
-    PATTERN "*~" EXCLUDE)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit)
+  spheral_install_python_tests(${SPHERAL_ROOT_DIR}/tests/ ${SPHERAL_TEST_INSTALL_PREFIX})
+  # Always install performance.py in the top of the testing script
+  install(FILES ${SPHERAL_ROOT_DIR}/tests/performance.py
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/tests)
 endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

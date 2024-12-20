@@ -120,7 +120,7 @@ Build and install Spheral.
    TESTING
    ----------------------------------------
 
-[ex_test-section-start]
+[test-section-start]
 Run a basic smoke test for Spheral
 ::
 
@@ -130,22 +130,7 @@ Run a basic smoke test for Spheral
 Run our full test suite.
 ::
 
-  ./.venv/bin/ats -e spheral test/integration.ats
+  ./spheral-ats test/integration.ats
 
 These commands are explained in further sections.
-[ex_test-section-end]
-
-[lc_test-section-start]
-Run a basic smoke test for Spheral
-::
-
-  cd ../install
-  ./spheral -c "import Spheral"
-
-Run our full test suite.
-::
-
-  ./spheral-atstest test/integration.ats
-
-These commands are explained in further sections.
-[lc_test-section-end]
+[test-section-end]
