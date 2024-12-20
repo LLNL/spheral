@@ -31,7 +31,8 @@ commandLine(nx1 = 100,
             ny1 =  50,
             nx2 = 100,
             ny2 =  50,
-            
+            refineRatio = 1,
+
             rho1 = 2.0,
             rho2 = 1.0,
             P1 = 2.5,
@@ -98,8 +99,10 @@ commandLine(nx1 = 100,
             gsphLinearCorrect = True,
             LimiterConstructor = VanLeerLimiter,
             WaveSpeedConstructor = DavisWaveSpeed,
-            nodeMotionCoefficient = 0.2,
-
+            nodeMotionCoefficient = 1.0,
+            nodeMotionType = NodeMotionType.Eulerian, # (Lagrangian, Eulerian, XSPH,  Fician)
+            gsphGradientType = SPHSameTimeGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
+            
             # artificial viscosity
             Qconstructor = LimitedMonaghanGingoldViscosity,
             Cl = 1.0, 
@@ -159,6 +162,11 @@ assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
 assert not (fsisph and not solid)
 assert not ((mfm or gsph or mfv) and ( boolReduceViscosity))
 
+nx1=int(nx1*refineRatio)
+ny1=int(ny1*refineRatio)
+nx2=int(nx2*refineRatio)
+ny2=int(ny2*refineRatio)
+
 # Decide on our hydro algorithm.
 hydroname = 'SPH'
 useArtificialViscosity=True
@@ -179,7 +187,7 @@ elif mfm:
     hydroname = "MFM"
     useArtificialViscosity=False
 elif mfv:
-    hydroname = "MFV"
+    hydroname = "MFV/%s" % nodeMotionType
     useArtificialViscosity=False
 if asph: 
     hydorname = "A"+hydroname
@@ -266,6 +274,7 @@ for nodes in nodeSet:
 # Set the node properties.
 #-------------------------------------------------------------------------------
 if restoreCycle is None:
+
     generator1 = GenerateNodeDistribution2d(nx1, ny1,
                                             rho = rho1,
                                             distributionType = "lattice",
@@ -411,7 +420,7 @@ elif gsph:
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
-                gradientType = SPHSameTimeGradient,
+                gradientType = gsphGradientType,
                 XSPH = xsph,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
@@ -427,7 +436,7 @@ elif mfm:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
-                gradientType = SPHSameTimeGradient,
+                gradientType = gsphGradientType,
                 densityUpdate=densityUpdate,
                 XSPH = xsph,
                 ASPH = asph,
@@ -444,8 +453,8 @@ elif mfv:
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 nodeMotionCoefficient = nodeMotionCoefficient,
-                nodeMotionType = NodeMotionType.Lagrangian,
-                gradientType = SPHSameTimeGradient,
+                nodeMotionType = nodeMotionType,
+                gradientType = gsphGradientType,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
                 XSPH = xsph,

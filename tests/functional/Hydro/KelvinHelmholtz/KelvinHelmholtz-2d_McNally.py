@@ -11,7 +11,6 @@ from math import *
 
 from Spheral2d import *
 from SpheralTestUtilities import *
-from SpheralGnuPlotUtilities import *
 from GenerateNodeDistribution2d import *
 from CompositeNodeDistribution import *
 from CentroidalVoronoiRelaxation import *
@@ -32,6 +31,8 @@ commandLine(nx1 = 256,
             nx2 = 256,
             ny2 = 128,
             
+            refineRatio = 1,
+
             rho1 = 1.0,
             rho2 = 2.0,
             P1 = 2.5,
@@ -42,7 +43,6 @@ commandLine(nx1 = 256,
             smooth = 0.025,
             delta = 0.01,
             freq = 4.0,
-            w0 = 0.1,
             sigma = 0.05/sqrt(2.0),
 
             numNodeLists = 2,  # If 2, makes this a two material problem.
@@ -51,7 +51,7 @@ commandLine(nx1 = 256,
             mu = 1.0,
 
             # kernel
-            KernelConstructor = WendlandC4Kernel,
+            kernelConstructor = WendlandC4Kernel,
             nbSplineOrder = 7,
             nPerh = 4.01,
             hmin = 0.0001, 
@@ -65,6 +65,7 @@ commandLine(nx1 = 256,
             fsisph = False,
             gsph = False,
             mfm = False,
+            mfv = False,
 
             # hydro options
             solid = False,
@@ -118,11 +119,14 @@ commandLine(nx1 = 256,
             fsiInterfaceMethod = HLLCInterface,     # (HLLCInterface, ModulusInterface)
             fsiKernelMethod  = NeverAverageKernels, # (NeverAverageKernels, AlwaysAverageKernels, AverageInterfaceKernels)
     
-            # GSPH parameters
+            # GSPH/MFM/MFV parameters 
             gsphEpsDiffuseCoeff = 0.0,
             gsphLinearCorrect = True,
             LimiterConstructor = VanLeerLimiter,
             WaveSpeedConstructor = DavisWaveSpeed,
+            nodeMotionCoefficient = 1.0,
+            nodeMotionType = NodeMotionType.Eulerian, # (Lagrangian, Eulerian, XSPH,  Fician)
+            gsphGradientType = SPHSameTimeGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
 
             ## integrator
             cfl = 0.5,
@@ -165,9 +169,14 @@ assert not(boolReduceViscosity and boolCullenViscosity)
 assert numNodeLists in (1, 2)
 assert not svph 
 assert not (compatibleEnergy and evolveTotalEnergy)
-assert sum([fsisph,psph,gsph,crksph,svph,mfm])<=1
+assert sum([fsisph,psph,gsph,crksph,svph,mfm,mfv])<=1
 assert not (fsisph and not solid)
-assert not ((mfm or gsph) and (boolCullenViscosity or boolReduceViscosity))
+assert not ((mfv or mfm or gsph) and (boolCullenViscosity or boolReduceViscosity))
+
+nx1=int(nx1*refineRatio)
+ny1=int(ny1*refineRatio)
+nx2=int(nx2*refineRatio)
+ny2=int(ny2*refineRatio)
 
 # hydro algorithm label
 useArtificialViscosity = True
@@ -186,6 +195,9 @@ elif gsph:
     useArtificialViscosity=False
 elif mfm:
     hydroname = "MFM"
+    useArtificialViscosity=False
+elif mfv:
+    hydroname = "MFV/%s" % nodeMotionType
     useArtificialViscosity=False
 else:
     hydroname = "SPH"
@@ -233,10 +245,10 @@ eos = GammaLawGasMKS(gamma, mu)
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor is NBSplineKernel:
-    WT = TableKernel(KernelConstructor(nbSplineOrder), 1000)
+if kernelConstructor is NBSplineKernel:
+    WT = TableKernel(kernelConstructor(nbSplineOrder), 1000)
 else:
-    WT = TableKernel(KernelConstructor(), 1000)
+    WT = TableKernel(kernelConstructor(), 1000)
 output("WT")
 kernelExtent = WT.kernelExtent
 
@@ -440,8 +452,8 @@ if fsisph:
                    ASPH = asph,
                    epsTensile = epsilonTensile)
 elif gsph:
-    limiter = LimiterConstructor
-    waveSpeed = WaveSpeedConstructor
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
     solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
     hydro = GSPH(dataBase = db,
                 riemannSolver = solver,
@@ -451,23 +463,44 @@ elif gsph:
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
-                XSPH = XSPH,
+                gradientType = gsphGradientType,
+                XSPH = xsph,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
 elif mfm:
-    limiter = LimiterConstructor
-    waveSpeed = WaveSpeedConstructor
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
     solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
-    hydro = GSPH(dataBase = db,
+    hydro = MFM(dataBase = db,
                 riemannSolver = solver,
                 W = WT,
                 cfl=cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
+                gradientType = gsphGradientType,
                 densityUpdate=densityUpdate,
-                XSPH = XSPH,
+                XSPH = xsph,
+                ASPH = asph,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
+elif mfv:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                nodeMotionCoefficient = nodeMotionCoefficient,
+                nodeMotionType = nodeMotionType,
+                gradientType = gsphGradientType,
+                evolveTotalEnergy = evolveTotalEnergy,
+                densityUpdate=densityUpdate,
+                XSPH = xsph,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
