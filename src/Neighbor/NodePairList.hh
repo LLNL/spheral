@@ -63,11 +63,11 @@ public:
   size_t index(const NodePairIdxType& x) const;
 
   // Compute the lookup table for Pair->index
-  void computeLookup();
+  void computeLookup() const;
 
 private:
   ContainerType mNodePairList;
-  std::unordered_map<NodePairIdxType, size_t> mPair2Index;
+  mutable std::unordered_map<NodePairIdxType, size_t> mPair2Index;  // mutable for lazy evaluation in index
 };
 
 }

@@ -297,7 +297,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       std::sort(pairs.begin(), pairs.end());
     }
   }
-  mNodePairListPtr->computeLookup();
+  // mNodePairListPtr->computeLookup();
 
   // Patch the intersection lists if we're maintaining them
   if (mBuildIntersectionConnectivity) {
@@ -1031,7 +1031,7 @@ computeConnectivity() {
   } else {
     std::sort(mNodePairListPtr->begin(), mNodePairListPtr->end());
   }
-  mNodePairListPtr->computeLookup();
+  // mNodePairListPtr->computeLookup();
 
   // Do we need overlap connectivity?
   if (mBuildOverlapConnectivity) {
