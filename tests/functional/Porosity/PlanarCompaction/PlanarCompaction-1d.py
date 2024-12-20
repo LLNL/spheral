@@ -106,30 +106,10 @@ commandLine(nx = 500,                          # Number of internal free points
             dataDirBase = "dumps-PlanarCompaction-1d",
             checkError = False,
             checkRestart = False,
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
 
             # Parameters for the test acceptance.,
-            L1rho =   0.0537214,   
-            L2rho =   0.0147186,   
-            Linfrho = 1.65537,     
-                                   
-            L1P =     0.018076,    
-            L2P =     0.005431,    
-            LinfP =   0.628838,    
-                                   
-            L1v =     0.0244616,   
-            L2v =     0.00841887,  
-            Linfv =   0.856119,    
-                                   
-            L1eps =   0.0105579,   
-            L2eps =   0.00336606,  
-            Linfeps = 0.355227,    
-                                   
-            L1h =     0.000436001, 
-            L2h =     0.00011995,  
-            Linfh =   0.0084786,   
-
             tol = 1.0e-5,
             )
 
@@ -312,6 +292,7 @@ else:
 #-------------------------------------------------------------------------------
 if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
@@ -340,7 +321,7 @@ if not Cq is None:
 output("hydro")
 output("  hydro.cfl")
 output("  hydro.useVelocityMagnitudeForDt")
-output("  hydro.HEvolution")
+output("  hydro._smoothingScaleMethod.HEvolution")
 output("  hydro.Q")
 output("  hydro.Q.Cl")
 output("  hydro.Q.Cq")

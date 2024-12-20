@@ -160,8 +160,8 @@ commandLine(asph = False,
 
             dataDir = "twomat-%i",
 
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             
             vizCycle = None,
             vizTime = 1.0,
@@ -503,7 +503,7 @@ if steps is None:
 else:
     control.step(steps)
 
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P1 = ScalarField("pressure",diskNodes1)
@@ -558,7 +558,7 @@ if outputFile != "None":
             f.write((7*"%16.12e "+"\n") % (ri,xi,yi,rhoi,Pi,vi,mi))
         
         f.close()
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile,comparisonFile)

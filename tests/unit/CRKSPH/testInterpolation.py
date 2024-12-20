@@ -67,7 +67,7 @@ commandLine(
 
     graphics = True,
     plotKernels = False,
-    outputFile = "None",
+    outputFile = None,
 )
 
 assert testCase in ("linear", "quadratic", "step")
@@ -90,8 +90,7 @@ exec("from Spheral%s import *" % testDim)
 # Create a random number generator.
 #-------------------------------------------------------------------------------
 import random
-rangen = random.Random()
-rangen.seed(seed)
+random.seed(seed)
 
 #-------------------------------------------------------------------------------
 # Material properties.
@@ -191,14 +190,14 @@ for nodes, dx in ((nodes1, dx1),
     pos = nodes.positions()
     for i in range(nodes.numInternalNodes):
         if testDim == "1d":
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
         elif testDim == "2d":
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
         elif testDim == "3d":
-            pos[i].x += ranfrac * dx * rangen.uniform(-1.0, 1.0)
-            pos[i].y += ranfrac * dy * rangen.uniform(-1.0, 1.0)
-            pos[i].z += ranfrac * dz * rangen.uniform(-1.0, 1.0)
+            pos[i].x += ranfrac * dx * random.uniform(-1.0, 1.0)
+            pos[i].y += ranfrac * dy * random.uniform(-1.0, 1.0)
+            pos[i].z += ranfrac * dz * random.uniform(-1.0, 1.0)
 
 #-------------------------------------------------------------------------------
 # Construct a DataBase to hold our node list
@@ -466,7 +465,7 @@ if graphics:
         p7.plot(xvals, WR, "g-", label="RK")
         p7.axes.legend()
         plt.title("Kernel")
-        if outputFile != "None":
+        if outputFile:
             f = open("Kernel_" + outputFile, "w")
             f.write(("#" + 3*' "%20s"' + "\n") % ("eta", "Wj", "WRj"))
             for xi, Wi, WRi in zip(xvals, W, WR):
@@ -474,7 +473,7 @@ if graphics:
             f.close()
 
     # We may want a gnu/pdv style text file.
-    if outputFile != "None" and testDim == "2d":
+    if outputFile and testDim == "2d":
         of = open(outputFile, "w")
         of.write(('#' + 7*' "%20s"' + '\n') % ("x", "interp answer", "grad answer", "interp SPH", "interp CRK", "grad SPH", "grad CRK"))
         for iNodeList, nodes in enumerate(db.nodeLists()):

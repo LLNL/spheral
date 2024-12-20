@@ -2,6 +2,9 @@
 // A collection of useful helper methods to explicitly unroll Dimensional 
 // loops for efficiency.
 //----------------------------------------------------------------------------//
+#ifndef __Spheral_GeometricUtilities__
+#define __Spheral_GeometricUtilities__
+
 #include "Geometry/Dimension.hh"
 #include "Utilities/DBC.hh"
 
@@ -344,3 +347,5 @@ tensorElementWiseDivide<Dim<3>::Tensor>(Dim<3>::Tensor& lhs, const Dim<3>::Tenso
 }
 
 }
+
+#endif

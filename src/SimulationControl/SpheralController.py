@@ -5,6 +5,7 @@ import sys, os, gc, warnings, mpi
 
 from SpheralCompiledPackages import *
 from SpheralTimer import SpheralTimer
+from SpheralUtilities import adiak_value
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
 from SpheralTestUtilities import globalFrame
@@ -52,12 +53,12 @@ class SpheralController:
                  volumeType = RKVolumeType.RKVoronoiVolume,
                  facetedBoundaries = None,
                  printAllTimers = False):
+        self.restartBaseName = restartBaseName
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.restartObjects = restartObjects
         self.restartFileConstructor = restartFileConstructor
         self.SPIOFileCountPerTimeslice = SPIOFileCountPerTimeslice
-        self.SPH = SPH
         self.numHIterationsBetweenCycles = numHIterationsBetweenCycles
         self._break = False
 
@@ -81,6 +82,7 @@ class SpheralController:
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
+        adiak_value("dim", self.dim)
 
         # Determine the visualization method.
         if self.dim == "1d":
@@ -101,8 +103,11 @@ class SpheralController:
         self.insertDistributedBoundary(integrator.physicsPackages())
 
         # Should we look for the last restart set?
-        if restoreCycle == -1:
-            restoreCycle = findLastRestart(restartBaseName)
+        if restartBaseName:
+            if restoreCycle == -1:
+                restoreCycle = findLastRestart(restartBaseName)
+        else:
+            restoreCycle = None
 
         # Generic initialization work.
         self.reinitializeProblem(restartBaseName,
@@ -182,7 +187,8 @@ class SpheralController:
         self._periodicTimeWork = []
         
         # Set the restart file base name.
-        self.setRestartBaseName(restartBaseName)
+        if restartBaseName:
+            self.setRestartBaseName(restartBaseName)
         
         # Set the simulation time.
         self.integrator.currentTime = initialTime
@@ -200,24 +206,31 @@ class SpheralController:
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
 
-        # If we're starting from scratch, initialize the H tensors.
-        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
-            self.iterateIdealH()
-            # db.reinitializeNeighbors()
-            # self.integrator.setGhostNodes()
-            # db.updateConnectivityMap(False)
-            # self.integrator.applyGhostBoundaries(state, derivs)
-            # for bc in uniquebcs:
-            #     bc.initializeProblemStartup(False)
-
         # Initialize the integrator and packages.
         packages = self.integrator.physicsPackages()
         for package in packages:
             package.initializeProblemStartup(db)
         state = eval("State%s(db, packages)" % (self.dim))
         derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+
+        # Build the connectivity
+        requireConnectivity = max([pkg.requireConnectivity() for pkg in packages])
+        if requireConnectivity:
+            requireGhostConnectivity = max([pkg.requireGhostConnectivity() for pkg in packages])
+            requireOverlapConnectivity = max([pkg.requireOverlapConnectivity() for pkg in packages])
+            requireIntersectionConnectivity = max([pkg.requireIntersectionConnectivity() for pkg in packages])
+            db.reinitializeNeighbors()
+            db.updateConnectivityMap(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity)
+            state.enrollConnectivityMap(db.connectivityMapPtr(requireGhostConnectivity, requireOverlapConnectivity, requireIntersectionConnectivity))
+
+        # Initialize dependent state
         for package in packages:
             package.initializeProblemStartupDependencies(db, state, derivs)
+
+        # If we're starting from scratch, initialize the H tensors.
+        if restoreCycle is None and not skipInitialPeriodicWork and iterateInitialH:
+            self.iterateIdealH()
+
         db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
         db.updateConnectivityMap(False)
@@ -387,9 +400,12 @@ class SpheralController:
         numActualGhostNodes = 0
         for bc in bcs:
             numActualGhostNodes += bc.numGhostNodes
-        print("Total number of (internal, ghost, active ghost) nodes : (%i, %i, %i)" % (mpi.allreduce(db.numInternalNodes, mpi.SUM),
-                                                                                        mpi.allreduce(db.numGhostNodes, mpi.SUM),
-                                                                                        mpi.allreduce(numActualGhostNodes, mpi.SUM)))
+        numInternal = db.globalNumInternalNodes
+        numGhost = db.globalNumGhostNodes
+        numActGhost = mpi.allreduce(numActualGhostNodes, mpi.SUM)
+        print(f"Total number of (internal, ghost, active ghost) nodes : ({numInternal}, {numGhost}, {numActGhost})")
+        adiak_value("total_internal_nodes", numInternal)
+        adiak_value("total_ghost_nodes", numGhost)
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
@@ -560,6 +576,8 @@ class SpheralController:
     #--------------------------------------------------------------------------
     def dropRestartFile(self):
 
+        if not self.restartBaseName:
+            return
         # First find out if the requested directory exists.
         import os
         dire = os.path.dirname(os.path.abspath(self.restartBaseName))
@@ -588,6 +606,8 @@ class SpheralController:
     def loadRestartFile(self, restoreCycle,
                         frameDict=None):
 
+        if not self.restartBaseName:
+            return
         # Find out if the requested file exists.
         import os
         fileName = self.restartBaseName + "_cycle%i" % restoreCycle
@@ -663,6 +683,27 @@ class SpheralController:
         RKCorrections = eval("RKCorrections%s" % self.dim)
         vector_of_Physics = eval("vector_of_Physics%s" % self.dim)
 
+        # Anyone require Voronoi cells?
+        # If so we need the VoronoiCells physics package first
+        voronoibcs = []
+        index = -1
+        for (ipack, package) in enumerate(packages):
+            if package.requireVoronoiCells():
+                pbcs = package.boundaryConditions
+                voronoibcs += [bc for bc in pbcs if not bc in voronoibcs]
+                if index == -1:
+                    index = ipack
+
+        if index >= 0:
+            VC = eval("VoronoiCells" + self.dim)
+            fb = eval("vector_of_FacetedVolume{}()".format(self.dim)) if facetedBoundaries is None else facetedBoundaries
+            self.VoronoiCells = VC(kernelExtent = db.maxKernelExtent,
+                                   facetedBoundaries = fb)
+            for bc in voronoibcs:
+                self.VoronoiCells.appendBoundary(bc)
+            packages.insert(index, self.VoronoiCells)
+            self.integrator.resetPhysicsPackages(packages)
+
         # Are there any packages that require reproducing kernels?
         # If so, insert the RKCorrections package prior to any RK packages
         rkorders = set()
@@ -676,7 +717,7 @@ class SpheralController:
             needHessian |= package.requireReproducingKernelHessian()
             rkUpdateInFinalize |= package.updateReproducingKernelsInFinalize()
             if ords:
-                pbcs = package.boundaryConditions()
+                pbcs = package.boundaryConditions
                 rkbcs += [bc for bc in pbcs if not bc in rkbcs]
                 if index == -1:
                     index = ipack
@@ -750,7 +791,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
 
             # Make a copy of the current set of boundary conditions for this package,
             # and assign priorities to enforce the desired order
-            bcs = list(package.boundaryConditions())
+            bcs = list(package.boundaryConditions)
             priorities = list(range(len(bcs)))
             for i, bc in enumerate(bcs):
                 if isinstance(bc, eval("ConstantBoundary%s" % self.dim)):
@@ -856,12 +897,23 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
         print("SpheralController: Initializing H's...")
         db = self.integrator.dataBase
         bcs = self.integrator.uniqueBoundaryConditions()
-        if self.SPH:
-            method = eval("SPHSmoothingScale%s()" % self.dim)
-        else:
-            method = eval("ASPHSmoothingScale%s()" % self.dim)
-        iterateIdealH = eval("iterateIdealH%s" % self.dim)
-        iterateIdealH(db, bcs, self.kernel, method, maxIdealHIterations, idealHTolerance, 0.0, False, False)
+
+        # Find the smoothing scale method
+        method = None
+        for pkg in self.integrator.physicsPackages():
+            if isinstance(pkg, eval(f"SmoothingScaleBase{self.dim}")):
+                method = pkg
+        if method is None:
+            print("SpheralController::iterateIdealH no H update algorithm provided -- assuming standard SPH")
+            method = eval(f"SPHSmoothingScale{self.dim}(IdealH, self.kernel)")
+                
+        packages = eval(f"vector_of_Physics{self.dim}()")
+        if method.requireVoronoiCells():
+            packages.append(self.VoronoiCells)
+        packages.append(method)
+
+        iterateIdealH = eval(f"iterateIdealH{self.dim}")
+        iterateIdealH(db, packages, bcs, maxIdealHIterations, idealHTolerance, 0.0, False, False)
 
         return
 
@@ -929,8 +981,10 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             state.update(derivs, 1.0, 0.0, 1.0)
             self.integrator.enforceBoundaries()
             self.integrator.applyGhostBoundaries()
-            self.integrator.postStateUpdate()
             self.integrator.finalizeGhostBoundaries()
+            if (self.integrator.postStateUpdate()):
+                self.integrator.applyGhostBoundaries()
+                self.integrator.finalizeGhostBoundaries()
             self.integrator.finalize(0.0, 0.0, db, state, derivs)
 
             # Check the displacements.

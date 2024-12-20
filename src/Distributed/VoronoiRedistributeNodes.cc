@@ -404,7 +404,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
   // Define the the length scale we use to determine when the generator positions have converged.
   const double tol = (xmax - xmin).minElement() * mTolerance;
-  if (procID == 0) cerr << "VoronoiRedistributeNodes: Found bounding box of " << xmin << " " << xmax << endl
+  if (procID == 0) cout << "VoronoiRedistributeNodes: Found bounding box of " << xmin << " " << xmax << endl
                         << "                          yielding generator convergence tolerance of " << tol << endl;
 
   // Determine the average work per generator.
@@ -531,7 +531,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(newGeneratorsInParents.size() == newParentCells.size());
       generatorsInParents = newGeneratorsInParents;
       parentCells = newParentCells;
-      if (procID == 0) cerr << "   Generation " << level << " : "
+      if (procID == 0) cout << "   Generation " << level << " : "
                             << numRemainingGenerators << " generators remaining in " 
                             << generatorsInParents.size() << " cells."
                             << endl;
@@ -540,7 +540,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
 //     // Are there still remaining degeneracies in the generator positions?
 //     if (numRemainingGenerators > 0) {
-//       if (procID == 0) cerr << "  --> Breaking up " << numRemainingGenerators 
+//       if (procID == 0) cout << "  --> Breaking up " << numRemainingGenerators 
 //                             << " degeneracies in intial generator positions."
 //                             << endl;
 //       for (vector<vector<size_t> >::const_iterator cellItr = generatorsInParents.begin();
@@ -648,7 +648,7 @@ redistributeNodes(DataBase<Dimension>& dataBase,
     workRatio = maxWork*safeInv(minWork);
 
     // Report this iterations statistics.
-    if (procID == 0) cerr << "VoronoiRedistributeNodes: Lloyds iteration " << iteration << endl
+    if (procID == 0) cout << "VoronoiRedistributeNodes: Lloyds iteration " << iteration << endl
                           << "                          max change:  " << maxDeltaGenerator << endl
                           << "                          work ratio change:  " << workRatio << " " << oldWorkRatio << " " << abs(workRatio*safeInv(oldWorkRatio) - 1.0) << endl
                           << "                          [min, max, avg] work      [" << minWork << ", " << maxWork << ", " << avgWork << "]" << endl

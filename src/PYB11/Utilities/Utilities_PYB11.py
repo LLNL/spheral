@@ -22,6 +22,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/Functors.hh"',
                   '"Utilities/erff.hh"',
                   '"Utilities/newtonRaphson.hh"',
+                  '"Utilities/bisectRoot.hh"',
                   '"Utilities/simpsonsIntegration.hh"',
                   '"Utilities/globalNodeIDs.hh"',
                   '"Utilities/rotationMatrix.hh"',
@@ -49,6 +50,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
+                  '"Utilities/LinearInterpolator.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
                   '"Utilities/CubicHermiteInterpolator.hh"',
                   '"Utilities/XYInterpolator.hh"',
@@ -130,6 +132,7 @@ from SpheralFunctor import *
 from KeyTraits import *
 from DomainNode import *
 from NodeCoupling import *
+from LinearInterpolator import *
 from QuadraticInterpolator import *
 from CubicHermiteInterpolator import *
 from XYInterpolator import *
@@ -224,9 +227,8 @@ a DataBase, returning the result as a FieldList<int>."""
 
 @PYB11template("Dimension")
 def iterateIdealH(dataBase = "DataBase<%(Dimension)s>&",
+                  packages = "std::vector<Physics<%(Dimension)s>*>&",
                   boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
-                  W = "const TableKernel<%(Dimension)s>&",
-                  smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                   maxIterations = ("const int", "100"),
                   tolerance = ("const double", "1.0e-10"),
                   nPerhForIteration = ("const double", "0.0"),
@@ -319,6 +321,7 @@ for ndim in dims:
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))
 VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "std::pair<double,double>"))
+SizetSizetSymTensorSymTensorSymTensorFunctor%(ndim)id = PYB11TemplateClass(Spheral4ArgFunctor, template_parameters=("size_t", "size_t", "%(SymTensor)s", "%(SymTensor)s", "%(SymTensor)s"))
 
 # boundingVolumes
 boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Vector)s", pyname="boundingBox")
@@ -456,6 +459,18 @@ def legendre_p(l = "int",
     "Compute the associated Legendre polynomial P^m_l(x)"
     return "double"
 
+@PYB11cppname("bisectRoot<const PythonBoundFunctors::SpheralFunctor<double, double>>")
+def bisectRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+               xmin = "double",
+               xmax = "double",
+               xaccuracy = ("double", "1.0e-15"),
+               yaccuracy = ("double", "1.0e-10"),
+               maxIterations = ("unsigned", "100u"),
+               verbose = ("bool", "false")):
+    """Bisection root finder.
+Finds a root of 'function' in the range (x1, x2)"""
+    return "double"
+
 @PYB11cppname("newtonRaphson<const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>>")
 def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>&",
                           x1 = "double",
@@ -466,6 +481,7 @@ def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<
     """Newton-Raphson root finder.
 Finds a root of 'function' in the range (x1, x2)"""
     return "double"
+
 @PYB11cppname("simpsonsIntegration<const PythonBoundFunctors::SpheralFunctor<double, double>, double, double>")
 def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
                               x0 = "double",
@@ -803,7 +819,7 @@ for (value, label) in (("int", "Int"),
                        ("long", "Long"),
                        ("double", "Scalar"),
                        ("std::string", "String")):
-    exec("""
-adiak_value%(label)s = PYB11TemplateFunction(adiak_value, "%(value)s")
-adiak_value2%(label)s = PYB11TemplateFunction(adiak_value2, "%(value)s", pyname="adiak_value%(label)s")
-""" % {"label" : label, "value" : value})
+    exec(f"""
+adiak_value{label} = PYB11TemplateFunction(adiak_value, "{value}", pyname="adiak_value")
+adiak_value2{label} = PYB11TemplateFunction(adiak_value2, "{value}", pyname="adiak_value")
+""")

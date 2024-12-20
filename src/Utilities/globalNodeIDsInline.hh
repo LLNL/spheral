@@ -95,7 +95,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
   // Reduce the list of node info to processor 0.
 #ifdef USE_MPI
-  int numGlobalNodes = numLocalNodes;
+  int nglobal = numLocalNodes;
+  CONTRACT_VAR(nglobal);
   if (procID == 0) {
 
     // Process 0 receives and builds the global info.
@@ -104,7 +105,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
       int numRecvNodes;
       MPI_Recv(&numRecvNodes, 1, MPI_INT, recvDomain, 10, Communicator::communicator(), &status);
       CHECK(numRecvNodes >= 0);
-      numGlobalNodes += numRecvNodes;
+      nglobal += numRecvNodes;
       std::vector<Key> packedKeys(numRecvNodes);
       std::vector<int> packedLocalIDs(numRecvNodes);
       if (numRecvNodes > 0) {
@@ -140,7 +141,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
                MPI_INT, 0, 12, Communicator::communicator());
     }
   }
-  CHECK((int)nodeInfo.size() == numGlobalNodes);
+  CHECK((int)nodeInfo.size() == nglobal);
 #endif
 
   // Sort the node info.

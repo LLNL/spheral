@@ -7,16 +7,26 @@ import argparse, mpi
 from SpheralCompiledPackages import *
 
 from SpheralTestUtilities import globalFrame
-from SpheralUtilities import TimerMgr
+import SpheralTimingParser
+
+def parse_value(value):
+    gd = globalFrame().f_globals
+    try:
+        return eval(value, gd)
+    except:
+        return value
 
 def commandLine(**options):
 
     # Build a command line parser with the keyword arguments passed to us.
     parser = argparse.ArgumentParser()
-    for key in options:
-        parser.add_argument("--" + key,
-                            dest = key,
-                            default = options[key])
+    for key, default in options.items():
+        if default == "None":
+            raise SyntaxError(f"ERROR: {key}, None as a default value cannot be a string")
+        elif type(default) is str:
+            parser.add_argument(f"--{key}", type = str, default = default)
+        else:
+            parser.add_argument(f"--{key}", type = parse_value, default = default)
 
     # Add the universal options supported by all Spheral++ scripts.
     parser.add_argument("-v", "--verbose",
@@ -24,18 +34,13 @@ def commandLine(**options):
                         dest = "verbose",
                         default = False,
                         help = "Verbose output -- print all options that were set.")
-    parser.add_argument("--caliperConfig", default="", type=str)
-    parser.add_argument("--caliperFilename", default="", type=str)
-    parser.add_argument("--caliperConfigJSON", default="", type=str)
+
+    # Parse Caliper and Adiak inputs
+    SpheralTimingParser.add_timing_args(parser)
+
     # Evaluate the command line.
     args = parser.parse_args()
     arg_dict = vars(args)
-
-    if (not TimerMgr.timers_usable()):
-        if (args.caliperConfig or args.caliperFilename or args.caliperConfigJSON):
-            print("WARNING: Caliper command line inputs provided for "+\
-                  "non-timer install. Reconfigure the install with "+\
-                  "-DENABLE_TIMER=ON to be able to use Caliper timers.")
 
     # Verbose output?
     if args.verbose:
@@ -46,46 +51,12 @@ def commandLine(**options):
                     print("  *  ", key, " = ", val)
                 else:
                     print("     ", key, " = ", val)
-        if (args.caliperConfig):
-            print("  *  caliperConfig = ", args.caliperConfig)
-        if (args.caliperFilename):
-            print("  *  caliperFilename = ", args.caliperFilename)
-        if (args.caliperConfigJSON):
-            print("  *  caliperConfigJSON = ", args.caliperConfigJSON)
     # Set all the variables.
     gd = globalFrame().f_globals
     for key, val in arg_dict.items():
-        if key in options:
-            if (type(val) != type(options[key])):
-                val = eval(val, gd)
+        if val == "None":
+            val = None
         gd[key] = val
-    # Initialize timers
-    InitTimers(args.caliperConfig, args.caliperFilename, args.caliperConfigJSON)
-    return
-
-def InitTimers(caliper_config, filename, caliper_json):
-    if(caliper_json):
-        TimerMgr.load(caliper_json)
-        if(not caliper_config):
-            raise RuntimeError("SpheralOptionParser: specifying a configuration file without using one of the configurations means no timers are started")
-    off_tests = ["none", "off", "disable", "disabled", "0"]
-    if (caliper_config.lower() in off_tests):
-        return
-    elif (caliper_config):
-        TimerMgr.add(caliper_config)
-        TimerMgr.start()
-    else:
-        import os, sys
-        if (filename):
-            testname = filename
-        else:
-            from datetime import datetime
-            # Append the current day and time to the filename
-            unique_digits = datetime.now().strftime("_%Y_%m_%d_%H%M%S_%f")
-            # Name file based on name of python file being run
-            testname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-            testname += unique_digits + ".cali"
-        TimerMgr.default_start(testname)
-    adiak_valueInt("threads_per_rank", omp_get_num_threads())
-    adiak_valueInt("num_ranks", mpi.procs)
+    # Initialize timers and add inputs as Adiak metadata
+    SpheralTimingParser.init_timer(args)
     return
