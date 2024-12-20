@@ -101,7 +101,7 @@ def gather_files(manager):
         if (CIRun):
             shutil.copy(cfile, outfile)
             os.chmod(outfile, perms)
-            shutil.chown(cfile, group="sduser")
+            shutil.chown(outfile, group="sduser")
     if (CIRun):
         cpaths = [outdir, macpath, instpath, benchmark_dir]
         for p in cpaths:
