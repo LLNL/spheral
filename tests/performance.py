@@ -27,7 +27,9 @@ if "threads" in opts:
 # triggers copy of Caliper files to benchmark location
 benchmark_dir = None
 test_runs = 1 # Number of times to run each test
+CIRun = False
 if "cirun" in opts and opts["cirun"]:
+    CIRun = True
     test_runs = 5
     benchmark_dir = opts["benchmark_dir"]
 #---------------------------------------------------------------------------
@@ -54,15 +56,6 @@ try:
 except:
     log("Machine name not recognized", echo=True)
     raise Exception
-
-#---------------------------------------------------------------------------
-# Test configurations
-#---------------------------------------------------------------------------
-# General number of SPH nodes per core
-n_per_core_3d = 8000
-n_per_core_2d = 1000
-# 5k-10k nodes per core for 3d, 1k nodes per core for 2d
-
 # If MPI is turned off, thread the whole node
 if (mpi.is_fake_mpi()):
     num_cores = int(total_num_cores)
@@ -70,6 +63,15 @@ else:
     # Ideally, tests should be run with 2 nodes and each test will
     # use one entire node, except the 2D tests which use half a node
     num_cores = int(total_num_cores/2)
+
+#---------------------------------------------------------------------------
+# Test configurations
+#---------------------------------------------------------------------------
+# General number of SPH nodes per core
+# 5k-10k nodes per core for 3d, 1k nodes per core for 2d
+n_per_core_3d = 8000
+n_per_core_2d = 1000
+
 Ntotal = int(num_cores*n_per_core_3d)
 
 def gather_files(manager):
@@ -96,13 +98,15 @@ def gather_files(manager):
         test_name = test.options["label"]
         outfile = os.path.join(outdir, cali_filename)
         log(f"Copying {cali_filename} to {outdir}", echo=True)
-        shutil.copy(cfile, outfile)
-        os.chmod(outfile, perms)
-        shutil.chown(cfile, group="sduser")
-    cpaths = [outdir, macpath, instpath, benchmark_dir]
-    for p in cpaths:
-        os.chmod(p, perms)
-        shutil.chown(p, group="sduser")
+        if (CIRun):
+            shutil.copy(cfile, outfile)
+            os.chmod(outfile, perms)
+            shutil.chown(cfile, group="sduser")
+    if (CIRun):
+        cpaths = [outdir, macpath, instpath, benchmark_dir]
+        for p in cpaths:
+            os.chmod(p, perms)
+            shutil.chown(p, group="sduser")
 
 def spheral_setup_test(test_file, test_name, inps, ncores, threads=1, **kwargs):
     '''
@@ -153,14 +157,14 @@ steps = 5
 # Estimate nr and nz so the 3D cylindrical node generator creates Ntotal SPH nodes
 nz0 = int(np.cbrt(Ntotal)) # Initial guess for nz
 nr0 = max(4, int(nz0/4)) # Initial guess for nr
-nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, nz0, nz0, Ntotal)
+nr, nz = num_3d_cyl_nodes(0., rlen, 0., zlen, 0., 2.*np.pi, nr0, nz0, Ntotal)
 gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
-    "--densityUpdate SumVoronoiCellDensity --clearDirectories False --baseDir None "+\
+    "--clearDirectories False --baseDir None "+\
     "--vizTime None --vizCycle None --siloSnapShotFile None "+\
     f"--rlength {rlen} --zlength {zlen} --nr {nr} --nz {nz}"
 
 # Test variations
-test_inp = {"CRK": "--crksph True",
+test_inp = {"CRK": "--crksph True --densityUpdate SumVoronoiCellDensity",
             "FSI": "--fsisph True",
             "SOLIDSPH": "--fsisph False --crksph False"}
 for tname, tinp in test_inp.items():
