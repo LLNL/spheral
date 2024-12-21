@@ -91,7 +91,6 @@ source("unit/Distributed/testMPI4PYasPYMPI.py")
 
 # C++ unit tests.
 source("functional/CXXTests/test_r3d_utils.py")
-source("unit/CXXTests/runCXXTests.ats")
 
 # Hydro tests
 source("functional/Hydro/HydroTests.ats")

@@ -24,5 +24,5 @@ Quickstart
    :end-before: [ex_install-section-end]
    
 .. include:: ../include/quickstart.rst.inc
-   :start-after: [ex_test-section-start]
-   :end-before: [ex_test-section-end]
+   :start-after: [test-section-start]
+   :end-before: [test-section-end]
