@@ -51,7 +51,7 @@ commandLine(nx1 = 256,
             mu = 1.0,
 
             # kernel
-            kernelConstructor = WendlandC4Kernel,
+            kernelConstructor = WendlandC2Kernel,
             nbSplineOrder = 7,
             nPerh = 4.01,
             hmin = 0.0001, 
@@ -75,7 +75,7 @@ commandLine(nx1 = 256,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
-            densityUpdate = RigorousSumDensity,
+            densityUpdate = IntegrateDensity,
             compatibleEnergy = True,         
             gradhCorrection = True,
             correctVelocityGradient = True,
@@ -126,10 +126,10 @@ commandLine(nx1 = 256,
             WaveSpeedConstructor = DavisWaveSpeed,
             nodeMotionCoefficient = 1.0,
             nodeMotionType = NodeMotionType.Eulerian, # (Lagrangian, Eulerian, XSPH,  Fician)
-            gsphGradientType = SPHSameTimeGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
+            gsphGradientType = SPHGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
 
             ## integrator
-            cfl = 0.5,
+            cfl = 0.35,
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 2.0,
             steps = None,
@@ -328,22 +328,22 @@ if numNodeLists == 2:
             yval = pos[i].y
             xval = pos[i].x
             velx = 0.0
-            rho[i] = 0.0
+            #rho[i] = 0.0
             vely = delta*sin(4*pi*xval)
             if yval >= 0 and yval < 0.25:
-               rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+               #rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
                mass[i] *= rho[i]/rho1
                velx = vx1 - vxm*exp((yval-0.25)/smooth)
             elif yval >= 0.25 and yval < 0.5:
-               rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+               #rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
                mass[i] *= rho[i]/rho2
                velx = vx2 + vxm*exp((0.25-yval)/smooth)
             elif yval >= 0.5 and yval < 0.75:
-               rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+               #rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
                mass[i] *= rho[i]/rho2
                velx = vx2 + vxm*exp((yval-0.75)/smooth)
             else:
-               rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+               #rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
                mass[i] *= rho[i]/rho1
                velx = vx1 - vxm*exp((0.75-yval)/smooth)
             vel[i] = Vector(velx + vxboost, vely + vyboost)
@@ -446,7 +446,7 @@ if fsisph:
                    interfaceMethod = fsiInterfaceMethod,
                    kernelAveragingMethod = fsiKernelMethod,
                    sumDensityNodeLists = sumDensityNodeListSwitch,
-                   linearCorectGradients = correctVelocityGradient,
+                   linearCorrectGradients = correctVelocityGradient,
                    compatibleEnergyEvolution = compatibleEnergy,  
                    evolveTotalEnergy = evolveTotalEnergy,         
                    ASPH = asph,
@@ -464,7 +464,7 @@ elif gsph:
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
                 gradientType = gsphGradientType,
-                XSPH = xsph,
+                XSPH = XSPH,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
@@ -481,7 +481,7 @@ elif mfm:
                 evolveTotalEnergy = evolveTotalEnergy,
                 gradientType = gsphGradientType,
                 densityUpdate=densityUpdate,
-                XSPH = xsph,
+                XSPH = XSPH,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
@@ -500,7 +500,7 @@ elif mfv:
                 gradientType = gsphGradientType,
                 evolveTotalEnergy = evolveTotalEnergy,
                 densityUpdate=densityUpdate,
-                XSPH = xsph,
+                XSPH = XSPH,
                 ASPH = asph,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
@@ -523,7 +523,6 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
 
 packages = [hydro]
 
