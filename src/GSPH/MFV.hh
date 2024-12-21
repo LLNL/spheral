@@ -53,9 +53,9 @@ template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension, typename DataType> class PairwiseField;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
@@ -74,7 +74,7 @@ public:
 
   using PairAccelerationsType = typename GenericRiemannHydro<Dimension>::PairAccelerationsType;
   using PairWorkType = typename GenericRiemannHydro<Dimension>::PairWorkType;
-  using PairMassFluxType = PairwiseField<Dimension, Scalar>;
+  using PairMassFluxType = PairwiseField<Dimension, Scalar, 1u>;
 
   // Constructors.
   MFV(DataBase<Dimension>& dataBase,

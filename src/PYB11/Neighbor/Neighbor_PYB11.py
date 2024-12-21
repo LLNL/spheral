@@ -49,6 +49,7 @@ from ConnectivityMap import *
 from NodePairIdxType import *
 from NodePairList import *
 from PairwiseField import *
+from PairwiseMultiValueField import *
 
 for ndim in dims:
     suffix = f"{ndim}d"
@@ -68,9 +69,9 @@ vector_of_vector_of_GridCellIndex{suffix} = PYB11_bind_vector("std::vector<GridC
     for Value in ("Scalar", "Vector", "Tensor", "SymTensor"):
         V = f"{Dimension}::{Value}"
         exec(f'''
-{Value}PairwiseField{suffix} = PYB11TemplateClass(PairwiseField, template_parameters=("{Dimension}", "{V}"))
+{Value}PairwiseField{suffix} = PYB11TemplateClass(PairwiseField, template_parameters=("{Dimension}", "{V}", "1u"))
 ''')
 
     exec(f'''
-PairwiseFieldScalarScalar{suffix} = PYB11TemplateClass(PairwiseField, template_parameters=("{Dimension}", "std::pair<{Dimension}::Scalar, {Dimension}::Scalar>"))
+PairwiseFieldScalarScalar{suffix} = PYB11TemplateClass(PairwiseMultiValueField, template_parameters=("{Dimension}", "{Dimension}::Scalar", "2u"))
 ''')

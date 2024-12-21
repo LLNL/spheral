@@ -15,12 +15,12 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructor
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
-PairwiseField<Dimension, Value>::PairwiseField(const ConnectivityMap<Dimension>& connectivity):
+template<typename Dimension, typename Value, size_t numElements>
+PairwiseField<Dimension, Value, numElements>::PairwiseField(const ConnectivityMap<Dimension>& connectivity):
   mPairsPtr(connectivity.nodePairListPtr()),
   mValues() {
   if (auto p = mPairsPtr.lock()) {
-    mValues.resize(p->size());
+    mValues.resize(numElements * p->size());
   } else {
     VERIFY2(false, "PairwiseField constructed with invalid NodePairList");
   }
@@ -29,22 +29,22 @@ PairwiseField<Dimension, Value>::PairwiseField(const ConnectivityMap<Dimension>&
 //------------------------------------------------------------------------------
 // Index by pair
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
+template<typename Dimension, typename Value, size_t numElements>
 inline
-const Value&
-PairwiseField<Dimension, Value>::operator()(const NodePairIdxType& x) const {
+typename PairwiseField<Dimension, Value, numElements>::const_reference
+PairwiseField<Dimension, Value, numElements>::operator()(const NodePairIdxType& x) const {
   if (auto p = mPairsPtr.lock()) {
-    return mValues[p->index(x)];
+    return Accessor::at(mValues, p->index(x));
   }
   VERIFY2(false, "PairwiseField ERROR: attempt to index with invalid pair " << x);
 }
 
-template<typename Dimension, typename Value>
+template<typename Dimension, typename Value, size_t numElements>
 inline
-Value&
-PairwiseField<Dimension, Value>::operator()(const NodePairIdxType& x) {
+typename PairwiseField<Dimension, Value, numElements>::reference
+PairwiseField<Dimension, Value, numElements>::operator()(const NodePairIdxType& x) {
   if (auto p = mPairsPtr.lock()) {
-    return mValues[p->index(x)];
+    return Accessor::at(mValues, p->index(x));
   }
   VERIFY2(false, "PairwiseField ERROR: attempt to index with invalid pair " << x);
 }
@@ -52,10 +52,10 @@ PairwiseField<Dimension, Value>::operator()(const NodePairIdxType& x) {
 //------------------------------------------------------------------------------
 // NodePairList
 //------------------------------------------------------------------------------
-template<typename Dimension, typename Value>
+template<typename Dimension, typename Value, size_t numElements>
 inline
 const NodePairList&
-PairwiseField<Dimension, Value>::pairs() const {
+PairwiseField<Dimension, Value, numElements>::pairs() const {
   if (auto p = mPairsPtr.lock()) {
     return *p;
   }

@@ -40,9 +40,9 @@ template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class SlideSurface;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension, typename DataType> class PairwiseField;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
@@ -58,8 +58,8 @@ public:
 
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
-  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
-  using PairWorkType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 1u>;
+  using PairWorkType = PairwiseField<Dimension, Scalar, 2u>;
 
   // Constructors.
   SolidFSISPH(DataBase<Dimension>& dataBase,

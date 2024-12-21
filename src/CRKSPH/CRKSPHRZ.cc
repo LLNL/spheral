@@ -440,7 +440,10 @@ evaluateDerivativesImpl(const Dim<2>::Scalar /*time*/,
       const auto forceij  = 0.5*weighti*weightj*((Pi + Pj)*deltagrad + Qaccij); // <- Type III, with CRKSPH Q forces
       DvDti -= forceij/mRZi; //CRK Acceleration
       DvDtj += forceij/mRZj; //CRK Acceleration
-      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair(-forceij/mRZi, forceij/mRZj);
+      if (compatibleEnergy) {
+        (*pairAccelerationsPtr)[kk][0] = -forceij/mRZi;
+        (*pairAccelerationsPtr)[kk][1] =  forceij/mRZj;
+      }
 
       DepsDti += 0.5*weighti*weightj*(Pj*vij.dot(deltagrad) + workQi)/mRZi;    // CRK Q
       DepsDtj += 0.5*weighti*weightj*(Pi*vij.dot(deltagrad) + workQj)/mRZj;    // CRK Q

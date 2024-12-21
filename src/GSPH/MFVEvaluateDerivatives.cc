@@ -307,8 +307,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       if(compatibleEnergy){
         pairMassFlux[kk] = massFlux;
         (*pairAccelerationsPtr)[kk] = deltaDvDt;
-        pairDepsDt[kk].first  = deltaDepsDti;
-        pairDepsDt[kk].second = deltaDepsDtj;
+        pairDepsDt[kk][0] = deltaDepsDti;
+        pairDepsDt[kk][1] = deltaDepsDtj;
       }
 
       // volume change based on nodal velocity

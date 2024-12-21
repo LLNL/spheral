@@ -14,14 +14,15 @@
 #include "Geometry/Dimension.hh"
 
 namespace Spheral {
+
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension, typename Value> class PairwiseField;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 class CRKSPHRZ: public CRKSPHBase<Dim<2>> {
@@ -38,7 +39,7 @@ public:
   using SymTensor = Dimension::SymTensor;
   using FacetedVolume = Dimension::FacetedVolume;
 
-  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 2u>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.

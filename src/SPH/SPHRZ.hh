@@ -21,7 +21,7 @@
 
 namespace Spheral {
 
-template<typename Dimension, typename Value> class PairwiseField;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 
 class SPHRZ: public SPHBase<Dim<2> > {
 
@@ -33,7 +33,7 @@ public:
   using Tensor = Dimension::Tensor;
   using SymTensor = Dimension::SymTensor;
 
-  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 2u>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.

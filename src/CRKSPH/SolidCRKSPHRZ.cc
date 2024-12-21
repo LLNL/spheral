@@ -544,8 +544,10 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
         DvDti -= forceij/mRZi;
         DvDtj += forceji/mRZj;
       }
-      if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair(-forceij/mRZi,
-                                                                          forceji/mRZj);
+      if (compatibleEnergy) {
+        (*pairAccelerationsPtr)[kk][0] = -forceij/mRZi;
+        (*pairAccelerationsPtr)[kk][1] =  forceji/mRZj;
+      }
 
       // Energy
       DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?

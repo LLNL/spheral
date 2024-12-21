@@ -95,7 +95,7 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, std::pair<Vector, Vector>>>(HydroFieldNames::pairAccelerations);
+  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, Vector, 2u>>(HydroFieldNames::pairAccelerations);
   const auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
@@ -137,7 +137,7 @@ update(const KeyType& key,
       const auto& vi = velocity(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
-      const auto& pacci = pairAccelerations[kk].first;
+      const auto& pacci = pairAccelerations[kk][0];
 
       // State for node j.
       const auto  rj = abs(pos(nodeListj, j).y());
@@ -146,7 +146,7 @@ update(const KeyType& key,
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;
-      const auto& paccj = pairAccelerations[kk].second;
+      const auto& paccj = pairAccelerations[kk][1];
 
       const auto dEij = -(mi*vi12.dot(pacci) + mj*vj12.dot(paccj));
       const auto wi = weighti/(weighti + weightj);

@@ -255,8 +255,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       if(compatibleEnergy){
         const auto invmij = 1.0/(mi*mj);
         (*pairAccelerationsPtr)[kk] = deltaDvDt*invmij; 
-        pairDepsDt[kk].first   = deltaDepsDti*invmij; 
-        pairDepsDt[kk].second  = deltaDepsDtj*invmij; 
+        pairDepsDt[kk][0]  = deltaDepsDti*invmij; 
+        pairDepsDt[kk][1]  = deltaDepsDtj*invmij; 
       }
 
       // gradients

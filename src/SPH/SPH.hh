@@ -6,7 +6,7 @@
 #ifndef __Spheral_SPH__
 #define __Spheral_SPH__
 
-#include "SPH//SPHBase.hh"
+#include "SPH/SPHBase.hh"
 
 #include <memory>
 
@@ -20,7 +20,7 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
 template<typename Dimension, typename Value> class FieldList;
-template<typename Dimension, typename Value> class PairwiseField;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 
 template<typename Dimension>
 class SPH: public SPHBase<Dimension> {
@@ -33,7 +33,7 @@ public:
   using Tensor = typename Dimension::Tensor;
   using SymTensor = typename Dimension::SymTensor;
 
-  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 1u>;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.

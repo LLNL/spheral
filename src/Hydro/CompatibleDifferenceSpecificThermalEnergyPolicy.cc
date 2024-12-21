@@ -67,7 +67,7 @@ update(const KeyType& key,
        const double /*dt*/) {
 
   using PairAccelerationsType = PairwiseField<Dimension, Vector>;
-  using PairWorkType = PairwiseField<Dimension, std::pair<Scalar, Scalar>>;
+  using PairWorkType = PairwiseField<Dimension, Scalar, 2u>;
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
@@ -111,8 +111,8 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       const auto& paccij = pairAccelerations[kk];
-      const auto& DepsDt0i = pairDepsDt[kk].first;
-      const auto& DepsDt0j = pairDepsDt[kk].second;
+      const auto& DepsDt0i = pairDepsDt[kk][0];
+      const auto& DepsDt0j = pairDepsDt[kk][1];
 
       const auto  mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);

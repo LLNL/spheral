@@ -5,10 +5,12 @@ from PYB11Generator import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value", "size_t numElements")
 @PYB11module("SpheralNeighbor")
-class PairwiseField:
+@PYB11cppname("PairwiseField")
+class PairwiseMultiValueField:
 
     PYB11typedefs = """
-  using SELF = PairwiseField<%(Dimension)s, %(Value)s, %(numElements)s>;
+    using SELF = PairwiseField<%(Dimension)s, %(Value)s, %(numElements)s>;
+    using reference = typename SELF::reference;
 """
 
     def pyinit(self,
@@ -28,20 +30,20 @@ class PairwiseField:
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation('[](SELF& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
+    @PYB11implementation('[](SELF& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return self[(i %% n + n) %% n]; }')
     def __getitem__(self):
         return
 
-    @PYB11implementation("[](SELF& self, int i, const %(Value)s v) { const int n = self.size(); if (i >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
-    def __setitem__(self):
-        "Set a value"
+    # @PYB11implementation("[](SELF& self, int i, const %(Value)s v) { const int n = self.size(); if (i >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
+    # def __setitem__(self):
+    #     "Set a value"
 
     @PYB11implementation("[](const SELF& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a Field."
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](SELF& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
+    @PYB11implementation("[](SELF& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return self[(i %% n + n) %% n]; }")
     def __call__(self):
         "Index into a Field"
         return
@@ -52,7 +54,7 @@ class PairwiseField:
     def __call__(self,
                  x = "const NodePairIdxType&"):
         "Index by NodePair"
-        return "%(Value)s&"
+        return "reference"
 
     @PYB11const
     @PYB11returnpolicy("reference_internal")

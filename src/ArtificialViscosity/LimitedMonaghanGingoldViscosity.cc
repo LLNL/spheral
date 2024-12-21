@@ -14,7 +14,6 @@
 #include "DataBase/StateDerivatives.hh"
 #include "NodeList/FluidNodeList.hh"
 #include "Neighbor/Neighbor.hh"
-#include "Neighbor/PairwiseField.hh"
 #include "Material/EquationOfState.hh"
 #include "Boundary/Boundary.hh"
 #include "Hydro/HydroFieldNames.hh"

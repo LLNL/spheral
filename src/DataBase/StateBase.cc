@@ -118,9 +118,9 @@ operator==(const StateBase<Dimension>& rhs) const {
   addCompare<VisitorType, set<RKOrder>>                                  (EQUAL);
   addCompare<VisitorType, ReproducingKernel<Dimension>>                  (EQUAL);
   addCompare<VisitorType, PairwiseField<Dimension, Vector>>              (EQUAL);
-  addCompare<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(EQUAL);
+  addCompare<VisitorType, PairwiseField<Dimension, Vector, 2u>>          (EQUAL);
   addCompare<VisitorType, PairwiseField<Dimension, Scalar>>              (EQUAL);
-  addCompare<VisitorType, PairwiseField<Dimension, pair<Scalar, Scalar>>>(EQUAL);
+  addCompare<VisitorType, PairwiseField<Dimension, Scalar, 2u>>          (EQUAL);
   
   // Apply the equality visitor to all the stored State data
   auto lhsitr = mStorage.begin();
@@ -392,9 +392,9 @@ assign(const StateBase<Dimension>& rhs) {
   addAssign<VisitorType, set<RKOrder>>                                  (ASSIGN);
   addAssign<VisitorType, ReproducingKernel<Dimension>>                  (ASSIGN);
   addAssign<VisitorType, PairwiseField<Dimension, Vector>>              (ASSIGN);
-  addAssign<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(ASSIGN);
+  addAssign<VisitorType, PairwiseField<Dimension, Vector, 2u>>          (ASSIGN);
   addAssign<VisitorType, PairwiseField<Dimension, Scalar>>              (ASSIGN);
-  addAssign<VisitorType, PairwiseField<Dimension, pair<Scalar, Scalar>>>(ASSIGN);
+  addAssign<VisitorType, PairwiseField<Dimension, Scalar, 2u>>          (ASSIGN);
 
   // Apply the assignment visitor to all the stored State data
   auto lhsitr = mStorage.begin();
@@ -453,9 +453,9 @@ copyState() {
   addClone<VisitorType, set<RKOrder>>                                  (CLONE);
   addClone<VisitorType, ReproducingKernel<Dimension>>                  (CLONE);
   addClone<VisitorType, PairwiseField<Dimension, Vector>>              (CLONE);
-  addClone<VisitorType, PairwiseField<Dimension, pair<Vector, Vector>>>(CLONE);
+  addClone<VisitorType, PairwiseField<Dimension, Vector, 2u>>          (CLONE);
   addClone<VisitorType, PairwiseField<Dimension, Scalar>>              (CLONE);
-  addClone<VisitorType, PairwiseField<Dimension, pair<Scalar, Scalar>>>(CLONE);
+  addClone<VisitorType, PairwiseField<Dimension, Scalar, 2u>>          (CLONE);
 
   // Clone all our stored data to cache
   for (auto& [key, anyval]: mStorage) {

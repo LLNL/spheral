@@ -21,15 +21,6 @@
 
 namespace Spheral {
 
-template<typename Dimension> class State;
-template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosityHandle;
-template<typename Dimension> class TableKernel;
-template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-class FileIO;
-
 class SolidSPHRZ: public SolidSPH<Dim<2>> {
 
 public:
@@ -40,7 +31,7 @@ public:
   using Tensor = Dimension::Tensor;
   using SymTensor = Dimension::SymTensor;
 
-  using PairAccelerationsType = PairwiseField<Dimension, std::pair<Vector, Vector>>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 2u>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.

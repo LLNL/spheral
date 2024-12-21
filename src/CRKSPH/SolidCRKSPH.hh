@@ -11,18 +11,6 @@
 #include <string>
 
 namespace Spheral {
-template<typename Dimension> class State;
-template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosityHandle;
-template<typename Dimension> class TableKernel;
-template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
-template<typename Dimension, typename Value> class PairwiseField;
-class FileIO;
-}
-
-namespace Spheral {
 
 template<typename Dimension>
 class SolidCRKSPH: public CRKSPH<Dimension> {
@@ -37,7 +25,7 @@ public:
   using FourthRankTensor = typename Dimension::FourthRankTensor;
   using FifthRankTensor = typename Dimension::FifthRankTensor;
 
-  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 1u>;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.

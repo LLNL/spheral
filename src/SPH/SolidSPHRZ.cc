@@ -577,8 +577,10 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
       if (freeParticle) {
         DvDti += mRZj*deltaDvDt;
         DvDtj -= mRZi*deltaDvDt;
-        if (compatibleEnergy) (*pairAccelerationsPtr)[kk] = std::make_pair( mRZj*deltaDvDt,
-                                                                           -mRZi*deltaDvDt);
+        if (compatibleEnergy) {
+          (*pairAccelerationsPtr)[kk][0] =  mRZj*deltaDvDt;
+          (*pairAccelerationsPtr)[kk][1] = -mRZi*deltaDvDt;
+        }
       }
 
       // Pair-wise portion of grad velocity.

@@ -491,7 +491,10 @@ evaluateDerivativesImpl(const Dim<1>::Scalar time,
       const auto deltaDvDtj = -mi*(Prhoj*gradWij + Prhoi*gradWii + (1.0 - fQi)*(QPiji*gradWQij + QPiij*gradWQii));
       DvDti += deltaDvDti;
       DvDtj += deltaDvDtj;
-      if (mCompatibleEnergyEvolution) (*pairAccelerationsPtr)[kk] = std::make_pair(deltaDvDti, deltaDvDtj);
+      if (mCompatibleEnergyEvolution) {
+        (*pairAccelerationsPtr)[kk][0] = deltaDvDti;
+        (*pairAccelerationsPtr)[kk][1] = deltaDvDtj;
+      }
 
       // Specific thermal energy evolution
       const auto QPisum = scalarSum(QPiij, QPiji);

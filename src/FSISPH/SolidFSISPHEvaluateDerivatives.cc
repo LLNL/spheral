@@ -619,8 +619,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
         if(compatibleEnergy){
           (*pairAccelerationsPtr)[kk] = - deltaDvDt;
-          pairDepsDt[kk].first  = - deltaDepsDti; 
-          pairDepsDt[kk].second = - deltaDepsDtj;
+          pairDepsDt[kk][0] = - deltaDepsDti; 
+          pairDepsDt[kk][1] = - deltaDepsDtj;
         }
         
         // thermal diffusion
@@ -629,8 +629,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
           linearReconstruction(ri,rj,epsi,epsj,DepsDxi,DepsDxj,epsLineari,epsLinearj);
           const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
           const auto diffusion =  epsDiffusionCoeff*cijEff*(epsLineari-epsLinearj)*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          pairDepsDt[kk].first  += diffusion; 
-          pairDepsDt[kk].second -= diffusion;
+          pairDepsDt[kk][0] += diffusion; 
+          pairDepsDt[kk][1] -= diffusion;
         }
 
         // normalization 
