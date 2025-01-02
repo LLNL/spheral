@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 import os, time, sys
 import argparse
 import ats.util.generic_utils as ats_utils
 import SpheralConfigs
-import mpi
 
 # This is a wrapper for running Spheral through ATS
 
@@ -85,7 +82,7 @@ def install_ats_args():
     install_args = []
     if (SpheralConfigs.build_type() == "Debug"):
         install_args.append('--level 99')
-    if (mpi.is_fake_mpi()):
+    if ("~mpi" in SpheralConfigs.config()):
         install_args.append('--filter="np<2"')
     comp_configs = SpheralConfigs.component_configs()
     test_comps = ["FSISPH", "GSPH", "SVPH"]
@@ -164,7 +161,7 @@ def main():
             numNodes = numNodes if numNodes else 2
             timeLimit = timeLimit if timeLimit else 60
             #mac_args = [f"--nn={numNodes} --gpus_per_task=1 -n=64 --timelimit={timeLimit}m"]
-            #inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
+            inAllocVars = ["CENTER_JOB_ID"]
             launch_cmd = f"flux alloc --exclusive -N {numNodes} -t {timeLimit} "
             if (options.ciRun):
                 launch_cmd += "-p pdebug "
