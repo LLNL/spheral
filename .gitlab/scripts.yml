@@ -81,7 +81,6 @@
     when: always
     paths:
       - ci-dir.txt
-      - perf_logs/
 
 .cleanup_dir:
   stage: cleanup
