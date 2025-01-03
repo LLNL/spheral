@@ -29,7 +29,7 @@ toss_gcc_mvapich2_cleanup:
   extends: [.toss_resource2, .gcc_mvapich2, .cleanup_dir]
 
 toss_gcc_mvapich2_perf:
-  extends: [.toss_shell2, .gcc_mvapich2, .run_perf, .merge_pr_rule]
+  extends: [.toss_shell2, .gcc_mvapich2, .run_perf] #, .merge_pr_rule]
   needs: [toss_gcc_mvapich2_build]
 
 
@@ -49,7 +49,7 @@ toss_clang_mvapich2_cleanup:
   extends: [.toss_resource2, .clang_mvapich2, .cleanup_dir]
 
 toss_clang_mvapich2_perf:
-  extends: [.toss_shell2, .clang_mvapich2, .run_perf, .merge_pr_rule]
+  extends: [.toss_shell2, .clang_mvapich2, .run_perf] #, .merge_pr_rule]
   needs: [toss_clang_mvapich2_build]
 
 
@@ -74,7 +74,7 @@ blueos_gcc_spectrum_cleanup:
   extends: [.blueos_resource1, .gcc_spectrum, .cleanup_dir]
 
 blueos_gcc_spectrum_perf:
-  extends: [.blueos_shell1, .gcc_spectrum, .run_perf, .merge_pr_rule]
+  extends: [.blueos_shell1, .gcc_spectrum, .run_perf] #, .merge_pr_rule]
   needs: [blueos_gcc_spectrum_build]
 
 
@@ -94,5 +94,5 @@ blueos_cuda_11_gcc_spectrum_cleanup:
   extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .cleanup_dir]
 
 blueos_cuda_11_gcc_spectrum_perf:
-  extends: [.blueos_shell2, .cuda_11_gcc_spectrum, .run_perf, .merge_pr_rule]
+  extends: [.blueos_shell2, .cuda_11_gcc_spectrum, .run_perf] #, .merge_pr_rule]
   needs: [blueos_cuda_11_gcc_spectrum_build]
