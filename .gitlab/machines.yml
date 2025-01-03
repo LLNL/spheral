@@ -1,6 +1,18 @@
 # ------------------------------------------------------------------------------
 # MACHINE TEMPLATES
 
+.on_tioga:
+  tags:
+    - tioga
+    - flux
+  variables:
+    SCHEDULER_ACTION: alloc
+    SCHEDULER_PARAMETERS: "--exclusive -N 2 -t 120"
+    NPROC: 112
+    HOSTNAME: 'tioga'
+  timeout: 120 minutes
+  extends: [.on_toss_4_x86_cray]
+
 .on_ruby:
   tags:
     - ruby
@@ -35,6 +47,9 @@
 .blueos_resource_general:
   extends: [.on_lassen]
 
+.cray_resource_general:
+  extends: [.on_adams]
+
 # ------------------------------------------------------------------------------
 #
 .toss_resource1:
@@ -53,3 +68,10 @@
   #resource_group: blueos2
   extends: [.blueos_resource_general]
 
+.cray_resource1:
+  #resource_group: cray1
+  extends: [.cray_resource_general]
+
+.cray_resource2:
+  #resource_group: cray2
+  extends: [.cray_resource_general]
