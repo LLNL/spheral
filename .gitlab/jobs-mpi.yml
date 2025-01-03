@@ -53,37 +53,37 @@ toss_clang_mvapich2_cleanup:
 
 
 
-blueos_gcc_spectrum_tpls:
-  extends: [.blueos_resource1, .gcc_spectrum, .tpls]
+cray_rocm_mpich_tpls:
+  extends: [.cray_resource1, .rocm_mpich, .tpls]
 
-blueos_gcc_spectrum_build:
-  extends: [.blueos_resource1, .gcc_spectrum, .build_and_test]
-  needs: [blueos_gcc_spectrum_tpls]
+cray_rocm_mpich_build:
+  extends: [.cray_resource1, .rocm_mpich, .build_and_test]
+  needs: [cray_rocm_mpich_tpls]
 
-blueos_gcc_spectrum_test:
-  extends: [.blueos_resource1, .gcc_spectrum, .run_ats]
-  needs: [blueos_gcc_spectrum_build]
+cray_rocm_mpich_test:
+  extends: [.cray_resource1, .rocm_mpich, .run_ats]
+  needs: [cray_rocm_mpich_build]
 
-blueos_gcc_spectrum_cleanup:
-  extends: [.blueos_resource1, .gcc_spectrum, .cleanup_dir]
-  needs: [blueos_gcc_spectrum_test]
+cray_rocm_mpich_cleanup:
+  extends: [.cray_resource1, .rocm_mpich, .cleanup_dir]
+  needs: [cray_rocm_mpich_test]
 
 
 
-blueos_cuda_11_gcc_spectrum_tpls:
-  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .tpls]
+cray_hip_rocm_mpich_tpls:
+  extends: [.cray_resource2, .hip_rocm_mpich, .tpls]
 
-blueos_cuda_11_gcc_spectrum_build:
-  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .build_and_test]
-  needs: [blueos_cuda_11_gcc_spectrum_tpls]
+cray_hip_rocm_mpich_build:
+  extends: [.cray_resource2, .hip_rocm_mpich, .build_and_test]
+  needs: [cray_hip_rocm_mpich_tpls]
 
-blueos_cuda_11_gcc_spectrum_test:
-  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .run_ats]
-  needs: [blueos_cuda_11_gcc_spectrum_build]
+cray_hip_rocm_mpich_test:
+  extends: [.cray_resource2, .hip_rocm_mpich, .run_ats]
+  needs: [cray_hip_rocm_mpich_build]
 
-blueos_cuda_11_gcc_spectrum_cleanup:
-  extends: [.blueos_resource2, .cuda_11_gcc_spectrum, .cleanup_dir]
-  needs: [blueos_cuda_11_gcc_spectrum_test]
+cray_hip_rocm_mpich_cleanup:
+  extends: [.cray_resource2, .hip_rocm_mpich, .cleanup_dir]
+  needs: [cray_hip_rocm_mpich_test]
 
 
 

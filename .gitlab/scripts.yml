@@ -76,7 +76,7 @@
 
     - ml load mpifileutils
     - cd $SPHERAL_BUILDS_DIR
-    - drm $CI_BUILD_DIR/..
+    - $RUN_CMD -n 20 drm $CI_BUILD_DIR/..
 
 # ------------------------------------------------------------------------------
 # Shared TPL scripts.
@@ -183,7 +183,7 @@
     - echo $DIR_LIST
 
     - ml load mpifileutils
-    - if [[ $DIR_LIST ]]; then drm $DIR_LIST; else echo "No directories to remove at this time."; fi
+    - if [[ $DIR_LIST ]]; then $RUN_CMD -n 20 drm $DIR_LIST; else echo "No directories to remove at this time."; fi
   when: always
 
 .merge_pr_rule:
