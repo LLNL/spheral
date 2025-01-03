@@ -48,7 +48,7 @@
   extends: [.on_lassen]
 
 .cray_resource_general:
-  extends: [.on_adams]
+  extends: [.on_tioga]
 
 # ------------------------------------------------------------------------------
 #
