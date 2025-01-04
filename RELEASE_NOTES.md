@@ -58,6 +58,7 @@ Notable changes include:
     * Bugfix for RZ solid CRKSPH with compatible energy.
     * Parsing of None string now always becomes None python type. Tests have been updated accordingly.
     * IO for checkpoints and visuzalization can now be properly turned off through SpheralController input options.
+    * Fixed porosity model interaction with damage for zero porosity case.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================
