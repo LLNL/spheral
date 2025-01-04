@@ -123,7 +123,10 @@ def FSISPH(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if ASPH == "Classic":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod
