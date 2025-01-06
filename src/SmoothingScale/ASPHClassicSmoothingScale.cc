@@ -128,6 +128,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     int i, j, nodeListi, nodeListj;
     Scalar mi, mj, ri, rj, mRZi, mRZj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij, fispherical, fjspherical;
     Vector xij, etai, etaj;
+    SymTensor xijdyad;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
@@ -208,9 +209,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
       // massSecondMomenti +=     fweightij*WSPHi*WSPHi*etai.unitVector().selfdyad();
       // massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*etaj.unitVector().selfdyad();
-      const auto thpt = xij.selfdyad()*safeInvVar(FastMath::pow2(xij.magnitude2()));
-      massSecondMomenti +=     fweightij*WSPHi*WSPHi*thpt;
-      massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*thpt;
+      xijdyad = xij.selfdyad()*safeInvVar(FastMath::pow5(xij.magnitude()));
+      massSecondMomenti +=     fweightij*WSPHi*WSPHi*xijdyad;
+      massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*xijdyad;
     } // loop over pairs
 
     // Reduce the thread values to the master.
