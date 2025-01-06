@@ -167,9 +167,9 @@ gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
 test_inp = {"CRK": "--crksph True --densityUpdate SumVoronoiCellDensity",
             "FSI": "--fsisph True",
             "SOLIDSPH": "--fsisph False --crksph False"}
-# for tname, tinp in test_inp.items():
-#     inps = f"{gen_inps} {tinp}"
-#     spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
+for tname, tinp in test_inp.items():
+    inps = f"{gen_inps} {tinp}"
+    spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
 #---------------------------------------------------------------------------
 # 3D convection test
