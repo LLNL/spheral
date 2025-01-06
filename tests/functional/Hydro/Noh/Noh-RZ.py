@@ -4,16 +4,36 @@
 # W.F. Noh 1987, JCP, 72, 78-120.
 #-------------------------------------------------------------------------------
 #
-# Ordinary SPH
+# SPH
 #
-#ATS:t0 = test(      SELF, "--graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (serial)")
-#ATS:t1 = testif(t0, SELF, "--graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (serial) RESTART CHECK")
-#ATS:t2 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=2, label="Planar Noh RZ problem (parallel)")
-#ATS:t3 = testif(t2, SELF, "--graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=2, label="Planar RZ Noh problem -- (parallel) RESTART CHECK")
-#ATS:t4 = test(      SELF, "--graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-1proc-reproducing.txt'", label="Planar RZ Noh problem -- (serial reproducing test setup)")
-#ATS:t5 = testif(t4, SELF, "--graphics None --clearDirectories False  --checkError True  --dataDirBase 'dumps-rz-planar-reproducing' --domainIndependent True --outputFile 'Noh-rz-planar-4proc-reproducing.txt' --comparisonFile 'Noh-rz-planar-1proc-reproducing.txt'", np=4, label="Planar RZ Noh problem (4 proc reproducing test)")
+#ATS:sph0 = test(        SELF, "--hydroType SPH --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (SPH serial)")
+#ATS:sph1 = testif(sph0, SELF, "--hydroType SPH --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (SPH serial) RESTART CHECK")
+#ATS:sph2 = test(        SELF, "--hydroType SPH --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (SPH parallel)")
+#ATS:sph3 = testif(sph2, SELF, "--hydroType SPH --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (SPH parallel) RESTART CHECK")
+#
+# ASPH
+#
+#ATS:asph0 = test(        SELF, "--hydroType SPH --asph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (ASPH serial)")
+#ATS:asph1 = testif(sph0, SELF, "--hydroType SPH --asph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (ASPH serial) RESTART CHECK")
+#ATS:asph2 = test(        SELF, "--hydroType SPH --asph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (ASPH parallel)")
+#ATS:asph3 = testif(sph2, SELF, "--hydroType SPH --asph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
+#
+# ASPHClassic
+#
+#ATS:asph0 = test(        SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (ASPH serial)")
+#ATS:asph1 = testif(sph0, SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (ASPH serial) RESTART CHECK")
+#ATS:asph2 = test(        SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (ASPH parallel)")
+#ATS:asph3 = testif(sph2, SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
+#
+# CRKSPH
+#
+#ATS:crk0 = test(        SELF, "--hydroType CRKSPH --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (CRKSPH serial)")
+#ATS:crk1 = testif(crk0, SELF, "--hydroType CRKSPH --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (CRKSPH serial) RESTART CHECK")
+# #ATS:crk2 = test(        SELF, "--hydroType CRKSPH --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (CRKSPH parallel)")
+# #ATS:crk3 = testif(crk2, SELF, "--hydroType CRKSPH --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (CRKSPH parallel) RESTART CHECK")
 
-import os, shutil, mpi
+import os, sys, shutil, mpi
+import numpy as np
 from SpheralRZ import *
 from SpheralTestUtilities import *
 
@@ -29,22 +49,21 @@ title("RZ hydro test -- Noh problem")
 # Generic problem parameters
 #-------------------------------------------------------------------------------
 commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
-            KernelConstructor = NBSplineKernel,
-            order = 5,
+            KernelConstructor = WendlandC4Kernel,
 
             n1 = 100,
             n2 = 20,
 
-            nPerh = 1.35,
+            nPerh = 4.01,
 
             gamma = 5.0/3.0,
             mu = 1.0,
 
-            solid = False,    # If true, use the fluid limit of the solid hydro option
+            solid = False,                     # If true, use the fluid limit of the solid hydro option
+            asph = False,                      # This just chooses the H algorithm -- you can use this with CRKSPH for instance.
 
-            crksph = False,
-            sph = True,       # Choose the H advancement
-            evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
+            hydroType = "SPH",                 # one of (SPH, CRKSPH)
+            evolveTotalEnergy = False,         # Only for SPH variants -- evolve total rather than specific energy
             boolReduceViscosity = False,
             nhQ = 5.0,
             nhL = 10.0,
@@ -76,11 +95,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             XSPH = True,
             epsilonTensile = 0.0,
             nTensile = 4.0,
-            hourglass = None,
-            hourglassOrder = 0,
-            hourglassLimiter = 0,
-            hourglassFraction = 0.5,
-            filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -111,19 +125,24 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             arCondAlpha = 0.5,
 
             clearDirectories = True,
-            checkError = False,
             checkRestart = False,
             checkEnergy = False,
             restoreCycle = -1,
             restartStep = 10000,
-            dataDirBase = "dump-rz-Noh",
+            dataDirBase = "dumps-rz-Noh",
             outputFile = "Noh-RZ.gnu",
             comparisonFile = None,
             normOutputFile = None,
             writeOutputLabel = True,
 
+            # Parameters for the test acceptance.,
+            tol = 1.0e-5,
+            checkError = False,
+
             graphics = True,
             )
+
+hydroType = hydroType.upper()
 
 assert not(boolReduceViscosity and boolCullenViscosity)
    
@@ -131,20 +150,17 @@ assert problem in ("planar", "cylindrical", "spherical")
 rho0 = 1.0
 eps0 = 0.0
 
-if crksph:
-    hydroname = "CRKSPH"
+if hydroType == "CRKSPH":
     gradhCorrection = False
-else:
-    hydroname = "SPH"
-if solid:
-    hydroname = "Solid" + hydroname
 
+hydroPath = (("Solid" if solid else "") +
+             ("AC" if asph == "Classic" else "A" if asph else "") +
+             hydroType)
 dataDir = os.path.join(dataDirBase,
-                       hydroname,
+                       hydroPath,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "filter=%f" % filter)
+                       "Cullen=%s" % boolCullenViscosity)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-%s-RZ" % problem)
 
@@ -155,9 +171,73 @@ else:
     vizBaseName = "Noh-%s-RZ" % problem
 
 #-------------------------------------------------------------------------------
+# The reference values for error norms checking for pass/fail
+#-------------------------------------------------------------------------------
+LnormRef = {"SPH": {"Mass density" : {"L1"   : 0.612419,   
+                                      "L2"   : 0.018842,   
+                                      "Linf" : 3.10859},          
+                    "Pressure    " : {"L1"   : 0.258144,   
+                                      "L2"   : 0.00835686, 
+                                      "Linf" : 1.36173},   
+                    "Velocity    " : {"L1"   : 0.196051,   
+                                      "L2"   : 0.00674836, 
+                                      "Linf" : 1.02665},   
+                    "Spec Therm E" : {"L1"   : 0.106226,   
+                                      "L2"   : 0.00340418, 
+                                      "Linf" : 0.509942},  
+                    "h           " : {"L1"   : 0.0095543,  
+                                      "L2"   : 0.000170398,
+                                      "Linf" : 0.0190432}}, 
+            "ASPH": {"Mass density" : {"L1"   : 0.56861,     
+                                       "L2"   : 0.0191674,   
+                                       "Linf" : 3.07471},     
+                     "Pressure    " : {"L1"   : 0.241887,    
+                                       "L2"   : 0.00848109,  
+                                       "Linf" : 1.34622},    
+                     "Velocity    " : {"L1"   : 0.188104,    
+                                       "L2"   : 0.00663209,  
+                                       "Linf" : 1.00485},    
+                     "Spec Therm E" : {"L1"   : 0.0994468,   
+                                       "L2"   : 0.00330644,  
+                                       "Linf" : 0.502402},   
+                     "h           " : {"L1"   : 0.00614318, 
+                                       "L2"   : 0.000197912, 
+                                       "Linf" : 0.0300615}},
+            "ACSPH": {"Mass density" : {"L1"   : 0.579091,   
+                                        "L2"   : 0.019363,   
+                                        "Linf" : 3.09142},    
+                      "Pressure    " : {"L1"   : 0.24346,    
+                                        "L2"   : 0.00854447, 
+                                        "Linf" : 1.35244},   
+                      "Velocity    " : {"L1"   : 0.190473,   
+                                        "L2"   : 0.00667366, 
+                                        "Linf" : 1.00479},   
+                      "Spec Therm E" : {"L1"   : 0.100557,   
+                                        "L2"   : 0.0033229,  
+                                        "Linf" : 0.501609},  
+                      "h           " : {"L1"   : 0.00677535,
+                                        "L2"   : 0.00020781, 
+                                        "Linf" : 0.0313318}},
+            "CRKSPH": {"Mass density" : {"L1"   : 0.597728,    
+                                         "L2"   : 0.0191585,   
+                                         "Linf" : 3.0748},      
+                       "Pressure    " : {"L1"   : 0.2481,      
+                                         "L2"   : 0.00859038,  
+                                         "Linf" : 1.3972},     
+                       "Velocity    " : {"L1"   : 0.198382,    
+                                         "L2"   : 0.00695736,  
+                                         "Linf" : 1.0453},     
+                       "Spec Therm E" : {"L1"   : 0.100521,    
+                                         "L2"   : 0.00343105,  
+                                         "Linf" : 0.53049},    
+                       "h           " : {"L1"   : 0.00963868,
+                                         "L2"   : 0.000173719, 
+                                         "Linf" : 0.0190826}},
+}
+
+#-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-import os, sys
 if mpi.rank == 0:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
@@ -176,11 +256,7 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-if KernelConstructor==NBSplineKernel:
-    Wbase = NBSplineKernel(order)
-else:
-    Wbase = KernelConstructor()
-WT = TableKernel(Wbase, 1000)
+WT = TableKernel(KernelConstructor(), 200)
 kernelExtent = WT.kernelExtent
 output("WT")
 
@@ -240,7 +316,7 @@ generator = RZGenerator(GenerateNodeDistribution2d(nz, nr, rho0, "lattice",
                                                    rmin = rmin,
                                                    rmax = rmax,
                                                    nNodePerh = nPerh,
-                                                   SPH = SPH))
+                                                   SPH = not asph))
 
 distributeNodes2d((nodes1, generator))
 output("mpi.reduce(nodes1.numInternalNodes, mpi.MIN)")
@@ -273,9 +349,9 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if crksph:
+if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
-                   filter = filter,
+                   W = WT,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -283,11 +359,12 @@ if crksph:
                    XSPH = XSPH,
                    order = correctionOrder,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   ASPH = asph)
 else:
+    assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,
@@ -296,6 +373,7 @@ else:
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
                 HUpdate = HUpdate,
+                ASPH = asph,
                 XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
@@ -303,7 +381,7 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 
 packages = [hydro]
 
@@ -400,7 +478,7 @@ control = SpheralController(integrator, WT,
                             vizStep = vizCycle,
                             vizTime = vizTime,
                             vizDerivs = vizDerivs,
-                            SPH = SPH)
+                            SPH = not asph)
 output("control")
 
 #-------------------------------------------------------------------------------
@@ -492,7 +570,7 @@ if graphics:
     plt.title("Node positions @ t=%g" % control.time())
     plots.append((posPlot, "Noh-%s-positions.png" % problem))
 
-    if crksph:
+    if hydroType == "CRKSPH":
         volPlot = plotFieldList(control.RKCorrections.volume,
                                 xFunction = "%s.y",
                                 winTitle = "volume",
@@ -572,67 +650,51 @@ if outputFile:
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)
 
-# #------------------------------------------------------------------------------
-# # Compute the error.
-# #------------------------------------------------------------------------------
-# if mpi.rank == 0:
-#     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
-#     import Pnorm
-#     print "\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf"
-#     failure = False
-#     hD = []
+#------------------------------------------------------------------------------
+# Compute the error.
+#------------------------------------------------------------------------------
+if mpi.rank == 0:
+    xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
+    import Pnorm
+    print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
+    failure = False
 
-#     if normOutputFile:
-#        f = open(normOutputFile, "a")
-#        if writeOutputLabel:
-#           f.write(("#" + 13*"%17s " + "\n") % ('"n"',
-#                                                '"rho L1"', '"rho L2"', '"rho Linf"',
-#                                                '"P L1"',   '"P L2"',   '"P Linf"',
-#                                                '"vel L1"', '"vel L2"', '"vel Linf"',
-#                                                '"E L1"', '"E L2"', '"E Linf"',
-#                                                '"h L1"',   '"h L2"',   '"h Linf"'))
-#        f.write("%5i " % nz)
-#     for (name, data, ans,
-#          L1expect, L2expect, Linfexpect) in [("Mass Density", rhoprof, rhoans, L1rho, L2rho, Linfrho),
-#                                              ("Pressure", Pprof, Pans, L1P, L2P, LinfP),
-#                                              ("Velocity", vprof, vans, L1v, L2v, Linfv),
-#                                              ("Thermal E", epsprof, epsans, L1eps, L2eps, Linfeps),
-#                                              ("h       ", hprof, hans, L1h, L2h, Linfh)]:
-#         assert len(data) == len(ans)
-#         error = [data[i] - ans[i] for i in xrange(len(data))]
-#         Pn = Pnorm.Pnorm(error, xprof)
-#         L1 = Pn.gridpnorm(1, rmin, rmax)
-#         L2 = Pn.gridpnorm(2, rmin, rmax)
-#         Linf = Pn.gridpnorm("inf", rmin, rmax)
-#         print "\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf)
-#         if normOutputFile:
-#            f.write((3*"%16.12e ") % (L1, L2, Linf))
-#         hD.append([L1,L2,Linf])
+    if normOutputFile:
+       f = open(normOutputFile, "a")
+       if writeOutputLabel:
+          f.write(("#" + 13*"%17s " + "\n") % ('"n"',
+                                               '"rho L1"', '"rho L2"', '"rho Linf"',
+                                               '"P L1"',   '"P L2"',   '"P Linf"',
+                                               '"vel L1"', '"vel L2"', '"vel Linf"',
+                                               '"E L1"', '"E L2"', '"E Linf"',
+                                               '"h L1"',   '"h L2"',   '"h Linf"'))
+       f.write("%5i " % nz)
+    for (name, data, ans) in [("Mass density", rhoprof, rhoans),
+                              ("Pressure    ", Pprof, Pans),
+                              ("Velocity    ", vprof, vans),
+                              ("Spec Therm E", epsprof, epsans),
+                              ("h           ", hprof, hans)]:
+        assert len(data) == len(ans)
+        error = [data[i] - ans[i] for i in range(len(data))]
+        Pn = Pnorm.Pnorm(error, xprof)
+        L1 = Pn.gridpnorm(1, rmin, rmax)
+        L2 = Pn.gridpnorm(2, rmin, rmax)
+        Linf = Pn.gridpnorm("inf", rmin, rmax)
+        print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
+        if normOutputFile:
+           f.write((3*"%16.12e ") % (L1, L2, Linf))
 
-# #         if checkError:
-# #             if not fuzzyEqual(L1, L1expect, tol):
-# #                 print "L1 error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                       L1,
-# #                                                                                       L1expect)
-# #                 failure = True
-# #             if not fuzzyEqual(L2, L2expect, tol):
-# #                 print "L2 error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                       L2,
-# #                                                                                       L2expect)
-# #                 failure = True
-# #             if not fuzzyEqual(Linf, Linfexpect, tol):
-# #                 print "Linf error estimate for %s outside expected bounds: %g != %g" % (name,
-# #                                                                                         Linf,
-# #                                                                                         Linfexpect)
-# #                 failure = True
-# #             if failure:
-# #                 raise ValueError, "Error bounds violated."
-# #     if normOutputFile:
-# #        f.write("\n")
-                                             
-# #     # print "%d\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t %g\t" % (nz,hD[0][0],hD[1][0],hD[2][0],hD[3][0],
-# #     #                                                                             hD[0][1],hD[1][1],hD[2][1],hD[3][1],
-# #     #                                                                             hD[0][2],hD[1][2],hD[2][2],hD[3][2])
+        if checkError and not (np.allclose(L1, LnormRef[hydroPath][name]["L1"], tol, tol) and
+                               np.allclose(L2, LnormRef[hydroPath][name]["L2"], tol, tol) and
+                               np.allclose(Linf, LnormRef[hydroPath][name]["Linf"], tol, tol)):
+            print("Failing Lnorm tolerance for ", name, (L1, L2, Linf), LnormRef[hydroPath][name])
+            failure = True
+  
+    if normOutputFile:
+       f.write("\n")
+
+    if checkError and failure:
+        raise ValueError("Error bounds violated.")
 
 Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
 print("Total energy error: %g" % Eerror)
