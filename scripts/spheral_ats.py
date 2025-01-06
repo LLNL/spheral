@@ -84,14 +84,14 @@ def run_and_report(run_command, ci_output, num_runs):
 def install_ats_args():
     install_args = []
     if (SpheralConfigs.build_type() == "Debug"):
-        install_args.append('--level 99')
+        install_args.append("--level 99")
     if (mpi.is_fake_mpi()):
-        install_args.append('--filter="np<2"')
+        install_args.append("--filter='np<2'")
     comp_configs = SpheralConfigs.component_configs()
     test_comps = ["FSISPH", "GSPH", "SVPH"]
     for ts in test_comps:
         if ts not in comp_configs:
-            install_args.append(f'--filter="not {ts.lower()}"')
+            install_args.append(f"--filter='not {ts.lower()}'")
     return install_args
 
 #---------------------------------------------------------------------------
@@ -180,13 +180,13 @@ def main():
         else:
             log_name_indx = unknown_options.index("--logs") + 1
             log_name = unknown_options[log_name_indx]
-        ats_args.append('--glue="independent=True"')
-        ats_args.append('--continueFreq=15')
+        ats_args.append("--glue='independent=True'")
+        ats_args.append("--continueFreq=15")
         # Pass flag to tell tests this is a CI run
-        ats_args.append('--glue="cirun=True"')
+        ats_args.append("--glue='cirun=True'")
     if (options.threads):
-        ats_args.append(f'--glue="threads={options.threads}"')
-    ats_args.append(f'''--glue="benchmark_dir='{benchmark_dir}'"''')
+        ats_args.append(f"--glue='threads={options.threads}'")
+    ats_args.append(f"""--glue='benchmark_dir="{benchmark_dir}"'""")
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
@@ -197,9 +197,12 @@ def main():
         run_command = cmd
     else:
         if blueOS:
-            # Launches using Bsub have issues with '<' being in command
-            # so entire run statment must be in quotes
-            run_command = f"{launch_cmd} '{cmd}'"
+            # Launches using Bsub requires quoting the whole command
+            # This causes issues for the glue='benchmark_dir... line
+            # unless we escape the characters
+            run_command = f'{launch_cmd} "{cmd}"'
+            run_command = run_command.replace('="', '=\\"')
+            run_command = run_command.replace('"\'', '\\"\'')
         else:
             run_command = f"{launch_cmd}{cmd}"
     print(f"\nRunning: {run_command}\n")
