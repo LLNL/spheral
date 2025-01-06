@@ -206,8 +206,11 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massZerothMomentj += 1.0/fweightij*WSPHj * fjspherical;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
-      massSecondMomenti +=     fweightij*WSPHi*WSPHi*etai.unitVector().selfdyad();
-      massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*etaj.unitVector().selfdyad();
+      // massSecondMomenti +=     fweightij*WSPHi*WSPHi*etai.unitVector().selfdyad();
+      // massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*etaj.unitVector().selfdyad();
+      const auto thpt = xij.selfdyad()*safeInvVar(FastMath::pow2(xij.magnitude2()));
+      massSecondMomenti +=     fweightij*WSPHi*WSPHi*thpt;
+      massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*thpt;
     } // loop over pairs
 
     // Reduce the thread values to the master.
@@ -252,8 +255,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(s > 0.0);
 
       // Start with the sqrt of the second moment in eta space
-      auto T = massSecondMomenti.sqrt();
-      auto eigenT = T.eigenVectors();
+      Hideali = massSecondMomenti.sqrt();
+      auto eigenT = Hideali.eigenVectors();
 
       // Ensure we don't have any degeneracies (zero eigen values)
       const auto Tmax = std::max(1.0, eigenT.eigenValues.maxElement());
@@ -265,13 +268,15 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       CHECK(fscale > 0.0);
 
       // Compute the scaling to get us closer to the target n per h, and build the transformation tensor
-      fscale = s/Dimension::rootnu(fscale);    // inverse length, same as H!
+      fscale = 1.0/Dimension::rootnu(fscale);    // inverse length, same as H!
       eigenT.eigenValues *= fscale;
-      T = constructSymTensorWithDiagonal(eigenT.eigenValues);
-      T.rotationalTransform(eigenT.eigenVectors);
+      Hideali = constructSymTensorWithDiagonal(eigenT.eigenValues);
+      Hideali.rotationalTransform(eigenT.eigenVectors);
+      CHECK(fuzzyEqual(Hideali.Determinant(), 1.0, 1.0e-8));
 
       // Initial vote for Hideal
-      Hideali = (T*Hi).Symmetric();
+      Hideali *= s*Dimension::rootnu(Hi.Determinant());
+      // Hideali = (T*Hi).Symmetric();
 
       // Apply limiting
       const auto hev = Hideali.eigenVectors();
