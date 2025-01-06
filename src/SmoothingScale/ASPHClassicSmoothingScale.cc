@@ -207,8 +207,6 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massZerothMomentj += 1.0/fweightij*WSPHj * fjspherical;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
-      // massSecondMomenti +=     fweightij*WSPHi*WSPHi*etai.unitVector().selfdyad();
-      // massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*etaj.unitVector().selfdyad();
       xijdyad = xij.selfdyad()*safeInvVar(FastMath::pow5(xij.magnitude()));
       massSecondMomenti +=     fweightij*WSPHi*WSPHi*xijdyad;
       massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*xijdyad;
