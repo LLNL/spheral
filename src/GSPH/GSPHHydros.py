@@ -75,7 +75,7 @@ def GSPH(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            if ASPH == "Classic":
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
                 smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
             else:
                 smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
@@ -162,7 +162,7 @@ def MFM(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            if ASPH == "Classic":
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
                 smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
             else:
                 smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
@@ -254,7 +254,7 @@ def MFV(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            if ASPH == "Classic":
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
                 smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
             else:
                 smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
