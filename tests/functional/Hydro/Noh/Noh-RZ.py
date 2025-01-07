@@ -6,31 +6,25 @@
 #
 # SPH
 #
-#ATS:sph0 = test(        SELF, "--hydroType SPH --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (SPH serial)")
-#ATS:sph1 = testif(sph0, SELF, "--hydroType SPH --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (SPH serial) RESTART CHECK")
-#ATS:sph2 = test(        SELF, "--hydroType SPH --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (SPH parallel)")
-#ATS:sph3 = testif(sph2, SELF, "--hydroType SPH --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (SPH parallel) RESTART CHECK")
+#ATS:sph0 = test(        SELF, "--hydroType SPH --goalTime 0.3 --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (SPH serial)")
+#ATS:sph1 = testif(sph0, SELF, "--hydroType SPH --goalTime 0.3 --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (SPH serial) RESTART CHECK")
+#ATS:sph2 = test(        SELF, "--hydroType SPH --goalTime 0.3 --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (SPH parallel)")
+#ATS:sph3 = testif(sph2, SELF, "--hydroType SPH --goalTime 0.3 --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (SPH parallel) RESTART CHECK")
 #
 # ASPH
 #
-#ATS:asph0 = test(        SELF, "--hydroType SPH --asph True --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (ASPH serial)")
-#ATS:asph1 = testif(sph0, SELF, "--hydroType SPH --asph True --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (ASPH serial) RESTART CHECK")
-#ATS:asph2 = test(        SELF, "--hydroType SPH --asph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (ASPH parallel)")
-#ATS:asph3 = testif(sph2, SELF, "--hydroType SPH --asph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
+#ATS:asph2 = test(         SELF, "--hydroType SPH --goalTime 0.3 --asph True --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (ASPH parallel)")
+#ATS:asph3 = testif(asph2, SELF, "--hydroType SPH --goalTime 0.3 --asph True --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
 #
 # ASPHClassic
 #
-#ATS:asph0 = test(        SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (ASPH serial)")
-#ATS:asph1 = testif(sph0, SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (ASPH serial) RESTART CHECK")
-#ATS:asph2 = test(        SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (ASPH parallel)")
-#ATS:asph3 = testif(sph2, SELF, "--hydroType SPH --asph Classic --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
+#ATS:acsph2 = test(          SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (ASPH parallel)")
+#ATS:acsph3 = testif(acsph2, SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
 #
 # CRKSPH
 #
-#ATS:crk0 = test(        SELF, "--hydroType CRKSPH --graphics None --clearDirectories True  --checkError True   --restartStep 20", label="Planar RZ Noh problem (CRKSPH serial)")
-#ATS:crk1 = testif(crk0, SELF, "--hydroType CRKSPH --graphics None --clearDirectories False --checkError False  --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", label="Planar RZ Noh problem (CRKSPH serial) RESTART CHECK")
-# #ATS:crk2 = test(        SELF, "--hydroType CRKSPH --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=4, label="Planar Noh RZ problem (CRKSPH parallel)")
-# #ATS:crk3 = testif(crk2, SELF, "--hydroType CRKSPH --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=4, label="Planar RZ Noh problem -- (CRKSPH parallel) RESTART CHECK")
+#ATS:crk2 = test(        SELF, "--hydroType CRKSPH --goalTime 0.3 --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (CRKSPH parallel)")
+#ATS:crk3 = testif(crk2, SELF, "--hydroType CRKSPH --goalTime 0.3 --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (CRKSPH parallel) RESTART CHECK")
 
 import os, sys, shutil, mpi
 import numpy as np
@@ -173,66 +167,66 @@ else:
 #-------------------------------------------------------------------------------
 # The reference values for error norms checking for pass/fail
 #-------------------------------------------------------------------------------
-LnormRef = {"SPH": {"Mass density" : {"L1"   : 0.612419,   
-                                      "L2"   : 0.018842,   
-                                      "Linf" : 3.10859},          
-                    "Pressure    " : {"L1"   : 0.258144,   
-                                      "L2"   : 0.00835686, 
-                                      "Linf" : 1.36173},   
-                    "Velocity    " : {"L1"   : 0.196051,   
-                                      "L2"   : 0.00674836, 
-                                      "Linf" : 1.02665},   
-                    "Spec Therm E" : {"L1"   : 0.106226,   
-                                      "L2"   : 0.00340418, 
-                                      "Linf" : 0.509942},  
-                    "h           " : {"L1"   : 0.0095543,  
-                                      "L2"   : 0.000170398,
-                                      "Linf" : 0.0190432}}, 
-            "ASPH": {"Mass density" : {"L1"   : 0.56861,     
-                                       "L2"   : 0.0191674,   
-                                       "Linf" : 3.07471},     
-                     "Pressure    " : {"L1"   : 0.241887,    
-                                       "L2"   : 0.00848109,  
-                                       "Linf" : 1.34622},    
-                     "Velocity    " : {"L1"   : 0.188104,    
-                                       "L2"   : 0.00663209,  
-                                       "Linf" : 1.00485},    
-                     "Spec Therm E" : {"L1"   : 0.0994468,   
-                                       "L2"   : 0.00330644,  
-                                       "Linf" : 0.502402},   
-                     "h           " : {"L1"   : 0.00614318, 
-                                       "L2"   : 0.000197912, 
-                                       "Linf" : 0.0300615}},
-            "ACSPH": {"Mass density" : {"L1"   : 0.579091,   
-                                        "L2"   : 0.019363,   
-                                        "Linf" : 3.09142},    
-                      "Pressure    " : {"L1"   : 0.24346,    
-                                        "L2"   : 0.00854447, 
-                                        "Linf" : 1.35244},   
-                      "Velocity    " : {"L1"   : 0.190473,   
-                                        "L2"   : 0.00667366, 
-                                        "Linf" : 1.00479},   
-                      "Spec Therm E" : {"L1"   : 0.100557,   
-                                        "L2"   : 0.0033229,  
-                                        "Linf" : 0.501609},  
-                      "h           " : {"L1"   : 0.00677535,
-                                        "L2"   : 0.00020781, 
-                                        "Linf" : 0.0313318}},
-            "CRKSPH": {"Mass density" : {"L1"   : 0.597728,    
-                                         "L2"   : 0.0191585,   
-                                         "Linf" : 3.0748},      
-                       "Pressure    " : {"L1"   : 0.2481,      
-                                         "L2"   : 0.00859038,  
-                                         "Linf" : 1.3972},     
-                       "Velocity    " : {"L1"   : 0.198382,    
-                                         "L2"   : 0.00695736,  
-                                         "Linf" : 1.0453},     
-                       "Spec Therm E" : {"L1"   : 0.100521,    
-                                         "L2"   : 0.00343105,  
-                                         "Linf" : 0.53049},    
-                       "h           " : {"L1"   : 0.00963868,
-                                         "L2"   : 0.000173719, 
-                                         "Linf" : 0.0190826}},
+LnormRef = {"SPH": {"Mass density" : {"L1"   : 0.927051,   
+                                      "L2"   : 0.0257097,  
+                                      "Linf" : 3.09951},         
+                    "Pressure    " : {"L1"   : 0.417473,   
+                                      "L2"   : 0.0117583,  
+                                      "Linf" : 1.97256},   
+                    "Velocity    " : {"L1"   : 0.323763,   
+                                      "L2"   : 0.00903822, 
+                                      "Linf" : 1.02008},   
+                    "Spec Therm E" : {"L1"   : 0.168691,   
+                                      "L2"   : 0.00466419, 
+                                      "Linf" : 0.987794},  
+                    "h           " : {"L1"   : 0.0082967,  
+                                      "L2"   : 0.000186032,
+                                      "Linf" : 0.0190145}},
+            "ASPH": {"Mass density" : {"L1"   : 0.931764,    
+                                       "L2"   : 0.0259673,   
+                                       "Linf" : 3.07466},     
+                     "Pressure    " : {"L1"   : 0.415028,    
+                                       "L2"   : 0.0116435,   
+                                       "Linf" : 1.52774},    
+                     "Velocity    " : {"L1"   : 0.322906,    
+                                       "L2"   : 0.00897806,  
+                                       "Linf" : 1.01521},    
+                     "Spec Therm E" : {"L1"   : 0.165872,    
+                                       "L2"   : 0.00453749,  
+                                       "Linf" : 0.86993},    
+                     "h           " : {"L1"   : 0.0100794,  
+                                       "L2"   : 0.000266552, 
+                                       "Linf" : 0.0300606}},
+            "ACSPH": {"Mass density" : {"L1"   : 0.924199,   
+                                        "L2"   : 0.0258834,  
+                                        "Linf" : 3.15031},    
+                      "Pressure    " : {"L1"   : 0.409574,   
+                                        "L2"   : 0.0115676,  
+                                        "Linf" : 1.44082},   
+                      "Velocity    " : {"L1"   : 0.319599,   
+                                        "L2"   : 0.00889665, 
+                                        "Linf" : 1.00458},   
+                      "Spec Therm E" : {"L1"   : 0.163743,   
+                                        "L2"   : 0.00448758, 
+                                        "Linf" : 0.843591},  
+                      "h           " : {"L1"   : 0.0104821,  
+                                        "L2"   : 0.000275637,
+                                        "Linf" : 0.0313515}},
+            "CRKSPH": {"Mass density" : {"L1"   : 0.918847,    
+                                         "L2"   : 0.0251823,   
+                                         "Linf" : 3.29814},     
+                       "Pressure    " : {"L1"   : 0.403824,    
+                                         "L2"   : 0.0113766,   
+                                         "Linf" : 1.76299},    
+                       "Velocity    " : {"L1"   : 0.315356,    
+                                         "L2"   : 0.00890281,  
+                                         "Linf" : 1.06319},    
+                       "Spec Therm E" : {"L1"   : 0.160593,    
+                                         "L2"   : 0.00451318,  
+                                         "Linf" : 0.861714},   
+                       "h           " : {"L1"   : 0.00799764, 
+                                         "L2"   : 0.000181642, 
+                                         "Linf" : 0.0196302}},
 }
 
 #-------------------------------------------------------------------------------
