@@ -180,13 +180,13 @@ def main():
         else:
             log_name_indx = unknown_options.index("--logs") + 1
             log_name = unknown_options[log_name_indx]
-        ats_args.append("--glue='independent=True'")
         ats_args.append("--continueFreq=15")
         # Pass flag to tell tests this is a CI run
         ats_args.append("--glue='cirun=True'")
     if (options.threads):
         ats_args.append(f"--glue='threads={options.threads}'")
     ats_args.append(f"""--glue='benchmark_dir="{benchmark_dir}"'""")
+    ats_args.append("--glue='independent=True'")
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
