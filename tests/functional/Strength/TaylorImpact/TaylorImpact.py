@@ -41,16 +41,16 @@
 # ASPH 3D (no grad h correction)
 #ATS:test(SELF, "--geometry 3d --hydroType SPH --steps 100 --compatibleEnergy False --clearDirectories True --gradhCorrection False --siloSnapShotFile Spheral_sph_nogradh_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc SPH 3D reference data (no grad h)")
 #
-# ACRK 2D
-#ATS:test(SELF, "--geometry 2d --hydroType CRKSPH  --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK 2D reference data")
-#ATS:test(SELF, "--geometry 2d --hydroType CRKSPH  --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 2D reference data")
+# ACRK Classic 2D
+#ATS:test(SELF, "--geometry 2d --hydroType CRKSPH --asph Classic --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK 2D reference data")
+#ATS:test(SELF, "--geometry 2d --hydroType CRKSPH --asph Classic --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_2d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 2D reference data")
 #
-# ACRK RZ
-#ATS:test(SELF, "--geometry RZ --hydroType CRKSPH  --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK RZ reference data")
-#ATS:test(SELF, "--geometry RZ --hydroType CRKSPH  --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK RZ reference data")
+# ACRK Classic RZ
+#ATS:test(SELF, "--geometry RZ --hydroType CRKSPH --asph Classic --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_1proc", np=1, level=100, label="Generate 1 proc CRK RZ reference data")
+#ATS:test(SELF, "--geometry RZ --hydroType CRKSPH --asph Classic --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_rz_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK RZ reference data")
 #
-# ACRK 3D
-#ATS:test(SELF, "--geometry 3d --hydroType CRKSPH  --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 3D reference data")
+# ACRK Classic 3D
+#ATS:test(SELF, "--geometry 3d --hydroType CRKSPH --asph Classic --steps 100 --compatibleEnergy False --densityUpdate SumVoronoiCellDensity --clearDirectories True --siloSnapShotFile Spheral_crk_3d_state_snapshot_8proc", np=8, level=100, label="Generate 8 proc CRK 3D reference data")
 
 import os, shutil, sys
 from math import *
@@ -170,9 +170,10 @@ else:
     hydroname = os.path.join("SPH", "gradh=%s" % gradhCorrection)
 
 if asph:
-    hydroname = "A" + hydroname
     if asph == "Classic":
-        hydroname += "Classic"
+        hydroname = "AClassic" + hydroname
+    else:
+        hydroname = "A" + hydroname
 
 # Restart and output files.
 if baseDir:
@@ -315,7 +316,7 @@ del n
 # Create our interpolation kernels -- one for normal hydro interactions, and
 # one for use with the artificial viscosity
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(3), 1000)
+WT = TableKernel(NBSplineKernel(3), 100)
 
 #-------------------------------------------------------------------------------
 # Set node properties (positions, masses, H's, etc.)
