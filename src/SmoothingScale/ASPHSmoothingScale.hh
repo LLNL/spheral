@@ -114,13 +114,13 @@ public:
 
 private:
   //--------------------------- Private Interface ---------------------------//
+  bool mFixShape, mRadialOnly;
+  std::shared_ptr<HidealFilterType> mHidealFilterPtr;
+  std::shared_ptr<RadialFunctorType> mRadialFunctorPtr;
   const TableKernel<Dimension>& mWT;
   FieldList<Dimension, Scalar> mZerothMoment;
   FieldList<Dimension, SymTensor> mSecondMoment, mCellSecondMoment;
   FieldList<Dimension, Scalar> mRadius0;
-  std::shared_ptr<HidealFilterType> mHidealFilterPtr;
-  std::shared_ptr<RadialFunctorType> mRadialFunctorPtr;
-  bool mFixShape, mRadialOnly;
 };
 
 }
