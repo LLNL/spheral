@@ -13,7 +13,6 @@
 #include "FileIO/FileIO.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computeSPHOmegaGradhCorrection.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
@@ -31,6 +30,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/range.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
@@ -62,8 +62,7 @@ namespace Spheral {
 // Construct with the given artificial viscosity and kernels.
 //------------------------------------------------------------------------------
 SPHHydroBaseRZ::
-SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
+SPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                ArtificialViscosity<Dim<2> >& Q,
                const TableKernel<Dim<2> >& W,
                const TableKernel<Dim<2> >& WPi,
@@ -77,13 +76,11 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                const bool correctVelocityGradient,
                const bool sumMassDensityOverAllNodeLists,
                const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
                const Vector& xmin,
                const Vector& xmax):
-  SPHHydroBase<Dim<2> >(smoothingScaleMethod,
-                        dataBase,
+  SPHHydroBase<Dim<2> >(dataBase,
                         Q,
                         W,
                         WPi,
@@ -97,7 +94,6 @@ SPHHydroBaseRZ(const SmoothingScaleBase<Dim<2> >& smoothingScaleMethod,
                         correctVelocityGradient,
                         sumMassDensityOverAllNodeLists,
                         densityUpdate,
-                        HUpdate,
                         epsTensile,
                         nTensile,
                         xmin,
@@ -245,16 +241,12 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -265,15 +257,11 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -305,8 +293,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
     auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -346,8 +332,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
@@ -380,8 +364,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
-      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -413,16 +395,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
         gradWQi = gWQi*Hi*etaiUnit;
         gradWQj = gWQj*Hj*etajUnit;
       }
-
-      // Zero'th and second moment of the node distribution -- used for the
-      // ideal H calculation.
-      const auto fweightij = sameMatij ? 1.0 : mRZj*rhoi/(mRZi*rhoj);
-      const auto xij2 = xij.magnitude2();
-      const auto thpt = xij.selfdyad()*safeInvVar(xij2*xij2*xij2);
-      weightedNeighborSumi +=     fweightij*std::abs(gWi);
-      weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-      massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
@@ -507,11 +479,6 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
@@ -544,12 +511,8 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       auto& localDvDxi = localDvDx(nodeListi, i);
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Add the self-contribution to density sum.
       rhoSumi += mRZi*W0*Hdeti;
@@ -588,37 +551,12 @@ evaluateDerivatives(const Dim<2>::Scalar /*time*/,
       // If needed finish the total energy derivative.
       if (mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
-
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (mXSPH) {
         DxDti = vi + XSPHDeltaVi;
       } else {
         DxDti = vi;
       }
-
-      // The H tensor evolution.
-      DHDti = mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                             posi,
-                                                             DvDxi,
-                                                             hmin,
-                                                             hmax,
-                                                             hminratio,
-                                                             nPerh);
-      Hideali = mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                        posi,
-                                                        weightedNeighborSumi,
-                                                        massSecondMomenti,
-                                                        W,
-                                                        hmin,
-                                                        hmax,
-                                                        hminratio,
-                                                        nPerh,
-                                                        connectivityMap,
-                                                        nodeListi,
-                                                        i);
     }
   }
 }
@@ -646,9 +584,7 @@ applyGhostBoundaries(State<Dim<2> >& state,
 
   // Apply ordinary SPH BCs.
   SPHHydroBase<Dim<2> >::applyGhostBoundaries(state, derivs);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 
   // Scale back to mass.
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {

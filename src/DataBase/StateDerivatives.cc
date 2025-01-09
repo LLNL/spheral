@@ -9,6 +9,7 @@
 #include "DataBase.hh"
 #include "Physics/Physics.hh"
 #include "Field/Field.hh"
+#include "Utilities/AnyVisitor.hh"
 
 using std::vector;
 using std::cout;
@@ -41,11 +42,7 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-
-  // Iterate over the physics packages, and have them register their derivatives.
-  for (PackageIterator itr = physicsPackages.begin();
-       itr != physicsPackages.end();
-       ++itr) (*itr)->registerDerivatives(dataBase, *this);
+  for (auto pkg: physicsPackages) pkg->registerDerivatives(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -59,11 +56,7 @@ StateDerivatives(DataBase<Dimension>& dataBase,
   StateBase<Dimension>(),
   mCalculatedNodePairs(),
   mNumSignificantNeighbors() {
-
-  // Iterate over the physics packages, and have them register their derivatives.
-  for (PackageIterator itr = physicsPackageBegin;
-       itr != physicsPackageEnd;
-       ++itr) (*itr)->registerDerivatives(dataBase, *this);
+  for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerDerivatives(dataBase, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -158,30 +151,24 @@ void
 StateDerivatives<Dimension>::
 Zero() {
 
-  // Walk the state fields and zero them.
-  for (typename StateBase<Dimension>::StorageType::iterator itr = this->mStorage.begin();
-       itr != this->mStorage.end();
-       ++itr) {
+  // Build a visitor to zero each data type
+  AnyVisitor<void, std::any&> ZERO;
+  ZERO.addVisitor<std::reference_wrapper<FieldBase<Dimension>>>         ([](const std::any& x) { std::any_cast<std::reference_wrapper<FieldBase<Dimension>>>(x).get().Zero(); });
+  ZERO.addVisitor<std::reference_wrapper<Scalar>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Scalar>>(x).get() = 0.0; });
+  ZERO.addVisitor<std::reference_wrapper<Vector>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Vector>>(x).get() = Vector::zero; });
+  ZERO.addVisitor<std::reference_wrapper<Tensor>>                       ([](const std::any& x) { std::any_cast<std::reference_wrapper<Tensor>>(x).get() = Tensor::zero; });
+  ZERO.addVisitor<std::reference_wrapper<SymTensor>>                    ([](const std::any& x) { std::any_cast<std::reference_wrapper<SymTensor>>(x).get() = SymTensor::zero; });
+  ZERO.addVisitor<std::reference_wrapper<vector<Scalar>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Scalar>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<Vector>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Vector>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<Tensor>>>               ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<Tensor>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<vector<SymTensor>>>            ([](const std::any& x) { std::any_cast<std::reference_wrapper<vector<SymTensor>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<set<int>>>                     ([](const std::any& x) { std::any_cast<std::reference_wrapper<set<int>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<set<RKOrder>>>                 ([](const std::any& x) { std::any_cast<std::reference_wrapper<set<int>>>(x).get().clear(); });
+  ZERO.addVisitor<std::reference_wrapper<ReproducingKernel<Dimension>>> ([](const std::any& x) { } );
 
-    try {
-      auto ptr = boost::any_cast<FieldBase<Dimension>*>(itr->second);
-      ptr->Zero();
-
-    } catch (const boost::bad_any_cast&) {
-      try {
-        auto ptr = boost::any_cast<vector<Vector>*>(itr->second);
-        ptr->clear();
-
-      } catch (const boost::bad_any_cast&) {
-        try {
-          auto ptr = boost::any_cast<vector<Scalar>*>(itr->second);
-          ptr->clear();
-
-        } catch (const boost::bad_any_cast&) {
-          VERIFY2(false, "StateDerivatives::Zero ERROR: unknown type for key " << itr->first << "\n");
-        }
-      }
-    }
+  // Walk the state values and zero them
+  for (auto itr: mStorage) {
+    ZERO.visit(itr.second);
   }
 
   // Reinitialize the node pair interaction information.

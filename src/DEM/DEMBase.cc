@@ -25,7 +25,6 @@
 
 #include "Neighbor/ConnectivityMap.hh"
 
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/registerWithRedistribution.hh"
@@ -267,6 +266,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
         boundItr != this->boundaryEnd();
         ++boundItr){
     (*boundItr)->applyFieldListGhostBoundary(particleRadius);
+    (*boundItr)->applyFieldListGhostBoundary(uniqueIndex);
     (*boundItr)->applyFieldListGhostBoundary(particleIndex);
   }
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 

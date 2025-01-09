@@ -18,8 +18,7 @@ class MFMHydroBase(GenericRiemannHydro):
   typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
 """
     
-    def pyinit(smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
-               dataBase = "DataBase<%(Dimension)s>&",
+    def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                riemannSolver = "RiemannSolverBase<%(Dimension)s>&",
                W = "const TableKernel<%(Dimension)s>&",
                epsDiffusionCoeff = "const Scalar",
@@ -31,7 +30,6 @@ class MFMHydroBase(GenericRiemannHydro):
                correctVelocityGradient = "const bool",
                gradType = "const GradientType",
                densityUpdate = "const MassDensityType",
-               HUpdate = "const HEvolutionType",
                epsTensile = "const double",
                nTensile = "const double",
                xmin = "const Vector&",

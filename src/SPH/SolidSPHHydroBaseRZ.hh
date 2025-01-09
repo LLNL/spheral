@@ -23,7 +23,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
@@ -44,8 +43,7 @@ public:
   typedef Physics<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  SolidSPHHydroBaseRZ(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-                      DataBase<Dimension>& dataBase,
+  SolidSPHHydroBaseRZ(DataBase<Dimension>& dataBase,
                       ArtificialViscosity<Dimension>& Q,
                       const TableKernel<Dimension>& W,
                       const TableKernel<Dimension>& WPi,
@@ -60,13 +58,17 @@ public:
                       const bool correctVelocityGradient,
                       const bool sumMassDensityOverAllNodeLists,
                       const MassDensityType densityUpdate,
-                      const HEvolutionType HUpdate,
                       const double epsTensile,
                       const double nTensile,
                       const bool damageRelieveRubble,
                       const bool strengthInDamage,
                       const Vector& xmin,
                       const Vector& xmax);
+
+  // No default constructor, copying, or assignment.
+  SolidSPHHydroBaseRZ() = delete;
+  SolidSPHHydroBaseRZ(const SolidSPHHydroBaseRZ&) = delete;
+  SolidSPHHydroBaseRZ& operator=(const SolidSPHHydroBaseRZ&) = delete;
 
   // Destructor.
   virtual ~SolidSPHHydroBaseRZ();
@@ -103,13 +105,6 @@ public:
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label() const override { return "SolidSPHHydroBaseRZ"; }
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  // No default constructor, copying, or assignment.
-  SolidSPHHydroBaseRZ();
-  SolidSPHHydroBaseRZ(const SolidSPHHydroBaseRZ&);
-  SolidSPHHydroBaseRZ& operator=(const SolidSPHHydroBaseRZ&);
 };
 
 }

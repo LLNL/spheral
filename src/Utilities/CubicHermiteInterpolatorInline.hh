@@ -19,20 +19,7 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
   mXmax(xmax),
   mXstep((xmax - xmin)/(n - 1u)),
   mVals(2u*n) {
-
-  // Preconditions
-  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
-  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
-
-  // Compute the function values
-  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
-
-  // Estimate the gradients at each interpolation node
-  const auto dx = 0.001*mXstep;
-  for (auto i = 0u; i < mN; ++i) {
-    const auto xi = xmin + i*mXstep;
-    mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
-  }
+  this->initialize(xmin, xmax, n, F);
 }
 
 //------------------------------------------------------------------------------
@@ -50,10 +37,66 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
   mXmax(xmax),
   mXstep((xmax - xmin)/(n - 1u)),
   mVals(2u*n) {
+  this->initialize(xmin, xmax, n, F, Fgrad);
+}
 
+//------------------------------------------------------------------------------
+// (Re)initialize from a function
+//------------------------------------------------------------------------------
+template<typename Func>
+inline
+void
+CubicHermiteInterpolator::initialize(const double xmin,
+                                     const double xmax,
+                                     const size_t n,
+                                     const Func& F) {
+
+  // Preconditions
+  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
+  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+
+  mN = n;
+  mXmin = xmin;
+  mXmax = xmax;
+  mXstep = (xmax - xmin)/(n - 1u);
+  mVals.resize(2u*n);
+
+  // Compute the function values
+  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
+
+  // Initialize the gradient values
+  this->initializeGradientKnots();
+
+  // const auto dx = 0.001*mXstep;
+  // for (auto i = 0u; i < mN; ++i) {
+  //   const auto xi = xmin + i*mXstep;
+  //   // mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
+  //   const auto x0 = std::max(xmin, xi - dx);
+  //   const auto x1 = std::min(xmax, xi + dx);
+  //   mVals[mN + i] = (F(x1) - F(x0))/(x1 - x0);
+  // }
+}
+
+//------------------------------------------------------------------------------
+// (Re)initialize from a function and its gradient
+//------------------------------------------------------------------------------
+template<typename Func, typename GradFunc>
+inline
+void
+CubicHermiteInterpolator::initialize(const double xmin,
+                                     const double xmax,
+                                     const size_t n,
+                                     const Func& F,
+                                     const GradFunc& Fgrad) {
   // Preconditions
   VERIFY2(n > 1u, "CubicHermiteInterpolator requires n >= 2 : n=" << n);
   VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
+
+  mN = n;
+  mXmin = xmin;
+  mXmax = xmax;
+  mXstep = (xmax - xmin)/(n - 1u);
+  mVals.resize(2u*n);
 
   // Compute the function and gradient values
   for (auto i = 0u; i < mN; ++i) {
@@ -69,8 +112,14 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
 inline
 double
 CubicHermiteInterpolator::operator()(const double x) const {
-  const auto i0 = lowerBound(x);
-  return this->operator()(x, i0);
+  if (x < mXmin) {
+    return mVals[0] + mVals[mN]*(x - mXmin);
+  } else if (x > mXmax) {
+    return mVals[mN-1u] + mVals[2u*mN-1u]*(x - mXmin);
+  } else {
+    const auto i0 = lowerBound(x);
+    return this->operator()(x, i0);
+  }
 }
 
 inline
@@ -82,7 +131,7 @@ CubicHermiteInterpolator::operator()(const double x,
   const auto t2 = t*t;
   const auto t3 = t*t2;
   return ((2.0*t3 - 3.0*t2 + 1.0)*mVals[i0] +          // h00
-          (-2.0*t3 + 3.0*t2)*mVals[i0 + 1u] +           // h01
+          (-2.0*t3 + 3.0*t2)*mVals[i0 + 1u] +          // h01
           mXstep*((t3 - 2.0*t2 + t)*mVals[mN + i0] +   // h10
                   (t3 - t2)*mVals[mN + i0 + 1u]));     // h11
 }
@@ -93,8 +142,14 @@ CubicHermiteInterpolator::operator()(const double x,
 inline
 double
 CubicHermiteInterpolator::prime(const double x) const {
-  const auto i0 = lowerBound(x);
-  return this->prime(x, i0);
+  if (x < mXmin) {
+    return mVals[mN];
+  } else if (x > mXmax) {
+    return mVals[2u*mN-1u];
+  } else {
+    const auto i0 = lowerBound(x);
+    return this->prime(x, i0);
+  }
 }
 
 inline
@@ -115,8 +170,12 @@ CubicHermiteInterpolator::prime(const double x,
 inline
 double
 CubicHermiteInterpolator::prime2(const double x) const {
-  const auto i0 = lowerBound(x);
-  return this->prime2(x, i0);
+  if (x < mXmin or x > mXmax) {
+    return 0.0;
+  } else {
+    const auto i0 = lowerBound(x);
+    return this->prime2(x, i0);
+  }
 }
 
 inline
@@ -173,7 +232,7 @@ CubicHermiteInterpolator::h11(const double t) const {
 //------------------------------------------------------------------------------
 inline
 size_t
-CubicHermiteInterpolator::N() const {
+CubicHermiteInterpolator::size() const {
   return mN;
 }
 

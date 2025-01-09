@@ -57,6 +57,7 @@ set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state packa
 
 option(SPHERAL_ENABLE_ARTIFICIAL_CONDUCTION "Enable the artificial conduction package" ON)
 option(SPHERAL_ENABLE_EXTERNAL_FORCE "Enable the external force package" ON)
+option(SPHERAL_ENABLE_FSISPH "Enable the FSISPH package" ON)
 option(SPHERAL_ENABLE_GRAVITY "Enable the gravity package" ON)
 option(SPHERAL_ENABLE_GSPH "Enable the GSPH package" ON)
 option(SPHERAL_ENABLE_SVPH "Enable the SVPH package" ON)
@@ -152,42 +153,10 @@ endif()
 # Build C++ tests and install tests to install directory
 #-------------------------------------------------------------------------------
 if (ENABLE_TESTS)
-  add_subdirectory(${SPHERAL_ROOT_DIR}/tests/unit/CXXTests)
-
-  # A macro to preserve directory structure when installing files
-  macro(install_with_directory)
-      set(optionsArgs "")
-      set(oneValueArgs SOURCE DESTINATION)
-      set(multiValueArgs FILES)
-      cmake_parse_arguments(CAS "${optionsArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-      foreach(FILE ${CAS_FILES})
-          get_filename_component(DIR ${FILE} DIRECTORY)
-          INSTALL(FILES ${CAS_SOURCE}/${FILE} DESTINATION ${CAS_DESTINATION}/${DIR})
-      endforeach()
-  endmacro(install_with_directory)
-
-  # Find the test files we want to install
-  set(test_files1 "")
-  if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
-    execute_process(
-      COMMAND git ls-files tests
-      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-      OUTPUT_VARIABLE test_files1)
-  else()
-    execute_process(
-      COMMAND find tests -type f
-      WORKING_DIRECTORY ${SPHERAL_ROOT_DIR}
-      OUTPUT_VARIABLE test_files1)
-  endif()
-  string(REPLACE "\n" " " test_files ${test_files1})
-  separate_arguments(test_files)
-  list(REMOVE_ITEM test_files tests/unit/CXXTests/runCXXTests.ats)
-  install_with_directory(
-    FILES       ${test_files} 
-    SOURCE      ${SPHERAL_ROOT_DIR}
-    DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
+  spheral_install_python_tests(${SPHERAL_ROOT_DIR}/tests/ ${SPHERAL_TEST_INSTALL_PREFIX})
+  # Always install performance.py in the top of the testing script
+  install(FILES ${SPHERAL_ROOT_DIR}/tests/performance.py
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/tests)
 endif()
 
-if(NOT ENABLE_DEV_BUILD)
-  include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)
-endif()
+include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

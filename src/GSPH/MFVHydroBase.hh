@@ -71,8 +71,7 @@ public:
   typedef typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
 
   // Constructors.
-  MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
+  MFVHydroBase(DataBase<Dimension>& dataBase,
                RiemannSolverBase<Dimension>& riemannSolver,
                const TableKernel<Dimension>& W,
                const Scalar epsDiffusionCoeff,
@@ -86,7 +85,6 @@ public:
                const NodeMotionType nodeMotionType,
                const GradientType gradType,
                const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
                const double epsTensile,
                const double nTensile,
                const Vector& xmin,

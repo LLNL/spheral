@@ -4,13 +4,22 @@
 # (using the ATS) before pushing changes to that public repo!
 #-------------------------------------------------------------------------------
 
+glue(fsisph = False)
 glue(gsph = False)
 glue(svph = False)
+glue(independent = True)
+
+# Fail test to make sure tests are working
+source("unit/Utilities/testFails.py")
+
+# Fail test to make sure tests are working
+source("unit/Utilities/testFails.py")
 
 # Geometry unit tests
 source("unit/Geometry/testVector.py")
 source("unit/Geometry/testTensor.py")
 source("unit/Geometry/testInnerOuterProduct.py")
+source("unit/Geometry/testEigen2d.py")
 source("unit/Geometry/testEigen3d.py")
 source("unit/Geometry/testPolygon.py")
 source("unit/Geometry/testPolyhedron.py")
@@ -70,6 +79,7 @@ source("unit/Utilities/testCubicHermiteInterpolator.py")
 source("unit/Utilities/testBiLinearInterpolator.py")
 source("unit/Utilities/testBiQuadraticInterpolator.py")
 source("unit/Utilities/testBiCubicInterpolator.py")
+source("unit/Utilities/testTimers.py")
 
 # Mesh tests.
 source("unit/Mesh/testLineMesh.py")
@@ -81,7 +91,6 @@ source("unit/Distributed/testMPI4PYasPYMPI.py")
 
 # C++ unit tests.
 source("functional/CXXTests/test_r3d_utils.py")
-source("unit/CXXTests/runCXXTests.ats")
 
 # Hydro tests
 source("functional/Hydro/HydroTests.ats")

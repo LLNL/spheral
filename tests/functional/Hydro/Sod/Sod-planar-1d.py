@@ -13,8 +13,8 @@
 #
 # Solid FSISPH
 #
-#ATS:fsisph1 = test(           SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with FSISPH -- 1-D (serial)")
-#ATS:fsisph2 = testif(fsisph1, SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with FSISPH -- 1-D (serial) RESTART CHECK")
+#ATS:fsisph1 = test(           SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories True  --restartStep 20 --steps 40", label="Planar Sod problem with FSISPH -- 1-D (serial)", fsisph=True)
+#ATS:fsisph2 = testif(fsisph1, SELF, "--crksph False --fsisph True --solid True --cfl 0.25 --graphics None --clearDirectories False --restartStep 20 --steps 20 --restoreCycle 20 --checkRestart True", label="Planar Sod problem with FSISPH -- 1-D (serial) RESTART CHECK", fsisph=True)
 #
 # GSPH
 #
@@ -97,9 +97,7 @@ commandLine(nx1 = 400,
             epsilonTensile = 0.0,
             nTensile = 8,
             rhoMin = 0.01,
-            hourglass = None,
-            hourglassOrder = 1,
-            hourglassLimiter = 1,
+            fhourglass = 0.0,
             filter = 0.00,
             KernelConstructor = NBSplineKernel,
             order = 5,
@@ -135,7 +133,7 @@ commandLine(nx1 = 400,
             restartStep = 10000,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
 
             graphics = True,
@@ -216,7 +214,11 @@ strength = NullStrength()
 #-------------------------------------------------------------------------------
 # Interpolation kernels.
 #-------------------------------------------------------------------------------
-WT = TableKernel(NBSplineKernel(order), 1000)
+if KernelConstructor == NBSplineKernel:
+    Wbase = NBSplineKernel(order)
+else:
+    Wbase = KernelConstructor()
+WT = TableKernel(Wbase, 1000)
 kernelExtent = WT.kernelExtent
 output("WT")
 
@@ -343,6 +345,7 @@ if svph:
                  xmax = Vector( 100.0))
 elif crksph:
     hydro = CRKSPH(dataBase = db,
+                   W = WT,
                    order = correctionOrder,
                    filter = filter,
                    cfl = cfl,
@@ -476,11 +479,10 @@ if bArtificialConduction:
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
 #-------------------------------------------------------------------------------
-if hourglass:
-    hg = hourglass(WT, hourglassOrder, hourglassLimiter)
+if fhourglass > 0.0:
+    hg = SubPointPressureHourglassControl(fhourglass)
     output("hg")
-    output("hg.order")
-    output("hg.limiter")
+    output("hg.fHG")
     packages.append(hg)
 
 #-------------------------------------------------------------------------------
@@ -511,8 +513,6 @@ integrator.rigorousBoundaries = rigorousBoundaries
 integrator.verbose = dtverbose
 output("integrator")
 output("integrator.havePhysicsPackage(hydro)")
-if hourglass:
-    output("integrator.havePhysicsPackage(hg)")
 output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
@@ -739,7 +739,7 @@ rmin = x0
 rmax = x2
 if mpi.rank == 0:
     multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-    if outputFile != "None":
+    if outputFile:
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
         f.write(("#  " + 19*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", "mo",

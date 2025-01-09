@@ -4,10 +4,10 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
-                      const typename Dimension::Scalar dt,
-                      const DataBase<Dimension>& dataBase,
-                      const State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivatives) const {
+                    const typename Dimension::Scalar dt,
+                    const DataBase<Dimension>& dataBase,
+                    const State<Dimension>& state,
+                    StateDerivatives<Dimension>& derivatives) const {
   this->firstDerivativesLoop(time,dt,dataBase,state,derivatives);
   this->secondDerivativesLoop(time,dt,dataBase,state,derivatives);
   //this->setH(time,dt,dataBase,state,derivatves)
@@ -20,10 +20,10 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 secondDerivativesLoop(const typename Dimension::Scalar time,
-                    const typename Dimension::Scalar dt,
-                    const DataBase<Dimension>& dataBase,
-                    const State<Dimension>& state,
-                          StateDerivatives<Dimension>& derivatives) const { 
+                      const typename Dimension::Scalar dt,
+                      const DataBase<Dimension>& dataBase,
+                      const State<Dimension>& state,
+                      StateDerivatives<Dimension>& derivatives) const { 
 
   // Get the ArtificialViscosity.
   auto& Q = this->artificialViscosity();
@@ -33,7 +33,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
   // The kernels and such.
   const auto& W = this->kernel();
-  const auto& smoothingScaleMethod = this->smoothingScaleMethod();
 
   // huge amount of tinies
   const auto tiny = std::numeric_limits<double>::epsilon();
@@ -90,7 +89,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  const auto damagedPressure = state.fields(SolidFieldNames::damagedPressure, 0.0);
   const auto pressure = state.fields(HydroFieldNames::pressure, 0.0);
   const auto soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const auto S = state.fields(SolidFieldNames::deviatoricStress, SymTensor::zero);
@@ -143,17 +142,13 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto  DepsDt = derivatives.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   auto  DvDx = derivatives.fields(HydroFieldNames::velocityGradient, Tensor::zero);
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   auto  DSDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
-  auto& pairDepsDt = derivatives.getAny(HydroFieldNames::pairWork, vector<Scalar>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairDepsDt = derivatives.get(HydroFieldNames::pairWork, vector<Scalar>());
   
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
@@ -175,14 +170,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
 
   // Size up the pair-wise accelerations before we start.
@@ -221,8 +212,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
     auto localDvDx_thread = localDvDx.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
     auto maxViscousPressure_thread = maxViscousPressure.threadCopy(threadStack, ThreadReduction::MAX);
     auto effViscousPressure_thread = effViscousPressure.threadCopy(threadStack);
     
@@ -274,8 +263,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& localDvDxi = localDvDx_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
       auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
       auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
       auto& newInterfaceFlagsi = newInterfaceFlags_thread(nodeListi,i);
@@ -326,8 +313,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& localDvDxj = localDvDx_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
-      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
       auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
       auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
       auto& newInterfaceFlagsj = newInterfaceFlags_thread(nodeListj,j);
@@ -460,16 +445,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       interfaceSmoothnessNormalizationj += interfaceSwitch*voli*Wij;
       newInterfaceSmoothnessi += interfaceSwitch*alignment*volj*Wij;
       newInterfaceSmoothnessj += interfaceSwitch*alignment*voli*Wij;
-
-      // Zero'th and second moment of the node distribution -- used for the
-      // ideal H calculation.
-      //---------------------------------------------------------------
-      const auto rij2 = rij.magnitude2();
-      const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      weightedNeighborSumi += abs(gWi);
-      weightedNeighborSumj += abs(gWj);
-      massSecondMomenti += gradWi.magnitude2()*thpt;
-      massSecondMomentj += gradWj.magnitude2()*thpt;
 
       if (!decouple){
 
@@ -662,17 +637,11 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
@@ -695,12 +664,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       auto& DrhoDti = DrhoDt(nodeListi, i);
       auto& DvDxi = DvDx(nodeListi, i);
       auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
       auto& DSDti = DSDt(nodeListi, i);
       auto& newInterfaceNormalsi = newInterfaceNormals(nodeListi,i);
       auto& newInterfaceSmoothnessi = newInterfaceSmoothness(nodeListi,i);
@@ -726,11 +691,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         newInterfaceNormalsi = Vector::zero;
       }
 
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
- 
-    
       DrhoDti -=  rhoi*DvDxi.Trace();
 
       if (totalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
@@ -742,28 +702,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         XSPHWeightSumi = (interfaceFlagsi == 0 ? XSPHWeightSumi*invNormi : 0);
         DxDti += xsphCoeff*XSPHWeightSumi*XSPHDeltaVi*invNormi;
       }
-
-    
-      DHDti = smoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                            ri,
-                                                            DvDxi,
-                                                            hmin,
-                                                            hmax,
-                                                            hminratio,
-                                                            nPerh);
-      
-      Hideali = smoothingScaleMethod.newSmoothingScale(Hi,
-                                                       ri,
-                                                       weightedNeighborSumi,
-                                                       massSecondMomenti,
-                                                       W,
-                                                       hmin,
-                                                       hmax,
-                                                       hminratio,
-                                                       nPerh,
-                                                       connectivityMap,
-                                                       nodeListi,
-                                                       i);
 
       localDvDxi = localDvDxi*localMi;
 
@@ -786,10 +724,10 @@ template<typename Dimension>
 void
 SolidFSISPHHydroBase<Dimension>::
 firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
-                   const typename Dimension::Scalar /*dt*/,
-                   const DataBase<Dimension>& dataBase,
-                   const State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivatives) const {
+                     const typename Dimension::Scalar /*dt*/,
+                     const DataBase<Dimension>& dataBase,
+                     const State<Dimension>& state,
+                     StateDerivatives<Dimension>& derivatives) const {
 
   // The kernels and such.
   const auto& W = this->kernel();
@@ -811,7 +749,7 @@ firstDerivativesLoop(const typename Dimension::Scalar /*time*/,
   const auto massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
   const auto specificThermalEnergy = state.fields(HydroFieldNames::specificThermalEnergy, 0.0);
   const auto H = state.fields(HydroFieldNames::H, SymTensor::zero);
-  const auto damagedPressure = state.fields(FSIFieldNames::damagedPressure, 0.0);
+  const auto damagedPressure = state.fields(SolidFieldNames::damagedPressure, 0.0);
   const auto fragIDs = state.fields(SolidFieldNames::fragmentIDs, int(1));
 
   CHECK(mass.size() == numNodeLists);

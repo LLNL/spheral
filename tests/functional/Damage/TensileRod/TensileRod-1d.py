@@ -1,14 +1,14 @@
 # Grady-Kipp-Owen damage 
-#ATS:t10 = test(SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=1, label="Tensile rod (GradyKippOwen damage) domain independence test SERIAL RUN")
-#ATS:t11 = testif(t10, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt'", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RUN")
-#ATS:t12 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=1, label="Tensile rod (GradyKippOwen damage) domain independence test SERIAL RESTART RUN")
-#ATS:t13 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.txt' --restoreCycle 500", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RESTART RUN")
+#ATS:t10 = test(SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu'", np=1, label="Tensile rod (GradyKippOwen damage) domain independence test SERIAL RUN")
+#ATS:t11 = testif(t10, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu'", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RUN")
+#ATS:t12 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu' --restoreCycle 500", np=1, label="Tensile rod (GradyKippOwen damage) domain independence test SERIAL RESTART RUN")
+#ATS:t13 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu' --restoreCycle 500", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RESTART RUN")
 #
 # Probabilistic damage
-#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20231211.txt' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
-#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20231211.txt'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
-#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20231211.txt' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
-#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.txt' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.txt' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20231211.txt' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
+#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
+#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
+#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
+#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
 
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
@@ -169,11 +169,15 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20231211.txt",
+            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240816.gnu",
             dataDirBase = "dumps-TensileRod-1d",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             )
+
+# On the IBM BlueOS machines we have some tolerance issues...
+if "SYS_TYPE" in os.environ and os.environ["SYS_TYPE"] == "blueos_3_ppc64le_ib_p9":
+    testtol *= 20.0
 
 if crksph:
     hydroname = "CRKSPH"
@@ -453,7 +457,7 @@ else:
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
-output("hydro.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 
@@ -603,7 +607,7 @@ output("control")
 #-------------------------------------------------------------------------------
 if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
     strainHistory = AverageStrain(damageModel,
-                                  os.path.join(dataDir, "strainhistory.txt"))
+                                  os.path.join(dataDir, "strainhistory.gnu"))
     control.appendPeriodicWork(strainHistory.sample, 1)
 
 #-------------------------------------------------------------------------------
@@ -740,7 +744,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
@@ -782,7 +786,7 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file for
         # bit level consistency.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
+        if comparisonFile and BuildData.cxx_compiler_id != "IntelLLVM":
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

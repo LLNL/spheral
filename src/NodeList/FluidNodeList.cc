@@ -5,7 +5,6 @@
 // Created by JMO, Sat Sep 18 10:50:42 PDT 1999
 //----------------------------------------------------------------------------//
 #include "FileIO/FileIO.hh"
-#include "SmoothingScaleBase.hh"
 #include "Material/EquationOfState.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "DataBase/DataBase.hh"
