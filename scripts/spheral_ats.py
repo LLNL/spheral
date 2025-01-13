@@ -101,6 +101,7 @@ def main():
     test_log_name = "test-logs"
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
     blueos_machine_names = ["rzansel", "lassen"]
+    ci_launch_flags = {"ruby": "--res=ci", "lassen": "-q pci"}
     temp_uname = os.uname()
     hostname = temp_uname[1]
     sys_type = os.getenv("SYS_TYPE")
@@ -163,10 +164,13 @@ def main():
         elif any(x in hostname for x in blueos_machine_names):
             blueOS = True
             numNodes = numNodes if numNodes else 1
-            timeLimit = timeLimit if timeLimit else 60
+            timeLimit = timeLimit if timeLimit else 150
             inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
+            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 -alloc_flags atsdisable "
+        for i, j in ci_launch_flags.items():
+            if (i in hostname):
+                launch_cmd += j + " "
         ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------

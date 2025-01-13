@@ -17,6 +17,8 @@
   tags:
     - ruby
     - shell
+  variables:
+    ENVIRONMENT: "INTERACTIVE"
   extends: [.on_toss_4_x86]
 
 .on_lassen:
@@ -38,6 +40,7 @@
     - lassen
     - shell
   variables:
+    ENVIRONMENT: "INTERACTIVE"
     HOSTNAME: 'lassen'
   extends: [.on_blueos_3_ppc64]
 
