@@ -1,11 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// SPHSmoothingScale
+// ASPHClassicSmoothingScale
 //
-// Implements the standard SPH scalar smoothing scale algorithm.
+// Implements our classic ASPH algorithm (2010 SPHERIC proceedings style)
 //
-// Created by JMO, Wed Sep 14 13:50:49 PDT 2005
+// Created by JMO, Fri Jan  3 10:48:43 PST 2025
 //----------------------------------------------------------------------------//
-#include "SmoothingScale/SPHSmoothingScale.hh"
+#include "SmoothingScale/ASPHClassicSmoothingScale.hh"
+#include "SmoothingScale/SmoothingScaleUtilities.hh"
 #include "Geometry/Dimension.hh"
 #include "Geometry/GeometryRegistrar.hh"
 #include "Kernel/TableKernel.hh"
@@ -29,45 +30,20 @@ using std::vector;
 
 namespace {
 
-//------------------------------------------------------------------------------
-// Convert a given number of neighbors to the equivalent 1D "radius" in nodes.
-//------------------------------------------------------------------------------
-template<typename Dimension> inline double equivalentRadius(const double n);
-
-// 1D
-template<>
-inline double
-equivalentRadius<Dim<1> >(const double n) {
-  return 0.5*n;
-}
-
-// 2D
-template<>
-inline double
-equivalentRadius<Dim<2> >(const double n) {
-  return std::sqrt(n/M_PI);
-}
-
-// 3D
-template<>
-inline double
-equivalentRadius<Dim<3> >(const double n) {
-  return Dim<3>::rootnu(3.0*n/(4.0*M_PI));
-}
-
 }
 
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SPHSmoothingScale<Dimension>::
-SPHSmoothingScale(const HEvolutionType HUpdate,
-                  const TableKernel<Dimension>& W):
+ASPHClassicSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale(const HEvolutionType HUpdate,
+                          const TableKernel<Dimension>& W):
   SmoothingScaleBase<Dimension>(HUpdate),
   mWT(W),
   mZerothMoment(FieldStorageType::CopyFields),
-  mFirstMoment(FieldStorageType::CopyFields) {
+  mFirstMoment(FieldStorageType::CopyFields),
+  mSecondMoment(FieldStorageType::CopyFields) {
 }
 
 //------------------------------------------------------------------------------
@@ -75,12 +51,13 @@ SPHSmoothingScale(const HEvolutionType HUpdate,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SPHSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
   // Make sure our FieldLists are correctly sized.
   SmoothingScaleBase<Dimension>::initializeProblemStartup(dataBase);
   dataBase.resizeFluidFieldList(mZerothMoment, 0.0, HydroFieldNames::massZerothMoment, false);
   dataBase.resizeFluidFieldList(mFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
+  dataBase.resizeFluidFieldList(mSecondMoment, SymTensor::zero, HydroFieldNames::massSecondMoment, false);
 }
 
 //------------------------------------------------------------------------------
@@ -88,12 +65,13 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SPHSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
   SmoothingScaleBase<Dimension>::registerDerivatives(dataBase, derivs);
   derivs.enroll(mZerothMoment);
   derivs.enroll(mFirstMoment);
+  derivs.enroll(mSecondMoment);
 }
 
 //------------------------------------------------------------------------------
@@ -102,13 +80,13 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SPHSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale<Dimension>::
 evaluateDerivatives(const typename Dimension::Scalar time,
                     const typename Dimension::Scalar dt,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) const {
-  TIME_BEGIN("SPHSmoothingScaleDerivs");
+  TIME_BEGIN("ASPHClassicSmoothingScaleDerivs");
 
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
@@ -133,10 +111,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  Hideal = derivs.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  massZerothMoment = derivs.fields(HydroFieldNames::massZerothMoment, 0.0);
   auto  massFirstMoment = derivs.fields(HydroFieldNames::massFirstMoment, Vector::zero);
+  auto  massSecondMoment = derivs.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(DHDt.size() == numNodeLists);
   CHECK(Hideal.size() == numNodeLists);
   CHECK(massZerothMoment.size() == numNodeLists);
   CHECK(massFirstMoment.size() == numNodeLists);
+  CHECK(massSecondMoment.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -148,10 +128,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     int i, j, nodeListi, nodeListj;
     Scalar mi, mj, ri, rj, mRZi, mRZj, rhoi, rhoj, WSPHi, WSPHj, etaMagi, etaMagj, fweightij, fispherical, fjspherical;
     Vector xij, etai, etaj;
+    SymTensor xijdyad;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto massZerothMoment_thread = massZerothMoment.threadCopy(threadStack);
     auto massFirstMoment_thread = massFirstMoment.threadCopy(threadStack);
+    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -168,6 +150,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       auto& massZerothMomenti = massZerothMoment_thread(nodeListi, i);
       auto& massFirstMomenti = massFirstMoment_thread(nodeListi, i);
+      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
       mj = mass(nodeListj, j);
@@ -177,6 +160,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 
       auto& massZerothMomentj = massZerothMoment_thread(nodeListj, j);
       auto& massFirstMomentj = massFirstMoment_thread(nodeListj, j);
+      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
       // Node displacement.
       xij = xi - xj;
@@ -223,6 +207,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       massZerothMomentj += 1.0/fweightij*WSPHj * fjspherical;
       massFirstMomenti -=     fweightij*WSPHi*etai;
       massFirstMomentj += 1.0/fweightij*WSPHj*etaj;
+      xijdyad = xij.selfdyad()*safeInvVar(FastMath::pow5(xij.magnitude()));
+      massSecondMomenti +=     fweightij*WSPHi*WSPHi*xijdyad;
+      massSecondMomentj += 1.0/fweightij*WSPHj*WSPHj*xijdyad;
     } // loop over pairs
 
     // Reduce the thread values to the master.
@@ -233,8 +220,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   // Finish up the derivatives now that we've walked all pairs
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
+    const auto  hminInv = safeInvVar(nodeList.hmin());
+    const auto  hmaxInv = safeInvVar(nodeList.hmax());
+    const auto  hminratio = nodeList.hminratio();
     const auto  nPerh = nodeList.nodesPerSmoothingScale();
 
     const auto ni = nodeList.numInternalNodes();
@@ -244,13 +232,16 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& DvDxi = DvDx(nodeListi, i);
-
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      auto& massZerothMomenti = massZerothMoment(nodeListi, i);
-      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
+      auto&       massZerothMomenti = massZerothMoment(nodeListi, i);
+      const auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto&       DHDti = DHDt(nodeListi, i);
+      auto&       Hideali = Hideal(nodeListi, i);
 
       // Time derivative of H
-      DHDt(nodeListi, i) = -Hi/(Dimension::nDim)*DvDxi.Trace();
+      DHDti = SmoothingScaleDetail::smoothingScaleDerivative(Hi, DvDxi);
+
+      // Complete the moments of the node distribution for use in the ideal H calculation.
+      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
 
       // Determine the current effective number of nodes per smoothing scale.
       const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
@@ -258,22 +249,42 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                                                   mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
       CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
-      // The ratio of the desired to current nodes per smoothing scale.
-      const auto s = std::min(4.0, std::max(0.25, nPerh/(currentNodesPerSmoothingScale + 1.0e-30)));
+      // The (limited) ratio of the current to desired nodes per smoothing scale.
+      const Scalar s = min(4.0, max(0.25, currentNodesPerSmoothingScale/nPerh));
       CHECK(s > 0.0);
 
-      // Now determine how to scale the current H to the desired value.
-      const auto a = (s < 1.0 ? 
-                      0.4*(1.0 + s*s) :
-                      0.4*(1.0 + 1.0/(s*s*s)));
-      CHECK(1.0 - a + a*s > 0.0);
-      const auto hi0 = 1.0/Hi.xx();
-      const auto hi1 = std::min(hmax, std::max(hmin, hi0*(1.0 - a + a*s)));
-      CHECK(hi1 > 0.0);
-      Hideal(nodeListi, i) = 1.0/hi1 * SymTensor::one;
+      // Start with the sqrt of the second moment in eta space
+      Hideali = massSecondMomenti.sqrt();
+      auto eigenT = Hideali.eigenVectors();
+
+      // Ensure we don't have any degeneracies (zero eigen values)
+      const auto Tmax = std::max(1.0, eigenT.eigenValues.maxElement());
+      auto fscale = 1.0;
+      for (auto k = 0u; k < Dimension::nDim; ++k) {
+        eigenT.eigenValues[k] = max(eigenT.eigenValues[k], 0.01*Tmax);
+        fscale *= eigenT.eigenValues[k];
+      }
+      CHECK(fscale > 0.0);
+
+      // Compute the scaling to get us closer to the target n per h, and build the transformation tensor
+      fscale = 1.0/Dimension::rootnu(fscale);    // inverse length, same as H!
+      eigenT.eigenValues *= fscale;
+      Hideali = constructSymTensorWithDiagonal(eigenT.eigenValues);
+      Hideali.rotationalTransform(eigenT.eigenVectors);
+      CHECK(fuzzyEqual(Hideali.Determinant(), 1.0, 1.0e-8));
+
+      // Initial vote for Hideal
+      Hideali *= s*Dimension::rootnu(Hi.Determinant());
+      // Hideali = (T*Hi).Symmetric();
+
+      // Apply limiting
+      const auto hev = Hideali.eigenVectors();
+      const auto hminEffInv = min(hminInv, max(hmaxInv, hev.eigenValues.minElement())/hminratio);
+      Hideali = constructSymTensorWithBoundedDiagonal(hev.eigenValues, hmaxInv, hminEffInv);
+      Hideali.rotationalTransform(hev.eigenVectors);
     }
   }
-  TIME_END("SPHSmoothingScaleDerivs");
+  TIME_END("ASPHClassicSmoothingScaleDerivs");
 }
 
 //------------------------------------------------------------------------------
@@ -281,11 +292,12 @@ evaluateDerivatives(const typename Dimension::Scalar time,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SPHSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale<Dimension>::
 dumpState(FileIO& file, const std::string& pathName) const {
   SmoothingScaleBase<Dimension>::dumpState(file, pathName);
   file.write(mZerothMoment, pathName + "/zerothMoment");
   file.write(mFirstMoment, pathName + "/firstMoment");
+  file.write(mSecondMoment, pathName + "/secondMoment");
 }
 
 //------------------------------------------------------------------------------
@@ -293,11 +305,12 @@ dumpState(FileIO& file, const std::string& pathName) const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-SPHSmoothingScale<Dimension>::
+ASPHClassicSmoothingScale<Dimension>::
 restoreState(const FileIO& file, const std::string& pathName) {
   SmoothingScaleBase<Dimension>::restoreState(file, pathName);
   file.read(mZerothMoment, pathName + "/zerothMoment");
   file.read(mFirstMoment, pathName + "/firstMoment");
+  file.read(mSecondMoment, pathName + "/secondMoment");
 }
 
 }

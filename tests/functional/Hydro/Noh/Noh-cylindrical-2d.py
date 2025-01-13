@@ -107,7 +107,8 @@ commandLine(seed = "constantDTheta",
             XSPH = False,                       # monaghan's xsph -- move w/ averaged velocity
             epsilonTensile = 0.0,               # coefficient for the tensile correction
             nTensile = 8,                       # exponent for tensile correction
-            xfilter = 0.0,
+            fhourglass = 0.0,                   # Subpoint hourglass filtering
+            xfilter = 0.0,                      # Subpoint hourglass filtering
 
             # PSPH options
             HopkinsConductivity = False,     # For PSPH
@@ -142,7 +143,6 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
-            fhourglass = 0.0,
 
             # kernel options
             KernelConstructor = WendlandC4Kernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
@@ -369,7 +369,6 @@ elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
@@ -379,7 +378,6 @@ elif crksph:
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = xfilter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
@@ -462,7 +460,6 @@ elif mfv:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = xfilter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
