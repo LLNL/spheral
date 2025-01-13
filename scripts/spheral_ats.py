@@ -168,9 +168,10 @@ def main():
             inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
             launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 -alloc_flags atsdisable "
-        for i, j in ci_launch_flags.items():
-            if (i in hostname):
-                launch_cmd += j + " "
+        if (options.ciRun):
+            for i, j in ci_launch_flags.items():
+                if (i in hostname):
+                    launch_cmd += j + " "
         ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
