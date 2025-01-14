@@ -7,8 +7,8 @@
     - batch
   variables:
     SCHEDULER_ACTION: allocate
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive -N 2 -t 120"
-    NPROC: 112
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive -N 1"
+    NPROC: 56
     HOSTNAME: 'ruby'
   timeout: 120 minutes
   extends: [.on_toss_4_x86]
@@ -53,15 +53,11 @@
   extends: [.on_lassen]
 
 .toss_shell1:
-  resource_group: toss1
+  resource_group: toss2
   extends: [.ruby_shell]
 
 .blueos_shell1:
   extends: [.lassen_shell]
-
-.toss_shell2:
-  resource_group: toss2
-  extends: [.ruby_shell]
 
 .blueos_shell2:
   extends: [.lassen_shell]
@@ -73,6 +69,10 @@
 
 .toss_resource2:
   resource_group: toss2
+  extends: [.toss_resource_general]
+
+.toss_resource3:
+  resource_group: toss3
   extends: [.toss_resource_general]
 
 .blueos_resource1:
