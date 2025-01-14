@@ -155,17 +155,19 @@ def main():
         mac_args = []
         if any(x in hostname for x in toss_machine_names):
             numNodes = numNodes if numNodes else 2
-            timeLimit = timeLimit if timeLimit else 60
             mac_args = [f"--numNodes {numNodes}"]
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
-            launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            launch_cmd = f"salloc --exclusive -N {numNodes} "
+            if (timeLimit):
+                launch_cmd += f"-t {timeLimit} "
         elif any(x in hostname for x in blueos_machine_names):
             blueOS = True
             numNodes = numNodes if numNodes else 2
-            timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 -alloc_flags atsdisable "
+            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -core_isolation 2 -alloc_flags atsdisable "
+            if (timeLimit):
+                launch_cmd += f"-W {timeLimit} "
         if (options.ciRun):
             for i, j in ci_launch_flags.items():
                 if (i in hostname):
