@@ -7,8 +7,8 @@
     - batch
   variables:
     SCHEDULER_ACTION: allocate
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive -N 1"
-    NPROC: 56
+    SCHEDULER_PARAMETERS: "--res=ci --exclusive -N 2"
+    NPROC: 112
     HOSTNAME: 'ruby'
   timeout: 120 minutes
   extends: [.on_toss_4_x86]
