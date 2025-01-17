@@ -97,7 +97,7 @@ def install_ats_args():
 def main():
     test_log_name = "test-logs"
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
-    toss_cray_machine_names = ["rzadams"]
+    toss_cray_machine_names = ["rzadams", "tioga"]
     blueos_machine_names = ["rzansel", "lassen"]
     temp_uname = os.uname()
     hostname = temp_uname[1]
@@ -162,7 +162,7 @@ def main():
             timeLimit = timeLimit if timeLimit else 60
             #mac_args = [f"--nn={numNodes} --gpus_per_task=1 -n=64 --timelimit={timeLimit}m"]
             inAllocVars = ["CENTER_JOB_ID"]
-            launch_cmd = f"flux alloc --exclusive -N {numNodes} -t {timeLimit} "
+            launch_cmd = f"flux alloc --exclusive -N {numNodes}"
             if (options.ciRun):
                 launch_cmd += "-p pdebug "
         elif any(x in hostname for x in blueos_machine_names):
