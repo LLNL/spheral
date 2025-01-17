@@ -12,16 +12,3 @@ compilers:
       modules: []
       environment: {}
       extra_rpaths: []
-- compiler:
-      spec: cce@=18.0.0
-      paths:
-        cc: /usr/tce/packages/cce-tce/cce-18.0.0/bin/craycc
-        cxx: /usr/tce/packages/cce-tce/cce-18.0.0/bin/crayCC
-        f77: /usr/tce/packages/cce-tce/cce-18.0.0/bin/crayftn
-        fc: /usr/tce/packages/cce-tce/cce-18.0.0/bin/crayftn
-      flags: {}
-      operating_system: rhel8
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
