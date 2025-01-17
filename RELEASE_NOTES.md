@@ -47,6 +47,17 @@ Notable changes include:
     * Consolidates lcatstest.in and run\_ats.py into a single spheral\_ats.py script.
     * SPHERAL\_TEST\_INSTALL\_PREFIX now includes the tests directory.
     * Removed most configured files and added a SpheralConfigs.py file to use at runtime instead.
+    * Python runtime packages are now handled in the Spheral build pipeline with pip.
+      * Removed pip package dependencies from spack.
+      * Introduced Spheral_Python_Env function to manage Python environments for build and runtime dependencies.
+      * spheral-setup-venv now only copies installed Spheral libraries to environments at install time.
+      * Added pip cache support to local directory (~/.cache/spheral_pip/), customizable via SPHERAL_PIP_CACHE_DIR.
+      * Added ATS as a submodule due to lack of PyPI package.
+
+    * Moved Spheral from BlueOS/NVIDIA systems to support CRAY/AMD.
+      * Migrated CI to CRAY/AMD due to pip compatibility issues with BlueOS.
+      * Added HIP support for device/offload tests and updated TPLs for HIP-enabled builds.
+      * Updated GitLab CI and Developer scripts for flux scheduling system compatibility.
 
   * Bug Fixes / improvements:
     * Wrappers for MPI calls are simplified and improved.
