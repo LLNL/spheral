@@ -34,82 +34,64 @@ function(Spheral_Python_Env target_name)
     list(APPEND REQUIREMENTS_ARGS ${_req})
   endforeach()
 
-  #TODO: Remove this once blueos3 is no longer supported.
-  if("${SPHERAL_ENV_SYS_TYPE}" STREQUAL "blueos_3_ppc64le_ib_p9")
-    set(PIP_INSTALL_CMD env MPICC=${MPI_C_COMPILER} MPICXX=${MPI_CXX_COMPILER} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} 
-                        python -m pip install 
-                        --disable-pip-version-check 
-                        )
+  set(PIP_DOWNLOAD_CMD python -m pip download 
+                      --disable-pip-version-check 
+                      --exists-action i 
+                      -d ${SPHERAL_PIP_CACHE_DIR})
 
+  set(PIP_INSTALL_CMD env MPICC=${MPI_C_COMPILER} MPICXX=${MPI_CXX_COMPILER} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} 
+                      python -m pip install 
+                      --disable-pip-version-check 
+                      --no-build-isolation 
+                      --no-index 
+                      --cache-dir ${SPHERAL_PIP_CACHE_DIR}
+                      -f ${SPHERAL_PIP_CACHE_DIR})
+
+  if(SPHERAL_NETWORK_CONNECTED)
     add_custom_command(
       OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
-      COMMAND ${Python3_EXECUTABLE} -m venv --system-site-packages ${${target_name}_PREFIX}/.venv;
-      COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
+      # Create the virtual env and activate it.
+      COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv &&
+      . ${${target_name}_PREFIX}/.venv/bin/activate &&
+
+      # pip @ 24.1 is the first version that supports local repo paths in requirements
+      # files. ATS will fail to install otherwise.
+      ${PIP_DOWNLOAD_CMD} pip==24.1 &&
+      ${PIP_INSTALL_CMD} pip==24.1 &&
+
+      # Initial packages neede before any of our requirements files.
+      ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
+      ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
+
+      # Install reuiqrements to virtual env.
+      ${PIP_DOWNLOAD_CMD} ${REQUIREMENTS_ARGS} &&
       ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
+      # Generate a stamp file inside the virtual environment.
+      # Existence of this stamp file confirms the environment installed correctly.
+      # Deletion of the venv dir will then trigger a re-installation.
+      COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+
+      # Changed to the input requirements files will trigger re-installation.
       DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
     )
   else()
-    set(PIP_DOWNLOAD_CMD python -m pip download 
-                        --disable-pip-version-check 
-                        --exists-action i 
-                        -d ${SPHERAL_PIP_CACHE_DIR})
+    add_custom_command(
+      OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+      COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
+      COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
 
-    set(PIP_INSTALL_CMD env MPICC=${MPI_C_COMPILER} MPICXX=${MPI_CXX_COMPILER} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} 
-                        python -m pip install 
-                        --disable-pip-version-check 
-                        --no-build-isolation 
-                        --no-index 
-                        --cache-dir ${SPHERAL_PIP_CACHE_DIR}
-                        -f ${SPHERAL_PIP_CACHE_DIR})
+      ${PIP_INSTALL_CMD} pip==24.1 &&
 
-    if(SPHERAL_NETWORK_CONNECTED)
-      add_custom_command(
-        OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
+      ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
 
-        # Create the virtual env and activate it.
-        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv &&
-        . ${${target_name}_PREFIX}/.venv/bin/activate &&
+      ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
 
-        # pip @ 24.1 is the first version that supports local repo paths in requirements
-        # files. ATS will fail to install otherwise.
-        ${PIP_DOWNLOAD_CMD} pip==24.1 &&
-        ${PIP_INSTALL_CMD} pip==24.1 &&
+      COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
 
-        # Initial packages neede before any of our requirements files.
-        ${PIP_DOWNLOAD_CMD} setuptools wheel cython poetry-core &&
-        ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
-
-        # Install reuiqrements to virtual env.
-        ${PIP_DOWNLOAD_CMD} ${REQUIREMENTS_ARGS} &&
-        ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
-
-        # Generate a stamp file inside the virtual environment.
-        # Existence of this stamp file confirms the environment installed correctly.
-        # Deletion of the venv dir will then trigger a re-installation.
-        COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
-
-        # Changed to the input requirements files will trigger re-installation.
-        DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
-      )
-    else()
-      add_custom_command(
-        OUTPUT ${${target_name}_PREFIX}/.venv/${target_name}_stamp
-        COMMAND ${Python3_EXECUTABLE} -m venv ${${target_name}_PREFIX}/.venv;
-        COMMAND . ${${target_name}_PREFIX}/.venv/bin/activate &&
-
-        ${PIP_INSTALL_CMD} pip==24.1 &&
-
-        ${PIP_INSTALL_CMD} setuptools wheel cython poetry-core &&
-
-        ${PIP_INSTALL_CMD} ${REQUIREMENTS_ARGS}
-
-        COMMAND touch ${${target_name}_PREFIX}/.venv/${target_name}_stamp
-
-        DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
-      )
-    endif()
+      DEPENDS Python3::Python ${${target_name}_REQUIREMENTS}
+    )
   endif()
   add_custom_target(${target_name} ALL
     DEPENDS ${${target_name}_PREFIX}/.venv/${target_name}_stamp
