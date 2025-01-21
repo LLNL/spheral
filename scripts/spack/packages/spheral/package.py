@@ -1,9 +1,10 @@
-# Copyright 2013-2021 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 from spack.package import *
+import spack
 import socket
 import os
 
@@ -82,7 +83,7 @@ class Spheral(CachedCMakePackage, CudaPackage):
     depends_on('py-h5py@3.9.0', type='build')
     depends_on('py-docutils@0.18.1', type='build')
     depends_on('py-scipy@1.12.0', type='build')
-    depends_on('py-ats@exit', type='build')
+    depends_on('py-ats@7.0.117', type='build')
     depends_on('py-mpi4py@3.1.5', type='build', when='+mpi')
 
     depends_on('py-sphinx', type='build')
@@ -100,6 +101,17 @@ class Spheral(CachedCMakePackage, CudaPackage):
         if "SYS_TYPE" in env:
             sys_type = env["SYS_TYPE"]
         return sys_type
+
+    # Create a name for the specific configuration being built
+    # This name is used to differentiate timings during performance testing
+    def _get_config_name(self, spec):
+        sys_type = self._get_sys_type(spec)
+        config_name = f"{sys_type}_{spec.compiler.name}_{spec.compiler.version}"
+        if ("+mpi" in spec):
+            config_name += "_" + spec.format("{^mpi.name}_{^mpi.version}")
+        if ("+cuda" in spec):
+            config_name += "_" + spec.format("{^cuda.name}{^cuda.version}")
+        return config_name.replace(" ", "_")
 
     @property
     def cache_name(self):
@@ -162,6 +174,9 @@ class Spheral(CachedCMakePackage, CudaPackage):
         entries.append(cmake_cache_option('ENABLE_CXXONLY', False))
         entries.append(cmake_cache_option('TPL_VERBOSE', False))
         entries.append(cmake_cache_option('BUILD_TPL', True))
+
+        entries.append(cmake_cache_string('SPHERAL_SYS_ARCH', self._get_sys_type(spec)))
+        entries.append(cmake_cache_string('SPHERAL_CONFIGURATION', self._get_config_name(spec)))
 
         # TPL locations
         entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))

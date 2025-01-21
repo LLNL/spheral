@@ -282,8 +282,6 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   updateStateFields(SolidFieldNames::shearModulus, state, derivs);
   updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
 
-  mDamagedPressure+=this->pressure();
-
   const auto& mass = dataBase.fluidMass();
   const auto& massDensity = dataBase.fluidMassDensity();
   computeSPHVolume(mass,massDensity,mVolume);
@@ -447,8 +445,8 @@ registerDerivatives(DataBase<Dimension>&  dataBase,
 
   CHECK(not derivs.registered(mDvDt));
 
-  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  derivs.enrollAny(HydroFieldNames::pairWork,          mPairDepsDt);
+  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairWork,          mPairDepsDt);
 
   derivs.enroll(plasticStrainRate);
   derivs.enroll(mXSPHDeltaV);

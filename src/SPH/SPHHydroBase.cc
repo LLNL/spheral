@@ -354,7 +354,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mGradRho);
   derivs.enroll(mM);
   derivs.enroll(mLocalM);
-  derivs.enrollAny(HydroFieldNames::pairAccelerations, mPairAccelerations);
+  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
   TIME_END("SPHregisterDerivs");
 }
 
@@ -645,7 +645,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivs.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivs.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum = derivs.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);

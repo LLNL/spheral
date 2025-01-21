@@ -13,7 +13,6 @@
 #include "Material/EquationOfState.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/safeInv.hh"
-#include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/globalNodeIDs.hh"
@@ -839,6 +838,20 @@ haveNodeList(const NodeList<Dimension>& nodeList) const {
                                    nodeListEnd(),
                                    &nodeList);
   return itr != nodeListEnd();
+}
+
+//------------------------------------------------------------------------------
+// Get the NodeList index for the given NodeList
+//------------------------------------------------------------------------------
+template<typename Dimension>
+int
+DataBase<Dimension>::
+nodeListIndex(const NodeList<Dimension>& nodeList) const {
+  ConstNodeListIterator itr = find(nodeListBegin(),
+                                   nodeListEnd(),
+                                   &nodeList);
+  VERIFY(itr != nodeListEnd());
+  return std::distance(nodeListBegin(), itr);
 }
 
 //------------------------------------------------------------------------------

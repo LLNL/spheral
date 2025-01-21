@@ -115,28 +115,33 @@ commandLine(seed = "lattice",
             dataRoot = "dumps-shearingNoh-2d",
 
             graphics = True,
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
 
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
 
 hydroType = hydroType.upper()
 
-dataDir = os.path.join(dataRoot,
-                       hydroType,
-                       Qconstructor.__name__,
-                       "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
-                       "nperh=%4.2f" % nPerh,
-                       "XSPH=%s" % XSPH,
-                       "densityUpdate=%s" % densityUpdate,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "gradhCorrection=%s" % gradhCorrection,
-                       "nx=%i_ny=%i" % (nx, ny))
-restartDir = os.path.join(dataDir, "restarts")
-vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "Noh-shear-2d-%ix%i" % (nx, ny))
+if dataRoot:
+    dataDir = os.path.join(dataRoot,
+                           hydroType,
+                           Qconstructor.__name__,
+                           "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
+                           "nperh=%4.2f" % nPerh,
+                           "XSPH=%s" % XSPH,
+                           "densityUpdate=%s" % densityUpdate,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "gradhCorrection=%s" % gradhCorrection,
+                           "nx=%i_ny=%i" % (nx, ny))
+    restartDir = os.path.join(dataDir, "restarts")
+    vizDir = os.path.join(dataDir, "visit")
+    restartBaseName = os.path.join(restartDir, "Noh-shear-2d-%ix%i" % (nx, ny))
+else:
+    restartDir = None
+    vizDir = None
+    restartBaseName = None
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
@@ -495,7 +500,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -538,7 +543,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

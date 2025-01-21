@@ -146,8 +146,7 @@ commandLine(nx1 = 100,
             redistributeStep = 500,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-2d",
-            outputFile = "None",
-            comparisonFile = "None",
+
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             
             )

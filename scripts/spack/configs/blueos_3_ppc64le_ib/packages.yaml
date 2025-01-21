@@ -37,17 +37,16 @@ packages:
     - 11.1.0
     - 11.0.2
     - 10.1.243
-    - 10.1.168
     buildable: false
     externals:
+    - spec: cuda@11.4.1+allow-unsupported-compilers
+      prefix: /usr/tce/packages/cuda/cuda-11.4.1
     - spec: cuda@11.1.0~allow-unsupported-compilers
       prefix: /usr/tce/packages/cuda/cuda-11.1.0
     - spec: cuda@11.0.2~allow-unsupported-compilers
       prefix: /usr/tce/packages/cuda/cuda-11.0.2
     - spec: cuda@10.1.243~allow-unsupported-compilers
       prefix: /usr/tce/packages/cuda/cuda-10.1.243
-    - spec: cuda@10.1.168+allow-unsupported-compilers
-      prefix: /usr/tce/packages/cuda/cuda-10.1.168
 
   spectrum-mpi:
     externals:
@@ -59,6 +58,8 @@ packages:
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-8.3.1
     - spec: spectrum-mpi@10.3.1.03rtm0%gcc@4.9.3
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-4.9.3
+    - spec: spectrum-mpi@10.3.1.03rtm0%gcc@10.2.1
+      prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-gcc-10.2.1
     - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0
       prefix: /usr/tce/packages/spectrum-mpi/spectrum-mpi-rolling-release-clang-9.0.0
     - spec: spectrum-mpi@10.3.1.03rtm0%clang@9.0.0-ibm

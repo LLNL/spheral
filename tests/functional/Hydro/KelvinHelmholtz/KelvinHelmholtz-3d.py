@@ -106,8 +106,7 @@ commandLine(nx = 200,
             redistributeStep = 500,
             checkRestart = False,
             dataDir = "dumps-KelvinHelmholtz-3d",
-            outputFile = "None",
-            
+
             bArtificialConduction = False,
             arCondAlpha = 0.5,
             )

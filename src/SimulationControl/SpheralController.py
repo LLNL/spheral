@@ -5,6 +5,7 @@ import sys, os, gc, warnings, mpi
 
 from SpheralCompiledPackages import *
 from SpheralTimer import SpheralTimer
+from SpheralUtilities import adiak_value
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
 from SpheralTestUtilities import globalFrame
@@ -52,6 +53,7 @@ class SpheralController:
                  volumeType = RKVolumeType.RKVoronoiVolume,
                  facetedBoundaries = None,
                  printAllTimers = False):
+        self.restartBaseName = restartBaseName
         self.restart = RestartableObject(self)
         self.integrator = integrator
         self.restartObjects = restartObjects
@@ -80,6 +82,7 @@ class SpheralController:
 
         # Determine the dimensionality of this run, based on the integrator.
         self.dim = "%id" % self.integrator.dataBase.nDim
+        adiak_value("dim", self.dim)
 
         # Determine the visualization method.
         if self.dim == "1d":
@@ -100,8 +103,11 @@ class SpheralController:
         self.insertDistributedBoundary(integrator.physicsPackages())
 
         # Should we look for the last restart set?
-        if restoreCycle == -1:
-            restoreCycle = findLastRestart(restartBaseName)
+        if restartBaseName:
+            if restoreCycle == -1:
+                restoreCycle = findLastRestart(restartBaseName)
+        else:
+            restoreCycle = None
 
         # Generic initialization work.
         self.reinitializeProblem(restartBaseName,
@@ -181,7 +187,8 @@ class SpheralController:
         self._periodicTimeWork = []
         
         # Set the restart file base name.
-        self.setRestartBaseName(restartBaseName)
+        if restartBaseName:
+            self.setRestartBaseName(restartBaseName)
         
         # Set the simulation time.
         self.integrator.currentTime = initialTime
@@ -393,9 +400,13 @@ class SpheralController:
         numActualGhostNodes = 0
         for bc in bcs:
             numActualGhostNodes += bc.numGhostNodes
-        print("Total number of (internal, ghost, active ghost) nodes : (%i, %i, %i)" % (mpi.allreduce(db.numInternalNodes, mpi.SUM),
-                                                                                        mpi.allreduce(db.numGhostNodes, mpi.SUM),
-                                                                                        mpi.allreduce(numActualGhostNodes, mpi.SUM)))
+        numInternal = db.globalNumInternalNodes
+        numGhost = db.globalNumGhostNodes
+        numActGhost = mpi.allreduce(numActualGhostNodes, mpi.SUM)
+        print(f"Total number of (internal, ghost, active ghost) nodes : ({numInternal}, {numGhost}, {numActGhost})")
+        adiak_value("total_internal_nodes", numInternal)
+        adiak_value("total_ghost_nodes", numGhost)
+        adiak_value("total_steps", self.totalSteps)
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
@@ -566,6 +577,8 @@ class SpheralController:
     #--------------------------------------------------------------------------
     def dropRestartFile(self):
 
+        if not self.restartBaseName:
+            return
         # First find out if the requested directory exists.
         import os
         dire = os.path.dirname(os.path.abspath(self.restartBaseName))
@@ -594,6 +607,8 @@ class SpheralController:
     def loadRestartFile(self, restoreCycle,
                         frameDict=None):
 
+        if not self.restartBaseName:
+            return
         # Find out if the requested file exists.
         import os
         fileName = self.restartBaseName + "_cycle%i" % restoreCycle

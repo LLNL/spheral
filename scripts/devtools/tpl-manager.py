@@ -64,6 +64,9 @@ def parse_args():
   parser.add_argument('--skip-init', action='store_true',
       help='Skip setting up and configuring Spack.')
 
+  parser.add_argument('--id', type=str, default="",
+      help='ID string to postfix on initconfig file.')
+
   return parser.parse_args()
 
 # Parse the json formatted spec list...
@@ -172,6 +175,9 @@ def build_deps(args):
 
         # Install only the dependencies for Spheral and create CMake configure file
         if "Error: " in sexe("{0} dev-build -q --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), ret_output=True): sys.exit(1)
+
+        if args.id:
+          sexe("file=$(ls -t *.cmake | head -n 1); mv \"$file\" \"${file%.cmake}-"+args.id+".cmake\"")
 
       if not args.no_clean:
         sexe("rm -f spec-info-* tpl-build-* spack-build-* spack-configure-args.txt")

@@ -219,12 +219,6 @@ postStateUpdate(const Scalar /*time*/,
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
                          (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
-  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
-    boundaryPtr->applyFieldListGhostBoundary(rho);
-    boundaryPtr->applyFieldListGhostBoundary(P);
-    boundaryPtr->applyFieldListGhostBoundary(cs);
-    boundaryPtr->applyFieldListGhostBoundary(PSPHcorrection);
-  }
 
   // We depend on the caller knowing to finalize the ghost boundaries!
   return true;
@@ -302,7 +296,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
   CHECK(rhoSum.size() == numNodeLists);
