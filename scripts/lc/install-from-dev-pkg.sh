@@ -4,6 +4,7 @@ SPACK_PKG_NAME=${SPACK_PKG_NAME:-'spheral'}
 SPACK_URL=${SPACK_URL:-'https://github.com/spack/spack'}
 BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
+SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
 
 if [[ -z "${SPEC}" ]]; then
   echo "SPEC var must be set."
@@ -25,6 +26,8 @@ echo $BUILD_ALLOC
 rm -rf $INSTALL_DIR
 mkdir -p $INSTALL_DIR
 
+cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
+
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --spec=none --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls
 
 source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
@@ -41,9 +44,4 @@ $BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only depe
 $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --no-upstream --spheral-spack-dir $INSTALL_DIR/spheral-spack-tpls --spec $SPEC
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
-$BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean
-
-
-
-
-
+$BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean -DSPHERAL_PIP_CACHE_DIR=$SPHERAL_PIP_CACHE_DIR -DSPHERAL_NETWORK_CONNECTED=Off
