@@ -164,7 +164,7 @@ def main():
             numNodes = numNodes if numNodes else 2
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
             inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
-            timeLimit = timeLimit if timeLimit else 60
+            timeLimit = timeLimit if timeLimit else 120
             launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -core_isolation 2 -alloc_flags atsdisable -W {timeLimit} "
         if (options.ciRun):
             for i, j in ci_launch_flags.items():
