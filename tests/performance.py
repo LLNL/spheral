@@ -41,7 +41,7 @@ spheral_install_config = SpheralConfigs.config()
 # Retrieve the host name and remove any numbers
 temp_uname = os.uname()
 hostname = "".join([i for i in temp_uname[1] if not i.isdigit()])
-mac_procs = {"rzhound": 112, "rzwhippet": 112, "ruby": 112,
+mac_procs = {"rzhound": 112, "rzwhippet": 112, "ruby": 56,
              "rzadams": 84, "rzvernal": 64, "tioga": 64,
              "rzansel": 40, "lassen": 40, "rzgenie": 36}
 # Find out how many nodes our allocation has grabbed
@@ -164,9 +164,9 @@ gen_inps = f"--geometry 3d --steps {steps} --compatibleEnergy False "+\
     f"--rlength {rlen} --zlength {zlen} --nr {nr} --nz {nz}"
 
 # Test variations
-test_inp = {"CRK": "--crksph True --densityUpdate SumVoronoiCellDensity",
-            "FSI": "--fsisph True",
-            "SOLIDSPH": "--fsisph False --crksph False"}
+test_inp = {"CRK": "--hydroType CRKSPH --densityUpdate SumVoronoiCellDensity",
+            "FSI": "--hydroType FSISPH",
+            "SOLIDSPH": "--hydroType SPH"}
 for tname, tinp in test_inp.items():
     inps = f"{gen_inps} {tinp}"
     spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)

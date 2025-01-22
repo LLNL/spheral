@@ -84,14 +84,14 @@ def run_and_report(run_command, ci_output, num_runs):
 def install_ats_args():
     install_args = []
     if (SpheralConfigs.build_type() == "Debug"):
-        install_args.append('--level 99')
+        install_args.append("--level 99")
     if (mpi.is_fake_mpi()):
-        install_args.append('--filter="np<2"')
+        install_args.append("--filter='np<2'")
     comp_configs = SpheralConfigs.component_configs()
     test_comps = ["FSISPH", "GSPH", "SVPH"]
     for ts in test_comps:
         if ts not in comp_configs:
-            install_args.append(f'--filter="not {ts.lower()}"')
+            install_args.append(f"--filter='not {ts.lower()}'")
     return install_args
 
 #---------------------------------------------------------------------------
@@ -101,6 +101,7 @@ def main():
     test_log_name = "test-logs"
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
     blueos_machine_names = ["rzansel", "lassen"]
+    ci_launch_flags = {"ruby": "--res=ci", "lassen": "-q pci"}
     temp_uname = os.uname()
     hostname = temp_uname[1]
     sys_type = os.getenv("SYS_TYPE")
@@ -154,19 +155,21 @@ def main():
         mac_args = []
         if any(x in hostname for x in toss_machine_names):
             numNodes = numNodes if numNodes else 2
-            timeLimit = timeLimit if timeLimit else 120
             mac_args = [f"--numNodes {numNodes}"]
+            timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-            if (options.ciRun):
-                launch_cmd += "-p pdebug "
         elif any(x in hostname for x in blueos_machine_names):
             blueOS = True
-            numNodes = numNodes if numNodes else 1
-            timeLimit = timeLimit if timeLimit else 60
-            inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
+            numNodes = numNodes if numNodes else 2
             mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -W {timeLimit} -core_isolation 2 "
+            inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
+            timeLimit = timeLimit if timeLimit else 120
+            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -core_isolation 2 -alloc_flags atsdisable -W {timeLimit} "
+        if (options.ciRun):
+            for i, j in ci_launch_flags.items():
+                if (i in hostname):
+                    launch_cmd += j + " "
         ats_args.extend(mac_args)
 
     #---------------------------------------------------------------------------
@@ -180,13 +183,13 @@ def main():
         else:
             log_name_indx = unknown_options.index("--logs") + 1
             log_name = unknown_options[log_name_indx]
-        ats_args.append('--glue="independent=True"')
-        ats_args.append('--continueFreq=15')
+        ats_args.append("--continueFreq=15")
         # Pass flag to tell tests this is a CI run
-        ats_args.append('--glue="cirun=True"')
+        ats_args.append("--glue='cirun=True'")
     if (options.threads):
-        ats_args.append(f'--glue="threads={options.threads}"')
-    ats_args.append(f'''--glue="benchmark_dir='{benchmark_dir}'"''')
+        ats_args.append(f"--glue='threads={options.threads}'")
+    ats_args.append(f"""--glue='benchmark_dir="{benchmark_dir}"'""")
+    ats_args.append("--glue='independent=True'")
     ats_args = " ".join(str(x) for x in ats_args)
     other_args = " ".join(str(x) for x in unknown_options)
     cmd = f"{ats_exe} -e {spheral_exe} {ats_args} {other_args}"
@@ -197,9 +200,12 @@ def main():
         run_command = cmd
     else:
         if blueOS:
-            # Launches using Bsub have issues with '<' being in command
-            # so entire run statment must be in quotes
-            run_command = f"{launch_cmd} '{cmd}'"
+            # Launches using Bsub requires quoting the whole command
+            # This causes issues for the glue='benchmark_dir... line
+            # unless we escape the characters
+            run_command = f'{launch_cmd} "{cmd}"'
+            run_command = run_command.replace('="', '=\\"')
+            run_command = run_command.replace('"\'', '\\"\'')
         else:
             run_command = f"{launch_cmd}{cmd}"
     print(f"\nRunning: {run_command}\n")

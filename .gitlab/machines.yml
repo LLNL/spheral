@@ -13,6 +13,14 @@
   timeout: 120 minutes
   extends: [.on_toss_4_x86]
 
+.ruby_shell:
+  tags:
+    - ruby
+    - shell
+  variables:
+    ENVIRONMENT: "INTERACTIVE"
+  extends: [.on_toss_4_x86]
+
 .on_lassen:
   tags:
     - lassen
@@ -27,6 +35,15 @@
   timeout: 150 minutes
   extends: [.on_blueos_3_ppc64]
 
+.lassen_shell:
+  tags:
+    - lassen
+    - shell
+  variables:
+    ENVIRONMENT: "INTERACTIVE"
+    HOSTNAME: 'lassen'
+  extends: [.on_blueos_3_ppc64]
+
 # ------------------------------------------------------------------------------
 
 .toss_resource_general:
@@ -35,6 +52,15 @@
 .blueos_resource_general:
   extends: [.on_lassen]
 
+.toss_shell1:
+  resource_group: toss2
+  extends: [.ruby_shell]
+
+.blueos_shell1:
+  extends: [.lassen_shell]
+
+.blueos_shell2:
+  extends: [.lassen_shell]
 # ------------------------------------------------------------------------------
 #
 .toss_resource1:
@@ -43,6 +69,10 @@
 
 .toss_resource2:
   resource_group: toss2
+  extends: [.toss_resource_general]
+
+.toss_resource3:
+  resource_group: toss3
   extends: [.toss_resource_general]
 
 .blueos_resource1:

@@ -271,11 +271,11 @@ for test_key, ctest in cur_test_data.items():
     if (main_diff > ref_thresh):
         cur_status = "FAILED"
         if args.display:
-            display(cprof.statsframe.tree(metric1, metric1+"_mean"))
+            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
     elif (main_diff < -ref_thresh):
         cur_status = "PASSED"
         if args.display:
-            display(cprof.statsframe.tree(metric1, metric1+"_mean"))
+            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
     else:
         cur_status = "PASSED"
     test_status.update({test_name: (cur_status, cur_main, ref_main, ref_thresh)})
