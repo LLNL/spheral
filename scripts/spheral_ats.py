@@ -2,7 +2,6 @@ import os, time, sys
 import argparse
 import ats.util.generic_utils as ats_utils
 import SpheralConfigs
-import mpi
 
 # This is a wrapper for running Spheral through ATS
 
