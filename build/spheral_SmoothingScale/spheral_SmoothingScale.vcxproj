@@ -31,7 +31,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{75E44B95-5082-489F-A200-DCA9B205361C}</ProjectGuid>
+    <ProjectGuid>{FB694800-149F-403E-9CB1-A2386B2BE83A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -287,24 +287,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\DEM\DEMFieldNames.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeList.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\FluidNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\FluidNodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\generateVoidNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\generateVoidNodesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListRegistrarInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListRegistrarInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeList.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeListInst.cc.3.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeList\DEMNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\SmoothingScale\ASPHClassicSmoothingScaleInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -312,7 +295,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\FluidNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\SmoothingScale\ASPHSmoothingScaleInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -320,7 +303,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\generateVoidNodesInst.cc.py">
+    <CustomBuild Include="..\..\src\SmoothingScale\IncrementASPHHtensorInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -328,23 +311,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\NodeListInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\NodeListRegistrarInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\SolidNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\SmoothingScale\SmoothingScaleBaseInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -352,6 +319,27 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+    <CustomBuild Include="..\..\src\SmoothingScale\SPHSmoothingScaleInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\SmoothingScale\ASPHClassicSmoothingScaleInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\ASPHClassicSmoothingScaleInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\ASPHSmoothingScaleInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\ASPHSmoothingScaleInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\IncrementASPHHtensorInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\IncrementASPHHtensorInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\polySecondMoment.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\SmoothingScaleBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\SmoothingScaleBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\SPHSmoothingScaleInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SmoothingScale\SPHSmoothingScaleInst.cc.3.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

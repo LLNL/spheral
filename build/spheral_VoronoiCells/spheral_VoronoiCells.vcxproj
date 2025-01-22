@@ -31,7 +31,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{75E44B95-5082-489F-A200-DCA9B205361C}</ProjectGuid>
+    <ProjectGuid>{6D118489-05E5-4096-BE0E-981E40CF74F3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>spheral</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -138,7 +138,7 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SPHERAL2D;SPHERAL3D;_USE_MATH_DEFINES;CXXONLY;MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;BOOST_DISABLE_THREADS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>LAM_WANT_MPI2CPP</UndefinePreprocessorDefinitions>
@@ -147,6 +147,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -166,6 +167,7 @@
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -186,6 +188,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -207,6 +210,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -230,6 +234,7 @@
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -254,6 +259,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -278,6 +284,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <DisableSpecificWarnings>2358;2586</DisableSpecificWarnings>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -287,24 +294,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\DEM\DEMFieldNames.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeList.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\FluidNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\FluidNodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\generateVoidNodesInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\generateVoidNodesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListRegistrarInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\NodeListRegistrarInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeList.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\SolidNodeListInst.cc.3.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeList\DEMNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\VoronoiCells\IncrementVoronoiCellsInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -312,7 +302,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\FluidNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\VoronoiCells\SubPointPressureHourglassControlInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -320,7 +310,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\generateVoidNodesInst.cc.py">
+    <CustomBuild Include="..\..\src\VoronoiCells\UpdateVoronoiCellsInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -328,23 +318,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\NodeListInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\NodeListRegistrarInst.cc.py">
-      <Command>
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
-            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
-         </Command>
-      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
-      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\SolidNodeListInst.cc.py">
+    <CustomBuild Include="..\..\src\VoronoiCells\VoronoiCellsInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -352,6 +326,18 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\VoronoiCells\computeVoronoiVolume.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\computeVoronoiVolume1d.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\IncrementVoronoiCellsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\IncrementVoronoiCellsInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\SubPointPressureHourglassControlInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\SubPointPressureHourglassControlInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\UpdateVoronoiCellsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\UpdateVoronoiCellsInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\VoronoiCellsInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\VoronoiCells\VoronoiCellsInst.cc.3.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

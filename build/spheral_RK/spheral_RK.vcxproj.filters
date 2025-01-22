@@ -12,12 +12,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\RK\computeVoronoiVolume.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\RK\computeVoronoiVolume1d.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>

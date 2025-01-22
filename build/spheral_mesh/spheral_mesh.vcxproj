@@ -300,7 +300,6 @@
       <Cpp0xSupport>true</Cpp0xSupport>
     </ClCompile>
     <ClCompile Include="..\..\src\Mesh\LineZone.cc" />
-    <ClCompile Include="..\..\src\Mesh\Mesh.cc" />
     <ClCompile Include="..\..\src\Mesh\MeshConstructionUtilities.cc" />
     <ClCompile Include="..\..\src\Mesh\MeshPolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Mesh\MeshPolicyInst.cc.3.cc" />

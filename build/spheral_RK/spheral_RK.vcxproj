@@ -304,8 +304,6 @@
     <ClCompile Include="..\..\src\RK\computeRKSumVolumeInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\computeRKVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\computeRKVolumesInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\RK\computeVoronoiVolume.cc" />
-    <ClCompile Include="..\..\src\RK\computeVoronoiVolume1d.cc" />
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.2.cc" />
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyInst.cc.3.cc" />
     <ClCompile Include="..\..\src\RK\ContinuityVolumePolicyRZ.cc" />

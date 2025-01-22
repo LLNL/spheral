@@ -9,12 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\NodeList\ASPHSmoothingScaleInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeList\ASPHSmoothingScaleInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\NodeList\FluidNodeListInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,18 +33,6 @@
     <ClCompile Include="..\..\src\NodeList\NodeListRegistrarInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\NodeList\SmoothingScaleBaseInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeList\SmoothingScaleBaseInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeList\SPHSmoothingScaleInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\NodeList\SPHSmoothingScaleInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\NodeList\SolidNodeList.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,14 +45,17 @@
     <ClCompile Include="..\..\src\NodeList\DEMNodeList.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\DEM\DEMFieldNames.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\DEM\DEMFieldNames.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\NodeList\DEMNodeListInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\NodeList\ASPHSmoothingScaleInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\NodeList\FluidNodeListInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
@@ -83,15 +68,11 @@
     <CustomBuild Include="..\..\src\NodeList\NodeListRegistrarInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\SmoothingScaleBaseInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\SPHSmoothingScaleInst.cc.py">
-      <Filter>Inst Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\NodeList\SolidNodeListInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\NodeList\DEMNodeListInst.cc.py" />
+    <CustomBuild Include="..\..\src\NodeList\DEMNodeListInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

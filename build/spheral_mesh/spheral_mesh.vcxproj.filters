@@ -45,9 +45,6 @@
     <ClCompile Include="..\..\src\Mesh\LineZone.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Mesh\Mesh.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Mesh\MeshConstructionUtilities.cc">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -2,3 +2,4 @@
 */*.user
 *.aps
 Spheral_Version.h
+*/*.vs
