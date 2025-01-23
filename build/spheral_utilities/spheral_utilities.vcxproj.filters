@@ -102,6 +102,9 @@
     <ClCompile Include="..\..\src\Utilities\QuadraticInterpolator.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Utilities\CubicHermiteInterpolator.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\Utilities\Bessel.hh">

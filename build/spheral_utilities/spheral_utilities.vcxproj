@@ -294,6 +294,7 @@
     <ClCompile Include="..\..\src\Utilities\buildMessage.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\computeShepardsInterpolationInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\Utilities\CubicHermiteInterpolator.cc" />
     <ClCompile Include="..\..\src\Utilities\DBC.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.2.cc" />
     <ClCompile Include="..\..\src\Utilities\globalBoundingVolumesInst.cc.3.cc" />
