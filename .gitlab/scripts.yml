@@ -27,7 +27,7 @@
   script:
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - cd $CI_BUILD_DIR && cat job-name.txt
-    - ./$SCRIPT_DIR/devtools/host-config-build.py --no-clean --build --nprocs $NPROC --host-config gitlab.cmake $EXTRA_CMAKE_ARGS
+    - ./$SCRIPT_DIR/devtools/host-config-build.py --no-clean --build --nprocs $NPROC --host-config gitlab.cmake -DENABLE_TIMER=ON $EXTRA_CMAKE_ARGS
   artifacts:
     paths:
       - ci-dir.txt
@@ -66,6 +66,24 @@
   allow_failure:
     exit_codes:
       - 80
+
+# Run the performance suite and move the resulting Caliper files into the benchmark location
+.run_perf:
+  stage: run_perf
+  variables:
+    GIT_STRATEGY: none
+    FF_ENABLE_BASH_EXIT_CODE_CHECK: 1
+    FF_USE_NEW_BASH_EVAL_STRATEGY: 1
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
+
+    - ./build_gitlab/install/spheral-ats --ciRun --numNodes 2 --logs perf_logs ./build_gitlab/install/$PERF_ATS_FILE || exit_code=$?
+    - exit $exit_code
+  artifacts:
+    when: always
+    paths:
+      - ci-dir.txt
 
 .cleanup_dir:
   stage: cleanup

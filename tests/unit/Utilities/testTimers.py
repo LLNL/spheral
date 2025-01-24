@@ -1,8 +1,9 @@
 #
 #
-#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=8)
-#ATS:test(SELF, "--caliperConfig 'none'", label="Timer test 2", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=1)
+#ATS:test(SELF, "--caliperConfig 'none'", label="Timer test 2", np=1)
 #ATS:test(SELF, "--caliperFilename 'timer_test_3.cali' --adiakData 'adiak_test: 1, test_adiak: two'", label="Timer test 3", np=1)
+#ATS:test(SELF, "--caliperFilename 'timer_test_4.cali' --adiakData 'adiak_test: 1, test_adiak: two'", label="Timer test 3", np=8)
 #
 
 import Spheral
@@ -42,7 +43,7 @@ sleep_time = 1.E-4
 fake_timer_name = "test_timer"
 
 for i in range(run_count):
-    TimerMgr.timer_start(fake_timer_name)
+    TimerMgr.timer_begin(fake_timer_name)
     time.sleep(sleep_time)
     TimerMgr.timer_end(fake_timer_name)
 

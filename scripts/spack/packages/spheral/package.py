@@ -92,19 +92,11 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
             sys_type = env["SYS_TYPE"]
         return sys_type
 
-    def _get_arch(self):
-        host_platform = spack.platforms.host()
-        host_os = host_platform.operating_system("default_os")
-        host_target = host_platform.target("default_target")
-        architecture = spack.spec.ArchSpec((str(host_platform), str(host_os), str(host_target)))
-        spack_arch = str(architecture)
-        return spack_arch.strip()
-
     # Create a name for the specific configuration being built
     # This name is used to differentiate timings during performance testing
     def _get_config_name(self, spec):
-        arch = self._get_arch()
-        config_name = f"{arch}_{spec.compiler.name}_{spec.compiler.version}"
+        sys_type = self._get_sys_type(spec)
+        config_name = f"{sys_type}_{spec.compiler.name}_{spec.compiler.version}"
         if ("+mpi" in spec):
             config_name += "_" + spec.format("{^mpi.name}_{^mpi.version}")
         if ("+cuda" in spec):
@@ -183,7 +175,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_option('TPL_VERBOSE', False))
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
-        entries.append(cmake_cache_string('SPHERAL_SYS_ARCH', self._get_arch()))
+        entries.append(cmake_cache_string('SPHERAL_SYS_ARCH', self._get_sys_type(spec)))
         entries.append(cmake_cache_string('SPHERAL_CONFIGURATION', self._get_config_name(spec)))
 
         # TPL locations

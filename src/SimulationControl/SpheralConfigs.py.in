@@ -27,5 +27,14 @@ def caliper_module_path():
     else:
         return None
 
+def version():
+    return "@spheralversion@"
+
+def git_hash():
+    return "@githash@"
+
+def git_branch():
+    return "@gitbranch@"
+
 def test_install_path():
     return "@SPHERAL_TEST_INSTALL_PREFIX@"

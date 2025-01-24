@@ -32,6 +32,8 @@ Notable changes include:
     * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
       during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
       is correct.
+    * Performance regression testing is now available. All developers are encouraged to run the performance testing suite for any code changes that might impact performance. See documentation for more details.
+    * Added our old ASPH IdealH H update as an option. While it is not as reliable as our current default ASPH, it does not require building the Voronoi and is therefore signifcantly faster.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
@@ -68,7 +70,8 @@ Notable changes include:
     * Bugfix for RZ solid CRKSPH with compatible energy.
     * Parsing of None string now always becomes None python type. Tests have been updated accordingly.
     * IO for checkpoints and visuzalization can now be properly turned off through SpheralController input options.
-    * Bugfix for atomicWeight in ANEOS
+    * Bugfix for atomicWeight in ANEOS.
+    * Fixed porosity model interaction with damage for zero porosity case.
 
 Version v2024.06.1 -- Release date 2024-07-09
 ==============================================

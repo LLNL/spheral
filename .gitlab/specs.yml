@@ -41,7 +41,7 @@
 .cuda_11_gcc_spectrum:
   variables:
     SPEC: 'gcc@$GCC_VERSION+cuda cuda_arch=70'
-    EXTRA_CMAKE_ARGS: '-DENABLE_TIMER=On'
+    EXTRA_CMAKE_ARGS: ''
 
 
 
@@ -60,8 +60,8 @@
 
 .hip_rocm_mpich:
   variables:
-    SPEC: 'rocmcc@$ROCMCC_VERSION+rocm amdgpu_target=gfx942 ^hip@$ROCMCC_VERSION'
+    SPEC: 'rocmcc@$ROCMCC_VERSION+rocm amdgpu_target=gfx942'
 
 .hip_rocm_~mpi:
   variables:
-    SPEC: 'rocmcc@$ROCMCC_VERSION~mpi+rocm amdgpu_target=gfx942 ^hip@$ROCMCC_VERSION'
+    SPEC: 'rocmcc@$ROCMCC_VERSION~mpi+rocm amdgpu_target=gfx942'

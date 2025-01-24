@@ -28,8 +28,7 @@ if (NOT ENABLE_CXXONLY)
       "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
       "${CMAKE_CURRENT_BINARY_DIR}/atstest.sh"
       "${CMAKE_CURRENT_SOURCE_DIR}/spheral_ats.py"
-      "${CMAKE_CURRENT_SOURCE_DIR}/gitlab/performance_analysis.py"
-      "${CMAKE_CURRENT_SOURCE_DIR}/spheralutils.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/devtools/performance_analysis.py"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/scripts"
   )
 
