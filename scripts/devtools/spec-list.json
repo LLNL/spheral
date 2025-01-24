@@ -6,6 +6,11 @@
         "clang@14.0.6"
       ]
     ,
+    "toss_4_x86_64_ib_cray": [
+        "rocmcc@6.2.0",
+        "rocmcc@6.2.0+rocm amdgpu_target=gfx942 ^hip@6.2.0"
+      ]
+    ,
     "blueos_3_ppc64le_ib_p9": [
         "gcc@10.2.1",
         "gcc@10.2.1+cuda~mpi cuda_arch=70",
