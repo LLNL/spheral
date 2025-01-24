@@ -8,9 +8,7 @@
      ,
     "toss_4_x86_64_ib_cray": [
         "rocmcc@6.2.0",
-        "rocmcc@6.2.0~mpi",
-        "rocmcc@6.2.0+rocm amdgpu_target=gfx942",
-        "rocmcc@6.2.0+rocm amdgpu_target=gfx942~mpi"
+        "rocmcc@6.2.0+rocm amdgpu_target=gfx942"
       ]
   }
 }
