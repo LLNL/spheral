@@ -110,7 +110,7 @@ cray_hip_rocm_mpich_test:
   needs: [cray_hip_rocm_mpich_build]
 
 cray_hip_rocm_mpich_perf:
-  extends: [.cray_shell1, .hip_rocm_mpich, .run_perf, .merge_pr_rule]
+  extends: [.cray_shell2, .hip_rocm_mpich, .run_perf, .merge_pr_rule]
   needs: [cray_hip_rocm_mpich_build]
 
 cray_hip_rocm_mpich_cleanup:
