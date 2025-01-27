@@ -73,6 +73,11 @@ packages:
     buildable: false
 
 # ------ SYSTEM LIBS -------
+  python:
+    externals:
+    - spec: python@3.8.2
+      prefix: /usr/apps/python-3.8.2
+    buildable: false
   ncurses:
     externals:
     - spec: ncurses@5.9

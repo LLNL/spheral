@@ -70,7 +70,6 @@ def _ConstantStrengthFactory(ndim):
                 dargs = {expectedArgs[i] : args[i] for i in range(len(args))}          # Mandatory args
                 dargs.update(optionalKwArgs)
                 dargs.update(kwargs)
-                print(dargs)
                 ARGS = types.SimpleNamespace(**dargs)
 
                 # Check that the caller specified a valid material label.

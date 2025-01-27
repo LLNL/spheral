@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-
 import os, time, sys, subprocess, argparse
 import ats.util.generic_utils as ats_utils
 import SpheralConfigs
-import mpi
 
 # This is a wrapper for running Spheral through ATS
 
@@ -85,7 +82,7 @@ def install_ats_args():
     install_args = []
     if (SpheralConfigs.build_type() == "Debug"):
         install_args.append("--level 99")
-    if (mpi.is_fake_mpi()):
+    if (not SpheralConfigs.spheral_enable_mpi()):
         install_args.append("--filter='np<2'")
     comp_configs = SpheralConfigs.component_configs()
     test_comps = ["FSISPH", "GSPH", "SVPH"]
@@ -99,11 +96,12 @@ def install_ats_args():
 #---------------------------------------------------------------------------
 def main():
     test_log_name = "test-logs"
-    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"]
-    blueos_machine_names = ["rzansel", "lassen"]
-    ci_launch_flags = {"ruby": "--res=ci", "lassen": "-q pci"}
+    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"] # Machines using Slurm scheduler
+    toss_cray_machine_names = ["rzadams", "rzvernal", "tioga"] # Machines using Flux scheduler
+    np_max_dict = {"rzadams": 84, "rzvernal": 64, "tioga": 64} # Maximum number of processors for ATS to use per node
+    ci_launch_flags = {"ruby": "--res=ci", "rzadams": "-q pdebug"}
     temp_uname = os.uname()
-    hostname = temp_uname[1]
+    hostname = temp_uname[1].rstrip("0123456789")
     sys_type = os.getenv("SYS_TYPE")
     # Use ATS to for some machine specific functions
     if "MACHINE_TYPE" not in os.environ:
@@ -145,27 +143,26 @@ def main():
     numNodes = options.numNodes
     timeLimit = options.timeLimit
     launch_cmd = ""
-    blueOS = False
     # These are environment variables to suggest we are in an allocation already
     # NOTE: CI runs should already be in an allocation so the launch cmd is
     # unused in those cases
     inAllocVars = []
 
     if hostname:
-        mac_args = []
+        mac_args = [] # Machine specific arguments to give to ATS
         if any(x in hostname for x in toss_machine_names):
             numNodes = numNodes if numNodes else 2
-            mac_args = [f"--numNodes {numNodes}"]
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
-        elif any(x in hostname for x in blueos_machine_names):
-            blueOS = True
+            mac_args.append(f"--numNodes {numNodes}")
+        elif any(x in hostname for x in toss_cray_machine_names):
+            os.environ['MACHINE_TYPE'] = 'flux00'
             numNodes = numNodes if numNodes else 2
-            mac_args = ["--smpi_off", f"--numNodes {numNodes}"]
-            inAllocVars = ["LSB_MAX_NUM_PROCESSORS"]
             timeLimit = timeLimit if timeLimit else 120
-            launch_cmd = f"bsub -nnodes {numNodes} -Is -XF -core_isolation 2 -alloc_flags atsdisable -W {timeLimit} "
+            inAllocVars = ["FLUX_JOB_ID", "FLUX_CONNECTOR_PATH", "FLUX_TERMINUS_SESSION"]
+            launch_cmd = f"flux alloc -xN {numNodes} -t {timeLimit} "
+            mac_args.append(f"--npMax {np_max_dict[hostname]}")
         if (options.ciRun):
             for i, j in ci_launch_flags.items():
                 if (i in hostname):
@@ -199,15 +196,7 @@ def main():
     if inAlloc:
         run_command = cmd
     else:
-        if blueOS:
-            # Launches using Bsub requires quoting the whole command
-            # This causes issues for the glue='benchmark_dir... line
-            # unless we escape the characters
-            run_command = f'{launch_cmd} "{cmd}"'
-            run_command = run_command.replace('="', '=\\"')
-            run_command = run_command.replace('"\'', '\\"\'')
-        else:
-            run_command = f"{launch_cmd}{cmd}"
+        run_command = f"{launch_cmd} {cmd}"
     print(f"\nRunning: {run_command}\n")
     if (options.ciRun):
         run_and_report(run_command, log_name, 0)
