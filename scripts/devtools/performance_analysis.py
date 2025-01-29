@@ -7,17 +7,9 @@ Use on LC systems with the following steps:
 
      $> ./spheral-ats --numNodes 2 --logs test_dir_name tests/performance.py
 
-  2. Load the virtual environment for Thicket for a bash terminal:
+  2. Run this script and point to the directory created by ATS in step 1
 
-     $> source /usr/gapps/Spheral/venv_timer/bin/activate
-
-     or for a tcsh terminal
-
-     $> source /usr/gapps/Spheral/venv_timer/bin/activate.csh
-
-  3. Run this script and point to the directory created by ATS in step 1
-
-     $> python3 performance_analysis.py --perf-dir test_dir_name
+     $> ./spheral performance_analysis.py --perf-dir test_dir_name
 """
 
 import os, sys, shutil, glob

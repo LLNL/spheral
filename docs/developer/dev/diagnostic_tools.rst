@@ -150,21 +150,11 @@ The general procedure to comparing performance regression tests is:
       ./spheral-ats --loc test_dir_name --numNodes 2 tests/performance.py
 
    There is also a ``--threads`` option to specify a given number of threads per rank.
-#. Once the tests are finished running, activate the Thicket virtual environment installed for Spheral developers
-   ::
 
-      source /usr/gapps/Spheral/venv_timer/bin/activate
-
-   if using a bash terminal and
-   ::
-
-      source /usr/gapps/Spheral/venv_timer/bin/activate.csh
-
-   if using a csh/tcsh terminal.
 #. Utilize Thicket to compare the newly run times with reference times
    ::
 
-      python3 ./scripts/performance_analysis.py --perf-dir test_dir_name --ref /directory/of/reference/caliper/files/
+      ./spheral ./scripts/performance_analysis.py --perf-dir test_dir_name --ref /directory/of/reference/caliper/files/
 
    The input to ``--ref`` can be also be an ATS directory created from running ``performance.py`` or just a directory of Caliper files.
    Removing the ``--ref`` input will default to comparing to benchmark timings in ``/usr/WS2/sduser/Spheral/benchmark``.
