@@ -119,7 +119,7 @@ def main():
                                      Must provide an ATS file (either python or .ats).
                                      Any unrecognized arguments are passed as inputs to the ATS file.
                                      """)
-    parser.add_argument("--numNodes", type=int,
+    parser.add_argument("--numNodes", "-N", type=int,
                         default=None,
                         help="Number of nodes to allocate.")
     parser.add_argument("--timeLimit", type=int,
