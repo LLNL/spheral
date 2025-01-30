@@ -2,16 +2,26 @@
 # CI Job Scripts
 # ------------------------------------------------------------------------------
 
-
-.tpls:
-  stage: tpls
+.init:
+  stage: init
   script:
     - echo $USER
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
     - echo $CI_BUILD_DIR &> ci-dir.txt && echo $CI_JOB_NAME &> job-name.txt
     - echo $CI_BUILD_DIR && echo $CI_PROJECT_DIR
     - mkdir -p $CI_BUILD_DIR && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR
-    - cd $CI_BUILD_DIR
+  artifacts:
+    paths:
+      - ci-dir.txt
+      - job-name.txt
+
+.tpls:
+  stage: tpls
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
+    - cd $CI_BUILD_DIR && cat job-name.txt
     - echo $SPEC
 
     - ./$SCRIPT_DIR/gitlab/build_and_install.py --spec="$SPEC" --tpls-only
@@ -94,7 +104,7 @@
 
     - ml load mpifileutils
     - cd $SPHERAL_BUILDS_DIR
-    - drm $CI_BUILD_DIR/..
+    - $RUN_CMD -n 20 drm $CI_BUILD_DIR/..
 
 # ------------------------------------------------------------------------------
 # Shared TPL scripts.
@@ -135,10 +145,10 @@
     - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
     - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
 
-    - env SPHERAL_REV_STR=$SPHERAL_REV_STR INSTALL_DIR=$INSTALL_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME SCRIPT_DIR=$SCRIPT_DIR
+    - env SPHERAL_REV_STR=$SPHERAL_REV_STR STAGE_DIR=$STAGE_DIR SPEC=$SPEC SPACK_PKG_NAME=$SPACK_PKG_NAME SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/generate-buildcache.sh
 
-    - echo $INSTALL_DIR &> install-dir.txt
+    - echo $STAGE_DIR &> install-dir.txt
     - echo $DEV_PKG_NAME &> dev-pkg-name.txt
 
   artifacts:
@@ -201,7 +211,7 @@
     - echo $DIR_LIST
 
     - ml load mpifileutils
-    - if [[ $DIR_LIST ]]; then drm $DIR_LIST; else echo "No directories to remove at this time."; fi
+    - if [[ $DIR_LIST ]]; then $RUN_CMD -n 20 drm $DIR_LIST; else echo "No directories to remove at this time."; fi
   when: always
 
 .merge_pr_rule:

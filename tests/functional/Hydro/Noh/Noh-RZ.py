@@ -18,8 +18,8 @@
 #
 # ASPHClassic
 #
-#ATS:acsph2 = test(          SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (ASPH parallel)")
-#ATS:acsph3 = testif(acsph2, SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (ASPH parallel) RESTART CHECK")
+#ATS:acsph2 = test(          SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories True  --checkError True  --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20", np=8, label="Planar Noh RZ problem (ASPH Classic parallel)")
+#ATS:acsph3 = testif(acsph2, SELF, "--hydroType SPH --goalTime 0.3 --asph Classic --graphics None --clearDirectories False --checkError False --dataDirBase 'dumps-rz-planar-restartcheck' --restartStep 20 --restoreCycle 20 --steps 20 --checkRestart True", np=8, label="Planar RZ Noh problem -- (ASPH Classic parallel) RESTART CHECK")
 #
 # CRKSPH
 #
@@ -197,21 +197,21 @@ LnormRef = {"SPH": {"Mass density" : {"L1"   : 0.927051,
                      "h           " : {"L1"   : 0.0100794,  
                                        "L2"   : 0.000266552, 
                                        "Linf" : 0.0300606}},
-            "ACSPH": {"Mass density" : {"L1"   : 0.924199,   
-                                        "L2"   : 0.0258834,  
-                                        "Linf" : 3.15031},    
-                      "Pressure    " : {"L1"   : 0.409574,   
-                                        "L2"   : 0.0115676,  
-                                        "Linf" : 1.44082},   
-                      "Velocity    " : {"L1"   : 0.319599,   
-                                        "L2"   : 0.00889665, 
-                                        "Linf" : 1.00458},   
-                      "Spec Therm E" : {"L1"   : 0.163743,   
-                                        "L2"   : 0.00448758, 
-                                        "Linf" : 0.843591},  
-                      "h           " : {"L1"   : 0.0104821,  
-                                        "L2"   : 0.000275637,
-                                        "Linf" : 0.0313515}},
+            "ACSPH": {"Mass density" : {"L1"   : 0.910927,   
+                                        "L2"   : 0.0257385,  
+                                        "Linf" : 3.06255},    
+                      "Pressure    " : {"L1"   : 0.40629,    
+                                        "L2"   : 0.0115813,  
+                                        "Linf" : 1.59406},   
+                      "Velocity    " : {"L1"   : 0.31841,    
+                                        "L2"   : 0.00894237, 
+                                        "Linf" : 1.01271},   
+                      "Spec Therm E" : {"L1"   : 0.162679,   
+                                        "L2"   : 0.00452432, 
+                                        "Linf" : 0.899942},  
+                      "h           " : {"L1"   : 0.00941208, 
+                                        "L2"   : 0.000237763,
+                                        "Linf" : 0.0268561}},
             "CRKSPH": {"Mass density" : {"L1"   : 0.918847,    
                                          "L2"   : 0.0251823,   
                                          "Linf" : 3.29814},     

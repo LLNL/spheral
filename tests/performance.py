@@ -5,7 +5,7 @@
 
 import sys, shutil, os, time, stat
 import numpy as np
-import SpheralConfigs, mpi
+import SpheralConfigs
 from SpheralUtilities import TimerMgr
 from SpheralTestUtilities import num_3d_cyl_nodes
 from ats import configuration
@@ -37,16 +37,16 @@ if "cirun" in opts and opts["cirun"]:
 #---------------------------------------------------------------------------
 # This should be {$SYS_TYPE}_{compiler name}_{compiler version}_{mpi or cuda info}
 spheral_install_config = SpheralConfigs.config()
-
+mpi_enabled = SpheralConfigs.spheral_enable_mpi()
 # Retrieve the host name and remove any numbers
 temp_uname = os.uname()
-hostname = "".join([i for i in temp_uname[1] if not i.isdigit()])
+hostname = temp_uname[1].rstrip("0123456789")
 mac_procs = {"rzhound": 112, "rzwhippet": 112, "ruby": 56,
              "rzadams": 84, "rzvernal": 64, "tioga": 64,
              "rzansel": 40, "lassen": 40, "rzgenie": 36}
 # Find out how many nodes our allocation has grabbed
 num_nodes = max(1, configuration.machine.numNodes)
-if (mpi.is_fake_mpi()):
+if (not mpi_enabled):
     if (num_nodes > 1):
         raise Exception("Should not use more than 1 node when MPI is off")
 
@@ -57,7 +57,7 @@ except:
     log("Machine name not recognized", echo=True)
     raise Exception
 # If MPI is turned off, thread the whole node
-if (mpi.is_fake_mpi()):
+if (not mpi_enabled):
     num_cores = int(total_num_cores)
 else:
     # Ideally, tests should be run with 2 nodes and each test will
@@ -119,7 +119,7 @@ def spheral_setup_test(test_file, test_name, inps, ncores, threads=1, **kwargs):
     threads: Number of threads per rank
     **kwargs: Any additional keyword arguments to pass to ATS tests routine
     '''
-    if (mpi.is_fake_mpi()):
+    if (not mpi_enabled):
         threads = ncores
         ncores = 1
     for i in range(test_runs):

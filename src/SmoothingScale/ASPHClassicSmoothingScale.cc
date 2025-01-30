@@ -88,6 +88,10 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     StateDerivatives<Dimension>& derivs) const {
   TIME_BEGIN("ASPHClassicSmoothingScaleDerivs");
 
+  const auto tiny = 1.0e-50;
+  const auto tolerance = 1.0e-5;
+  CONTRACT_VAR(tolerance);
+
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& nodeLists = connectivityMap.nodeLists();
   const auto  numNodeLists = nodeLists.size();
@@ -232,8 +236,8 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       // Get the state for node i.
       const auto& Hi = H(nodeListi, i);
       const auto& DvDxi = DvDx(nodeListi, i);
-      auto&       massZerothMomenti = massZerothMoment(nodeListi, i);
-      const auto& massSecondMomenti = massSecondMoment(nodeListi, i);
+      auto&       zerothMomenti = massZerothMoment(nodeListi, i);
+      const auto& secondMomenti = massSecondMoment(nodeListi, i);
       auto&       DHDti = DHDt(nodeListi, i);
       auto&       Hideali = Hideal(nodeListi, i);
 
@@ -241,41 +245,83 @@ evaluateDerivatives(const typename Dimension::Scalar time,
       DHDti = SmoothingScaleDetail::smoothingScaleDerivative(Hi, DvDxi);
 
       // Complete the moments of the node distribution for use in the ideal H calculation.
-      massZerothMomenti = Dimension::rootnu(max(0.0, massZerothMomenti));
+      zerothMomenti = Dimension::rootnu(max(0.0, zerothMomenti));
 
       // Determine the current effective number of nodes per smoothing scale.
-      const auto currentNodesPerSmoothingScale = (fuzzyEqual(massZerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
+      const auto currentNodesPerSmoothingScale = (fuzzyEqual(zerothMomenti, 0.0) ?  // Is this node isolated (no neighbors)?
                                                   0.5*nPerh :
-                                                  mWT.equivalentNodesPerSmoothingScale(massZerothMomenti));
+                                                  mWT.equivalentNodesPerSmoothingScale(zerothMomenti));
       CHECK2(currentNodesPerSmoothingScale > 0.0, "Bad estimate for nPerh effective from kernel: " << currentNodesPerSmoothingScale);
 
       // The (limited) ratio of the current to desired nodes per smoothing scale.
-      const Scalar s = min(4.0, max(0.25, currentNodesPerSmoothingScale/nPerh));
+      const Scalar s = min(4.0, max(0.25, nPerh/currentNodesPerSmoothingScale));
       CHECK(s > 0.0);
 
-      // Start with the sqrt of the second moment in eta space
-      Hideali = massSecondMomenti.sqrt();
-      auto eigenT = Hideali.eigenVectors();
+      // Determine a weighting factor for how confident we are in the second
+      // moment measurement, as a function of the effective number of nodes we're 
+      // sampling.
+      const auto psiweight = max(0.0, min(1.0, 2.0/s - 1.0));
+      CHECK(psiweight >= 0.0 and psiweight <= 1.0);
 
-      // Ensure we don't have any degeneracies (zero eigen values)
-      const auto Tmax = std::max(1.0, eigenT.eigenValues.maxElement());
-      auto fscale = 1.0;
-      for (auto k = 0u; k < Dimension::nDim; ++k) {
-        eigenT.eigenValues[k] = max(eigenT.eigenValues[k], 0.01*Tmax);
-        fscale *= eigenT.eigenValues[k];
+      // Do we have enough information to try for a shape?
+      if (psiweight > 0.0 and secondMomenti.Determinant() > 0.0 and secondMomenti.eigenValues().minElement() > 0.0) {
+
+        auto psi = secondMomenti/secondMomenti.maxAbsElement();
+        if (psi.Determinant() > 1.0e-10) {
+          psi /= Dimension::rootnu(abs(psi.Determinant()) + tiny);
+        } else {
+          psi = SymTensor::one;
+        }
+        CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
+
+        // Enforce limits on psi, which helps some with stability.
+        auto psieigen = psi.eigenVectors();
+        for (auto i = 0u; i < Dimension::nDim; ++i) psieigen.eigenValues(i) = 1.0/sqrt(psieigen.eigenValues(i));
+        const auto psimin = (psieigen.eigenValues.maxElement()) * hminratio;
+        psi = constructSymTensorWithMaxDiagonal(psieigen.eigenValues, psimin);
+        psi.rotationalTransform(psieigen.eigenVectors);
+        CHECK(psi.Determinant() > 0.0);
+        psi /= Dimension::rootnu(psi.Determinant() + tiny);
+        CHECK(fuzzyEqual(psi.Determinant(), 1.0, tolerance));
+
+        // Start with the sqrt of the second moment in eta space
+        // Hideali = secondMomenti.sqrt();
+        Hideali = psi.sqrt().Inverse();
+        // auto eigenT = Hideali.eigenVectors();
+
+        // // Ensure we don't have any degeneracies (zero eigen values)
+        // const auto Tmax = std::max(1.0, eigenT.eigenValues.maxElement());
+        // auto fscale = 1.0;
+        // for (auto k = 0u; k < Dimension::nDim; ++k) {
+        //   eigenT.eigenValues[k] = max(eigenT.eigenValues[k], 0.01*Tmax);
+        //   fscale *= eigenT.eigenValues[k];
+        // }
+        // CHECK(fscale > 0.0);
+
+        // // Compute the scaling to get us closer to the target n per h, and build the transformation tensor
+        // fscale = 1.0/Dimension::rootnu(fscale);    // inverse length, same as H!
+        // eigenT.eigenValues *= fscale;
+        // Hideali = constructSymTensorWithDiagonal(eigenT.eigenValues);
+        // Hideali.rotationalTransform(eigenT.eigenVectors);
+        // CHECK(fuzzyEqual(Hideai.Determinant(), 1.0, tolerance));
+
+      } else {
+        Hideali = SymTensor::one;
       }
-      CHECK(fscale > 0.0);
+      CHECK(fuzzyEqual(Hideali.Determinant(), 1.0, tolerance));
 
-      // Compute the scaling to get us closer to the target n per h, and build the transformation tensor
-      fscale = 1.0/Dimension::rootnu(fscale);    // inverse length, same as H!
-      eigenT.eigenValues *= fscale;
-      Hideali = constructSymTensorWithDiagonal(eigenT.eigenValues);
-      Hideali.rotationalTransform(eigenT.eigenVectors);
-      CHECK(fuzzyEqual(Hideali.Determinant(), 1.0, 1.0e-8));
+      // Scale the Hideali unit shape to our final size
+      Scalar a;
+      if (s < 1.0) {
+        a = 0.4*(1.0 + s*s);
+      } else {
+        a = 0.4*(1.0 + 1.0/(s*s*s + tiny));
+      }
+      CHECK(1.0 - a + a*s > 0.0);
 
-      // Initial vote for Hideal
-      Hideali *= s*Dimension::rootnu(Hi.Determinant());
-      // Hideali = (T*Hi).Symmetric();
+      // Initial vote for Hideal before limiting
+      CHECK(Hi.Determinant() > 0.0);
+      Hideali *= Dimension::rootnu(Hi.Determinant())/(1.0 - a + a*s);
 
       // Apply limiting
       const auto hev = Hideali.eigenVectors();
