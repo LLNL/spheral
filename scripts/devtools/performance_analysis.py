@@ -7,17 +7,9 @@ Use on LC systems with the following steps:
 
      $> ./spheral-ats --numNodes 2 --logs test_dir_name tests/performance.py
 
-  2. Load the virtual environment for Thicket for a bash terminal:
+  2. Run this script and point to the directory created by ATS in step 1
 
-     $> source /usr/gapps/Spheral/venv_timer/bin/activate
-
-     or for a tcsh terminal
-
-     $> source /usr/gapps/Spheral/venv_timer/bin/activate.csh
-
-  3. Run this script and point to the directory created by ATS in step 1
-
-     $> python3 performance_analysis.py --perf-dir test_dir_name
+     $> ./spheral performance_analysis.py --perf-dir test_dir_name
 """
 
 import os, sys, shutil, glob
@@ -271,11 +263,11 @@ for test_key, ctest in cur_test_data.items():
     if (main_diff > ref_thresh):
         cur_status = "FAILED"
         if args.display:
-            display(cprof.statsframe.tree(metric1, metric1+"_mean"))
+            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
     elif (main_diff < -ref_thresh):
         cur_status = "PASSED"
         if args.display:
-            display(cprof.statsframe.tree(metric1, metric1+"_mean"))
+            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
     else:
         cur_status = "PASSED"
     test_status.update({test_name: (cur_status, cur_main, ref_main, ref_thresh)})

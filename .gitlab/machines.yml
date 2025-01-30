@@ -1,6 +1,26 @@
 # ------------------------------------------------------------------------------
 # MACHINE TEMPLATES
 
+.on_tioga:
+  tags:
+    - tioga
+    - flux
+  variables:
+    SCHEDULER_ACTION: alloc
+    SCHEDULER_PARAMETERS: "--exclusive -N 2 -t 120"
+    NPROC: 128
+    HOSTNAME: 'tioga'
+  timeout: 120 minutes
+  extends: [.on_toss_4_x86_cray]
+
+.tioga_shell:
+  tags:
+    - tioga
+    - shell
+  variables:
+    ENVIRONMENT: "INTERACTIVE"
+  extends: [.on_toss_4_x86_cray]
+
 .on_ruby:
   tags:
     - ruby
@@ -13,27 +33,35 @@
   timeout: 120 minutes
   extends: [.on_toss_4_x86]
 
-.on_lassen:
+.ruby_shell:
   tags:
-    - lassen
-    - batch
+    - ruby
+    - shell
   variables:
-    SCHEDULER_PARAMETERS: "-nnodes 1 -W 150 -q pci -alloc_flags atsdisable"
-    LSB_JOB_STARTER: "ENVIRONMENT=BATCH /usr/tcetmp/bin/bsub_job_starter %USRCMD"
-    NPROC: 40
-    ENVIRONMENT: "BATCH"
-    HOSTNAME: 'lassen'
-    LC_MODULES: "cuda/11.1.0"
-  timeout: 150 minutes
-  extends: [.on_blueos_3_ppc64]
+    ENVIRONMENT: "INTERACTIVE"
+  extends: [.on_toss_4_x86]
 
 # ------------------------------------------------------------------------------
 
 .toss_resource_general:
   extends: [.on_ruby]
 
-.blueos_resource_general:
-  extends: [.on_lassen]
+.cray_resource_general:
+  extends: [.on_tioga]
+
+.toss_shell1:
+  extends: [.ruby_shell]
+
+# Use for performance tests
+.toss_shell2:
+  resource_group: toss2
+  extends: [.ruby_shell]
+
+.cray_shell1:
+  extends: [.tioga_shell]
+
+.cray_shell2:
+  extends: [.tioga_shell]
 
 # ------------------------------------------------------------------------------
 #
@@ -45,11 +73,14 @@
   resource_group: toss2
   extends: [.toss_resource_general]
 
-.blueos_resource1:
-  #resource_group: blueos1
-  extends: [.blueos_resource_general]
+.toss_resource3:
+  resource_group: toss3
+  extends: [.toss_resource_general]
 
-.blueos_resource2:
-  #resource_group: blueos2
-  extends: [.blueos_resource_general]
+.cray_resource1:
+  #resource_group: cray1
+  extends: [.cray_resource_general]
 
+.cray_resource2:
+  #resource_group: cray2
+  extends: [.cray_resource_general]

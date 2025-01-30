@@ -17,6 +17,7 @@ variables:
     - SPHERAL_REV_STR="$SPHERAL_REV"
 
 stages:
+  - init
   - tpls
   - build_and_install
   - run_ats

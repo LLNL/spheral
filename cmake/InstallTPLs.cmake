@@ -11,6 +11,7 @@ set(TPL_SPHERAL_CMAKE_DIR ${SPHERAL_ROOT_DIR}/cmake/tpl)
 # Initialize TPL options
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleTPL.cmake)
 include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleExt.cmake)
+include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralPRT.cmake)
 
 #-----------------------------------------------------------------------------------
 # Submodules
@@ -18,8 +19,7 @@ include(${SPHERAL_ROOT_DIR}/cmake/spheral/SpheralHandleExt.cmake)
 
 if (NOT ENABLE_CXXONLY)
   # Find the appropriate Python
-  find_package(Python3 COMPONENTS Interpreter Development)
-  set(PYTHON_EXE ${Python3_EXECUTABLE})
+  find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
   set(SPHERAL_SITE_PACKAGES_PATH "lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   list(APPEND SPHERAL_CXX_DEPENDS Python3::Python)
 
@@ -30,6 +30,7 @@ if (NOT ENABLE_CXXONLY)
   # Set the pybind11 path
   if (NOT PYBIND11_ROOT_DIR)
     set(PYBIND11_ROOT_DIR "${PYB11GENERATOR_ROOT_DIR}/extern/pybind11" CACHE PATH "")
+    set(PYBIND11_NOPYTHON TRUE)
   endif()
   include(${PYB11GENERATOR_ROOT_DIR}/cmake/PYB11Generator.cmake)
   list(APPEND SPHERAL_CXX_DEPENDS pybind11_headers)
@@ -37,6 +38,18 @@ if (NOT ENABLE_CXXONLY)
     EXPORT spheral_cxx-targets
     DESTINATION lib/cmake)
   set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
+
+  # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
+  set(BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/build-requirements.txt)
+  if(ENABLE_DOCS)
+    list(APPEND BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/docs-requirements.txt)
+  endif()
+
+  Spheral_Python_Env(python_build_env 
+    REQUIREMENTS ${BUILD_REQ_LIST}
+    PREFIX ${CMAKE_BINARY_DIR}
+  )
+
 endif()
 
 # This is currently unfilled in spheral
@@ -117,11 +130,13 @@ message("-----------------------------------------------------------------------
 find_package(RAJA REQUIRED NO_DEFAULT_PATH PATHS ${raja_DIR})
 if (RAJA_FOUND) 
   message("Found RAJA External Package.")
+  blt_convert_to_system_includes(TARGET RAJA)
 endif()
 message("-----------------------------------------------------------------------------")
 find_package(umpire REQUIRED NO_DEFAULT_PATH PATHS ${umpire_DIR})
 if (umpire_FOUND) 
   message("Found umpire External Package.")
+  blt_convert_to_system_includes(TARGET umpire)
 endif()
 message("-----------------------------------------------------------------------------")
 
