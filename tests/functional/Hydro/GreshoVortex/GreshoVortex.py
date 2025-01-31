@@ -130,7 +130,7 @@ commandLine(
     dataDir = "dumps-greshovortex-xy",
     graphics = True,
     smooth = None,
-    outputFile = "None",
+    outputFile = None,
     )
 
 assert not(boolReduceViscosity and boolCullenViscosity)
@@ -547,7 +547,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(baseDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes)

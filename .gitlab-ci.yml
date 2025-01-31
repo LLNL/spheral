@@ -6,6 +6,7 @@ variables:
 
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
+  PERF_ATS_FILE: "tests/performance.py"
   SPHERAL_MODULE: "Spheral"
   SPACK_NAME: spheral
   SPACK_PKG_NAME: spheral
@@ -16,15 +17,20 @@ variables:
     - SPHERAL_REV_STR="$SPHERAL_REV"
 
 stages:
+  - init
+  - tpls
   - build_and_install
   - run_ats
   - update_tpls
+  - run_perf
   - generate_buildcache
   - install_production
   - update_permissions
   - cleanup
 
 include:
+  - project: lc-templates/id_tokens
+    file: id_tokens.yml
   - local: .gitlab/os.yml
   - local: .gitlab/machines.yml
   - local: .gitlab/scripts.yml

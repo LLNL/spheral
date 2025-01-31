@@ -49,10 +49,10 @@ public:
              const std::vector<Physics<Dimension>*>& physicsPackages);
 
   // Destructor.
-  virtual ~Integrator();
+  virtual ~Integrator() = default;
 
   // Assignment.
-  Integrator& operator=(const Integrator& rhs);
+  Integrator& operator=(const Integrator& rhs) = default;
 
   // All Integrator classes must define the dt and step methods.
   virtual bool step(Scalar maxTime,
@@ -95,7 +95,7 @@ public:
                            StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call postStateUpdate
-  void postStateUpdate(const Scalar t,
+  bool postStateUpdate(const Scalar t,
                        const Scalar dt,
                        const DataBase<Dimension>& dataBase,
                        State<Dimension>& state,

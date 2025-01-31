@@ -54,6 +54,9 @@ namespace Spheral {
 
 namespace { // anonymous
 
+using InterpolatorType = CubicHermiteInterpolator;
+using BiInterpolatorType = BiCubicInterpolator;
+
 //------------------------------------------------------------------------------
 // A functor to compute eps(rho, T) for use building the interpolation table
 //------------------------------------------------------------------------------
@@ -85,9 +88,9 @@ class Tfunc {
 public:
   Tfunc(double Tmin, 
         double Tmax,
-        const CubicHermiteInterpolator& epsMinInterp,
-        const CubicHermiteInterpolator& epsMaxInterp,
-        const BiCubicInterpolator& epsInterp,
+        const InterpolatorType& epsMinInterp,
+        const InterpolatorType& epsMaxInterp,
+        const BiInterpolatorType& epsInterp,
         const epsFunc& Feps):
     mTmin(Tmin),
     mTmax(Tmax),
@@ -97,35 +100,35 @@ public:
 
   double operator()(const double rho, const double eps) const {
     if (eps < mEpsMinInterp(rho)) {
+      // cerr << " **> BAIL low: " << eps << " " << mEpsMinInterp(rho) << " -> " << mTmin << endl;
       return mTmin;
     } else if (eps > mEpsMaxInterp(rho)) {
+      // cerr << " **> BAIL high: " << eps << " " << mEpsMaxInterp(rho) << " -> " << mTmax << endl;
       return mTmax;
     } else {
       const auto FT = Trho_func(rho, eps, mEpsInterp);
-      const auto FTmin = FT(mTmin), FTmax = FT(mTmax);
-      if (FTmin*FTmax > 0.0) {
-        return abs(FTmin) < abs(FTmax) ? mTmin : mTmax;
-      }
-      // cerr << " **> (" << rho << " " << eps << ") [" << mEpsMinInterp(rho) << " " << mEpsMaxInterp(rho) << "] " << FT(mTmin) << " " << FT(mTmax) << endl;
-      return bisectRoot(Trho_func(rho, eps, mEpsInterp),
-                        mTmin, mTmax,
-                        1.0e-15, 200u);
+      const double FTmin = FT(mTmin), FTmax = FT(mTmax);
+      const double result = (FTmin*FTmax > 0.0 ?
+                             (abs(FTmin) < abs(FTmax) ? mTmin : mTmax) :
+                             bisectRoot(FT, mTmin, mTmax, 1.0e-10, 1.0e-10, 200u));
+      // cerr << " **> (" << rho << " " << eps << ") [" << mEpsMinInterp(rho) << " " << mEpsMaxInterp(rho) << "] " << FT(mTmin) << " " << FT(mTmax) << " -> " << result << endl;
+      return result;
     }
   }
 
 private:
   double mTmin, mTmax;
-  const CubicHermiteInterpolator& mEpsMinInterp, mEpsMaxInterp;
-  const BiCubicInterpolator& mEpsInterp;
+  const InterpolatorType& mEpsMinInterp, mEpsMaxInterp;
+  const BiInterpolatorType& mEpsInterp;
 
   // We need to make a single argument functor for eps(T) given a fixed rho
   class Trho_func {
     double mrho, meps;
-    const BiCubicInterpolator& mEpsInterp;
+    const BiInterpolatorType& mEpsInterp;
   public:
     Trho_func(const double rho,
               const double eps,
-              const BiCubicInterpolator& epsInterp):
+              const BiInterpolatorType& epsInterp):
       mrho(rho),
       meps(eps),
       mEpsInterp(epsInterp) {}
@@ -140,9 +143,9 @@ class Textrapolator {
 public:
   Textrapolator(const double Tmin,
                 const double Tmax,
-                const CubicHermiteInterpolator& epsMinInterp,
-                const CubicHermiteInterpolator& epsMaxInterp,
-                const BiCubicInterpolator& Tinterp):
+                const InterpolatorType& epsMinInterp,
+                const InterpolatorType& epsMaxInterp,
+                const BiInterpolatorType& Tinterp):
     mTmin(Tmin),
     mTmax(Tmax),
     mEpsMinInterp(epsMinInterp),
@@ -171,8 +174,8 @@ public:
 
 private:
   double mTmin, mTmax;
-  const CubicHermiteInterpolator& mEpsMinInterp, mEpsMaxInterp;
-  const BiCubicInterpolator& mTinterp;
+  const InterpolatorType& mEpsMinInterp, mEpsMaxInterp;
+  const BiInterpolatorType& mTinterp;
 };
 
 //------------------------------------------------------------------------------
@@ -401,17 +404,17 @@ ANEOS(const int materialNumber,
   mTmax(Tmax),
   mEpsMin(std::numeric_limits<double>::max()),
   mEpsMax(std::numeric_limits<double>::min()),
-  mEpsMinInterp(std::make_shared<CubicHermiteInterpolator>()),
-  mEpsMaxInterp(std::make_shared<CubicHermiteInterpolator>()),
-  mEpsInterp(std::make_shared<BiCubicInterpolator>()),
-  mTinterp(std::make_shared<BiCubicInterpolator>()),
-  mPinterp(std::make_shared<BiCubicInterpolator>()),
-  mCVinterp(std::make_shared<BiCubicInterpolator>()),
-  mCSinterp(std::make_shared<BiCubicInterpolator>()),
-  mKinterp(std::make_shared<BiCubicInterpolator>()),
-  mSinterp(std::make_shared<BiCubicInterpolator>()),
-  mDPDepsInterp(std::make_shared<BiCubicInterpolator>()),
-  mDPDRinterp(std::make_shared<BiCubicInterpolator>()),
+  mEpsMinInterp(std::make_shared<InterpolatorType>()),
+  mEpsMaxInterp(std::make_shared<InterpolatorType>()),
+  mEpsInterp(std::make_shared<BiInterpolatorType>()),
+  mTinterp(std::make_shared<BiInterpolatorType>()),
+  mPinterp(std::make_shared<BiInterpolatorType>()),
+  mCVinterp(std::make_shared<BiInterpolatorType>()),
+  mCSinterp(std::make_shared<BiInterpolatorType>()),
+  mKinterp(std::make_shared<BiInterpolatorType>()),
+  mSinterp(std::make_shared<BiInterpolatorType>()),
+  mDPDepsInterp(std::make_shared<BiInterpolatorType>()),
+  mDPDRinterp(std::make_shared<BiInterpolatorType>()),
   mANEOSunits(0.01,   // cm expressed as meters.
               0.001,  // g expressed in kg.
               1.0),   // sec in secs.
@@ -488,7 +491,7 @@ ANEOS(const int materialNumber,
 
   // Build the interpolation function for eps(rho, T)
   auto t0 = clock();
-  mEpsInterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mEpsInterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                      mTmin, mTmax,
                                                      mNumRhoVals, mNumTvals, Feps);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build epsInterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
@@ -496,7 +499,7 @@ ANEOS(const int materialNumber,
   // Now the hard inversion method for looking up T(rho, eps)
   t0 = clock();
   const auto Ftemp = Tfunc(mTmin, mTmax, *mEpsMinInterp, *mEpsMaxInterp, *mEpsInterp, Feps);
-  mTinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mTinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                    mEpsMin, mEpsMax,
                                                    mNumRhoVals, mNumTvals, Ftemp);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Tinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
@@ -505,49 +508,49 @@ ANEOS(const int materialNumber,
   t0 = clock();
   const auto Textra = Textrapolator(mTmin, mTmax, *mEpsMinInterp, *mEpsMaxInterp, *mTinterp);
   const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mPinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mPinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                    mEpsMin, mEpsMax,
                                                    mNumRhoVals, mNumTvals, Fpres);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Pinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcv = cVfunc(mMaterialNumber, mRhoConv, mTconv, mCVconv);
-  mCVinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mCVinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                     mTmin, mTmax,
                                                     mNumRhoVals, mNumTvals, Fcv);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CVinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fcs = csfunc(mMaterialNumber, mRhoConv, mTconv, mVelConv, Textra);
-  mCSinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mCSinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                     mEpsMin, mEpsMax,
                                                     mNumRhoVals, mNumTvals, Fcs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build CSinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto FK = Kfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mKinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mKinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                    mEpsMin, mEpsMax,
                                                    mNumRhoVals, mNumTvals, FK);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Kinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fs = sfunc(mMaterialNumber, mRhoConv, mTconv, mSconv, Textra);
-  mSinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mSinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                    mEpsMin, mEpsMax,
                                                    mNumRhoVals, mNumTvals, Fs);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build Sinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fdpdeps = dPdeps_func(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mDPDepsInterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mDPDepsInterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                         mEpsMin, mEpsMax,
                                                         mNumRhoVals, mNumTvals, Fdpdeps);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build DPDUinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
 
   t0 = clock();
   const auto Fdpdrho = dPdrho_func(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
-  mDPDRinterp = std::make_shared<BiCubicInterpolator>(mRhoMin, mRhoMax,
+  mDPDRinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                       mEpsMin, mEpsMax,
                                                       mNumRhoVals, mNumTvals, Fdpdrho);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build DPDRinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;

@@ -18,7 +18,6 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class SmoothingScaleBase;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
@@ -31,34 +30,38 @@ class GSPHHydroBase: public GenericRiemannHydro<Dimension> {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
-  typedef typename Dimension::ThirdRankTensor ThirdRankTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
+  using ThirdRankTensor = typename Dimension::ThirdRankTensor;
 
-  typedef typename GenericRiemannHydro<Dimension>::TimeStepType TimeStepType;
-  typedef typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator ConstBoundaryIterator;
+  using TimeStepType = typename GenericRiemannHydro<Dimension>::TimeStepType;
+  using ConstBoundaryIterator = typename GenericRiemannHydro<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
-  GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-               DataBase<Dimension>& dataBase,
-               RiemannSolverBase<Dimension>& riemannSolver,
-               const TableKernel<Dimension>& W,
-               const Scalar epsDiffusionCoeff,
-               const double cfl,
-               const bool useVelocityMagnitudeForDt,
-               const bool compatibleEnergyEvolution,
-               const bool evolveTotalEnergy,
-               const bool XSPH,
-               const bool correctVelocityGradient,
-               const GradientType gradType,
-               const MassDensityType densityUpdate,
-               const HEvolutionType HUpdate,
-               const double epsTensile,
-               const double nTensile,
-               const Vector& xmin,
-               const Vector& xmax);
+  GSPHHydroBase(DataBase<Dimension>& dataBase,
+                RiemannSolverBase<Dimension>& riemannSolver,
+                const TableKernel<Dimension>& W,
+                const Scalar epsDiffusionCoeff,
+                const double cfl,
+                const bool useVelocityMagnitudeForDt,
+                const bool compatibleEnergyEvolution,
+                const bool evolveTotalEnergy,
+                const bool XSPH,
+                const bool correctVelocityGradient,
+                const GradientType gradType,
+                const MassDensityType densityUpdate,
+                const double epsTensile,
+                const double nTensile,
+                const Vector& xmin,
+                const Vector& xmax);
+
+  
+  // No default constructor, copying, or assignment.
+  GSPHHydroBase() = delete;
+  GSPHHydroBase(const GSPHHydroBase&) = delete;
+  GSPHHydroBase& operator=(const GSPHHydroBase&) = delete;
 
   // Destructor.
   virtual ~GSPHHydroBase();
@@ -140,13 +143,7 @@ public:
   //****************************************************************************
   
 private:
-
   FieldList<Dimension, Scalar>    mDmassDensityDt;
-  
-  // No default constructor, copying, or assignment.
-  GSPHHydroBase();
-  GSPHHydroBase(const GSPHHydroBase&);
-  GSPHHydroBase& operator=(const GSPHHydroBase&);
 };
 
 }

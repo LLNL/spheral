@@ -9,7 +9,7 @@
 #include "Material/GammaLawGas.hh"
 #include "DataBase/DataBase.hh"
 #include "Utilities/packElement.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 
 namespace Spheral {
 
@@ -40,7 +40,7 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
   // Only proceed if there's work to do!
   int flagmax = *max_element(flags.begin(), flags.end());
-  if (allReduce(flagmax, MPI_MAX, Communicator::communicator()) != 2) return 0;
+  if (allReduce(flagmax, SPHERAL_OP_MAX) != 2) return 0;
 
   // Carve up the shapes range in parallel.
   // const size_t ndomain0 = nshapes/nprocs;
@@ -276,9 +276,9 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
       //         CHECK(bufitr == buffer.end());
       //       }
       //     }
-      //     maxoverlap = allReduce(maxoverlap, MPI_MAX, Communicator::communicator());
+      //     maxoverlap = allReduce(maxoverlap, SPHERAL_OP_MAX);
       // #endif
-      // double sumdisp = allReduce(std::accumulate(displacements.begin(), displacements.end(), 0.0, [](const double prior, const Vector& elemval) { return prior + elemval.magnitude(); }), MPI_SUM, Communicator::communicator());
+      // double sumdisp = allReduce(std::accumulate(displacements.begin(), displacements.end(), 0.0, [](const double prior, const Vector& elemval) { return prior + elemval.magnitude(); }), SPHERAL_OP_SUM);
       // if (rank == 0) {
       //   cout << "   Iteration " << iter 
       //        << ", maxoverlap " << maxoverlap 
@@ -291,7 +291,7 @@ unsigned compactFacetedVolumes(std::vector<typename Dimension::FacetedVolume>& s
 
     } // end of iteration
   }
-  iter = allReduce(iter, MPI_MAX, Communicator::communicator());
+  iter = allReduce(iter, SPHERAL_OP_MAX);
 
   // Any shapes we were unable to disentangle turn back to inactive, otherwise set the successful
   // survivors to flag=1.

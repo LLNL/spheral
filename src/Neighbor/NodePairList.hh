@@ -33,10 +33,16 @@ struct NodePairIdxType {
     REQUIRE(size_t(j_node) < MAX_NODE_INDEX);
     REQUIRE(size_t(i_list) < MAX_NODELIST_INDEX);
     REQUIRE(size_t(j_list) < MAX_NODELIST_INDEX);
-    return ((size_t(i_list) << (SIZE_T_BITS - 5)) +
-            (size_t(i_node) << (SIZE_T_BITS/2)) +
-            (size_t(j_list) << (SIZE_T_BITS/2 - 5)) +
-            size_t(j_node));
+    const auto flip = (i_list > j_list or
+                       (i_list == j_list and i_node > j_node));
+    const size_t i_l = flip ? j_list : i_list;
+    const size_t i_n = flip ? j_node : i_node;
+    const size_t j_l = flip ? i_list : j_list;
+    const size_t j_n = flip ? i_node : j_node;
+    return ((i_l << (SIZE_T_BITS - 5)) +
+            (i_n << (SIZE_T_BITS/2)) +
+            (j_l << (SIZE_T_BITS/2 - 5)) +
+            j_n);
   }
 
   // Comparisons

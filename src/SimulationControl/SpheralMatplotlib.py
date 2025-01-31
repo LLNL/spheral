@@ -1,4 +1,5 @@
 from matplotlib.pyplot import cm as pltcm
+from matplotlib import patches
 #from matplotlib.collections import PatchCollections
 import numpy as np
 import mpi
@@ -914,9 +915,9 @@ def plotpmomHistory(conserve):
 #-------------------------------------------------------------------------------
 # Plot a surface
 #-------------------------------------------------------------------------------
-def plotSurface(x,   # 1D numpy array with x-coordinates for edge of plot : shape nx
-                y,   # 1D numpy array with y-coordinates for edge of plot : shape ny
-                z,   # 2D numpy array with z values for surface : shape (nx, ny)
+def plotSurface(x,   # 2D numpy array with x-coordinates        : shape (nx,ny)
+                y,   # 2D numpy array with y-coordinates        : shape (nx,ny)
+                z,   # 2D numpy array with z values for surface : shape (nx,ny)
                 cmap = pltcm.coolwarm,   # Colormap
                 xlabel = None,
                 ylabel = None,
@@ -931,83 +932,143 @@ def plotSurface(x,   # 1D numpy array with x-coordinates for edge of plot : shap
     plt.title(title)
     return fig, ax, surf
 
-# #-------------------------------------------------------------------------------
-# # Plot a polygon.
-# #-------------------------------------------------------------------------------
-# def plotPolygon(polygon,
-#                 plotVertices = True,
-#                 plotFacets = True,
-#                 plotNormals = False,
-#                 plotCentroid = False,
-#                 plot = None,
-#                 persist = False,
-#                 plotLabels = True):
-#     import matplotlib.patches as patches
-#     mppoly = patches.Polygon(np.array([[v.x, v.y] for v in in polygon.vertices()]), True)
-#     mppatches = PatchCollection([mppoly])
+#-------------------------------------------------------------------------------
+# Plot a QuadraticInterpolator
+#-------------------------------------------------------------------------------
+def plotInterpolator(interp,
+                     n = None,
+                     plot = None,
+                     plotstyle = "r-",
+                     label = None,
+                     xlabel = None,
+                     ylabel = None,
+                     title = None):
+    x0, x1 = interp.xmin, interp.xmax
+    if n is None:
+        n = 2 * interp.size
+    if plot is None:
+        plot = newFigure()
+    xvals = np.linspace(x0, x1, n)
+    yvals = np.array([interp(x) for x in xvals])
+    plot.plot(xvals, yvals, plotstyle, label=label)
+    plot.set_xlabel(xlabel)
+    plot.set_ylabel(ylabel)
+    plot.set_title(title)
+    return plot
 
-#     px = []
-#     py = []
-#     for v in polygon.vertices():
-#         px.append(v.x)
-#         py.append(v.y)
-#     fx = []
-#     fy = []
-#     fdx = []
-#     fdy = []
-#     nx = []
-#     ny = []
-#     ndx = []
-#     ndy = []
-#     for f in polygon.facets():
-#         dr = f.point2 - f.point1
-#         hdr = dr/2.0
-#         fx.append(f.point1.x)
-#         fy.append(f.point1.y)
-#         fdx.append(dr.x)
-#         fdy.append(dr.y)
-#         nx.append(fx[-1] + hdr.x)
-#         ny.append(fy[-1] + hdr.y)
-#         ndx.append(f.normal.x)
-#         ndy.append(f.normal.y)
-#     if plot is None:
-#         plot = generateNewGnuPlot(persist)
-#     if plotLabels:
-#         vlabel, flabel, nlabel = "Vertices", "Facets", "Normals"
-#     else:
-#         vlabel, flabel, nlabel = None, None, None
-#     dataPoints = Gnuplot.Data(px, py,
-#                               with_ = "points pt 1 ps 2",
-#                               title = vlabel,
-#                               inline = True)
-#     dataFacets = Gnuplot.Data(fx, fy, fdx, fdy,
-#                               with_ = "vectors",
-#                               title = flabel,
-#                               inline = True)
-#     dataNormals = Gnuplot.Data(nx, ny, ndx, ndy,
-#                                with_ = "vectors",
-#                                title = nlabel,
-#                                inline = True)
-#     if plotVertices:
-#         plot.replot(dataPoints)
+#-------------------------------------------------------------------------------
+# Plot a table kernel
+#-------------------------------------------------------------------------------
+def plotTableKernel(WT, nPerh):
+    plots = [plotInterpolator(interp = x,
+                              xlabel = xlab,
+                              ylabel = ylab,
+                              title = ylab) for x, xlab, ylab in [(WT.Winterpolator,      r"$\eta$",   r"$W(\eta)$"),
+                                                                  (WT.gradWinterpolator,  r"$\eta$",   r"$\partial_\eta W(\eta)$"),
+                                                                  (WT.grad2Winterpolator, r"$\eta$",   r"$\partial^2_\eta W(\eta)$"),
+                                                                  (WT.nPerhInterpolator,  r"$\sum W$",  r"n per h($\sum W$)"),
+                                                                  (WT.WsumInterpolator,   r"n per h",  r"$\sum W$")]]
 
-#     if plotFacets:
-#         plot.replot(dataFacets)
+    x0, x1 = 0.0, WT.kernelExtent
+    xvals = np.linspace(x0, x1, 100)
+    yvals = np.array([WT.kernelValueSPH(x) for x in xvals])
+    plotSPH = newFigure()
+    plotSPH.plot(xvals, yvals, "r-", label=None)
+    plotSPH.set_xlabel(r"$\eta$")
+    plotSPH.set_ylabel(r"$W_{SPH}(\eta)$")
+    plotSPH.set_title(r"$W(\eta)$ for SPH h lookup")
 
-#     if plotNormals:
-#         plot.replot(dataNormals)
+    yvals = np.array([WT.kernelValueASPH(x, nPerh) for x in xvals])
+    plotASPH = newFigure()
+    plotASPH.plot(xvals, yvals, "r-", label=None)
+    plotASPH.set_xlabel(r"$\eta$")
+    plotASPH.set_ylabel(r"$W_{ASPH}(\eta)$")
+    plotASPH.set_title(f"$W(\eta)$ for ASPH h lookup with $n_h={nPerh}$")
 
-#     if plotCentroid:
-#         c = polygon.centroid()
-#         dataCentroid = Gnuplot.Data([c.x], [c.y],
-#                                     with_ = "points pt 2 ps 2",
-#                                     title = "Centroid",
-#                                     inline = True)
-#         plot.replot(dataCentroid)
+    plots += [plotSPH, plotASPH]
 
-#     SpheralGnuPlotCache.extend([dataPoints, dataFacets, dataNormals, plot])
+    return plots
 
-#     return plot
+#-------------------------------------------------------------------------------
+# Plot a polygon.
+#-------------------------------------------------------------------------------
+def plotPolygon(polygon,
+                plotVertices = True,
+                plotFacets = True,
+                plotNormals = False,
+                plotCentroid = False,
+                plot = None,
+                persist = False,
+                plotLabels = True):
+    mppoly = patches.Polygon(np.array([[v.x, v.y] for v in polygon.vertices]), False)
+
+    if plot is None:
+        plot = newFigure()
+    plot.add_patch(mppoly)
+    return
+
+    # px = []
+    # py = []
+    # for v in polygon.vertices():
+    #     px.append(v.x)
+    #     py.append(v.y)
+    # fx = []
+    # fy = []
+    # fdx = []
+    # fdy = []
+    # nx = []
+    # ny = []
+    # ndx = []
+    # ndy = []
+    # for f in polygon.facets():
+    #     dr = f.point2 - f.point1
+    #     hdr = dr/2.0
+    #     fx.append(f.point1.x)
+    #     fy.append(f.point1.y)
+    #     fdx.append(dr.x)
+    #     fdy.append(dr.y)
+    #     nx.append(fx[-1] + hdr.x)
+    #     ny.append(fy[-1] + hdr.y)
+    #     ndx.append(f.normal.x)
+    #     ndy.append(f.normal.y)
+    # if plot is None:
+    #     plot = generateNewGnuPlot(persist)
+    # if plotLabels:
+    #     vlabel, flabel, nlabel = "Vertices", "Facets", "Normals"
+    # else:
+    #     vlabel, flabel, nlabel = None, None, None
+    # dataPoints = Gnuplot.Data(px, py,
+    #                           with_ = "points pt 1 ps 2",
+    #                           title = vlabel,
+    #                           inline = True)
+    # dataFacets = Gnuplot.Data(fx, fy, fdx, fdy,
+    #                           with_ = "vectors",
+    #                           title = flabel,
+    #                           inline = True)
+    # dataNormals = Gnuplot.Data(nx, ny, ndx, ndy,
+    #                            with_ = "vectors",
+    #                            title = nlabel,
+    #                            inline = True)
+    # if plotVertices:
+    #     plot.replot(dataPoints)
+
+    # if plotFacets:
+    #     plot.replot(dataFacets)
+
+    # if plotNormals:
+    #     plot.replot(dataNormals)
+
+    # if plotCentroid:
+    #     c = polygon.centroid()
+    #     dataCentroid = Gnuplot.Data([c.x], [c.y],
+    #                                 with_ = "points pt 2 ps 2",
+    #                                 title = "Centroid",
+    #                                 inline = True)
+    #     plot.replot(dataCentroid)
+
+    # SpheralGnuPlotCache.extend([dataPoints, dataFacets, dataNormals, plot])
+
+    # return plot
 
 # #-------------------------------------------------------------------------------
 # # Plot a PolygonalMesh

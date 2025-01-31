@@ -12,3 +12,10 @@
 [submodule "extern/PolyClipper"]
 	path = extern/PolyClipper
 	url = https://github.com/LLNL/PolyClipper
+[submodule "extern/chai"]
+	path = extern/chai
+	url = https://github.com/llnl/chai
+	branch = feature/ManagedSharedPtr
+[submodule "extern/ATS"]
+	path = extern/ATS
+	url = https://github.com/LLNL/ATS

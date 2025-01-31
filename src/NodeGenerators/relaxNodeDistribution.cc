@@ -3,14 +3,10 @@
 // Optionally the user can specify a weighting function for the nodes.
 //------------------------------------------------------------------------------
 #include "relaxNodeDistribution.hh"
+#include "Mesh/Mesh.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
-#include "Utilities/allReduce.hh"
-
-#ifdef USE_MPI
-#include <mpi.h>
-#include "Distributed/Communicator.hh"
-#endif
+#include "Distributed/allReduce.hh"
 
 #include <ctime>
 using std::vector;
@@ -33,7 +29,6 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
                       const typename Dimension::FacetedVolume& boundary,
                       const std::vector<Boundary<Dimension>*>& /*boundaries*/,
                       const TableKernel<Dimension>& /*W*/,
-                      const SmoothingScaleBase<Dimension>& /*smoothingScaleMethod*/,
                       const WeightingFunctor<Dimension>& weightingFunctor,
                       const WeightingFunctor<Dimension>& massDensityFunctor,
                       const double targetMass,
@@ -144,9 +139,7 @@ relaxNodeDistribution(DataBase<Dimension>& dataBase,
       ++k;
     }
   }
-#ifdef USE_MPI
-  Msum = allReduce(Msum, MPI_SUM, Communicator::communicator());
-#endif
+  Msum = allReduce(Msum, SPHERAL_OP_SUM);
 
   // If needed, rescale the masses.
   if (targetMass > 0.0) {

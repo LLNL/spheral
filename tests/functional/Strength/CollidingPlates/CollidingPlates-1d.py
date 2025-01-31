@@ -83,8 +83,8 @@ commandLine(# Geometry
             clearDirectories = False,
             referenceFile = "Reference/CollidingPlates-1d-reference-compatible-20220422.txt",
             dataDirBase = "dumps-CollidingPlates-1d",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             )
 
 if crksph:
@@ -242,7 +242,7 @@ else:
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
-output("hydro.HEvolution")
+output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.kernel")
@@ -350,7 +350,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
     pos = state.vectorFields(HydroFieldNames.position)
@@ -384,7 +384,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Check the floating values for the state against reference data.
         #---------------------------------------------------------------------------
-        if referenceFile != "None":
+        if referenceFile:
             import filearraycmp as fcomp
             assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
             print("Floating point comparison test passed.")
@@ -393,7 +393,7 @@ if outputFile != "None":
         # Also we can optionally compare the current results with another file for
         # bit level consistency.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
+        if comparisonFile and BuildData.cxx_compiler_id != "IntelLLVM":
             import filecmp
             print("Compare files : %s     <--->     %s" % (outputFile, comparisonFile))
             assert filecmp.cmp(outputFile, comparisonFile)

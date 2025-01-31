@@ -3,8 +3,10 @@
 import argparse
 import os
 import sys
-import subprocess
 import json
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from spheralutils import sexe
 
 #------------------------------------------------------------------------------
 
@@ -62,22 +64,10 @@ def parse_args():
   parser.add_argument('--skip-init', action='store_true',
       help='Skip setting up and configuring Spack.')
 
+  parser.add_argument('--id', type=str, default="",
+      help='ID string to postfix on initconfig file.')
+
   return parser.parse_args()
-
-
-# Helper function for executing commands stolen from uberenv
-def sexe(cmd,ret_output=False,echo=True):
-    """ Helper for executing shell commands. """
-    if echo:
-      print("[exe: {0}]".format(cmd))
-    p = subprocess.run(cmd, shell=True,
-                       capture_output=ret_output,
-                       check=True, text=True)
-    if ret_output:
-      if echo:
-        print(p.stdout)
-      return p.stdout
-
 
 # Parse the json formatted spec list...
 def parse_spec_list(file_path):
@@ -184,7 +174,10 @@ def build_deps(args):
           sexe("{0} spec --fresh -IL {1}@develop%{2} 2>&1 | tee -a \"spec-info-{2}-out.txt\"".format(spack_cmd, package_name, s))
 
         # Install only the dependencies for Spheral and create CMake configure file
-        sexe("{0} dev-build -q --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s))
+        if "Error: " in sexe("{0} dev-build -q --fresh -u initconfig {1}@develop%{2} 2>&1 | tee -a \"tpl-build-{2}-out.txt\"".format(spack_cmd, package_name, s), ret_output=True): sys.exit(1)
+
+        if args.id:
+          sexe("file=$(ls -t *.cmake | head -n 1); mv \"$file\" \"${file%.cmake}-"+args.id+".cmake\"")
 
       if not args.no_clean:
         sexe("rm -f spec-info-* tpl-build-* spack-build-* spack-configure-args.txt")

@@ -22,6 +22,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/Functors.hh"',
                   '"Utilities/erff.hh"',
                   '"Utilities/newtonRaphson.hh"',
+                  '"Utilities/bisectRoot.hh"',
                   '"Utilities/simpsonsIntegration.hh"',
                   '"Utilities/globalNodeIDs.hh"',
                   '"Utilities/rotationMatrix.hh"',
@@ -49,6 +50,7 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/clipFacetedVolume.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Utilities/NodeCoupling.hh"',
+                  '"Utilities/LinearInterpolator.hh"',
                   '"Utilities/QuadraticInterpolator.hh"',
                   '"Utilities/CubicHermiteInterpolator.hh"',
                   '"Utilities/XYInterpolator.hh"',
@@ -56,13 +58,60 @@ PYB11includes += ['"Utilities/setGlobalFlags.hh"',
                   '"Utilities/BiQuadraticInterpolator.hh"',
                   '"Utilities/BiCubicInterpolator.hh"',
                   '"Utilities/uniform_random.hh"',
+                  '"Utilities/Timer.hh"',
+                  '"Distributed/Communicator.hh"',
+                  '"adiak.hpp"',
                   '<algorithm>']
 
 #-------------------------------------------------------------------------------
 # Preamble
 #-------------------------------------------------------------------------------
 PYB11preamble += """
+namespace Spheral {
 
+inline void spheral_adiak_init() {
+  adiak::init((void*) Communicator::comm_ptr());
+  // Always collect some curated default adiak information
+  adiak::adiakversion();
+  adiak::user();
+  adiak::uid();
+  adiak::launchdate();
+  adiak::workdir();
+  adiak::hostname();
+  adiak::clustername();
+  adiak::walltime();
+  adiak::cputime();
+  adiak::jobsize();
+  adiak::numhosts();
+  adiak::hostlist();
+  adiak::mpi_library_version();
+}
+
+enum adiak_categories {
+unset = 0,
+all,
+general,
+performance,
+control
+};
+}
+"""
+
+PYB11modulepreamble = """
+TIME_BEGIN("main");
+Spheral::spheral_adiak_init();
+
+// Call these routines when module is exited
+auto atexit = py::module_::import("atexit");
+atexit.attr("register")(py::cpp_function([]() {
+   TIME_END("main");
+   adiak::fini();
+   if (Spheral::TimerMgr::is_started()) {
+      Spheral::TimerMgr::fini();
+   } else {
+      Communicator::finalize();
+   }
+}));
 """
 
 #-------------------------------------------------------------------------------
@@ -83,6 +132,7 @@ from SpheralFunctor import *
 from KeyTraits import *
 from DomainNode import *
 from NodeCoupling import *
+from LinearInterpolator import *
 from QuadraticInterpolator import *
 from CubicHermiteInterpolator import *
 from XYInterpolator import *
@@ -91,6 +141,8 @@ from BiQuadraticInterpolator import *
 from BiCubicInterpolator import *
 from uniform_random import *
 from BuildData import *
+from Adiak import *
+from TimerMgr import *
 
 ScalarScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "double"))
 ScalarPairScalarFunctor = PYB11TemplateClass(SpheralFunctor, template_parameters=("double", "std::pair<double,double>"))
@@ -175,9 +227,8 @@ a DataBase, returning the result as a FieldList<int>."""
 
 @PYB11template("Dimension")
 def iterateIdealH(dataBase = "DataBase<%(Dimension)s>&",
+                  packages = "std::vector<Physics<%(Dimension)s>*>&",
                   boundaries = "const std::vector<Boundary<%(Dimension)s>*>&",
-                  W = "const TableKernel<%(Dimension)s>&",
-                  smoothingScaleMethod = "const SmoothingScaleBase<%(Dimension)s>&",
                   maxIterations = ("const int", "100"),
                   tolerance = ("const double", "1.0e-10"),
                   nPerhForIteration = ("const double", "0.0"),
@@ -270,6 +321,7 @@ for ndim in dims:
 VectorScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "double"))
 VectorVectorFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "%(Vector)s"))
 VectorPairScalarFunctor%(ndim)id = PYB11TemplateClass(SpheralFunctor, template_parameters=("%(Vector)s", "std::pair<double,double>"))
+SizetSizetSymTensorSymTensorSymTensorFunctor%(ndim)id = PYB11TemplateClass(Spheral4ArgFunctor, template_parameters=("size_t", "size_t", "%(SymTensor)s", "%(SymTensor)s", "%(SymTensor)s"))
 
 # boundingVolumes
 boundingBoxVec%(ndim)id = PYB11TemplateFunction(boundingBoxVec, template_parameters="%(Vector)s", pyname="boundingBox")
@@ -407,6 +459,18 @@ def legendre_p(l = "int",
     "Compute the associated Legendre polynomial P^m_l(x)"
     return "double"
 
+@PYB11cppname("bisectRoot<const PythonBoundFunctors::SpheralFunctor<double, double>>")
+def bisectRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
+               xmin = "double",
+               xmax = "double",
+               xaccuracy = ("double", "1.0e-15"),
+               yaccuracy = ("double", "1.0e-10"),
+               maxIterations = ("unsigned", "100u"),
+               verbose = ("bool", "false")):
+    """Bisection root finder.
+Finds a root of 'function' in the range (x1, x2)"""
+    return "double"
+
 @PYB11cppname("newtonRaphson<const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>>")
 def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<double, std::pair<double, double>>&",
                           x1 = "double",
@@ -417,6 +481,7 @@ def newtonRaphsonFindRoot(function = "const PythonBoundFunctors::SpheralFunctor<
     """Newton-Raphson root finder.
 Finds a root of 'function' in the range (x1, x2)"""
     return "double"
+
 @PYB11cppname("simpsonsIntegration<const PythonBoundFunctors::SpheralFunctor<double, double>, double, double>")
 def simpsonsIntegrationDouble(function = "const PythonBoundFunctors::SpheralFunctor<double, double>&",
                               x0 = "double",
@@ -747,3 +812,14 @@ def clippedVolume(poly = "const Dim<3>::FacetedVolume&",
                   planes = "const std::vector<GeomPlane<Dim<3>>>&"):
     "Return the volume of the clipped region."
     return "double"
+
+#...............................................................................
+for (value, label) in (("int", "Int"),
+                       ("unsigned", "Unsigned"),
+                       ("long", "Long"),
+                       ("double", "Scalar"),
+                       ("std::string", "String")):
+    exec(f"""
+adiak_value{label} = PYB11TemplateFunction(adiak_value, "{value}", pyname="adiak_value")
+adiak_value2{label} = PYB11TemplateFunction(adiak_value2, "{value}", pyname="adiak_value")
+""")

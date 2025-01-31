@@ -284,7 +284,7 @@ restoreState(const FileIO& file, const string& pathName)  {
   vector<std::string> keys;
   file.read(keys, pathName + "/keys");
   mBufferedValues.clear();
-  for (const auto key: keys) {
+  for (const auto& key: keys) {
     std::string val;
     file.read(val, pathName + "/BufferedValues/" + key);
     mBufferedValues[key] = vector<char>(val.begin(), val.end());

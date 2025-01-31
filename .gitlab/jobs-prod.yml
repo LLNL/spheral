@@ -4,8 +4,8 @@
 toss_update_tpls:
   extends: [.toss_resource2, .update_tpls, .merge_pr_rule]
 
-blueos_update_tpls:
-  extends: [.blueos_resource2, .update_tpls, .merge_pr_rule]
+cray_update_tpls:
+  extends: [.cray_resource2, .update_tpls, .merge_pr_rule]
   needs: [toss_update_tpls]
 
 # ------------------------------------------------------------------------------
@@ -34,6 +34,9 @@ toss_release_permissions:
 # ------------------------------------------------------------------------------
 # CLEAN OLD BUILD DIRS
 
-cleanup_build_dirs:
-  extends: [.clean_dirs]
+cleanup_old_dirs_toss:
+  extends: [.toss_resource_general, .clean_old_dirs]
+
+cleanup_old_dirs_cray:
+  extends: [.cray_resource_general, .clean_old_dirs]
 

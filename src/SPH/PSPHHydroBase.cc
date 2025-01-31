@@ -7,7 +7,6 @@
 #include "computeSPHSumMassDensity.hh"
 #include "computeSumVoronoiCellMassDensity.hh"
 #include "computePSPHCorrections.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Physics/GenericHydro.hh"
 #include "DataBase/State.hh"
@@ -28,6 +27,7 @@
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
+#include "Utilities/range.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Mesh/Mesh.hh"
 #include "CRKSPH/volumeSpacing.hh"
@@ -58,8 +58,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 PSPHHydroBase<Dimension>::
-PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-              DataBase<Dimension>& dataBase,
+PSPHHydroBase(DataBase<Dimension>& dataBase,
               ArtificialViscosity<Dimension>& Q,
               const TableKernel<Dimension>& W,
               const TableKernel<Dimension>& WPi,
@@ -73,11 +72,9 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
               const bool HopkinsConductivity,
               const bool sumMassDensityOverAllNodeLists,
               const MassDensityType densityUpdate,
-              const HEvolutionType HUpdate,
               const Vector& xmin,
               const Vector& xmax):
-  SPHHydroBase<Dimension>(smoothingScaleMethod,
-                          dataBase,
+  SPHHydroBase<Dimension>(dataBase,
                           Q,
                           W,
                           WPi,
@@ -91,7 +88,6 @@ PSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                           correctVelocityGradient,
                           sumMassDensityOverAllNodeLists,
                           densityUpdate,
-                          HUpdate,
                           0.0,
                           1.0,
                           xmin,
@@ -186,17 +182,13 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H, 
                          (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(rho);
-    (*boundItr)->applyFieldListGhostBoundary(P);
-    (*boundItr)->applyFieldListGhostBoundary(cs);
-    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->applyFieldListGhostBoundary(rho);
+    boundaryPtr->applyFieldListGhostBoundary(P);
+    boundaryPtr->applyFieldListGhostBoundary(cs);
+    boundaryPtr->applyFieldListGhostBoundary(PSPHcorrection);
   }
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
 }
 
 //------------------------------------------------------------------------------
@@ -204,7 +196,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // corrections.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 PSPHHydroBase<Dimension>::
 postStateUpdate(const Scalar /*time*/, 
                 const Scalar /*dt*/,
@@ -212,12 +204,6 @@ postStateUpdate(const Scalar /*time*/,
                 State<Dimension>& state,
                 StateDerivatives<Dimension>& /*derivatives*/) {
 
-  // First we need out boundary conditions completed, which the time integrator hasn't 
-  // verified yet.
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) (*boundItr)->finalizeGhostBoundary();
-  
   // Do the PSPH corrections.
   const TableKernel<Dimension>& W = this->kernel();
   const ConnectivityMap<Dimension>& connectivityMap = dataBase.connectivityMap();
@@ -233,16 +219,9 @@ postStateUpdate(const Scalar /*time*/,
   computePSPHCorrections(connectivityMap, W, mass, position, specificThermalEnergy, gamma, H,
                          (this->mDensityUpdate != MassDensityType::IntegrateDensity),
                          rho, P, cs, PSPHcorrection);
-  for (ConstBoundaryIterator boundItr = this->boundaryBegin();
-       boundItr != this->boundaryEnd();
-       ++boundItr) {
-    (*boundItr)->applyFieldListGhostBoundary(rho);
-    (*boundItr)->applyFieldListGhostBoundary(P);
-    (*boundItr)->applyFieldListGhostBoundary(cs);
-    (*boundItr)->applyFieldListGhostBoundary(PSPHcorrection);
-  }
 
   // We depend on the caller knowing to finalize the ghost boundaries!
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -314,16 +293,12 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   auto  localDvDx = derivatives.fields(HydroFieldNames::internalVelocityGradient, Tensor::zero);
   auto  M = derivatives.fields(HydroFieldNames::M_SPHCorrection, Tensor::zero);
   auto  localM = derivatives.fields("local " + HydroFieldNames::M_SPHCorrection, Tensor::zero);
-  auto  DHDt = derivatives.fields(IncrementState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
-  auto  Hideal = derivatives.fields(ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H, SymTensor::zero);
   auto  maxViscousPressure = derivatives.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivatives.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto  viscousWork = derivatives.fields(HydroFieldNames::viscousWork, 0.0);
-  auto& pairAccelerations = derivatives.getAny(HydroFieldNames::pairAccelerations, vector<Vector>());
+  auto& pairAccelerations = derivatives.get(HydroFieldNames::pairAccelerations, vector<Vector>());
   auto  XSPHWeightSum = derivatives.fields(HydroFieldNames::XSPHWeightSum, 0.0);
   auto  XSPHDeltaV = derivatives.fields(HydroFieldNames::XSPHDeltaV, Vector::zero);
-  auto  weightedNeighborSum = derivatives.fields(HydroFieldNames::weightedNeighborSum, 0.0);
-  auto  massSecondMoment = derivatives.fields(HydroFieldNames::massSecondMoment, SymTensor::zero);
   CHECK(rhoSum.size() == numNodeLists);
   CHECK(normalization.size() == numNodeLists);
   CHECK(DxDt.size() == numNodeLists);
@@ -334,15 +309,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   CHECK(localDvDx.size() == numNodeLists);
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
-  CHECK(DHDt.size() == numNodeLists);
-  CHECK(Hideal.size() == numNodeLists);
   CHECK(maxViscousPressure.size() == numNodeLists);
   CHECK(effViscousPressure.size() == numNodeLists);
   CHECK(viscousWork.size() == numNodeLists);
   CHECK(XSPHWeightSum.size() == numNodeLists);
   CHECK(XSPHDeltaV.size() == numNodeLists);
-  CHECK(weightedNeighborSum.size() == numNodeLists);
-  CHECK(massSecondMoment.size() == numNodeLists);
 
   // The set of interacting node pairs.
   const auto& pairs = connectivityMap.nodePairList();
@@ -373,8 +344,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     auto viscousWork_thread = viscousWork.threadCopy(threadStack);
     auto XSPHWeightSum_thread = XSPHWeightSum.threadCopy(threadStack);
     auto XSPHDeltaV_thread = XSPHDeltaV.threadCopy(threadStack);
-    auto weightedNeighborSum_thread = weightedNeighborSum.threadCopy(threadStack);
-    auto massSecondMoment_thread = massSecondMoment.threadCopy(threadStack);
 
 #pragma omp for
     for (auto kk = 0u; kk < npairs; ++kk) {
@@ -411,8 +380,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& viscousWorki = viscousWork_thread(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum_thread(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum_thread(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& rj = position(nodeListj, j);
@@ -442,8 +409,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& viscousWorkj = viscousWork_thread(nodeListj, j);
       auto& XSPHWeightSumj = XSPHWeightSum_thread(nodeListj, j);
       auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
-      auto& weightedNeighborSumj = weightedNeighborSum_thread(nodeListj, j);
-      auto& massSecondMomentj = massSecondMoment_thread(nodeListj, j);
 
       // Flag if this is a contiguous material pair or not.
       const bool sameMatij = true; // (nodeListi == nodeListj and fragIDi == fragIDj);
@@ -469,17 +434,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       const auto Hetaj = Hj*etaj.unitVector();
       const auto gradWj = gWj*Hetaj;
       const auto gradWQj = gWQj*Hetaj;
-
-      // Zero'th and second moment of the node distribution -- used for the
-      // ideal H calculation.
-      const auto fweightij = sameMatij ? 1.0 : mj*rhoi/(mi*rhoj);
-      const auto rij2 = rij.magnitude2();
-      const auto thpt = rij.selfdyad()*safeInvVar(rij2*rij2*rij2);
-      weightedNeighborSumi +=     fweightij*std::abs(gWi);
-      weightedNeighborSumj += 1.0/fweightij*std::abs(gWj);
-      massSecondMomenti +=     fweightij*gradWi.magnitude2()*thpt;
-      massSecondMomentj += 1.0/fweightij*gradWj.magnitude2()*thpt;
-
 
       // Contribution to the sum density.
       if (nodeListi == nodeListj) {
@@ -585,17 +539,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // Finish up the derivatives for each point.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
     const auto& nodeList = mass[nodeListi]->nodeList();
-    const auto  hmin = nodeList.hmin();
-    const auto  hmax = nodeList.hmax();
-    const auto  hminratio = nodeList.hminratio();
-    const auto  nPerh = nodeList.nodesPerSmoothingScale();
-
     const auto ni = nodeList.numInternalNodes();
 #pragma omp parallel for
     for (auto i = 0u; i < ni; ++i) {
 
       // Get the state for node i.
-      const auto& ri = position(nodeListi, i);
       const auto& mi = mass(nodeListi, i);
       const auto& vi = velocity(nodeListi, i);
       const auto& rhoi = massDensity(nodeListi, i);
@@ -616,12 +564,8 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       auto& localDvDxi = localDvDx(nodeListi, i);
       auto& Mi = M(nodeListi, i);
       auto& localMi = localM(nodeListi, i);
-      auto& DHDti = DHDt(nodeListi, i);
-      auto& Hideali = Hideal(nodeListi, i);
       auto& XSPHWeightSumi = XSPHWeightSum(nodeListi, i);
       auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
-      auto& weightedNeighborSumi = weightedNeighborSum(nodeListi, i);
-      auto& massSecondMomenti = massSecondMoment(nodeListi, i);
 
       // Add the self-contribution to density sum.
       rhoSumi += mi*W0*Hdeti;
@@ -652,10 +596,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       // If needed finish the total energy derivative.
       if (this->mEvolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
 
-      // Complete the moments of the node distribution for use in the ideal H calculation.
-      weightedNeighborSumi = Dimension::rootnu(max(0.0, weightedNeighborSumi/Hdeti));
-      massSecondMomenti /= Hdeti*Hdeti;
-
       // Determine the position evolution, based on whether we're doing XSPH or not.
       if (this->XSPH()) {
         XSPHWeightSumi += Hdeti*mi/rhoi*W0;
@@ -664,28 +604,6 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
       } else {
         DxDti = vi;
       }
-
-      // The H tensor evolution.
-      DHDti = this->mSmoothingScaleMethod.smoothingScaleDerivative(Hi,
-                                                                   ri,
-                                                                   DvDxi,
-                                                                   hmin,
-                                                                   hmax,
-                                                                   hminratio,
-                                                                   nPerh);
-      Hideali = this->mSmoothingScaleMethod.newSmoothingScale(Hi,
-                                                              ri,
-                                                              weightedNeighborSumi,
-                                                              massSecondMomenti,
-                                                              W,
-                                                              hmin,
-                                                              hmax,
-                                                              hminratio,
-                                                              nPerh,
-                                                              connectivityMap,
-                                                              nodeListi,
-                                                              i);
-
     }
   }
 }
@@ -707,15 +625,11 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
   if (this->mCompatibleEnergyEvolution) {
     auto accelerations = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
     auto DepsDt = derivs.fields(IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin();
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) {
-      (*boundaryItr)->applyFieldListGhostBoundary(accelerations);
-      (*boundaryItr)->applyFieldListGhostBoundary(DepsDt);
+    for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+      boundaryPtr->applyFieldListGhostBoundary(accelerations);
+      boundaryPtr->applyFieldListGhostBoundary(DepsDt);
     }
-    for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-         boundaryItr != this->boundaryEnd();
-         ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
+    for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
 }
 
@@ -735,13 +649,10 @@ applyGhostBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(gamma);
-    (*boundaryItr)->applyFieldListGhostBoundary(PSPHcorrection);
-  }
-}
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->applyFieldListGhostBoundary(gamma);
+    boundaryPtr->applyFieldListGhostBoundary(PSPHcorrection);
+  }}
 
 //------------------------------------------------------------------------------
 // Enforce the boundary conditions for hydro state fields.
@@ -759,11 +670,9 @@ enforceBoundaries(State<Dimension>& state,
   FieldList<Dimension, Scalar> gamma = state.fields(HydroFieldNames::gamma, 0.0);
   FieldList<Dimension, Scalar> PSPHcorrection = state.fields(HydroFieldNames::PSPHcorrection, 0.0);
 
-  for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
-       boundaryItr != this->boundaryEnd();
-       ++boundaryItr) {
-    (*boundaryItr)->enforceFieldListBoundary(gamma);
-    (*boundaryItr)->enforceFieldListBoundary(PSPHcorrection);
+  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) {
+    boundaryPtr->enforceFieldListBoundary(gamma);
+    boundaryPtr->enforceFieldListBoundary(PSPHcorrection);
   }
 }
 

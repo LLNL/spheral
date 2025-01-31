@@ -129,7 +129,7 @@ commandLine(initialRotation = 0.0,     # Degrees, optionally rotate and clip the
             restartStep = 100,
             dataDirBase = "dumps-Sod-planar-2d",
             restartBaseName = "Sod-planar-2d-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
 
             vizCycle = None,
@@ -623,7 +623,7 @@ print("Energy conservation: original=%g, final=%g, error=%g" % (control.conserve
 rmin = x0
 rmax = x2
 if mpi.rank == 0:
-    if outputFile != "None":
+    if outputFile:
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
         f.write(("#" + 10*" '%s'" + "\n") % ("x", "rho", "P", "v", "eps", "h", 

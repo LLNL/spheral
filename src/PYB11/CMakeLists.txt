@@ -14,6 +14,7 @@ set (_python_packages
   FileIO
   Utilities
   RK
+  VoronoiCells
   DataBase
   Boundary
   Physics
@@ -23,10 +24,7 @@ set (_python_packages
   FieldOperations
   SPH
   CRKSPH
-  SVPH
   DEM
-  GSPH
-  FSISPH
   ArtificialViscosity
   Mesh
   Damage
@@ -34,6 +32,7 @@ set (_python_packages
   Strength
   Porosity
   KernelIntegrator
+  SmoothingScale
   polytope
   OpenMP
   )
@@ -58,8 +57,20 @@ if (SPHERAL_ENABLE_EXTERNAL_FORCE)
   list(APPEND _python_packages ExternalForce)
 endif()
 
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND _python_packages FSISPH)
+endif()
+
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND _python_packages GSPH)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _python_packages SVPH)
 endif()
 
 foreach(_python_package ${_python_packages})

@@ -31,8 +31,9 @@ namespace {
 //------------------------------------------------------------------------------
 // Reflect a faceted volume
 //------------------------------------------------------------------------------
+inline
 Dim<1>::FacetedVolume 
-static inline reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
+reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
                      const Dim<1>::FacetedVolume& poly) {
   const auto& plane = bc.enterPlane();
   return Dim<1>::FacetedVolume(bc.mapPosition(poly.center(),
@@ -41,10 +42,11 @@ static inline reflectFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
                                poly.extent());
 }
 
+inline
 Dim<2>::FacetedVolume 
-static inline reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
+reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
                      const Dim<2>::FacetedVolume& poly) {
-  typedef Dim<2>::Vector Vector;
+  using Vector = Dim<2>::Vector;
   const auto& plane = bc.enterPlane();
   const auto& verts0 = poly.vertices();
   const auto& facets = poly.facetVertices();
@@ -53,8 +55,9 @@ static inline reflectFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
   return Dim<2>::FacetedVolume(verts1, facets);
 }
 
+inline
 Dim<3>::FacetedVolume 
-static inline reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
+reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
                      const Dim<3>::FacetedVolume& poly) {
   const auto& plane = bc.enterPlane();
   auto verts = poly.vertices();
@@ -65,7 +68,69 @@ static inline reflectFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
   return Dim<3>::FacetedVolume(verts, facets);
 }
 
+//------------------------------------------------------------------------------
+// Clip a faceted volume
+//------------------------------------------------------------------------------
+inline
+void
+clipFacetedVolume(const ReflectingBoundary<Dim<1>>& bc,
+                  Dim<1>::FacetedVolume& poly) {
+  using FacetedVolume = Dim<1>::FacetedVolume;
+  const auto& plane = bc.enterPlane();
+  if (min(plane.compare(poly.xmin()), plane.compare(poly.xmax())) == -1) {
+    auto xmin = poly.xmin();
+    auto xmax = poly.xmax();
+    if (plane.compare(xmin) == -1) xmin = plane.point();
+    if (plane.compare(xmax) == -1) xmax = plane.point();
+    poly = FacetedVolume({xmin, xmax});
+  }
 }
+
+inline
+void
+clipFacetedVolume(const ReflectingBoundary<Dim<2>>& bc,
+                  Dim<2>::FacetedVolume& poly) {
+  const auto& plane = bc.enterPlane();
+  const auto& verts = poly.vertices();
+  const auto  nverts = verts.size();
+  bool ok = true;
+  auto ivert = 0u;
+  while (ok and ivert < nverts) {
+    if (plane.compare(verts[ivert]) == -1) {
+      ok = false;
+      PolyClipperPolygon PCpoly;
+      convertToPolyClipper(PCpoly, poly);
+      PolyClipperPlane2d PCplane(plane.point(), plane.normal());
+      PolyClipper::clipPolygon(PCpoly, {PCplane});
+      convertFromPolyClipper(poly, PCpoly);
+    }
+    ++ivert;
+  }
+}
+
+inline
+void
+clipFacetedVolume(const ReflectingBoundary<Dim<3>>& bc,
+                  Dim<3>::FacetedVolume& poly) {
+  const auto& plane = bc.enterPlane();
+  const auto& verts = poly.vertices();
+  const auto  nverts = verts.size();
+  bool ok = true;
+  auto ivert = 0u;
+  while (ok and ivert < nverts) {
+    if (plane.compare(verts[ivert]) == -1) {
+      ok = false;
+      PolyClipperPolyhedron PCpoly;
+      convertToPolyClipper(PCpoly, poly);
+      PolyClipperPlane3d PCplane(plane.point(), plane.normal());
+      PolyClipper::clipPolyhedron(PCpoly, {PCplane});
+      convertFromPolyClipper(poly, PCpoly);
+    }
+    ++ivert;
+  }
+}
+
+}   // anonymous
 
 //------------------------------------------------------------------------------
 // Empty constructor.
@@ -572,6 +637,7 @@ enforceBoundary(Field<Dimension, typename Dimension::FacetedVolume>& field) cons
        ++itr) {
     CHECK(*itr >= 0 && *itr < (int)nodeList.numInternalNodes());
     field(*itr) = reflectFacetedVolume(*this, field(*itr));
+    clipFacetedVolume(*this, field(*itr));
   }
 }
 

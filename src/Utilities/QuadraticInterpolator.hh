@@ -19,16 +19,15 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
   template<typename Func>
-  QuadraticInterpolator(const double xmin,
-                        const double xmax,
-                        const size_t n,
-                        const Func& F);
+  QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
+  QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
   QuadraticInterpolator();
   ~QuadraticInterpolator();
 
-  // Alternatively initialize from tabulated values
-  void initialize(const double xmin, const double xmax,
-                  const std::vector<double>& yvals);
+  // Initialize after construction, either with a function or tabulated values
+  template<typename Func>
+  void initialize(double xmin, double xmax, size_t n, const Func& f);
+  void initialize(double xmin, double xmax, const std::vector<double>& yvals);
 
   // Comparisons
   bool operator==(const QuadraticInterpolator& rhs) const;

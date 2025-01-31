@@ -17,12 +17,11 @@ set(Utilities_inst
 set(Utilities_sources
     BuildData.cc
     DBC.cc
+    LinearInterpolator.cc
     QuadraticInterpolator.cc
     CubicHermiteInterpolator.cc
-    Process.cc
     KeyTraits.cc
     PeanoHilbertTransform.cc
-    RegisterMPIDataTypes.cc
     RedistributionRegistrar.cc
     vectorBoundingBoxInst.cc
     lineSegmentIntersections.cc
@@ -45,6 +44,8 @@ set(Utilities_headers
     BuildData.hh
     CounterClockwiseComparator.hh
     DBC.hh
+    LinearInterpolator.hh
+    LinearInterpolatorInline.hh
     QuadraticInterpolator.hh
     QuadraticInterpolatorInline.hh
     CubicHermiteInterpolator.hh
@@ -70,20 +71,16 @@ set(Utilities_headers
     OpenMP_wrapper.hh
     PairComparisons.hh
     PeanoHilbertTransform.hh
-    Process.hh
     RedistributionNotification.hh
     RedistributionNotificationHandle.hh
     RedistributionRegistrar.hh
     RedistributionRegistrarInline.hh
-    RegisterMPIDataTypes.hh
-    RegisterMPIDataTypesInline.hh
     SafeIndexMap.hh
     SpheralFunctions.hh
     SurfaceNodeCoupling.hh
     Timer.hh
     Tree.hh
     TreeInline.hh
-    allReduce.hh
     bisectRoot.hh
     bisectSearch.hh
     boundPointWithinBox.hh
@@ -107,7 +104,6 @@ set(Utilities_headers
     log2.hh
     medianPosition.hh
     mortonOrderIndices.hh
-    mpiUtilities.hh
     newtonRaphson.hh
     nodeBoundingBoxes.hh
     nodeBoundingBoxesInline.hh
@@ -127,7 +123,6 @@ set(Utilities_headers
     removeElements.hh
     rotationMatrix.hh
     safeInv.hh
-    scan.hh
     segmentIntersectEdges.hh
     simpsonsIntegration.hh
     size_t_bits.hh
@@ -136,6 +131,8 @@ set(Utilities_headers
     timingUtilities.hh
     uniform_random.hh
     uniform_random_Inline.hh
+    range.hh
+    AnyVisitor.hh
     )
 
 spheral_install_python_files(fitspline.py)

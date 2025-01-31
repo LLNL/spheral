@@ -8,8 +8,8 @@
 //----------------------------------------------------------------------------//
 
 #include "FileIO/FileIO.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "SPH/computeSPHSumMassDensity.hh"
+#include "Hydro/computeSPHVolume.hh"
 #include "Hydro/HydroFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
@@ -19,6 +19,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -29,8 +30,6 @@
 
 #include "GSPH/GSPHHydroBase.hh"
 #include "GSPH/GSPHFieldNames.hh"
-#include "GSPH/computeSPHVolume.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -51,26 +50,23 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 GSPHHydroBase<Dimension>::
-GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-             DataBase<Dimension>& dataBase,
-             RiemannSolverBase<Dimension>& riemannSolver,
-             const TableKernel<Dimension>& W,
-             const Scalar epsDiffusionCoeff,
-             const double cfl,
-             const bool useVelocityMagnitudeForDt,
-             const bool compatibleEnergyEvolution,
-             const bool evolveTotalEnergy,
-             const bool XSPH,
-             const bool correctVelocityGradient,
-             const GradientType gradType,
-             const MassDensityType densityUpdate,
-             const HEvolutionType HUpdate,
-             const double epsTensile,
-             const double nTensile,
-             const Vector& xmin,
-             const Vector& xmax):
-  GenericRiemannHydro<Dimension>(smoothingScaleMethod,
-                                 dataBase,
+GSPHHydroBase(DataBase<Dimension>& dataBase,
+              RiemannSolverBase<Dimension>& riemannSolver,
+              const TableKernel<Dimension>& W,
+              const Scalar epsDiffusionCoeff,
+              const double cfl,
+              const bool useVelocityMagnitudeForDt,
+              const bool compatibleEnergyEvolution,
+              const bool evolveTotalEnergy,
+              const bool XSPH,
+              const bool correctVelocityGradient,
+              const GradientType gradType,
+              const MassDensityType densityUpdate,
+              const double epsTensile,
+              const double nTensile,
+              const Vector& xmin,
+              const Vector& xmax):
+  GenericRiemannHydro<Dimension>(dataBase,
                                  riemannSolver,
                                  W,
                                  epsDiffusionCoeff,
@@ -82,7 +78,6 @@ GSPHHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  correctVelocityGradient,
                                  gradType,
                                  densityUpdate,
-                                 HUpdate,
                                  epsTensile,
                                  nTensile,
                                  xmin,

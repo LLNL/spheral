@@ -87,18 +87,10 @@ def FSISPH(dataBase,
         contactTypes = vector_of_int([0]*(dataBase.numNodeLists**2))
         slides = eval("SlideSurface%id(dataBase,contactTypes)" % ndim)
 
-    # Smoothing scale update
-    if smoothingScaleMethod is None:
-        if ASPH:
-            smoothingScaleMethod = eval("ASPHSmoothingScale%id()" % ndim)
-        else:
-            smoothingScaleMethod = eval("SPHSmoothingScale%id()" % ndim)
-
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"smoothingScaleMethod" : smoothingScaleMethod,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "Q" : Q,
               "slides" : slides,
               "W" : W,
@@ -118,7 +110,6 @@ def FSISPH(dataBase,
               "interfacePmin" : interfacePmin,
               "interfaceNeighborAngleThreshold" : interfaceNeighborAngleThreshold,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
@@ -128,8 +119,19 @@ def FSISPH(dataBase,
     result = Constructor(**kwargs)
     result.Q = Q
     result.slides = slides
-    result._smoothingScaleMethod = smoothingScaleMethod
     
+    # Smoothing scale update
+    if smoothingScaleMethod is None:
+        if ASPH:
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+        else:
+            smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
+    result._smoothingScaleMethod = smoothingScaleMethod
+    result.appendSubPackage(smoothingScaleMethod)
+
     return result
 
 #-------------------------------------------------------------------------------

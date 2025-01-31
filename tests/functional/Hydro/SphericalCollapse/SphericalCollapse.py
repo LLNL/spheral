@@ -107,7 +107,7 @@ commandLine(seed = "lattice",
             graphics = True,
             clearDirectories = False,
             dataRoot = "dumps-spherical-collapse",
-            outputFile = "None",
+            outputFile = None,
             )
 
 

@@ -22,13 +22,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Spheral'
-copyright = '2012, LLNS'
+copyright = '2025, LLNS'
 author = 'J. Michael Owen'
 
 # The short X.Y version
-version = '2024.06.1'
+version = '2025.01.0'
 # The full version, including alpha/beta/rc tags
-release = '2024.06.1'
+release = '2025.01.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -65,7 +65,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+#language = english
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -81,7 +81,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = '@SPHINX_THEME@' # 'alabaster'
+html_theme = 'sphinx_rtd_theme' # 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

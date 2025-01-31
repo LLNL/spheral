@@ -30,7 +30,6 @@
 //---------------------------------------------------------------------------//
 
 #include "FileIO/FileIO.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
@@ -41,6 +40,7 @@
 #include "DataBase/PureReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -52,7 +52,6 @@
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
 #include "GSPH/Policies/MassFluxPolicy.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/Policies/MFVIncrementSpecificThermalEnergyPolicy.hh"
 #include "GSPH/Policies/MFVIncrementVelocityPolicy.hh"
 #include "GSPH/Policies/CompatibleMFVSpecificThermalEnergyPolicy.hh"
@@ -75,8 +74,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MFVHydroBase<Dimension>::
-MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-             DataBase<Dimension>& dataBase,
+MFVHydroBase(DataBase<Dimension>& dataBase,
              RiemannSolverBase<Dimension>& riemannSolver,
              const TableKernel<Dimension>& W,
              const Scalar epsDiffusionCoeff,
@@ -90,13 +88,11 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const NodeMotionType nodeMotionType,
              const GradientType gradType,
              const MassDensityType densityUpdate,
-             const HEvolutionType HUpdate,
              const double epsTensile,
              const double nTensile,
              const Vector& xmin,
              const Vector& xmax):
-  GenericRiemannHydro<Dimension>(smoothingScaleMethod,
-                                 dataBase,
+  GenericRiemannHydro<Dimension>(dataBase,
                                  riemannSolver,
                                  W,
                                  epsDiffusionCoeff,
@@ -108,7 +104,6 @@ MFVHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  correctVelocityGradient,
                                  gradType,
                                  densityUpdate,
-                                 HUpdate,
                                  epsTensile,
                                  nTensile,
                                  xmin,
@@ -233,7 +228,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDmomentumDt);
   derivs.enroll(mDvolumeDt);
   //derivs.enroll(mHStretchTensor);
-  derivs.enrollAny(GSPHFieldNames::pairMassFlux, mPairMassFlux);
+  derivs.enroll(GSPHFieldNames::pairMassFlux, mPairMassFlux);
 }
 
 //------------------------------------------------------------------------------

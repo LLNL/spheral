@@ -7,7 +7,6 @@
 //----------------------------------------------------------------------------//
 
 #include "FileIO/FileIO.hh"
-#include "NodeList/SmoothingScaleBase.hh"
 #include "Hydro/HydroFieldNames.hh"
 
 #include "DataBase/DataBase.hh"
@@ -17,6 +16,7 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "DataBase/IncrementBoundedState.hh"
+#include "DataBase/ReplaceWithRatioPolicy.hh"
 
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -27,7 +27,6 @@
 #include "GSPH/GSPHFieldNames.hh"
 #include "GSPH/computeSumVolume.hh"
 #include "GSPH/computeMFMDensity.hh"
-#include "GSPH/Policies/ReplaceWithRatioPolicy.hh"
 #include "GSPH/RiemannSolvers/RiemannSolverBase.hh"
 
 #ifdef _OPENMP
@@ -47,8 +46,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 MFMHydroBase<Dimension>::
-MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
-             DataBase<Dimension>& dataBase,
+MFMHydroBase(DataBase<Dimension>& dataBase,
              RiemannSolverBase<Dimension>& riemannSolver,
              const TableKernel<Dimension>& W,
              const Scalar epsDiffusionCoeff,
@@ -60,13 +58,11 @@ MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
              const bool correctVelocityGradient,
              const GradientType gradType,
              const MassDensityType densityUpdate,
-             const HEvolutionType HUpdate,
              const double epsTensile,
              const double nTensile,
              const Vector& xmin,
              const Vector& xmax):
-  GenericRiemannHydro<Dimension>(smoothingScaleMethod,
-                                 dataBase,
+  GenericRiemannHydro<Dimension>(dataBase,
                                  riemannSolver,
                                  W,
                                  epsDiffusionCoeff,
@@ -78,15 +74,12 @@ MFMHydroBase(const SmoothingScaleBase<Dimension>& smoothingScaleMethod,
                                  correctVelocityGradient,
                                  gradType,
                                  densityUpdate,
-                                 HUpdate,
                                  epsTensile,
                                  nTensile,
                                  xmin,
                                  xmax),
   mDvolumeDt(FieldStorageType::CopyFields){
-    
-    mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
-
+  mDvolumeDt = dataBase.newFluidFieldList(0.0, IncrementState<Dimension, Scalar>::prefix() + HydroFieldNames::volume);
 }
 
 //------------------------------------------------------------------------------

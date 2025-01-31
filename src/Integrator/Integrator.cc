@@ -16,7 +16,7 @@
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/range.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 #include "Integrator.hh"
@@ -113,49 +113,14 @@ Integrator(DataBase<Dimension>& dataBase,
   mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
+  mRequireIntersectionConnectivity(false),
   mDataBasePtr(&dataBase),
-  mPhysicsPackages(physicsPackages),
+  mPhysicsPackages(),
   mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::~Integrator() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>&
-Integrator<Dimension>::
-operator=(const Integrator<Dimension>& rhs) {
-  if (this != &rhs) {
-    mDtMin = rhs.mDtMin;
-    mDtMax = rhs.mDtMax;
-    mDtGrowth = rhs.mDtGrowth;
-    mLastDt = rhs.mLastDt;
-    mDtMultiplier = rhs.mDtMultiplier;
-    mDtCheckFrac = rhs.mDtCheckFrac;
-    mCurrentTime = rhs.mCurrentTime;
-    mCurrentCycle = rhs.mCurrentCycle;
-    mDataBasePtr = rhs.mDataBasePtr;
-    mPhysicsPackages = rhs.mPhysicsPackages;
-    mRigorousBoundaries = rhs.mRigorousBoundaries;
-    mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
-    mCullGhostNodes = rhs.mCullGhostNodes;
-    mVerbose = rhs.mVerbose;
-    mAllowDtCheck = rhs.mAllowDtCheck;
-    mRequireConnectivity = rhs.mRequireConnectivity;
-    mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
-    mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
-    mRequireIntersectionConnectivity = rhs.mRequireIntersectionConnectivity;
-  }
-  return *this;
+  for (auto& pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
 }
 
 //------------------------------------------------------------------------------
@@ -228,7 +193,7 @@ selectDt(const typename Dimension::Scalar dtMin,
         dt.first >= dtMin and dt.first <= dtMax);
 
   // In the parallel case we need to find the minimum timestep across all processors.
-  const auto globalDt = allReduce(dt.first, MPI_MIN, Communicator::communicator());
+  const auto globalDt = allReduce(dt.first, SPHERAL_OP_MIN);
 
   // Are we verbose?
   if (dt.first == globalDt and 
@@ -351,7 +316,7 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 // stuff.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        const Scalar dt,
                                        const DataBase<Dimension>& dataBase, 
@@ -359,9 +324,11 @@ Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
+  bool updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
+    updateBoundaries |= physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
   }
+  return updateBoundaries;
 }
 
 //------------------------------------------------------------------------------
@@ -389,7 +356,9 @@ void
 Integrator<Dimension>::
 appendPhysicsPackage(Physics<Dimension>& package) {
   if (!havePhysicsPackage(package)) {
+    for (auto* packagePtr: package.preSubPackages()) this->appendPhysicsPackage(*packagePtr);
     mPhysicsPackages.push_back(&package);
+    for (auto* packagePtr: package.postSubPackages()) this->appendPhysicsPackage(*packagePtr);
   } else {
     cerr << "Warning: attempt to append Physics package " << &package
          << "to Integrator " << this << " which already has it." << endl;

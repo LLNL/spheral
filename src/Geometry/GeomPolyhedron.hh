@@ -12,13 +12,10 @@
 #include "GeomTensor.hh"
 #include "GeomFacet3d.hh"
 
-#include "axom/config.hpp"                          // compile time definitions
-#include "axom/core.hpp"                            // for execution_space traits
-#include "axom/mint.hpp"                            // for mint classes and functions
-#include "axom/quest.hpp"                           // axom surface queries (containment)
+#include "axom/quest.hpp"
 
 #include <vector>
-#include <memory>
+#include <utility>
 
 namespace Spheral {
 
@@ -27,6 +24,7 @@ public:
   //--------------------------- Public Interface ---------------------------//
   using Vector = GeomVector<3>;
   using Tensor = GeomTensor<3>;
+  using SymTensor = GeomSymmetricTensor<3>;
   using Facet = GeomFacet3d;
 
   //----------------------------------------------------------------------------
