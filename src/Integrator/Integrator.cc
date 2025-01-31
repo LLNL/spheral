@@ -85,10 +85,13 @@ Integrator(DataBase<Dimension>& dataBase,
   mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
+  mRequireIntersectionConnectivity(false),
   mDataBase(dataBase),
-  mPhysicsPackages(physicsPackages),
+  mPhysicsPackages(),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
+  for (auto& pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
 }
 
 //------------------------------------------------------------------------------

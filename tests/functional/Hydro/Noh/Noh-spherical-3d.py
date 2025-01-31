@@ -280,12 +280,11 @@ if svph:
 elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
+                   order = correctionOrder,
                    filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
-                   correctionOrder = correctionOrder,
-                   volumeType = volumeType,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate,
                    ASPH = asph)
@@ -296,7 +295,6 @@ elif fsisph:
                    interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.00,
-                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
                    linearCorrectGradients = correctVelocityGradient,
@@ -381,11 +379,12 @@ else:
                 nTensile = nTensile,
                 ASPH = asph)
 output("hydro")
-output("hydro.kernel")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
-if not (gsph or mfm or mfv or fsisph):
+try:
     output("hydro.PiKernel")
+except:
+    pass
 if not fsisph:
     output("hydro.densityUpdate")
 output("hydro._smoothingScaleMethod.HEvolution")

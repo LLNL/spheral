@@ -18,6 +18,12 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  execute_process(
+    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git branch --show-current
+    OUTPUT_VARIABLE gitbranch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
   set(SPHERAL_VERSION_LIST ${tagcomm} ${githash} ${abbref})
   string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 endif()

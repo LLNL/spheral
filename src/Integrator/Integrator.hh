@@ -46,8 +46,12 @@ public:
   Integrator(DataBase<Dimension>& dataBase);
   Integrator(DataBase<Dimension>& dataBase,
              const std::vector<Physics<Dimension>*>& physicsPackages);
-  Integrator& operator=(const Integrator& rhs) = default;
+
+  // Destructor.
   virtual ~Integrator() = default;
+
+  // Assignment.
+  Integrator& operator=(const Integrator& rhs) = default;
 
   // All Integrator classes must define the dt and step methods.
   virtual bool step(Scalar maxTime,

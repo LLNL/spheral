@@ -14,6 +14,9 @@ def sys_arch():
 def config():
     return "@SPHERAL_CONFIGURATION@"
 
+def spheral_enable_mpi():
+    return ("@ENABLE_MPI@".lower() in ["on", "true", "1"])
+
 def component_configs():
     return [@SPHERAL_COMP_CONFIG_STR@]
 
@@ -23,6 +26,15 @@ def caliper_module_path():
         return os.path.join(caliper_loc, "lib64/caliper")
     else:
         return None
+
+def version():
+    return "@spheralversion@"
+
+def git_hash():
+    return "@githash@"
+
+def git_branch():
+    return "@gitbranch@"
 
 def test_install_path():
     return "@SPHERAL_TEST_INSTALL_PREFIX@"

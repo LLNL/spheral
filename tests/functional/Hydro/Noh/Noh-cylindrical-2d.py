@@ -31,8 +31,18 @@
 #
 # GSPH
 #
-#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=4.0", np=8, gsph=True)
-#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=4.0, restart test", np=8, gsph=True)
+#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.5", np=8, gsph=True)
+#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFM
+#
+#ATS:mfm0 = test(         SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFM, nPerh=2.5", np=8, gsph=True)
+#ATS:mfm1 = testif(mfm0,  SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFM, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFV
+#
+#ATS:mfv0 = test(         SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFV, nPerh=2.5", np=8, gsph=True)
+#ATS:mfv1 = testif(mfv0,  SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFV, nPerh=2.5, restart test", np=8, gsph=True)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -97,7 +107,8 @@ commandLine(seed = "constantDTheta",
             XSPH = False,                       # monaghan's xsph -- move w/ averaged velocity
             epsilonTensile = 0.0,               # coefficient for the tensile correction
             nTensile = 8,                       # exponent for tensile correction
-            xfilter = 0.0,
+            fhourglass = 0.0,                   # Subpoint hourglass filtering
+            xfilter = 0.0,                      # Subpoint hourglass filtering
 
             # PSPH options
             HopkinsConductivity = False,     # For PSPH
@@ -132,7 +143,6 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
-            fhourglass = 0.0,
 
             # kernel options
             KernelConstructor = WendlandC4Kernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
@@ -359,7 +369,6 @@ elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
@@ -369,7 +378,6 @@ elif crksph:
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = xfilter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
@@ -383,7 +391,7 @@ elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   interfaceMethod = HLLCModulus,
+                   interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.1,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -452,7 +460,6 @@ elif mfv:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = xfilter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,

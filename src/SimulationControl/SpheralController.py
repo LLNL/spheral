@@ -410,6 +410,7 @@ class SpheralController:
         print(f"Total number of (internal, ghost, active ghost) nodes : ({numInternal}, {numGhost}, {numActGhost})")
         adiak_value("total_internal_nodes", numInternal)
         adiak_value("total_ghost_nodes", numGhost)
+        adiak_value("total_steps", self.totalSteps)
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()

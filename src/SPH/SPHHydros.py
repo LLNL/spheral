@@ -130,7 +130,10 @@ def SPH(W,
     if smoothingScaleMethod is None:
         WH = W.baseKernel1d if GeometryRegistrar.coords() == CoordinateType.Spherical else W
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, WH)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, WH)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, WH)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, WH)")
     result._smoothingScaleMethod = smoothingScaleMethod
