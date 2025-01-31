@@ -1,7 +1,7 @@
 """
 Compare performance data for Spheral
 
-Use on LC systems with the following steps:
+Do a performance regression test on LC systems with the following steps:
 
   1. Run the performance test in Spheral
 
@@ -9,7 +9,7 @@ Use on LC systems with the following steps:
 
   2. Run this script and point to the directory created by ATS in step 1
 
-     $> ./spheral performance_analysis.py --perf-dir test_dir_name
+     $> ./spheral performance_analysis.py --perfdata test_dir_name
 """
 
 import os, sys, shutil, glob
@@ -19,7 +19,7 @@ try:
     import thicket as th
     import hatchet as ht
 except:
-    print("Thicket not found. Be sure to load virtual environment first")
+    print("Thicket not found. Make sure the TPLs are up-to-date.")
     raise Exception
 
 from IPython.display import display
@@ -161,52 +161,68 @@ def get_caliper_files(file_path):
 #---------------------------------------------------------------------------
 # Setup argument parser
 #---------------------------------------------------------------------------
-parser = argparse.ArgumentParser()
-parser.add_argument("--perf-dir", type=str,
-                    help="Directory either containing an atsr.py file or a collection of Caliper files")
-parser.add_argument("--ref", type=str, default=None,
-                    help="Directory of Caliper files to use as reference timings.\n"+\
-                    "Uses the shared benchmark performance data from CI by default.")
-parser.add_argument("--diff-configs", action="store_true",
-                    help="Set to true to allow comparisons across hardware/compiler configuration")
+parser = argparse.ArgumentParser(
+    usage="""If doing a performance regression test, use inputs:
+    --perfdata1 /path/to/perfdata --ref /path/to/benchmark/data
+    Otherwise, compare two performance outputs using:
+    --perfdata1 /path/to/perfdata --perfdata2 /path/to/perfdata2
+    If only --perfdata1 is specified, --ref is set to be the latest upstream benchmark data
+    """)
+parser.add_argument("--perfdata1", "--perfdata", type=str, required=True,
+                    help="Directory containing an atsr.py file "+\
+                    "or a collection of Caliper files.")
+group = parser.add_mutually_exclusive_group()
+group.add_argument("--ref", type=str, default=None,
+                   help="Directory of Caliper files to use as reference for "+\
+                   " comparing against a threshold. Exits with failure perfdata1 "+\
+                   "times exceed threshold.")
+group.add_argument("--perfdata2", type=str, default=None,
+                   help="Directory of an atsr.py file or a collection of Caliper "+\
+                   "files to compare against perfdata1.")
+parser.add_argument("--test-name", type=str, default=None,
+                    help="If comparing a specific test, default is compare all.")
 parser.add_argument("--display", action="store_true",
-                    help="Display a tree for timers that failed")
+                    help="Display a tree for timers that failed.")
 args = parser.parse_args()
 
 # Create a Thicket of the current performance data
 #-------------------------------------------------
 
-cali_files, benchmarks = get_caliper_files(args.perf_dir)
+cali_files, benchmarks = get_caliper_files(args.perfdata1)
 if (len(cali_files) == 0):
-    raise Exception(f"No .cali files found in {args.perf_dir}")
+    raise Exception(f"No .cali files found in {args.perfdata1}")
 curdata = th.Thicket.from_caliperreader(cali_files)
 
-# Create a Thicket of the reference data
-#---------------------------------------
+# Create a Thicket of the other performance data
+#-----------------------------------------------
 
-# If reference data is specified, grab the data directly
-if (args.ref):
-    cali_ref_files, unused_benchmark = get_caliper_files(args.ref)
+do_thresh_test = False
+if (args.perfdata2):
+    cali_ref_files, unused_benchmark = get_caliper_files(args.perfdata2)
 else:
-    # If no ref or benchmark_dir is provided, look for the benchmark in the
-    # atsr.py file or a Caliper file
-    # Check for reference from atsr.py
-    ref_files = benchmarks
-    # Check in a Caliper file
-    if (not ref_files):
-        try:
-            ref_files = curdata.metadata["benchmark_dir"].iloc[0]
-        except:
-            raise Exception("No reference or benchmark data specified")
-    # If we using benchmark reference data, only grab the current install/machine
-    # Get install config and machine name from current data
-    install_config = curdata.metadata["install_config"].iloc[0]
-    machine_name = curdata.metadata["cluster"].iloc[0]
-    ref_loc = os.path.join(ref_files,
-                           install_config,
-                           machine_name,
-                           "latest/*.cali")
-    cali_ref_files = glob.glob(ref_loc, recursive=True)
+    do_thresh_test = True
+    if (args.ref):
+        cali_ref_files, unused_benchmark = get_caliper_files(args.ref)
+    else:
+        # If no ref or benchmark_dir is provided, look for the benchmark in the
+        # atsr.py file or a Caliper file
+        # Check for reference from atsr.py
+        ref_files = benchmarks
+        # Check in a Caliper file
+        if (not ref_files):
+            try:
+                ref_files = curdata.metadata["benchmark_dir"].iloc[0]
+            except:
+                raise Exception("No reference or benchmark data specified")
+        # If we using benchmark reference data, only grab the current install/machine
+        # Get install config and machine name from current data
+        install_config = curdata.metadata["install_config"].iloc[0]
+        machine_name = curdata.metadata["cluster"].iloc[0]
+        ref_loc = os.path.join(ref_files,
+                               install_config,
+                               machine_name,
+                               "latest/*.cali")
+        cali_ref_files = glob.glob(ref_loc, recursive=True)
 if (len(cali_ref_files) == 0):
     raise Exception(f"No Caliper files found in {cali_ref_files}")
 refdata = th.Thicket.from_caliperreader(cali_ref_files)
@@ -219,9 +235,10 @@ cur_test_data = group_tests(curdata)
 ref_test_data = group_tests(refdata)
 
 test_status = {}
-failed_tests = {}
 for test_key, ctest in cur_test_data.items():
     test_name = test_key[0]
+    if (args.test_name and args.test_name != test_name):
+        continue
     test_sph_nodes = test_key[1]
     test_steps = test_key[2]
     if (test_key not in ref_test_data):
@@ -235,58 +252,72 @@ for test_key, ctest in cur_test_data.items():
             test_status.update({test_name: ("SKIPPED-TEST", ftest_configs)})
         continue
     rtest = ref_test_data[test_key]
-    if (not args.diff_configs):
+    if (do_thresh_test):
         fh_configs = compare_config(ctest, rtest)
         if (fh_configs):
             # This means the hardware/compiler configurations differs
             test_status.update({test_name: ("SKIPPED-CONF", fh_configs)})
             continue
-    mult_refs = True
-    # Get statistical data for reference config
-    if (len(rtest.profile) == 1):
-        print(f"Warning: Only 1 reference run found for {test_name}")
-        mult_refs = False
-    metric0 = "Avg time/rank"
-    metric1 = "Avg time/rank (exc)"
-    metrics = [metric0, metric1]
-    # Get statistical values
-    th.stats.mean(rtest, metrics)
-    if mult_refs:
-        th.stats.std(rtest, metrics)
-    # Compute the max allowable time for the main region
-    ctest.statsframe.dataframe["thresh"] = compute_threshold(rtest.statsframe, metric0)
-    ctest.move_metrics_to_statsframe([metric0])
-    ref_main = get_times(rtest.statsframe, "main", metric0+"_mean")[0]
-    cur_main = get_times(ctest.statsframe, "main", metric0)[0]
-    ref_thresh = get_times(ctest.statsframe, "main", "thresh")[0]
-    main_diff = cur_main - ref_main
-    if (main_diff > ref_thresh):
-        cur_status = "FAILED"
-        if args.display:
-            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
-    elif (main_diff < -ref_thresh):
-        cur_status = "PASSED"
-        if args.display:
-            display(ctest.statsframe.tree(metric1, metric1+"_mean"))
+    metrics = ["Avg time/rank", "Avg time/rank (exc)"]
+    cmetrics = metrics
+    rmetrics = metrics
+    # Get stats for current tests
+    if (len(ctest.profile) > 1):
+        th.stats.mean(ctest, metrics)
+        cmetrics = [x+"_mean" for x in cmetrics]
     else:
-        cur_status = "PASSED"
-    test_status.update({test_name: (cur_status, cur_main, ref_main, ref_thresh)})
+        ctest.move_metrics_to_statsframe(cmetrics)
+    # Get stats for other tests
+    if (len(rtest.profile) > 1):
+        th.stats.mean(rtest, metrics)
+        th.stats.std(rtest, metrics)
+        rmetrics = [x+"_mean" for x in rmetrics]
+    else:
+        rtest.move_metrics_to_statsframe(rmetrics)
+    # Extract times of "main" region
+    cmain = get_times(ctest.statsframe, "main", cmetrics[0])[0]
+    rmain = get_times(rtest.statsframe, "main", rmetrics[0])[0]
+    main_diff = cmain - rmain
+    if (do_thresh_test):
+        # Compute the max allowable time for the main region
+        ctest.statsframe.dataframe["thresh"] = compute_threshold(rtest.statsframe, metrics[0])
+        ref_thresh = get_times(ctest.statsframe, "main", "thresh")[0]
+        if (main_diff > ref_thresh):
+            cur_status = "FAILED"
+            if args.display:
+                display(ctest.statsframe.tree(cmetrics[1]))
+        elif (main_diff < -ref_thresh):
+            cur_status = "PASSED"
+            if args.display:
+                display(ctest.statsframe.tree(cmetrics[1]))
+        else:
+            cur_status = "PASSED"
+        test_status.update({test_name: (cur_status, cmain, rmain, ref_thresh)})
+    else:
+        test_status.update({test_name: ("NA", cmain, rmain)})
 num_failed = 0
+if (do_thresh_test):
+    print("Test name: test status, % change in time of 'main' region")
+    print("Negative values mean perfdata was faster than reference")
+else:
+    print("Test name: % change in time of 'main' region")
+    print("Negative values mean perfdata1 was faster than perfdata2")
 for test_name, val in test_status.items():
     if ("SKIPPED" in val[0]):
-        print(f"{test_name}: SKIPPED. Differences found for:")
-        for i in val[1]:
-            print(i)
-        if (val[0] == "SKIPPED-CONF"):
-            print("Rerun with --diff-configs to allow comparisons across hardware/compilers")
-    else:
+        diff_str = " ".join(str(x) for x in val[1])
+        print(f"{test_name}: SKIPPED, Differences found in: {diff_str}")
+    elif (do_thresh_test):
         ctime = val[1]
         rtime = val[2]
         thresh = val[3]
         if ("FAILED" in val[0]):
             num_failed += 1
-            print(f"{test_name}: FAILED. Time of 'main' current/ref: {ctime/rtime*100.:0.3f}%")
+            print(f"{test_name}: FAILED, {(ctime/rtime-1.)*100.:0.3f}%")
         else:
-            print(f"{test_name}: PASSED. Time of 'main' current/ref: {ctime/rtime*100.:0.3f}%")
+            print(f"{test_name}: PASSED, {(ctime/rtime-1.)*100.:0.3f}%")
+    else:
+        ctime = val[1]
+        rtime = val[2]
+        print(f"{test_name}: {(ctime/rtime-1.)*100.:0.3f}%")
 if (num_failed > 0):
     raise Exception(f"{num_failed} have failed")
