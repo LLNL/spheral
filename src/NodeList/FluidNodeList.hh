@@ -29,7 +29,6 @@ template<typename Dimension, typename DataType> class Field;
 template<typename Dimension, typename DataType> class FieldList;
 template<typename Dimension> class EquationOfState;
 template<typename Dimension> class TableKernel;
-template<typename Dimension> class ArtificialViscosity;
 template<typename Dimension> class DataBase;
 class FileIO;
 

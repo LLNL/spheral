@@ -120,12 +120,9 @@ inline
 Value&
 StateBase<Dimension>::
 get(const typename StateBase<Dimension>::KeyType& key) const {
-  auto itr = mStorage.find(key);
-  VERIFY2(itr != mStorage.end(), "StateBase ERROR: failed lookup for key " << key);
-  if (itr->second.type() == typeid(std::reference_wrapper<Value>)) {
-    return std::any_cast<std::reference_wrapper<Value>>(itr->second);
-  }
-  VERIFY2(false, "StateBase::get ERROR: unable to extract Value for " << key << "\n");
+  Value* ptr = this->template getPtr<Value>(key);
+  VERIFY2(ptr != nullptr, "StateBase ERROR: failed to return type for key " << key);
+  return *ptr;
 }
 
 // Same thing passing a dummy argument to help with template type
@@ -137,6 +134,33 @@ StateBase<Dimension>::
 get(const typename StateBase<Dimension>::KeyType& key,
     const Value&) const {
   return this->get<Value>(key);
+}
+
+//------------------------------------------------------------------------------
+// Extract an arbitrary type as a pointer
+// Does not throw, but rather returns nullptr if failing
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename Value>
+inline
+Value*
+StateBase<Dimension>::
+getPtr(const typename StateBase<Dimension>::KeyType& key) const {
+  auto itr = mStorage.find(key);
+  if (itr == mStorage.end() or
+      itr->second.type() != typeid(std::reference_wrapper<Value>)) return nullptr;
+  return &(std::any_cast<std::reference_wrapper<Value>>(itr->second).get());
+}
+
+// Same thing passing a dummy argument to help with template type
+template<typename Dimension>
+template<typename Value>
+inline
+Value*
+StateBase<Dimension>::
+getPtr(const typename StateBase<Dimension>::KeyType& key,
+       const Value&) const {
+  return this->getPtr<Value>(key);
 }
 
 //------------------------------------------------------------------------------

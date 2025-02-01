@@ -98,7 +98,6 @@ commandLine(KernelConstructor = WendlandC4Kernel3d,
             XSPH = False,
             epsilonTensile = 0.0,
             nTensile = 4.0,
-            filter = 0.0,
 
             IntegratorConstructor = VerletIntegrator,
             goalTime = 0.6,
@@ -190,8 +189,7 @@ dataDir = os.path.join(dataDirBase,
                        hydroname,
                        "nPerh=%f" % nPerh,
                        "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "filter=%f" % filter)
+                       "Cullen=%s" % boolCullenViscosity)
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "Noh-spherical-1d-%i" % nr)
 
@@ -282,7 +280,6 @@ output("db.numFluidNodeLists")
 if crksph:
     hydro = CRKSPH(dataBase = db,
                    order = correctionOrder,
-                   filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -294,7 +291,6 @@ if crksph:
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = filter,
                  cfl = cfl,
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                  compatibleEnergyEvolution = compatibleEnergy,
@@ -307,7 +303,6 @@ elif psph:
 elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
-                   filter = filter,
                    cfl = cfl,
                    interfaceMethod = ModulusInterface,
                    sumDensityNodeLists=[nodes1],                       
@@ -340,7 +335,6 @@ elif gsph:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,

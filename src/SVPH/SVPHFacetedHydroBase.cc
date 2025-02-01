@@ -66,7 +66,7 @@ namespace Spheral {
 template<typename Dimension>
 SVPHFacetedHydroBase<Dimension>::
 SVPHFacetedHydroBase(const TableKernel<Dimension>& W,
-                     ArtificialViscosity<Dimension>& Q,
+                     ArtificialViscosityHandle<Dimension>& Q,
                      const double cfl,
                      const bool useVelocityMagnitudeForDt,
                      const bool compatibleEnergyEvolution,
@@ -97,7 +97,6 @@ SVPHFacetedHydroBase(const TableKernel<Dimension>& W,
   mPressure(FieldStorageType::CopyFields),
   mCellPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldStorageType::CopyFields),
   mMassDensitySum(FieldStorageType::CopyFields),
   mXSVPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
@@ -321,7 +320,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mXSVPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Field<Dimension, Vector> >::prefix() + HydroFieldNames::position, false);
@@ -334,7 +332,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // dataBase.resizeFluidFieldList(mFaceAcceleration, vector<Vector>(), IncrementState<Dimension, Vector>::prefix() + "Face " + HydroFieldNames::velocity, false);
 
   for (auto [i, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
-    derivs.enroll(*mMaxViscousPressure[i]);
     derivs.enroll(*mMassDensitySum[i]);
     derivs.enroll(*mXSVPHDeltaV[i]);
 
@@ -356,32 +353,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Initialize the hydro before trying to evaluateDerivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SVPHFacetedHydroBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-
-  // Get the artificial viscosity and initialize it.
-  // We depend on the caller knowing to finalize the ghost boundaries for the Q.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               this->kernel());
-}
-
-//------------------------------------------------------------------------------
-// Determine the principle derivatives.
+// evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
@@ -392,12 +364,11 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  typedef typename Mesh<Dimension>::Zone Zone;
-  typedef typename Mesh<Dimension>::Face Face;
+  using Zone = typename Mesh<Dimension>::Zone;
+  using Face = typename Mesh<Dimension>::Face;
 
-  // Get the ArtificialViscosity.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  TensorSVPHViscosity<Dimension>* Qptr = dynamic_cast<TensorSVPHViscosity<Dimension>*>(&Q);
+  // Get our special ArtificialViscosity.
+  const auto& Q = dynamic_cast<TensorSVPHViscosity<Dimension>&>(this->artificialViscosity());
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
@@ -463,7 +434,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   vector<Tensor> Qface(numFaces, Tensor::zero);
   vector<SymTensor> Hface(numFaces, SymTensor::zero);
 
-  if (Qptr != 0) Qface = Qptr->Qface();
+  Qface = Q.Qface();
 
   // Compute the SVPH corrections.
   vector<Scalar> A;
@@ -554,56 +525,56 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   // }
 
   // Determine the Q (requires correct boundary enforced velocities).
-  if (Qptr == 0) {
-    for (k = 0; k != numFaces; ++k) {
-      const Vector& Bi = B[k];
+  // if (Qptr == 0) {
+  //   for (k = 0; k != numFaces; ++k) {
+  //     const Vector& Bi = B[k];
 
-      // Set the neighbors for this face.
-      vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
-      Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
-                                                  nodeLists.begin(), nodeLists.end(),
-                                                  W.kernelExtent(),
-                                                  masterLists,
-                                                  coarseNeighbors);
+  //     // Set the neighbors for this face.
+  //     vector<vector<int>> masterLists, coarseNeighbors, refineNeighbors;
+  //     Neighbor<Dimension>::setMasterNeighborGroup(posFace[k], H0,
+  //                                                 nodeLists.begin(), nodeLists.end(),
+  //                                                 W.kernelExtent(),
+  //                                                 masterLists,
+  //                                                 coarseNeighbors);
 
-      // Iterate over the NodeLists.
-      for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
-        const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
-        Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
-        neighbor.setRefineNeighborList(posFace[k], H0, coarseNeighbors[nodeListj], refineNeighbors[nodeListj]);
-        for (auto neighborItr = refineNeighbors[nodeListj].begin(); neighborItr != refineNeighbors[nodeListj].end(); ++neighborItr) {
-          j = *neighborItr;
+  //     // Iterate over the NodeLists.
+  //     for (nodeListj = 0; nodeListj != numNodeLists; ++nodeListj) {
+  //       const NodeList<Dimension>& nodeList = *nodeLists[nodeListj];
+  //       Neighbor<Dimension>& neighbor = const_cast<Neighbor<Dimension>&>(nodeList.neighbor());
+  //       neighbor.setRefineNeighborList(posFace[k], H0, coarseNeighbors[nodeListj], refineNeighbors[nodeListj]);
+  //       for (auto neighborItr = refineNeighbors[nodeListj].begin(); neighborItr != refineNeighbors[nodeListj].end(); ++neighborItr) {
+  //         j = *neighborItr;
       
-          // Get the state for node j
-          const Vector& rj = position(nodeListj, j);
-          const Vector& vj = velocity(nodeListj, j);
-          const Scalar& rhoj = massDensity(nodeListj, j);
-          const Scalar& cj = soundSpeed(nodeListj, j);
-          const SymTensor& Hj = H(nodeListj, j);
-          const Scalar& Vj = volume(nodeListj, j);
-          Hdetj = Hj.Determinant();
-          CHECK(Vj > 0.0);
-          CHECK(Hdetj > 0.0);
+  //         // Get the state for node j
+  //         const Vector& rj = position(nodeListj, j);
+  //         const Vector& vj = velocity(nodeListj, j);
+  //         const Scalar& rhoj = massDensity(nodeListj, j);
+  //         const Scalar& cj = soundSpeed(nodeListj, j);
+  //         const SymTensor& Hj = H(nodeListj, j);
+  //         const Scalar& Vj = volume(nodeListj, j);
+  //         Hdetj = Hj.Determinant();
+  //         CHECK(Vj > 0.0);
+  //         CHECK(Hdetj > 0.0);
 
-          // Pair-wise kernel type stuff.
-          const Vector rij = posFace[k] - rj;
-          const Vector etai = Hface[k]*rij;
-          const Vector etaj = Hj*rij;
-          const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
-          const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
+  //         // Pair-wise kernel type stuff.
+  //         const Vector rij = posFace[k] - rj;
+  //         const Vector etai = Hface[k]*rij;
+  //         const Vector etaj = Hj*rij;
+  //         const Scalar Wj = W.kernelValue(etaj.magnitude(), Hdetj);
+  //         const Scalar VWRj = Vj*(1.0 + Bi.dot(rij))*Wj;
 
-          // Get the face Q values (in this case P/rho^2).
-          const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
-                                                    posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
-                                                    rj, etaj, vj, rhoj, cj, Hj);
-          //Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
-          Qface[k] += VWRj*rhoj*rhoj*QPiij.second;
-          const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
-          maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
-        }
-      }
-    }
-  }
+  //         // Get the face Q values (in this case P/rho^2).
+  //         const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListj, j, nodeListj, j,
+  //                                                   posFace[k], etai, velFace[k], rhoFace[k], csFace[k], Hface[k],
+  //                                                   rj, etaj, vj, rhoj, cj, Hj);
+  //         //Qface[k] += 0.5*VWRj*(rhoFace[k]*rhoFace[k]*QPiij.first + rhoj*rhoj*QPiij.second);
+  //         Qface[k] += VWRj*rhoj*rhoj*QPiij.second;
+  //         const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
+  //         maxViscousPressure(nodeListj, j) = max(maxViscousPressure(nodeListj, j), Qj);
+  //       }
+  //     }
+  //   }
+  // }
 
   // // Boundaries!
   // for (ConstBoundaryIterator itr = this->boundaryBegin();
@@ -617,7 +588,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
     const Scalar& Ai = A[k];
     CHECK2(Ai >= 0.0, i << " " << Ai);
     Pface[k] *= Ai;
-    if (Qptr == 0) Qface[k] *= Ai;
+    // if (Qptr == 0) Qface[k] *= Ai;
 
     Pface[k] = (1.0 - mfcellPressure)*Pface[k] + mfcellPressure*PcellFace[k];
   }
@@ -1050,7 +1021,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mCellPressure, pathName + "/cellPressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.write(mMassDensitySum, pathName + "/massDensitySum");
   file.write(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 
@@ -1076,7 +1046,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mCellPressure, pathName + "/cellPressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
   file.read(mMassDensitySum, pathName + "/massDensitySum");
   file.read(mXSVPHDeltaV, pathName + "/XSVPHDeltaV");
 

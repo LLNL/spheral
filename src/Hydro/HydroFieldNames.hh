@@ -28,7 +28,6 @@ struct HydroFieldNames {
   static const std::string maxViscousPressure;
   static const std::string effectiveViscousPressure;
   static const std::string massDensityCorrection;
-  static const std::string viscousWork;
   static const std::string XSPHDeltaV;
   static const std::string XSPHWeightSum;
   static const std::string Hsmooth;
@@ -42,6 +41,7 @@ struct HydroFieldNames {
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
   static const std::string pairWork;
+  static const std::string selfAccelerations;
   static const std::string gamma;
   static const std::string entropy;
   static const std::string PSPHcorrection;
@@ -66,6 +66,8 @@ struct HydroFieldNames {
   static const std::string massDensityGradient;
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
+  static const std::string ArtificialViscosityVelocityGradient;
+  static const std::string pairQPi;
   static const std::string specificHeat;
   static const std::string normal;
   static const std::string surfaceArea;

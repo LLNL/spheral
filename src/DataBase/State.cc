@@ -73,17 +73,6 @@ namespace {
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State():
-  StateBase<Dimension>(),
-  mPolicyMap(),
-  mTimeAdvanceOnly(false) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the state for the given set of Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -95,6 +84,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: physicsPackages) pkg->registerState(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
@@ -110,40 +101,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerState(dataBase, *this);
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State(const State<Dimension>& rhs):
-  StateBase<Dimension>(rhs),
-  mPolicyMap(rhs.mPolicyMap),
-  mTimeAdvanceOnly(rhs.mTimeAdvanceOnly) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-~State() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>&
-State<Dimension>::
-operator=(const State<Dimension>& rhs) {
-  if (this != &rhs) {
-    StateBase<Dimension>::operator=(rhs);
-    mPolicyMap = rhs.mPolicyMap;
-    mTimeAdvanceOnly = rhs.mTimeAdvanceOnly;
-  }
-  return *this;
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------

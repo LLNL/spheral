@@ -14,7 +14,7 @@ namespace Spheral {
 
 template<typename Dimension> class State;
 template<typename Dimension> class StateDerivatives;
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename DataType> class Field;
@@ -36,7 +36,7 @@ public:
 
   // Constructors.
   SVPHFacetedHydroBase(const TableKernel<Dimension>& W,
-                       ArtificialViscosity<Dimension>& Q,
+                       ArtificialViscosityHandle<Dimension>& Q,
                        const double cfl,
                        const bool useVelocityMagnitudeForDt,
                        const bool compatibleEnergyEvolution,
@@ -77,14 +77,6 @@ public:
   void registerDerivatives(DataBase<Dimension>& dataBase,
                            StateDerivatives<Dimension>& derivs) override;
 
-  // Initialize the Hydro before we start a derivative evaluation.
-  virtual
-  void initialize(const Scalar time,
-                  const Scalar dt,
-                  const DataBase<Dimension>& dataBase,
-                  State<Dimension>& state,
-                  StateDerivatives<Dimension>& derivs) override;
-                       
   // Evaluate the derivatives for the principle hydro variables:
   // mass density, velocity, and specific thermal energy.
   virtual
@@ -174,7 +166,6 @@ public:
   const FieldList<Dimension, Scalar>&    cellPressure() const;
   const FieldList<Dimension, Scalar>&    soundSpeed() const;
   const FieldList<Dimension, Scalar>&    volume() const;
-  const FieldList<Dimension, Scalar>&    maxViscousPressure() const;
   const FieldList<Dimension, Scalar>&    massDensitySum() const;
   const FieldList<Dimension, Vector>&    XSVPHDeltaV() const;
   const FieldList<Dimension, Vector>&    DxDt() const;
@@ -221,7 +212,6 @@ protected:
   FieldList<Dimension, Scalar>    mCellPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
 
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
   FieldList<Dimension, Scalar>    mMassDensitySum;
 
   FieldList<Dimension, Vector>    mXSVPHDeltaV;

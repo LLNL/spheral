@@ -7,6 +7,9 @@
 //------------------------------------------------------------------------------
 // #define BOOST_DATE_TIME_POSIX_TIME_STD_CONFIG     // Enable nanosecond timings.
 // #include <boost/date_time/posix_time/posix_time.hpp>
+#ifndef __Spheral__timingUtilities__
+#define __Spheral__timingUtilities__
+
 #include <chrono>   // C++11
 
 namespace Spheral {
@@ -24,3 +27,5 @@ struct Timing {
   static duration zero() { return duration(0); }
 };
 }
+
+#endif

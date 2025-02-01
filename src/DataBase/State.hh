@@ -41,16 +41,14 @@ public:
   using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
   // Constructors, destructor.
-  State();
   State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
   State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
-  State(const State& rhs);
-  virtual ~State();
-
-  // Assignment.
-  State& operator=(const State& rhs);
+  State() = default;
+  State(const State& rhs) = default;
+  State& operator=(const State& rhs) = default;
+  virtual ~State() = default;
 
   // Override the base equivalence operator
   virtual bool operator==(const StateBase<Dimension>& rhs) const override;

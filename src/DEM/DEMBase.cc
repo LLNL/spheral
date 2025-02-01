@@ -821,8 +821,8 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     const auto uIDj = uniqueIndex(nodeListj,j);
   
     // get our number of internal nodes
-    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
-    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
+    const auto numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
+    const auto numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
 
     // boolean operations to decide which pair-node maintains pair fields
     const auto nodeiIsInternal = i < numInternalNodesi;

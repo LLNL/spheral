@@ -77,7 +77,7 @@ commandLine(
     projectileOutside = True,
 
     # How much should we compress the projectile to allow it to slide into the tube?
-    compressProjectile = 0.5,
+    compressProjectile = 0.3,
 
     # Geometry
     tubeThickness = 0.3,       # cm
@@ -123,7 +123,7 @@ commandLine(
     criticalDamageThreshold = 0.5,
 
     # Node seeding stuff.
-    nPerh = 4.01,
+    nPerh = 3.01,
 
     # Material specific bounds on the mass density.
     etaMinSteel = 0.9,
@@ -166,7 +166,7 @@ commandLine(
     dtGrowth = 10.0,
     maxSteps = 200,
     statsStep = 10,
-    redistributeStep = 200,
+    redistributeStep = 10000,
     smoothIters = 0,
     dtverbose = False,
 

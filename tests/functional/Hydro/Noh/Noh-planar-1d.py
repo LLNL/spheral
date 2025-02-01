@@ -96,7 +96,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             solid = False,                     # If true, use the fluid limit of the solid hydro option
             inflow = False,                    # Should we impose inflow boundaries?
 
-            hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM)
+            hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM, MFV)
             crktype = "default",               # one of ("default", "variant")
             asph = False,                      # For H update algorithm, applies to all hydros
             gsphReconstructionGradient = RiemannGradient, #one of (RiemannGradient, HydroAccelerationGradient, SPHGradient, MixedGradient, OnlyDvDxGradient)
@@ -125,7 +125,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             etaCritFrac = None,
             linearInExpansion = None,
             quadraticInExpansion = None,
-            Qlimiter = None,
             balsaraCorrection = None,
             epsilon2 = None,
             QcorrectionOrder = None,
@@ -137,7 +136,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             epsilonTensile = 0.0,
             nTensile = 4.0,
             fhourglass = 0.0,
-            filter = 0.0,
 
             IntegratorConstructor = CheapSynchronousRK2Integrator,
             goalTime = 0.6,
@@ -147,7 +145,6 @@ commandLine(KernelConstructor = NBSplineKernel,
             dtMax = 0.1,
             dtGrowth = 2.0,
             dtverbose = False,
-            rigorousBoundaries = False,
             updateBoundaryFrequency = 1,
             maxSteps = None,
             statsStep = 1,
@@ -201,7 +198,7 @@ if hydroType == "CRKSPH":
     hydroPath = os.path.join(hydroPath,
                              str(volumeType),
                              str(correctionOrder))
-elif hydroType in ("GSPH", "MFM"):
+elif hydroType in ("GSPH", "MFM", "MFV"):
     hydroPath = os.path.join(hydroPath, str(gsphReconstructionGradient))
 
 if solid:
@@ -213,8 +210,7 @@ if dataDirBase:
                            "nPerh=%f" % nPerh,
                            "compatibleEnergy=%s" % compatibleEnergy,
                            "fhourglass=%s" % fhourglass,
-                           "Cullen=%s" % boolCullenViscosity,
-                           "filter=%f" % filter)
+                           "Cullen=%s" % boolCullenViscosity)
     restartDir = os.path.join(dataDir, "restarts")
     restartBaseName = os.path.join(restartDir, "Noh-planar-1d-%i" % nx1)
 else:
@@ -421,7 +417,6 @@ elif hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = filter,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -433,7 +428,6 @@ elif hydroType == "CRKSPH":
 elif hydroType == "PSPH":
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = filter,
                  cfl = cfl,
                  useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                  compatibleEnergyEvolution = compatibleEnergy,
@@ -495,22 +489,42 @@ elif hydroType == "MFM":
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+elif hydroType == "MFV":
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,
+                  waveSpeed,
+                  True)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                nodeMotionType=NodeMotionType.Lagrangian,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
                 useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
                 gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
-                HUpdate = HUpdate,
-                XSPH = XSPH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile,
+                HUpdate = HUpdate,
                 ASPH = asph)
 output("hydro")
 try:
@@ -528,7 +542,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not hydroType in ("GSPH", "MFM"):
+if not hydroType in ("GSPH", "MFM", "MFV"):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl
@@ -536,8 +550,6 @@ if not hydroType in ("GSPH", "MFM"):
         q.Cq = Cq
     if not epsilon2 is None:
         q.epsilon2 = epsilon2
-    if not Qlimiter is None:
-        q.limiter = Qlimiter
     if not balsaraCorrection is None:
         q.balsaraShearCorrection = balsaraCorrection
     if not QcorrectionOrder is None:
@@ -546,7 +558,6 @@ if not hydroType in ("GSPH", "MFM"):
     output("q.Cl")
     output("q.Cq")
     output("q.epsilon2")
-    output("q.limiter")
     output("q.balsaraShearCorrection")
     if hasattr(q, "linearInExpansion") and not linearInExpansion is None:
         q.linearInExpansion = linearInExpansion
@@ -562,10 +573,10 @@ if not hydroType in ("GSPH", "MFM"):
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -619,7 +630,6 @@ integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax
 integrator.dtGrowth = dtGrowth
-integrator.rigorousBoundaries = rigorousBoundaries
 integrator.updateBoundaryFrequency = updateBoundaryFrequency
 integrator.domainDecompositionIndependent = domainIndependent
 integrator.cullGhostNodes = cullGhostNodes
@@ -629,7 +639,6 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
-output("integrator.rigorousBoundaries")
 output("integrator.updateBoundaryFrequency")
 output("integrator.domainDecompositionIndependent")
 output("integrator.cullGhostNodes")

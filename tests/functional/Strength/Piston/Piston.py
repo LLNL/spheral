@@ -340,10 +340,10 @@ output("q.quadraticInExpansion")
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 

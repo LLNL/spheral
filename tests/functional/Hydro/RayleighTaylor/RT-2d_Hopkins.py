@@ -431,10 +431,10 @@ packages = [hydro]
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity and useArtificialViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity and useArtificialViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WTPi,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------

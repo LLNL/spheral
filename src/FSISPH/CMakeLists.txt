@@ -1,7 +1,7 @@
 include_directories(.)
 
 set(FSISPH_inst
-    SolidFSISPHHydroBase
+    SolidFSISPH
     computeFSISPHSumMassDensity
     computeHWeightedFSISPHSumMassDensity
     computeInterfacePressureCorrectedSumMassDensity
@@ -16,8 +16,8 @@ set(FSISPH_sources
 instantiate(FSISPH_inst FSISPH_sources)
 
 set(FSISPH_headers
-    SolidFSISPHHydroBase.hh
-    SolidFSISPHHydroBaseInline.hh
+    SolidFSISPH.hh
+    SolidFSISPHInline.hh
     computeFSISPHSumMassDensity.hh
     computeHWeightedFSISPHSumMassDensity.hh
     computeInterfacePressureCorrectedSumMassDensity.hh

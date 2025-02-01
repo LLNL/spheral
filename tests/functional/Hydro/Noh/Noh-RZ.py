@@ -106,7 +106,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             vizDerivs = False,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            QcorrectionOrder = LinearOrder,
             volumeType = RKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
@@ -388,7 +387,6 @@ q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")
@@ -400,10 +398,10 @@ output("q.balsaraShearCorrection")
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection,cullenUseHydroDerivatives)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------

@@ -51,16 +51,9 @@ from DEMNodeLists import *
 # ------------------------------------------------------------------------------
 # Import SPH, SVPH, and CRKSPH
 # ------------------------------------------------------------------------------
-from SPHHydros import *
-from PSPHHydros import *
-from GSPHHydros import *
-from FSISPHHydros import *
-from SlideSurfaces import *
-#from SVPHHydros import *
-from CRKSPHHydros import *
-#from TaylorSPHHydros import *
-from DEM import *
-from SPHUtilities import *
+hydroImports_string = "@HYDRO_IMPORTS@"
+for x in hydroImports_string.split():
+    exec(f"from {x} import *")
 
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.

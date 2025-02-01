@@ -365,7 +365,7 @@ packages.append(RL)
 #-------------------------------------------------------------------------------
 
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,aMin,aMax)
     
     packages.append(evolveReducingViscosityMultiplier)
 

@@ -34,6 +34,11 @@ Notable changes include:
       is correct.
     * Performance regression testing is now available. All developers are encouraged to run the performance testing suite for any code changes that might impact performance. See documentation for more details.
     * Added our old ASPH IdealH H update as an option. While it is not as reliable as our current default ASPH, it does not require building the Voronoi and is therefore signifcantly faster.
+    * Converted artificial viscosities to Physics packages, and add them as pre-subpackages to Hydro objects.
+    * Split artificial viscosities based on the type of pressure they compute (currently Scalar or Tensor), which is slightly more efficient.
+      * This required making the hydro packages evaluateDerivatives into templated methods based on the type of Q they are handed.
+      * Also introduced a new base class (ArtificialViscosityHandle), which provides a handle class not templated on the type
+        of Q pressure for Hydro objects to hold onto.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.

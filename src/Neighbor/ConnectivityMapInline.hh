@@ -125,12 +125,25 @@ nodeLists() const {
   return mNodeLists;
 }
 
+
+//------------------------------------------------------------------------------
+// Get the set of NodePairs
+//------------------------------------------------------------------------------
 template<typename Dimension>
 inline
 const NodePairList&
 ConnectivityMap<Dimension>::
 nodePairList() const {
-  return mNodePairList;
+  REQUIRE(mNodePairListPtr);
+  return *mNodePairListPtr;
+}
+
+template<typename Dimension>
+inline
+std::shared_ptr<NodePairList>
+ConnectivityMap<Dimension>::
+nodePairListPtr() const {
+  return mNodePairListPtr;
 }
 
 //------------------------------------------------------------------------------

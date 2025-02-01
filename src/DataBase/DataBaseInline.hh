@@ -343,9 +343,17 @@ inline
 const ConnectivityMap<Dimension>&
 DataBase<Dimension>::
 connectivityMap() const {
-  VERIFY2(mConnectivityMapPtr.use_count() != 0,
+  VERIFY2(mConnectivityMapPtr != 0,
           "DataBase::connectivityMap ERROR -- need to ensure ConnectivityMap is constructed before calling this method.");
   return *mConnectivityMapPtr;
+}
+
+template<typename Dimension>
+inline
+typename DataBase<Dimension>::ConnectivityMapPtr
+DataBase<Dimension>::
+connectivityMapPtr() const {
+  return mConnectivityMapPtr;
 }
 
 template<typename Dimension>
@@ -355,7 +363,7 @@ DataBase<Dimension>::
 connectivityMap(const bool computeGhostConnectivity,
                 const bool computeOverlapConnectivity,
                 const bool computeIntersectionConnectivity) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
+  if (not mConnectivityMapPtr) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
   return *mConnectivityMapPtr;
 }
 
@@ -366,7 +374,7 @@ DataBase<Dimension>::
 connectivityMapPtr(const bool computeGhostConnectivity,
                    const bool computeOverlapConnectivity,
                    const bool computeIntersectionConnectivity) const {
-  if (mConnectivityMapPtr.use_count() == 0) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
+  if (not mConnectivityMapPtr) this->updateConnectivityMap(computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
   return mConnectivityMapPtr;
 }
 

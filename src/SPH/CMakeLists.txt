@@ -1,8 +1,9 @@
 include_directories(.)
 set(SPH_inst
-    SPHHydroBase
-    PSPHHydroBase
-    SolidSPHHydroBase
+    SPHBase
+    SPH
+    PSPH
+    SolidSPH
     computeSPHOmegaGradhCorrection
     computeSPHSumMassDensity
     correctSPHSumMassDensity
@@ -10,21 +11,20 @@ set(SPH_inst
     computeSumVoronoiCellMassDensity
     )
 
-
 set(SPH_sources )
 
 if(ENABLE_1D)
   list(APPEND SPH_sources
        SphericalSPHInst.cc
-       SphericalSPHHydroBase.cc
-       SolidSphericalSPHHydroBase.cc
+       SphericalSPH.cc
+       SolidSphericalSPH.cc
       )
 endif()
 
 if(ENABLE_2D)
   list(APPEND SPH_sources
-       SPHHydroBaseRZ.cc
-       SolidSPHHydroBaseRZ.cc
+       SPHRZ.cc
+       SolidSPHRZ.cc
       )
 endif()
 
@@ -37,16 +37,13 @@ endif()
 instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
-    PSPHHydroBase.hh
-    PSPHHydroBaseInline.hh
-    SPHHydroBase.hh
-    SPHHydroBaseInline.hh
-    SPHHydroBaseRZ.hh
-    SphericalSPHHydroBase.hh
-    SolidSPHHydroBase.hh
-    SolidSPHHydroBaseInline.hh
-    SolidSPHHydroBaseRZ.hh
-    SolidSphericalSPHHydroBase.hh
+    PSPH.hh
+    SPHBase.hh
+    SPHRZ.hh
+    SphericalSPH.hh
+    SolidSPH.hh
+    SolidSPHRZ.hh
+    SolidSphericalSPH.hh
     computeHydrostaticEquilibriumPressure.hh
     computePSPHCorrections.hh
     computeSPHOmegaGradhCorrection.hh

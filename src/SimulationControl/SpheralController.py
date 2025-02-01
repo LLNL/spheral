@@ -238,6 +238,10 @@ class SpheralController:
         for bc in uniquebcs:
             bc.initializeProblemStartup(False)
 
+        # Reconstruct the state and derivs since H and connectivity have updated
+        state = eval("State%s(db, packages)" % (self.dim))
+        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
             self.integrator.preStepInitialize(state, derivs)

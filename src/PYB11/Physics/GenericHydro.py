@@ -9,18 +9,18 @@ from Physics import *
 class GenericHydro(Physics):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool"):
         "GenericHydro constructor"
@@ -60,7 +60,7 @@ class GenericHydro(Physics):
 
     #...........................................................................
     # Attributes
-    artificialViscosity = PYB11property("ArtificialViscosity<%(Dimension)s>&", "artificialViscosity", doc="The artificial viscosity object")
+    artificialViscosity = PYB11property("ArtificialViscosityHandle<%(Dimension)s>&", "artificialViscosity", doc="The artificial viscosity object")
     cfl = PYB11property("Scalar", "cfl", "cfl", doc="The Courant-Friedrichs-Lewy timestep limit multiplier")
     useVelocityMagnitudeForDt = PYB11property("bool", "useVelocityMagnitudeForDt", "useVelocityMagnitudeForDt", doc="Should the pointwise velocity magnitude be used to limit the timestep?")
     minMasterNeighbor = PYB11property("int", "minMasterNeighbor", doc="minimum number of master neighbors found")
