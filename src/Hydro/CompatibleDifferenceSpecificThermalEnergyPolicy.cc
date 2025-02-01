@@ -46,14 +46,6 @@ CompatibleDifferenceSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataB
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>::
-~CompatibleDifferenceSpecificThermalEnergyPolicy() {
-}
-
-//------------------------------------------------------------------------------
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension>

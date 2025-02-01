@@ -106,7 +106,6 @@ commandLine(problem = "planar",     # one of (planar, cylindrical, spherical)
             vizDerivs = False,
             HUpdate = IdealH,
             correctionOrder = LinearOrder,
-            QcorrectionOrder = LinearOrder,
             volumeType = RKSumVolume,
             densityUpdate = RigorousSumDensity, # VolumeScaledDensity,
             compatibleEnergy = True,
@@ -388,7 +387,6 @@ q.Cq = Cq
 q.epsilon2 = epsilon2
 q.limiter = Qlimiter
 q.balsaraShearCorrection = balsaraCorrection
-q.QcorrectionOrder = QcorrectionOrder
 output("q")
 output("q.Cl")
 output("q.Cq")

@@ -96,7 +96,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             solid = False,                     # If true, use the fluid limit of the solid hydro option
             inflow = False,                    # Should we impose inflow boundaries?
 
-            hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM)
+            hydroType = "SPH",                 # one of (SPH, SVPH, CRKSPH, PSPH, FSISPH, GSPH, MFM, MFV)
             crktype = "default",               # one of ("default", "variant")
             asph = False,                      # For H update algorithm, applies to all hydros
             gsphReconstructionGradient = RiemannGradient, #one of (RiemannGradient, HydroAccelerationGradient, SPHGradient, MixedGradient, OnlyDvDxGradient)
@@ -198,7 +198,7 @@ if hydroType == "CRKSPH":
     hydroPath = os.path.join(hydroPath,
                              str(volumeType),
                              str(correctionOrder))
-elif hydroType in ("GSPH", "MFM"):
+elif hydroType in ("GSPH", "MFM", "MFV"):
     hydroPath = os.path.join(hydroPath, str(gsphReconstructionGradient))
 
 if solid:
@@ -489,6 +489,27 @@ elif hydroType == "MFM":
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+elif hydroType == "MFV":
+    limiter = VanLeerLimiter()
+    waveSpeed = DavisWaveSpeed()
+    solver = HLLC(limiter,
+                  waveSpeed,
+                  True)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                nodeMotionType=NodeMotionType.Lagrangian,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient=correctVelocityGradient,
+                evolveTotalEnergy = evolveTotalEnergy,
+                XSPH = XSPH,
+                gradientType = gsphReconstructionGradient,
+                densityUpdate=densityUpdate,
+                HUpdate = IdealH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
@@ -521,7 +542,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Set the artificial viscosity parameters.
 #-------------------------------------------------------------------------------
-if not hydroType in ("GSPH", "MFM"):
+if not hydroType in ("GSPH", "MFM", "MFV"):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl
