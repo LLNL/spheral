@@ -123,5 +123,7 @@ def main():
       sexe("make test".format(), echo=True, ret_output=False)
 
 
+    sexe(build_cmd, echo=True, ret_output=False)
+
 if __name__ == "__main__":
   main()
