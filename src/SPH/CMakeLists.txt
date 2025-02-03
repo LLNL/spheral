@@ -1,15 +1,15 @@
 include_directories(.)
 set(SPH_inst
-    SPHBase
-    SPH
-    PSPH
-    SolidSPH
-    computeSPHOmegaGradhCorrection
-    computeSPHSumMassDensity
-    correctSPHSumMassDensity
-    computePSPHCorrections
-    computeSumVoronoiCellMassDensity
-    )
+  SPHBase
+  SPH
+  PSPH
+  SolidSPH
+  computeSPHOmegaGradhCorrection
+  computeSPHSumMassDensity
+  correctSPHSumMassDensity
+  computePSPHCorrections
+  computeSumVoronoiCellMassDensity
+)
 
 set(SPH_sources )
 
@@ -37,27 +37,28 @@ endif()
 instantiate(SPH_inst SPH_sources)
 
 set(SPH_headers
-    PSPH.hh
-    SPHBase.hh
-    SPHRZ.hh
-    SphericalSPH.hh
-    SolidSPH.hh
-    SolidSPHRZ.hh
-    SolidSphericalSPH.hh
-    computeHydrostaticEquilibriumPressure.hh
-    computePSPHCorrections.hh
-    computeSPHOmegaGradhCorrection.hh
-    computeSPHSumMassDensity.hh
-    computeSumVoronoiCellMassDensity.hh
-    correctSPHSumMassDensity.hh
-    )
+  SPH.hh
+  PSPH.hh
+  SPHBase.hh
+  SPHRZ.hh
+  SphericalSPH.hh
+  SolidSPH.hh
+  SolidSPHRZ.hh
+  SolidSphericalSPH.hh
+  computeHydrostaticEquilibriumPressure.hh
+  computePSPHCorrections.hh
+  computeSPHOmegaGradhCorrection.hh
+  computeSPHSumMassDensity.hh
+  computeSumVoronoiCellMassDensity.hh
+  correctSPHSumMassDensity.hh
+)
 
 spheral_install_python_files(
-    SPHHydros.py
-    PSPHHydros.py
-    SPHUtilities.py
-    FacetedSurfaceASPHHydro.py
-    )
+  SPHHydros.py
+  PSPHHydros.py
+  SPHUtilities.py
+  FacetedSurfaceASPHHydro.py
+)
 
 spheral_add_obj_library(SPH SPHERAL_OBJ_LIBS)
 
