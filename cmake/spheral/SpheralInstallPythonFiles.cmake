@@ -19,3 +19,24 @@ function(spheral_install_python_files)
   endif()
 
 endfunction()
+
+#----------------------------------------------------------------------------------------
+#                                   spheral_instalL_python_tests
+#----------------------------------------------------------------------------------------
+# ----------------------
+# INPUT VARIABLES
+# ----------------------
+# test_dir  : REQUIRED : Source directory of tests to install
+# test_dest : REQUIRED : Destination for tests
+function(spheral_install_python_tests test_dir test_dest)
+  install(DIRECTORY ${test_dir}
+    USE_SOURCE_PERMISSIONS
+    DESTINATION "${test_dest}"
+    PATTERN "*CMakeLists.txt*" EXCLUDE
+    PATTERN "*.cmake" EXCLUDE
+    PATTERN "*.in" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
+    PATTERN "performance.py" EXCLUDE
+    PATTERN "*~" EXCLUDE)
+  # performance.py must be installed in the top test directory
+endfunction()

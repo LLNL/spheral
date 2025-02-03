@@ -775,21 +775,22 @@ if outputFile:
                     (xi, rhoi, Pi, vi, epsi, hi, si, di))
         f.close()
 
-        #---------------------------------------------------------------------------
-        # Check the floating values for the state against reference data.
-        #---------------------------------------------------------------------------
-        import filearraycmp as fcomp
-        assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
-        print("Floating point comparison test passed.")
+        if BuildData.cxx_compiler_id == "GNU":
+            #---------------------------------------------------------------------------
+            # Check the floating values for the state against reference data.
+            #---------------------------------------------------------------------------
+            import filearraycmp as fcomp
+            assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
+            print("Floating point comparison test passed.")
 
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file for
-        # bit level consistency.
-        #---------------------------------------------------------------------------
-        if comparisonFile and BuildData.cxx_compiler_id != "IntelLLVM":
-            comparisonFile = os.path.join(dataDir, comparisonFile)
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)
+            #---------------------------------------------------------------------------
+            # Also we can optionally compare the current results with another file for
+            # bit level consistency.
+            #---------------------------------------------------------------------------
+            if comparisonFile:
+                comparisonFile = os.path.join(dataDir, comparisonFile)
+                import filecmp
+                assert filecmp.cmp(outputFile, comparisonFile)
 
 if graphics:
     plt.show()

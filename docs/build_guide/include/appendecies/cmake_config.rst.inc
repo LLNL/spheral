@@ -156,6 +156,12 @@ In this section we list the CMake variables that can be tweaked for a Spheral bu
 ``ENABLE_DOCS`` (On, **Off**)
   Choose whether or not to build this documentation.
 
+``SPHERAL_NETWORK_CONNECTED`` (**On**, Off)
+  Spheral assumes there exists a network connection. Disable this to force pip to build python environments using only ``SPHERAL_PIP_CACHE_DIR``.
+
+``SPHERAL_PIP_CACHE_DIR`` (**~/.cache/spheral_pip**)
+  Default location Spheral will search for cached pip packages.
+
 ``SPHINX_EXECUTABLE``
   Specify where the Sphinx executable is that should be used to build documentation.  If not given, assumes the Spheral built Sphinx will be used.
 

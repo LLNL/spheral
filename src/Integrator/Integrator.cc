@@ -113,49 +113,14 @@ Integrator(DataBase<Dimension>& dataBase,
   mAllowDtCheck(false),
   mRequireConnectivity(true),
   mRequireGhostConnectivity(false),
+  mRequireOverlapConnectivity(false),
+  mRequireIntersectionConnectivity(false),
   mDataBasePtr(&dataBase),
-  mPhysicsPackages(physicsPackages),
+  mPhysicsPackages(),
   mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::~Integrator() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>&
-Integrator<Dimension>::
-operator=(const Integrator<Dimension>& rhs) {
-  if (this != &rhs) {
-    mDtMin = rhs.mDtMin;
-    mDtMax = rhs.mDtMax;
-    mDtGrowth = rhs.mDtGrowth;
-    mLastDt = rhs.mLastDt;
-    mDtMultiplier = rhs.mDtMultiplier;
-    mDtCheckFrac = rhs.mDtCheckFrac;
-    mCurrentTime = rhs.mCurrentTime;
-    mCurrentCycle = rhs.mCurrentCycle;
-    mDataBasePtr = rhs.mDataBasePtr;
-    mPhysicsPackages = rhs.mPhysicsPackages;
-    mRigorousBoundaries = rhs.mRigorousBoundaries;
-    mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
-    mCullGhostNodes = rhs.mCullGhostNodes;
-    mVerbose = rhs.mVerbose;
-    mAllowDtCheck = rhs.mAllowDtCheck;
-    mRequireConnectivity = rhs.mRequireConnectivity;
-    mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
-    mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
-    mRequireIntersectionConnectivity = rhs.mRequireIntersectionConnectivity;
-  }
-  return *this;
+  for (auto& pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
 }
 
 //------------------------------------------------------------------------------

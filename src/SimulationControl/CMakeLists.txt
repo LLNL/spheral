@@ -18,12 +18,34 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  execute_process(
+    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git branch --show-current
+    OUTPUT_VARIABLE gitbranch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
   set(SPHERAL_VERSION_LIST ${tagcomm} ${githash} ${abbref})
   string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 endif()
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py)
+
+# Configure SpheralConfigs.py.in
+set(SPHERAL_COMP_CONFIG)
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"FSISPH\"")
+endif()
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"GSPH\"")
+endif()
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"SVPH\"")
+endif()
+string(REPLACE ";" ", " SPHERAL_COMP_CONFIG_STR "${SPHERAL_COMP_CONFIG}")
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -80,4 +102,5 @@ spheral_install_python_files(
   CaptureStdout.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py
   )

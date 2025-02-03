@@ -1,16 +1,17 @@
 #
 #
-#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=8)
-#ATS:test(SELF, "--caliperConfig 'none'", label="Timer test 2", np=8)
+#ATS:test(SELF, "--caliperFilename 'timer_test_1.cali'", label="Timer test 1", np=1)
+#ATS:test(SELF, "--caliperConfig 'none'", label="Timer test 2", np=1)
 #ATS:test(SELF, "--caliperFilename 'timer_test_3.cali' --adiakData 'adiak_test: 1, test_adiak: two'", label="Timer test 3", np=1)
+#ATS:test(SELF, "--caliperFilename 'timer_test_4.cali' --adiakData 'adiak_test: 1, test_adiak: two'", label="Timer test 3", np=8)
 #
 
 import Spheral
 from SpheralTestUtilities import *
 from SpheralOptionParser import *
-from SpheralUtilities import TimerMgr
 from SpheralUtilities import *
 import mpi
+import SpheralConfigs
 
 import sys, os, time
 
@@ -42,7 +43,7 @@ sleep_time = 1.E-4
 fake_timer_name = "test_timer"
 
 for i in range(run_count):
-    TimerMgr.timer_start(fake_timer_name)
+    TimerMgr.timer_begin(fake_timer_name)
     time.sleep(sleep_time)
     TimerMgr.timer_end(fake_timer_name)
 
@@ -51,11 +52,11 @@ if (do_timers and TimerMgr.get_filename()):
     adiak_fini()
     TimerMgr.fini()
     mpi.barrier()
-    caliper_loc = "@CONFIG_CALIPER_DIR@"
-    sys.path.append(os.path.join(caliper_loc, "lib64/caliper"))
+    caliper_loc = SpheralConfigs.caliper_module_path()
+    if (not caliper_loc):
+        raise FileNotFoundError("Caliper file not found")
+    sys.path.append(caliper_loc)
     import caliperreader as cr
-    if (not os.path.exists(caliper_file)):
-        raise ValueError("Caliper file not found")
     r = cr.CaliperReader()
     r.read(caliper_file)
     records = r.records
@@ -85,4 +86,3 @@ if (do_timers and TimerMgr.get_filename()):
     if ("adiakData" in adiak_inp):
         assert adiak_data_dict.items() <= adiak_inp.items(),\
             "incorrect adiakData inputs found in Caliper file Adiak values"
-

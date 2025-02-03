@@ -89,7 +89,7 @@ src/PBGWraps/SpheralModules_Silo.C
 src/PBGWraps/SpheralModules_Utilities.C
 src/PBGWraps/SpheralModules_WildMagic.C
 
-build-*
+/build-*
 src/*/*cc.2.cc
 src/*/*cc.3.cc
 src/*/*/*cc.2.cc

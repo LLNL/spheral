@@ -4,6 +4,7 @@
 #-------------------------------------------------------------------------------
 
 import argparse, mpi
+import SpheralConfigs
 from SpheralUtilities import TimerMgr
 from SpheralUtilities import adiak_value
 import SpheralOpenMP
@@ -38,7 +39,7 @@ def add_timing_args(parser):
     # Allow Adiak values to be set on the command line
     # Inputs are a string that can be evaluated into a dictionary
     # For example, --adiakData "testname: ShockTube1, testing:3"
-    parser.add_argument("--adiakData", default=None,
+    parser.add_argument("--adiakData", default=None, action='append',
                         type=parse_dict)
     # This logic checks if the user already set a Caliper
     # argument and default value and prevents adding the argument
@@ -92,9 +93,16 @@ def init_timer(args):
     # Add number of ranks and threads per rank
     adiak_value("threads_per_rank", SpheralOpenMP.omp_get_num_threads())
     adiak_value("num_ranks", mpi.procs)
+    # Add metadata about install
+    adiak_value("install_config", SpheralConfigs.config())
+    adiak_value("build_type", SpheralConfigs.build_type())
+    if SpheralConfigs.git_hash():
+        adiak_value("git_hash", SpheralConfigs.git_hash())
+        adiak_value("git_branch", SpheralConfigs.git_branch())
 
-    # Add --adiakData inputs as Adiak metadata
+    # Add --adiakData command line inputs as Adiak metadata
     if (args.adiakData):
-        for key, val in args.adiakData.items():
-            adiak_value(key, val)
+        for i in args.adiakData:
+            for key, val in i.items():
+                adiak_value(key, val)
     return

@@ -33,6 +33,8 @@ def parse_args():
 
   parser.add_argument('--test', action='store_true',
       help='Run make test after building.')
+  parser.add_argument('--nprocs', default=48,
+      help="Set number of procs to use while building. This is not used if --build is not enabled.")
 
   parser.add_argument('--lc-modules', type=str, default="",
       help='LC Modules to use during build, install and smoke test. This is not used if --build is not enabled.')
@@ -109,8 +111,9 @@ def main():
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print("~~~~~ Building Spheral")
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    build_cmd = f"{ml_cmd} {cmake_cmd} --build . --target install -j {args.nprocs}"
 
-    sexe("{0} {1} --build . -j 48 --target install".format(ml_cmd, cmake_cmd), echo=True, ret_output=False)
+    sexe(build_cmd, echo=True, ret_output=False)
 
     if args.test:
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
