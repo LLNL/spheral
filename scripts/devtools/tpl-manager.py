@@ -16,7 +16,7 @@ spheral_config_dir = os.path.join(base_dir, "scripts/spack")
 package_name = "spheral"
 # Find if this repo is LLNLSpheral by checking the submodule list
 git_mod_cmd = "git config --file .gitmodules --name-only --get-regexp path$"
-git_mod_out = sexe(git_mod_cmd, ret_output=True)
+git_mod_out = sexe(git_mod_cmd, ret_output=True, echo=False)
 if "spheral" in git_mod_out:
     package_name = "llnlspheral"
 
@@ -131,7 +131,7 @@ class SpheralTPL:
 
     def install_tpls(self):
         spec = self.args.spec
-        install_cmd = f"{self.spack_cmd} install -u initconfig")
+        install_cmd = f"{self.spack_cmd} install -u initconfig"
         if (self.add_spec):
             install_cmd += " --add"
         if self.args.spec:
@@ -151,7 +151,7 @@ class SpheralTPL:
                 self.args.spec = package_name + "%" + self.args.spec
             sexe(f"{self.spack_cmd} spec {self.args.spec}")
         # Name of initconfig file created from Spack
-        host_config = f"{sys_type}-{self.args.spec.replace(' ', '_')}"
+        host_config = f"{os.getenv('SYS_TYPE')}-{self.args.spec.replace(' ', '_')}"
         host_config_file = host_config + ".cmake"
         if (not self.args.init_only):
             self.orig_host_config = None
@@ -166,7 +166,7 @@ class SpheralTPL:
             # Revert env file if it was modified
             os.rename(self.orig_env_file, self.env_file)
         if (self.args.ci_run):
-            shutil.copyfile(host_config, "gitlab.cmake")
+            shutil.copyfile(host_config_file, "gitlab.cmake")
         elif (self.orig_host_config):
             os.rename(host_config_file, host_config+self.args.id+".cmake")
             os.rename(self.orig_host_config, host_config_file)
