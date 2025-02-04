@@ -24,7 +24,7 @@
     - cd $CI_BUILD_DIR && cat job-name.txt
     - echo $SPEC
 
-    - ./$SCRIPT_DIR/devtools/tpl-managery.py --spec="$SPEC" --ci-run
+    - ./$SCRIPT_DIR/devtools/tpl-manager.py --spec="$SPEC" --ci-run
   artifacts:
     paths:
       - ci-dir.txt
