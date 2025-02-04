@@ -1,0 +1,23 @@
+spack:
+  specs:
+  - matrix:
+      - ["spheral%rocmcc"]
+      - ["+mpi", "~mpi"]
+      - ["+rocm amdgpu_target=gfx942", "~rocm"]
+  include:
+    - ../../configs/toss_4_x86_64_ib_cray/packages.yaml
+    - ../../configs/toss_4_x86_64_ib_cray/compilers.yaml
+    - ../../configs/config.yaml
+  view: false
+  concretizer:
+    unify: false
+    reuse: false
+  upstreams:
+    spheral_shared:
+      install_tree: /usr/WS2/sduser/Spheral/spack_upstream/0.22/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_p
+  repos:
+    - ../../
+  develop:
+    spheral:
+      path: ../../../../
+      spec: spheral@=develop

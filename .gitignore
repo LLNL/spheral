@@ -37,7 +37,9 @@ lc_*
 build_*
 !build_guide*
 *.core
-spack-build*
+spackbuild*
+.spack-env
+spack.lock
 *.logs
 rz*
 rz*

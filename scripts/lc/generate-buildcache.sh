@@ -73,7 +73,7 @@ mkdir -p $RESOURCE_DIR/pip_cache
 cp -a $SPHERAL_PIP_CACHE_DIR/. $RESOURCE_DIR/pip_cache
 
 # Initialize the upstream spack repo.
-./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spheral-spack-dir=$UPSTREAM_DIR --spec=none
+./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spack-dir=$UPSTREAM_DIR
 source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
 
 # Delete any semblance of a spack env in the STAGE_DIR.

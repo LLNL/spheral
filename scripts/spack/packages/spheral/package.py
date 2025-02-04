@@ -63,7 +63,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("raja@2024.02.0", type="build")
 
-    depends_on('opensubdiv@3.4.3', type='build')
+    depends_on('opensubdiv@3.4.3+pic', type='build')
 
     depends_on('polytope +python', type='build', when='+python')
 
@@ -242,7 +242,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         if spec.satisfies("@develop"):
             dev_build_dir = "spack-build-" + str(spec.compiler.name) + "-" + str(spec.compiler.version)
-            return os.path.join(self.pkg.stage.source_path, build_dirname)
+            return os.path.join(self.pkg.stage.source_path, dev_build_dirname)
         else:
             return os.path.join(self.pkg.stage.path, self.build_dirname)
 
