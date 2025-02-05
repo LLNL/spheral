@@ -26,6 +26,7 @@ public:
   NodePairList& operator=(const NodePairList& rhs)                             = default;
   void push_back(NodePairIdxType nodePair)                                     { mNodePairList.push_back(nodePair); }
   void clear()                                                                 { mNodePairList.clear(); mPair2Index.clear(); }
+  void reserve(const size_t n)                                                 { mNodePairList.reserve(n); }
   size_t size() const                                                          { return mNodePairList.size(); }
 
   // Iterators
