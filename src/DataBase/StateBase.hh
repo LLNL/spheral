@@ -65,7 +65,7 @@ public:
   StateBase();
   StateBase(const StateBase& rhs) = default;
   StateBase& operator=(const StateBase& rhs) = default;
-  virtual ~StateBase() {}
+  virtual ~StateBase() = default;
 
   // Test if two StateBases have equivalent fields.
   virtual bool operator==(const StateBase& rhs) const;
@@ -97,6 +97,12 @@ public:
   // Access an arbitrary type
   template<typename Value> Value& get(const KeyType& key) const;
   template<typename Value> Value& get(const KeyType& key, const Value& dummy) const;
+
+  //............................................................................
+  // Access an arbitrary type as a pointer.
+  // Returns nullptr on failure
+  template<typename Value> Value* getPtr(const KeyType& key) const;
+  template<typename Value> Value* getPtr(const KeyType& key, const Value& dummy) const;
 
   //............................................................................
   // Test if the specified Field or key is currently registered.

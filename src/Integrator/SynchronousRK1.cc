@@ -29,14 +29,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SynchronousRK1<Dimension>::SynchronousRK1():
-  Integrator<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -53,26 +45,6 @@ SynchronousRK1<Dimension>::
 SynchronousRK1(DataBase<Dimension>& dataBase,
                const vector<Physics<Dimension>*>& physicsPackages):
   Integrator<Dimension>(dataBase, physicsPackages) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SynchronousRK1<Dimension>::~SynchronousRK1() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SynchronousRK1<Dimension>&
-SynchronousRK1<Dimension>::
-operator=(const SynchronousRK1<Dimension>& rhs) {
-  if (this != &rhs) {
-    Integrator<Dimension>::operator=(rhs);
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------

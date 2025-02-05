@@ -26,8 +26,11 @@ set(Neighbor_headers
     NeighborInline.hh
     NestedGridNeighbor.hh
     NestedGridNeighborInline.hh
+    NodePairIdxType.hh
     NodePairList.hh
     TreeNeighbor.hh
+    PairwiseField.hh
+    PairwiseFieldInline.hh
     )
 
 spheral_add_obj_library(Neighbor SPHERAL_OBJ_LIBS)

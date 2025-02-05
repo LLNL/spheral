@@ -39,33 +39,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::Integrator():
-  mDtMin(0.0),
-  mDtMax(FLT_MAX),
-  mDtGrowth(2.0),
-  mLastDt(1e-5),
-  mDtMultiplier(1.0),
-  mDtCheckFrac(0.5),
-  mCurrentTime(0.0),
-  mCurrentCycle(0),
-  mUpdateBoundaryFrequency(1),
-  mVerbose(false),
-  mAllowDtCheck(false),
-  mRequireConnectivity(true),
-  mRequireGhostConnectivity(false),
-  mRequireOverlapConnectivity(false),
-  mRequireIntersectionConnectivity(false),
-  mDataBasePtr(0),
-  mPhysicsPackages(0),
-  mRigorousBoundaries(false),
-  mCullGhostNodes(true),
-  mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -86,9 +59,8 @@ Integrator(DataBase<Dimension>& dataBase):
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
   mRequireIntersectionConnectivity(false),
-  mDataBasePtr(&dataBase),
+  mDataBase(dataBase),
   mPhysicsPackages(0),
-  mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
 }
@@ -115,9 +87,8 @@ Integrator(DataBase<Dimension>& dataBase,
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
   mRequireIntersectionConnectivity(false),
-  mDataBasePtr(&dataBase),
+  mDataBase(dataBase),
   mPhysicsPackages(),
-  mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
   for (auto& pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
@@ -131,8 +102,30 @@ bool
 Integrator<Dimension>::
 step(const typename Dimension::Scalar maxTime) {
   DataBase<Dimension>& db = this->accessDataBase();
+
+  // Check if we need to construct connectivity.
+  mRequireConnectivity = false;
+  mRequireGhostConnectivity = false;
+  mRequireOverlapConnectivity = false;
+  mRequireIntersectionConnectivity = false;
+  for (auto* physicsPtr: mPhysicsPackages) {
+    mRequireConnectivity = (mRequireConnectivity or physicsPtr->requireConnectivity());
+    mRequireGhostConnectivity = (mRequireGhostConnectivity or physicsPtr->requireGhostConnectivity());
+    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or physicsPtr->requireOverlapConnectivity());
+    mRequireIntersectionConnectivity = (mRequireIntersectionConnectivity or physicsPtr->requireIntersectionConnectivity());
+  }
+
+  // Set the ghost nodes (this updates the ConnectivityMap as well in the DataBase)
+  if (mCurrentCycle % mUpdateBoundaryFrequency == 0) setGhostNodes();
+
+  // Build the state and derivatives
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+
+  // Set boundary properties
+  applyGhostBoundaries(state, derivs);
+
+  // Try to advance using the derived class step method
   auto success = false;
   auto count = 0;
   auto maxIterations = 10;
@@ -216,35 +209,7 @@ template<typename Dimension>
 void
 Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
                                          StateDerivatives<Dimension>& derivs) {
-
-  // Check if we need to construct connectivity.
-  mRequireConnectivity = false;
-  mRequireGhostConnectivity = false;
-  mRequireOverlapConnectivity = false;
-  mRequireIntersectionConnectivity = false;
-  for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    mRequireConnectivity = (mRequireConnectivity or physicsPtr->requireConnectivity());
-    mRequireGhostConnectivity = (mRequireGhostConnectivity or physicsPtr->requireGhostConnectivity());
-    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or physicsPtr->requireOverlapConnectivity());
-    mRequireIntersectionConnectivity = (mRequireIntersectionConnectivity or physicsPtr->requireIntersectionConnectivity());
-  }
-
-  // Intialize neighbors if need be.
   DataBase<Dimension>& db = accessDataBase();
-  // if (mRequireConnectivity) db.reinitializeNeighbors();
-
-  // Set the boundary conditions.
-  if ((not mRigorousBoundaries) and (mCurrentCycle % mUpdateBoundaryFrequency == 0)) {
-    setGhostNodes();
-  }
-  applyGhostBoundaries(state, derivs);
-
-  // Register the now updated connectivity with the state.
-  if (mRequireConnectivity) {
-    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity));
-  }
-
-  // Loop over the physics packages and perform any necessary initializations.
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     physicsPtr->preStepInitialize(db, state, derivs);
   }
@@ -614,26 +579,21 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
   DataBase<Dimension>& db = accessDataBase();
 
   // If we're being rigorous about boundaries, we have to reset the ghost nodes.
-  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-  if (mRigorousBoundaries) {
-    setGhostNodes();
+  const auto boundaries = uniqueBoundaryConditions();
 
-  } else {
-
-    // If we didn't call setGhostNodes, then make each boundary update it's 
-    // ghost node info (position and H).
-    for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
-      for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
-        boundaryPtr->updateGhostNodes(*nodeListPtr);
-      }
-      boundaryPtr->finalizeGhostBoundary();
+  // If we didn't call setGhostNodes, then make each boundary update it's 
+  // ghost node info (position and H).
+  for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
+    for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
+      boundaryPtr->updateGhostNodes(*nodeListPtr);
     }
-    for (auto* nodeListPtr: range(db.fluidNodeListBegin(), db.fluidNodeListEnd())) {
-      nodeListPtr->neighbor().updateNodes();
-    }
-    for (auto* nodeListPtr: range(db.DEMNodeListBegin(), db.DEMNodeListEnd())) {
-      nodeListPtr->neighbor().updateNodes();
-    }
+    boundaryPtr->finalizeGhostBoundary();
+  }
+  for (auto* nodeListPtr: range(db.fluidNodeListBegin(), db.fluidNodeListEnd())) {
+    nodeListPtr->neighbor().updateNodes();
+  }
+  for (auto* nodeListPtr: range(db.DEMNodeListBegin(), db.DEMNodeListEnd())) {
+    nodeListPtr->neighbor().updateNodes();
   }
 
   // Iterate over the physics packages, and have them apply ghost boundaries
