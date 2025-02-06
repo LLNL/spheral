@@ -264,10 +264,12 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
   auto culledPairListPtr = std::make_shared<NodePairList>();
   NodePairList& currentPairs = *mNodePairListPtr;
   NodePairList& culledPairs = *culledPairListPtr;
+  culledPairs.reserve(currentPairs.size());
 #pragma omp parallel
   {
     NodePairList culledPairs_thread;
     const auto npairs = currentPairs.size();
+    culledPairs_thread.reserve(npairs);
 #pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
       const auto iNodeList = currentPairs[k].i_list;
@@ -813,7 +815,9 @@ computeConnectivity() {
     mConnectivity = ConnectivityStorageType(connectivitySize, vector<vector<int> >(numNodeLists));
     mNodeTraversalIndices = vector<vector<int> >(numNodeLists);
   }
+  const auto noldpairs = mNodePairListPtr ? mNodePairListPtr->size() : 0u;
   mNodePairListPtr = std::make_shared<NodePairList>();
+  if (noldpairs > 0u) mNodePairListPtr->reserve(noldpairs);
   mIntersectionConnectivity.clear();
 
   // If we're trying to be domain decomposition independent, we need a key to sort

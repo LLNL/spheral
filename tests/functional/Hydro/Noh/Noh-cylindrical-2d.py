@@ -604,6 +604,9 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
+# import yep
+# from datetime import datetime
+# yep.start("{}_{}.prof".format(__file__, datetime.now().strftime("%Y_%m_%d_%H%M%S")))
 if not steps is None:
     if checkRestart:
         control.setRestartBaseName(restartBaseName + "_CHECK")
@@ -626,6 +629,7 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+# yep.stop()
 
 # If running the performance test, stop here
 if not doCompare:

@@ -116,6 +116,7 @@ commandLine(
 
     # Parameters for the damage model.
     DamageModelConstructor = ProbabilisticDamageModel,
+    coupleType = PairMaxDamage,
     strainType = PseudoPlasticStrain,
     kWeibullSteelFactor = 1.0,
     mWeibullSteelFactor = 1.0,
@@ -271,7 +272,8 @@ volumeSteel = pi*(rtubeOuter**2 - rtubeInner**2)*ltube
 # Restart and output files.
 dataDir = os.path.join(baseDir,
                        hydroType,
-                       str(DamageModelConstructor).split("'")[1],
+                       "{}_{}_{}".format(DamageModelConstructor.__name__, str(strainType), str(coupleType)),
+                       #str(DamageModelConstructor).split("'")[1],
                        "vzproj=%4.2e" % abs(vzproj),
                        "rho0Steel=%8.6f" % rho0Steel,
                        "k=%4.2f_m=%4.2f" % (kWeibullSteel, mWeibullSteel))
