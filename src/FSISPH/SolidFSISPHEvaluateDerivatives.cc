@@ -173,8 +173,9 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   auto* pairAccelerationsPtr = (compatibleEnergy ?
                                 &derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations) :
                                 nullptr);
-  auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
-  
+  auto* pairDepsDtPtr = (compatibleEnergy ?
+                         &derivs.template get<PairWorkType>(HydroFieldNames::pairWork) :
+                         nullptr);
   CHECK(M.size() == numNodeLists);
   CHECK(localM.size() == numNodeLists);
   CHECK(DepsDx.size() == numNodeLists);
@@ -201,7 +202,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
   CHECK(not compatibleEnergy or pairAccelerationsPtr->size() == numPairs);
-  CHECK(not compatibleEnergy or pairDepsDt.size() == numPairs);
+  CHECK(not compatibleEnergy or pairDepsDtPtr->size() == numPairs);
 
   //this->computeMCorrection(time,dt,dataBase,state,derivs);
 
@@ -619,8 +620,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
         if(compatibleEnergy){
           (*pairAccelerationsPtr)[kk] = - deltaDvDt;
-          pairDepsDt[kk][0] = - deltaDepsDti; 
-          pairDepsDt[kk][1] = - deltaDepsDtj;
+          (*pairDepsDtPtr)[kk][0] = - deltaDepsDti; 
+          (*pairDepsDtPtr)[kk][1] = - deltaDepsDtj;
         }
         
         // thermal diffusion
@@ -629,8 +630,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
           linearReconstruction(ri,rj,epsi,epsj,DepsDxi,DepsDxj,epsLineari,epsLinearj);
           const auto cijEff = max(min(cij + (vi-vj).dot(rhatij), cij),0.0);
           const auto diffusion =  epsDiffusionCoeff*cijEff*(epsLineari-epsLinearj)*etaij.dot(gradWij)/(rhoij*etaMagij*etaMagij+tiny);
-          pairDepsDt[kk][0] += diffusion; 
-          pairDepsDt[kk][1] -= diffusion;
+          if (compatibleEnergy) {
+            (*pairDepsDtPtr)[kk][0] += diffusion; 
+            (*pairDepsDtPtr)[kk][1] -= diffusion;
+          }
         }
 
         // normalization 
