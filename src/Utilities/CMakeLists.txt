@@ -127,6 +127,7 @@ set(Utilities_headers
     simpsonsIntegration.hh
     size_t_bits.hh
     sort_permutation.hh
+    StrideIterator.hh
     testBoxIntersection.hh
     timingUtilities.hh
     uniform_random.hh

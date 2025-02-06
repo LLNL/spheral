@@ -30,6 +30,7 @@ set(Neighbor_headers
     NodePairList.hh
     TreeNeighbor.hh
     PairwiseField.hh
+    PairwiseFieldElementAccessor.hh
     PairwiseFieldInline.hh
     )
 
