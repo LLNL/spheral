@@ -183,25 +183,44 @@ parser.add_argument("--test-name", type=str, default=None,
                     help="If comparing a specific test, default is compare all.")
 parser.add_argument("--display", action="store_true",
                     help="Display a tree for timers that failed.")
+parser.add_argument("--no-comp", action="store_true",
+                    help="Do not do any comparisons and display trees for --perfdata")
 args = parser.parse_args()
 
 # Create a Thicket of the current performance data
 #-------------------------------------------------
-
+if (not os.path.exists(args.perfdata1)):
+    raise Exception(f"Cannot find {args.perfdata1}")
 cali_files, benchmarks = get_caliper_files(args.perfdata1)
 if (len(cali_files) == 0):
     raise Exception(f"No .cali files found in {args.perfdata1}")
 curdata = th.Thicket.from_caliperreader(cali_files)
+# Filter data set by tests
+cur_test_data = group_tests(curdata)
+if (args.no_comp):
+    for test_key, ctest in cur_test_data.items():
+        metric = "Avg time/rank (exc)"
+        if (len(ctest.profile) > 1):
+            th.stats.mean(ctest, metric)
+            metric += "_mean"
+        else:
+            ctest.move_metrics_to_statsframe([metric])
+        display(ctest.statsframe.tree(metric))
+    sys.exit()
 
 # Create a Thicket of the other performance data
 #-----------------------------------------------
 
 do_thresh_test = False
 if (args.perfdata2):
+    if (not os.path.exists(args.perfdata2)):
+        raise Exception(f"--perfdata2 location {args.perfdata2} does not exist")
     cali_ref_files, unused_benchmark = get_caliper_files(args.perfdata2)
 else:
     do_thresh_test = True
     if (args.ref):
+        if (not os.path.exists(args.ref)):
+            raise Exception(f"--ref location {args.ref} does not exist")
         cali_ref_files, unused_benchmark = get_caliper_files(args.ref)
     else:
         # If no ref or benchmark_dir is provided, look for the benchmark in the
@@ -218,11 +237,12 @@ else:
         # Get install config and machine name from current data
         install_config = curdata.metadata["install_config"].iloc[0]
         machine_name = curdata.metadata["cluster"].iloc[0]
-        ref_loc = os.path.join(ref_files,
-                               install_config,
-                               machine_name,
-                               "latest/*.cali")
-        cali_ref_files = glob.glob(ref_loc, recursive=True)
+        ref_loc = os.path.join(ref_files, install_config,
+                               machine_name, "latest")
+        if (not os.path.exists(ref_loc)):
+            raise Exception(f"Benchmark location {ref_loc} does not exists")
+        cali_ref_files = glob.glob(os.path.join(ref_loc, "*.cali"), recursive=True)
+
 if (len(cali_ref_files) == 0):
     raise Exception(f"No Caliper files found in {cali_ref_files}")
 refdata = th.Thicket.from_caliperreader(cali_ref_files)
@@ -230,8 +250,7 @@ refdata = th.Thicket.from_caliperreader(cali_ref_files)
 # Group, filter, and compare performance data
 #--------------------------------------------
 
-# Filter both sets of data set by the tests
-cur_test_data = group_tests(curdata)
+# Filter data set by tests
 ref_test_data = group_tests(refdata)
 
 test_status = {}
@@ -285,11 +304,19 @@ for test_key, ctest in cur_test_data.items():
         if (main_diff > ref_thresh):
             cur_status = "FAILED"
             if args.display:
-                display(ctest.statsframe.tree(cmetrics[1]))
+                # Display the relative difference of the exclusive avg time/rank
+                vals1 = ctest.statsframe.dataframe[cmetrics[1]]
+                vals2 = rtest.statsframe.dataframe[rmetrics[1]]
+                ctest.statsframe.dataframe["exc_rel_diff_percent"] = (vals1/vals2 - 1.)*100.
+                display(ctest.statsframe.tree("exc_rel_diff_percent", cmetrics[1]))
         elif (main_diff < -ref_thresh):
             cur_status = "PASSED"
             if args.display:
-                display(ctest.statsframe.tree(cmetrics[1]))
+                vals1 = ctest.statsframe.dataframe[cmetrics[1]]
+                vals2 = rtest.statsframe.dataframe[rmetrics[1]]
+                ctest.statsframe.dataframe["exc_rel_diff_percent"] = (vals1/vals2 - 1.)*100.
+                display(ctest.statsframe.tree("exc_rel_diff_percent", cmetrics[1]))
+                display(ctest.statsframe.tree(cmetrics[1], rmetrics[1]))
         else:
             cur_status = "PASSED"
         test_status.update({test_name: (cur_status, cmain, rmain, ref_thresh)})
