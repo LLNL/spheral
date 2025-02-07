@@ -57,6 +57,8 @@ class SpheralTPL:
                             help="Skip downloading Spack repo.")
         parser.add_argument("--ci-run", action="store_true",
                             help="For use by the CI only. Must set a --spec.")
+        parser.add_argument("--dry-run", action="store_true",
+                            help="Use to do everything but actually install. For testing purposes.")
         parser.add_argument("--id", type=str, default=None,
                             help="ID string to postfix an initconfig file.")
         self.args = parser.parse_args()
@@ -146,13 +148,11 @@ class SpheralTPL:
         # Always add the spec for a custom environment
         self.args.add_spec = True
 
-    def remove_upstream(self):
+    def remove_upstream(self, env_dir):
         "Modify the spack.yaml to remove the upstream"
         # Copy original file
         from spack.util import spack_yaml
-        env_dir = self.spack_env.path
         env_file = os.path.join(env_dir, "spack.yaml")
-        shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
         # TODO: Currently, Spack has no other way to
         # to remove an include: line from an environment
         # than to directly change the spack.yaml file
@@ -161,14 +161,19 @@ class SpheralTPL:
                 loader = spack_yaml.load(ff)
             except SpackYAMLError as exception:
                 print(exception)
+        modded_file = False
         if ("upstreams" in loader["spack"]):
             del loader["spack"]["upstreams"]
+            modded_file = True
         if ("include" in loader["spack"]):
             for i, x in enumerate(loader["spack"]["include"]):
                 if ("upstreams.yaml" in x):
                     del loader["spack"]["include"][i]
-        with open(env_file, 'w') as ff:
-            spack_yaml.dump(loader, ff)
+                    modded_file = True
+        if (modded_file):
+            shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
+            with open(env_file, 'w') as ff:
+                spack_yaml.dump(loader, ff)
 
     def activate_spack_env(self):
         "Activates a Spack environment by putting -e env_dir after all spack commands"
@@ -178,6 +183,8 @@ class SpheralTPL:
             # For LC systems
             cur_env = os.path.join(env_dir, default_env)
             print(f"Activating Spack environment in {cur_env}")
+            if self.args.no_upstream:
+                self.remove_upstream(cur_env)
             from spack import environment
             self.spack_env = environment.Environment(cur_env)
             environment.activate(self.spack_env)
@@ -186,9 +193,6 @@ class SpheralTPL:
             arch_cmd = SpackCommand("arch")
             env_name = arch_cmd().strip()
             self.custom_spack_env(env_dir, env_name)
-        # To turn upstream off, copy the spack.yaml and modify it
-        if self.args.no_upstream:
-            self.remove_upstream()
 
     def concretize_spec(self):
         self.spack_spec = spack.spec.Spec(self.args.spec)
@@ -224,8 +228,9 @@ class SpheralTPL:
             mod_host_config = True
         spec_cmd = SpackCommand("spec")
         spec_cmd("-IL", spec)
-        install_cmd = SpackCommand("install")
-        install_cmd("-u", "initconfig", spec)
+        if (not self.args.dry_run):
+            install_cmd = SpackCommand("install")
+            install_cmd("-u", "initconfig", spec)
         if (self.args.ci_run):
             shutil.copyfile(host_config_file, "gitlab.cmake")
         if (mod_host_config):
