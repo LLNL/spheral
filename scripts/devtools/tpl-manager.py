@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse, os, sys, re, yaml, shutil
+import argparse, os, sys, re, shutil
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from spheralutils import sexe
@@ -149,6 +149,7 @@ class SpheralTPL:
     def remove_upstream(self):
         "Modify the spack.yaml to remove the upstream"
         # Copy original file
+        from spack.util import spack_yaml
         env_dir = self.spack_env.path
         env_file = os.path.join(env_dir, "spack.yaml")
         shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
@@ -157,8 +158,8 @@ class SpheralTPL:
         # than to directly change the spack.yaml file
         with open(env_file) as ff:
             try:
-                loader = yaml.safe_load(ff)
-            except yamlYAMLError as exception:
+                loader = spack_yaml.load(ff)
+            except SpackYAMLError as exception:
                 print(exception)
         if ("upstreams" in loader["spack"]):
             del loader["spack"]["upstreams"]
@@ -167,7 +168,7 @@ class SpheralTPL:
                 if ("upstreams.yaml" in x):
                     del loader["spack"]["include"][i]
         with open(env_file, 'w') as ff:
-            yaml.dump(loader, ff)
+            spack_yaml.dump(loader, ff)
 
     def activate_spack_env(self):
         "Activates a Spack environment by putting -e env_dir after all spack commands"
