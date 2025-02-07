@@ -105,21 +105,16 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     @property
     def cache_name(self):
-
         hostname = socket.gethostname()
         if "SYS_TYPE" in env:
             hostname = hostname.rstrip('1234567890')
-
         envspec = os.environ.get("SPEC")
         spec = self.spec
         if envspec:
           cache_spec = envspec
         else:
           cache_spec = str(spec.compiler.name) + "@" + str(spec.compiler.version)
-        return "{0}-{1}.cmake".format(
-            str(self._get_sys_type(spec)),
-            cache_spec.replace(" ", "_")
-        )
+        return f"{self._get_sys_type(spec)}-{cache_spec.replace(' ', '_')}.cmake"
 
     def initconfig_compiler_entries(self):
         spec = self.spec

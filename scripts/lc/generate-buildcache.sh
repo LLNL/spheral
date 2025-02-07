@@ -50,7 +50,7 @@ DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
 DEV_PKG_DIR=$STAGE_DIR/$DEV_PKG_NAME
 
 # Full Spack spec.
-SPHERAL_SPEC=$SPACK_PKG_NAME@develop%$SPEC
+SPHERAL_SPEC=$SPACK_PKG_NAME@develop$SPEC
 
 # RESOURCE_DIR is a directory created internally to maintain spack & pip
 # resources required for building and running Spheral

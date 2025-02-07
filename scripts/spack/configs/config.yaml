@@ -213,6 +213,3 @@ config:
     concretise: concretize
     containerise: containerize
     rm: remove
-concretizer:
-  reuse: false
-  unify: false

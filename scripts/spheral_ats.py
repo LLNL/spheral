@@ -99,7 +99,7 @@ def main():
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"] # Machines using Slurm scheduler
     toss_cray_machine_names = ["rzadams", "rzvernal", "tioga"] # Machines using Flux scheduler
     np_max_dict = {"rzadams": 84, "rzvernal": 64, "tioga": 64} # Maximum number of processors for ATS to use per node
-    ci_launch_flags = {"ruby": "--res=ci", "rzadams": "-q pdebug"}
+    ci_launch_flags = {"ruby": "--reservation=ci", "rzadams": "-q pdebug"}
     temp_uname = os.uname()
     hostname = temp_uname[1].rstrip("0123456789")
     sys_type = os.getenv("SYS_TYPE")

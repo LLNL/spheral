@@ -27,7 +27,7 @@
     - batch
   variables:
     SCHEDULER_ACTION: allocate
-    SCHEDULER_PARAMETERS: "--res=ci --exclusive -N 2 -t 120"
+    SCHEDULER_PARAMETERS: "--reservation=ci --exclusive -N 2 -t 120"
     NPROC: 112
     HOSTNAME: 'ruby'
   timeout: 120 minutes
