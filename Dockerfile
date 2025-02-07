@@ -41,9 +41,9 @@ RUN locale-gen en_US.UTF-8
 # Set up TPLs for SPEC
 WORKDIR /home/spheral/workspace/
 COPY scripts scripts
-COPY .uberenv_config.json .
 
-RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --spheral-spack-dir /home
+
+RUN python3 scripts/devtools/tpl-manager.py --spec spheral%$SPEC --spack-dir /home
 
 COPY . .
 
@@ -78,7 +78,7 @@ WORKDIR /home/spheral/workspace/
 
 # Copy Spheral source and generate host config from tpl-manager (all dependencies should already be installed).
 COPY . .
-RUN python3 scripts/devtools/tpl-manager.py --spec $SPEC --upstream-dir /home/spack/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder_ --spack-url /home/spack
+RUN python3 scripts/devtools/tpl-manager.py --spec spheral%$SPEC --spack-dir /home
 
 # Configure Spheral with SPEC TPLs.
 RUN mv *.cmake $HOST_CONFIG.cmake

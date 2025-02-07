@@ -42,15 +42,15 @@
 
 .rocm_mpich:
   variables:
-    SPEC: '%rocmcc@$ROCMCC_VERSION+mpi'
+    SPEC: '%rocmcc@$ROCMCC_VERSION+mpi~rocm'
 
 .rocm_~mpi:
   variables:
-    SPEC: '%rocmcc@$ROCMCC_VERSION~mpi'
+    SPEC: '%rocmcc@$ROCMCC_VERSION~mpi~rocm'
 
 .rocm_~mpi_Debug:
   variables:
-    SPEC: '%rocmcc@$ROCMCC_VERSION~mpi'
+    SPEC: '%rocmcc@$ROCMCC_VERSION~mpi~rocm'
     EXTRA_CMAKE_ARGS: '-DCMAKE_BUILD_TYPE=Debug -DENABLE_WARNINGS_AS_ERRORS=On'
 
 .hip_rocm_mpich:
