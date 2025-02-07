@@ -22,13 +22,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Spheral'
-copyright = '2024, LLNS'
+copyright = '2025, LLNS'
 author = 'J. Michael Owen'
 
 # The short X.Y version
-version = '2024.06.1'
+version = '2025.01.0'
 # The full version, including alpha/beta/rc tags
-release = '2024.06.1'
+release = '2025.01.0'
 
 
 # -- General configuration ---------------------------------------------------
