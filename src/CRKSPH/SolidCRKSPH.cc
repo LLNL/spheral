@@ -618,7 +618,7 @@ applyGhostBoundaries(State<Dimension>& state,
     boundaryPtr->applyFieldListGhostBoundary(fragIDs);
     boundaryPtr->applyFieldListGhostBoundary(pTypes);
   }
-  TIME_END("SolidCRKinitializeProblemStartupDependencies");
+  TIME_END("SolidCRKapplyGhostBoundaries");
 }
 
 //------------------------------------------------------------------------------
