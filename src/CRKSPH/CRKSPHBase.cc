@@ -272,7 +272,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->applyFieldListGhostBoundary(massDensity);
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
-  TIME_BEGIN("CRKBasePreStepInitialize");
+  TIME_END("CRKBasePreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
