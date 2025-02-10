@@ -97,10 +97,12 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     def _get_config_name(self, spec):
         sys_type = self._get_sys_type(spec)
         config_name = f"{sys_type}_{spec.compiler.name}_{spec.compiler.version}"
-        if ("+mpi" in spec):
+        if (spec.satisfies("+mpi")):
             config_name += "_" + spec.format("{^mpi.name}_{^mpi.version}")
-        if ("+cuda" in spec):
+        if (spec.satisfies("+cuda")):
             config_name += "_" + spec.format("{^cuda.name}{^cuda.version}")
+        if (spec.satisfies("+rocm")):
+            config_name += "_rocm"
         return config_name.replace(" ", "_")
 
     @property
@@ -111,9 +113,15 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         envspec = os.environ.get("SPEC")
         spec = self.spec
         if envspec:
-          cache_spec = envspec
+            cache_spec = envspec
         else:
-          cache_spec = str(spec.compiler.name) + "@" + str(spec.compiler.version)
+            cache_spec = str(spec.compiler.name) + "@" + str(spec.compiler.version)
+            if spec.satisfies("~mpi"):
+                cache_spec += "~mpi"
+            if spec.satisfies("+cuda"):
+                cache_spec += "+cuda"
+            if spec.satisfies("+rocm"):
+                cache_spec += "+rocm"
         return f"{self._get_sys_type(spec)}-{cache_spec.replace(' ', '_')}.cmake"
 
     def initconfig_compiler_entries(self):
