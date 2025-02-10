@@ -33,6 +33,7 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Neighbor/PairwiseField.hh"
+#include "Utilities/Timer.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "SolidMaterial/SolidEquationOfState.hh"
@@ -146,6 +147,7 @@ SolidCRKSPH<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("SolidCRKinitializeProblemStartupDependencies");
 
   // Call the ancestor.
   CRKSPH<Dimension>::initializeProblemStartupDependencies(dataBase, state, derivs);
@@ -154,6 +156,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
   updateStateFields(SolidFieldNames::bulkModulus, state, derivs);
   updateStateFields(SolidFieldNames::shearModulus, state, derivs);
   updateStateFields(SolidFieldNames::yieldStrength, state, derivs);
+  TIME_END("SolidCRKinitializeProblemStartupDependencies");
 }
 
 
@@ -165,6 +168,7 @@ void
 SolidCRKSPH<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_BEGIN("SolidCRKregisterState");
 
   // Invoke CRKSPHHydro's state.
   CRKSPH<Dimension>::registerState(dataBase, state);
@@ -203,6 +207,7 @@ registerState(DataBase<Dimension>& dataBase,
   mPlasticStrain0.copyFields();
   for (auto* fptr: mPlasticStrain0) fptr->name(SolidFieldNames::plasticStrain + "0");
   state.enroll(mPlasticStrain0);
+  TIME_END("SolidCRKregisterState");
 }
 
 //------------------------------------------------------------------------------
@@ -213,6 +218,7 @@ void
 SolidCRKSPH<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("SolidCRKregisterDerivatives");
 
   // Call the ancestor method.
   CRKSPH<Dimension>::registerDerivatives(dataBase, derivs);
@@ -227,6 +233,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   auto psr = dataBase.solidPlasticStrainRate();
   derivs.enroll(psr);
+  TIME_END("SolidCRKregisterDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -267,6 +274,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
                         const State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs,
                         const QType& Q) const {
+  TIME_BEGIN("SolidCRKevaluateDerivatives");
 
   using QPiType = typename QType::ReturnType;
 
@@ -578,6 +586,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
       DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;
     }
   }
+  TIME_END("SolidCRKevaluateDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -588,6 +597,7 @@ void
 SolidCRKSPH<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("SolidCRKapplyGhostBoundaries");
 
   // Ancestor method.
   CRKSPH<Dimension>::applyGhostBoundaries(state, derivs);
@@ -608,6 +618,7 @@ applyGhostBoundaries(State<Dimension>& state,
     boundaryPtr->applyFieldListGhostBoundary(fragIDs);
     boundaryPtr->applyFieldListGhostBoundary(pTypes);
   }
+  TIME_END("SolidCRKinitializeProblemStartupDependencies");
 }
 
 //------------------------------------------------------------------------------
@@ -618,6 +629,7 @@ void
 SolidCRKSPH<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("SolidCRKenforceBoundaries");
 
   // Ancestor method.
   CRKSPH<Dimension>::enforceBoundaries(state, derivs);
@@ -638,6 +650,7 @@ enforceBoundaries(State<Dimension>& state,
     boundaryPtr->enforceFieldListBoundary(fragIDs);
     boundaryPtr->enforceFieldListBoundary(pTypes);
   }
+  TIME_END("SolidCRKenforceBoundaries");
 }
 
 //------------------------------------------------------------------------------

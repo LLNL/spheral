@@ -32,6 +32,7 @@
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Neighbor/PairwiseField.hh"
+#include "Utilities/Timer.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "Utilities/newtonRaphson.hh"
@@ -96,6 +97,7 @@ void
 CRKSPH<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_BEGIN("CRKregisterState");
 
   CRKSPHBase<Dimension>::registerState(dataBase, state);
 
@@ -120,6 +122,7 @@ registerState(DataBase<Dimension>& dataBase,
     // Otherwise we're just time-evolving the specific energy.
     state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
   }
+  TIME_END("CRKregisterState");
 }
 
 //------------------------------------------------------------------------------
@@ -130,6 +133,7 @@ void
 CRKSPH<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("CRKregisterDerivatives");
 
   CRKSPHBase<Dimension>::registerDerivatives(dataBase, derivs);
   const auto compatibleEnergy = this->compatibleEnergyEvolution();
@@ -138,6 +142,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
     mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
     derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
   }
+  TIME_END("CRKregisterDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -151,6 +156,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const DataBase<Dimension>& dataBase,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
+  TIME_BEGIN("CRKevaluateDerivatives");
 
   // Depending on the type of the ArtificialViscosity, dispatch the call to
   // the secondDerivativesLoop
@@ -163,6 +169,7 @@ evaluateDerivatives(const typename Dimension::Scalar time,
     const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
     this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
   }
+  TIME_END("CRKevaluateDerivatives");
 }
   
 //------------------------------------------------------------------------------
@@ -178,6 +185,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
                         const State<Dimension>& state,
                         StateDerivatives<Dimension>& derivs,
                         const QType& Q) const {
+  TIME_BEGIN("CRKevaluateDerivativesImpl");
 
   using QPiType = typename QType::ReturnType;
 
@@ -434,6 +442,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
       if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
     }
   }
+  TIME_END("CRKevaluateDerivativesImpl");
 }
 
 }

@@ -32,6 +32,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/Timer.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "Utilities/newtonRaphson.hh"
@@ -122,11 +123,13 @@ CRKSPHBase<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("CRKBaseInitializeProblemStartupDependencies");
 
   // Initialize the pressure, sound speed, and entropy.
   updateStateFields<Dimension>(HydroFieldNames::pressure, state, derivs);
   updateStateFields<Dimension>(HydroFieldNames::soundSpeed, state, derivs);
   updateStateFields<Dimension>(HydroFieldNames::entropy, state, derivs);
+  TIME_END("CRKBaseInitializeProblemStartupDependencies");
 }
 
 //------------------------------------------------------------------------------
@@ -137,6 +140,7 @@ void
 CRKSPHBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_BEGIN("CRKBaseRegisterState");
 
   // Create the local storage for time step mask, pressure, sound speed, and correction fields.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
@@ -189,6 +193,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the pressure and sound speed.
   state.enroll(mPressure, make_policy<PressurePolicy<Dimension>>());
   state.enroll(mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>());
+  TIME_END("CRKBaseRegisterState");
 }
 
 //------------------------------------------------------------------------------
@@ -199,6 +204,7 @@ void
 CRKSPHBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("CRKBaseRegisterDerivatives");
 
   const auto DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
   const auto DvDtName = HydroFieldNames::hydroAcceleration;
@@ -231,6 +237,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
+  TIME_END("CRKBaseRegisterDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -242,6 +249,7 @@ CRKSPHBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBasePreStepInitialize");
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -264,6 +272,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->applyFieldListGhostBoundary(massDensity);
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
+  TIME_BEGIN("CRKBasePreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -277,6 +286,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
+  TIME_BEGIN("CRKBaseFinalizeDerivatives");
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -289,6 +299,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
     }
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
+  TIME_END("CRKBaseFinalizeDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -299,6 +310,7 @@ void
 CRKSPHBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBaseApplyGhostBoundaries");
 
   // Apply boundary conditions to the basic fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections
@@ -315,6 +327,7 @@ applyGhostBoundaries(State<Dimension>& state,
     boundaryPtr->applyFieldListGhostBoundary(soundSpeed);
     boundaryPtr->applyFieldListGhostBoundary(entropy);
   }
+  TIME_END("CRKBaseApplyGhostBoundaries");
 }
 
 //------------------------------------------------------------------------------
@@ -325,6 +338,7 @@ void
 CRKSPHBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBaseEnforceBoundaries");
 
   // Enforce boundary conditions on the fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections
@@ -341,6 +355,7 @@ enforceBoundaries(State<Dimension>& state,
     boundaryPtr->enforceFieldListBoundary(soundSpeed);
     boundaryPtr->enforceFieldListBoundary(entropy);
   }
+  TIME_END("CRKBaseEnforceBoundaries");
 }
 
 //------------------------------------------------------------------------------
