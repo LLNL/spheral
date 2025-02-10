@@ -320,7 +320,6 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                   StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("SPHBasePreStepInitialize");
 
-
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
   switch(densityUpdate()) {
@@ -530,6 +529,7 @@ postStateUpdate(const typename Dimension::Scalar time,
 
   // Compute the grad h corrrections if needed.  We have to do this in the post-state update
   // because we need boundary conditions applied to position and H first.
+  bool result = false;
   if (mGradhCorrection) {
     const auto& WT = this->kernel();
     const auto& connectivityMap = dataBase.connectivityMap();
@@ -537,12 +537,11 @@ postStateUpdate(const typename Dimension::Scalar time,
     const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
     auto        omega = state.fields(HydroFieldNames::omegaGradh, 0.0);
     computeSPHOmegaGradhCorrection(connectivityMap, WT, position, H, omega);
-    return true;
-  } else {
-    return false;
+    result = true;
   }
 
   TIME_END("SPHBasePostStateUpdate");
+  return result;
 }
 
 //------------------------------------------------------------------------------
