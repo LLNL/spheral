@@ -255,7 +255,7 @@ for test_key, ctest in cur_test_data.items():
         th.stats.std(rtest, metrics)
     # Compute the max allowable time for the main region
     ctest.statsframe.dataframe["thresh"] = compute_threshold(rtest.statsframe, metric0)
-    ctest.move_metrics_to_statsframe([metric0])
+    ctest.move_metrics_to_statsframe([metric0,metric1])
     ref_main = get_times(rtest.statsframe, "main", metric0+"_mean")[0]
     cur_main = get_times(ctest.statsframe, "main", metric0)[0]
     ref_thresh = get_times(ctest.statsframe, "main", "thresh")[0]
