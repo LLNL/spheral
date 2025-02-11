@@ -204,9 +204,9 @@ class SpheralTPL:
         env_dir = os.path.join(get_config_dir(base_dir), "environments")
         # Check if we are on an LC machine and the environment exists
         default_env = os.getenv("SYS_TYPE")
-        cur_env_dir = os.path.join(env_dir, default_env)
-        if default_env and os.path.exists(cur_env_dir):
+        if default_env and os.path.exists(os.path.join(env_dir, default_env)):
             # For LC systems
+            cur_env_dir = os.path.join(env_dir, default_env)
             print(f"Activating Spack environment in {cur_env_dir}")
             if self.args.no_upstream:
                 self.remove_upstream(cur_env_dir)
