@@ -121,17 +121,16 @@ class SpheralTPL:
     def custom_spack_env(self, env_dir, env_name):
         "Use/create a custom Spack environment"
         from spack import environment
+        if (not self.args.spec):
+            raise Exception("Must supply a --spec for a custom environment")
 
         cur_env_dir = os.path.join(env_dir, env_name)
-        if (os.path.exists(os.path.join(cur_env_dir, "spack.yaml"))):
-            # Load existing environment
-            self.spack_env = environment.Environment(cur_env_dir)
-        else:
-            if (not self.args.spec):
-                raise Exception("Must supply a --spec for a new environment")
+        if (not os.path.exists(os.path.join(cur_env_dir, "spack.yaml"))):
             # Create a new environment
-            self.spack_env = environment.create_in_dir(cur_env_dir)
+            env_cmd = SpackCommand("env")
+            env_cmd("create", "--without-view", "-d", cur_env_dir)
 
+        self.spack_env = environment.Environment(cur_env_dir)
         environment.activate(self.spack_env)
         # Get all the Spack commands
         repo_cmd = SpackCommand("repo")
@@ -150,7 +149,9 @@ class SpheralTPL:
 
         # Find external packages and compilers
         # List of packages to find externally
-        ext_packages = ["mpich", "cmake", "git", "python"]
+        ext_packages = ["cmake", "git", "python"]
+        if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
+            ext_packages.append("mpich")
         comp_cmd("find") # spack compiler find
         ext_cmd("find", "--not-buildable") # spack external find --not-buildable
         # Ignore any packages that are already found
@@ -223,10 +224,8 @@ class SpheralTPL:
         "Concretize the spec"
         self.spack_spec = spack.spec.Spec(self.args.spec)
         if (self.args.add_spec):
-            self.spack_env.add(self.spack_spec)
-        force = False
-        if (self.args.debug):
-            force = True
+            add_cmd = SpackCommand("add")
+            add_cmd(self.args.spec)
         print("Concretizing environment")
         conc_cmd = SpackCommand("concretize")
         conc_cmd("-U")

@@ -36,7 +36,7 @@ Create a directory structure and clone spheral.
 Build our TPL dependencies from source with the Spheral tpl-management tool (``tpl-manager.py``).
 ::
 
-  python3 scripts/devtools/tpl-manager.py --spec gcc
+  python3 scripts/devtools/tpl-manager.py --spec spheral%gcc+mpi
 
 .. note::
    This command sequence assumes ``gcc`` is installed and will use the version in your system path. If you wish to use a different compiler (such as ``clang``) ensure it is in your path and replace ``gcc`` with the compiler name of your choice (e.g. ``clang``).
@@ -56,7 +56,7 @@ Build our TPL dependencies from source with the Spheral tpl-management tool (``t
 Build our TPL dependencies from source with the Spheral tpl-management tool (``tpl-manager.py``).
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
+  ./scripts/devtools/tpl-manager.py --spec spheral%gcc@8.3.1+mpi
 
 .. warning::
   This command needs to be run under an allocation as any TPLs that need to be built will be built in parallel.
