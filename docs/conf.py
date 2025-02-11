@@ -22,13 +22,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Spheral'
-copyright = '2024, LLNS'
+copyright = '2025, LLNS'
 author = 'J. Michael Owen'
 
 # The short X.Y version
-version = '2024.06.1'
+version = '2025.01.0'
 # The full version, including alpha/beta/rc tags
-release = '2024.06.1'
+release = '2025.01.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -92,7 +92,7 @@ html_theme = 'sphinx_rtd_theme' # 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['@SPHINX_THEME_DIR@']  # ['_static']
+html_static_path = ['']  # ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

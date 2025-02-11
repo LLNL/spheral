@@ -1,4 +1,4 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2025.01.0 -- Release date 2025-01-31
 ==============================================
   * Important Notes:
 
