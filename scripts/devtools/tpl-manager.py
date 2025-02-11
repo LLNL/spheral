@@ -149,18 +149,17 @@ class SpheralTPL:
 
         # Find external packages and compilers
         # List of packages to find externally
-        ext_packages = ["cmake", "git", "python"]
+        ext_packages = ["git", "pkg-config", "autoconf", "automake"]
         if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
             ext_packages.append("mpich")
         comp_cmd("find") # spack compiler find
-        ext_cmd("find", "--not-buildable") # spack external find --not-buildable
         # Ignore any packages that are already found
         cur_packages = spack.config.get("packages")
         for i in ext_packages:
             if (i in cur_packages):
                 ext_packages.remove(i)
-        for i in ext_packages:
-            ext_cmd("find", "--not-buildable", i)
+        ext_cmd("find", *ext_packages)
+        cur_packages = spack.config.get("packages")
         # TODO: Add logic to inform user when packages arent found
         # to encourage them to potentially add their own paths
         # Always add the spec for a custom environment
