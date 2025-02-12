@@ -118,6 +118,41 @@ class SpheralTPL:
         if self.args.debug:
             sexe(f"git -C {spack_dir} clean -df")
 
+    def find_spack_package(self, package_names):
+        """
+        Find if the package name/s is already in the environment.
+        If any one of them are found, return the name of that package
+        If not, run spack external find and raise an error if none are found
+        """
+        cur_packages = spack.config.get("packages")
+        if (type(package_names) is not list):
+            package_names = [package_names]
+        for i in package_names:
+            if (i in cur_packages):
+                return i
+        ext_cmd = SpackCommand("external")
+        find_out = ext_cmd("find", "--not-buildable", *package_names)
+        for i in package_names:
+            if (i in find_out):
+                return i
+        raise Exception(f"System install of {package_names} not found. "+\
+                        "If software is installed, add location to $PATH "+\
+                        "environment variable. Otherwise, install package.")
+
+    def modify_env_file(self, env_dir, mod_func):
+        "Modify the spack.yaml file"
+        from spack.util import spack_yaml
+        env_file = os.path.join(env_dir, "spack.yaml")
+        # Load the spack.yaml file
+        with open(env_file) as ff:
+            try:
+                loader = spack_yaml.load(ff)
+            except SpackYAMLError as exception:
+                print(exception)
+        loader = mod_func(loader)
+        with open(env_file, 'w') as ff:
+            spack_yaml.dump(loader, ff)
+
     def custom_spack_env(self, env_dir, env_name):
         "Use/create a custom Spack environment"
         from spack import environment
@@ -137,9 +172,9 @@ class SpheralTPL:
         dev_cmd = SpackCommand("develop")
         comp_cmd = SpackCommand("compiler")
         ext_cmd = SpackCommand("external")
+        cur_repos = repo_cmd("list") # spack repo list
 
         # Add the repos and develop paths to the spack environment
-        cur_repos = repo_cmd("list") # spack repo list
         for package, path in package_dirs.items():
             if (package+" " not in cur_repos):
                 repo_path = os.path.abspath(get_config_dir(path))
@@ -147,57 +182,46 @@ class SpheralTPL:
             dev_path = os.path.abspath(path)
             dev_cmd("-p", dev_path, f"{package}@=develop") # spack develop <package>@=develop
 
-        # Find external packages and compilers
-        # List of packages to find externally
-        ext_packages = ["git", "pkg-config", "autoconf", "automake"]
-        if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
-            ext_packages.append("mpich")
         comp_cmd("find") # spack compiler find
-        # Ignore any packages that are already found
-        cur_packages = spack.config.get("packages")
-        for i in ext_packages:
-            if (i in cur_packages):
-                ext_packages.remove(i)
-        ext_cmd("find", *ext_packages)
-        cur_packages = spack.config.get("packages")
-        # TODO: Add logic to inform user when packages arent found
-        # to encourage them to potentially add their own paths
+        ext_cmd("find")
+        # req_packages are packages we refuse to let spack build
+        # If they aren't found, an error will be thrown telling the user
+        # to install the package or ensure an install is in $PATH
+        req_packages = ["python", "perl"]
+        for i in req_packages:
+            self.find_spack_package(i)
+        # Look for MPI installs
+        if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
+            mpi_packages = ["mpich", "openmpi"]
+            mpi_pack = self.find_spack_package(mpi_packages)
+            # Modify the providers to ensure the MPI package is being used
+            def set_provider(loader):
+                new_data = {"all": {"providers": {"mpi": [mpi_pack]}}}
+                loader["spack"]["packages"].update(new_data)
+                return loader
+            self.modify_env_file(env_dir, set_provider)
         # Always add the spec for a custom environment
         self.args.add_spec = True
 
     def remove_upstream(self, env_dir):
         "Modify the spack.yaml to remove the upstream"
-        # Copy original file
-        from spack.util import spack_yaml
-        env_file = os.path.join(env_dir, "spack.yaml")
         # TODO: Currently, Spack has no other way to
         # to remove an include: line from an environment
         # than to directly change the spack.yaml file
-
-        # Load the spack.yaml file
-        with open(env_file) as ff:
-            try:
-                loader = spack_yaml.load(ff)
-            except SpackYAMLError as exception:
-                print(exception)
-
-        modded_file = False
         # Remove upstream.yaml or upstream entry
-        if ("upstreams" in loader["spack"]):
-            del loader["spack"]["upstreams"]
-            modded_file = True
-        if ("include" in loader["spack"]):
-            for i, x in enumerate(loader["spack"]["include"]):
-                if ("upstreams.yaml" in x):
-                    del loader["spack"]["include"][i]
-                    modded_file = True
+        def do_remove(loader):
+            if ("upstreams" in loader["spack"]):
+                del loader["spack"]["upstreams"]
+            if ("include" in loader["spack"]):
+                for i, x in enumerate(loader["spack"]["include"]):
+                    if ("upstreams.yaml" in x):
+                        del loader["spack"]["include"][i]
+            return loader
 
         # Copy spack.yaml to origspack.yaml and overwrite spack.yaml
         # with upstreams removed
-        if (modded_file):
-            shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
-            with open(env_file, 'w') as ff:
-                spack_yaml.dump(loader, ff)
+        shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
+        self.modify_env_file(env_dir, do_remove)
 
     def activate_spack_env(self):
         "Activates a Spack environment or creates and activates one when necessary"
