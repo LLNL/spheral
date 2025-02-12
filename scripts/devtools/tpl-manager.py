@@ -159,13 +159,12 @@ class SpheralTPL:
         if (not self.args.spec):
             raise Exception("Must supply a --spec for a custom environment")
 
-        cur_env_dir = os.path.join(env_dir, env_name)
-        if (not os.path.exists(os.path.join(cur_env_dir, "spack.yaml"))):
+        if (not os.path.exists(os.path.join(env_dir, "spack.yaml"))):
             # Create a new environment
             env_cmd = SpackCommand("env")
-            env_cmd("create", "--without-view", "-d", cur_env_dir)
+            env_cmd("create", "--without-view", "-d", env_dir)
 
-        self.spack_env = environment.Environment(cur_env_dir)
+        self.spack_env = environment.Environment(env_dir)
         environment.activate(self.spack_env)
         # Get all the Spack commands
         repo_cmd = SpackCommand("repo")
@@ -194,12 +193,8 @@ class SpheralTPL:
         if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
             mpi_packages = ["mpich", "openmpi"]
             mpi_pack = self.find_spack_package(mpi_packages)
-            # Modify the providers to ensure the MPI package is being used
-            def set_provider(loader):
-                new_data = {"all": {"providers": {"mpi": [mpi_pack]}}}
-                loader["spack"]["packages"].update(new_data)
-                return loader
-            self.modify_env_file(env_dir, set_provider)
+            if (f"^{mpi_pack}" not in self.args.spec):
+                self.args.spec += f"^{mpi_pack}"
         # Always add the spec for a custom environment
         self.args.add_spec = True
 
@@ -225,22 +220,23 @@ class SpheralTPL:
 
     def activate_spack_env(self):
         "Activates a Spack environment or creates and activates one when necessary"
-        env_dir = os.path.join(get_config_dir(base_dir), "environments")
+        config_env_dir = os.path.join(get_config_dir(base_dir), "environments")
         # Check if we are on an LC machine and the environment exists
         default_env = os.getenv("SYS_TYPE")
-        if default_env and os.path.exists(os.path.join(env_dir, default_env)):
+        if default_env and os.path.exists(os.path.join(config_env_dir, default_env)):
             # For LC systems
-            cur_env_dir = os.path.join(env_dir, default_env)
-            print(f"Activating Spack environment in {cur_env_dir}")
+            env_dir = os.path.join(config_env_dir, default_env)
+            print(f"Activating Spack environment in {env_dir}")
             if self.args.no_upstream:
-                self.remove_upstream(cur_env_dir)
+                self.remove_upstream(env_dir)
             from spack import environment
-            self.spack_env = environment.Environment(cur_env_dir)
+            self.spack_env = environment.Environment(env_dir)
             environment.activate(self.spack_env)
         else:
             # Otherwise, check if environment has been created
             arch_cmd = SpackCommand("arch")
             env_name = arch_cmd().strip()
+            env_dir = os.path.join(config_env_dir, env_name)
             self.custom_spack_env(env_dir, env_name)
 
     def concretize_spec(self):
