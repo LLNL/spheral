@@ -139,10 +139,9 @@ class SpheralTPL:
                         "If software is installed, add location to $PATH "+\
                         "environment variable. Otherwise, install package.")
 
-    def modify_env_file(self, env_dir, mod_func):
+    def modify_env_file(self, env_file, mod_func):
         "Modify the spack.yaml file"
         from spack.util import spack_yaml
-        env_file = os.path.join(env_dir, "spack.yaml")
         # Load the spack.yaml file
         with open(env_file) as ff:
             try:
@@ -215,8 +214,9 @@ class SpheralTPL:
 
         # Copy spack.yaml to origspack.yaml and overwrite spack.yaml
         # with upstreams removed
+        env_file = os.path.join(env_dir, "spack.yaml")
         shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
-        self.modify_env_file(env_dir, do_remove)
+        self.modify_env_file(env_file, do_remove)
 
     def activate_spack_env(self):
         "Activates a Spack environment or creates and activates one when necessary"
