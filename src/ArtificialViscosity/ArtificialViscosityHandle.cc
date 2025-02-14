@@ -157,9 +157,8 @@ initialize(const Scalar t,
            State<Dimension>& state,
            StateDerivatives<Dimension>& derivs) {
   // Are we rigorously computing the velocity gradient?
-  if (mRigorousVelocityGradient and (this->requireVelocityGradient() or this->balsaraShearCorrection())) {
-    dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::ArtificialViscosityVelocityGradient, false);
-    this->updateVelocityGradient(dataBase, state, derivs);
+  if (this->requireVelocityGradient() or this->balsaraShearCorrection()) {
+    if (mRigorousVelocityGradient) this->updateVelocityGradient(dataBase, state, derivs);
     return true;
   } else {
     return false;
@@ -184,10 +183,8 @@ postStateUpdate(const Scalar t,
     const auto DvDx   = derivs.fields(HydroFieldNames::velocityGradient, Tensor::zero);
     DvDx_Q.assignFields(DvDx);
     for (auto* fptr: DvDx_Q) fptr->name(HydroFieldNames::ArtificialViscosityVelocityGradient);
-    return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
 //------------------------------------------------------------------------------
