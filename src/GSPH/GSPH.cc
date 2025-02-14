@@ -190,7 +190,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Initialize the hydro before calling evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 GSPH<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
@@ -198,8 +198,9 @@ initialize(const typename Dimension::Scalar time,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
   TIME_BEGIN("GSPHinitialize");
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
+  auto result = GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
   TIME_END("GSPHinitialize");
+  return result;
 }
 
 //------------------------------------------------------------------------------

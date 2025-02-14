@@ -431,7 +431,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Call before deriv evaluation
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 DEMBase<Dimension>::
 initialize(const Scalar  time,
            const Scalar dt,
@@ -441,6 +441,7 @@ initialize(const Scalar  time,
 TIME_BEGIN("DEMinitialize");
 
 TIME_END("DEMinitialize");
+ return false;
 }
 
 

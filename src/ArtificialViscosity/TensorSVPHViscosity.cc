@@ -52,7 +52,7 @@ TensorSVPHViscosity(const Scalar Clinear,
 // Initialize for the FluidNodeLists in the given DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 TensorSVPHViscosity<Dimension>::
 initialize(const Scalar t,
            const Scalar dt,
@@ -197,6 +197,7 @@ initialize(const Scalar t,
     CHECK(fuzzyLessThanOrEqual(muface.Trace(), 0.0, 1.0e-8));
     mQface[iface] = mShearCorrection[iface]*rhoFace*(-Cl*csFace*muface + Cq*muface*muface);
   }
+  return false;
 }
 
 }

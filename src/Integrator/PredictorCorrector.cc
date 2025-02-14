@@ -93,10 +93,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
                                
   // Do any physics specific stuff relating to the fact the state was just updated.
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Check if the timestep is still a good idea...
   if (this->allowDtCheck()) {
@@ -138,10 +135,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Do any physics specific stuff relating to the fact the state was just updated.
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);

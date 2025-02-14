@@ -70,6 +70,16 @@ class ArtificialViscosityHandle(Physics):
         return "void"
 
     @PYB11virtual
+    def initialize(self,
+                   time = "const Scalar",
+                   dt = "const Scalar",
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "State<%(Dimension)s>&",
+                   derivs = "StateDerivatives<%(Dimension)s>&"):
+        "initialize is our chance to update the velocity gradient if needed"
+        return "bool"
+
+    @PYB11virtual
     def postStateUpdate(self,
                         time = "const Scalar",
                         dt = "const Scalar",

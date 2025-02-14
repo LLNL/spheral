@@ -97,7 +97,13 @@ public:
                                                     State<Dimension>& state,
                                                     StateDerivatives<Dimension>& derivs) override;
 
-  // Post-state update is our chance to update the velocity gradient if needed
+  // initialize and post-state update are our chances to update the velocity gradient if needed
+  virtual bool initialize(const Scalar time, 
+                          const Scalar dt,
+                          const DataBase<Dimension>& dataBase, 
+                          State<Dimension>& state,
+                          StateDerivatives<Dimension>& derivatives) override;
+
   virtual bool postStateUpdate(const Scalar time, 
                                const Scalar dt,
                                const DataBase<Dimension>& dataBase, 

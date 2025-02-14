@@ -84,7 +84,7 @@ public:
                           const Scalar currentTime) const;
 
   //! Make sure that Gadget's internal state is initialized before cycling.
-  virtual void initialize(const Scalar& time, 
+  virtual bool initialize(const Scalar& time, 
                           const Scalar& dt,
                           const DataBase<Dimension>& db, 
                           State<Dimension>& state,

@@ -139,7 +139,8 @@ public:
 
   // Some packages might want a hook to do some initializations before the
   // evaluateDerivatives() method is called.
-  virtual void initialize(const Scalar time, 
+  // Returns a bool indicating whether ghost state should be updated again following this call (default false)
+  virtual bool initialize(const Scalar time, 
                           const Scalar dt,
                           const DataBase<Dimension>& dataBase, 
                           State<Dimension>& state,

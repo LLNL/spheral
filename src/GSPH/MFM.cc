@@ -176,14 +176,14 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Initialize the hydro before calling evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 MFM<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
+  return GenericRiemannHydro<Dimension>::initialize(time,dt,dataBase,state,derivs);
 }
 
 //------------------------------------------------------------------------------

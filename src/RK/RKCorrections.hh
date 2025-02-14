@@ -89,7 +89,7 @@ public:
                                  StateDerivatives<Dimension>& derivs) override;
   
   // Compute RK corrections
-  virtual void initialize(const Scalar time, 
+  virtual bool initialize(const Scalar time, 
                           const Scalar dt,
                           const DataBase<Dimension>& dataBase, 
                           State<Dimension>& state,

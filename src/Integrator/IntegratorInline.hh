@@ -285,7 +285,7 @@ cullGhostNodes(bool x) {
 template<typename Dimension>
 inline
 DataBase<Dimension>& 
-Integrator<Dimension>::accessDataBase() {
+Integrator<Dimension>::accessDataBase() const {
   return mDataBase.get();
 }
 
