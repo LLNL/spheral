@@ -63,6 +63,9 @@ public:
   // member of a pair (maintaining symmetry).
   void removeConnectivity(const FieldList<Dimension, std::vector<std::vector<int>>>& neighborsToCut);
 
+  // Remove pairs based on a function
+  void removeConnectivity(std::function<bool(int, int, int, int)> excludePairs);
+
   // Are we computing neighbors for ghosts?
   bool buildGhostConnectivity() const;
 
@@ -176,7 +179,6 @@ public:
 
   // Check that the internal data structure is valid.
   bool valid() const;
-
 private:
   //--------------------------- Private Interface ---------------------------//
   // The set of NodeLists.

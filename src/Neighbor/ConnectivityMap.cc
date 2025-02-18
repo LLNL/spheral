@@ -1152,4 +1152,52 @@ computeConnectivity() {
   TIME_END("ConnectivityMap_computeConnectivity");
 }
 
+//------------------------------------------------------------------------------
+// Remove given pairs from the connectivity in place
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ConnectivityMap<Dimension>::
+removeConnectivity(std::function<bool(int, int, int, int)> excludePairs)
+{
+  const auto domainDecompIndependent = NodeListRegistrar<Dimension>::instance().domainDecompositionIndependent();
+  const auto numNodeLists = mNodeLists.size();
+  for (auto iNodeList = 0u; iNodeList != numNodeLists; ++iNodeList) {
+    const auto numNodes = ((domainDecompIndependent or mBuildGhostConnectivity or mBuildOverlapConnectivity) ? 
+                           mNodeLists[iNodeList]->numNodes() :
+                           mNodeLists[iNodeList]->numInternalNodes());
+    for (auto i = 0u; i < numNodes; ++i) {
+      auto& neighbors = mConnectivity[i];
+      CHECK(neighbors.size() == numNodeLists);
+      for (auto jNodeList = 0u; jNodeList < numNodeLists; ++jNodeList) {
+        auto& neighborsj = neighbors[jNodeList];
+        auto l = 0u;
+        for (auto k = 0u; k < neighborsj.size(); ++k)
+        {
+          const auto j = neighborsj[k];
+          if (!excludePairs(iNodeList, i, jNodeList, j))
+          {
+            neighborsj[l++] = neighborsj[k];
+          }
+        }
+        neighborsj.resize(l);
+      }
+    }
+  }
+
+  const auto npairs = mNodePairList.size();
+  auto l = 0u;
+  for (auto k = 0u; k < npairs; ++k) {
+    const auto iNodeList = mNodePairList[k].i_list;
+    const auto jNodeList = mNodePairList[k].j_list;
+    const auto i = mNodePairList[k].i_node;
+    const auto j = mNodePairList[k].j_node;
+    if (!excludePairs(iNodeList, i, jNodeList, j))
+    {
+      mNodePairList[l++] = mNodePairList[k];
+    }
+  }
+  mNodePairList.resize(l);
+}
+
 }

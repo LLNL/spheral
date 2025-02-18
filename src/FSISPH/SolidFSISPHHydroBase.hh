@@ -32,6 +32,7 @@ enum class FSIMassDensityMethod {
   FSISumMassDensity = 0,
   PressureCorrectSumMassDensity = 1,
   HWeightedSumMassDensity = 2,
+  FSIConsistentSumMassDensity = 3,
 };
 
 template<typename Dimension> class State;

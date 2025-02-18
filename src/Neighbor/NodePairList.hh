@@ -58,7 +58,8 @@ public:
 
   NodePairList();
   void push_back(NodePairIdxType nodePair);
-  void clear(); 
+  void clear();
+  void resize(const size_t n) { mNodePairList.resize(n, NodePairIdxType(-1,-1,-1,-1)); }
   size_t size() const { return mNodePairList.size(); }
   void makeUnique();
 
