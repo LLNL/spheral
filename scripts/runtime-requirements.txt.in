@@ -3,7 +3,7 @@ numpy-stl
 matplotlib
 h5py
 scipy 
-mpi4py
+mpi4py == 4.0.2
 cffi
 pyyaml
 llnl-thicket
