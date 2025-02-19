@@ -86,14 +86,28 @@ template<typename Dimension>
 void
 RKCorrections<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  for (auto order: mOrders) {
+    mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Optional hook to initialize once when the problem is starting up
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+RKCorrections<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   // Get some more data
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& W = mWR.begin()->second.kernel();
-  const auto  mass = dataBase.fluidMass();
-  const auto  H = dataBase.fluidHfield();
-  const auto  position = dataBase.fluidPosition();
-  const auto  massDensity = dataBase.fluidMassDensity();
-  const auto  damage = dataBase.solidDamage();
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto  damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   
   // Compute the volumes
   computeRKVolumes(connectivityMap, W,
@@ -117,8 +131,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*boundItr)->finalizeGhostBoundary();
   }
   
-  // Allocate correction fields
-  for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
+  // // Allocate correction fields
+  // for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
   
   // Compute corrections
   for (auto order: mOrders) {

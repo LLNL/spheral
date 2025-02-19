@@ -68,7 +68,16 @@ class RKCorrections(Physics):
         return "void"
     
     @PYB11virtual
-    def initializeProblemStartup(self, dataBase = "DataBase<%(Dimension)s>&"):
+    def initializeProblemStartup(self,
+                                 dataBase = "DataBase<%(Dimension)s>&"):
+        "Tasks we do once on problem startup"
+        return "void"
+
+    @PYB11virtual
+    def initializeProblemStartupDependencies(self,
+                                             dataBase = "DataBase<%(Dimension)s>&",
+                                             state = "State<%(Dimension)s>&",
+                                             derivs = "StateDerivatives<%(Dimension)s>&"):
         "Tasks we do once on problem startup"
         return "void"
 

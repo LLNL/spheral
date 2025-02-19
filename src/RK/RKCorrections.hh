@@ -83,6 +83,11 @@ public:
   // Initialize field lists and calculate initial RK corrections
   virtual void initializeProblemStartup(DataBase<Dimension>& dataBase) override;
   
+  // Initialize field lists and calculate initial RK corrections
+  virtual void initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                                    State<Dimension>& state,
+                                                    StateDerivatives<Dimension>& derivs) override;
+  
   // Compute the volumes
   virtual void preStepInitialize(const DataBase<Dimension>& dataBase, 
                                  State<Dimension>& state,
