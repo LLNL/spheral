@@ -87,8 +87,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
@@ -103,8 +101,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
-  mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-  mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
@@ -213,8 +209,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -223,8 +217,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
 
-  derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mEffViscousPressure);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -379,8 +371,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mEntropy, pathName + "/entropy");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mEffViscousPressure, pathName + "/effViscousPressure");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
@@ -402,8 +392,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mEntropy, pathName + "/entropy");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.read(mEffViscousPressure, pathName + "/effViscousPressure");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");
