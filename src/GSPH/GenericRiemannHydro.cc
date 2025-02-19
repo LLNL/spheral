@@ -472,14 +472,14 @@ dt(const DataBase<Dimension>& dataBase,
 // Initialize the hydro before calling evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 GenericRiemannHydro<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  
+  return false;
 }
 
 //------------------------------------------------------------------------------

@@ -93,10 +93,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentTime(t + hdt);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + hdt, hdt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + hdt, hdt, db, state, derivs);
   TIME_END("CheapRK2MidStep");
 
   // Evaluate the derivatives at the midpoint.
@@ -128,11 +125,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
-  // this->enforceBoundaries(state, derivs);
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
   TIME_END("CheapRK2EndStep");
 
   // Apply any physics specific finalizations.

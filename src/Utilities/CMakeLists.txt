@@ -135,6 +135,7 @@ set(Utilities_headers
     range.hh
     AnyVisitor.hh
     DeprecationWarning.hh
+    StrideIterator.hh
   )
 
 spheral_install_python_files(fitspline.py)

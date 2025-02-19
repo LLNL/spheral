@@ -118,6 +118,7 @@ registerState(DataBase<Dimension>& dataBase,
     state.enroll(specificThermalEnergy, make_policy<IncrementState<Dimension, Scalar>>());
   }
 
+  TIME_END("SPHregister");
 }
 
 //------------------------------------------------------------------------------

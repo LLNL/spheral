@@ -208,8 +208,8 @@ selectDt(const typename Dimension::Scalar dtMin,
 template<typename Dimension>
 void
 Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
-                                         StateDerivatives<Dimension>& derivs) {
-  DataBase<Dimension>& db = accessDataBase();
+                                         StateDerivatives<Dimension>& derivs) const {
+  auto& db = mDataBase.get();
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     physicsPtr->preStepInitialize(db, state, derivs);
   }
@@ -224,22 +224,25 @@ void
 Integrator<Dimension>::initializeDerivatives(const double t,
                                              const double dt,
                                              State<Dimension>& state,
-                                             StateDerivatives<Dimension>& derivs) {
+                                             StateDerivatives<Dimension>& derivs) const {
 
   // Initialize the work fields.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
   for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
     nodeListPtr->work() = 0.0;
   }
 
   // Loop over the physics packages and perform any necessary initializations.
+  auto updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    physicsPtr->initialize(t, dt, db, state, derivs);
+    updateBoundaries |= physicsPtr->initialize(t, dt, db, state, derivs);
   }
 
-  // Physics packages may have called boundary conditions as well, so finalize any
-  // outstanding boundary conditions here.
-  this->finalizeGhostBoundaries();
+  // Apply boundaries if requested.
+  if (updateBoundaries) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -281,7 +284,7 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 // stuff.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-bool
+void
 Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        const Scalar dt,
                                        const DataBase<Dimension>& dataBase, 
@@ -289,11 +292,16 @@ Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
-  bool updateBoundaries = false;
+  auto updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     updateBoundaries |= physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
   }
-  return updateBoundaries;
+
+  // Apply boundaries if requested.
+  if (updateBoundaries) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -304,10 +312,10 @@ void
 Integrator<Dimension>::postStepFinalize(const double t,
                                         const double dt,
                                         State<Dimension>& state,
-                                        StateDerivatives<Dimension>& derivs) {
+                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages and perform any necessary finalizations.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     physicsPtr->finalize(t, dt, db, state, derivs);
   }
@@ -397,10 +405,10 @@ uniqueBoundaryConditions() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::setGhostNodes() {
+Integrator<Dimension>::setGhostNodes() const {
 
   // Get that DataBase.
-  auto& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // Get the complete set of unique boundary conditions.
   const auto boundaries = uniqueBoundaryConditions();
@@ -569,14 +577,14 @@ Integrator<Dimension>::setGhostNodes() {
 template<typename Dimension>
 void
 Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
-                                            StateDerivatives<Dimension>& derivs) {
+                                            StateDerivatives<Dimension>& derivs) const {
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
 
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // If we're being rigorous about boundaries, we have to reset the ghost nodes.
   const auto boundaries = uniqueBoundaryConditions();
@@ -621,7 +629,7 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::finalizeGhostBoundaries() {
+Integrator<Dimension>::finalizeGhostBoundaries() const {
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
@@ -652,10 +660,10 @@ Integrator<Dimension>::finalizeGhostBoundaries() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::setViolationNodes() {
+Integrator<Dimension>::setViolationNodes() const {
 
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // Get the complete set of unique boundary conditions.
   const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
@@ -680,7 +688,7 @@ Integrator<Dimension>::setViolationNodes() {
 template<typename Dimension>
 void
 Integrator<Dimension>::enforceBoundaries(State<Dimension>& state,
-                                         StateDerivatives<Dimension>& derivs) {
+                                         StateDerivatives<Dimension>& derivs) const {
 
   // Have each boundary identify the set of nodes in violation.  This also resets
   // the positions and H's of the nodes to be in compliance.

@@ -97,7 +97,6 @@ commandLine(geometry = "2d",                     # one of (2d, 3d, RZ)
             densityUpdate = IntegrateDensity,
             compatibleEnergy = True,
             evolveTotalEnergy = False,
-            filter = 0.0,
             useVelocityMagnitudeForDt = True,
             XSPH = True,
             epsilonTensile = 0.0,
@@ -116,11 +115,9 @@ commandLine(geometry = "2d",                     # one of (2d, 3d, RZ)
             # artificial viscosity
             Cl = 1.0,                            # Linear Q coefficient
             Cq = 1.0,                            # Quadratic Q coefficient
-            Qlimiter = False,                    # Q directional limiter switch
             balsaraCorrection = False,           # Q shear switch
             epsilon2 = 1e-2,                               
-            negligibleSoundSpeed = 1e-5,
-            csMultiplier = 1e-4,
+            rigorousVelocityGradient = False,
             
             # kernel
             hmin = 1e-5, 
@@ -456,7 +453,6 @@ if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = filter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
@@ -480,7 +476,6 @@ else:
     assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
@@ -512,16 +507,16 @@ if Cq:
     q.Cq = Cq
 if epsilon2:
     q.epsilon2 = epsilon2
-if Qlimiter:
-    q.limiter = Qlimiter
 if balsaraCorrection:
     q.balsaraShearCorrection = balsaraCorrection
+q.rigorousVelocityGradient = rigorousVelocityGradient
 output("q")
 output("q.Cl")
 output("q.Cq")
 output("q.epsilon2")
 output("q.limiter")
 output("q.balsaraShearCorrection")
+output("q.rigorousVelocityGradient")
 try:
     output("q.linearInExpansion")
     output("q.quadraticInExpansion")
@@ -603,10 +598,11 @@ if siloSnapShotFile:
     state0 = State(db, integrator.physicsPackages())
     state0.copyState()
     derivs = StateDerivatives(db, integrator.physicsPackages())
-    derivs.Zero()
+    integrator.applyGhostBoundaries(state, derivs)
     integrator.preStepInitialize(state, derivs)
     dt = integrator.selectDt(dtmin, dtmax, state, derivs)
     integrator.initializeDerivatives(control.time() + dt, dt, state, derivs)
+    derivs.Zero()
     integrator.evaluateDerivatives(control.time() + dt, dt, db, state, derivs)
     integrator.finalizeDerivatives(control.time() + dt, dt, db, state, derivs)
 
@@ -624,6 +620,7 @@ if siloSnapShotFile:
     mu = state0.scalarFields(SolidFieldNames.shearModulus)
     Y = state0.scalarFields(SolidFieldNames.yieldStrength)
     ps = state0.scalarFields(SolidFieldNames.plasticStrain)
+    DvelDxQ = state0.tensorFields(HydroFieldNames.ArtificialViscosityVelocityGradient)
     massSum = derivs.scalarFields("new " + HydroFieldNames.massDensity)
     DrhoDt = derivs.scalarFields("delta " + HydroFieldNames.massDensity)
     DvelDt = derivs.vectorFields(HydroFieldNames.hydroAcceleration)
@@ -635,7 +632,7 @@ if siloSnapShotFile:
 
     # Write the sucker.
     siloPointmeshDump(siloSnapShotFile, 
-                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps,
+                      fieldLists = [mass, rho, pos, eps, vel, H, P, S, cs, K, mu, Y, ps, DvelDxQ,
                                     massSum, DrhoDt, DvelDt, DepsDt, DvelDx, DHDt, Hideal, DSDt],
                       baseDirectory = dataDir,
                       label = "Spheral++ snapshot of state and derivatives.",

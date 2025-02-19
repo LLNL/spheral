@@ -809,7 +809,7 @@ enforceBoundaries(State<Dimension>& state,
 
 //------------------------------------------------------------------------------
 template <typename Dimension>
-void 
+bool
 SPHGravity<Dimension>::
 initialize(const Scalar& time, 
            const Scalar& dt,
@@ -818,6 +818,7 @@ initialize(const Scalar& time,
            StateDerivatives<Dimension>& derivs)
 {
   mComputeMatrixStructure(db, state);
+  return false;
 }
 //------------------------------------------------------------------------------
 

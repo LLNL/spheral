@@ -559,6 +559,8 @@ if not hydroType in ("GSPH", "MFM", "MFV"):
     output("q.Cq")
     output("q.epsilon2")
     output("q.balsaraShearCorrection")
+    output("q.requireVelocityGradient()")
+    output("q.rigorousVelocityGradient")
     if hasattr(q, "linearInExpansion") and not linearInExpansion is None:
         q.linearInExpansion = linearInExpansion
         output("q.linearInExpansion")

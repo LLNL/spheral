@@ -32,6 +32,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Utilities/Timer.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/range.hh"
 #include "Utilities/newtonRaphson.hh"
@@ -86,8 +87,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mPressure(FieldStorageType::CopyFields),
   mSoundSpeed(FieldStorageType::CopyFields),
   mEntropy(FieldStorageType::CopyFields),
-  mMaxViscousPressure(FieldStorageType::CopyFields),
-  mEffViscousPressure(FieldStorageType::CopyFields),
   mXSPHDeltaV(FieldStorageType::CopyFields),
   mDxDt(FieldStorageType::CopyFields),
   mDvDt(FieldStorageType::CopyFields),
@@ -102,8 +101,6 @@ CRKSPHBase(DataBase<Dimension>& dataBase,
   mPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::pressure);
   mSoundSpeed = dataBase.newFluidFieldList(0.0, HydroFieldNames::soundSpeed);
   mEntropy = dataBase.newFluidFieldList(0.0, HydroFieldNames::entropy);
-  mMaxViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::maxViscousPressure);
-  mEffViscousPressure = dataBase.newFluidFieldList(0.0, HydroFieldNames::effectiveViscousPressure);
   mXSPHDeltaV = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::XSPHDeltaV);
   mDxDt = dataBase.newFluidFieldList(Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position);
   mDvDt = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::hydroAcceleration);
@@ -122,11 +119,13 @@ CRKSPHBase<Dimension>::
 initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
                                      State<Dimension>& state,
                                      StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("CRKBaseInitializeProblemStartupDependencies");
 
   // Initialize the pressure, sound speed, and entropy.
   updateStateFields<Dimension>(HydroFieldNames::pressure, state, derivs);
   updateStateFields<Dimension>(HydroFieldNames::soundSpeed, state, derivs);
   updateStateFields<Dimension>(HydroFieldNames::entropy, state, derivs);
+  TIME_END("CRKBaseInitializeProblemStartupDependencies");
 }
 
 //------------------------------------------------------------------------------
@@ -137,6 +136,7 @@ void
 CRKSPHBase<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
+  TIME_BEGIN("CRKBaseRegisterState");
 
   // Create the local storage for time step mask, pressure, sound speed, and correction fields.
   dataBase.resizeFluidFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
@@ -189,6 +189,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the pressure and sound speed.
   state.enroll(mPressure, make_policy<PressurePolicy<Dimension>>());
   state.enroll(mSoundSpeed, make_policy<SoundSpeedPolicy<Dimension>>());
+  TIME_END("CRKBaseRegisterState");
 }
 
 //------------------------------------------------------------------------------
@@ -199,6 +200,7 @@ void
 CRKSPHBase<Dimension>::
 registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
+  TIME_BEGIN("CRKBaseRegisterDerivatives");
 
   const auto DxDtName = IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position;
   const auto DvDtName = HydroFieldNames::hydroAcceleration;
@@ -207,8 +209,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // Note we deliberately do not zero out the derivatives here!  This is because the previous step
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
-  dataBase.resizeFluidFieldList(mEffViscousPressure, 0.0, HydroFieldNames::effectiveViscousPressure, false);
   dataBase.resizeFluidFieldList(mXSPHDeltaV, Vector::zero, HydroFieldNames::XSPHDeltaV, false);
   dataBase.resizeFluidFieldList(mDxDt, Vector::zero, IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::position, false);
   dataBase.resizeFluidFieldList(mDvDt, Vector::zero, HydroFieldNames::hydroAcceleration, false);
@@ -217,8 +217,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   dataBase.resizeFluidFieldList(mDvDx, Tensor::zero, HydroFieldNames::velocityGradient, false);
   dataBase.resizeFluidFieldList(mInternalDvDx, Tensor::zero, HydroFieldNames::internalVelocityGradient, false);
 
-  derivs.enroll(mMaxViscousPressure);
-  derivs.enroll(mEffViscousPressure);
   derivs.enroll(mXSPHDeltaV);
 
   // These two (the position and velocity updates) may be registered
@@ -231,6 +229,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mInternalDvDx);
+  TIME_END("CRKBaseRegisterDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -242,6 +241,7 @@ CRKSPHBase<Dimension>::
 preStepInitialize(const DataBase<Dimension>& dataBase, 
                   State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBasePreStepInitialize");
 
   // Depending on the mass density advancement selected, we may want to replace the 
   // mass density.
@@ -264,6 +264,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->applyFieldListGhostBoundary(massDensity);
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
+  TIME_END("CRKBasePreStepInitialize");
 }
 
 //------------------------------------------------------------------------------
@@ -277,6 +278,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
                     const DataBase<Dimension>& /*dataBase*/,
                     const State<Dimension>& /*state*/,
                     StateDerivatives<Dimension>& derivs) const {
+  TIME_BEGIN("CRKBaseFinalizeDerivatives");
 
   // If we're using the compatible energy discretization, we need to enforce
   // boundary conditions on the accelerations.
@@ -289,6 +291,7 @@ finalizeDerivatives(const typename Dimension::Scalar /*time*/,
     }
     for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
   }
+  TIME_END("CRKBaseFinalizeDerivatives");
 }
 
 //------------------------------------------------------------------------------
@@ -299,6 +302,7 @@ void
 CRKSPHBase<Dimension>::
 applyGhostBoundaries(State<Dimension>& state,
                      StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBaseApplyGhostBoundaries");
 
   // Apply boundary conditions to the basic fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections
@@ -315,6 +319,7 @@ applyGhostBoundaries(State<Dimension>& state,
     boundaryPtr->applyFieldListGhostBoundary(soundSpeed);
     boundaryPtr->applyFieldListGhostBoundary(entropy);
   }
+  TIME_END("CRKBaseApplyGhostBoundaries");
 }
 
 //------------------------------------------------------------------------------
@@ -325,6 +330,7 @@ void
 CRKSPHBase<Dimension>::
 enforceBoundaries(State<Dimension>& state,
                   StateDerivatives<Dimension>& /*derivs*/) {
+  TIME_BEGIN("CRKBaseEnforceBoundaries");
 
   // Enforce boundary conditions on the fluid state Fields.
   // volume, mass, and massDensity handled by RKCorrections
@@ -341,6 +347,7 @@ enforceBoundaries(State<Dimension>& state,
     boundaryPtr->enforceFieldListBoundary(soundSpeed);
     boundaryPtr->enforceFieldListBoundary(entropy);
   }
+  TIME_END("CRKBaseEnforceBoundaries");
 }
 
 //------------------------------------------------------------------------------
@@ -364,8 +371,6 @@ dumpState(FileIO& file, const string& pathName) const {
   file.write(mPressure, pathName + "/pressure");
   file.write(mSoundSpeed, pathName + "/soundSpeed");
   file.write(mEntropy, pathName + "/entropy");
-  file.write(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.write(mEffViscousPressure, pathName + "/effViscousPressure");
   file.write(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.write(mDxDt, pathName + "/DxDt");
@@ -387,8 +392,6 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mPressure, pathName + "/pressure");
   file.read(mSoundSpeed, pathName + "/soundSpeed");
   file.read(mEntropy, pathName + "/entropy");
-  file.read(mMaxViscousPressure, pathName + "/maxViscousPressure");
-  file.read(mEffViscousPressure, pathName + "/effViscousPressure");
   file.read(mXSPHDeltaV, pathName + "/XSPHDeltaV");
 
   file.read(mDxDt, pathName + "/DxDt");

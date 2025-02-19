@@ -29,7 +29,7 @@ public:
 
   // Initialize the artificial viscosity for all FluidNodeLists in the given
   // DataBase.
-  virtual void initialize(const Scalar t,
+  virtual bool initialize(const Scalar t,
                           const Scalar dt,
                           const DataBase<Dimension>& dataBase,
                           State<Dimension>& state,

@@ -49,7 +49,7 @@ not fill out the complete physics package interface."""
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize before computing the derivatives."
-        return "void"
+        return "bool"
 
     @PYB11virtual
     def finalize(self,

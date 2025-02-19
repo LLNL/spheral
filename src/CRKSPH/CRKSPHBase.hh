@@ -138,8 +138,6 @@ public:
   const FieldList<Dimension, Scalar>&    pressure()                     const { return mPressure; }
   const FieldList<Dimension, Scalar>&    soundSpeed()                   const { return mSoundSpeed; }
   const FieldList<Dimension, Scalar>&    entropy()                      const { return mEntropy; }
-  const FieldList<Dimension, Scalar>&    maxViscousPressure()           const { return mMaxViscousPressure; }
-  const FieldList<Dimension, Scalar>&    effectiveViscousPressure()     const { return mEffViscousPressure; }
   const FieldList<Dimension, Vector>&    XSPHDeltaV()                   const { return mXSPHDeltaV; }
 
   const FieldList<Dimension, Vector>&    DxDt()                         const { return mDxDt; }
@@ -169,9 +167,6 @@ protected:
   FieldList<Dimension, Scalar>    mPressure;
   FieldList<Dimension, Scalar>    mSoundSpeed;
   FieldList<Dimension, Scalar>    mEntropy;
-
-  FieldList<Dimension, Scalar>    mMaxViscousPressure;
-  FieldList<Dimension, Scalar>    mEffViscousPressure;
 
   FieldList<Dimension, Vector>    mXSPHDeltaV;
   FieldList<Dimension, Vector>    mDxDt;

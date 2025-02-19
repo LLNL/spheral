@@ -69,7 +69,7 @@ public:
   // Perform generic initializations at the beginning of a timestep.
   // To be called once per advance cycle.
   virtual void preStepInitialize(State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) const;
 
   // Prepare all physics packages for calls to evaluateDerivatives.
   // To be called before any call to Physics::evaluateDerivatives, therefore potentially
@@ -77,34 +77,34 @@ public:
   virtual void initializeDerivatives(const double t,
                                      const double dt,
                                      State<Dimension>& state,
-                                     StateDerivatives<Dimension>& derivs);
+                                     StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call evaluateDerivatives.
-  void evaluateDerivatives(const Scalar t,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+  virtual void evaluateDerivatives(const Scalar t,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call finalizeDerivatives.
-  void finalizeDerivatives(const Scalar t,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+  virtual void finalizeDerivatives(const Scalar t,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call postStateUpdate
-  bool postStateUpdate(const Scalar t,
-                       const Scalar dt,
-                       const DataBase<Dimension>& dataBase,
-                       State<Dimension>& state,
-                       StateDerivatives<Dimension>& derivs) const;
+  virtual void postStateUpdate(const Scalar t,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivs) const;
 
   // Finalize at the end a timestep, therefore called once at the end of a timestep.
   virtual void postStepFinalize(const double t,
                                 const double dt,
                                 State<Dimension>& state,
-                                StateDerivatives<Dimension>& derivs);
+                                StateDerivatives<Dimension>& derivs) const;
 
   // Add a Physics package.
   void appendPhysicsPackage(Physics<Dimension>& package);
@@ -120,23 +120,23 @@ public:
 
   // Set the ghost nodes for all node lists according to the boundary 
   // conditions.
-  void setGhostNodes();
+  void setGhostNodes() const;
 
   // Set the ghost node values on the Fields of the nodes lists in the
   // data base.
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) const;
 
   // Finalize the ghost node boundary conditions.
-  void finalizeGhostBoundaries();
+  void finalizeGhostBoundaries() const;
 
   // Find the nodes in violation of the boundary conditions.
-  void setViolationNodes();
+  void setViolationNodes() const;
 
   // Reset any internal nodes in violation of boundary conditions to be brought 
   // into compliance.
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) const;
 
   // Copy the ghost positions and H's from one state to another.
   void copyGhostState(const State<Dimension>& state0,
@@ -222,7 +222,7 @@ public:
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Allow write access to the DataBase for descendent classes.
-  DataBase<Dimension>& accessDataBase();
+  DataBase<Dimension>& accessDataBase() const;
 
 private:
   //--------------------------- Private Interface ---------------------------//
