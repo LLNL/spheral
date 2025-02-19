@@ -85,7 +85,7 @@ temperature or pressure."""
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
-        return "void"
+        return "bool"
 
     @PYB11virtual
     @PYB11const

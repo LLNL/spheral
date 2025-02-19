@@ -246,30 +246,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
                     StateDerivatives<Dimension>& derivs) {
 }
 
-//------------------------------------------------------------------------------
-// initialize (Physics step)
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Geodyn<Dimension>::
-initialize(const Scalar time, 
-           const Scalar dt,
-           const DataBase<Dimension>& dataBase, 
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-}
-
-//------------------------------------------------------------------------------
-// finalize (Physics step)
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-Geodyn<Dimension>::
-finalize(const Scalar time, 
-         const Scalar dt,
-         DataBase<Dimension>& dataBase, 
-         State<Dimension>& state,
-         StateDerivatives<Dimension>& derivs) {
 }
 
 }

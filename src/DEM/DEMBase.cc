@@ -431,7 +431,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Call before deriv evaluation
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 DEMBase<Dimension>::
 initialize(const Scalar  time,
            const Scalar dt,
@@ -441,6 +441,7 @@ initialize(const Scalar  time,
 TIME_BEGIN("DEMinitialize");
 
 TIME_END("DEMinitialize");
+ return false;
 }
 
 
@@ -821,8 +822,8 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     const auto uIDj = uniqueIndex(nodeListj,j);
   
     // get our number of internal nodes
-    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
-    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
+    const auto numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
+    const auto numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
 
     // boolean operations to decide which pair-node maintains pair fields
     const auto nodeiIsInternal = i < numInternalNodesi;

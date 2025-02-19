@@ -341,9 +341,7 @@ if crksph:
                    ASPH = asph)
 
 elif fsisph: 
-    q = LimitedMonaghanGingoldViscosity(Cl,Cq)   
     hydro = FSISPH(dataBase = db,
-                   Q=q,
                    W = WT,
                    cfl = cfl,
                    surfaceForceCoefficient = fsiSurfaceCoefficient,                       

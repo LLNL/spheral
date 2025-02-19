@@ -37,56 +37,28 @@ public:
 
   using KeyType = typename StateBase<Dimension>::KeyType;
 
-  // Constructors, destructor.
-  StateDerivatives();
+  // Constructors, destructor
   StateDerivatives(DataBase<Dimension>& dataBase, PackageList& physicsPackage);
   StateDerivatives(DataBase<Dimension>& dataBase,
                    PackageIterator physicsPackageBegin,
                    PackageIterator physicsPackageEnd);
-  StateDerivatives(const StateDerivatives& rhs);
-  virtual ~StateDerivatives();
-
-  // Assignment.
-  StateDerivatives& operator=(const StateDerivatives& rhs);
+  StateDerivatives() = default;
+  StateDerivatives(const StateDerivatives& rhs) = default;
+  StateDerivatives& operator=(const StateDerivatives& rhs) = default;
+  virtual ~StateDerivatives() = default;
 
   // Test if two StateDerivatives have equivalent fields.
   virtual bool operator==(const StateBase<Dimension>& rhs) const override;
-
-  // Methods for setting/interrogating if a given pair of nodes has been 
-  // calculated.
-  bool nodePairCalculated(const NodeIteratorBase<Dimension>& node1,
-                          const NodeIteratorBase<Dimension>& node2) const;
-  void flagNodePairCalculated(const NodeIteratorBase<Dimension>& node1,
-                              const NodeIteratorBase<Dimension>& node2);
-  void initializeNodePairInformation();
-  bool calculatedNodePairsSymmetric() const;
-
-  // Convenience bookkeeping methods for maintaining a record of how many significant
-  // neighbors a node interacts with.
-  int numSignificantNeighbors(const NodeIteratorBase<Dimension>& node) const;
-  void incrementSignificantNeighbors(const NodeIteratorBase<Dimension>& node);
 
   // Force all derivative FieldLists to zero.
   void Zero();
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  // Map for storing information about pairs of nodes that have already been
-  // calculated.
-  using CalculatedPairType = std::map<NodeIteratorBase<Dimension>,
-                                      std::vector<NodeIteratorBase<Dimension>>>;
-  CalculatedPairType mCalculatedNodePairs;
-
-  // Map for maintaining the number of significant neighbors per node.
-  using SignificantNeighborMapType = std::map<NodeIteratorBase<Dimension>, int>;
-  SignificantNeighborMapType mNumSignificantNeighbors;
-
   using StateBase<Dimension>::mStorage;
 };
 
 }
-
-#include "StateDerivativesInline.hh"
 
 #endif
 

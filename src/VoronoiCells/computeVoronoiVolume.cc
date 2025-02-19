@@ -280,12 +280,12 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolygon& cell,
         result.push_back(CellFaceFlag({int(ifacet), -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
         CHECK(size_t(iclip) < pairs.size());
-        CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
-              (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
-        if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
-          result.push_back(CellFaceFlag({int(ifacet), pairs[iclip].j_list, pairs[iclip].j_node}));
+        CHECK((int(pairs[iclip].i_list) == nodeListi and int(pairs[iclip].i_node) == i) or
+              (int(pairs[iclip].j_list) == nodeListi and int(pairs[iclip].j_node) == i));
+        if (int(pairs[iclip].i_list) == nodeListi and int(pairs[iclip].i_node) == i) {
+          result.push_back(CellFaceFlag({int(ifacet), int(pairs[iclip].j_list), int(pairs[iclip].j_node)}));
         } else {
-          result.push_back(CellFaceFlag({int(ifacet), pairs[iclip].i_list, pairs[iclip].i_node}));
+          result.push_back(CellFaceFlag({int(ifacet), int(pairs[iclip].i_list), int(pairs[iclip].i_node)}));
         }
       }
     }
@@ -324,12 +324,12 @@ std::vector<CellFaceFlag> extractFaceFlags(const GeomPolyhedron& cell,
         result.push_back(CellFaceFlag({int(ifacet), -1, -1}));
       } else {                                        // Neighbor clip, iclip is the pair index in pairs
         CHECK(size_t(iclip) < pairs.size());
-        CHECK((pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) or
-              (pairs[iclip].j_list == nodeListi and pairs[iclip].j_node == i));
-        if (pairs[iclip].i_list == nodeListi and pairs[iclip].i_node == i) {
-          result.push_back(CellFaceFlag({int(ifacet), pairs[iclip].j_list, pairs[iclip].j_node}));
+        CHECK((int(pairs[iclip].i_list) == nodeListi and int(pairs[iclip].i_node) == i) or
+              (int(pairs[iclip].j_list) == nodeListi and int(pairs[iclip].j_node) == i));
+        if (int(pairs[iclip].i_list) == nodeListi and int(pairs[iclip].i_node) == i) {
+          result.push_back(CellFaceFlag({int(ifacet), int(pairs[iclip].j_list), int(pairs[iclip].j_node)}));
         } else {
-          result.push_back(CellFaceFlag({int(ifacet), pairs[iclip].i_list, pairs[iclip].i_node}));
+          result.push_back(CellFaceFlag({int(ifacet), int(pairs[iclip].i_list), int(pairs[iclip].i_node)}));
         }
       }
     }
