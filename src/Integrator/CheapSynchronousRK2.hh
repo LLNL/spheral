@@ -25,7 +25,6 @@ public:
   using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
-  CheapSynchronousRK2(DataBase<Dimension>& dataBase);
   CheapSynchronousRK2(DataBase<Dimension>& dataBase,
                       const std::vector<Physics<Dimension>*>& physicsPackages);
   virtual ~CheapSynchronousRK2() = default;

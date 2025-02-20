@@ -861,42 +861,6 @@ nodeListIndex(const NodeList<Dimension>& nodeList) const {
 }
 
 //------------------------------------------------------------------------------
-// Return the const list of NodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<NodeList<Dimension>*>&
-DataBase<Dimension>::nodeListPtrs() const {
-  return mNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of FluidNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<FluidNodeList<Dimension>*>&
-DataBase<Dimension>::fluidNodeListPtrs() const {
-  return mFluidNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of SolidNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<SolidNodeList<Dimension>*>&
-DataBase<Dimension>::solidNodeListPtrs() const {
-  return mSolidNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of DEMNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<DEMNodeList<Dimension>*>&
-DataBase<Dimension>::DEMNodeListPtrs() const {
-  return mDEMNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
 // Set the master neighbor information for the NodeLists.
 //------------------------------------------------------------------------------
 template<typename Dimension>

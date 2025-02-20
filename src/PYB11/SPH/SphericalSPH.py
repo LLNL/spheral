@@ -18,7 +18,8 @@ class SphericalSPH(SPHBase):
   using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
   using PairAccelerationsType = typename SphericalSPH::PairAccelerationsType;
   using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
-    
+"""
+
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
                Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                W = "const SphericalKernel&",

@@ -106,10 +106,7 @@ step(typename Dimension::Scalar maxTime,
   state.update(derivs, dt, t, dt);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Iterate on the new state
   auto residual = 2.0*tol;
@@ -133,10 +130,7 @@ step(typename Dimension::Scalar maxTime,
     if (mBeta < 1.0) state.update(derivs0, (1.0 - mBeta) * dt, t, dt);
     this->applyGhostBoundaries(state, derivs);
     this->finalizeGhostBoundaries();
-    if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-      this->applyGhostBoundaries(state, derivs);
-      this->finalizeGhostBoundaries();
-    }
+    this->postStateUpdate(t + dt, dt, db, state, derivs);
 
     // Check the current residual
     residual = this->computeResiduals(state, state1);

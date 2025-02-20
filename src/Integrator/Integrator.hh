@@ -11,6 +11,7 @@
 #include "DataOutput/registerWithRestart.hh"
 #include "NodeList/NodeListRegistrar.hh"
 #include "Physics/Physics.hh"
+#include "Utilities/DeprecationWarning.hh"
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI
@@ -170,7 +171,7 @@ public:
   void dtCheckFrac(const Scalar x)                                                  { mDtCheckFrac = x; }
 
   // Public const access to the DataBase.
-  const DataBase<Dimension>& dataBase() const                                       { CHECK(mDataBasePtr); return *mDataBasePtr; }
+  const DataBase<Dimension>& dataBase() const                                       { return mDataBase.get(); }
 
   // Access the list of physics packages.
   const std::vector<Physics<Dimension>*>& physicsPackages() const                   { return mPhysicsPackages; }

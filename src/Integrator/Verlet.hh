@@ -28,7 +28,7 @@ public:
 
   // Constructors.
   Verlet(DataBase<Dimension>& dataBase,
-                 const std::vector<Physics<Dimension>*>& physicsPackages);
+         const std::vector<Physics<Dimension>*>& physicsPackages);
   virtual ~Verlet() = default;
   Verlet& operator=(const Verlet& rhs) = default;
 
@@ -44,9 +44,6 @@ public:
   using Integrator<Dimension>::step;
 
   // Forbidden methods
-  Verlet() = delete;
-
-  // Disallowed methods
   Verlet() = delete;
 
 private:
