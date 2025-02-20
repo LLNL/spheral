@@ -74,8 +74,8 @@ temperature or pressure."""
                    dataBase = "const DataBase<%(Dimension)s>&", 
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
-        return "void"
+        "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called.  Returns a bool indicating if boundary conditions should be applied."
+        return "bool"
 
     @PYB11virtual
     def finalize(self,
@@ -105,7 +105,8 @@ temperature or pressure."""
                         dataBase = "const DataBase<%(Dimension)s>&", 
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        """Provide a hook to be called after the state has been updated and boundary conditions have been enforced.
+Returns a bool indicating if boundary conditions should be applied."""
         return "bool"
 
     @PYB11virtual

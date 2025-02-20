@@ -18,22 +18,17 @@ template<typename Dimension>
 class SynchronousRK2: public Integrator<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
-  SynchronousRK2();
   SynchronousRK2(DataBase<Dimension>& dataBase);
   SynchronousRK2(DataBase<Dimension>& dataBase,
                  const std::vector<Physics<Dimension>*>& physicsPackages);
-
-  // Destructor.
-  ~SynchronousRK2();
-
-  // Assignment.
-  SynchronousRK2& operator=(const SynchronousRK2& rhs);
+  ~SynchronousRK2() = default;
+  SynchronousRK2& operator=(const SynchronousRK2& rhs) = default;
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
@@ -46,8 +41,8 @@ public:
   // Restart methods.
   virtual std::string label() const override { return "SynchronousRK2"; }
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+  // Fobidden methods
+  SynchronousRK2() = delete;
 };
 
 }

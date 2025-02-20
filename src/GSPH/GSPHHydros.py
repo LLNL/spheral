@@ -42,7 +42,7 @@ def GSPH(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("GSPHHydroBase%id" % ndim)
+    Constructor = eval("GSPH%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -126,7 +126,7 @@ def MFM(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("MFMHydroBase%id" % ndim)
+    Constructor = eval("MFM%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -216,7 +216,7 @@ def MFV(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("MFVHydroBase%id" % ndim)
+    Constructor = eval("MFV%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))

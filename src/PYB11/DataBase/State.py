@@ -21,7 +21,7 @@ class State(StateBase):
 
     #...........................................................................
     # Constructors
-    def pyinit(self):
+    def pyinit0(self):
         "Default constructor"
 
     def pyinit1(self,

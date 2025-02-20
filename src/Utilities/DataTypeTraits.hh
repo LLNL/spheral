@@ -211,7 +211,9 @@ struct DataTypeTraits<std::tuple<Value, Value, Value> > {
   typedef Value ElementType;
   static bool fixedSize() { return true; }
   static int numElements(const std::tuple<Value, Value, Value>&) { return 3; }
-  static std::tuple<Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value()); }
+  static std::tuple<Value, Value, Value> zero() { return std::make_tuple(DataTypeTraits<Value>::zero(), 
+                                                                         DataTypeTraits<Value>::zero(),
+                                                                         DataTypeTraits<Value>::zero()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -225,7 +227,10 @@ struct DataTypeTraits<std::tuple<Value, Value, Value, Value> > {
   typedef std::tuple<Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
   static int numElements(const std::tuple<Value, Value, Value, Value>&) { return 4; }
-  static std::tuple<Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value()); }
+  static std::tuple<Value, Value, Value, Value> zero() { return std::make_tuple(DataTypeTraits<Value>::zero(),
+                                                                                DataTypeTraits<Value>::zero(),
+                                                                                DataTypeTraits<Value>::zero(),
+                                                                                DataTypeTraits<Value>::zero()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -239,7 +244,11 @@ struct DataTypeTraits<std::tuple<Value, Value, Value, Value, Value> > {
   typedef std::tuple<Value, Value, Value, Value, Value> ElementType;
   static bool fixedSize() { return true; }
   static int numElements(const std::tuple<Value, Value, Value, Value, Value>&) { return 5; }
-  static std::tuple<Value, Value, Value, Value, Value> zero() { return std::make_tuple(Value(), Value(), Value(), Value(), Value()); }
+  static std::tuple<Value, Value, Value, Value, Value> zero() { return std::make_tuple(DataTypeTraits<Value>::zero(),
+                                                                                       DataTypeTraits<Value>::zero(),
+                                                                                       DataTypeTraits<Value>::zero(),
+                                                                                       DataTypeTraits<Value>::zero(),
+                                                                                       DataTypeTraits<Value>::zero()); }
 #ifdef USE_MPI
   static MPI_Datatype MpiDataType() { return DataTypeTraits<Value>::MpiDataType(); }
 #endif
@@ -253,7 +262,7 @@ struct DataTypeTraits<std::pair<Value1, Value2> > {
   typedef std::pair<Value1, Value2> ElementType;
   static bool fixedSize() { return true; }
   static int numElements(const std::pair<Value1, Value2>&) { return 2; }
-  static std::pair<Value1, Value2> zero() { return std::make_pair(Value1(), Value2()); }
+  static std::pair<Value1, Value2> zero() { return std::make_pair(DataTypeTraits<Value1>::zero(), DataTypeTraits<Value2>::zero()); }
   static axom::sidre::DataTypeId axomTypeID() { VERIFY2(false, "axom interface not checked for std::pair<T1,T2>"); return DataTypeTraits<Value1>::axomTypeID(); }
   using AxomType = typename DataTypeTraits<Value1>::AxomType;
 };
