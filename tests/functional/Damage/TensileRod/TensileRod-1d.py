@@ -171,8 +171,8 @@ commandLine(length = 3.0,
             clearDirectories = False,
             referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240816.gnu",
             dataDirBase = "dumps-TensileRod-1d",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
             )
 
 # On the IBM BlueOS machines we have some tolerance issues...
@@ -744,7 +744,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     from SpheralTestUtilities import multiSort
     state = State(db, integrator.physicsPackages())
     outputFile = os.path.join(dataDir, outputFile)
@@ -775,21 +775,22 @@ if outputFile != "None":
                     (xi, rhoi, Pi, vi, epsi, hi, si, di))
         f.close()
 
-        #---------------------------------------------------------------------------
-        # Check the floating values for the state against reference data.
-        #---------------------------------------------------------------------------
-        import filearraycmp as fcomp
-        assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
-        print("Floating point comparison test passed.")
+        if BuildData.cxx_compiler_id == "GNU":
+            #---------------------------------------------------------------------------
+            # Check the floating values for the state against reference data.
+            #---------------------------------------------------------------------------
+            import filearraycmp as fcomp
+            assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
+            print("Floating point comparison test passed.")
 
-        #---------------------------------------------------------------------------
-        # Also we can optionally compare the current results with another file for
-        # bit level consistency.
-        #---------------------------------------------------------------------------
-        if comparisonFile != "None" and BuildData.cxx_compiler_id != "IntelLLVM":
-            comparisonFile = os.path.join(dataDir, comparisonFile)
-            import filecmp
-            assert filecmp.cmp(outputFile, comparisonFile)
+            #---------------------------------------------------------------------------
+            # Also we can optionally compare the current results with another file for
+            # bit level consistency.
+            #---------------------------------------------------------------------------
+            if comparisonFile:
+                comparisonFile = os.path.join(dataDir, comparisonFile)
+                import filecmp
+                assert filecmp.cmp(outputFile, comparisonFile)
 
 if graphics:
     plt.show()

@@ -25,7 +25,7 @@ class SVPHFacetedHydroBase(GenericHydro):
 
     def pyinit(self,
                W = "const TableKernel<%(Dimension)s>&",
-               Q = "ArtificialViscosity<%(Dimension)s>&",
+               Q = "ArtificialViscosityHandle<%(Dimension)s>&",
                cfl = "const double",
                useVelocityMagnitudeForDt = "const bool",
                compatibleEnergyEvolution = "const bool",
@@ -78,7 +78,7 @@ class SVPHFacetedHydroBase(GenericHydro):
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the Hydro before we start a derivative evaluation."
-        return "void"
+        return "bool"
                           
     @PYB11virtual
     @PYB11const
@@ -163,7 +163,6 @@ mass density, velocity, and specific thermal energy."""
     cellPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "cellPressure", returnpolicy="reference_internal")
     soundSpeed = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "soundSpeed", returnpolicy="reference_internal")
     volume = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "volume", returnpolicy="reference_internal")
-    maxViscousPressure = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "maxViscousPressure", returnpolicy="reference_internal")
     massDensitySum = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "massDensitySum", returnpolicy="reference_internal")
     XSVPHDeltaV = PYB11property("const FieldList<%(Dimension)s, Vector>&", "XSVPHDeltaV", returnpolicy="reference_internal")
     DxDt = PYB11property("const FieldList<%(Dimension)s, Vector>&", "DxDt", returnpolicy="reference_internal")

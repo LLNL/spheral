@@ -29,19 +29,22 @@ public:
   // Constructors.
   Verlet(DataBase<Dimension>& dataBase,
                  const std::vector<Physics<Dimension>*>& physicsPackages);
-  Verlet& operator=(const Verlet& rhs);
-  virtual ~Verlet();
+  virtual ~Verlet() = default;
+  Verlet& operator=(const Verlet& rhs) = default;
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
                     State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) override;
 
+  // Restart methods.
+  virtual std::string label() const override { return "Verlet"; }
+
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 
-  // Restart methods.
-  virtual std::string label() const override { return "Verlet"; }
+  // Forbidden methods
+  Verlet() = delete;
 
   // Disallowed methods
   Verlet() = delete;

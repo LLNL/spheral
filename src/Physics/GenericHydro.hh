@@ -12,7 +12,7 @@
 
 namespace Spheral {
 
-template<typename Dimension> class ArtificialViscosity;
+template<typename Dimension> class ArtificialViscosityHandle;
 template<typename Dimension> class DataBase;
 
 // Many hydro algorithms have these sorts of choices for the mass density and H.
@@ -38,7 +38,7 @@ public:
   using ResidualType = typename Physics<Dimension>::ResidualType;
 
   // Constructors.
-  GenericHydro(ArtificialViscosity<Dimension>& Q,
+  GenericHydro(ArtificialViscosityHandle<Dimension>& Q,
                const double cfl,
                const bool useVelocityMagnitudeForDt);
 
@@ -70,7 +70,7 @@ public:
                                    const Scalar tol) const override;
 
   // Allow access to the artificial viscosity.
-  ArtificialViscosity<Dimension>& artificialViscosity() const { return mArtificialViscosity; }
+  ArtificialViscosityHandle<Dimension>& artificialViscosity() const { return mArtificialViscosity; }
 
   // Also allow access to the CFL timestep safety criteria.
   Scalar cfl()                              const { return mCFL; }
@@ -119,7 +119,7 @@ protected:
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  ArtificialViscosity<Dimension>& mArtificialViscosity;
+  ArtificialViscosityHandle<Dimension>& mArtificialViscosity;
   Scalar mCFL;
   bool mUseVelocityMagnitudeForDt;
 

@@ -64,7 +64,6 @@ commandLine(
 
     graphics = True,
     plotKernels = False,
-    outputFile = "None",
     plotSPH = True,
 )
 
@@ -245,7 +244,7 @@ for i in range(nodes1.numInternalNodes):
                 f[i][j] = 2*y0
 
 #-------------------------------------------------------------------------------
-# Build 
+# Build a hydro
 #-------------------------------------------------------------------------------
 if HydroChoice in ("PSPH", "PASPH"):
     hydro = HydroConstructor(dataBase = db,
@@ -262,7 +261,7 @@ else:
 #-------------------------------------------------------------------------------
 if iterateH:
     bounds = vector_of_Boundary()
-    pkgs = [hydro, hydro._smoothingScaleMethod]
+    pkgs = [hydro._smoothingScaleMethod]
     if "ASPH" in HydroChoice:
         VC = VoronoiCells(db.maxKernelExtent)
         pkgs = [VC] + pkgs
@@ -284,6 +283,8 @@ for pkg in integrator.physicsPackages():
     pkg.initializeProblemStartup(db)
 state = State(db, integrator.physicsPackages())
 derivs = StateDerivatives(db, integrator.physicsPackages())
+for pkg in integrator.physicsPackages():
+    pkg.initializeProblemStartupDependencies(db, state, derivs)
 
 # Compute the uncorrected derivatives.
 integrator.preStepInitialize(state, derivs)

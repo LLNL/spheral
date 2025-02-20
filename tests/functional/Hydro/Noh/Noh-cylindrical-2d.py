@@ -31,8 +31,18 @@
 #
 # GSPH
 #
-#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=4.0", np=8, gsph=True)
-#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 4.01 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=4.0, restart test", np=8, gsph=True)
+#ATS:gsph0 = test(         SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical GSPH, nPerh=2.5", np=8, gsph=True)
+#ATS:gsph1 = testif(gsph0, SELF, "--gsph True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical GSPH, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFM
+#
+#ATS:mfm0 = test(         SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFM, nPerh=2.5", np=8, gsph=True)
+#ATS:mfm1 = testif(mfm0,  SELF, "--mfm True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFM, nPerh=2.5, restart test", np=8, gsph=True)
+#
+# MFV
+#
+#ATS:mfv0 = test(         SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories True --steps 100", label="Noh cylindrical MFV, nPerh=2.5", np=8, gsph=True)
+#ATS:mfv1 = testif(mfv0,  SELF, "--mfv True --nRadial 100 --cfl 0.25 --nPerh 2.51 --graphics False --restartStep 20 --clearDirectories False --steps 60 --restoreCycle 40 --checkRestart True", label="Noh cylindrical MFV, nPerh=2.5, restart test", np=8, gsph=True)
 
 #-------------------------------------------------------------------------------
 # The Cylindrical Noh test case run in 2-D.
@@ -97,7 +107,8 @@ commandLine(seed = "constantDTheta",
             XSPH = False,                       # monaghan's xsph -- move w/ averaged velocity
             epsilonTensile = 0.0,               # coefficient for the tensile correction
             nTensile = 8,                       # exponent for tensile correction
-            xfilter = 0.0,
+            fhourglass = 0.0,                   # Subpoint hourglass filtering
+            xfilter = 0.0,                      # Subpoint hourglass filtering
 
             # PSPH options
             HopkinsConductivity = False,     # For PSPH
@@ -132,7 +143,6 @@ commandLine(seed = "constantDTheta",
             fKern = 1.0/3.0,
             boolHopkinsCorrection = True,
             linearConsistent = False,
-            fhourglass = 0.0,
 
             # kernel options
             KernelConstructor = WendlandC4Kernel,  #(NBSplineKernel,WendlandC2Kernel,WendlandC4Kernel,WendlandC6Kernel)
@@ -169,8 +179,9 @@ commandLine(seed = "constantDTheta",
             restartStep = 1000,
             checkRestart = False,
             dataDir = "dumps-cylindrical-Noh",
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
+            doCompare = True,
 
             graphics = True,
             )
@@ -219,19 +230,23 @@ if asph:
 if solid:
     hydroname = "Solid" + hydroname
 
-dataDir = os.path.join(dataDir,
-                       hydroname,
-                       "nPerh=%f" % nPerh,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "xfilter=%f" % xfilter,
-                       "fhourglass=%f" % fhourglass,
-                       "%s" % nodeMotion,
-                       "nrad=%i_ntheta=%i" % (nRadial, nTheta))
-restartDir = os.path.join(dataDir, "restarts")
-restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
+if dataDir:
+    dataDir = os.path.join(dataDir,
+                           hydroname,
+                           "nPerh=%f" % nPerh,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "xfilter=%f" % xfilter,
+                           "fhourglass=%f" % fhourglass,
+                           "%s" % nodeMotion,
+                           "nrad=%i_ntheta=%i" % (nRadial, nTheta))
+    restartDir = os.path.join(dataDir, "restarts")
+    restartBaseName = os.path.join(restartDir, "Noh-cylindrical-2d-%ix%i" % (nRadial, nTheta))
+    vizDir = os.path.join(dataDir, "visit")
+else:
+    restartBaseName = None
+    vizDir = None    
 
-vizDir = os.path.join(dataDir, "visit")
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
@@ -240,7 +255,7 @@ else:
 #-------------------------------------------------------------------------------
 # Check if the necessary output directories exist.  If not, create them.
 #-------------------------------------------------------------------------------
-if mpi.rank == 0:
+if mpi.rank == 0 and dataDir:
     if clearDirectories and os.path.exists(dataDir):
         shutil.rmtree(dataDir)
     if not os.path.exists(restartDir):
@@ -354,7 +369,6 @@ elif crksph:
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    order = correctionOrder,
-                   filter = xfilter,
                    cfl = cfl,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
@@ -364,7 +378,6 @@ elif crksph:
 elif psph:
     hydro = PSPH(dataBase = db,
                  W = WT,
-                 filter = xfilter,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
                  evolveTotalEnergy = evolveTotalEnergy,
@@ -378,7 +391,7 @@ elif fsisph:
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    cfl = cfl,
-                   interfaceMethod = HLLCModulus,
+                   interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
                    densityStabilizationCoefficient = 0.1,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -447,7 +460,6 @@ elif mfv:
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = xfilter,
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
                 evolveTotalEnergy = evolveTotalEnergy,
@@ -499,6 +511,8 @@ if not (gsph or mfm or mfv):
         output("q.quadraticInExpansion")
     except:
         pass
+else:
+    q = None
 
 #-------------------------------------------------------------------------------
 # Optionally construct an hourglass control object.
@@ -514,10 +528,10 @@ if fhourglass > 0.0:
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -590,6 +604,9 @@ if restoreCycle is None:
 #-------------------------------------------------------------------------------
 # Advance to the end time.
 #-------------------------------------------------------------------------------
+# import yep
+# from datetime import datetime
+# yep.start("{}_{}.prof".format(__file__, datetime.now().strftime("%Y_%m_%d_%H%M%S")))
 if not steps is None:
     if checkRestart:
         control.setRestartBaseName(restartBaseName + "_CHECK")
@@ -612,6 +629,11 @@ else:
     control.advance(goalTime, maxSteps)
     control.updateViz(control.totalSteps, integrator.currentTime, 0.0)
     control.dropRestartFile()
+# yep.stop()
+
+# If running the performance test, stop here
+if not doCompare:
+    sys.exit(0)
 
 #-------------------------------------------------------------------------------
 # Plot the results.
@@ -726,7 +748,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -751,22 +773,21 @@ if outputFile != "None":
             vprof.append(xprof[i]*vx[i]/rprof[i] + yprof[i]*vy[i]/rprof[i])
     #vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
     if mpi.rank == 0:
         #rprof = [sqrt(xi*xi + yi*yi) for xi, yi in zip(xprof, yprof)]
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
         f.write(("# " + 21*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "QWork",
                                               "rhoans", "Pans", "vans", "epsans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
-             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo, Qprof,
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
                                                      rhoans, Pans, vans, epsans):
-            f.write((8*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
+            f.write((8*"%16.12e " + "%i " + 4*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
                                                                               rhoansi, Pansi, vansi, epsansi,
                                                                               unpackElementUL(packElementDouble(xi)),
                                                                               unpackElementUL(packElementDouble(yi)),
@@ -780,7 +801,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

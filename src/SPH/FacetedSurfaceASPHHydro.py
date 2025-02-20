@@ -305,8 +305,7 @@ class FacetedSurfaceASPHHydro(Physics):
                 poshash2facet[hash(tuple(pos[i]))] = fimin
 
         self._smoothingScaleMethod.poshash2facet = poshash2facet
-        self.hydro.initialize(t, dt, dataBase, state, derivs)
-        return
+        return self.hydro.initialize(t, dt, dataBase, state, derivs)
 
     # We need to restart some information in addition to the standard hydro variables.
     def label(self):

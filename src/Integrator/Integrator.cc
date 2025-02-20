@@ -60,50 +60,11 @@ Integrator(DataBase<Dimension>& dataBase,
   mRequireGhostConnectivity(false),
   mRequireOverlapConnectivity(false),
   mRequireIntersectionConnectivity(false),
-  mDataBasePtr(&dataBase),
+  mDataBase(dataBase),
   mPhysicsPackages(),
-  mRigorousBoundaries(false),
   mCullGhostNodes(true),
   mRestart(registerWithRestart(*this)) {
   for (auto* pkg: physicsPackages) this->appendPhysicsPackage(*pkg);
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>::~Integrator() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Integrator<Dimension>&
-Integrator<Dimension>::
-operator=(const Integrator<Dimension>& rhs) {
-  if (this != &rhs) {
-    mDtMultiplier = rhs.mDtMultiplier;
-    mDtMin = rhs.mDtMin;
-    mDtMax = rhs.mDtMax;
-    mDtGrowth = rhs.mDtGrowth;
-    mLastDt = rhs.mLastDt;
-    mDtCheckFrac = rhs.mDtCheckFrac;
-    mCurrentTime = rhs.mCurrentTime;
-    mCurrentCycle = rhs.mCurrentCycle;
-    mUpdateBoundaryFrequency = rhs.mUpdateBoundaryFrequency;
-    mVerbose = rhs.mVerbose;
-    mAllowDtCheck = rhs.mAllowDtCheck;
-    mRequireConnectivity = rhs.mRequireConnectivity;
-    mRequireGhostConnectivity = rhs.mRequireGhostConnectivity;
-    mRequireOverlapConnectivity = rhs.mRequireOverlapConnectivity;
-    mRequireIntersectionConnectivity = rhs.mRequireIntersectionConnectivity;
-    mDataBasePtr = rhs.mDataBasePtr;
-    mPhysicsPackages = rhs.mPhysicsPackages;
-    mRigorousBoundaries = rhs.mRigorousBoundaries;
-    mCullGhostNodes = rhs.mCullGhostNodes;
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -114,8 +75,30 @@ bool
 Integrator<Dimension>::
 step(const typename Dimension::Scalar maxTime) {
   DataBase<Dimension>& db = this->accessDataBase();
+
+  // Check if we need to construct connectivity.
+  mRequireConnectivity = false;
+  mRequireGhostConnectivity = false;
+  mRequireOverlapConnectivity = false;
+  mRequireIntersectionConnectivity = false;
+  for (auto* physicsPtr: mPhysicsPackages) {
+    mRequireConnectivity = (mRequireConnectivity or physicsPtr->requireConnectivity());
+    mRequireGhostConnectivity = (mRequireGhostConnectivity or physicsPtr->requireGhostConnectivity());
+    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or physicsPtr->requireOverlapConnectivity());
+    mRequireIntersectionConnectivity = (mRequireIntersectionConnectivity or physicsPtr->requireIntersectionConnectivity());
+  }
+
+  // Set the ghost nodes (this updates the ConnectivityMap as well in the DataBase)
+  if (mCurrentCycle % mUpdateBoundaryFrequency == 0) setGhostNodes();
+
+  // Build the state and derivatives
   State<Dimension> state(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
   StateDerivatives<Dimension> derivs(db, this->physicsPackagesBegin(), this->physicsPackagesEnd());
+
+  // Set boundary properties
+  applyGhostBoundaries(state, derivs);
+
+  // Try to advance using the derived class step method
   auto success = false;
   auto count = 0u;
   auto maxIterations = 10u;
@@ -196,36 +179,8 @@ selectDt(const typename Dimension::Scalar dtMin,
 template<typename Dimension>
 void
 Integrator<Dimension>::preStepInitialize(State<Dimension>& state,
-                                         StateDerivatives<Dimension>& derivs) {
-
-  // Check if we need to construct connectivity.
-  mRequireConnectivity = false;
-  mRequireGhostConnectivity = false;
-  mRequireOverlapConnectivity = false;
-  mRequireIntersectionConnectivity = false;
-  for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    mRequireConnectivity = (mRequireConnectivity or physicsPtr->requireConnectivity());
-    mRequireGhostConnectivity = (mRequireGhostConnectivity or physicsPtr->requireGhostConnectivity());
-    mRequireOverlapConnectivity = (mRequireOverlapConnectivity or physicsPtr->requireOverlapConnectivity());
-    mRequireIntersectionConnectivity = (mRequireIntersectionConnectivity or physicsPtr->requireIntersectionConnectivity());
-  }
-
-  // Intialize neighbors if need be.
-  DataBase<Dimension>& db = accessDataBase();
-  // if (mRequireConnectivity) db.reinitializeNeighbors();
-
-  // Set the boundary conditions.
-  if ((not mRigorousBoundaries) and (mCurrentCycle % mUpdateBoundaryFrequency == 0)) {
-    setGhostNodes();
-  }
-  applyGhostBoundaries(state, derivs);
-
-  // Register the now updated connectivity with the state.
-  if (mRequireConnectivity) {
-    state.enrollConnectivityMap(db.connectivityMapPtr(mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity));
-  }
-
-  // Loop over the physics packages and perform any necessary initializations.
+                                         StateDerivatives<Dimension>& derivs) const {
+  auto& db = mDataBase.get();
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     physicsPtr->preStepInitialize(db, state, derivs);
   }
@@ -240,22 +195,25 @@ void
 Integrator<Dimension>::initializeDerivatives(const double t,
                                              const double dt,
                                              State<Dimension>& state,
-                                             StateDerivatives<Dimension>& derivs) {
+                                             StateDerivatives<Dimension>& derivs) const {
 
   // Initialize the work fields.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
   for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
     nodeListPtr->work() = 0.0;
   }
 
   // Loop over the physics packages and perform any necessary initializations.
+  auto updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
-    physicsPtr->initialize(t, dt, db, state, derivs);
+    updateBoundaries |= physicsPtr->initialize(t, dt, db, state, derivs);
   }
 
-  // Physics packages may have called boundary conditions as well, so finalize any
-  // outstanding boundary conditions here.
-  this->finalizeGhostBoundaries();
+  // Apply boundaries if requested.
+  if (updateBoundaries) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -297,7 +255,7 @@ Integrator<Dimension>::finalizeDerivatives(const Scalar t,
 // stuff.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-bool
+void
 Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        const Scalar dt,
                                        const DataBase<Dimension>& dataBase, 
@@ -305,11 +263,16 @@ Integrator<Dimension>::postStateUpdate(const Scalar t,
                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages.
-  bool updateBoundaries = false;
+  auto updateBoundaries = false;
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     updateBoundaries |= physicsPtr->postStateUpdate(t, dt, dataBase, state, derivs);
   }
-  return updateBoundaries;
+
+  // Apply boundaries if requested.
+  if (updateBoundaries) {
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -320,10 +283,10 @@ void
 Integrator<Dimension>::postStepFinalize(const double t,
                                         const double dt,
                                         State<Dimension>& state,
-                                        StateDerivatives<Dimension>& derivs) {
+                                        StateDerivatives<Dimension>& derivs) const {
 
   // Loop over the physics packages and perform any necessary finalizations.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
   for (auto* physicsPtr: range(physicsPackagesBegin(), physicsPackagesEnd())) {
     physicsPtr->finalize(t, dt, db, state, derivs);
   }
@@ -413,10 +376,10 @@ uniqueBoundaryConditions() const {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::setGhostNodes() {
+Integrator<Dimension>::setGhostNodes() const {
 
   // Get that DataBase.
-  auto& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // Get the complete set of unique boundary conditions.
   const auto boundaries = uniqueBoundaryConditions();
@@ -585,36 +548,31 @@ Integrator<Dimension>::setGhostNodes() {
 template<typename Dimension>
 void
 Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
-                                            StateDerivatives<Dimension>& derivs) {
+                                            StateDerivatives<Dimension>& derivs) const {
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
 //   const Time start = Timing::currentTime();
 
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // If we're being rigorous about boundaries, we have to reset the ghost nodes.
-  const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
-  if (mRigorousBoundaries) {
-    setGhostNodes();
+  const auto boundaries = uniqueBoundaryConditions();
 
-  } else {
-
-    // If we didn't call setGhostNodes, then make each boundary update it's 
-    // ghost node info (position and H).
-    for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
-      for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
-        boundaryPtr->updateGhostNodes(*nodeListPtr);
-      }
-      boundaryPtr->finalizeGhostBoundary();
+  // If we didn't call setGhostNodes, then make each boundary update it's 
+  // ghost node info (position and H).
+  for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
+    for (auto* nodeListPtr: range(db.nodeListBegin(), db.nodeListEnd())) {
+      boundaryPtr->updateGhostNodes(*nodeListPtr);
     }
-    for (auto* nodeListPtr: range(db.fluidNodeListBegin(), db.fluidNodeListEnd())) {
-      nodeListPtr->neighbor().updateNodes();
-    }
-    for (auto* nodeListPtr: range(db.DEMNodeListBegin(), db.DEMNodeListEnd())) {
-      nodeListPtr->neighbor().updateNodes();
-    }
+    boundaryPtr->finalizeGhostBoundary();
+  }
+  for (auto* nodeListPtr: range(db.fluidNodeListBegin(), db.fluidNodeListEnd())) {
+    nodeListPtr->neighbor().updateNodes();
+  }
+  for (auto* nodeListPtr: range(db.DEMNodeListBegin(), db.DEMNodeListEnd())) {
+    nodeListPtr->neighbor().updateNodes();
   }
 
   // Iterate over the physics packages, and have them apply ghost boundaries
@@ -642,7 +600,7 @@ Integrator<Dimension>::applyGhostBoundaries(State<Dimension>& state,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::finalizeGhostBoundaries() {
+Integrator<Dimension>::finalizeGhostBoundaries() const {
 
 //   // Start our work timer.
 //   typedef Timing::Time Time;
@@ -673,10 +631,10 @@ Integrator<Dimension>::finalizeGhostBoundaries() {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-Integrator<Dimension>::setViolationNodes() {
+Integrator<Dimension>::setViolationNodes() const {
 
   // Get that DataBase.
-  DataBase<Dimension>& db = accessDataBase();
+  auto& db = mDataBase.get();
 
   // Get the complete set of unique boundary conditions.
   const vector<Boundary<Dimension>*> boundaries = uniqueBoundaryConditions();
@@ -701,7 +659,7 @@ Integrator<Dimension>::setViolationNodes() {
 template<typename Dimension>
 void
 Integrator<Dimension>::enforceBoundaries(State<Dimension>& state,
-                                         StateDerivatives<Dimension>& derivs) {
+                                         StateDerivatives<Dimension>& derivs) const {
 
   // Have each boundary identify the set of nodes in violation.  This also resets
   // the positions and H's of the nodes to be in compliance.

@@ -468,7 +468,7 @@ print("Total energy error: %g" % Eerror)
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     mprof = np.array(mpi.reduce(nodes1.mass().internalValues(), mpi.SUM))
@@ -499,7 +499,7 @@ if outputFile != "None":
         # While we're at it compute and report the error norms.
         import Pnorm
         print("\tQuantity \t\tL1 \t\t\tL2 \t\t\tLinf")
-        if normOutputFile != "None":
+        if normOutputFile:
             f = open(normOutputFile, "a")
             if writeOutputLabel:
                 f.write(("#" + 13*"%17s " + "\n") % ('"nx"',
@@ -521,12 +521,12 @@ if outputFile != "None":
             L2 = Pn.gridpnorm(2, xmin, xmax)
             Linf = Pn.gridpnorm("inf", xmin, xmax)
             print("\t%s \t\t%g \t\t%g \t\t%g" % (name, L1, L2, Linf))
-            if normOutputFile != "None":
+            if normOutputFile:
                 f.write((3*"%16.12e ") % (L1, L2, Linf))
             # if name == "Mass Density":
             #     pickleDumpL1 = L1
 
-        if normOutputFile != "None":
+        if normOutputFile:
             f.write("\n")
             f.close()
 

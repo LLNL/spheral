@@ -110,7 +110,7 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
         // Loop over the refined neighbors, and determine the normalization
         // constant.
         Scalar totalWeight = 1.0e-30;
-        int numSignificant = 0;
+        //int numSignificant = 0;
         for (RefineNodeIterator<Dimension> neighborItr = samplePositions.refineNodeBegin(refineNeighborsSample);
              neighborItr < samplePositions.refineNodeEnd();
              ++neighborItr) {
@@ -150,7 +150,7 @@ splatFieldsMash(const FieldList<Dimension, DataType>& fieldList,
             VERIFY2(false, "Unhandled neighbor search type.");
           }
 
-          if (Wij > 0.0) ++numSignificant;
+          //if (Wij > 0.0) ++numSignificant;
 
           // Add this nodes contribution to the master value.
           totalWeight += weightij*Wij;

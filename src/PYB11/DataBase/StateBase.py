@@ -7,17 +7,17 @@ from PYB11Generator import *
 class StateBase:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename %(Dimension)s::FourthRankTensor FourthRankTensor;
-    typedef typename %(Dimension)s::FifthRankTensor FifthRankTensor;
-    typedef typename %(Dimension)s::FacetedVolume FacetedVolume;
-    typedef typename StateBase<%(Dimension)s>::KeyType KeyType;
-    typedef typename StateBase<%(Dimension)s>::FieldName FieldName;
-    typedef typename StateBase<%(Dimension)s>::MeshPtr MeshPtr;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using FourthRankTensor = typename %(Dimension)s::FourthRankTensor;
+    using FifthRankTensor = typename %(Dimension)s::FifthRankTensor;
+    using FacetedVolume = typename %(Dimension)s::FacetedVolume;
+    using KeyType = typename StateBase<%(Dimension)s>::KeyType;
+    using FieldName = typename StateBase<%(Dimension)s>::FieldName;
+    using MeshPtr = typename StateBase<%(Dimension)s>::MeshPtr;
 """
 
     #...........................................................................
@@ -100,9 +100,19 @@ class StateBase:
         return "std::vector<KeyType>"
 
     @PYB11const
-    def fieldKeys(self):
-        "The set of Field names for the state in the StateBase"
-        return "std::vector<FieldName>"
+    def fullFieldKeys(self):
+        "The set of Field names (with NodeList mangling) for the state in the StateBase"
+        return "std::vector<KeyType>"
+
+    @PYB11const
+    def fieldNames(self):
+        "The set of unique Field names for the state in the StateBase (no NodeList mangling)"
+        return "std::vector<KeyType>"
+
+    @PYB11const
+    def miscKeys(self):
+        "The set of names for non-Fields in the StateBase"
+        return "std::vector<KeyType>"
 
     def enrollConnectivityMap(self,
                               connectivityMapPtr = "std::shared_ptr<ConnectivityMap<%(Dimension)s>>"):
@@ -228,9 +238,9 @@ class StateBase:
     allRKCoefficientsFields = PYB11TemplateMethod(allFields, "RKCoefficients<%(Dimension)s>")
 
     #...........................................................................
-    # enrollAny/getAny
+    # enroll/get
     @PYB11template("Value")
-    def enrollAny(self,
+    def enroll(self,
                   key = "const KeyType&",
                   thing = "%(Value)s&"):
         "Enroll a type of %(Value)s."
@@ -239,13 +249,13 @@ class StateBase:
     @PYB11template("Value")
     @PYB11const
     @PYB11returnpolicy("reference_internal")
-    def getAny(self,
+    def get(self,
                key = "const KeyType&"):
         "Return a stored type of %(Value)s"
         return "%(Value)s&"
 
-    enrollVectorVector = PYB11TemplateMethod(enrollAny, "std::vector<Vector>", pyname="enrollAny")
-    getVectorVector = PYB11TemplateMethod(getAny, "std::vector<Vector>", pyname="getAny")
+    enrollVectorVector = PYB11TemplateMethod(enroll, "std::vector<Vector>", pyname="enroll")
+    getVectorVector = PYB11TemplateMethod(get, "std::vector<Vector>", pyname="get")
 
     #...........................................................................
     # assignFields

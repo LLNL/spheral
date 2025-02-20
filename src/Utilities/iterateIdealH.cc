@@ -118,24 +118,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Build a list of flags to indicate which nodes have been completed.
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
-  // Prepare the state and derivatives
-  State<Dimension> state(dataBase, packages);
-  StateDerivatives<Dimension> derivs(dataBase, packages);
-
   // Since we don't have a hydro there are a few other fields we need registered.
   auto zerothMoment = dataBase.newFluidFieldList(0.0, HydroFieldNames::massZerothMoment);
   auto firstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
   auto DvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   auto DHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
   auto H1 = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
-  state.enroll(pos);
-  state.enroll(m);
-  state.enroll(rho);
-  derivs.enroll(zerothMoment);
-  derivs.enroll(firstMoment);
-  derivs.enroll(DvDx);
-  derivs.enroll(DHDt);
-  derivs.enroll(H1);
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
   auto maxDeltaH = 2.0*tolerance;
@@ -162,7 +150,19 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Update connectivity
     dataBase.updateConnectivityMap(false, false, false);
+
+    // Prepare the state and derivatives
+    State<Dimension> state(dataBase, packages);
     state.enrollConnectivityMap(dataBase.connectivityMapPtr(false, false, false));
+    StateDerivatives<Dimension> derivs(dataBase, packages);
+    state.enroll(pos);
+    state.enroll(m);
+    state.enroll(rho);
+    derivs.enroll(zerothMoment);
+    derivs.enroll(firstMoment);
+    derivs.enroll(DvDx);
+    derivs.enroll(DHDt);
+    derivs.enroll(H1);
 
     // Some methods (ASPH) update both Hideal and H in the finalize, so we make a copy of the state
     // to give the methods
@@ -216,7 +216,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Output the statitics.
     if (Process::getRank() == 0 && maxIterations > 1)
-      cerr << "iterateIdealH: (iteration, deltaH) = ("
+      cout << "iterateIdealH: (iteration, deltaH) = ("
            << itr << ", "
            << maxDeltaH << ")"
            << endl;
@@ -273,7 +273,7 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Report the final timing.
   const auto t1 = clock();
   if (Process::getRank() == 0 && maxIterations > 1)
-    cerr << "iterateIdealH: required a total of "
+    cout << "iterateIdealH: required a total of "
          << (t1 - t0)/CLOCKS_PER_SEC
          << " seconds."
          << endl;

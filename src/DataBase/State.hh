@@ -41,26 +41,31 @@ public:
   using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
   // Constructors, destructor.
-  State();
   State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
   State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
-  State(const State& rhs);
-  virtual ~State();
+  State() = default;
+  State(const State& rhs) = default;
+  State& operator=(const State& rhs) = default;
+  virtual ~State() = default;
 
-  // Assignment.
-  State& operator=(const State& rhs);
-
-  // Override the base method.
+  // Override the base equivalence operator
   virtual bool operator==(const StateBase<Dimension>& rhs) const override;
 
-  // Update the registered state according to the policies.
-  void update(StateDerivatives<Dimension>& derivs,
-              const double multiplier,
-              const double t,
-              const double dt);
+  //...........................................................................
+  // Enroll state with update policies
+  void enroll(FieldBase<Dimension>& field, PolicyPointer policy);
 
+  // Enroll the given FieldList and associated update policy
+  // This method queries the "clonePerField" method of the policy, and
+  // if true enrolls each Field in the FieldList with a copy of the policy.
+  // Otherwise the FieldList is enrolled as a single entity, and the policy is
+  // assumed to handle a FieldList as a whole.
+  void enroll(FieldListBase<Dimension>& fieldList, PolicyPointer policy);
+
+  //...........................................................................
+  // Policies
   // Enroll a policy by itself.
   void enroll(const KeyType& key, PolicyPointer policy);
 
@@ -69,23 +74,6 @@ public:
   void removePolicy(FieldBase<Dimension>& field);
   void removePolicy(FieldListBase<Dimension>& field,
                     const bool clonePerField);
-
-  // Enroll the given Field and associated update policy
-  void enroll(FieldBase<Dimension>& field, PolicyPointer policy);
-
-  // Enroll the given FieldList and associated update policy
-  // This method queries the "clonePerField" method of the policy, and
-  // if true enrolls each Field in the FieldList with a copy of the policy.
-  // Otherwise the FieldList is enrolled directly as normal, and the policy is
-  // assumed to handle a FieldList directly.
-  void enroll(FieldListBase<Dimension>& fieldList, PolicyPointer policy);
-
-  // The base class method for just registering a field.
-  virtual void enroll(FieldBase<Dimension>& field) override;
-  virtual void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override;
-
-  // The base class method for just registering a field list.
-  virtual void enroll(FieldListBase<Dimension>& fieldList) override;
 
   // The full set of keys for all policies.
   std::vector<KeyType> policyKeys() const;
@@ -100,10 +88,25 @@ public:
   template<typename Value>
   PolicyPointer policy(const Field<Dimension, Value>& field) const;
 
+  //...........................................................................
+  // Update the registered state according to the policies.
+  void update(StateDerivatives<Dimension>& derivs,
+              const double multiplier,
+              const double t,
+              const double dt);
+
   // Optionally trip a flag indicating policies should time advance only -- no replacing state!
   // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
-  bool timeAdvanceOnly() const;
-  void timeAdvanceOnly(const bool x);
+  bool timeAdvanceOnly()              const { return mTimeAdvanceOnly; }
+  void timeAdvanceOnly(const bool x)        { mTimeAdvanceOnly = x; }
+
+  //...........................................................................
+  // Expose the StateBase enroll methods
+  using StateBase<Dimension>::enroll;
+  // virtual              void enroll(FieldBase<Dimension>& field) override                     { StateBase<Dimension>::enroll(field); }
+  // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
+  // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
+  template<typename T> void enroll(const KeyType& key, T& thing);
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -511,7 +511,7 @@ packages += [hydro]
 # Physics Package : AV limiters
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(hydro.Q,nh,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 
 #-------------------------------------------------------------------------------

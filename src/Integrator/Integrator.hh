@@ -49,8 +49,8 @@ public:
   // Constructors.
   Integrator(DataBase<Dimension>& dataBase,
              const std::vector<Physics<Dimension>*>& physicsPackages = std::vector<Physics<Dimension>*>());
-  Integrator& operator=(const Integrator& rhs);
-  virtual ~Integrator();
+  Integrator& operator=(const Integrator& rhs) = default;
+  virtual ~Integrator() = default;
 
   // All Integrator classes must define the dt and step methods.
   virtual bool step(Scalar maxTime,
@@ -68,7 +68,7 @@ public:
   // Perform generic initializations at the beginning of a timestep.
   // To be called once per advance cycle.
   virtual void preStepInitialize(State<Dimension>& state,
-                                 StateDerivatives<Dimension>& derivs);
+                                 StateDerivatives<Dimension>& derivs) const;
 
   // Prepare all physics packages for calls to evaluateDerivatives.
   // To be called before any call to Physics::evaluateDerivatives, therefore potentially
@@ -76,34 +76,34 @@ public:
   virtual void initializeDerivatives(const double t,
                                      const double dt,
                                      State<Dimension>& state,
-                                     StateDerivatives<Dimension>& derivs);
+                                     StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call evaluateDerivatives.
-  void evaluateDerivatives(const Scalar t,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+  virtual void evaluateDerivatives(const Scalar t,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call finalizeDerivatives.
-  void finalizeDerivatives(const Scalar t,
-                           const Scalar dt,
-                           const DataBase<Dimension>& dataBase,
-                           const State<Dimension>& state,
-                           StateDerivatives<Dimension>& derivs) const;
+  virtual void finalizeDerivatives(const Scalar t,
+                                   const Scalar dt,
+                                   const DataBase<Dimension>& dataBase,
+                                   const State<Dimension>& state,
+                                   StateDerivatives<Dimension>& derivs) const;
 
   // Iterate over all physics packages and call postStateUpdate
-  bool postStateUpdate(const Scalar t,
-                       const Scalar dt,
-                       const DataBase<Dimension>& dataBase,
-                       State<Dimension>& state,
-                       StateDerivatives<Dimension>& derivs) const;
+  virtual void postStateUpdate(const Scalar t,
+                               const Scalar dt,
+                               const DataBase<Dimension>& dataBase,
+                               State<Dimension>& state,
+                               StateDerivatives<Dimension>& derivs) const;
 
   // Finalize at the end a timestep, therefore called once at the end of a timestep.
   virtual void postStepFinalize(const double t,
                                 const double dt,
                                 State<Dimension>& state,
-                                StateDerivatives<Dimension>& derivs);
+                                StateDerivatives<Dimension>& derivs) const;
 
   // Add a Physics package.
   void appendPhysicsPackage(Physics<Dimension>& package);
@@ -119,23 +119,23 @@ public:
 
   // Set the ghost nodes for all node lists according to the boundary 
   // conditions.
-  void setGhostNodes();
+  void setGhostNodes() const;
 
   // Set the ghost node values on the Fields of the nodes lists in the
   // data base.
   void applyGhostBoundaries(State<Dimension>& state,
-                            StateDerivatives<Dimension>& derivs);
+                            StateDerivatives<Dimension>& derivs) const;
 
   // Finalize the ghost node boundary conditions.
-  void finalizeGhostBoundaries();
+  void finalizeGhostBoundaries() const;
 
   // Find the nodes in violation of the boundary conditions.
-  void setViolationNodes();
+  void setViolationNodes() const;
 
   // Reset any internal nodes in violation of boundary conditions to be brought 
   // into compliance.
   void enforceBoundaries(State<Dimension>& state,
-                         StateDerivatives<Dimension>& derivs);
+                         StateDerivatives<Dimension>& derivs) const;
 
   // Copy the ghost positions and H's from one state to another.
   void copyGhostState(const State<Dimension>& state0,
@@ -183,8 +183,8 @@ public:
   ConstPackageIterator physicsPackagesEnd() const                                   { return mPhysicsPackages.end(); }
 
   // Flag to determine whether or not to be rigorous about about boundaries.
-  bool rigorousBoundaries() const                                                   { return mRigorousBoundaries; }
-  void rigorousBoundaries(const bool x)                                             { mRigorousBoundaries = x; }
+  bool rigorousBoundaries() const                                                   { DeprecationWarning("Integrator::rigorousBoundaries"); return false; }
+  void rigorousBoundaries(const bool x)                                             { DeprecationWarning("Integrator::rigorousBoundaries"); }
 
   // If we're not being rigorous about boundary conditions, how frequently
   // do we update them?
@@ -218,13 +218,13 @@ public:
   virtual void restoreState(const FileIO& file, const std::string& pathName);
   //****************************************************************************
 
-  // Disallowed methods
+  // Forbidden methods
   Integrator() = delete;
 
 protected:
   //-------------------------- Protected Interface --------------------------//
   // Allow write access to the DataBase for descendent classes.
-  DataBase<Dimension>& accessDataBase()                                            { CHECK(mDataBasePtr); return *mDataBasePtr; }
+  DataBase<Dimension>& accessDataBase()                                     const  { return mDataBase.get(); }
 
   // How should we query a physics package for the time step?
   virtual TimeStepType dt(const Physics<Dimension>* pkg,
@@ -240,9 +240,9 @@ private:
   Scalar mDtMin, mDtMax, mDtGrowth, mLastDt, mDtCheckFrac, mCurrentTime;
   int mCurrentCycle, mUpdateBoundaryFrequency;
   bool mVerbose, mAllowDtCheck, mRequireConnectivity, mRequireGhostConnectivity, mRequireOverlapConnectivity, mRequireIntersectionConnectivity;
-  DataBase<Dimension>* mDataBasePtr;
+  std::reference_wrapper<DataBase<Dimension>> mDataBase;
   std::vector<Physics<Dimension>*> mPhysicsPackages;
-  bool mRigorousBoundaries, mCullGhostNodes;
+  bool mCullGhostNodes;
 
   // The restart registration.
   RestartRegistrationType mRestart;

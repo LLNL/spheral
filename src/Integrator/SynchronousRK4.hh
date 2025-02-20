@@ -26,8 +26,8 @@ public:
   // Constructors.
   SynchronousRK4(DataBase<Dimension>& dataBase,
                  const std::vector<Physics<Dimension>*>& physicsPackages);
-  SynchronousRK4& operator=(const SynchronousRK4& rhs);
-  virtual ~SynchronousRK4();
+  virtual ~SynchronousRK4() = default;
+  SynchronousRK4& operator=(const SynchronousRK4& rhs) = default;
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
@@ -40,11 +40,8 @@ public:
   // Restart methods.
   virtual std::string label() const override { return "SynchronousRK4"; }
 
-  // Forbidden methods
+  // Fobidden methods
   SynchronousRK4() = delete;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
 };
 
 }

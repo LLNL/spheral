@@ -1,0 +1,12 @@
+numpy
+numpy-stl
+matplotlib
+h5py
+scipy 
+mpi4py
+cffi
+pyyaml
+llnl-thicket
+ipython
+ats @ file://@SPHERAL_ROOT_DIR@/extern/ATS
+

@@ -372,4 +372,52 @@ def testParallelConsistency(mesh, xmin, xmax):
 
     return msg
 
+#-------------------------------------------------------------------------------
+# Estimate number of radial and axial SPH nodes.
+#-------------------------------------------------------------------------------
+def num_3d_cyl_nodes(rmin, rmax, zmin, zmax, thetamin, thetamax, nr0, nz0, Ntot):
+    """
+    This routine estimates values for nr and nz for a 3D cylindrical distribution
+    to closely match a total desired number of SPH nodes
 
+    Parameters:
+    rmin, rmax: Inner/outer radial location
+    zmin, zmax: Lower/upper axial locations
+    thetamin, thetamax: Lower/upper polar angles
+    nr0, nz0: Initial guesses for number of radial and axial SPH nodes
+    Ntot: Desired total number of nodes
+    Returns:
+    nr, nz: Optimal number of radial and axial SPH nodes
+    """
+    import numpy as np
+    from scipy.optimize import basinhopping
+
+    class takestep:
+        def __init__(self, x0):
+            self.x0 = int(x0)
+        def __call__(self, x):
+            x += self.x0
+            return x
+    x0 = 1 # Optimal step size
+    ig = [nr0, nz0]
+    zlen = zmax - zmin
+    if nr0*nz0 > Ntot:
+        raise Exception("Initial guesses are too high")
+    rlen = rmax - rmin
+    Dtheta = thetamax - thetamin
+    mintheta = int(Dtheta/(0.5*np.pi) + 0.5)
+    def calc_ntot(x):
+        nr = int(x[0])
+        nz = int(x[1])
+        dz = zlen / nz
+        dr = rlen / nr
+        maxd = max(dr, dz)
+        new_tot = 0
+        for i in range(nr):
+            ri = rmin + (i + 0.5)*dr
+            n_th = max(mintheta, int(ri*Dtheta/maxd))
+            new_tot += n_th
+        return abs(new_tot*nz - Ntot)
+    result = basinhopping(calc_ntot, ig, take_step=takestep(x0))
+    nr, nz = result.x[0], result.x[1]
+    return int(nr), int(nz)

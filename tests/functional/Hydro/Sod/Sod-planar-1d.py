@@ -133,7 +133,7 @@ commandLine(nx1 = 400,
             restartStep = 10000,
             dataDirBase = "dumps-Sod-planar",
             restartBaseName = "Sod-planar-1d-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
 
             graphics = True,
@@ -461,10 +461,10 @@ if not (gsph or mfm):
     # Construct the MMRV physics object.
     #-------------------------------------------------------------------------------
     if boolReduceViscosity:
-        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,nh,aMin,aMax)
         packages.append(evolveReducingViscosityMultiplier)
     elif boolCullenViscosity:
-        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
         packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -697,13 +697,13 @@ if graphics:
                    (splot, "Sod-planar-surfacePoint.png")]
     
     if not gsph:
-        viscPlot = plotFieldList(hydro.maxViscousPressure,
-                             winTitle = "max($\\rho^2 \pi_{ij}$)",
-                             colorNodeLists = False)
+        viscPlot = plotFieldList(q.maxViscousPressure,
+                                 winTitle = "max($\\rho^2 \pi_{ij}$)",
+                                 colorNodeLists = False)
         plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier,
+        cullAlphaPlot = plotFieldList(evolveCullenViscosityMultiplier.ClMultiplier,
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt,
                                        winTitle = "Cullen DalphaDt")
@@ -711,7 +711,7 @@ if graphics:
                   (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.ClMultiplier,
+        alphaPlot = plotFieldList(evolveReducingViscosityMultiplier.ClMultiplier,
                                   winTitle = "rvAlpha",
                                   colorNodeLists = False)
 
@@ -739,7 +739,7 @@ rmin = x0
 rmax = x2
 if mpi.rank == 0:
     multiSort(mo, xprof, rhoprof, Pprof, vprof, epsprof, hprof)
-    if outputFile != "None":
+    if outputFile:
         outputFile = os.path.join(dataDir, outputFile)
         f = open(outputFile, "w")
         f.write(("#  " + 19*"'%s' " + "\n") % ("x", "rho", "P", "v", "eps", "A", "h", "mo",

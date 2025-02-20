@@ -39,26 +39,6 @@ PredictorCorrector(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-PredictorCorrector<Dimension>::~PredictorCorrector() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-PredictorCorrector<Dimension>&
-PredictorCorrector<Dimension>::
-operator=(const PredictorCorrector<Dimension>& rhs) {
-  if (this != &rhs) {
-    Integrator<Dimension>::operator=(rhs);
-  }
-  return *this;
-}
-
-//------------------------------------------------------------------------------
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -104,10 +84,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
                                
   // Do any physics specific stuff relating to the fact the state was just updated.
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Check if the timestep is still a good idea...
   if (this->allowDtCheck()) {
@@ -149,10 +126,7 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeGhostBoundaries();
 
   // Do any physics specific stuff relating to the fact the state was just updated.
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);

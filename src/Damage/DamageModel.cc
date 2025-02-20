@@ -128,7 +128,7 @@ computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
 // require ghost state to be updated first.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 DamageModel<Dimension>::
 initialize(const Scalar /*time*/,
            const Scalar /*dt*/,
@@ -159,6 +159,7 @@ initialize(const Scalar /*time*/,
     VERIFY2(false, "DamageModel ERROR: unhandled damage coupling algorithm case");
   }
   connectivity.coupling(mNodeCouplingPtr);
+  return false;
 }
 
 //------------------------------------------------------------------------------

@@ -18,12 +18,34 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  execute_process(
+    COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/.git branch --show-current
+    OUTPUT_VARIABLE gitbranch
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
   set(SPHERAL_VERSION_LIST ${tagcomm} ${githash} ${abbref})
   string(REPLACE ";" " " spheralversion "${SPHERAL_VERSION_LIST}")
 endif()
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py)
+
+# Configure SpheralConfigs.py.in
+set(SPHERAL_COMP_CONFIG)
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"FSISPH\"")
+endif()
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"GSPH\"")
+endif()
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND SPHERAL_COMP_CONFIG "\"SVPH\"")
+endif()
+string(REPLACE ";" ", " SPHERAL_COMP_CONFIG_STR "${SPHERAL_COMP_CONFIG}")
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
 
 set(_dims 1)
 if(ENABLE_2D)
@@ -35,12 +57,25 @@ endif()
 
 string(REPLACE ";" " " DIMS "${_dims}")
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
 
+# Generate the Spheral.py master file with some conditional imports based on our configuration
+set(HYDRO_IMPORTS "SPHHydros PSPHHydros CRKSPHHydros DEM SPHUtilities")
+if (SPHERAL_ENABLE_FSISPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} FSISPHHydros SlideSurfaces")
+endif()
+if (SPHERAL_ENABLE_GSPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} GSPHHydros")
+endif()
+if (SPHERAL_ENABLE_SVPH)
+  set(HYDRO_IMPORTS "${HYDRO_IMPORTS} SVPHHydros")
+endif()
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Spheral.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py)
 
 spheral_install_python_files(
-  Spheral.py
   Spheral1d.py
   Spheral2d.py
   Spheral3d.py
@@ -60,6 +95,7 @@ spheral_install_python_files(
   SpheralPolytopeSiloDump.py
   Spheral1dVizDump.py
   SpheralMatplotlib.py
+  SpheralTimingParser.py
   findLastRestart.py
   Pnorm.py
   filearraycmp.py
@@ -77,6 +113,8 @@ spheral_install_python_files(
   writeSiloQuadMesh.py
   buildOrderedDict.py
   CaptureStdout.py
+  ${CMAKE_CURRENT_BINARY_DIR}/Spheral.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py
   )

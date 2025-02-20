@@ -42,7 +42,7 @@ def GSPH(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("GSPHHydroBase%id" % ndim)
+    Constructor = eval("GSPH%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -75,7 +75,10 @@ def GSPH(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod
@@ -123,7 +126,7 @@ def MFM(dataBase,
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("MFMHydroBase%id" % ndim)
+    Constructor = eval("MFM%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -159,7 +162,10 @@ def MFM(dataBase,
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod
@@ -193,7 +199,8 @@ def MFV(dataBase,
         xmin = (-1e100, -1e100, -1e100),
         xmax = ( 1e100,  1e100,  1e100),
         ASPH = False,
-        RZ = False):
+        RZ = False,
+        smoothingScaleMethod = None):
 
     # for now we'll just piggy back off this enum
     assert densityUpdate in (RigorousSumDensity,IntegrateDensity)
@@ -204,12 +211,12 @@ def MFV(dataBase,
     nfluid = dataBase.numFluidNodeLists
     nsolid = dataBase.numSolidNodeLists
     if nsolid > 0 and nsolid != nfluid:
-        print("MFM  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
+        print("MFV  Error: you have provided both solid and fluid NodeLists, which is currently not supported.")
         print("            If you want some fluids active, provide SolidNodeList without a strength option specfied,")
         print("            which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
-    Constructor = eval("MFVHydroBase%id" % ndim)
+    Constructor = eval("MFV%id" % ndim)
 
     if riemannSolver is None:
         waveSpeedMethod = eval("DavisWaveSpeed%id()" % (ndim))
@@ -236,20 +243,21 @@ def MFV(dataBase,
               "nodeMotionType" : nodeMotionType,
               "gradType" : gradientType,
               "densityUpdate" : densityUpdate,
-              "HUpdate" : HUpdate,
               "epsTensile" : epsTensile,
               "nTensile" : nTensile,
               "xmin" : eval("Vector%id(%g, %g, %g)" % xmin),
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
-    #print(nodeMotionType)
     # Build and return the thing.
     result = Constructor(**kwargs)
 
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod
@@ -268,3 +276,7 @@ def AGSPH(*args, **kwargs):
 def AMFM(*args, **kwargs):
     kwargs.update({"ASPH" : True})
     return MFM(*args, **kwargs)
+
+def AMFV(*args, **kwargs):
+    kwargs.update({"ASPH" : True})
+    return MFV(*args, **kwargs)

@@ -71,7 +71,7 @@ def FSISPH(dataBase,
     else:
         # Cartesian ---------------------------------
         if nsolid > 0:
-            Constructor = eval("SolidFSISPHHydroBase%id" % ndim)
+            Constructor = eval("SolidFSISPH%id" % ndim)
         else:
             raise RuntimeError("currently only implemented for solid nodelists")
 
@@ -80,7 +80,7 @@ def FSISPH(dataBase,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 8.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=W)" % (ndim, Cl, Cq))
 
     # slide surfaces.
     if not slides:
@@ -120,10 +120,16 @@ def FSISPH(dataBase,
     result.Q = Q
     result.slides = slides
     
+    # Add the Q as a sub-package (to run before the hydro)
+    result.prependSubPackage(Q)
+
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod

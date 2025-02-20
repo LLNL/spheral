@@ -26,8 +26,8 @@ public:
   // Constructors.
   PredictorCorrector(DataBase<Dimension>& dataBase,
                      const std::vector<Physics<Dimension>*>& physicsPackages);
-  virtual ~PredictorCorrector();
-  PredictorCorrector& operator=(const PredictorCorrector& rhs);
+  virtual ~PredictorCorrector() = default;
+  PredictorCorrector& operator=(const PredictorCorrector& rhs) = default;
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,

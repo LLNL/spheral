@@ -129,7 +129,7 @@ commandLine(# materials properties
             restartStep = 10000,
             dataDirBase = "dumps-Piston-1d-Cu",
             restartBaseName = "Piston-1d-Cu-restart",
-            outputFile = "None",
+            outputFile = None,
             checkRestart = False,
             graphics = True,
             )
@@ -340,10 +340,10 @@ output("q.quadraticInExpansion")
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,nh,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 

@@ -39,26 +39,6 @@ ForwardEuler(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ForwardEuler<Dimension>::~ForwardEuler() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ForwardEuler<Dimension>&
-ForwardEuler<Dimension>::
-operator=(const ForwardEuler<Dimension>& rhs) {
-  if (this != &rhs) {
-    Integrator<Dimension>::operator=(rhs);
-  }
-  return *this;
-}
-
-//------------------------------------------------------------------------------
 // Take a step.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -92,10 +72,7 @@ step(typename Dimension::Scalar maxTime,
   this->currentTime(t + dt);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + dt, dt, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt, dt, db, state, derivs);
 
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);

@@ -115,28 +115,33 @@ commandLine(seed = "lattice",
             dataRoot = "dumps-shearingNoh-2d",
 
             graphics = True,
-            outputFile = "None",
-            comparisonFile = "None",
+            outputFile = None,
+            comparisonFile = None,
 
             )
 assert not(boolReduceViscosity and boolCullenViscosity)
 
 hydroType = hydroType.upper()
 
-dataDir = os.path.join(dataRoot,
-                       hydroType,
-                       Qconstructor.__name__,
-                       "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
-                       "nperh=%4.2f" % nPerh,
-                       "XSPH=%s" % XSPH,
-                       "densityUpdate=%s" % densityUpdate,
-                       "compatibleEnergy=%s" % compatibleEnergy,
-                       "Cullen=%s" % boolCullenViscosity,
-                       "gradhCorrection=%s" % gradhCorrection,
-                       "nx=%i_ny=%i" % (nx, ny))
-restartDir = os.path.join(dataDir, "restarts")
-vizDir = os.path.join(dataDir, "visit")
-restartBaseName = os.path.join(restartDir, "Noh-shear-2d-%ix%i" % (nx, ny))
+if dataRoot:
+    dataDir = os.path.join(dataRoot,
+                           hydroType,
+                           Qconstructor.__name__,
+                           "basaraShearCorrection=%s_Qlimiter=%s" % (balsaraCorrection, Qlimiter),
+                           "nperh=%4.2f" % nPerh,
+                           "XSPH=%s" % XSPH,
+                           "densityUpdate=%s" % densityUpdate,
+                           "compatibleEnergy=%s" % compatibleEnergy,
+                           "Cullen=%s" % boolCullenViscosity,
+                           "gradhCorrection=%s" % gradhCorrection,
+                           "nx=%i_ny=%i" % (nx, ny))
+    restartDir = os.path.join(dataDir, "restarts")
+    vizDir = os.path.join(dataDir, "visit")
+    restartBaseName = os.path.join(restartDir, "Noh-shear-2d-%ix%i" % (nx, ny))
+else:
+    restartDir = None
+    vizDir = None
+    restartBaseName = None
 if vizTime is None and vizCycle is None:
     vizBaseName = None
 else:
@@ -328,10 +333,10 @@ packages = [hydro]
 # Construct the MMRV physics object.
 #-------------------------------------------------------------------------------
 if boolReduceViscosity:
-    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nhQ,nhL,aMin,aMax)
+    evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nhQ,nhL,aMin,aMax)
     packages.append(evolveReducingViscosityMultiplier)
 elif boolCullenViscosity:
-    evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+    evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
     packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -495,7 +500,7 @@ if graphics:
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.
 #-------------------------------------------------------------------------------
-if outputFile != "None":
+if outputFile:
     outputFile = os.path.join(dataDir, outputFile)
     from SpheralTestUtilities import multiSort
     P = ScalarField("pressure", nodes1)
@@ -507,7 +512,6 @@ if outputFile != "None":
     Pprof = mpi.reduce(P.internalValues(), mpi.SUM)
     vprof = mpi.reduce([v.x for v in nodes1.velocity().internalValues()], mpi.SUM)
     epsprof = mpi.reduce(nodes1.specificThermalEnergy().internalValues(), mpi.SUM)
-    Qprof = mpi.reduce(hydro.viscousWork()[0].internalValues(), mpi.SUM)
     hprof = mpi.reduce([1.0/sqrt(H.Determinant()) for H in nodes1.Hfield().internalValues()], mpi.SUM)
     mof = mortonOrderIndices(db)
     mo = mpi.reduce(mof[0].internalValues(), mpi.SUM)
@@ -515,16 +519,16 @@ if outputFile != "None":
         import NohAnalyticSolution
         answer = NohAnalyticSolution.NohSolution(1,
                                              h0 = nPerh*y1/ny)
-        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, Qprof)
+        multiSort(rprof, mo, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof)
         rans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), rprof)
         f = open(outputFile, "w")
         f.write(("# " + 21*"%15s " + "\n") % ("r", "x", "y", "rho", "P", "v", "eps", "h", "mortonOrder", "QWork",
                                               "rhoans", "Pans", "vans", "epsans",
                                               "x_uu", "y_uu", "rho_uu", "P_uu", "v_uu", "eps_uu", "h_uu"))
-        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
-             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo, Qprof,
+        for (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
+             rhoansi, Pansi, vansi, epsansi)  in zip(rprof, xprof, yprof, rhoprof, Pprof, vprof, epsprof, hprof, mo,
                                                      rhoans, Pans, vans, epsans):
-            f.write((8*"%16.12e " + "%i " + 5*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi, Qi,
+            f.write((8*"%16.12e " + "%i " + 4*"%16.12e " + 7*"%i " + "\n") % (ri, xi, yi, rhoi, Pi, vi, epsi, hi, mi,
                                                                               rhoansi, Pansi, vansi, epsansi,
                                                                               unpackElementUL(packElementDouble(xi)),
                                                                               unpackElementUL(packElementDouble(yi)),
@@ -538,7 +542,7 @@ if outputFile != "None":
         #---------------------------------------------------------------------------
         # Also we can optionally compare the current results with another file.
         #---------------------------------------------------------------------------
-        if comparisonFile != "None":
+        if comparisonFile:
             comparisonFile = os.path.join(dataDir, comparisonFile)
             import filecmp
             assert filecmp.cmp(outputFile, comparisonFile)

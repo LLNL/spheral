@@ -25,10 +25,11 @@ public:
   using SymTensor = typename Dimension::SymTensor;
 
   // Constructors.
+  CheapSynchronousRK2(DataBase<Dimension>& dataBase);
   CheapSynchronousRK2(DataBase<Dimension>& dataBase,
                       const std::vector<Physics<Dimension>*>& physicsPackages);
-  CheapSynchronousRK2& operator=(const CheapSynchronousRK2& rhs);
-  virtual ~CheapSynchronousRK2();
+  virtual ~CheapSynchronousRK2() = default;
+  CheapSynchronousRK2& operator=(const CheapSynchronousRK2& rhs) = default;
 
   // All Integrators are required to provide the single cycle method.
   virtual bool step(Scalar maxTime,
@@ -43,9 +44,6 @@ public:
 
   // Forbidden methods
   CheapSynchronousRK2() = delete;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
 };
 
 }

@@ -57,10 +57,10 @@ public:
   DataBase();
 
   // Destructor.
-  ~DataBase();
+  ~DataBase() = default;
 
   // Assignment.
-  DataBase& operator=(const DataBase& rhs);
+  DataBase& operator=(const DataBase& rhs) = default;
 
   // Number of NodeLists we have in the DataBase.
   size_t numNodeLists()                                            const { return mNodeListPtrs.size(); }
@@ -185,6 +185,7 @@ public:
 
   // Get the connectivity map.
   const ConnectivityMapType& connectivityMap() const;
+  ConnectivityMapPtr connectivityMapPtr() const;
   const ConnectivityMapType& connectivityMap(const bool computeGhostConnectivity,
                                              const bool computeOverlapConnectivity,
                                              const bool computeIntersectionConnectivity) const;
@@ -204,6 +205,7 @@ public:
   void deleteNodeList(NodeList<Dimension>& nodeList);
 
   bool haveNodeList(const NodeList<Dimension>& nodeList) const;
+  size_t nodeListIndex(const NodeList<Dimension>& nodeList) const;
 
   // Provide convenience functions for manipulating the neighbor information
   // of the NodeLists.
@@ -385,6 +387,9 @@ public:
   // valid state.
   bool valid() const;
 
+  // Prevent copying.
+  DataBase(const DataBase& rhs) = delete;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   std::vector<NodeList<Dimension>*> mNodeListPtrs;
@@ -398,11 +403,7 @@ private:
   std::vector<DEMNodeList<Dimension>*> mDEMNodeListPtrs;
   std::vector<NodeList<Dimension>*> mDEMNodeListAsNodeListPtrs;
 
-
   mutable ConnectivityMapPtr mConnectivityMapPtr;
-
-  // Prevent copying.
-  DataBase(const DataBase& rhs);
 };
 
 //------------------------------------------------------------------------------

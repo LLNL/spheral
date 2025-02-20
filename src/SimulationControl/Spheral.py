@@ -3,6 +3,11 @@
 
 # Modified version to be compatible with the pybindgen version of Spheral++.
 
+# ------------------------------------------------------------------------------
+# Load up MPI.
+# ------------------------------------------------------------------------------
+import mpi
+
 from SpheralUtilities import BuildData
 
 if not BuildData.cxx_compiler_id == "GNU":
@@ -12,11 +17,6 @@ if not BuildData.cxx_compiler_id == "GNU":
     except:
         print("WARNING: unable to set python dl flags on Spheral import.")
         pass
-
-# ------------------------------------------------------------------------------
-# Load up MPI.
-# ------------------------------------------------------------------------------
-import mpi
 
 # ------------------------------------------------------------------------------
 # Import a scipy module to initialize scipy's shared qhull library before
@@ -51,16 +51,9 @@ from DEMNodeLists import *
 # ------------------------------------------------------------------------------
 # Import SPH, SVPH, and CRKSPH
 # ------------------------------------------------------------------------------
-from SPHHydros import *
-from PSPHHydros import *
-from GSPHHydros import *
-from FSISPHHydros import *
-from SlideSurfaces import *
-#from SVPHHydros import *
-from CRKSPHHydros import *
-#from TaylorSPHHydros import *
-from DEM import *
-from SPHUtilities import *
+hydroImports_string = "@HYDRO_IMPORTS@"
+for x in hydroImports_string.split():
+    exec(f"from {x} import *")
 
 # ------------------------------------------------------------------------------
 # Import the SolidMaterial python extensions.

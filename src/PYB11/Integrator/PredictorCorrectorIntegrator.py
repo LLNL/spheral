@@ -23,7 +23,7 @@ class PredictorCorrectorIntegrator(Integrator):
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
                physicsPackages = ("const std::vector<Physics<%(Dimension)s>*>&", "std::vector<Physics<%(Dimension)s>*>()")):
-        "Construct an integrator with a DataBase and physics packages"
+        "Construct an integrator with a DataBase and optional physics packages"
 
     #...........................................................................
     # Virtual methods

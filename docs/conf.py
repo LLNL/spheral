@@ -22,13 +22,13 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Spheral'
-copyright = '2024, LLNS'
+copyright = '2025, LLNS'
 author = 'J. Michael Owen'
 
 # The short X.Y version
-version = '2024.06.1'
+version = '2025.01.0'
 # The full version, including alpha/beta/rc tags
-release = '2024.06.1'
+release = '2025.01.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -65,7 +65,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+#language = english
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

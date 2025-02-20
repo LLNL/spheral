@@ -34,7 +34,7 @@ public:
 
   // Constructors, destructor.
   CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& db);
-  virtual ~CompatibleMFVSpecificThermalEnergyPolicy();
+  virtual ~CompatibleMFVSpecificThermalEnergyPolicy() = default;
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -56,12 +56,13 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
+  // Forbidden methods
+  CompatibleMFVSpecificThermalEnergyPolicy(const CompatibleMFVSpecificThermalEnergyPolicy& rhs) = delete;
+  CompatibleMFVSpecificThermalEnergyPolicy& operator=(const CompatibleMFVSpecificThermalEnergyPolicy& rhs) = delete;
+
 private:
   //--------------------------- Private Interface ---------------------------//
   const DataBase<Dimension>* mDataBasePtr;
-
-  CompatibleMFVSpecificThermalEnergyPolicy(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
-  CompatibleMFVSpecificThermalEnergyPolicy& operator=(const CompatibleMFVSpecificThermalEnergyPolicy& rhs);
 };
 
 }

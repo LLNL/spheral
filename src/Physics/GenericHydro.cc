@@ -79,7 +79,7 @@ vec_to_string(const Vector& vec) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 GenericHydro<Dimension>::
-GenericHydro(ArtificialViscosity<Dimension>& Q,
+GenericHydro(ArtificialViscosityHandle<Dimension>& Q,
              const double cfl,
              const bool useVelocityMagnitudeForDt):
   Physics<Dimension>(),

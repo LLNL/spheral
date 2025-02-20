@@ -74,12 +74,11 @@ commandLine(
     graphics = True,
     graphBij = False,
     plotKernels = False,
-    outputFile = "None",
+    outputFile = None,
     plotSPH = True,
     dataCut = False,
     dataCutMin = 0.0,
     dataCutMax = 1.0,
-    outfile = "None",
 )
 
 assert testCase in ("linear", "quadratic", "cubic", "step")
@@ -843,13 +842,13 @@ print("L1 errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH
             											  Pnorm(errxBRKSPHIV, xans).pnorm(1)))
 print("Maximum errors: CRKSPH = %g, RKSPH I = %g, RKSPH II = %g, RKSPH IV = %g, RKSPH V = %g, SPH = %g, BCRKSPH = %g, BRKSPHII = %g, BRKSPHIV = %g" % (maxaxCRKSPHerror, maxaxRKSPHIerror, maxaxRKSPHIIerror, maxaxRKSPHIVerror, maxaxRKSPHVerror, maxaxSPHerror, maxaxBCRKSPHerror, maxaxBRKSPHIIerror, maxaxBRKSPHIVerror))
 print("L1 Interpolation Error RK = %g, Max err = %g, L1 Derivative Error Rk = %g, Max err = %g" % (Pnorm(errfRK, xans).pnorm(1),maxfRKerror, Pnorm(errgfRK, xans).pnorm(1),maxgfRKerror))
-if outfile != "None": 
-  fl = open(outfile+".ascii", "w") 
+if outputFile: 
+  fl = open(outputFile+".ascii", "w") 
   fl.write(("# " + 8*"%15s \t " + "\n") % ("x", "Dv/Dt", "CRK", "RK Type 1", "SPH", "CRK Error (difference)", "RK Error", "SPH Error"))
   for i in range(len(xidx)):
     fl.write((8*"%16.12e " + "\n") % (xans[i], axans[i], accCRKSPH[i], accRKSPHI[i], accSPH[i], errxCRKSPH[i], errxRKSPHI[i], errxSPH[i]))
   fl.close()
-  fl = open(outfile+"_interpolate.ascii", "w") 
+  fl = open(outputFile+"_interpolate.ascii", "w") 
   fl.write(("# " + 7*"%15s \t" + "\n") % ("x", "P", "grad P", "RK (P estimate)", "RK (grad P estimate)", "SPH (P estimate)", "SPH (grad P estimate)"))
   for i in range(len(xidx)):
     fl.write((7*"%16.12e " + "\n") % (xans[i], f[i], gf[i], fRK[i], gfRK[i], fSPH[i], gfSPH[i]))

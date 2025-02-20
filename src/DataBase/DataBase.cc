@@ -13,7 +13,6 @@
 #include "Material/EquationOfState.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/safeInv.hh"
-#include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/globalNodeIDs.hh"
@@ -41,47 +40,19 @@ using std::shared_ptr;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
+// Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DataBase<Dimension>::DataBase():
-  mNodeListPtrs(0),
-  mFluidNodeListPtrs(0),
-  mFluidNodeListAsNodeListPtrs(0),
-  mSolidNodeListPtrs(0),
-  mSolidNodeListAsNodeListPtrs(0),
-  mDEMNodeListPtrs(0),
-  mDEMNodeListAsNodeListPtrs(0),
-  mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DataBase<Dimension>::~DataBase() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DataBase<Dimension>&
 DataBase<Dimension>::
-operator=(const DataBase<Dimension>& rhs) {
-  REQUIRE(rhs.valid());
-  if (this != &rhs) {
-    mNodeListPtrs = rhs.mNodeListPtrs;
-    mFluidNodeListPtrs = rhs.mFluidNodeListPtrs;
-    mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
-    mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
-    mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
-    mDEMNodeListPtrs = rhs.mDEMNodeListPtrs;
-    mDEMNodeListAsNodeListPtrs = rhs.mDEMNodeListAsNodeListPtrs;
-    mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
-  }
-  ENSURE(valid());
-  return *this;
+DataBase():
+  mNodeListPtrs(),
+  mFluidNodeListPtrs(),
+  mFluidNodeListAsNodeListPtrs(),
+  mSolidNodeListPtrs(),
+  mSolidNodeListAsNodeListPtrs(),
+  mDEMNodeListPtrs(),
+  mDEMNodeListAsNodeListPtrs(),
+  mConnectivityMapPtr(std::make_shared<ConnectivityMap<Dimension>>()) {
 }
 
 //------------------------------------------------------------------------------
@@ -597,8 +568,7 @@ DataBase<Dimension>::
 updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeOverlapConnectivity,
                       const bool computeIntersectionConnectivity) const {
-  REQUIRE(mConnectivityMapPtr != 0 and
-          mConnectivityMapPtr.get() != 0);
+  REQUIRE(mConnectivityMapPtr);
   mConnectivityMapPtr->rebuild(nodeListBegin(), nodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
@@ -611,8 +581,7 @@ void
 DataBase<Dimension>::
 patchConnectivityMap(const FieldList<Dimension, int>& flags,
                      const FieldList<Dimension, int>& old2new) const {
-  REQUIRE(mConnectivityMapPtr != 0 and
-          mConnectivityMapPtr.get() != 0);
+  REQUIRE(mConnectivityMapPtr);
   mConnectivityMapPtr->patchConnectivity(flags, old2new);
 }
 
@@ -875,6 +844,56 @@ haveNodeList(const NodeList<Dimension>& nodeList) const {
                                    nodeListEnd(),
                                    &nodeList);
   return itr != nodeListEnd();
+}
+
+//------------------------------------------------------------------------------
+// Get the NodeList index for the given NodeList
+//------------------------------------------------------------------------------
+template<typename Dimension>
+size_t
+DataBase<Dimension>::
+nodeListIndex(const NodeList<Dimension>& nodeList) const {
+  ConstNodeListIterator itr = find(nodeListBegin(),
+                                   nodeListEnd(),
+                                   &nodeList);
+  VERIFY(itr != nodeListEnd());
+  return std::distance(nodeListBegin(), itr);
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of NodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<NodeList<Dimension>*>&
+DataBase<Dimension>::nodeListPtrs() const {
+  return mNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of FluidNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<FluidNodeList<Dimension>*>&
+DataBase<Dimension>::fluidNodeListPtrs() const {
+  return mFluidNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of SolidNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<SolidNodeList<Dimension>*>&
+DataBase<Dimension>::solidNodeListPtrs() const {
+  return mSolidNodeListPtrs;
+}
+
+//------------------------------------------------------------------------------
+// Return the const list of DEMNodeList pointers.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+const vector<DEMNodeList<Dimension>*>&
+DataBase<Dimension>::DEMNodeListPtrs() const {
+  return mDEMNodeListPtrs;
 }
 
 //------------------------------------------------------------------------------
@@ -1738,7 +1757,7 @@ template<typename Dimension>
 FieldList<Dimension, int>
 DataBase<Dimension>::numNeighbors() const {
   REQUIRE(valid());
-  VERIFY(mConnectivityMapPtr != 0);
+  VERIFY(mConnectivityMapPtr);
   FieldList<Dimension, int> result = newFluidFieldList(int(), "number of neighbors");
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd(); 

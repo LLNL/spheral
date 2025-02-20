@@ -10,7 +10,17 @@ packages:
       blas: [netlib-lapack]
       lapack: [netlib-lapack]
 # ------ SYSTEM LIBS -------
-# FIXME: Currently allowing spack to build cmake and git
+# FIXME: Currently allowing spack to build cmake
+  git:
+    externals:
+    - spec: git@2.25.1
+      prefix: /usr
+    buildable: false
+  python:
+    externals:
+    - spec: python@3.8.10
+      prefix: /usr
+    buildable: false
   ncurses:
     externals:
     - spec: ncurses@6.2

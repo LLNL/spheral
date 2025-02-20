@@ -99,7 +99,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
 //------------------------------------------------------------------------------
 // Time derivative of the smoothing scale.
-// We depend on a previous package evaluating the velcoity gradient (DvDx)
+// We depend on a previous package evaluating the velocity gradient (DvDx)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
