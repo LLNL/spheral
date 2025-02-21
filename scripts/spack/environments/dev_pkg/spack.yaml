@@ -1,7 +1,6 @@
 spack:
   specs:
     - "spheral@develop%gcc+mpi~caliper~network"
-    - "spheral@develop%gcc+mpi~caliper+network"
   view: false
   concretizer:
     unify: false
