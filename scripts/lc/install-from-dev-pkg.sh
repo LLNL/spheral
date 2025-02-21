@@ -6,8 +6,8 @@ BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
 
-if [[ -z "${SPEC}" ]]; then
-  echo "SPEC var must be set."
+if [[ -z "${DEV_PKG_SPEC}" ]]; then
+  echo "DEV_PKG_SPEC var must be set."
   exit 1
 fi
 
@@ -17,7 +17,7 @@ if [[ -z "${INSTALL_DIR}" ]]; then
 fi
 
 echo $SPACK_PKG_NAME
-echo $SPEC
+echo $DEV_PKG_SPEC
 echo $SPACK_URL
 echo $INSTALL_DIR
 echo $SCRIPT_DIR
@@ -39,9 +39,9 @@ spack mirror add --unsigned spheral-mirror $PWD/resources/mirror
 spack mirror add --unsigned spheral-cache $PWD/resources
 spack buildcache update-index $PWD/resources/mirror
 
-$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $SPACK_PKG_NAME@develop%$SPEC
+$BUILD_ALLOC spack install --fresh --deprecated --no-check-signature --only dependencies $DEV_PKG_SPEC
 
-$BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls --spec "${SPACK_PKG_NAME}${SPEC}" --skip-init
+$BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls --spec $DEV_PKG_SPEC --skip-init --dev-pkg
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
 $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean -DSPHERAL_PIP_CACHE_DIR=$SPHERAL_PIP_CACHE_DIR -DSPHERAL_NETWORK_CONNECTED=Off

@@ -67,6 +67,8 @@ class SpheralTPL:
                             help="Use to do everything but actually install. For testing purposes.")
         parser.add_argument("--id", type=str, default=None,
                             help="ID string to postfix an initconfig file.")
+        parser.add_argument("--dev-pkg", action="store_true",
+                            help="Tells tpl-manager to use the dev_pkg environment.")
 
         self.args = parser.parse_args()
 
@@ -223,6 +225,8 @@ class SpheralTPL:
         config_env_dir = os.path.join(get_config_dir(base_dir), "environments")
         # Check if we are on an LC machine and the environment exists
         default_env = os.getenv("SYS_TYPE")
+        if (self.args.dev_pkg):
+            default_env = "dev_pkg"
         if default_env and os.path.exists(os.path.join(config_env_dir, default_env)):
             # For LC systems
             env_dir = os.path.join(config_env_dir, default_env)

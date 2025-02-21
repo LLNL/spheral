@@ -17,17 +17,11 @@ trap 'echo "# $BASH_COMMAND"' DEBUG
 # The expected spack package name for what we are packing up.
 SPACK_PKG_NAME=${SPACK_PKG_NAME:-spheral}
 
-# What spec are we targetting.
-SPEC=${SPEC:-gcc@10.3.1}
-
 # What is the version of spehral.
 SPHERAL_REV_STR=${SPHERAL_REV_STR:-undefined}
 
 # Where will we be staging the package as it is being compiled together.
 STAGE_DIR=${STAGE_DIR:-$PWD/../$SYS_TYPE/spheral-cache}
-
-# Where is the spack upstream located.
-UPSTREAM_DIR=${UPSTREAM_DIR:-/usr/WS2/sduser/Spheral/spack_upstream/0.22}
 
 # Where does the spheral pip_cache dir live.
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
@@ -49,15 +43,11 @@ DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
 # Full path of what the package directory will look like as we compiler the dev pkg.
 DEV_PKG_DIR=$STAGE_DIR/$DEV_PKG_NAME
 
-# Full Spack spec.
-SPHERAL_SPEC=$SPACK_PKG_NAME@develop$SPEC
-
 # RESOURCE_DIR is a directory created internally to maintain spack & pip
 # resources required for building and running Spheral
 RESOURCE_DIR=$DEV_PKG_DIR/resources
 
 # Print for sanity check.
-echo $SPHERAL_SPEC
 echo $RESOURCE_DIR
 echo $STAGE_DIR
 echo $DEV_PKG_DIR
@@ -72,23 +62,20 @@ mkdir -p $RESOURCE_DIR && cp -a $CI_PROJECT_DIR/. $DEV_PKG_DIR
 mkdir -p $RESOURCE_DIR/pip_cache
 cp -a $SPHERAL_PIP_CACHE_DIR/. $RESOURCE_DIR/pip_cache
 
-# Initialize the upstream spack repo.
-./$SCRIPT_DIR/devtools/tpl-manager.py --init-only --spack-dir=$UPSTREAM_DIR
-source $UPSTREAM_DIR/spack/share/spack/setup-env.sh
+# tpl-manager --dev-pkg does the following:
+# Creates a local Spack repo
+# Activates and concretizes the dev_pkg Spheral Spack environment
+# Installs the Spheral dependencies
+./$SCRIPT_DIR/devtools/tpl-manager.py --dev-pkg
 
-# Delete any semblance of a spack env in the STAGE_DIR.
-spack env rm -y -f $STAGE_DIR
+# Source Spack for the current terminal
+source ../spheral-spack-tpls/spack/share/spack/setup-env.sh
 
-# Create a spack env in STAGE_DIR and activate it.
-spack env create -d $STAGE_DIR
-spack env activate $STAGE_DIR
-
-# Concretize our targetted SPHERAL_SPEC.
-spack add $SPHERAL_SPEC
-spack concretize -f --fresh --deprecated
+# Activate our dev spack environment
+spack env activate ./$SCRIPT_DIR/spack/environments/dev_pkg
 
 # Create a mirror of all tpl specs in our environment
-# (should only be our deps for SPHERAL_SPEC in the env).
+# (should only be our deps for a single spec in the env).
 spack mirror create -a -d $RESOURCE_DIR/mirror --exclude-specs "llnlspheral spheral"
 
 # Use spack to list all specs in the mirror and push them to the buildcache.

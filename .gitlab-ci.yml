@@ -10,6 +10,7 @@ variables:
   SPHERAL_MODULE: "Spheral"
   SPACK_NAME: spheral
   SPACK_PKG_NAME: spheral
+  DEV_PKG_SPEC: "spheral@develop%gcc+mpi~caliper~network"
 
 .spheral_rev_str:
   before_script:

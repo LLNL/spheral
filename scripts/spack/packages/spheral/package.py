@@ -31,6 +31,9 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant('docs', default=False, description='Enable building Docs.')
     variant('shared', default=True, description='Build C++ libs as shared.')
     variant('python', default=True, description='Build Python Dependencies.')
+    variant('caliper', default=True, description='Enable Caliper timers.')
+    variant('opensubdiv', default=True, description='Enable use of opensubdiv to do refinement.')
+    variant('network', default=True, description='Disable to build Spheral from a local buildcache.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -59,16 +62,19 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on('axom +shared', when='~cuda', type='build')
     depends_on('axom ~shared', when='+cuda', type='build')
 
-    depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic', type='build')
+    with when("+caliper"):
+        depends_on("caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic", type="build")
+        depends_on("caliper+mpi", type="build", when="+mpi")
+        depends_on("caliper~mpi", type="build", when="~mpi")
 
     depends_on("raja@2024.02.0", type="build")
 
-    depends_on('opensubdiv@3.4.3+pic', type='build')
+    depends_on('opensubdiv@3.4.3+pic', type='build', when="+opensubdiv")
 
-    depends_on('polytope +python', type='build', when='+python')
+    depends_on('polytope +python', type='build')
 
     # Forward MPI Variants
-    mpi_tpl_list = ["hdf5", "conduit", "axom", "caliper", "adiak~shared"]
+    mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
     for ctpl in mpi_tpl_list:
         for mpiv in ["+mpi", "~mpi"]:
             depends_on(f"{ctpl} {mpiv}", type='build', when=f"{mpiv}")
@@ -174,7 +180,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         entries = []
 
-        entries.append(cmake_cache_option('ENABLE_CXXONLY', False))
+        entries.append(cmake_cache_option('ENABLE_CXXONLY', not spec.satisfies("+python")))
         entries.append(cmake_cache_option('TPL_VERBOSE', False))
         entries.append(cmake_cache_option('BUILD_TPL', True))
 
@@ -182,7 +188,9 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_string('SPHERAL_CONFIGURATION', self._get_config_name(spec)))
 
         # TPL locations
-        entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+        if (spec.satisfies("+caliper")):
+            entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
+            entries.append(cmake_cache_option('ENABLE_TIMER', True))
 
         entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
@@ -207,7 +215,12 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         entries.append(cmake_cache_path('eigen_DIR', spec['eigen'].prefix))
         entries.append(cmake_cache_path('eigen_INCLUDES',spec['eigen'].prefix.include.eigen3))
 
-        entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
+        if (spec.satisfies("+opensubdiv")):
+            entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
+            entries.append(cmake_cache_path('ENABLE_OPENSUBDIV', True))
+
+        if (spec.satisfies("~network")):
+            entries.append(cmake_cache_path('SPHERAL_NETWORK_CONNECTED', False))
 
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
 
