@@ -51,6 +51,23 @@ Default to just calling the generic method."""
         "Returns whether this policy should be cloned for each Field in a FieldList or not"
         return "bool"
 
+    @PYB11virtual
+    @PYB11const
+    def serializeData(key = "const KeyType&",
+                      state = "const State<%(Dimension)s>&",
+                      buf = "std::vector<double>&"):
+        "Serialize the data in the Field to a buffer"
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def deserializeData(key = "const KeyType&",
+                        state = "const State<%(Dimension)s>&",
+                        buf = "const std::vector<double>&",
+                        offset = "const size_t"):
+        "Deserialize the data in the Field from a buffer"
+        return "size_t"
+
     #...........................................................................
     # Methods
     @PYB11const

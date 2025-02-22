@@ -21,7 +21,7 @@ IncrementBoundedState(std::initializer_list<std::string> depends,
                       const BoundValueType minValue,
                       const BoundValueType maxValue,
                       const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depends),
+  FieldUpdatePolicy<Dimension, ValueType>(depends),
   mMinValue(minValue),
   mMaxValue(maxValue),
   mWildCardDerivs(wildCardDerivs) {
@@ -33,7 +33,7 @@ IncrementBoundedState<Dimension, ValueType, BoundValueType>::
 IncrementBoundedState(const BoundValueType minValue,
                       const BoundValueType maxValue,
                       const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(),
+  FieldUpdatePolicy<Dimension, ValueType>({}),
   mMinValue(minValue),
   mMaxValue(maxValue),
   mWildCardDerivs(wildCardDerivs) {

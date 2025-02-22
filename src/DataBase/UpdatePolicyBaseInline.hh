@@ -1,3 +1,5 @@
+#include "Utilities/DBC.hh"
+
 #include <algorithm>
 
 namespace Spheral {
@@ -22,6 +24,34 @@ bool
 UpdatePolicyBase<Dimension>::
 operator!=(const UpdatePolicyBase& rhs) const {
   return !(*this == rhs);
+}
+
+//------------------------------------------------------------------------------
+// Serialize the underlying data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+UpdatePolicyBase<Dimension>::
+serializeData(const KeyType& key,
+              const State<Dimension>& state,
+              std::vector<double>& buf) const {
+  VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base serialize method on " + key);
+}
+
+//------------------------------------------------------------------------------
+// Deserialize the underlying data.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+size_t
+UpdatePolicyBase<Dimension>::
+deserializeData(const KeyType& key,
+                const State<Dimension>& state,
+                const std::vector<double>& buf,
+                const size_t offset) const {
+  VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base deserialize method on " + key);
+  return offset;
 }
 
 //------------------------------------------------------------------------------

@@ -327,5 +327,54 @@ update(StateDerivatives<Dimension>& derivs,
   }
 }
 
+//------------------------------------------------------------------------------
+// Serialize independent data to a buffer for use in implicit time integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+serializeIndependentData(std::vector<double>& buf) const {
+  buf.clear();
+
+  // Look for any state with update policies that indicate an independent variable
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        cerr << "Serializing " << key << endl;
+        policyPtr->serializeData(key, *this, buf);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Deserialize independent data from a buffer; for use in implicit time
+// integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+deserializeIndependentData(const std::vector<double>& buf) const {
+  
+  // Look for any state with update policies that indicate an independent variable
+  size_t offset = 0u;
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        cerr << "Deserializing " << key << endl;
+        offset = policyPtr->deserializeData(key, *this, buf, offset);
+        CHECK(offset <= buf.size());
+      }
+    }
+  }
+  CHECK(offset == buf.size());
+}
+
 }
 

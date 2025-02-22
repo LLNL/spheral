@@ -101,11 +101,13 @@ public:
   void timeAdvanceOnly(const bool x)        { mTimeAdvanceOnly = x; }
 
   //...........................................................................
+  // Serialization of independent data (for use in implicit time integration)
+  void serializeIndependentData(std::vector<double>& buf) const;
+  void deserializeIndependentData(const std::vector<double>& buf) const;
+
+  //...........................................................................
   // Expose the StateBase enroll methods
   using StateBase<Dimension>::enroll;
-  // virtual              void enroll(FieldBase<Dimension>& field) override                     { StateBase<Dimension>::enroll(field); }
-  // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
-  // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
   template<typename T> void enroll(const KeyType& key, T& thing);
 
 private:

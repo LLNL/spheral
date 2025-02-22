@@ -19,11 +19,11 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType, typename BoundValueType=ValueType>
-class IncrementBoundedState: public FieldUpdatePolicy<Dimension> {
+class IncrementBoundedState: public FieldUpdatePolicy<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
   IncrementBoundedState(std::initializer_list<std::string> depends = {},

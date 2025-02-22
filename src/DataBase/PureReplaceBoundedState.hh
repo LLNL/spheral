@@ -21,11 +21,11 @@ namespace Spheral {
 template<typename Dimension> class StateDerivatives;
 
 template<typename Dimension, typename ValueType, typename BoundValueType=ValueType>
-class PureReplaceBoundedState: public FieldUpdatePolicy<Dimension> {
+class PureReplaceBoundedState: public FieldUpdatePolicy<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
   PureReplaceBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),

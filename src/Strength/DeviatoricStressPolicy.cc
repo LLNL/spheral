@@ -28,15 +28,7 @@ namespace Spheral {
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
 DeviatoricStressPolicy():
-  FieldUpdatePolicy<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DeviatoricStressPolicy<Dimension>::
-~DeviatoricStressPolicy() {
+  FieldUpdatePolicy<Dimension, SymTensor>({}) {
 }
 
 //------------------------------------------------------------------------------

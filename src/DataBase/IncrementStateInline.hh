@@ -20,7 +20,7 @@ inline
 IncrementState<Dimension, Value>::
 IncrementState(std::initializer_list<std::string> depends,
                const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(depends),
+  FieldUpdatePolicy<Dimension, Value>(depends),
   mWildCardDerivs(wildCardDerivs) {
 }
 
@@ -28,7 +28,7 @@ template<typename Dimension, typename Value>
 inline
 IncrementState<Dimension, Value>::
 IncrementState(const bool wildCardDerivs):
-  FieldUpdatePolicy<Dimension>(),
+  FieldUpdatePolicy<Dimension, Value>({}),
   mWildCardDerivs(wildCardDerivs) {
 }
 

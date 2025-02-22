@@ -27,7 +27,7 @@ class ReplaceBoundedState: public PureReplaceBoundedState<Dimension, ValueType, 
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
-  using KeyType = typename FieldUpdatePolicy<Dimension>::KeyType;
+  using KeyType = typename FieldUpdatePolicy<Dimension, ValueType>::KeyType;
 
   // Constructors, destructor.
   ReplaceBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),

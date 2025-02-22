@@ -67,6 +67,15 @@ public:
   // Should this policy be cloned per Field when registering for a FieldList?
   virtual bool clonePerField() const { return false; }
 
+  // Serialize the state we're updating to a std::vector<double> -- needed for packing State data in implicit time solve
+  virtual void serializeData(const KeyType& key,
+                             const State<Dimension>& state,
+                             std::vector<double>& buf) const;
+  virtual size_t deserializeData(const KeyType& key,
+                                 const State<Dimension>& state,
+                                 const std::vector<double>& buf,
+                                 const size_t offset) const;
+
   // Test is this policy is for independent or dependent state.
   bool independent() const;
   bool dependent() const;

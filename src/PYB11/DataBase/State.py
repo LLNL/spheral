@@ -106,6 +106,18 @@ class State(StateBase):
         "Get the update policy associated with a key"
         return "PolicyPointer"
 
+    @PYB11const
+    def serializeIndependentData(self,
+                                 buf = "std::vector<double>&"):
+        "Serialize any data associated with independent state"
+        return "void"
+
+    @PYB11const
+    def deserializeIndependentData(self,
+                                   buf = "const std::vector<double>&"):
+        "Deserialize data associated with independent state"
+        return "void"
+
     #...........................................................................
     # Template methods
     @PYB11template("Value")
