@@ -56,6 +56,9 @@ public:
   bool wildCardDerivs() const;
   void wildCardDerivs(const bool val);
 
+  // Advance this policy implicitly
+  virtual bool independent() const override { return true; }
+
 private:
   //--------------------------- Private Interface ---------------------------//
   BoundValueType mMinValue;

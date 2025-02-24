@@ -27,6 +27,40 @@ operator!=(const UpdatePolicyBase& rhs) const {
 }
 
 //------------------------------------------------------------------------------
+// The set of field names this state is dependent on.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+const std::vector<std::string>&
+UpdatePolicyBase<Dimension>::
+dependencies() const {
+  return mDependencies;
+}
+
+//------------------------------------------------------------------------------
+// Allow the addition of dependencies.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+UpdatePolicyBase<Dimension>::
+addDependency(const std::string& depend) {
+  mDependencies.push_back(depend);
+  std::sort(mDependencies.begin(), mDependencies.end());
+}
+
+//------------------------------------------------------------------------------
+// Is this state dependent?
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+bool
+UpdatePolicyBase<Dimension>::
+independent() const {
+  return mDependencies.size() == 0;
+}
+
+//------------------------------------------------------------------------------
 // Serialize the underlying data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -52,48 +86,6 @@ deserializeData(const KeyType& key,
                 const size_t offset) const {
   VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base deserialize method on " + key);
   return offset;
-}
-
-//------------------------------------------------------------------------------
-// Is this state dependent?
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-UpdatePolicyBase<Dimension>::
-independent() const {
-  return mDependencies.size() == 0;
-}
-
-template<typename Dimension>
-inline
-bool
-UpdatePolicyBase<Dimension>::
-dependent() const {
-  return !(this->independent());
-}
-
-//------------------------------------------------------------------------------
-// The set of field names this state is dependent on.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-const std::vector<std::string>&
-UpdatePolicyBase<Dimension>::
-dependencies() const {
-  return mDependencies;
-}
-
-//------------------------------------------------------------------------------
-// Allow the addition of dependencies.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-void
-UpdatePolicyBase<Dimension>::
-addDependency(const std::string& depend) {
-  mDependencies.push_back(depend);
-  std::sort(mDependencies.begin(), mDependencies.end());
 }
 
 }

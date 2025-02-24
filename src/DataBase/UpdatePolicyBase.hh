@@ -67,19 +67,6 @@ public:
   // Should this policy be cloned per Field when registering for a FieldList?
   virtual bool clonePerField() const { return false; }
 
-  // Serialize the state we're updating to a std::vector<double> -- needed for packing State data in implicit time solve
-  virtual void serializeData(const KeyType& key,
-                             const State<Dimension>& state,
-                             std::vector<double>& buf) const;
-  virtual size_t deserializeData(const KeyType& key,
-                                 const State<Dimension>& state,
-                                 const std::vector<double>& buf,
-                                 const size_t offset) const;
-
-  // Test is this policy is for independent or dependent state.
-  bool independent() const;
-  bool dependent() const;
-
   // Return the set of field names that this state depends upon (if any).
   const std::vector<std::string>& dependencies() const;
 
@@ -88,6 +75,21 @@ public:
 
   // The wildcard string for comparing dependency keys.
   static const std::string wildcard() { return "*"; }
+
+  //............................................................................
+  // Methods to support implicit time advancement
+  // Test is this policy is for independent or dependent state, where independent means
+  // this should be treated as implicitly advanced state to be solved for
+  virtual bool independent() const;
+
+  // Serialize the state we're updating to a std::vector<double> -- needed for packing State data in implicit time solve
+  virtual void serializeData(const KeyType& key,
+                             const State<Dimension>& state,
+                             std::vector<double>& buf) const;
+  virtual size_t deserializeData(const KeyType& key,
+                                 const State<Dimension>& state,
+                                 const std::vector<double>& buf,
+                                 const size_t offset) const;
 
 private:
   //--------------------------- Private Interface ---------------------------//

@@ -30,7 +30,7 @@ serializeData(const KeyType& key,
   CHECK(nraw == ndvals*sizeof(double));
   const auto istart = buf.size();
   buf.resize(buf.size() + ndvals);
-  CHECK(buf.size() - istart == nraw);
+  CHECK((buf.size() - istart)*sizeof(double) == nraw);
   std::memcpy(&buf[istart], &rawbuf[0], nraw);
   CONTRACT_VAR(ndvals);
 }

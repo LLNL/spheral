@@ -75,10 +75,6 @@ Default to just calling the generic method."""
         return "bool"
 
     @PYB11const
-    def dependent(self):
-        return "bool"
-
-    @PYB11const
     def dependencies(self):
         "Return the set of field names that this state depends upon (if any)."
         return "const std::vector<std::string>&"
