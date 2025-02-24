@@ -77,9 +77,6 @@
     <None Include="..\..\src\DataBase\StateDerivatives.hh">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="..\..\src\DataBase\StateDerivativesInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="..\..\src\DataBase\StateInline.hh">
       <Filter>Header Files</Filter>
     </None>

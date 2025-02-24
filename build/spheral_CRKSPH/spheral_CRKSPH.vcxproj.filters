@@ -21,13 +21,10 @@
     <ClCompile Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.2.cc">
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.cc">
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\detectSurfaceInst.cc.2.cc">
@@ -42,13 +39,10 @@
     <ClCompile Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopologyInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.3.cc">
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.2.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.cc">
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.3.cc">
@@ -63,12 +57,27 @@
     <ClCompile Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHRZ.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\SolidCRKSPHInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHBaseInst.cc.2.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CRKSPH\CRKSPHBaseInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\CRKSPH\computeCRKSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\CRKSPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\CRKSPHBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\CRKSPH\CRKSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\detectSurfaceInst.cc.py">
@@ -80,7 +89,7 @@
     <CustomBuild Include="..\..\src\CRKSPH\computeSolidCRKSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\CRKSPH\SolidCRKSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrectionsInst.cc.py">
@@ -109,15 +118,6 @@
     <ClInclude Include="..\..\src\CRKSPH\computeVoronoiCentroids.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBase.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBaseInline.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\CRKSPHHydroBaseRZ.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\CRKSPHVariant.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -125,15 +125,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\editMultimaterialSurfaceTopology.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBase.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseInline.hh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHHydroBaseRZ.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\CRKSPH\SurfaceNodeCoupling.hh">
@@ -145,5 +136,25 @@
     <ClInclude Include="..\..\src\CRKSPH\zerothOrderSurfaceCorrections.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\CRKSPH.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\CRKSPHBase.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\CRKSPHRZ.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPH.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\CRKSPH\SolidCRKSPHRZ.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\CRKSPH\CRKSPHBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

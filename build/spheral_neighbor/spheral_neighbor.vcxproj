@@ -356,7 +356,23 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\Neighbor\ConnectivityMap.hh" />
+    <ClInclude Include="..\..\src\Neighbor\ConnectivityMapInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\GridCellIndex.hh" />
+    <ClInclude Include="..\..\src\Neighbor\GridCellIndexBase.hh" />
+    <ClInclude Include="..\..\src\Neighbor\GridCellIndexInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\GridCellPlane.hh" />
+    <ClInclude Include="..\..\src\Neighbor\GridCellPlaneInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\Neighbor.hh" />
+    <ClInclude Include="..\..\src\Neighbor\NeighborInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\NestedGridNeighbor.hh" />
+    <ClInclude Include="..\..\src\Neighbor\NestedGridNeighborInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\NodePairIdxType.hh" />
     <ClInclude Include="..\..\src\Neighbor\NodePairList.hh" />
+    <ClInclude Include="..\..\src\Neighbor\PairwiseField.hh" />
+    <ClInclude Include="..\..\src\Neighbor\PairwiseFieldElementAccessor.hh" />
+    <ClInclude Include="..\..\src\Neighbor\PairwiseFieldInline.hh" />
+    <ClInclude Include="..\..\src\Neighbor\TreeNeighbor.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

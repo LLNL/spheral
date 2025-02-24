@@ -27,10 +27,10 @@
     <ClCompile Include="..\..\src\FSISPH\SlideSurfaceInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.2.cc">
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.3.cc">
+    <ClCompile Include="..\..\src\FSISPH\SolidFSISPHInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\FSISPH\FSIFieldNames.cc">
@@ -56,9 +56,11 @@
     <CustomBuild Include="..\..\src\FSISPH\SlideSurfaceInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\FSISPH\SolidFSISPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py" />
+    <CustomBuild Include="..\..\src\FSISPH\computeInterfacePressureCorrectedSumMassDensityInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -27,13 +27,13 @@
     <ClCompile Include="..\..\src\SPH\computeSumVoronoiCellMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.2.cc">
+    <ClCompile Include="..\..\src\SPH\SPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.3.cc">
+    <ClCompile Include="..\..\src\SPH\SPHInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseRZ.cc">
+    <ClCompile Include="..\..\src\SPH\SPHRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.2.cc">
@@ -42,13 +42,19 @@
     <ClCompile Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.2.cc">
+    <ClCompile Include="..\..\src\SPH\SolidSPHInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.3.cc">
+    <ClCompile Include="..\..\src\SPH\SolidSPHRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseRZ.cc">
+    <ClCompile Include="..\..\src\SPH\SolidSPHInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SPH\SPHBaseInst.cc.3.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\SPH\SPHBaseInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,13 +68,16 @@
     <CustomBuild Include="..\..\src\SPH\computeSumVoronoiCellMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SPH\SPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\SPH\SPHBaseInst.cc.py">
+      <Filter>Inst Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\SPH\SPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\SPH\SolidSPHInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
   </ItemGroup>

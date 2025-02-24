@@ -295,12 +295,14 @@
     <ClCompile Include="..\..\src\SPH\correctSPHSumMassDensityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\SPH\computeSumVoronoiCellMassDensityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\SPH\computeSumVoronoiCellMassDensityInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SPH\SolidSPHHydroBaseRZ.cc" />
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\SPH\SPHHydroBaseRZ.cc" />
+    <ClCompile Include="..\..\src\SPH\SolidSPHInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SPH\SolidSPHInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SPH\SolidSPHRZ.cc" />
+    <ClCompile Include="..\..\src\SPH\SPHBaseInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SPH\SPHBaseInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SPH\SPHInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\SPH\SPHInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\SPH\SPHRZ.cc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\SPH\computeSPHOmegaGradhCorrectionInst.cc.py">
@@ -335,7 +337,7 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SPH\SolidSPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\SPH\SolidSPHInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -343,7 +345,15 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <CustomBuild Include="..\..\src\SPH\SPHHydroBaseInst.cc.py">
+    <CustomBuild Include="..\..\src\SPH\SPHBaseInst.cc.py">
+      <Command>
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
+           python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
+        </Command>
+      <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
+      <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\SPH\SPHInst.cc.py">
       <Command>
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
            python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2

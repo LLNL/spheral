@@ -356,9 +356,6 @@
     <None Include="..\..\src\DataBase\StateDerivatives.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\DataBase\StateDerivativesInline.hh">
-      <FileType>Document</FileType>
-    </None>
     <CustomBuild Include="..\..\src\DataBase\StateDerivativesInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3

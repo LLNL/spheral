@@ -12,10 +12,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.2.cc">
+    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.2.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc">
+    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.3.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.2.cc">
@@ -28,12 +28,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.2.cc">
@@ -51,12 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosity.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityInline.hh">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityList.hh">
       <Filter>Header Files</Filter>
     </None>
     <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosity.hh">
@@ -82,7 +70,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.py">
+    <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.py">
       <Filter>Inst Files</Filter>
     </CustomBuild>
     <CustomBuild Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.py">

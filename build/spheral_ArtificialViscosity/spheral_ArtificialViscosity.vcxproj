@@ -288,14 +288,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.2.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.3.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.2.cc" />
+    <ClCompile Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityInst.cc.3.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityRZ.cc" />
-    <ClCompile Include="..\..\src\ArtificialViscosity\MonaghanGingoldViscosityGSRZ.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.2.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorCRKSPHViscosityInst.cc.3.cc" />
     <ClCompile Include="..\..\src\ArtificialViscosity\TensorMonaghanGingoldViscosityInst.cc.2.cc" />
@@ -305,10 +303,7 @@
     <None Include="..\..\src\ArtificialViscosity\ArtificialViscosity.hh">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityInline.hh">
-      <FileType>Document</FileType>
-    </None>
-    <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityInst.cc.py">
+    <CustomBuild Include="..\..\src\ArtificialViscosity\ArtificialViscosityHandleInst.cc.py">
       <Command>
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).3.cc 3
             python.exe %(RelativeDir)..\helpers\InstantiationGenerator.py "%(FullPath)" %(RelativeDir)%(Filename).2.cc 2
@@ -316,9 +311,6 @@
       <Message>Building 2 and 3 dim instantiation for %(Filename)</Message>
       <Outputs>%(RelativeDir)%(Filename).2.cc;%(RelativeDir)%(Filename).3.cc;%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="..\..\src\ArtificialViscosity\ArtificialViscosityList.hh">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\src\ArtificialViscosity\LimitedMonaghanGingoldViscosity.hh">
       <FileType>Document</FileType>
     </None>
