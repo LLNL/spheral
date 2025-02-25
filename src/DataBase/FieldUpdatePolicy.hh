@@ -32,12 +32,12 @@ public:
   virtual bool clonePerField() const override { return true; }
 
   // Serialize our data to a buffer
-  virtual void serializeData(const KeyType& key,
-                             const State<Dimension>& state,
-                             std::vector<double>& buf) const override;
-  virtual size_t deserializeData(const KeyType& key,
+  virtual void serializeData(std::vector<double>& buf,
+                             const KeyType& key,
+                             const State<Dimension>& state) const override;
+  virtual size_t deserializeData(const std::vector<double>& buf,
+                                 const KeyType& key,
                                  const State<Dimension>& state,
-                                 const std::vector<double>& buf,
                                  const size_t offset) const override;
 
   FieldUpdatePolicy() = delete;

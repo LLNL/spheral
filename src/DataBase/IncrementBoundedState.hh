@@ -9,17 +9,15 @@
 #ifndef __Spheral_IncrementBoundedState_hh__
 #define __Spheral_IncrementBoundedState_hh__
 
-#include "FieldUpdatePolicy.hh"
+#include "IncrementState.hh"
 
 #include <limits>
 
 namespace Spheral {
 
 // Forward declarations.
-template<typename Dimension> class StateDerivatives;
-
 template<typename Dimension, typename ValueType, typename BoundValueType=ValueType>
-class IncrementBoundedState: public FieldUpdatePolicy<Dimension, ValueType> {
+class IncrementBoundedState: public IncrementState<Dimension, ValueType> {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Useful typedefs
@@ -33,7 +31,7 @@ public:
   IncrementBoundedState(const BoundValueType minValue = BoundValueType(std::numeric_limits<double>::lowest()),
                         const BoundValueType maxValue = BoundValueType(std::numeric_limits<double>::max()),
                         const bool wildCardDerivs = false);
-  virtual ~IncrementBoundedState() {}
+  virtual ~IncrementBoundedState() = default;
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -44,29 +42,20 @@ public:
                       const double dt) override;
 
   // Access the min and max's.
-  BoundValueType minValue() const;
-  BoundValueType maxValue() const;
+  BoundValueType minValue() const { return mMinValue; }
+  BoundValueType maxValue() const { return mMaxValue; }
 
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
-  static const std::string prefix() { return "delta "; }
-
-  // Flip whether we try to find multiple registered increment fields.
-  bool wildCardDerivs() const;
-  void wildCardDerivs(const bool val);
-
-  // Advance this policy implicitly
-  virtual bool independent() const override { return true; }
+  // Forbidden methods
+  IncrementBoundedState(const IncrementBoundedState& rhs) = delete;
+  IncrementBoundedState& operator=(const IncrementBoundedState& rhs) = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   BoundValueType mMinValue;
   BoundValueType mMaxValue;
-  bool mWildCardDerivs;
-
-  IncrementBoundedState(const IncrementBoundedState& rhs);
-  IncrementBoundedState& operator=(const IncrementBoundedState& rhs);
 };
 
 }

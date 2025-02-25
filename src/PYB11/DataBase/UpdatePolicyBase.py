@@ -53,23 +53,35 @@ Default to just calling the generic method."""
 
     @PYB11virtual
     @PYB11const
-    def serializeData(key = "const KeyType&",
-                      state = "const State<%(Dimension)s>&",
-                      buf = "std::vector<double>&"):
-        "Serialize the data in the Field to a buffer"
+    def serializeData(self,
+                      buf = "std::vector<double>&",
+                      key = "const KeyType&",
+                      state = "const State<%(Dimension)s>&"):
+        "Serialize the data in the state to a buffer"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def deserializeData(key = "const KeyType&",
-                        state = "const State<%(Dimension)s>&",
+    def deserializeData(self,
                         buf = "const std::vector<double>&",
+                        key = "const KeyType&",
+                        state = "const State<%(Dimension)s>&",
                         offset = "const size_t"):
-        "Deserialize the data in the Field from a buffer"
+        "Deserialize the data in the state from a buffer"
         return "size_t"
+
+    @PYB11virtual
+    @PYB11const
+    def serializeDerivatives(self,
+                             buf = "std::vector<double>&",
+                             key = "const KeyType&",
+                             state = "const StateDerivatives<%(Dimension)s>&"):
+        "Serialize the data in the derivatives to a buffer"
+        return "void"
 
     #...........................................................................
     # Methods
+    @PYB11virtual
     @PYB11const
     def independent(self):
         return "bool"

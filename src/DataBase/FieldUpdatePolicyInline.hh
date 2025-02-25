@@ -19,9 +19,9 @@ template<typename Dimension, typename Value>
 inline
 void
 FieldUpdatePolicy<Dimension, Value>::
-serializeData(const KeyType& key,
-              const State<Dimension>& state,
-              std::vector<double>& buf) const {
+serializeData(std::vector<double>& buf,
+              const KeyType& key,
+              const State<Dimension>& state) const {
   const auto& f = state.template field<Value>(key);
   CHECK(f.fixedSizeDataType());
   const std::vector<char> rawbuf = packFieldValues(f);
@@ -42,9 +42,9 @@ template<typename Dimension, typename Value>
 inline
 size_t
 FieldUpdatePolicy<Dimension, Value>::
-deserializeData(const KeyType& key,
+deserializeData(const std::vector<double>& buf,
+                const KeyType& key,
                 const State<Dimension>& state,
-                const std::vector<double>& buf,
                 const size_t offset) const {
   auto& f = state.template field<Value>(key);
   CHECK(f.fixedSizeDataType());

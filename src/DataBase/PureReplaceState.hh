@@ -39,6 +39,9 @@ public:
 
   static const std::string prefix() { return "new "; }
 
+  // Don't use as evolved state for implicit integration
+  virtual bool independent() const override { return false; }
+
 private:
   //--------------------------- Private Interface ---------------------------//
   PureReplaceState(const PureReplaceState& rhs);

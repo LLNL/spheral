@@ -67,9 +67,9 @@ template<typename Dimension>
 inline
 void
 UpdatePolicyBase<Dimension>::
-serializeData(const KeyType& key,
-              const State<Dimension>& state,
-              std::vector<double>& buf) const {
+serializeData(std::vector<double>& buf,
+              const KeyType& key,
+              const State<Dimension>& state) const {
   VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base serialize method on " + key);
 }
 
@@ -80,12 +80,25 @@ template<typename Dimension>
 inline
 size_t
 UpdatePolicyBase<Dimension>::
-deserializeData(const KeyType& key,
+deserializeData(const std::vector<double>& buf,
+                const KeyType& key,
                 const State<Dimension>& state,
-                const std::vector<double>& buf,
                 const size_t offset) const {
   VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base deserialize method on " + key);
   return offset;
+}
+
+//------------------------------------------------------------------------------
+// Deserialize independent data from a buffer; for use in implicit time
+// integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+UpdatePolicyBase<Dimension>::
+serializeDerivatives(std::vector<double>& buf,
+                     const KeyType& key,
+                     const StateDerivatives<Dimension>& derivs) const {
+  VERIFY2(false, "UpdatePolicyBase ERROR: attempt to call base serializeDerivatives method on " + key);
 }
 
 }

@@ -41,6 +41,9 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
+  // Don't use as evolved state for implicit integration
+  virtual bool independent() const override { return false; }
+
 private:
   //--------------------------- Private Interface ---------------------------//
   ReplaceState(const ReplaceState& rhs);

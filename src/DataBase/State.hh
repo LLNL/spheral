@@ -105,6 +105,9 @@ public:
   void serializeIndependentData(std::vector<double>& buf) const;
   void deserializeIndependentData(const std::vector<double>& buf) const;
 
+  void serializeDerivatives(std::vector<double>& buf,
+                            const StateDerivatives<Dimension>& derivs) const;
+
   //...........................................................................
   // Expose the StateBase enroll methods
   using StateBase<Dimension>::enroll;

@@ -22,7 +22,7 @@ public:
   IncrementState(std::initializer_list<std::string> depends = {},
                  const bool wildCardDerivs = false);
   IncrementState(const bool wildCardDerivs);
-  virtual ~IncrementState() {}
+  virtual ~IncrementState() = default;
   
   // Overload the methods describing how to update Fields.
   virtual void update(const KeyType& key,
@@ -38,17 +38,21 @@ public:
   static const std::string prefix() { return "delta "; }
 
   // Flip whether we try to find multiple registered increment fields.
-  bool wildCardDerivs() const;
-  void wildCardDerivs(const bool val);
+  bool wildCardDerivs()                                   const { return mWildCardDerivs; }
+  void wildCardDerivs(const bool val)                           { mWildCardDerivs = val; }
 
   // Advance this policy implicitly
-  virtual bool independent() const override { return true; }
+  virtual bool independent()                     const override { return true; }
+  virtual void serializeDerivatives(std::vector<double>& buf,
+                                    const KeyType& key,
+                                    const StateDerivatives<Dimension>& derivs) const override;
+
+  // Forbidden methods
+  IncrementState(const IncrementState& rhs) = delete;
+  IncrementState& operator=(const IncrementState& rhs) = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//
-  IncrementState(const IncrementState& rhs);
-  IncrementState& operator=(const IncrementState& rhs);
-
   // Flag for looking for multiple increment derivatives.
   bool mWildCardDerivs;
 };

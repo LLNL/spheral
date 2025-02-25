@@ -17,18 +17,19 @@ class FieldUpdatePolicy(UpdatePolicyBase):
 
     @PYB11virtual
     @PYB11const
-    def serializeData(key = "const KeyType&",
-                      state = "const State<%(Dimension)s>&",
-                      buf = "std::vector<double>&"):
+    def serializeData(self,
+                      buf = "std::vector<double>&",
+                      key = "const KeyType&",
+                      state = "const State<%(Dimension)s>&"):
         "Serialize the data in the Field to a buffer"
         return "void"
 
     @PYB11virtual
     @PYB11const
-    def deserializeData(key = "const KeyType&",
-                        state = "const State<%(Dimension)s>&",
+    def deserializeData(self,
                         buf = "const std::vector<double>&",
+                        key = "const KeyType&",
+                        state = "const State<%(Dimension)s>&",
                         offset = "const size_t"):
         "Deserialize the data in the Field from a buffer"
         return "size_t"
-

@@ -344,7 +344,7 @@ serializeIndependentData(std::vector<double>& buf) const {
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
         cerr << "Serializing " << key << endl;
-        policyPtr->serializeData(key, *this, buf);
+        policyPtr->serializeData(buf, key, *this);
       }
     }
   }
@@ -368,12 +368,37 @@ deserializeIndependentData(const std::vector<double>& buf) const {
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
         cerr << "Deserializing " << key << endl;
-        offset = policyPtr->deserializeData(key, *this, buf, offset);
+        offset = policyPtr->deserializeData(buf, key, *this, offset);
         CHECK(offset <= buf.size());
       }
     }
   }
   CHECK(offset == buf.size());
+}
+
+//------------------------------------------------------------------------------
+// Serialize the derivatives associated with independent data to a buffer for
+// use in implicit time integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+serializeDerivatives(std::vector<double>& buf,
+                     const StateDerivatives<Dimension>& derivs) const {
+  buf.clear();
+
+  // Look for any state with update policies that indicate an independent variable
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        cerr << "Serializing " << key << endl;
+        policyPtr->serializeDerivatives(buf, key, derivs);
+      }
+    }
+  }
 }
 
 }

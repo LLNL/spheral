@@ -118,6 +118,13 @@ class State(StateBase):
         "Deserialize data associated with independent state"
         return "void"
 
+    @PYB11const
+    def serializeDerivatives(self,
+                             buf = "std::vector<double>&",
+                             derivs = "const StateDerivatives<%(Dimension)s>&"):
+        "Serialize any derivatives associated with independent state"
+        return "void"
+
     #...........................................................................
     # Template methods
     @PYB11template("Value")
