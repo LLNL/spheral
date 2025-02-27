@@ -81,6 +81,7 @@ public:
   // Test is this policy is for independent or dependent state, where independent means
   // this should be treated as implicitly advanced state to be solved for
   virtual bool independent() const;
+  virtual bool dependent() const { return not this->independent(); }
 
   // Serialize the state we're updating to a std::vector<double> -- needed for packing State data in implicit time solve
   virtual void serializeData(std::vector<double>& buf,

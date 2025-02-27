@@ -224,18 +224,20 @@ State<Dimension>::
 update(StateDerivatives<Dimension>& derivs,
        const double multiplier,
        const double t,
-       const double dt) {
+       const double dt,
+       const bool dependentOnly) {
 
   // cerr << "################################################################################" << endl;
 
   // Prepare lists of the keys to be completed.
   vector<KeyType> fieldsToBeCompleted;
   map<KeyType, set<KeyType>> stateToBeCompleted;
-  for (auto& fieldkey_policy: mPolicyMap) {
-    auto& fieldkey = fieldkey_policy.first;                // Just Field names
-    for (auto& fullkey_policy: fieldkey_policy.second) {
-      auto& fullkey = fullkey_policy.first;                // Fully encoded Field + NodeList names
-      stateToBeCompleted[fieldkey].insert(fullkey);
+  for (auto& fieldkey_policies: mPolicyMap) {
+    auto& fieldkey = fieldkey_policies.first;               // Just Field names
+    for (auto& [fullkey, policyPtr]: fieldkey_policies.second) {
+      if ((not dependentOnly) or policyPtr->dependent()) {  // Fully encoded Field + NodeList names
+        stateToBeCompleted[fieldkey].insert(fullkey);
+      }
     }
   }
   for (const auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_fullkey.first);

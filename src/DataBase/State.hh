@@ -90,10 +90,14 @@ public:
 
   //...........................................................................
   // Update the registered state according to the policies.
+  // If the dependentOnly flag is set to true, we assume all policies which report
+  // they are independent state have already been updated (such as with
+  // deserializeIndependentData).
   void update(StateDerivatives<Dimension>& derivs,
               const double multiplier,
               const double t,
-              const double dt);
+              const double dt,
+              const bool dependentOnly = false);
 
   // Optionally trip a flag indicating policies should time advance only -- no replacing state!
   // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
