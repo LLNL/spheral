@@ -14,7 +14,7 @@ template<typename T>
 class ManagedVectorTypedTest : public::testing::Test {};
 
 // All ManagedVectorTets cases will run over each type in EXEC_TYPES.
-TYPED_TEST_SUITE(ManagedVectorTypedTest, EXEC_TYPES,);
+TYPED_TEST_CASE(ManagedVectorTypedTest, EXEC_TYPES);
 
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, DefaultConstructor)
@@ -43,6 +43,9 @@ TEST(ManagedVectorTest, SizeConstructor)
   MVDouble array2(MVDouble::initial_capacity + 1);
   SPHERAL_ASSERT_EQ(array2.size(),     MVDouble::initial_capacity + 1);
   SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity * 2);
+
+  array.free();
+  array2.free();
 }
 
 
@@ -56,6 +59,7 @@ TEST(ManagedVectorTest, IdentityConstructor)
   for(auto& elem: array){
     SPHERAL_ASSERT_EQ(elem, 5);
   }
+  array.free();
 }
 
 
@@ -80,6 +84,8 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, IdentityConstructor)
     }
   );
 
+  array.free();
+  array2.free();
 }
 
 

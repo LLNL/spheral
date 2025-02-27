@@ -8,7 +8,12 @@
 #cmakedefine SPHERAL_ENABLE_OPENMP
 
 #cmakedefine SPHERAL_ENABLE_CUDA
+#cmakedefine SPHERAL_ENABLE_HIP
 #cmakedefine SPHERAL_ENABLE_VVI
+
+#if defined(SPHERAL_ENABLE_HIP) && defined(__HIPCC__)
+#define SPHERAL_GPU_ACTIVE
+#endif // SPHERAL_ENABLE_CUDA && __CUDACC__
 
 #if defined(SPHERAL_ENABLE_CUDA) && defined(__CUDA_ARCH__)
 #define SPHERAL_GPU_ACTIVE

@@ -32,9 +32,6 @@ namespace Spheral {
 #endif
 
 
-
-//#define MV_VALUE_SEMANTICS
-
 template<typename DataType>
 class ManagedVector;
 
@@ -72,94 +69,52 @@ public:
   {
 #if !defined(SPHERAL_GPU_ACTIVE) 
     setCallback();
-
 #endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST_DEVICE ManagedVector(size_t elems) : 
+  SPHERAL_HOST ManagedVector(size_t elems) : 
     MA(),
     m_size(elems) 
   {
-#if !defined(SPHERAL_GPU_ACTIVE) 
     MA::allocate(m_size < initial_capacity ? initial_capacity: pow2_ceil(m_size), chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(); 
     MA::registerTouch(chai::CPU);
-#endif // SPHERAL_GPU_ACTIVE
   }
 
   SPHERAL_HOST ManagedVector(size_t elems, DataType identity) :
     MA(),
     m_size(elems) 
   {
-#if !defined(SPHERAL_GPU_ACTIVE) 
     MA::allocate(m_size < initial_capacity ? initial_capacity: pow2_ceil(m_size), chai::CPU, getCallback());
     for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
-#endif // SPHERAL_GPU_ACTIVE
   }
 
-#ifdef MV_VALUE_SEMANTICS
-  // ---------------------
-  // Destructor
-  // ---------------------
-  SPHERAL_HOST ~ManagedVector() 
-  {
-    MA::free();
-  }
-#endif
   using MA::move;
   using MA::free;
   
   // ---------------------
   // Copy Constructor
   // ---------------------
-#ifdef MV_VALUE_SEMANTICS
-  SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : 
-    ManagedVector(rhs.m_size)
-  {printf("MV Copy w/ Value Semantics.\n");
-    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
-  }
-#else
   SPHERAL_HOST_DEVICE constexpr inline ManagedVector(ManagedVector const& rhs) noexcept : MA(rhs), m_size(rhs.m_size) {}
-#endif
 
   // ---------------------
   // Assignment
   // ---------------------
-#ifdef MV_VALUE_SEMANTICS
-  SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) { 
-    if (capacity() != rhs.capacity()) MA::reallocate(rhs.capacity());
-    m_size = rhs.m_size;
-    for (size_t i = 0; i < m_size; i++) new (&MA::operator[](i)) DataType(rhs[i]);
-    return *this; 
-  }
-#else
   SPHERAL_HOST_DEVICE ManagedVector<DataType>& operator=(ManagedVector const& rhs) {
     MA::operator=(rhs);
     m_size = rhs.m_size;
     return *this; 
   }
-#endif
 
   // ---------------------
   // Equivalence
   // ---------------------
-#ifdef MV_VALUE_SEMANTICS
-  SPHERAL_HOST bool operator==(ManagedVector const& rhs) const {
-    if (m_size != rhs.m_size) return false;
-    for (size_t i = 0; i < m_size; i++) {
-      if (MA::operator[](i) != rhs[i]) { 
-        return false;
-      }
-    }
-    return true;
-  }
-#else
   SPHERAL_HOST_DEVICE bool operator==(ManagedVector const& rhs) const {
     if (m_size != rhs.m_size) return false;
     return MA::operator==(rhs);
   }
-#endif
+
   SPHERAL_HOST_DEVICE bool operator!=(ManagedVector const& rhs) const {
     return !(*this == rhs);
   }
@@ -174,10 +129,10 @@ public:
   SPHERAL_HOST void push_back(DataType&& value) {
     if (capacity() == 0) MA::allocate(initial_capacity, chai::CPU, getCallback());
     if (m_size >= capacity()) MA::reallocate(pow2_ceil(m_size + 1));
-    //MA::operator[](m_size) = std::move(value);
     new(&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
+
   template<typename... Args>
   SPHERAL_HOST
   DataType& emplace_back(Args&&... args) {
@@ -330,20 +285,13 @@ inline
 ManagedVector<U> deepCopy(ManagedVector<U> const& array)
 {
   ManagedVector<U> copy(array.size());
-  for (size_t i = 0; i < array.size(); i++) new (&copy[i]) U(array[i]);
+  for (size_t i = 0; i < array.size(); i++) {
+    new (&copy[i]) U(array[i]);
+  }
   return copy;
 }
 
 } //  namespace Spheral
-
-//#include "SphArrayInline.hh"
-
-#else
-
-//// Forward declare the SphArrayIterator class.
-//namespace Spheral {
-//  template<typename sph_array_t> class SphArrayIterator ;
-//} //  namespace Spheral
 
 #endif //  __Spheral_lvarray_hh__
 

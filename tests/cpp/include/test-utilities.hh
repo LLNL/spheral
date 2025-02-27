@@ -16,6 +16,9 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
 #define EXEC_IN_SPACE_END() \
   });
 
+//#if defined(SPHERAL_ENABLE_HIP) && defined(__HIPCC__)
+#define SPHERAL_GPU_ACTIVE
+//#endif // SPHERAL_ENABLE_CUDA && __CUDACC__
 
 template<typename T, typename U>
 inline
