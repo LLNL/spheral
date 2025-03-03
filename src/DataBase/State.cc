@@ -396,7 +396,7 @@ serializeDerivatives(std::vector<double>& buf,
       const auto& key = key2policy.first;
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
-        cerr << "Serializing " << key << endl;
+        cerr << "Serializing DERIV " << key << endl;
         policyPtr->serializeDerivatives(buf, key, derivs);
       }
     }

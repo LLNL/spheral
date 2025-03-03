@@ -13,6 +13,8 @@ import mpi
 import numpy as np
 #import matplotlib.pyplot as plt
 
+from LLNLSpheral1d import *
+
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")
@@ -329,7 +331,7 @@ hydro.appendBoundary(xbc)
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db, [hydro], 1.0, 1.0e-10)
+integrator = IntegratorConstructor(db, [hydro])
 integrator.lastDt = dt
 integrator.dtMin = dtMin
 integrator.dtMax = dtMax

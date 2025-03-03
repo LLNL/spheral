@@ -86,6 +86,11 @@ Default to just calling the generic method."""
     def independent(self):
         return "bool"
 
+    @PYB11virtual
+    @PYB11const
+    def dependent(self):
+        return "bool"
+
     @PYB11const
     def dependencies(self):
         "Return the set of field names that this state depends upon (if any)."
