@@ -68,7 +68,9 @@ class SpheralTPL:
         parser.add_argument("--id", type=str, default=None,
                             help="ID string to postfix an initconfig file.")
         parser.add_argument("--dev-pkg", action="store_true",
-                            help="Tells tpl-manager to use the dev_pkg environment.")
+                            help="Tells tpl-manager to use the dev_pkg environment. "+\
+                            "Assumes TPLs are for buildcache creation if no --spec is provided. "+\
+                            "Assumes building from a buildcache if --spec is provided.")
 
         self.args = parser.parse_args()
 
@@ -286,7 +288,11 @@ class SpheralTPL:
         if (not self.args.dry_run):
             install_cmd = SpackCommand("install")
             print(f"Running spack -u initconfig {spec}")
-            install_cmd("-u", "initconfig", spec)
+            install_args = ["-u", "initconfig"]
+            if (self.args.dev_pkg):
+                # Spec is provided so assumes we are building from a buildcache
+                install_args.extend(["--cache-only", "--no-check-signature"])
+            install_cmd(*install_args, spec)
             print(f"Created {host_config_file}")
 
         if (self.args.ci_run):

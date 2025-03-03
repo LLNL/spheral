@@ -65,7 +65,7 @@ cp -a $SPHERAL_PIP_CACHE_DIR/. $RESOURCE_DIR/pip_cache
 # tpl-manager --dev-pkg does the following:
 # Creates a local Spack repo
 # Activates and concretizes the dev_pkg Spheral Spack environment
-# Installs the Spheral dependencies
+# Installs the Spheral dependencies for all specs
 ./$SCRIPT_DIR/devtools/tpl-manager.py --dev-pkg
 
 # Source Spack for the current terminal
