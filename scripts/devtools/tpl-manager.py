@@ -287,11 +287,11 @@ class SpheralTPL:
             spec_cmd("-IL", spec)
         if (not self.args.dry_run):
             install_cmd = SpackCommand("install")
-            print(f"Running spack -u initconfig {spec}")
             install_args = ["-u", "initconfig"]
             if (self.args.dev_pkg):
                 # Spec is provided so assumes we are building from a buildcache
-                install_args.extend(["--cache-only", "--no-check-signature"])
+                install_args.extend(["--use-buildcache", "package:never,dependencies:only", "--no-check-signature"])
+            print(f"Running spack {' '.join(install_args)} {spec}")
             install_cmd(*install_args, spec)
             print(f"Created {host_config_file}")
 
