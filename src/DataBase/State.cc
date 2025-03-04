@@ -235,9 +235,9 @@ update(StateDerivatives<Dimension>& derivs,
   for (auto& fieldkey_policies: mPolicyMap) {
     auto& fieldkey = fieldkey_policies.first;               // Just Field names
     for (auto& [fullkey, policyPtr]: fieldkey_policies.second) {
-      if ((not dependentOnly) or policyPtr->dependent()) {  // Fully encoded Field + NodeList names
+      // if ((not dependentOnly) or policyPtr->dependent()) {  // Fully encoded Field + NodeList names
         stateToBeCompleted[fieldkey].insert(fullkey);
-      }
+      // }
     }
   }
   for (const auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_fullkey.first);
@@ -280,12 +280,19 @@ update(StateDerivatives<Dimension>& derivs,
 
           if (fire) {
             // cerr <<" --> Update " << key << endl;
-            if (mTimeAdvanceOnly) {
-              policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
+            if (dependentOnly and policyPtr->independent()) {
+              if (mTimeAdvanceOnly) {
+                policyPtr->updateAsIncrement(key, *this, derivs, 0.0, t, 0.0);
+              } else {
+                policyPtr->update(key, *this, derivs, 0.0, t, 0.0);
+              }
             } else {
-              policyPtr->update(key, *this, derivs, multiplier, t, dt);
+              if (mTimeAdvanceOnly) {
+                policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
+              } else {
+                policyPtr->update(key, *this, derivs, multiplier, t, dt);
+              }
             }
-
             // List this field as completed.
             stateToRemove.push_back(key);
           }
