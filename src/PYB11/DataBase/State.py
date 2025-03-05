@@ -59,7 +59,8 @@ class State(StateBase):
                derivs = "StateDerivatives<%(Dimension)s>&",
                multiplier = "const double",
                t = "const double",
-               dt = "const double"):
+               dt = "const double",
+               dependentOnly = "const bool"):
         "Advance using the derivatives object, assuming state1 = state0 + multiplier*derivs"
         return "void"
 
