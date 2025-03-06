@@ -53,8 +53,9 @@ class SpheralTPL:
                             help="Directory to install Spack instance and a build directory.")
         parser.add_argument("--spack-url", type=str, default=default_spack_url,
                             help="URL to download spack.")
-        parser.add_argument("--debug", action="store_true",
-                            help="Set this flag if seeing odd Spack issues with tpl-manager.")
+        parser.add_argument("--clean", action="store_true",
+                            help="Set this flag to ensure concretizations/installs are fresh. "+\
+                            "If issues arise, try using this flag.")
         parser.add_argument("--no-upstream", action="store_true",
                             help="Ignore upstream by temporarily modifying environment.")
         parser.add_argument("--init-only", action="store_true",
@@ -119,14 +120,14 @@ class SpheralTPL:
                     sexe(f"git -C {spack_dir} fetch --depth=2 origin {spack_commit}")
                     sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
         self.add_spack_paths(spack_dir)
-        if self.args.debug:
+        if (self.args.clean):
             sexe(f"git -C {spack_dir} clean -df")
 
     def find_spack_package(self, package_names):
         """
         Find if the package name/s is already in the environment.
-        If any one of them are found, return the name of that package
-        If not, run spack external find and raise an error if none are found
+        If any one of them are found, return the name of that package.
+        If not, run spack external find and raise an error if none are found.
         """
         cur_packages = spack.config.get("packages")
         if (type(package_names) is not list):
@@ -185,7 +186,8 @@ class SpheralTPL:
             dev_cmd("-p", dev_path, f"{package}@=develop") # spack develop <package>@=develop
 
         comp_cmd("find") # spack compiler find
-        ext_cmd("find")
+        ext_cmd("find") # spack external find
+
         # req_packages are packages we refuse to let spack build
         # If they aren't found, an error will be thrown telling the user
         # to install the package or ensure an install is in $PATH
@@ -245,21 +247,33 @@ class SpheralTPL:
             env_dir = os.path.join(config_env_dir, env_name)
             self.custom_spack_env(env_dir, env_name)
 
-    def concretize_spec(self):
+    def concretize_spec(self, check_spec):
         "Concretize the spec"
-        self.spack_spec = spack.spec.Spec(self.args.spec)
-        if (self.args.add_spec):
-            add_cmd = SpackCommand("add")
-            add_cmd(self.args.spec)
+        if (check_spec):
+            self.spack_spec = spack.spec.Spec(self.args.spec)
+            if (self.args.add_spec):
+                add_cmd = SpackCommand("add")
+                add_cmd(self.args.spec)
         print("Concretizing environment")
         conc_cmd = SpackCommand("concretize")
-        conc_cmd("-U")
-        matches = self.spack_env.matching_spec(self.spack_spec)
-        if (not matches):
-            raise Exception(f"{self.args.spec} not found in current "+\
-                            "environment. Rerun with --add-spec to add it.")
-        self.spack_spec = matches
-        print(f"Found matching root spec for {self.args.spec}")
+        if (self.args.clean):
+            conc_cmd("-U", "-f")
+        else:
+            conc_cmd("-U")
+        if (check_spec):
+            matches = self.spack_env.matching_spec(self.spack_spec)
+            if (not matches):
+                raise Exception(f"{self.args.spec} not found in current "+\
+                                "environment. Rerun with --add-spec to add it.")
+            self.spack_spec = matches
+            print(f"Found matching root spec for {self.args.spec}")
+
+    def do_install(self, install_args, spec):
+        install_cmd = SpackCommand("install")
+        if (self.args.dry_run):
+            install_args.append("--fake")
+        print(f"Running spack {' '.join(install_args)} {spec}")
+        install_cmd(*install_args, spec)
 
     def install_and_config(self):
         "Install TPLs and create host config file for given spec"
@@ -285,15 +299,12 @@ class SpheralTPL:
             spec_cmd = SpackCommand("spec")
             print(f"Running spack spec -IL {spec}")
             spec_cmd("-IL", spec)
-        if (not self.args.dry_run):
-            install_cmd = SpackCommand("install")
-            install_args = ["-u", "initconfig"]
-            if (self.args.dev_pkg):
-                # Spec is provided so assumes we are building from a buildcache
-                install_args.extend(["--use-buildcache", "package:never,dependencies:only", "--no-check-signature"])
-            print(f"Running spack {' '.join(install_args)} {spec}")
-            install_cmd(*install_args, spec)
-            print(f"Created {host_config_file}")
+        install_args = ["-u", "initconfig"]
+        if (self.args.dev_pkg):
+            # Spec is provided so assumes we are building from a buildcache
+            install_args.extend(["--use-buildcache", "package:never,dependencies:only", "--no-check-signature"])
+        self.do_install(install_args, spec)
+        print(f"Created {host_config_file}")
 
         if (self.args.ci_run):
             shutil.copyfile(host_config_file, "gitlab.cmake")
@@ -312,17 +323,14 @@ class SpheralTPL:
         self.activate_spack_env()
         if (self.args.spec):
             # If --spec is given, install TPLs and create host config file
-            self.concretize_spec()
+            self.concretize_spec(check_spec=True)
             self.install_and_config()
         else:
             # Concretize the current environment
-            print("Concretizing environment")
-            conc_cmd = SpackCommand("concretize")
-            conc_cmd("-U")
+            self.concretize_spec(check_spec=False)
             # No spec is given, install TPLs for all env specs
-            install_cmd = SpackCommand("install")
-            print(f"Running spack install --only dependencies {package_name}")
-            install_cmd("--only", "dependencies", package_name)
+            install_args = ["--only", "dependencies"]
+            self.do_install(install_args, package_name)
 
         # Undo any file changes we made to spack.yaml
         orig_file = os.path.join(self.spack_env.path, "origspack.yaml")
