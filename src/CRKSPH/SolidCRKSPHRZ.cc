@@ -444,13 +444,13 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
       CHECK(weighti > 0.0);
 
       //auto& DrhoDti = DrhoDt(nodeListi, i);
-      auto& DvDti = DvDt(nodeListi, i);
-      auto& DepsDti = DepsDt(nodeListi, i);
-      auto& DvDxi = DvDx(nodeListi, i);
-      auto& localDvDxi = localDvDx(nodeListi, i);
-      auto& maxViscousPressurei = maxViscousPressure(nodeListi, i);
-      auto& effViscousPressurei = effViscousPressure(nodeListi, i);
-      auto& XSPHDeltaVi = XSPHDeltaV(nodeListi, i);
+      auto& DvDti = DvDt_thread(nodeListi, i);
+      auto& DepsDti = DepsDt_thread(nodeListi, i);
+      auto& DvDxi = DvDx_thread(nodeListi, i);
+      auto& localDvDxi = localDvDx_thread(nodeListi, i);
+      auto& maxViscousPressurei = maxViscousPressure_thread(nodeListi, i);
+      auto& effViscousPressurei = effViscousPressure_thread(nodeListi, i);
+      auto& XSPHDeltaVi = XSPHDeltaV_thread(nodeListi, i);
 
       // Get the state for node j
       const auto& posj = position(nodeListj, j);
@@ -472,13 +472,13 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
       CHECK(rhoj > 0.0);
       CHECK(weightj > 0.0);
 
-      auto& DvDtj = DvDt(nodeListj, j);
-      auto& DepsDtj = DepsDt(nodeListj, j);
-      auto& DvDxj = DvDx(nodeListj, j);
-      auto& localDvDxj = localDvDx(nodeListj, j);
-      auto& maxViscousPressurej = maxViscousPressure(nodeListj, j);
-      auto& effViscousPressurej = effViscousPressure(nodeListj, j);
-      auto& XSPHDeltaVj = XSPHDeltaV(nodeListj, j);
+      auto& DvDtj = DvDt_thread(nodeListj, j);
+      auto& DepsDtj = DepsDt_thread(nodeListj, j);
+      auto& DvDxj = DvDx_thread(nodeListj, j);
+      auto& localDvDxj = localDvDx_thread(nodeListj, j);
+      auto& maxViscousPressurej = maxViscousPressure_thread(nodeListj, j);
+      auto& effViscousPressurej = effViscousPressure_thread(nodeListj, j);
+      auto& XSPHDeltaVj = XSPHDeltaV_thread(nodeListj, j);
 
       // Node displacement.
       xij = posi - posj;
