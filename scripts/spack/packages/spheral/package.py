@@ -31,6 +31,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant('docs', default=False, description='Enable building Docs.')
     variant('shared', default=True, description='Build C++ libs as shared.')
     variant('python', default=True, description='Build Python Dependencies.')
+    variant('sundials', default=True, description='Build Sundials package.')
 
     # -------------------------------------------------------------------------
     # DEPENDS
@@ -66,6 +67,8 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on('opensubdiv@3.4.3', type='build')
 
     depends_on('polytope +python', type='build', when='+python')
+
+    depends_on('sundials@7.0.0', type='build', when='+sundials')
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "caliper", "adiak~shared"]
@@ -221,6 +224,10 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         if "+python" in spec:
             entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
+
+        entries.append(cmake_cache_option('ENABLE_SUNDIALS', '+sundials' in spec))
+        if "+sundials" in spec:
+            entries.append(cmake_cache_path('sundials_DIR', spec['sundials'].prefix))
 
         return entries
 
