@@ -2,13 +2,11 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   ALLOC_NAME: ${CI_PROJECT_NAME}_ci_${CI_PIPELINE_ID}
   BUILD_ROOT: ${CI_PROJECT_DIR}
-  SPHERAL_BUILDS_DIR: /usr/WS2/sphapp/.jacamar-ci/spheral-builds
 
   SCRIPT_DIR: "scripts"
   ATS_FILE: "tests/integration.ats"
   PERF_ATS_FILE: "tests/performance.py"
   SPHERAL_MODULE: "Spheral"
-  SPACK_NAME: spheral
   SPACK_PKG_NAME: spheral
   DEV_PKG_SPEC: "spheral@develop%gcc+mpi~caliper~network"
 
