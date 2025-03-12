@@ -72,7 +72,7 @@ cp -a $SPHERAL_PIP_CACHE_DIR/. $RESOURCE_DIR/pip_cache
 source ../spheral-spack-tpls/spack/share/spack/setup-env.sh
 
 # Activate our dev spack environment
-spack env activate ./$SCRIPT_DIR/spack/environments/dev_pkg
+spack env activate ./scripts/spack/environments/dev_pkg
 
 # Create a mirror of all tpl specs in our environment
 # (should only be our deps for a single spec in the env).
