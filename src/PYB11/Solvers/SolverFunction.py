@@ -17,9 +17,9 @@ class SolverFunction:
     # Methods
     @PYB11pure_virtual
     @PYB11const
-    def invoke(self,
-               residuals = "std::vector<double>&",
-               x = "const std::vector<double>&"):
+    def __call__(self,
+                 residuals = "std::vector<double>&",
+                 x = "const std::vector<double>&"):
         """Override this method to provide the residuals for a given estimate of the system unkonwns.
 x and residuals should be of the same length."""
         return "void"

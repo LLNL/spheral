@@ -33,7 +33,7 @@ class EquationsOperator(SolverFunction):
         SolverFunction.__init__(self, 2)
         return
 
-    def invoke(self, residuals, xvec):
+    def __call__(self, residuals, xvec):
         assert len(xvec) == len(residuals) == 2
         x, y = xvec
         eq1 = x**2 + y**2 - 4.0

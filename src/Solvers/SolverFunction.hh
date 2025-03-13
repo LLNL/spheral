@@ -20,8 +20,8 @@ public:
   virtual ~SolverFunction() = default;
 
   // Functor method to be overriden with the function to compute residuals
-  virtual void invoke(std::vector<double>& residuals,            // residual output array
-                      const std::vector<double>& x) const = 0;   // input array of current unknowns
+  virtual void operator()(std::vector<double>& residuals,            // residual output array
+                          const std::vector<double>& x) const = 0;   // input array of current unknowns
 
   // Accessors
   size_t numUnknowns() const { return mNumUnknowns; }

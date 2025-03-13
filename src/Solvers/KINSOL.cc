@@ -31,7 +31,7 @@ int SpheralKINSOLfunc(N_Vector xSD, N_Vector fSD, void *user_data) {
   CHECK(size_t(NV_LOCLENGTH_P(xSD)) == n and size_t(NV_LOCLENGTH_P(fSD)) == n);
   std::vector<double> x(n), res(n, 0.0);
   for (auto i = 0u; i < n; ++i) x[i] = NV_Ith_P(xSD, i);
-  (*fptr).invoke(res, x);
+  (*fptr)(res, x);
   for (auto i = 0u; i < n; ++i) NV_Ith_P(fSD, i) = res[i];
   return 0;
 }
