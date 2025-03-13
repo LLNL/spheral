@@ -22,8 +22,8 @@ def equations(vars):
 initial_guess = [1, 1]
 solution = fsolve(equations, initial_guess)
 
-print("Numpy solution:  (x,y) = ({}, {})".format(*(solution)))
-print("                f(x,y) = ", *(equations(solution)))
+print(" Numpy solution:  (x,y) = ({}, {})".format(*(solution)))
+print("                 f(x,y) = ", *(equations(solution)))
 
 #-------------------------------------------------------------------------------
 # Now try using KINSOL to solve the same thing
@@ -48,3 +48,6 @@ x = vector_of_double([1.0, 1.0])
 solver.solve(op, x)
 
 print("KINSOL solution:  (x,y) = ({}, {})".format(*(x)))
+print("                 f(x,y) = ", *(equations(x)))
+
+assert np.allclose(np.array(x), solution)
