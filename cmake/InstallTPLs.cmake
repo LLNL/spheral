@@ -166,12 +166,13 @@ if (ENABLE_SUNDIALS)
     # Only save if it does not exists already
     set(CONFIG_SUNDIALS_DIR "${sundials_DIR}" CACHE PATH "Configuration Sundials directory")
   endif()
-  message(" ************* ${sundials_DIR}")
   set(SUNDIALS_DIR "${sundials_DIR}")
-  find_package(SUNDIALS REQUIRED NO_DEFAULT_PATH PATHS ${sundials_DIR}/lib64/cmake/sundials)
+  find_package(SUNDIALS REQUIRED NO_DEFAULT_PATH
+    COMPONENTS kinsol nvecparallel nvecmpiplusx nvecserial 
+    PATHS ${sundials_DIR}/lib64/cmake/sundials)
   if(SUNDIALS_FOUND)
-    list(APPEND SPHERAL_BLT_DEPENDS SUNDIALS)
-    list(APPEND SPHERAL_FP_TPLS SUNDIALS)
+    list(APPEND SPHERAL_BLT_DEPENDS SUNDIALS::kinsol SUNDIALS::nvecparallel SUNDIALS::nvecmpiplusx SUNDIALS::nvecserial)
+    list(APPEND SPHERAL_FP_TPLS SUNDIALS::kinsol SUNDIALS::nvecparallel SUNDIALS::nvecmpiplusx SUNDIALS::nvecserial)
     list(APPEND SPHERAL_FP_DIRS ${SUNDIALS_DIR})
     message("Found SUNDIALS External Package")
   endif()
