@@ -256,7 +256,10 @@ class SpheralController:
         self.integrator.applyGhostBoundaries(state, derivs)
         for bc in uniquebcs:
             bc.initializeProblemStartup(True)
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)

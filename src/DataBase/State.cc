@@ -352,7 +352,7 @@ serializeIndependentData(std::vector<double>& buf) const {
       const auto& key = key2policy.first;
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
-        cerr << "Serializing " << key << endl;
+        // cerr << "Serializing " << key << endl;
         policyPtr->serializeData(buf, key, *this);
       }
     }
@@ -376,7 +376,7 @@ deserializeIndependentData(const std::vector<double>& buf) const {
       const auto& key = key2policy.first;
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
-        cerr << "Deserializing " << key << endl;
+        // cerr << "Deserializing " << key << endl;
         offset = policyPtr->deserializeData(buf, key, *this, offset);
         CHECK(offset <= buf.size());
       }
@@ -403,7 +403,7 @@ serializeDerivatives(std::vector<double>& buf,
       const auto& key = key2policy.first;
       const auto& policyPtr = key2policy.second;
       if (policyPtr->independent()) {
-        cerr << "Serializing DERIV " << key << endl;
+        // cerr << "Serializing DERIV " << key << endl;
         policyPtr->serializeDerivatives(buf, key, derivs);
       }
     }

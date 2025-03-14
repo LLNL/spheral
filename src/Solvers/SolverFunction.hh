@@ -16,7 +16,7 @@ class SolverFunction {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructor
-  SolverFunction(size_t numUnknowns): mNumUnknowns(numUnknowns) {}
+  SolverFunction(size_t numUnknowns = 0u): mNumUnknowns(numUnknowns) {}
   virtual ~SolverFunction() = default;
 
   // Functor method to be overriden with the function to compute residuals
@@ -24,7 +24,8 @@ public:
                           const std::vector<double>& x) const = 0;   // input array of current unknowns
 
   // Accessors
-  size_t numUnknowns() const { return mNumUnknowns; }
+  size_t numUnknowns()               const { return mNumUnknowns; }
+  void   numUnknowns(const size_t x)       { mNumUnknowns = x; }
 
 private:
   //---------------------------  Private Interface ---------------------------//

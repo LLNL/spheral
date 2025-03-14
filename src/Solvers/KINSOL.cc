@@ -36,6 +36,32 @@ int SpheralKINSOLfunc(N_Vector xSD, N_Vector fSD, void *user_data) {
   return 0;
 }
 
+/*
+ * Print final statistics contained in iopt
+ */
+
+static void PrintFinalStats(void* kmem)
+{
+  long int nni, nfe, nli, npe, nps, ncfl, nfeSG;
+  int flag;
+  CONTRACT_VAR(flag);
+
+  flag = KINGetNumNonlinSolvIters(kmem, &nni);
+  flag = KINGetNumFuncEvals(kmem, &nfe);
+
+  flag = KINGetNumLinIters(kmem, &nli);
+  flag = KINGetNumPrecEvals(kmem, &npe);
+  flag = KINGetNumPrecSolves(kmem, &nps);
+  flag = KINGetNumLinConvFails(kmem, &ncfl);
+  flag = KINGetNumLinFuncEvals(kmem, &nfeSG);
+
+  printf("Final Statistics.. \n");
+  printf("NumNLSolves    = %5ld    NumLinIter = %5ld\n", nni, nli);
+  printf("NumFuncEval    = %5ld    NumLinFevl = %5ld\n", nfe, nfeSG);
+  printf("NumPrecSolv    = %5ld    NumPreEval = %5ld     numLinConvFail = %5ld\n", nps, npe, ncfl);
+  printf("\n================================================================================\n\n");
+}
+
 }  // anonymous
   
 //------------------------------------------------------------------------------
@@ -112,6 +138,8 @@ KINSOL::solve(SolverFunction& func,
   // Load the final solution into the initalGuess vector, whether it converged or not
   for (auto i = 0u; i < nloc; ++i) initialGuess[i] = NV_Ith_P(mXvec, i);
 
+  PrintFinalStats(mkmem);
+
   // Clean up
   KINFree(&mkmem);
   SUNLinSolFree(LS);
@@ -120,7 +148,8 @@ KINSOL::solve(SolverFunction& func,
   N_VDestroy(mFscale);
 
   // Return the final status
-  return (flag == KIN_SUCCESS);
+  cerr << "KINSOL << " << flag << " " << KIN_SUCCESS << endl;
+  return (flag >= KIN_SUCCESS);
 }
 
 }

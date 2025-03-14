@@ -344,6 +344,7 @@ output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
+output("integrator.verbose")
 
 def printTotalEnergy(cycle,time,dt):
     Etot=0.0

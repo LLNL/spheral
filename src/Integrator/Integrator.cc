@@ -108,10 +108,8 @@ step(const typename Dimension::Scalar maxTime) {
     success = this->step(maxTime, state, derivs);
     if (count == maxIterations) mAllowDtCheck = true;
     if (not success) {
-      if (Process::getRank() == 0) {
-        cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again: " << count << "/10" << endl;
-        mDtMultiplier *= 0.5;
-      }
+      mDtMultiplier *= 0.5;
+      if (Process::getRank() == 0) cerr << "Integrator::step reported unstable timestep -- cutting dt and trying again: " << count << "/10" << endl;
     }
   }
   mDtMultiplier = 1.0;

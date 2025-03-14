@@ -10,7 +10,7 @@ class SolverFunction:
     #...........................................................................
     # Constructors
     def pyinit(self,
-               numUnknowns = "size_t"):
+               numUnknowns = ("size_t", "0u")):
         return
 
     #...........................................................................
@@ -26,4 +26,4 @@ x and residuals should be of the same length."""
 
     #...........................................................................
     # Properties
-    numUnknowns = PYB11property("size_t", "numUnknowns")
+    numUnknowns = PYB11property("size_t", "numUnknowns", "numUnknowns")
