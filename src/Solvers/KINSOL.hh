@@ -28,19 +28,22 @@ public:
                      std::vector<double>& x);
 
   // Accessors
-  int globalstrategy()             const { return mglobalstrategy; }
-  sunrealtype fnormtol()           const { return mfnormtol; }
-  sunrealtype scsteptol()          const { return mscsteptol; }
+  int globalstrategy()                    const { return mglobalstrategy; }
+  sunrealtype fnormtol()                  const { return mfnormtol; }
+  sunrealtype scsteptol()                 const { return mscsteptol; }
+  long int numMaxIters()                  const { return mNumMaxIters; }
 
-  void globalstrategy(const int x)       { mglobalstrategy = x; }
-  void fnormtol(const sunrealtype x)     { mfnormtol = x; }
-  void scsteptol(const sunrealtype x)    { mscsteptol = x; }
+  void globalstrategy(const int x)              { mglobalstrategy = x; }
+  void fnormtol(const sunrealtype x)            { mfnormtol = x; }
+  void scsteptol(const sunrealtype x)           { mscsteptol = x; }
+  void numMaxIters(const long int x)            { mNumMaxIters = x; }
 
 private:
   //---------------------------  Private Interface ---------------------------//
   SUNContext mctx;
   int mglobalstrategy;
   sunrealtype mfnormtol, mscsteptol;
+  long int mNumMaxIters;
 };
 
 }

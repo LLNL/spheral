@@ -71,7 +71,8 @@ KINSOL::KINSOL():
   mctx(nullptr),
   mglobalstrategy(KIN_NONE),
   mfnormtol(1e-8),
-  mscsteptol(1e-13) {
+  mscsteptol(1e-13),
+  mNumMaxIters(200) {
   auto& comm = Communicator::communicator();
   SUNContext_Create(comm, &mctx);
 }
@@ -95,14 +96,16 @@ KINSOL::solve(SolverFunction& func,
   VERIFY2(flag == KIN_SUCCESS, "KINSOL error setting fnormtol: " << flag);
   flag = KINSetScaledStepTol(mkmem, mscsteptol);
   VERIFY2(flag == KIN_SUCCESS, "KINSOL error setting scsteptol: " << flag);
+  flag = KINSetNumMaxIters(mkmem, mNumMaxIters);
+  VERIFY2(flag == KIN_SUCCESS, "KINSOL error setting max iterations: " << flag);
 
   // Prepare the vectors for unknowns (and scalings)
   auto& comm = Communicator::communicator();
-  N_Vector mXvec = N_VNew_Parallel(comm, nloc, nglob, mctx);
+  N_Vector mXvec = N_VMake_Parallel(comm, nloc, nglob, initialGuess.data(), mctx);
   N_Vector mUscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   N_Vector mFscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   for (auto i = 0u; i < nloc; ++i) {
-    NV_Ith_P(mXvec, i) = initialGuess[i];
+    // NV_Ith_P(mXvec, i) = initialGuess[i];
     NV_Ith_P(mUscale, i) = 1.0;
     NV_Ith_P(mFscale, i) = 1.0;
   }

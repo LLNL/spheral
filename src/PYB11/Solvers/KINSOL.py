@@ -28,3 +28,4 @@ Return value indicates success (True) or failure (False)"""
     globalstrategy = PYB11property("int", "globalstrategy")
     fnormtol = PYB11property("double", "fnormtol")
     scsteptol = PYB11property("double", "scsteptol")
+    numMaxIters = PYB11property("long int", "numMaxIters", "numMaxIters")
