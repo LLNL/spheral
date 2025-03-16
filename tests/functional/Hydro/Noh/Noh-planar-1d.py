@@ -131,7 +131,7 @@ commandLine(KernelConstructor = NBSplineKernel,
             QcorrectionOrder = None,
             hmin = 0.0001, 
             hmax = 0.1,
-            cfl = 0.5,
+            cfl = 0.25,
             useVelocityMagnitudeForDt = False,
             XSPH = False,
             epsilonTensile = 0.0,
@@ -449,7 +449,7 @@ elif hydroType == "FSISPH":
                    cfl = cfl,
                    interfaceMethod = HLLCInterface,
                    sumDensityNodeLists=[nodes1],                       
-                   densityStabilizationCoefficient = 0.00,
+                   densityStabilizationCoefficient = 0.1,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    evolveTotalEnergy = evolveTotalEnergy,
@@ -833,6 +833,10 @@ if outputFile:
 # Compute the error.
 #------------------------------------------------------------------------------
 failure = False
+
+Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
+print("Total energy error: %g" % Eerror)
+print(control.conserve.EHistory[-1],control.conserve.EHistory[0])
 if mpi.rank == 0 :
     xans, vans, epsans, rhoans, Pans, hans = answer.solution(control.time(), xprof)
     import Pnorm
@@ -876,8 +880,7 @@ if mpi.rank == 0 :
     if checkError and failure:
         raise ValueError("Error bounds violated.")
 
-Eerror = (control.conserve.EHistory[-1] - control.conserve.EHistory[0])/control.conserve.EHistory[0]
-print("Total energy error: %g" % Eerror)
+
 if compatibleEnergy and abs(Eerror) > 1e-13:
     raise ValueError("Energy error outside allowed bounds.")
 

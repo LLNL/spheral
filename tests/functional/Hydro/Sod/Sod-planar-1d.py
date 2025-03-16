@@ -47,6 +47,8 @@ commandLine(nx1 = 400,
             gamma1 = 5.0/3.0,
             gamma2 = 5.0/3.0,
 
+            refineRatio = 1,
+
             numNodeLists = 1,
 
             x0 = -0.5,
@@ -60,12 +62,23 @@ commandLine(nx1 = 400,
 
             mu = 1.0,
             
+            # hydro types
             svph = False,
             crksph = False,
             psph = False,
             fsisph = False,
             gsph = False,
             mfm = False,
+            mfv = False,
+
+            # GSPH/MFM/MFV parameters 
+            gsphEpsDiffuseCoeff = 0.0,
+            gsphLinearCorrect = True,
+            LimiterConstructor = VanLeerLimiter,
+            WaveSpeedConstructor = DavisWaveSpeed,
+            nodeMotionCoefficient = 1.0,
+            nodeMotionType = NodeMotionType.Lagrangian, # (Lagrangian, Eulerian, XSPH,  Fician)
+            gsphGradientType = SPHSameTimeGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
 
             evolveTotalEnergy = False,  # Only for SPH variants -- evolve total rather than specific energy
             solid = False,    # If true, use the fluid limit of the solid hydro option
@@ -138,13 +151,15 @@ commandLine(nx1 = 400,
 
             graphics = True,
             )
-
+assert sum([svph,crksph,psph,fsisph,gsph,mfm,mfv])<= 1
 assert not(boolReduceViscosity and boolCullenViscosity)
-assert not (gsph and (boolReduceViscosity or boolCullenViscosity))
-assert not (mfm and (boolReduceViscosity or boolCullenViscosity))
+assert not ((mfv or mfm or gsph) and (boolCullenViscosity or boolReduceViscosity))
 assert not svph
 assert not (fsisph and not solid)
 assert numNodeLists in (1, 2)
+
+nx1 = int(nx1*refineRatio)
+nx2 = int(nx2*refineRatio)
 
 if svph:
     hydroname = "SVPH"
@@ -159,7 +174,9 @@ elif fsisph:
 elif gsph:
     hydroname = "GSPH"
 elif mfm:
-    hydroname = "mfm"
+    hydroname = "MFM"
+elif mfv:
+    hydroname = "MFV/%s" % nodeMotionType
 else:
     hydroname = "SPH"
 if solid:
@@ -411,6 +428,24 @@ elif mfm:
                 HUpdate = IdealH,
                 epsTensile = epsilonTensile,
                 nTensile = nTensile)
+elif mfv:
+    limiter = LimiterConstructor()
+    waveSpeed = WaveSpeedConstructor()
+    solver = HLLC(limiter,waveSpeed,gsphLinearCorrect)
+    hydro = MFV(dataBase = db,
+                riemannSolver = solver,
+                W = WT,
+                cfl=cfl,
+                compatibleEnergyEvolution = compatibleEnergy,
+                correctVelocityGradient= correctVelocityGradient,
+                nodeMotionCoefficient = nodeMotionCoefficient,
+                nodeMotionType = nodeMotionType,
+                gradientType = gsphGradientType,
+                evolveTotalEnergy = evolveTotalEnergy,
+                densityUpdate=densityUpdate,
+                XSPH = XSPH,
+                epsTensile = epsilonTensile,
+                nTensile = nTensile)
 else:
     hydro = SPH(dataBase = db,
                 W = WT,
@@ -431,7 +466,7 @@ packages = [hydro]
 #-------------------------------------------------------------------------------
 # Tweak the artificial viscosity.
 #-------------------------------------------------------------------------------
-if not (gsph or mfm):
+if not (gsph or mfm or mfv):
     q = hydro.Q
     if not Cl is None:
         q.Cl = Cl
@@ -696,7 +731,7 @@ if graphics:
         plots += [(volPlot, "Sod-planar-vol.png"),
                    (splot, "Sod-planar-surfacePoint.png")]
     
-    if not gsph:
+    if not (gsph or mfm or mfv):
         viscPlot = plotFieldList(hydro.maxViscousPressure,
                              winTitle = "max($\\rho^2 \pi_{ij}$)",
                              colorNodeLists = False)

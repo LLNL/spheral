@@ -23,8 +23,8 @@ commandLine(seed = "lattice",
 
             thetaFactor = 0.5,
             azimuthalOffsetFraction = 0.0,
-            nRadial = 50,
-            nTheta = 50,
+            nRadial = 64,
+            nTheta = 64,
             rmin = 0.0,
             rmax = 1.0,
             nPerh = 1.00,
@@ -70,7 +70,7 @@ commandLine(seed = "lattice",
             volumeType = RKSumVolume,
 
             # gsph options
-            RiemannGradientType = SPHGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
+            RiemannGradientType = SPHSameTimeGradient, # (RiemannGradient,SPHGradient,HydroAccelerationGradient,OnlyDvDxGradient,MixedMethodGradient)
             linearReconstruction = True,
 
             # Artifical Viscosity
@@ -243,13 +243,15 @@ else:
     xmax = (1.0, 1.0)
 
 if seed == "square":
-    generator = GenerateSquareNodeDistribution(nRadial,
-                                               nTheta,
-                                               rho0,
-                                               xmin = xmin,
-                                               xmax = xmax,
-                                               nNodePerh = nPerh,
-                                               SPH = (not ASPH))
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, "lattice",
+                                           rmin = rmin,
+                                           rmax = rmax,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           theta = theta,
+                                           #azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           nNodePerh = nPerh,
+                                           SPH = (not ASPH))
 else:
     generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                            rmin = rmin,
@@ -389,7 +391,7 @@ elif mfv:
                 correctVelocityGradient= correctVelocityGradient,
                 evolveTotalEnergy = evolveTotalEnergy,
                 gradientType = RiemannGradientType,
-                nodeMotionType=NodeMotionType.Fician,
+                nodeMotionType=NodeMotionType.Eulerian,
                 XSPH = XSPH,
                 ASPH = asph,
                 densityUpdate=densityUpdate,
@@ -426,7 +428,7 @@ output("hydro")
 output("hydro.cfl")
 output("hydro.compatibleEnergyEvolution")
 output("hydro.densityUpdate")
-output("hydro.HEvolution")
+#output("hydro.HEvolution")
 
 if not (gsph or mfm or mfv):
     q = hydro.Q

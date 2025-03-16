@@ -51,7 +51,7 @@ commandLine(nx1 = 256,
             mu = 1.0,
 
             # kernel
-            kernelConstructor = WendlandC2Kernel,
+            kernelConstructor = NBSplineKernel,#WendlandC2Kernel,
             nbSplineOrder = 7,
             nPerh = 4.01,
             hmin = 0.0001, 
@@ -75,7 +75,7 @@ commandLine(nx1 = 256,
             epsilonTensile = 0.0,
             nTensile = 8,
             filter = 0.0,
-            densityUpdate = IntegrateDensity,
+            densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,         
             gradhCorrection = True,
             correctVelocityGradient = True,
@@ -158,7 +158,8 @@ commandLine(nx1 = 256,
             graphMixing = False,
             mixInterval = 0.02,
             mixFile = "MixingModeAmp.gnu",
-            
+            vizDerivs = False,
+
             serialDump = False, #whether to dump a serial ascii file at the end for viz
             
             bArtificialConduction = False,
@@ -290,14 +291,14 @@ generator1 = GenerateNodeDistribution2d(nx1, ny1,
                                         xmax = (1.0,  0.75),
                                         nNodePerh = nPerh,
                                         SPH = (not ASPH))
-generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+generator21 = GenerateNodeDistribution2d(nx2, int(0.5*ny2),
                                          rho = rho1,
                                          distributionType = "lattice",
                                          xmin = (0.0, 0.0),
                                          xmax = (1.0, 0.25),
                                          nNodePerh = nPerh,
                                          SPH = (not ASPH))
-generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2 + 0.5),
+generator22 = GenerateNodeDistribution2d(nx2, int(0.5*ny2),
                                          rho = rho1,
                                          distributionType = "lattice",
                                          xmin = (0.0, 0.75),
@@ -328,22 +329,22 @@ if numNodeLists == 2:
             yval = pos[i].y
             xval = pos[i].x
             velx = 0.0
-            #rho[i] = 0.0
+            rho[i] = 0.0
             vely = delta*sin(4*pi*xval)
             if yval >= 0 and yval < 0.25:
-               #rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
+               rho[i]=rho1 - rhom*exp((yval-0.25)/smooth)
                mass[i] *= rho[i]/rho1
                velx = vx1 - vxm*exp((yval-0.25)/smooth)
             elif yval >= 0.25 and yval < 0.5:
-               #rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
+               rho[i]=rho2 + rhom*exp((0.25-yval)/smooth)
                mass[i] *= rho[i]/rho2
                velx = vx2 + vxm*exp((0.25-yval)/smooth)
             elif yval >= 0.5 and yval < 0.75:
-               #rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
+               rho[i]=rho2 + rhom*exp((yval-0.75)/smooth)
                mass[i] *= rho[i]/rho2
                velx = vx2 + vxm*exp((yval-0.75)/smooth)
             else:
-               #rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
+               rho[i]=rho1 - rhom*exp((0.75-yval)/smooth)
                mass[i] *= rho[i]/rho1
                velx = vx1 - vxm*exp((0.75-yval)/smooth)
             vel[i] = Vector(velx + vxboost, vely + vyboost)
@@ -627,6 +628,7 @@ control = SpheralController(integrator, WT,
                             vizDir = vizDir,
                             vizStep = vizCycle,
                             vizTime = vizTime,
+                            vizDerivs = vizDerivs,
                             SPH = (not asph))
 output("control")
 

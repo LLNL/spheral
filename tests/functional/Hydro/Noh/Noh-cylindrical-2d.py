@@ -59,8 +59,8 @@ from CubicNodeGenerator import GenerateSquareNodeDistribution
 from CentroidalVoronoiRelaxation import *
 
 if mpi.procs > 1:
-    from VoronoiDistributeNodes import distributeNodes2d
-    #from PeanoHilbertDistributeNodes import distributeNodes2d
+    #from VoronoiDistributeNodes import distributeNodes2d
+    from PeanoHilbertDistributeNodes import distributeNodes2d
 else:
     from DistributeNodes import distributeNodes2d
 
@@ -308,13 +308,15 @@ output("nodes1.nodesPerSmoothingScale")
 pos = nodes1.positions()
 vel = nodes1.velocity()
 if seed == "square":
-    generator = GenerateSquareNodeDistribution(nRadial,
-                                               nTheta,
-                                               rho0,
-                                               xmin=xmin,
-                                               xmax=xmax,
-                                               nNodePerh = nPerh,
-                                               SPH = not asph)
+    generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, "lattice",
+                                           #rmin = rmin,
+                                           #rmax = rmax,
+                                           xmin = xmin,
+                                           xmax = xmax,
+                                           theta = theta,
+                                           #azimuthalOffsetFraction = azimuthalOffsetFraction,
+                                           nNodePerh = nPerh,
+                                           SPH = not asph)
 else:
     generator = GenerateNodeDistribution2d(nRadial, nTheta, rho0, seed,
                                            rmin = rmin,
@@ -433,7 +435,7 @@ elif mfm:
                 evolveTotalEnergy = evolveTotalEnergy,
                 XSPH = XSPH,
                 ASPH = asph,
-                gradientType = HydroAccelerationGradient,
+                gradientType = SPHSameTimeGradient,
                 densityUpdate=densityUpdate,
                 HUpdate = HUpdate,
                 epsTensile = epsilonTensile,
