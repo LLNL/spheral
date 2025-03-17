@@ -75,7 +75,7 @@ commandLine(nx1 = 100,
             correctionOrder = LinearOrder,
             steps = None,
             goalTime = 5.0,
-            dt = 1.0e-10,
+            dt = 1.0e-2,
             dtMin = 1.0e-10, 
             dtMax = 0.1,
             dtGrowth = 2.0,
@@ -87,8 +87,14 @@ commandLine(nx1 = 100,
             HUpdate = IntegrateH,
             densityUpdate = RigorousSumDensity,
             compatibleEnergy = True,
+            evolveTotalEnergy = False,
             gradhCorrection = True,
             linearConsistent = False,
+
+            ftol = 1.0e-8,
+            steptol = 1.0e-10,
+            maxIterations = 5,
+            beta = 1.0,
 
             restoreCycle = None,
             restartStep = 10000,
@@ -260,6 +266,7 @@ if svph:
                  W = WT,
                  cfl = cfl,
                  compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
                  XSVPH = XSPH,
                  linearConsistent = linearConsistent,
                  densityUpdate = densityUpdate,
@@ -272,6 +279,7 @@ elif crksph:
                    cfl = cfl,
                    order = correctionOrder,
                    compatibleEnergyEvolution = compatibleEnergy,
+                   evolveTotalEnergy = evolveTotalEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
                    HUpdate = HUpdate)
@@ -281,6 +289,7 @@ elif psph:
                  W = WT,
                  filter = filter,
                  compatibleEnergyEvolution = compatibleEnergy,
+                 evolveTotalEnergy = evolveTotalEnergy,
                  densityUpdate = densityUpdate,
                  HUpdate = HUpdate,
                  XSPH = XSPH)
@@ -290,6 +299,7 @@ elif fsisph:
                    cfl = cfl,
                    sumDensityNodeLists = [nodes1],
                    compatibleEnergyEvolution = compatibleEnergy,          
+                   evolveTotalEnergy = evolveTotalEnergy,
                    epsTensile = epsilonTensile)
 else:
     hydro = SPH(dataBase = db,
@@ -297,6 +307,7 @@ else:
                 W = WT, 
                 cfl = cfl,
                 compatibleEnergyEvolution = compatibleEnergy,
+                evolveTotalEnergy = evolveTotalEnergy,
                 gradhCorrection = gradhCorrection,
                 XSPH = XSPH,
                 correctVelocityGradient=False,
@@ -345,6 +356,18 @@ output("integrator.dtMax")
 output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
+
+try:
+    integrator.beta = beta
+    integrator.ftol = ftol
+    integrator.steptol = steptol
+    integrator.maxIterations = maxIterations
+    output("integrator.beta")
+    output("integrator.ftol")
+    output("integrator.steptol")
+    output("integrator.maxIterations")
+except:
+    pass
 
 def printTotalEnergy(cycle,time,dt):
     Etot=0.0
