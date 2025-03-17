@@ -24,8 +24,8 @@ public:
 
   // Solve based on an initial guess stored in an input array.  On exit the solution
   // is returned in the input arrray.
-  virtual bool solve(SolverFunction& func,
-                     std::vector<double>& x);
+  virtual size_t solve(SolverFunction& func,
+                       std::vector<double>& x);
 
   // Accessors
   int globalstrategy()                    const { return mglobalstrategy; }

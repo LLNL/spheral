@@ -80,7 +80,7 @@ KINSOL::KINSOL():
 //------------------------------------------------------------------------------
 // Solve the given function based on an initial guess
 //------------------------------------------------------------------------------
-bool
+size_t
 KINSOL::solve(SolverFunction& func,
               std::vector<double>& initialGuess) {
 
@@ -141,6 +141,9 @@ KINSOL::solve(SolverFunction& func,
   // Load the final solution into the initalGuess vector, whether it converged or not
   for (auto i = 0u; i < nloc; ++i) initialGuess[i] = NV_Ith_P(mXvec, i);
 
+  // How many non-linear solves were required?
+  long int nni;
+  KINGetNumNonlinSolvIters(mkmem, &nni);
   PrintFinalStats(mkmem);
 
   // Clean up
@@ -150,9 +153,12 @@ KINSOL::solve(SolverFunction& func,
   N_VDestroy(mUscale);
   N_VDestroy(mFscale);
 
+  // Return the number of iterations required to solve
+  return size_t(nni);
+
   // Return the final status
-  cerr << "KINSOL << " << flag << " " << KIN_SUCCESS << endl;
-  return (flag >= KIN_SUCCESS);
+  // cerr << "KINSOL << " << flag << " " << KIN_SUCCESS << endl;
+  // return (flag >= KIN_SUCCESS);
 }
 
 }
