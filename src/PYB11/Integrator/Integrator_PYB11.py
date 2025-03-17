@@ -25,7 +25,9 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"Integrator/SynchronousRK2.hh"',
                   '"Integrator/SynchronousRK4.hh"',
                   '"Integrator/CheapSynchronousRK2.hh"',
-                  '"Integrator/Verlet.hh"']
+                  '"Integrator/Verlet.hh"',
+                  '"Integrator/BackwardEuler.hh"',
+                  '"Integrator/ImplicitIntegrationVectorOperator.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -43,6 +45,8 @@ from SynchronousRK2Integrator import *
 from SynchronousRK4Integrator import *
 from CheapSynchronousRK2Integrator import *
 from VerletIntegrator import *
+#from ImplicitIntegrationVectorOperator import *
+from BackwardEulerIntegrator import *
 
 for ndim in dims:
     Dimension = f"Dim<{ndim}>"
@@ -55,4 +59,6 @@ SynchronousRK2Integrator{ndim}d = PYB11TemplateClass(SynchronousRK2Integrator, t
 SynchronousRK4Integrator{ndim}d = PYB11TemplateClass(SynchronousRK4Integrator, template_parameters="{Dimension}")
 CheapSynchronousRK2Integrator{ndim}d = PYB11TemplateClass(CheapSynchronousRK2Integrator, template_parameters="{Dimension}")
 VerletIntegrator{ndim}d = PYB11TemplateClass(VerletIntegrator, template_parameters="{Dimension}")
+#ImplicitIntegrationVectorOperator{ndim}d = PYB11TemplateClass(ImplicitIntegrationVectorOperator, template_parameters="{Dimension}")
+BackwardEulerIntegrator{ndim}d = PYB11TemplateClass(BackwardEulerIntegrator, template_parameters="{Dimension}")
 ''')
