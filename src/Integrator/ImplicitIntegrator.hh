@@ -32,8 +32,8 @@ public:
   ImplicitIntegrator(DataBase<Dimension>& dataBase,
                      const std::vector<Physics<Dimension>*>& physicsPackages,
                      const Scalar tol = 1.0e-6);
-  ImplicitIntegrator& operator=(const ImplicitIntegrator& rhs);
-  virtual ~ImplicitIntegrator();
+  ImplicitIntegrator& operator=(const ImplicitIntegrator& rhs) = default;
+  virtual ~ImplicitIntegrator() = default;
 
   // Override the step method for our implicit approach
   virtual bool step(Scalar maxTime) override;
@@ -45,6 +45,7 @@ public:
   // Internal data
   Scalar convergenceTolerance()                  const { return mTol; }
   void convergenceTolerance(const Scalar x)            { mTol = x; }
+  Scalar maxGoodDtMultiplier()                   const { return mMaxGoodDtMultiplier; }
 
   // Forbidden methods
   ImplicitIntegrator() = delete;
@@ -63,7 +64,7 @@ protected:
 
 private:
   //-------------------------- Private Interface --------------------------//
-  Scalar mTol;
+  Scalar mTol, mMaxGoodDtMultiplier;
 };
 
 }

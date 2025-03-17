@@ -20,8 +20,8 @@ class KINSOL:
               x = "std::vector<double>&"):
         """Solve the system of equations represented by function 'func' and initial guess 'x'.
 Solution vector is returned in 'x'.
-Return value indicates success (True) or failure (False)"""
-        return "bool"
+Returns the number of non-linear iterations taken."""
+        return "size_t"
 
     #...........................................................................
     # Properties

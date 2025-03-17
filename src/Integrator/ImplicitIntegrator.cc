@@ -23,27 +23,8 @@ ImplicitIntegrator(DataBase<Dimension>& dataBase,
                    const std::vector<Physics<Dimension>*>& physicsPackages,
                    const Scalar tol):
   Integrator<Dimension>(dataBase, physicsPackages),
-  mTol(tol) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ImplicitIntegrator<Dimension>::
-~ImplicitIntegrator() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ImplicitIntegrator<Dimension>&
-ImplicitIntegrator<Dimension>::
-operator=(const ImplicitIntegrator<Dimension>& rhs) {
-  Integrator<Dimension>::operator=(rhs);
-  mTol = rhs.mTol;
-  return *this;
+  mTol(tol),
+  mMaxGoodDtMultiplier(1.0) {
 }
 
 //------------------------------------------------------------------------------
@@ -61,14 +42,15 @@ step(const typename Dimension::Scalar maxTime) {
   auto count = 0u;
   auto maxIterations = 10u;
   while (not success and count++ < maxIterations) {
-    cerr << "=============> Current dtMultiplier = " << mDtMultiplier << endl;
+    cerr << "=============> Current dtMultiplier = " << mDtMultiplier << " " << mMaxGoodDtMultiplier << endl;
     
     // Try to advance using the current timestep multiplier
     success = this->step(maxTime, state, derivs);
+    if (success) mMaxGoodDtMultiplier = mDtMultiplier;
 
     // Adjust the current timestep multiplier based on whether we succeeded or not
     mDtMultiplier *= (success ?
-                      1.2 :
+                      (mDtMultiplier < 0.8*mMaxGoodDtMultiplier ? 1.2 : 1.05) :
                       0.8);
     // mDtMultiplier = min(1.0, mDtMultiplier);
 
@@ -125,7 +107,8 @@ dt(const Physics<Dimension>* pkg,
    const State<Dimension>& state,
    const StateDerivatives<Dimension>& derivs,
    const Scalar currentTime) const {
-  return pkg->dtImplicit(dataBase, state, derivs, currentTime);
+  return pkg->dt(dataBase, state, derivs, currentTime);
+  // return pkg->dtImplicit(dataBase, state, derivs, currentTime);
 }
 
 }

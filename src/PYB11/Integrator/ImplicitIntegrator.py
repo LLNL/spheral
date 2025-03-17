@@ -45,6 +45,7 @@ class ImplicitIntegrator(Integrator):
     #...........................................................................
     # Properties
     convergenceTolerance = PYB11property("Scalar", "convergenceTolerance", "convergenceTolerance", doc="Tolerance for convergence in residuals during integration")
+    maxGoodDtMultiplier = PYB11property("Scalar", "maxGoodDtMultiplier")
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces
