@@ -2,12 +2,10 @@
 # ImplicitIntegrationVectorOperator
 #-------------------------------------------------------------------------------
 from PYB11Generator import *
-from VectorOperator import *
-from IntegratorAbstractMethods import *
-from ImplicitIntegrator import *
+import SolverFunction
 
 @PYB11template("Dimension")
-class ImplicitIntegrationVectorOperator(VectorOperator):
+class ImplicitIntegrationVectorOperator(SolverFunction.SolverFunction):
 
     PYB11typedefs = """
     using Scalar = typename %(Dimension)s::Scalar;
@@ -31,8 +29,8 @@ class ImplicitIntegrationVectorOperator(VectorOperator):
     @PYB11virtual
     @PYB11const
     def __call__(self,
-                 input = "const std::vector<double>&",
-                 output = "std::vector<double>&"):
+                 residuals = "std::vector<double>&",
+                 x = "const std::vector<double>&"):
         return "void"
 
     #...........................................................................
