@@ -13,8 +13,6 @@ import mpi
 import numpy as np
 #import matplotlib.pyplot as plt
 
-from LLNLSpheral1d import *
-
 def smooth(x,window_len=11,window='hanning'):
     if x.ndim != 1:
         raise ValueError("smooth only accepts 1 dimension arrays.")

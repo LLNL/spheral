@@ -110,7 +110,7 @@ commandLine(nx1 = 400,
             steps = None,
             goalTime = 0.15,
             dt = 1e-6,
-            dtMin = 1.0e-6,
+            dtMin = 1.0e-8,
             dtMax = 0.1,
             dtGrowth = 2.0,
             rigorousBoundaries = False,
@@ -125,6 +125,11 @@ commandLine(nx1 = 400,
             correctVelocityGradient = True,
             gradhCorrection = True,
             linearConsistent = False,
+
+            ftol = 1.0e-8,
+            steptol = 1.0e-10,
+            maxIterations = 5,
+            beta = 1.0,
 
             useRefinement = False,
 
@@ -517,6 +522,19 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.rigorousBoundaries")
+
+# Special stuff for implicit integrators
+try:
+    integrator.beta = beta
+    integrator.ftol = ftol
+    integrator.steptol = steptol
+    integrator.maxIterations = maxIterations
+    output("integrator.beta")
+    output("integrator.ftol")
+    output("integrator.steptol")
+    output("integrator.maxIterations")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
