@@ -112,6 +112,7 @@ step(typename Dimension::Scalar maxTime,
 
   // Unpack the solution into the final state.
   // state.deserializeIndependentData(solution);
+  state.assign(state0);
   state.update(derivs, dt, t, dt, false);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
