@@ -144,16 +144,17 @@ serializeDerivatives(std::vector<double>& buf,
     }
 
     const auto n = vals.size();
-    CHECK(n > 0u);
-    const auto ndvals = n * DataTypeTraits<Value>::numElements(vals[0]);
-    const auto nraw = ndvals * sizeof(double);
-    std::vector<char> rawbuf;
-    for (auto i = 0u; i < n; ++i) packElement(vals[i], rawbuf);
-    CHECK(rawbuf.size() == nraw);
-    const auto istart = buf.size();
-    buf.resize(istart + ndvals);
-    CHECK((buf.size() - istart)*sizeof(double) == nraw);
-    std::memcpy(&buf[istart], &rawbuf[0], nraw);
+    if (n > 0u) {
+      const auto ndvals = n * DataTypeTraits<Value>::numElements(vals[0]);
+      const auto nraw = ndvals * sizeof(double);
+      std::vector<char> rawbuf;
+      for (auto i = 0u; i < n; ++i) packElement(vals[i], rawbuf);
+      CHECK(rawbuf.size() == nraw);
+      const auto istart = buf.size();
+      buf.resize(istart + ndvals);
+      CHECK((buf.size() - istart)*sizeof(double) == nraw);
+      std::memcpy(&buf[istart], &rawbuf[0], nraw);
+    }
   }      
 }
 
