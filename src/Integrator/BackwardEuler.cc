@@ -129,33 +129,47 @@ step(typename Dimension::Scalar maxTime,
     // Make a parabolic fitted prediction for the initial guess.  We use the Lagrange
     // interpolation formula for a second-order polynomial.
     vector<double> solution0;
-    state.serializeIndependentData(solution0);  // t_n
-    const auto n = solution0.size();
-    CHECK(mSolutionM2.size() == n);             // t_{n-2}
-    CHECK(mSolutionM1.size() == n);             // t_{n-1}
-    CHECK(mtM2 < mtM1 and mtM1 < t);
-    const auto x1 = mtM2, x2 = mtM1, x3 = t, x = t + dt;
-    // cerr << "Solution t_{n-2}:";
-    // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM2[i];
-    // cerr << endl
-    //      << "Solution t_{n-1}:";
-    // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM1[i];
-    // cerr << endl
-    //      << "Solution   t_{n}:";
-    // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
-    for (auto i = 0u; i < n; ++i) {
-      solution0[i] = (mSolutionM2[i]*(x - x2)*(x - x3)/((x1 - x2)*(x1 - x3)) +
-                      mSolutionM1[i]*(x - x1)*(x - x3)/((x2 - x1)*(x2 - x3)) +
-                      solution0[i]  *(x - x1)*(x - x2)/((x3 - x1)*(x3 - x2)));
-    }
-    // cerr << endl
-    //      << "Solution t_{n+1}:";
-    // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
-    // cerr << endl;
+    // state.serializeIndependentData(solution0);  // t_n
+    // const auto n = solution0.size();
+    // CHECK(mSolutionM2.size() == n);             // t_{n-2}
+    // CHECK(mSolutionM1.size() == n);             // t_{n-1}
+    // CHECK(mtM2 < mtM1 and mtM1 < t);
+    // const auto x1 = mtM2, x2 = mtM1, x3 = t, x = t + dt;
+    // // cerr << "Solution t_{n-2}:";
+    // // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM2[i];
+    // // cerr << endl
+    // //      << "Solution t_{n-1}:";
+    // // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM1[i];
+    // // cerr << endl
+    // //      << "Solution   t_{n}:";
+    // // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
+    // for (auto i = 0u; i < n; ++i) {
+    //   solution0[i] = (mSolutionM2[i]*(x - x2)*(x - x3)/((x1 - x2)*(x1 - x3)) +
+    //                   mSolutionM1[i]*(x - x1)*(x - x3)/((x2 - x1)*(x2 - x3)) +
+    //                   solution0[i]  *(x - x1)*(x - x2)/((x3 - x1)*(x3 - x2)));
+    // }
+    // // cerr << endl
+    // //      << "Solution t_{n+1}:";
+    // // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
+    // // cerr << endl;
 
     // Initial Forward Euler prediction for the end of timestep state
-    state.deserializeIndependentData(solution0);
-    state.update(derivs, dt, t, dt, true);
+    // state.deserializeIndependentData(solution0);
+    state.update(derivs, dt, t, dt, false);
+    this->applyGhostBoundaries(state, derivs);
+    this->finalizeGhostBoundaries();
+    this->postStateUpdate(t + dt, dt, db, state, derivs);
+
+    // Derivatives at the ForwardEuler prediction
+    this->initializeDerivatives(t + dt, dt, state, derivs);
+    derivs.Zero();
+    this->evaluateDerivatives(t + dt, dt, db, state, derivs);
+    this->finalizeDerivatives(t + dt, dt, db, state, derivs);
+
+    // Now do a Crank-Nicolson prediction for the solution at t+dt
+    state.assign(state0);
+    state.update(derivs0, 0.5*dt, t, 0.5*dt);
+    state.update(derivs, 0.5*dt, t + 0.5*dt, 0.5*dt);
     this->applyGhostBoundaries(state, derivs);
     this->finalizeGhostBoundaries();
     this->postStateUpdate(t + dt, dt, db, state, derivs);
