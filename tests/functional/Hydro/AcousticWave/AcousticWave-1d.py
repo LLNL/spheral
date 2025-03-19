@@ -90,8 +90,9 @@ commandLine(nx1 = 100,
             linearConsistent = False,
 
             ftol = 1.0e-8,
-            steptol = 1.0e-10,
+            steptol = 1.0e-8,
             maxIterations = 5,
+            maxAllowedDtMultiplier = 5.0,
             beta = 1.0,
 
             restoreCycle = None,
@@ -360,10 +361,12 @@ try:
     integrator.ftol = ftol
     integrator.steptol = steptol
     integrator.maxIterations = maxIterations
+    integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
     output("integrator.beta")
     output("integrator.ftol")
     output("integrator.steptol")
     output("integrator.maxIterations")
+    output("integrator.maxAllowedDtMultiplier")
 except:
     pass
 

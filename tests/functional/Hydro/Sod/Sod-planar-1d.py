@@ -127,7 +127,7 @@ commandLine(nx1 = 400,
             linearConsistent = False,
 
             ftol = 1.0e-8,
-            steptol = 1.0e-6,
+            steptol = 1.0e-8,
             maxIterations = 10,
             maxAllowedDtMultiplier = 1.1,
             beta = 1.0,

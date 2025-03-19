@@ -60,6 +60,8 @@ makes this not just backward Euler:
     tM1 = PYB11property("Scalar", "tM2")
     solutionM2 = PYB11property("const std::vector<double>&", "solutionM2")
     solutionM1 = PYB11property("const std::vector<double>&", "solutionM2")
+    numExplicitSteps = PYB11property("size_t", "numExplicitSteps")
+    numImplicitSteps = PYB11property("size_t", "numImplicitSteps")
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces

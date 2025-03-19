@@ -49,6 +49,8 @@ BackwardEuler(DataBase<Dimension>& dataBase,
   mtM2(-1.0),
   mtM1(-1.0),
   mMaxIters(maxIterations),
+  mNumExplicitSteps(0u),
+  mNumImplicitSteps(0u),
   mSolutionM2(),
   mSolutionM1() {
   this->allowDtCheck(true);
@@ -92,10 +94,11 @@ step(typename Dimension::Scalar maxTime,
 
   // If we have not yet accrued enough previous step information to make a
   // prediction about the next state, just advance explicitly
-  if (this->currentCycle() < 4) {
+  if (mDtMultiplier < 1.0 or this->currentCycle() < 4) {
 
     //..........................................................................
     // Do a standard RK2 step
+    ++mNumExplicitSteps;
     const auto hdt = 0.5*dt;
     
     // Trial advance the state to the mid timestep point.
@@ -156,6 +159,7 @@ step(typename Dimension::Scalar maxTime,
     this->applyGhostBoundaries(state, derivs);
     this->finalizeGhostBoundaries();
     this->postStateUpdate(t + dt, dt, db, state, derivs);
+    state.serializeIndependentData(solution0);
 
     // Build a solver
     KINSOL solver;
@@ -176,6 +180,7 @@ step(typename Dimension::Scalar maxTime,
     }
 
     // Unpack the solution into the final state.
+    ++mNumImplicitSteps;
     state.update(derivs, dt, t, dt, false);
     this->applyGhostBoundaries(state, derivs);
     this->finalizeGhostBoundaries();
