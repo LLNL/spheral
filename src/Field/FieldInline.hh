@@ -31,8 +31,11 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
-  mDataArray(),
-  mValid(false) {}
+  mDataArray((size_t)0, chai::CPU),
+  mValid(false) 
+{
+  mDataArray.registerTouch(chai::CPU);
+}
 
 //------------------------------------------------------------------------------
 // Construct with name and field values.
@@ -43,8 +46,11 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  mDataArray(field.mDataArray),
-  mValid(field.mValid) {}
+  mValid(field.mValid)
+{
+  mDataArray = field.mDataArray.clone();
+  mDataArray.registerTouch(chai::CPU);
+}
 
 //------------------------------------------------------------------------------
 // Construct with the given name and NodeList.
@@ -55,9 +61,12 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), DataType()),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
+  mValid(true)
+{
   REQUIRE(numElements() == nodeList.numNodes());
+  for (size_t i = 0; i < mDataArray.size(); ++i) new (&mDataArray[i]) DataType();
+  mDataArray.registerTouch(chai::CPU);
 }
 
 template<>
@@ -66,9 +75,11 @@ Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
+  for (size_t i = 0; i < mDataArray.size(); ++i) new (&mDataArray[i]) Dim<1>::Scalar();
+  mDataArray.registerTouch(chai::CPU);
 }
 
 template<>
@@ -77,9 +88,11 @@ Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
+  for (size_t i = 0; i < mDataArray.size(); ++i) new (&mDataArray[i]) Dim<2>::Scalar();
+  mDataArray.registerTouch(chai::CPU);
 }
 
 template<>
@@ -88,9 +101,11 @@ Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
+  for (size_t i = 0; i < mDataArray.size(); ++i) new (&mDataArray[i]) Dim<3>::Scalar();
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -103,9 +118,11 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), value),
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
+  for (size_t i = 0; i < mDataArray.size(); ++i) new (&mDataArray[i]) DataType(value);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -119,11 +136,12 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes()),
+  mDataArray((size_t) nodeList.numNodes(), chai::CPU),
   mValid(true) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
-  mDataArray = array;
+  for (size_t i = 0; i < array.size(); ++i) new (&mDataArray[i]) DataType(array[i]);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -135,9 +153,10 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  mDataArray(field.mDataArray),
   mValid(true) {
+  mDataArray = field.mDataArray.clone();
   ENSURE(numElements() == nodeList.numNodes());
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -147,8 +166,9 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
-  mDataArray(field.mDataArray),
   mValid(field.valid()) {
+  mDataArray = field.mDataArray.clone();
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -168,6 +188,7 @@ Field<Dimension, DataType>::clone() const {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::~Field() {
+  mDataArray.free(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -182,7 +203,8 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      mDataArray = rhsPtr->mDataArray;
+      mDataArray = rhsPtr->mDataArray.clone();
+      mDataArray.registerTouch(chai::CPU);
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -201,7 +223,8 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    mDataArray = rhs.mDataArray;
+    mDataArray = rhs.mDataArray.clone();
+    mDataArray.registerTouch(chai::CPU);
     mValid = rhs.mValid;
   }
   return *this;
@@ -216,7 +239,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
-  mDataArray = rhs;
+  for(size_t i = 0; i < rhs.size(); ++i) mDataArray[i] = rhs[i];
+  mDataArray.registerTouch(chai::CPU);
   return *this;
 }
 
@@ -240,6 +264,12 @@ struct CrappyFieldCompareMethod {
   static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
                       const std::vector<Value,DataAllocator<Value>>& rhs) {
     return lhs == rhs;
+  }
+  static bool compare(const chai::ManagedArray<Value>& lhs, 
+                      const chai::ManagedArray<Value>& rhs) {
+    if (lhs.size() != rhs.size()) return false;
+    for (size_t i = 0; i < lhs.size(); ++i) if (lhs[i] != rhs[i]) return false;
+    return true;
   }
 };
 
@@ -431,6 +461,7 @@ Field<Dimension, DataType>::applyMin(const DataType& dataMin) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -443,6 +474,7 @@ Field<Dimension, DataType>::applyMax(const DataType& dataMax) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -455,6 +487,7 @@ Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -467,6 +500,7 @@ Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
   REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -1149,12 +1183,17 @@ void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
   unsigned oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
-  mDataArray.resize(nodeList.numNodes());
+  std::vector<DataType> temp(mDataArray.begin(), mDataArray.end());
+  mDataArray.reallocate(nodeList.numNodes());
   if (this->size() > oldSize) {
+    std::copy(temp.begin(), temp.end(), mDataArray.begin());
     for (unsigned i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
+  } else {
+    std::copy(temp.begin(), temp.begin() + this->size(), mDataArray.begin());
   }
+  mDataArray.registerTouch(chai::CPU);
   mValid = true;
 }
 
@@ -1168,12 +1207,20 @@ void
 Field<Dimension, DataType>::resizeField(unsigned size) {
   REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
-  mDataArray.resize(size);
+
+  std::vector<DataType> temp(mDataArray.begin(), mDataArray.end());
+  mDataArray.reallocate(size);
+
   if (oldSize < size) {
+    std::copy(temp.begin(), temp.end(), mDataArray.begin());
     std::fill(mDataArray.begin() + oldSize,
               mDataArray.end(),
               DataTypeTraits<DataType>::zero());
+  } else {
+    std::copy(temp.begin(), temp.begin() + size, mDataArray.begin());
   }
+
+  mDataArray.registerTouch(chai::CPU);
   mValid = true;
 }
 
@@ -1187,8 +1234,15 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
   const unsigned originalSize = this->size();
   CONTRACT_VAR(originalSize);
   REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
-  mDataArray.erase(mDataArray.begin() + nodeID);
+
+  std::vector temp(mDataArray.begin(), mDataArray.end());
+  temp.erase(temp.begin() + nodeID);
+
+  mDataArray.reallocate(mDataArray.size() - 1);
+  for (size_t i = 0; i < temp.size(); ++i) mDataArray[i] = temp[i];
+
   ENSURE(mDataArray.size() == originalSize - 1);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -1200,6 +1254,7 @@ void
 Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
   // The standalone method does the actual work.
   removeElements(mDataArray, nodeIDs);
+  mDataArray.registerTouch(chai::CPU);
 }
 
 //------------------------------------------------------------------------------
@@ -1253,14 +1308,20 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   }
 
   // Resize the field data.
-  mDataArray.resize(newSize);
+  std::vector<DataType> temp(mDataArray.begin(), mDataArray.end());
+  mDataArray.reallocate(newSize);
+  mDataArray.registerTouch(chai::CPU);
 
   // Fill in any new internal values.
   if (newSize > currentSize) {
+    std::copy(temp.begin(), temp.end(), mDataArray.begin());
     CHECK(currentInternalSize < this->nodeList().firstGhostNode());
     std::fill(mDataArray.begin() + currentInternalSize,
               mDataArray.begin() + this->nodeList().firstGhostNode(),
               DataTypeTraits<DataType>::zero());
+    mDataArray.registerTouch(chai::CPU);
+  } else {
+    std::copy(temp.begin(), temp.begin() + newSize, mDataArray.begin());
   }
 
   // Fill the ghost data back in.
@@ -1291,14 +1352,19 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.
-  mDataArray.resize(newSize);
+  std::vector<DataType> temp(mDataArray.begin(), mDataArray.end());
+  mDataArray.reallocate(newSize);
+  mDataArray.registerTouch(chai::CPU);
   CHECK(this->size() == (newSize));
 
   // Fill in any new ghost values.
   if (newSize > currentSize) {
+    std::copy(temp.begin(), temp.end(), mDataArray.begin());
     std::fill(mDataArray.begin() + numInternalNodes + currentNumGhostNodes,
               mDataArray.end(),
               DataTypeTraits<DataType>::zero());
+  } else {
+    std::copy(temp.begin(), temp.begin() + newSize, mDataArray.begin());
   }
 
   mValid = true;

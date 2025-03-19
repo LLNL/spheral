@@ -13,6 +13,7 @@
 
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
+#include "chai/ManagedArray.hpp"
 
 #include <vector>
 
@@ -52,8 +53,11 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+  //using ContainerType = std::vector<DataType>;
+  using ContainerType = chai::ManagedArray<DataType>;
+
+  typedef typename ContainerType::iterator iterator;
+  typedef typename ContainerType::const_iterator const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -245,12 +249,12 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
-  std::vector<DataType, DataAllocator<DataType>> mDataArray;
+  ContainerType mDataArray;
+  size_t mSize = 0;
   bool mValid;
 
   // No default constructor.
-  Field();
+  Field() = delete;
 };
 
 } // namespace Spheral
