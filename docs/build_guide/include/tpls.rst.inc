@@ -51,7 +51,12 @@ Running tpl-manager
 
 ::
 
-  python3 scripts/devtools/tpl-manager.py --spec spheral%gcc
+  ./scripts/devtools/tpl-manager.py --spec spheral%gcc
+
+To see what specs are available for the current environment, run
+
+::
+  ./scripts/devtools/tpl-manager.py --show-specs
 
 This will download a new Spack instance in a directory adjacent to your Spheral root directory called ``spheral-spack-tpls/spack``. You can use ``--spack-dir`` if you would like to setup the Spack instance somewhere else. By default, Spheral is built with MPI support unless the spec is appended with ``~mpi``. The ``%`` symbol denotes the compiler to use.
 

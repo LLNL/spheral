@@ -42,10 +42,10 @@ class SpheralTPL:
                            "If no spec if given, TPLs for all env specs are installed and "+\
                            "no host config file is created.")
         group.add_argument("--dev-spec", type=str, default=None,
-                           help="For use by developers to ease frequent TPL building",
+                           help="For use by developers to ease frequent TPL building.",
                            choices=list(dev_specs.keys()))
-        parser.add_argument("--show-spec", action="store_true",
-                            help="Run spack spec -IL <spec>")
+        parser.add_argument("--show-specs", action="store_true",
+                            help="Show the specs for the current environment and stop.")
         parser.add_argument("--add-spec", action="store_true",
                             help="Set this flag to add the --spec to the environment.")
         parser.add_argument("--spack-dir", type=str,
@@ -294,8 +294,7 @@ class SpheralTPL:
             # Avoid overwriting existing host config file
             shutil.copyfile(host_config_file, "orig"+host_config_file)
             mod_host_config = True
-
-        if (self.args.show_spec or self.args.ci_run):
+        if (self.args.ci_run):
             spec_cmd = SpackCommand("spec")
             print(f"Running spack spec -IL {spec}")
             spec_cmd("-IL", spec)
@@ -321,6 +320,10 @@ class SpheralTPL:
         if (self.args.init_only):
             return
         self.activate_spack_env()
+        if (self.args.show_specs):
+            find_cmd = SpackCommand("find")
+            find_cmd("-r")
+            sys.exit(0)
         if (self.args.spec):
             # If --spec is given, install TPLs and create host config file
             self.concretize_spec(check_spec=True)
