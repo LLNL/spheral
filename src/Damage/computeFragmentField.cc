@@ -296,7 +296,7 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 
   // Make sure all nodes have been assigned to a valid fragment.
   CHECK(nodes.numInternalNodes() == 0 ||
-        *min_element(result.begin(), result.end()) >= 0);
+        *std::min_element(result.begin(), result.end()) >= 0);
 
 //   // Assign the dust nodes a fragment index of -1.
 //   for (int i = 0; i != nodes.numInternalNodes(); ++i) {

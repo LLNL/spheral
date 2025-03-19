@@ -287,7 +287,7 @@ globalNodeIDs(const NodeListIterator& begin,
           ENSURE(i >= 0 && i < nGlobal);
           if (procID != checkProc){
             CONTRACT_VAR(fieldEnd);
-            ENSURE(find(fieldBegin, fieldEnd, id) == fieldEnd);
+            ENSURE(std::find(fieldBegin, fieldEnd, id) == fieldEnd);
           }
         }
       }
