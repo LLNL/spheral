@@ -56,6 +56,10 @@ makes this not just backward Euler:
     maxIterations = PYB11property("size_t", "maxIterations", "maxIterations", doc="The maximum allowed iterations to try for advancing a step")
     ftol = PYB11property("Scalar", "ftol", "ftol")
     steptol = PYB11property("Scalar", "steptol", "steptol")
+    tM2 = PYB11property("Scalar", "tM2")
+    tM1 = PYB11property("Scalar", "tM2")
+    solutionM2 = PYB11property("const std::vector<double>&", "solutionM2")
+    solutionM1 = PYB11property("const std::vector<double>&", "solutionM2")
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces

@@ -44,8 +44,11 @@ public:
 
   // Internal data
   Scalar convergenceTolerance()                  const { return mTol; }
-  void convergenceTolerance(const Scalar x)            { mTol = x; }
+  Scalar maxAllowedDtMultiplier()                const { return mMaxGoodDtMultiplier; }
   Scalar maxGoodDtMultiplier()                   const { return mMaxGoodDtMultiplier; }
+
+  void convergenceTolerance(const Scalar x)            { mTol = x; }
+  void maxAllowedDtMultiplier(const Scalar x)          { mMaxAllowedDtMultiplier = x; }
 
   // Forbidden methods
   ImplicitIntegrator() = delete;
@@ -64,7 +67,7 @@ protected:
 
 private:
   //-------------------------- Private Interface --------------------------//
-  Scalar mTol, mMaxGoodDtMultiplier;
+  Scalar mTol, mMaxAllowedDtMultiplier, mMaxGoodDtMultiplier;
 };
 
 }

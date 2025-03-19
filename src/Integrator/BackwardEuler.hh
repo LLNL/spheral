@@ -9,6 +9,7 @@
 #define __Spheral_BackwardEuler__
 
 #include "Integrator/ImplicitIntegrator.hh"
+#include <vector>
 
 namespace Spheral {
 
@@ -37,26 +38,31 @@ public:
                     StateDerivatives<Dimension>& derivs) override;
 
   // Access internal state
-  Scalar beta()                const { return mBeta; }
-  size_t maxIterations()       const { return mMaxIters; }
-  Scalar ftol()                const { return mftol; }
-  Scalar steptol()             const { return msteptol; }
+  Scalar beta()                           const { return mBeta; }
+  size_t maxIterations()                  const { return mMaxIters; }
+  Scalar ftol()                           const { return mftol; }
+  Scalar steptol()                        const { return msteptol; }
+  Scalar tM2()                            const { return mtM2; }
+  Scalar tM1()                            const { return mtM1; }
+  const std::vector<double>& solutionM2() const { return mSolutionM2; }
+  const std::vector<double>& solutionM1() const { return mSolutionM1; }
 
-  void beta(const Scalar x)          { mBeta = x; }
-  void maxIterations(const size_t x) { mMaxIters = x; }
-  void ftol(const Scalar x)          { mftol = x; }
-  void steptol(const Scalar x)       { msteptol = x; }
+  void beta(const Scalar x)                     { mBeta = x; }
+  void maxIterations(const size_t x)            { mMaxIters = x; }
+  void ftol(const Scalar x)                     { mftol = x; }
+  void steptol(const Scalar x)                  { msteptol = x; }
 
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 
   // Restart methods.
-  virtual std::string label() const override { return "BackwardEuler"; }
+  virtual std::string label() const override   { return "BackwardEuler"; }
 
   //--------------------------- Public Interface ---------------------------//
 private:
-  Scalar mBeta, mftol, msteptol;
+  Scalar mBeta, mftol, msteptol, mtM2, mtM1;
   size_t mMaxIters;
+  std::vector<double> mSolutionM2, mSolutionM1;
 };
 
 }

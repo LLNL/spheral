@@ -24,6 +24,7 @@ ImplicitIntegrator(DataBase<Dimension>& dataBase,
                    const Scalar tol):
   Integrator<Dimension>(dataBase, physicsPackages),
   mTol(tol),
+  mMaxAllowedDtMultiplier(100.0),
   mMaxGoodDtMultiplier(1.0) {
 }
 
@@ -42,7 +43,7 @@ step(const typename Dimension::Scalar maxTime) {
   auto count = 0u;
   auto maxIterations = 10u;
   while (not success and count++ < maxIterations) {
-    cerr << "=============> Current dtMultiplier = " << mDtMultiplier << " " << mMaxGoodDtMultiplier << endl;
+    cerr << "=============> Current dtMultiplier = " << mDtMultiplier << " " << mMaxGoodDtMultiplier << " " << mMaxAllowedDtMultiplier << endl;
     
     // Try to advance using the current timestep multiplier
     success = this->step(maxTime, state, derivs);
@@ -52,7 +53,7 @@ step(const typename Dimension::Scalar maxTime) {
     mDtMultiplier *= (success ?
                       (mDtMultiplier < 0.8*mMaxGoodDtMultiplier ? 1.2 : 1.05) :
                       0.8);
-    // mDtMultiplier = min(1.0, mDtMultiplier);
+    mDtMultiplier = min(mMaxAllowedDtMultiplier, mDtMultiplier);
 
     if (not success and
         this->verbose() and
