@@ -15,6 +15,7 @@
 #include <vector>
 #include <algorithm>
 #include "DBC.hh"
+#include "chai/ManagedArray.hpp"
 
 #ifdef USE_UVM
 #include "../Field/uvm_allocator.hh"
@@ -27,6 +28,42 @@ using DataAllocator = typename std::allocator<DataType>;
 
 namespace Spheral {
 
+template<typename DataType, typename index_t>
+inline
+void
+removeElements(chai::ManagedArray<DataType>& vec,
+               const std::vector<index_t>& elements) {
+
+  // Is there anything to do?
+  if (!elements.empty()) {
+    const index_t originalSize = vec.size();
+    const size_t newSize = originalSize - elements.size();
+
+    std::vector temp(vec.begin(), vec.end());
+    // Variable to keep track of how many elements have been removed
+    int shift = 0;
+
+    // Iterate over the elements to be removed
+    for (size_t i = 0; i < elements.size(); ++i) {
+        // Calculate the true index of the element to remove, considering the shift
+        size_t remove_index = elements[i] - shift;
+
+        // Copy elements to the left, starting from the element after the one to be removed
+        if (remove_index + 1 < temp.size()) {
+            std::copy(temp.begin() + remove_index + 1, temp.end(), temp.begin() + remove_index);
+        }
+
+        // Increment the shift count since we are removing one element
+        ++shift;
+    }
+    vec.reallocate(newSize);
+    std::copy(temp.begin(), temp.begin() + newSize, vec.begin());
+    vec.registerTouch(chai::CPU);
+
+    // Post-conditions.
+    ENSURE(vec.size() == newSize);
+  }
+}
 template<typename Value, typename Allocator, typename index_t>
 inline
 void
