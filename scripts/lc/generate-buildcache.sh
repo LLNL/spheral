@@ -14,14 +14,8 @@ trap 'echo "# $BASH_COMMAND"' DEBUG
 ###############################################################################
 ###############################################################################
 
-# The expected spack package name for what we are packing up.
-SPACK_PKG_NAME=${SPACK_PKG_NAME:-spheral}
-
-# What is the version of spehral.
-SPHERAL_REV_STR=${SPHERAL_REV_STR:-undefined}
-
 # Where will we be staging the package as it is being compiled together.
-STAGE_DIR=${STAGE_DIR:-$PWD/../$SYS_TYPE/spheral-cache}
+INSTALL_DIR=${INSTALL_DIR:-$PWD/../$SYS_TYPE/spheral-cache}
 
 # Where does the spheral pip_cache dir live.
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
@@ -33,15 +27,15 @@ SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 # version of Spehral lives with no build directories in the dir tree.
 CI_PROJECT_DIR=${CI_PROJECT_DIR:-$PWD}
 
-###############################################################################
-###############################################################################
-
 # DEV_PKG_NAME defines the title of the spheral install. This is a combination of
 # the system type and the current spheral version string.
-DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
+DEV_PKG_NAME=${DEV_PKG_NAME:-$SYS_TYPE-spheral-dev-pkg-undefined}
 
-# Full path of what the package directory will look like as we compiler the dev pkg.
-DEV_PKG_DIR=$STAGE_DIR/$DEV_PKG_NAME
+###############################################################################
+###############################################################################
+
+# Full path of what the package directory will look like as we compile the dev pkg.
+DEV_PKG_DIR=$INSTALL_DIR/$DEV_PKG_NAME
 
 # RESOURCE_DIR is a directory created internally to maintain spack & pip
 # resources required for building and running Spheral
@@ -49,13 +43,13 @@ RESOURCE_DIR=$DEV_PKG_DIR/resources
 
 # Print for sanity check.
 echo $RESOURCE_DIR
-echo $STAGE_DIR
+echo $INSTALL_DIR
 echo $DEV_PKG_DIR
 echo $SPHERAL_PIP_CACHE_DIR
 
 # Clear the stage directory, create resource dir and copy the Spheral repo into
 # the DEV_PKG_DIR.
-rm -rf $STAGE_DIR
+rm -rf $INSTALL_DIR
 mkdir -p $RESOURCE_DIR && cp -a $CI_PROJECT_DIR/. $DEV_PKG_DIR
 
 # Copy the SPHERAL_PIP_CACHE_DIR into resource.
@@ -84,5 +78,5 @@ spack buildcache push -auf $RESOURCE_DIR/mirror $(spack find --format /{hash})
 # Mirror bootstrap packages needed to start a spack instance on an airgapped system.
 spack bootstrap mirror --binary-packages $RESOURCE_DIR
 
-# Tar up everything in the STAGE_DIR.
-tar -czf $DEV_PKG_DIR.tar.gz -C $STAGE_DIR $DEV_PKG_NAME
+# Tar up everything in the INSTALL_DIR.
+tar -czf $DEV_PKG_DIR.tar.gz -C $INSTALL_DIR $DEV_PKG_NAME

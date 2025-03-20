@@ -1,11 +1,11 @@
 set -Eeuo pipefail
 trap 'echo "# $BASH_COMMAND"' DEBUG
 
-SPACK_PKG_NAME=${SPACK_PKG_NAME:-'spheral'}
 SPACK_URL=${SPACK_URL:-'https://github.com/spack/spack'}
 BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
+DEV_PKG_NAME=${DEV_PKG_NAME:-$SYS_TYPE-spheral-dev-pkg-undefined}
 
 if [[ -z "${DEV_PKG_SPEC}" ]]; then
   echo "DEV_PKG_SPEC var must be set."
@@ -17,18 +17,17 @@ if [[ -z "${INSTALL_DIR}" ]]; then
   exit 1
 fi
 
-echo $SPACK_PKG_NAME
 echo $DEV_PKG_SPEC
 echo $SPACK_URL
 echo $INSTALL_DIR
 echo $SCRIPT_DIR
 echo $BUILD_ALLOC
 
-DEV_TAR_FILE=$DEV_PKG_SPEC.tar.gz
+DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
 # Delete the install directory but not the tar file, this way we can rerun this stage if a failure happens
 # like with the network
-find $INSTALL_DIR -type f ! -name '$DEV_TAR_FILE' -delete
+find $INSTALL_DIR ! -name '$DEV_TAR_FILE' -delete
 
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
