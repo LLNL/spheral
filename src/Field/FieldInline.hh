@@ -43,7 +43,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(field.mValid) {}
 
 //------------------------------------------------------------------------------
@@ -120,10 +120,11 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
   mDataArray((size_t) nodeList.numNodes()),
-  mValid(true) {
+  mValid(true)
+{
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
-  mDataArray = array;
+  for (int i = 0; i < mDataArray.size(); ++i) mDataArray[i] = array[i];
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +136,7 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(true) {
   ENSURE(numElements() == nodeList.numNodes());
 }
@@ -147,7 +148,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
-  mDataArray(field.mDataArray),
+  mDataArray(deepCopy(field.mDataArray)),
   mValid(field.valid()) {
 }
 
@@ -168,6 +169,7 @@ Field<Dimension, DataType>::clone() const {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::~Field() {
+  mDataArray.free();
 }
 
 //------------------------------------------------------------------------------
@@ -182,7 +184,7 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      mDataArray = rhsPtr->mDataArray;
+      mDataArray = deepCopy(rhsPtr->mDataArray);
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -201,7 +203,7 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    mDataArray = rhs.mDataArray;
+    mDataArray = deepCopy(rhs.mDataArray);
     mValid = rhs.mValid;
   }
   return *this;
@@ -216,7 +218,7 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
   REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
-  mDataArray = rhs;
+  for (int i = 0; i < mDataArray.size(); ++i) mDataArray[i] = rhs[i];
   return *this;
 }
 
@@ -240,6 +242,10 @@ struct CrappyFieldCompareMethod {
   static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
                       const std::vector<Value,DataAllocator<Value>>& rhs) {
     return lhs == rhs;
+  }
+  static bool compare(const Spheral::ManagedVector<Value>& lhs, 
+                      const Spheral::ManagedVector<Value>& rhs) {
+    return Spheral::compare(lhs, rhs);
   }
 };
 

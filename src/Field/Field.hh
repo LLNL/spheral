@@ -12,8 +12,8 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
+#include "Utilities/ManagedVector.hh"
 #include "axom/sidre.hpp"
-#include "chai/ManagedArray.hpp"
 
 #include <vector>
 
@@ -54,7 +54,7 @@ public:
   typedef DataType value_type;      // STL compatibility.
 
   //using ContainerType = std::vector<DataType>;
-  using ContainerType = chai::ManagedArray<DataType>;
+  using ContainerType = Spheral::ManagedVector<DataType>;
 
   typedef typename ContainerType::iterator iterator;
   typedef typename ContainerType::const_iterator const_iterator;
