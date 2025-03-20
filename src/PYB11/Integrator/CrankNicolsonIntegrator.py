@@ -23,7 +23,7 @@ class CrankNicolsonIntegrator(ImplicitIntegrator):
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
                packages = ("vector<Physics<%(Dimension)s>*>", "vector<Physics<%(Dimension)s>*>()"),
-               alpha = ("Scalar", "0.5"),
+               alpha = ("Scalar", "0.0"),
                tol = ("Scalar", "1.0e-8"),
                maxIterations = ("size_t", "100u")):
         """Construct a Crank-Nicolson itegrator.

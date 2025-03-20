@@ -626,7 +626,7 @@ maxResidual(const DataBase<Dimension>& dataBase,
         // Velocity
         auto vres = fresV(vi0, vi1, tol);
         if (vres > maxResidual_local.first) {
-          maxResidual_local = ResidualType(xres, ("Velocity change: residual = " + to_string(vres) + "\n" +
+          maxResidual_local = ResidualType(vres, ("Velocity change: residual = " + to_string(vres) + "\n" +
                                                   "                     pos0 = " + vec_to_string(xi0) + 
                                                   "                     pos1 = " + vec_to_string(xi1) + 
                                                   "                     vel0 = " + vec_to_string(vi0) + 
@@ -641,12 +641,12 @@ maxResidual(const DataBase<Dimension>& dataBase,
         // Thermal energy
         auto epsres = fresS(epsi0, epsi1, tol);
         if (epsres > maxResidual_local.first) {
-          maxResidual_local = ResidualType(xres, ("Thermal energy change: residual = " + to_string(epsres) + "\n" +
-                                                  "                           pos0 = " + vec_to_string(xi0) + 
-                                                  "                           pos1 = " + vec_to_string(xi1) + 
-                                                  "                           eps0 = " + to_string(epsi0) + "\n" +
-                                                  "                           eps1 = " + to_string(epsi1) + "\n" +
-                                                  "          (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
+          maxResidual_local = ResidualType(epsres, ("Thermal energy change: residual = " + to_string(epsres) + "\n" +
+                                                    "                           pos0 = " + vec_to_string(xi0) + 
+                                                    "                           pos1 = " + vec_to_string(xi1) + 
+                                                    "                           eps0 = " + to_string(epsi0) + "\n" +
+                                                    "                           eps1 = " + to_string(epsi1) + "\n" +
+                                                    "          (nodeListID, i, rank) = (" + to_string(nodeListi) + " " + to_string(i) + " " + to_string(rank) + ")\n"));
           rank_local = rank;
           nodeList_local = nodeListi;
           node_local = i;

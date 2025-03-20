@@ -43,7 +43,7 @@ step(const typename Dimension::Scalar maxTime) {
   auto count = 0u;
   auto maxIterations = 10u;
   while (not success and count++ < maxIterations) {
-    cerr << "=============> Current dtMultiplier = " << mDtMultiplier << " " << mMaxGoodDtMultiplier << " " << mMaxAllowedDtMultiplier << endl;
+    // cerr << "=============> Current dtMultiplier = " << mDtMultiplier << " " << mMaxGoodDtMultiplier << " " << mMaxAllowedDtMultiplier << endl;
     
     // Try to advance using the current timestep multiplier
     success = this->step(maxTime, state, derivs);

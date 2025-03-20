@@ -80,9 +80,10 @@ step(typename Dimension::Scalar maxTime,
   this->finalizeDerivatives(t, dt, db, state, derivs);
 
   // Make a copy of the initial state and derivatives
-  State<Dimension> state0(state);
+  State<Dimension> state0(state), state1(state);
   StateDerivatives<Dimension> derivs0(derivs);
   state0.copyState();
+  state1.copyState();
   derivs0.copyState();
   CHECK(state0 == state);
 
@@ -126,14 +127,19 @@ step(typename Dimension::Scalar maxTime,
     this->postStateUpdate(t + dt, dt, db, state, derivs);
 
     // Initial independent variable vector
-    vector<double> solution0, solution;
-    state0.serializeIndependentData(solution0);
-    const auto n = solution0.size();
+    vector<double> solution1, solution;
+    // state0.serializeIndependentData(solution0);
+    // const auto n = solution0.size();
 
     // Iterate!
     auto done = false;
     size_t iterations = 0u;
     while (iterations++ < mMaxIterations and not done) {
+
+      // Last pass on new state
+      state1.assign(state);
+      state1.serializeIndependentData(solution1);
+      const auto n = solution1.size();
 
       // Derivatives at the last prediction
       this->initializeDerivatives(t + dt, dt, state, derivs);
@@ -150,7 +156,7 @@ step(typename Dimension::Scalar maxTime,
       if (mAlpha > 0.0) {
         state.serializeIndependentData(solution);
         CHECK(solution.size() == n);
-        for (auto i = 0u; i < n; ++i) solution[i] = mAlpha*solution0[i] + (1.0 - mAlpha)*solution[i];
+        for (auto i = 0u; i < n; ++i) solution[i] = mAlpha*solution1[i] + (1.0 - mAlpha)*solution[i];
         state.deserializeIndependentData(solution);
         state.update(derivs0, 0.5*dt, t,          0.5*dt, false);
         state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt, false);
@@ -162,13 +168,13 @@ step(typename Dimension::Scalar maxTime,
       this->postStateUpdate(t + dt, dt, db, state, derivs);
 
       // Compare for convergence
-      const auto maxResidual = this->computeResiduals(state, state0);
+      const auto maxResidual = this->computeResiduals(state, state1);
       done = maxResidual < tol;
-      cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
+      // cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
     }
 
     // Did we succeed?
-    if (iterations == mMaxIterations) {
+    if (iterations >= mMaxIterations) {
       state.assign(state0);
       return false;
     }
