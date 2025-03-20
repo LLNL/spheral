@@ -368,7 +368,17 @@ try:
     output("integrator.maxIterations")
     output("integrator.maxAllowedDtMultiplier")
 except:
-    pass
+    try:
+        integrator.alpha = beta
+        integrator.convergenceTolerance = ftol
+        integrator.maxIterations = maxIterations
+        integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
+        output("integrator.alpha")
+        output("integrator.convergenceTolerance")
+        output("integrator.maxIterations")
+        output("integrator.maxAllowedDtMultiplier")
+    except:
+        pass
 
 def printTotalEnergy(cycle,time,dt):
     Etot=0.0

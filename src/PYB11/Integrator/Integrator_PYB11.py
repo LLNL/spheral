@@ -27,6 +27,7 @@ PYB11includes += ['"DataBase/DataBase.hh"',
                   '"Integrator/CheapSynchronousRK2.hh"',
                   '"Integrator/Verlet.hh"',
                   '"Integrator/BackwardEuler.hh"',
+                  '"Integrator/CrankNicolson.hh"',
                   '"Integrator/ImplicitIntegrationVectorOperator.hh"']
 
 #-------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ from CheapSynchronousRK2Integrator import *
 from VerletIntegrator import *
 from ImplicitIntegrationVectorOperator import *
 from BackwardEulerIntegrator import *
+from CrankNicolsonIntegrator import *
 
 for ndim in dims:
     Dimension = f"Dim<{ndim}>"
@@ -61,4 +63,5 @@ CheapSynchronousRK2Integrator{ndim}d = PYB11TemplateClass(CheapSynchronousRK2Int
 VerletIntegrator{ndim}d = PYB11TemplateClass(VerletIntegrator, template_parameters="{Dimension}")
 ImplicitIntegrationVectorOperator{ndim}d = PYB11TemplateClass(ImplicitIntegrationVectorOperator, template_parameters="{Dimension}")
 BackwardEulerIntegrator{ndim}d = PYB11TemplateClass(BackwardEulerIntegrator, template_parameters="{Dimension}")
+CrankNicolsonIntegrator{ndim}d = PYB11TemplateClass(CrankNicolsonIntegrator, template_parameters="{Dimension}")
 ''')

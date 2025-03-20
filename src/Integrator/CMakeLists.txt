@@ -8,6 +8,7 @@ set(Integrator_inst
   SynchronousRK4
   CheapSynchronousRK2
   Verlet
+  CrankNicolson
 )
 
 set(Integrator_sources )
@@ -30,6 +31,8 @@ set(Integrator_headers
   SynchronousRK2.hh
   SynchronousRK4.hh
   Verlet.hh
+  BackwardEuler.hh
+  CrankNicolson.hh
 )
 
 spheral_add_obj_library(Integrator SPHERAL_OBJ_LIBS)

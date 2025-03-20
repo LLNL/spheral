@@ -1,11 +1,11 @@
 //---------------------------------Spheral++----------------------------------//
-// BackwardEuler -- Advance the set of Physics packages in time using first
+// CrankNicolson -- Advance the set of Physics packages in time using first
 // order Backward Euler method.  All packages are advanced at one
 // timestep simultaneously each step, i.e., synchronously.
 //
 // Created by JMO, Mon Oct 21 14:32:05 PDT 2024
 //----------------------------------------------------------------------------//
-#include "Integrator/BackwardEuler.hh"
+#include "Integrator/CrankNicolson.hh"
 #include "Integrator/ImplicitIntegrationVectorOperator.hh"
 #include "Solvers/KINSOL.hh"
 
@@ -35,24 +35,17 @@ namespace Spheral {
 // Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-BackwardEuler<Dimension>::
-BackwardEuler(DataBase<Dimension>& dataBase,
+CrankNicolson<Dimension>::
+CrankNicolson(DataBase<Dimension>& dataBase,
               const vector<Physics<Dimension>*> physicsPackages,
-              const Scalar beta,
-              const Scalar ftol,
-              const Scalar steptol,
+              const Scalar alpha,
+              const Scalar tol,
               const size_t maxIterations):
-  ImplicitIntegrator<Dimension>(dataBase, physicsPackages, ftol),
-  mBeta(beta),
-  mftol(ftol),
-  msteptol(steptol),
-  mtM2(-1.0),
-  mtM1(-1.0),
-  mMaxIters(maxIterations),
+  ImplicitIntegrator<Dimension>(dataBase, physicsPackages, tol),
+  mAlpha(alpha),
+  mMaxIterations(maxIterations),
   mNumExplicitSteps(0u),
-  mNumImplicitSteps(0u),
-  mSolutionM2(),
-  mSolutionM1() {
+  mNumImplicitSteps(0u) {
   this->allowDtCheck(true);
 }
 
@@ -61,14 +54,15 @@ BackwardEuler(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-BackwardEuler<Dimension>::
+CrankNicolson<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
      StateDerivatives<Dimension>& derivs) {
 
   // Get the current time and data base.
-  Scalar t = this->currentTime();
+  const auto t = this->currentTime();
   DataBase<Dimension>& db = this->accessDataBase();
+  const auto tol = this->convergenceTolerance();
 
   // Initalize the integrator.
   this->preStepInitialize(state, derivs);
@@ -94,7 +88,7 @@ step(typename Dimension::Scalar maxTime,
 
   // If we have not yet accrued enough previous step information to make a
   // prediction about the next state, just advance explicitly
-  if (mDtMultiplier < 1.0 or this->currentCycle() < 4) {
+  if (mDtMultiplier < 1.0) {
 
     //..........................................................................
     // Do a standard RK2 step
@@ -125,95 +119,67 @@ step(typename Dimension::Scalar maxTime,
 
   } else {
 
-    //..........................................................................
-    // Make a parabolic fitted prediction for the initial guess.  We use the Lagrange
-    // interpolation formula for a second-order polynomial.
-    vector<double> solution0;
-    // state.serializeIndependentData(solution0);  // t_n
-    // const auto n = solution0.size();
-    // CHECK(mSolutionM2.size() == n);             // t_{n-2}
-    // CHECK(mSolutionM1.size() == n);             // t_{n-1}
-    // CHECK(mtM2 < mtM1 and mtM1 < t);
-    // const auto x1 = mtM2, x2 = mtM1, x3 = t, x = t + dt;
-    // // cerr << "Solution t_{n-2}:";
-    // // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM2[i];
-    // // cerr << endl
-    // //      << "Solution t_{n-1}:";
-    // // for (auto i = 0u; i < n; ++i) cerr << " " << mSolutionM1[i];
-    // // cerr << endl
-    // //      << "Solution   t_{n}:";
-    // // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
-    // for (auto i = 0u; i < n; ++i) {
-    //   solution0[i] = (mSolutionM2[i]*(x - x2)*(x - x3)/((x1 - x2)*(x1 - x3)) +
-    //                   mSolutionM1[i]*(x - x1)*(x - x3)/((x2 - x1)*(x2 - x3)) +
-    //                   solution0[i]  *(x - x1)*(x - x2)/((x3 - x1)*(x3 - x2)));
-    // }
-    // // cerr << endl
-    // //      << "Solution t_{n+1}:";
-    // // for (auto i = 0u; i < n; ++i) cerr << " " << solution0[i];
-    // // cerr << endl;
-
     // Initial Forward Euler prediction for the end of timestep state
-    // state.deserializeIndependentData(solution0);
     state.update(derivs, dt, t, dt, false);
     this->applyGhostBoundaries(state, derivs);
     this->finalizeGhostBoundaries();
     this->postStateUpdate(t + dt, dt, db, state, derivs);
 
-    // Derivatives at the ForwardEuler prediction
-    this->initializeDerivatives(t + dt, dt, state, derivs);
-    derivs.Zero();
-    this->evaluateDerivatives(t + dt, dt, db, state, derivs);
-    this->finalizeDerivatives(t + dt, dt, db, state, derivs);
+    // Initial independent variable vector
+    vector<double> solution0, solution;
+    state0.serializeIndependentData(solution0);
+    const auto n = solution0.size();
 
-    // Now do a Crank-Nicolson prediction for the solution at t+dt
-    state.assign(state0);
-    state.update(derivs0, 0.5*dt, t,          0.5*dt);
-    state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt);
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-    this->postStateUpdate(t + dt, dt, db, state, derivs);
-    state.serializeIndependentData(solution0);
+    // Iterate!
+    auto done = false;
+    size_t iterations = 0u;
+    while (iterations++ < mMaxIterations and not done) {
 
-    // Build a solver
-    KINSOL solver;
-    solver.fnormtol(mftol);
-    solver.scsteptol(msteptol);
-    solver.numMaxIters(mMaxIters);
+      // Derivatives at the last prediction
+      this->initializeDerivatives(t + dt, dt, state, derivs);
+      derivs.Zero();
+      this->evaluateDerivatives(t + dt, dt, db, state, derivs);
+      this->finalizeDerivatives(t + dt, dt, db, state, derivs);
 
-    // Build the VectorOperator
-    ImplicitIntegrationVectorOperator op(t, dt, mBeta, state0, derivs0, state, derivs, *this);
+      // Estimate new n+1 solution
+      state.assign(state0);
+      state.update(derivs0, 0.5*dt, t,          0.5*dt);
+      state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt);
 
-    // Iterate on the new state
-    // std::vector<double> solution;
-    // state.serializeIndependentData(solution);
-    auto numIters = solver.solve(op, solution0);
-    state.assign(state0);
-    if (numIters == size_t(mMaxIters)) {
-      return false;
+      // Are we blending old and new solutions?
+      if (mAlpha > 0.0) {
+        state.serializeIndependentData(solution);
+        CHECK(solution.size() == n);
+        for (auto i = 0u; i < n; ++i) solution[i] = mAlpha*solution0[i] + (1.0 - mAlpha)*solution[i];
+        state.deserializeIndependentData(solution);
+        state.update(derivs0, 0.5*dt, t,          0.5*dt, false);
+        state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt, false);
+      }
+
+      // Finish state update
+      this->applyGhostBoundaries(state, derivs);
+      this->finalizeGhostBoundaries();
+      this->postStateUpdate(t + dt, dt, db, state, derivs);
+
+      // Compare for convergence
+      const auto maxResidual = this->computeResiduals(state, state0);
+      done = maxResidual < tol;
+      cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
     }
 
-    // Unpack the solution into the final state.
-    ++mNumImplicitSteps;
-    state.update(derivs, dt, t, dt, false);
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-    this->postStateUpdate(t + dt, dt, db, state, derivs);
-
+    // Did we succeed?
+    if (iterations == mMaxIterations) {
+      state.assign(state0);
+      return false;
+    }
   }
+  ++mNumImplicitSteps;
   
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);
 
   // Enforce boundaries.
   this->enforceBoundaries(state, derivs);
-
-  // Copy the final state for the next step
-  // cerr << "TIMES: " << mtM2 << " " << mtM1 << " " << t << " " << t + dt << endl;
-  mtM2 = mtM1;
-  mtM1 = t;
-  mSolutionM2 = mSolutionM1;
-  state0.serializeIndependentData(mSolutionM1);
 
   // Set the new current time and last time step.
   this->currentTime(t + dt);
