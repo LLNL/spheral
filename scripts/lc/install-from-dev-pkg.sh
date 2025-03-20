@@ -27,7 +27,7 @@ DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
 # Delete the install directory but not the tar file, this way we can rerun this stage if a failure happens
 # like with the network
-find $INSTALL_DIR ! -name '$DEV_TAR_FILE' -delete
+find $INSTALL_DIR ! -name $DEV_TAR_FILE -delete
 
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
