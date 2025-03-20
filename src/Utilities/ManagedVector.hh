@@ -55,6 +55,8 @@ public:
   using iterator = DataType*;
   using const_iterator = const DataType*;
 
+  using value_type = DataType;
+
   iterator begin() { return MA::begin(); }
   const_iterator begin() const { return MA::begin(); }
 

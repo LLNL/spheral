@@ -5,6 +5,7 @@
 #include "chai/managed_ptr.hpp"
 
 using MVDouble = Spheral::ManagedVector<double>;
+using MVValType = typename MVDouble::value_type;
 
 #define assert_empty_map(IGNORED) ASSERT_EQ(chai::ArrayManager::getInstance()->getPointerMap().size(),0)
 
@@ -248,6 +249,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc)
   EXEC_IN_SPACE_END()
 
   MVDouble array2(4);
+  MVValType* pre_resize_ptr = &(array2[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array2.size(),     4);
@@ -256,11 +258,15 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc)
 
   array.move(chai::CPU);
   array2.resize(6);
+  MVValType* post_resize_ptr = &(array2[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
     SPHERAL_ASSERT_EQ(array2.size(),     6);
     //SPHERAL_ASSERT_EQ(array2.capacity(), MVDouble::initial_capacity);
   EXEC_IN_SPACE_END()
+
+  // No reallocation has been performed the data should be in the same location.
+  ASSERT_EQ(pre_resize_ptr, post_resize_ptr);
 }
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerRealloc)
@@ -268,6 +274,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerRealloc)
   using WORK_EXEC_POLICY = TypeParam;
 
   MVDouble array(4);
+  MVValType* pre_resize_ptr = &(array[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array.size(),     4);
@@ -276,11 +283,15 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerRealloc)
 
   array.move(chai::CPU);
   array.resize(12);
+  MVValType* post_resize_ptr = &(array[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array.size(),     12);
   SPHERAL_ASSERT_EQ(array.capacity(), 16);
   EXEC_IN_SPACE_END()
+ 
+  // Reallocation has been performed the data should NOT be in the same location.
+  ASSERT_NE(pre_resize_ptr, post_resize_ptr);
 }
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeSmaller)
@@ -288,18 +299,23 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeSmaller)
   using WORK_EXEC_POLICY = TypeParam;
 
   MVDouble array(4);
+  MVValType* pre_resize_ptr = &(array[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array.size(),     4);
-  //SPHERAL_ASSERT_EQ(array.capacity(), 0);
+  SPHERAL_ASSERT_EQ(array.capacity(), MVDouble::initial_capacity);
   EXEC_IN_SPACE_END()
 
   array.resize(2);
+  MVValType* post_resize_ptr = &(array[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(array.size(),     2);
-  //SPHERAL_ASSERT_EQ(array.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(array.capacity(), MVDouble::initial_capacity);
   EXEC_IN_SPACE_END()
+
+  // No reallocation has been performed the data should be in the same location.
+  ASSERT_EQ(pre_resize_ptr, post_resize_ptr);
 }
 
 TEST(ManagedVectorTest, Erase)
