@@ -99,15 +99,19 @@ KINSOL::solve(SolverFunction& func,
   flag = KINSetNumMaxIters(mkmem, mNumMaxIters);
   VERIFY2(flag == KIN_SUCCESS, "KINSOL error setting max iterations: " << flag);
 
+  // Initial residuals
+  std::vector<double> residuals0(nloc);
+  func(residuals0, initialGuess);
+  CHECK(residuals0.size() == nloc);
+
   // Prepare the vectors for unknowns (and scalings)
   auto& comm = Communicator::communicator();
-  N_Vector mXvec = N_VMake_Parallel(comm, nloc, nglob, initialGuess.data(), mctx);
+  N_Vector mXvec = N_VMake_Parallel(comm, nloc, nglob, initialGuess.data(), mctx);  // Reusing memory in our input std::vector
   N_Vector mUscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   N_Vector mFscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   for (auto i = 0u; i < nloc; ++i) {
-    // NV_Ith_P(mXvec, i) = initialGuess[i];
-    NV_Ith_P(mUscale, i) = 1.0;
-    NV_Ith_P(mFscale, i) = 1.0;
+    NV_Ith_P(mUscale, i) = std::min(10.0, std::max(1.0, safeInvVar(initialGuess[i], std::max(1e-3, 10.0*mfnormtol))));
+    NV_Ith_P(mFscale, i) = std::min(10.0, std::max(1.0, residuals0[i]));
   }
 
   // Initialize KINSOL, with x as a template for size of the problem.  We also have
