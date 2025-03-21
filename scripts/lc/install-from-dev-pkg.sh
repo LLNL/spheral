@@ -22,6 +22,7 @@ echo $SPACK_URL
 echo $INSTALL_DIR
 echo $SCRIPT_DIR
 echo $BUILD_ALLOC
+echo $PWD
 
 DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
