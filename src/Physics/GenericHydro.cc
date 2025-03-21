@@ -583,8 +583,8 @@ maxResidual(const DataBase<Dimension>& dataBase,
   auto result = ResidualType(-1.0, "You should not see me!");
 
   // Define some functions to compute residuals
-  auto fresS = [](const Scalar& x1, const Scalar& x2, const Scalar tol) { auto dx = std::abs(x2 - x1);     return std::min(dx, dx/std::max(std::abs(x1) + std::abs(x2), tol)); };
-  auto fresV = [](const Vector& x1, const Vector& x2, const Scalar tol) { auto dx = (x2 - x1).magnitude(); return std::min(dx, dx/std::max(x1.magnitude() + x2.magnitude(), tol)); };
+  auto fresS = [](const Scalar& x1, const Scalar& x2, const Scalar tol) { auto dx = std::abs(x2 - x1);     return dx/std::max(std::abs(x1) + std::abs(x2), tol); };
+  auto fresV = [](const Vector& x1, const Vector& x2, const Scalar tol) { auto dx = (x2 - x1).magnitude(); return dx/std::max(x1.magnitude() + x2.magnitude(), tol); };
 
   // Loop over every fluid node.
   for (auto [nodeListi_, fluidNodeListPtr_] : enumerate(dataBase.fluidNodeListPtrs())) {       // __clang__
