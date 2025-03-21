@@ -25,10 +25,11 @@ echo $BUILD_ALLOC
 
 DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
-# Delete the install directory but not the tar file, this way we can rerun this stage if a failure happens
-# like with the network
-find $INSTALL_DIR ! -name $DEV_TAR_FILE -delete
-
+# Copy the tar file to one directory up so it is not deleted
+cp $INSTALL_DIR/$DEV_TAR_FILE $INSTALL_DIR/..
+rm -rf $INSTALL_DIR
+mkdir -p $INSTALL_DIR
+mv $INSTALL_DIR/../$DEV_TAR_FILE $INSTALL_DIR/
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls
@@ -49,4 +50,4 @@ HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
 $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean -DSPHERAL_PIP_CACHE_DIR=$SPHERAL_PIP_CACHE_DIR -DSPHERAL_NETWORK_CONNECTED=Off
 
 # Now delete the tar file
-rm -rf $INSTALL_DIR/$DEV_TAR_FILE
+rm -f $INSTALL_DIR/$DEV_TAR_FILE
