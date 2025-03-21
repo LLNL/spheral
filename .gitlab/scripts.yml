@@ -160,14 +160,18 @@
 .install_dev_pkg:
   stage: install_production
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: clean
   script:
     - INSTALL_DIR=$(cat install-dir.txt)
     - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
 
+    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID/project
+    - mkdir -p $CI_BUILD_DIR
+    - cd $CI_BUILD_DIR
     - cp $INSTALL_DIR/$DEV_PKG_NAME.tar.gz .
     - tar -xzf $DEV_PKG_NAME.tar.gz
     - cd $DEV_PKG_NAME
+    - pwd
 
     - env INSTALL_DIR=$INSTALL_DIR DEV_PKG_SPEC=$DEV_PKG_SPEC DEV_PKG_NAME=$DEV_PKG_NAME BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh

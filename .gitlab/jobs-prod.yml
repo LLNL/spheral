@@ -19,10 +19,10 @@ shared_tpls_update_permissions:
 
 ### TAG RELEASE ###
 toss_build_dev_pkg_release:
-  extends: [.toss_resource_general, .gcc_mvapich2, .build_dev_pkg, .tag_release_rule]
+  extends: [.toss_resource_general, .build_dev_pkg, .tag_release_rule]
 
 toss_install_dev_pkg_release:
-  extends: [.toss_resource_general, .gcc_mvapich2, .install_dev_pkg, .tag_release_rule]
+  extends: [.toss_resource_general, .install_dev_pkg, .tag_release_rule]
   needs: [toss_build_dev_pkg_release]
 
 toss_release_permissions:
