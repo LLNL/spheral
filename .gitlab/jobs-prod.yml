@@ -39,4 +39,3 @@ cleanup_old_dirs_toss:
 
 cleanup_old_dirs_cray:
   extends: [.cray_resource_general, .clean_old_dirs]
-
