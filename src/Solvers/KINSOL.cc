@@ -110,8 +110,8 @@ KINSOL::solve(SolverFunction& func,
   N_Vector mUscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   N_Vector mFscale = N_VNew_Parallel(comm, nloc, nglob, mctx);
   for (auto i = 0u; i < nloc; ++i) {
-    NV_Ith_P(mUscale, i) = std::min(10.0, std::max(1.0, safeInvVar(initialGuess[i], std::max(1e-3, 10.0*mfnormtol))));
-    NV_Ith_P(mFscale, i) = std::min(10.0, std::max(1.0, residuals0[i]));
+    NV_Ith_P(mUscale, i) = std::max(std::max(1e-3, mscsteptol), std::abs(initialGuess[i])); // std::min(10.0, std::max(1.0, safeInvVar(initialGuess[i], std::max(1e-3, 10.0*mfnormtol))));
+    NV_Ith_P(mFscale, i) = std::max(std::max(1e-3, mscsteptol), std::abs(residuals0[i]));
   }
 
   // Initialize KINSOL, with x as a template for size of the problem.  We also have
