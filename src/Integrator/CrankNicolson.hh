@@ -26,8 +26,8 @@ public:
   CrankNicolson(DataBase<Dimension>& dataBase,
                 const std::vector<Physics<Dimension>*> physicsPackages = std::vector<Physics<Dimension>*>(),
                 const Scalar beta = 1.0,
-                const Scalar tol = 1.0e-8,
-                const size_t maxIterations = 100u);
+                const Scalar tol = 1.0e-4,
+                const size_t maxIterations = 10u);
   CrankNicolson& operator=(const CrankNicolson& rhs) = default;
   virtual ~CrankNicolson() = default;
 

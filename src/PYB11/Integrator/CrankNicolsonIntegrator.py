@@ -24,8 +24,8 @@ class CrankNicolsonIntegrator(ImplicitIntegrator):
                dataBase = "DataBase<%(Dimension)s>&",
                packages = ("vector<Physics<%(Dimension)s>*>", "vector<Physics<%(Dimension)s>*>()"),
                beta = ("Scalar", "1.0"),
-               tol = ("Scalar", "1.0e-8"),
-               maxIterations = ("size_t", "100u")):
+               tol = ("Scalar", "1.0e-4"),
+               maxIterations = ("size_t", "10u")):
         """Construct a Crank-Nicolson itegrator.
 Note: beta is the blending of the (n+1) and (n) time solutions in the fixed-point iteration."""
         return
