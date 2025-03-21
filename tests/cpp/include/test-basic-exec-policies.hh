@@ -10,7 +10,9 @@ using EXEC_TYPES = ::testing::Types<
 #ifdef SPHERAL_ENABLE_CUDA
   ,RAJA::cuda_exec<512>
 #endif
+#ifdef SPHERAL_ENABLE_HIP
   ,RAJA::hip_exec<512>
+#endif
 >;
 
 
