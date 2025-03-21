@@ -170,7 +170,7 @@ step(typename Dimension::Scalar maxTime,
       // Compare for convergence
       const auto maxResidual = this->computeResiduals(state, state1);
       done = maxResidual < tol;
-      cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
+      // cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
     }
 
     // Did we succeed?

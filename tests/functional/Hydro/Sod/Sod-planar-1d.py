@@ -126,11 +126,11 @@ commandLine(nx1 = 400,
             gradhCorrection = True,
             linearConsistent = False,
 
-            ftol = 1.0e-8,
-            convergenceTolerance = 1.0e-8,
-            maxIterations = 10,
-            maxAllowedDtMultiplier = 5.0,
-            beta = 1.0,
+            ftol = None,
+            convergenceTolerance = None,
+            maxIterations = None,
+            maxAllowedDtMultiplier = None,
+            beta = None,
 
             useRefinement = False,
 
@@ -526,16 +526,21 @@ output("integrator.rigorousBoundaries")
 
 # Special stuff for implicit integrators
 if isinstance(integrator, ImplicitIntegrator):
-    integrator.beta = beta
-    integrator.convergenceTolerance = convergenceTolerance
-    integrator.maxIterations = maxIterations
-    integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
+    if beta:
+        integrator.beta = beta
+    if convergenceTolerance:
+        integrator.convergenceTolerance = convergenceTolerance
+    if maxIterations:
+        integrator.maxIterations = maxIterations
+    if maxAllowedDtMultiplier:
+        integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
     output("integrator.beta")
     output("integrator.convergenceTolerance")
     output("integrator.maxIterations")
     output("integrator.maxAllowedDtMultiplier")
 if isinstance(integrator, BackwardEulerIntegrator):
-    integrator.ftol = ftol
+    if ftol:
+        integrator.ftol = ftol
     output("integrator.ftol")
 
 #-------------------------------------------------------------------------------
