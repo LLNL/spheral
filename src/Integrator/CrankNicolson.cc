@@ -38,11 +38,11 @@ template<typename Dimension>
 CrankNicolson<Dimension>::
 CrankNicolson(DataBase<Dimension>& dataBase,
               const vector<Physics<Dimension>*> physicsPackages,
-              const Scalar alpha,
+              const Scalar beta,
               const Scalar tol,
               const size_t maxIterations):
   ImplicitIntegrator<Dimension>(dataBase, physicsPackages, tol),
-  mAlpha(alpha),
+  mBeta(beta),
   mMaxIterations(maxIterations),
   mNumExplicitSteps(0u),
   mNumImplicitSteps(0u) {
@@ -153,10 +153,10 @@ step(typename Dimension::Scalar maxTime,
       state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt);
 
       // Are we blending old and new solutions?
-      if (mAlpha > 0.0) {
+      if (mBeta < 1.0) {
         state.serializeIndependentData(solution);
         CHECK(solution.size() == n);
-        for (auto i = 0u; i < n; ++i) solution[i] = mAlpha*solution1[i] + (1.0 - mAlpha)*solution[i];
+        for (auto i = 0u; i < n; ++i) solution[i] = (1.0 - mBeta)*solution1[i] + mBeta*solution[i];
         state.deserializeIndependentData(solution);
         state.update(derivs0, 0.5*dt, t,          0.5*dt, false);
         state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt, false);
@@ -170,7 +170,7 @@ step(typename Dimension::Scalar maxTime,
       // Compare for convergence
       const auto maxResidual = this->computeResiduals(state, state1);
       done = maxResidual < tol;
-      // cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
+      cerr << "=============> CrankNicolson: " << iterations << "/" << mMaxIterations << " : " << maxResidual << "/" << tol << endl;
     }
 
     // Did we succeed?

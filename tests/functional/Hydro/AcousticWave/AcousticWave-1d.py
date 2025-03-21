@@ -90,7 +90,7 @@ commandLine(nx1 = 100,
             linearConsistent = False,
 
             ftol = 1.0e-8,
-            steptol = 1.0e-8,
+            convergenceTolerance = 1.0e-8,
             maxIterations = 5,
             maxAllowedDtMultiplier = 5.0,
             beta = 1.0,
@@ -356,29 +356,19 @@ output("integrator.dtGrowth")
 output("integrator.rigorousBoundaries")
 output("integrator.verbose")
 
-try:
+# Special stuff for implicit integrators
+if isinstance(integrator, ImplicitIntegrator):
     integrator.beta = beta
-    integrator.ftol = ftol
-    integrator.steptol = steptol
+    integrator.convergenceTolerance = convergenceTolerance
     integrator.maxIterations = maxIterations
     integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
     output("integrator.beta")
-    output("integrator.ftol")
-    output("integrator.steptol")
+    output("integrator.convergenceTolerance")
     output("integrator.maxIterations")
     output("integrator.maxAllowedDtMultiplier")
-except:
-    try:
-        integrator.alpha = beta
-        integrator.convergenceTolerance = ftol
-        integrator.maxIterations = maxIterations
-        integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
-        output("integrator.alpha")
-        output("integrator.convergenceTolerance")
-        output("integrator.maxIterations")
-        output("integrator.maxAllowedDtMultiplier")
-    except:
-        pass
+if isinstance(integrator, BackwardEulerIntegrator):
+    integrator.ftol = ftol
+    output("integrator.ftol")
 
 def printTotalEnergy(cycle,time,dt):
     Etot=0.0

@@ -40,12 +40,11 @@ BackwardEuler(DataBase<Dimension>& dataBase,
               const vector<Physics<Dimension>*> physicsPackages,
               const Scalar beta,
               const Scalar ftol,
-              const Scalar steptol,
+              const Scalar tol,
               const size_t maxIterations):
-  ImplicitIntegrator<Dimension>(dataBase, physicsPackages, ftol),
+  ImplicitIntegrator<Dimension>(dataBase, physicsPackages, tol),
   mBeta(beta),
   mftol(ftol),
-  msteptol(steptol),
   mtM2(-1.0),
   mtM1(-1.0),
   mMaxIters(maxIterations),
@@ -178,7 +177,7 @@ step(typename Dimension::Scalar maxTime,
     // Build a solver
     KINSOL solver;
     solver.fnormtol(mftol);
-    solver.scsteptol(msteptol);
+    solver.scsteptol(this->convergenceTolerance());
     solver.numMaxIters(mMaxIters);
 
     // Build the VectorOperator

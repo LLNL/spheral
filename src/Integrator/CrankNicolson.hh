@@ -25,7 +25,7 @@ public:
   // Constructors.
   CrankNicolson(DataBase<Dimension>& dataBase,
                 const std::vector<Physics<Dimension>*> physicsPackages = std::vector<Physics<Dimension>*>(),
-                const Scalar alpha = 0.0,
+                const Scalar beta = 1.0,
                 const Scalar tol = 1.0e-8,
                 const size_t maxIterations = 100u);
   CrankNicolson& operator=(const CrankNicolson& rhs) = default;
@@ -37,23 +37,23 @@ public:
                     StateDerivatives<Dimension>& derivs) override;
 
   // Access internal state
-  Scalar alpha()                          const { return mAlpha; }
+  Scalar beta()                           const { return mBeta; }
   size_t maxIterations()                  const { return mMaxIterations; }
   size_t numExplicitSteps()               const { return mNumExplicitSteps; }
   size_t numImplicitSteps()               const { return mNumImplicitSteps; }
 
-  void alpha(const Scalar x)                    { mAlpha = x; }
+  void beta(const Scalar x)                     { mBeta = x; }
   void maxIterations(const size_t x)            { mMaxIterations = x; }
-
-  // We need to make the simpler form of step visible!
-  using Integrator<Dimension>::step;
 
   // Restart methods.
   virtual std::string label() const override   { return "CrankNicolson"; }
 
+  // We need to make the simpler form of step visible!
+  using Integrator<Dimension>::step;
+
   //--------------------------- Public Interface ---------------------------//
 private:
-  Scalar mAlpha;
+  Scalar mBeta;
   size_t mMaxIterations, mNumExplicitSteps, mNumImplicitSteps;
 
   using Integrator<Dimension>::mDtMultiplier;

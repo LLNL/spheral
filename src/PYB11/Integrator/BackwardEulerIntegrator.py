@@ -25,7 +25,7 @@ class BackwardEulerIntegrator(ImplicitIntegrator):
                packages = ("vector<Physics<%(Dimension)s>*>", "vector<Physics<%(Dimension)s>*>()"),
                beta = ("Scalar", "1.0"),
                ftol = ("Scalar", "1.0e-8"),
-               steptol = ("Scalar", "1.0e-8"),
+               tol = ("Scalar", "1.0e-8"),
                maxIterations = ("size_t", "100u")):
         """Construct a backward Euler itegrator.
 Note: beta is the blending of the (n+1) and (n) time derivatives, so adjusting this parameter
@@ -55,7 +55,6 @@ makes this not just backward Euler:
     beta = PYB11property("Scalar", "beta", "beta", doc="The blend of (n+1) and (n) derivative states for advancement")
     maxIterations = PYB11property("size_t", "maxIterations", "maxIterations", doc="The maximum allowed iterations to try for advancing a step")
     ftol = PYB11property("Scalar", "ftol", "ftol")
-    steptol = PYB11property("Scalar", "steptol", "steptol")
     tM2 = PYB11property("Scalar", "tM2")
     tM1 = PYB11property("Scalar", "tM2")
     solutionM2 = PYB11property("const std::vector<double>&", "solutionM2")

@@ -23,11 +23,11 @@ class CrankNicolsonIntegrator(ImplicitIntegrator):
     def pyinit(self,
                dataBase = "DataBase<%(Dimension)s>&",
                packages = ("vector<Physics<%(Dimension)s>*>", "vector<Physics<%(Dimension)s>*>()"),
-               alpha = ("Scalar", "0.0"),
+               beta = ("Scalar", "1.0"),
                tol = ("Scalar", "1.0e-8"),
                maxIterations = ("size_t", "100u")):
         """Construct a Crank-Nicolson itegrator.
-Note: alhpa is the blending of the (n+1) and (n) time solutions in the fixed-point iteration."""
+Note: beta is the blending of the (n+1) and (n) time solutions in the fixed-point iteration."""
         return
 
     #...........................................................................
@@ -47,7 +47,7 @@ Note: alhpa is the blending of the (n+1) and (n) time solutions in the fixed-poi
 
     #...........................................................................
     # Properties
-    alpha = PYB11property("Scalar", "alpha", "alpha", doc="The blend of (n+1) and (n) state during fixed-point iteration")
+    beta = PYB11property("Scalar", "beta", "beta", doc="The blend of (n+1) and (n) state during fixed-point iteration")
     maxIterations = PYB11property("size_t", "maxIterations", "maxIterations", doc="The maximum allowed iterations to try for advancing a step")
     numExplicitSteps = PYB11property("size_t", "numExplicitSteps")
     numImplicitSteps = PYB11property("size_t", "numImplicitSteps")

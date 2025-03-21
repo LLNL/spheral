@@ -27,7 +27,7 @@ public:
                 const std::vector<Physics<Dimension>*> physicsPackages = std::vector<Physics<Dimension>*>(),
                 const Scalar beta = 1.0,
                 const Scalar ftol = 1.0e-8,
-                const Scalar steptol = 1.0e-8,
+                const Scalar tol = 1.0e-8,     // scsteptol in KINSOL
                 const size_t maxIterations = 100u);
   BackwardEuler& operator=(const BackwardEuler& rhs) = default;
   virtual ~BackwardEuler() = default;
@@ -41,7 +41,6 @@ public:
   Scalar beta()                           const { return mBeta; }
   size_t maxIterations()                  const { return mMaxIters; }
   Scalar ftol()                           const { return mftol; }
-  Scalar steptol()                        const { return msteptol; }
   Scalar tM2()                            const { return mtM2; }
   Scalar tM1()                            const { return mtM1; }
   const std::vector<double>& solutionM2() const { return mSolutionM2; }
@@ -52,7 +51,6 @@ public:
   void beta(const Scalar x)                     { mBeta = x; }
   void maxIterations(const size_t x)            { mMaxIters = x; }
   void ftol(const Scalar x)                     { mftol = x; }
-  void steptol(const Scalar x)                  { msteptol = x; }
 
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
@@ -62,7 +60,7 @@ public:
 
   //--------------------------- Public Interface ---------------------------//
 private:
-  Scalar mBeta, mftol, msteptol, mtM2, mtM1;
+  Scalar mBeta, mftol, mtM2, mtM1;
   size_t mMaxIters, mNumExplicitSteps, mNumImplicitSteps;
   std::vector<double> mSolutionM2, mSolutionM1;
 
