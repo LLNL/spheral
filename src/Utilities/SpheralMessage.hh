@@ -9,20 +9,46 @@
 #define __Spheral_SpheralMessage__
 
 #include "Distributed/Process.hh"
-#include <string>
+
 #include <iostream>
 
-namespace Spheral {
+// namespace Detail {
 
-inline void SpheralMessage(const std::string& msg) {
-  if (Process::getRank() == 0) std::cerr << msg << std::endl;
-}
+// class Message : public std::ostream {
+// public:
+//   std::reference_wrapper<std::ostream> os;
+//   enum LogLevel { INFO, WARNING, ERROR };
+//   Message(LogLevel level = INFO): os(level > INFO ? std::cerr : std::cout) {}
+//   template<typename T> std::ostream& operator<< (const T& t) {
+//     return (Process::getRank() == 0 ? os.get() << t : os.get());
+//   }
+// };
+// } // Detail
 
-inline void DeprecationWarning(const std::string& msg) {
-  SpheralMessage("DEPRECATION Warning: " + msg);
-}
+// template<typename T>
+// std::ostream& SpheralMessage(T& msg) {
+//   Detail::Message result(Detail::Message::INFO);
+//   result << msg;
+//   return result.os.get();
+// }
 
-}
+// template<typename T>
+// std::ostream& DeprecationWarning(T& msg) {
+//   Detail::Message result(Detail::Message::WARNING);
+//   result << "DEPRECATION Warning: ";
+//   result << msg;
+//   return result.os.get();
+// }
+
+#define SpheralMessage(msg)                                          \
+  if (Spheral::Process::getRank() == 0)  {                           \
+    std::cout << "INFO: " << msg << std::endl;                       \
+  }
+  
+#define DeprecationWarning(msg)                                      \
+  if (Spheral::Process::getRank() == 0)  {                           \
+    std::cerr << "DEPRECATION Warning: " << msg << std::endl;        \
+  }
 
 #endif
 
