@@ -287,7 +287,7 @@ update(const KeyType& key,
 
         // Increment the damage tensor.
         const auto D1 = std::max(0.0, std::min(1.0, FastMath::cube(D113)));
-        CHECK((D1 - D0)*multiplier >= 0.0);
+        CHECK2(fuzzyGreaterThanOrEqual((D1 - D0)*multiplier, 0.0), D0 << " " << D1 << " " << multiplier << " " << (D1 - D0)*multiplier);
         Di += (D1 - D0)*strainDirection.selfdyad();
       }
     }
