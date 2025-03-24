@@ -32,9 +32,13 @@ cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls
 
+echo $PWD
 source $INSTALL_DIR/spheral-spack-tpls/spack/share/spack/setup-env.sh
+echo $PWD
 spack env activate ./scripts/spack/environments/dev_pkg
+echo $PWD
 spack bootstrap add --trust spheral-sources $PWD/resources/metadata/sources
+echo $PWD
 spack bootstrap add --trust spheral-binaries $PWD/resources/metadata/binaries
 spack mirror add --unsigned spheral-mirror $PWD/resources/mirror
 spack mirror add --unsigned spheral-cache $PWD/resources
