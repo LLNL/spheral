@@ -46,9 +46,17 @@ public:
   Scalar convergenceTolerance()                  const { return mTol; }
   Scalar maxAllowedDtMultiplier()                const { return mMaxGoodDtMultiplier; }
   Scalar maxGoodDtMultiplier()                   const { return mMaxGoodDtMultiplier; }
+  size_t numExplicitSteps()               const { return mNumExplicitSteps; }
+  size_t numImplicitSteps()               const { return mNumImplicitSteps; }
 
   void convergenceTolerance(const Scalar x)            { mTol = x; }
   void maxAllowedDtMultiplier(const Scalar x)          { mMaxAllowedDtMultiplier = x; }
+
+  //****************************************************************************
+  // Methods required for restarting.
+  virtual void dumpState(FileIO& file, const std::string& pathName)          const override;
+  virtual void restoreState(const FileIO& file, const std::string& pathName)       override;
+  //****************************************************************************
 
   // Forbidden methods
   ImplicitIntegrator() = delete;
@@ -65,9 +73,8 @@ protected:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const override;
 
-private:
-  //-------------------------- Private Interface --------------------------//
   Scalar mTol, mMaxAllowedDtMultiplier, mMaxGoodDtMultiplier;
+  size_t mNumExplicitSteps, mNumImplicitSteps;
 };
 
 }

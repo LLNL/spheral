@@ -48,8 +48,6 @@ BackwardEuler(DataBase<Dimension>& dataBase,
   mtM2(-1.0),
   mtM1(-1.0),
   mMaxIters(maxIterations),
-  mNumExplicitSteps(0u),
-  mNumImplicitSteps(0u),
   mSolutionM2(),
   mSolutionM1() {
   this->allowDtCheck(true);

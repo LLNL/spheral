@@ -37,9 +37,6 @@ public:
                     State<Dimension>& state,
                     StateDerivatives<Dimension>& derivs) override;
 
-  // Restart methods.
-  virtual std::string label() const override { return "Verlet"; }
-
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 

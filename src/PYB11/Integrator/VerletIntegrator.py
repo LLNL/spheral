@@ -34,11 +34,6 @@ This method is symplectic in the absence of dissipation."""
         "Take a step"
         return "bool"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
-
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------

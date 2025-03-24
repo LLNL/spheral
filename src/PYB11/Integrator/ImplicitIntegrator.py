@@ -47,6 +47,8 @@ class ImplicitIntegrator(Integrator):
     convergenceTolerance = PYB11property("Scalar", "convergenceTolerance", "convergenceTolerance", doc="Tolerance for convergence in residuals during integration")
     maxAllowedDtMultiplier = PYB11property("Scalar", "maxAllowedDtMultiplier", "maxAllowedDtMultiplier")
     maxGoodDtMultiplier = PYB11property("Scalar", "maxGoodDtMultiplier")
+    numExplicitSteps = PYB11property("size_t", "numExplicitSteps")
+    numImplicitSteps = PYB11property("size_t", "numImplicitSteps")
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces

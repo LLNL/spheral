@@ -45,8 +45,6 @@ public:
   Scalar tM1()                            const { return mtM1; }
   const std::vector<double>& solutionM2() const { return mSolutionM2; }
   const std::vector<double>& solutionM1() const { return mSolutionM1; }
-  size_t numExplicitSteps()               const { return mNumExplicitSteps; }
-  size_t numImplicitSteps()               const { return mNumImplicitSteps; }
 
   void beta(const Scalar x)                     { mBeta = x; }
   void maxIterations(const size_t x)            { mMaxIters = x; }
@@ -55,16 +53,15 @@ public:
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 
-  // Restart methods.
-  virtual std::string label() const override   { return "BackwardEuler"; }
-
   //--------------------------- Public Interface ---------------------------//
 private:
   Scalar mBeta, mftol, mtM2, mtM1;
-  size_t mMaxIters, mNumExplicitSteps, mNumImplicitSteps;
+  size_t mMaxIters;
   std::vector<double> mSolutionM2, mSolutionM1;
 
   using Integrator<Dimension>::mDtMultiplier;
+  using ImplicitIntegrator<Dimension>::mNumExplicitSteps;
+  using ImplicitIntegrator<Dimension>::mNumImplicitSteps;
 };
 
 }

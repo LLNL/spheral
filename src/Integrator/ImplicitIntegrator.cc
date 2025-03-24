@@ -7,6 +7,8 @@
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "Distributed/allReduce.hh"
+#include "Utilities/SpheralMessage.hh"
+#include "FileIO/FileIO.hh"
 
 namespace Spheral {
 
@@ -25,7 +27,9 @@ ImplicitIntegrator(DataBase<Dimension>& dataBase,
   Integrator<Dimension>(dataBase, physicsPackages),
   mTol(tol),
   mMaxAllowedDtMultiplier(100.0),
-  mMaxGoodDtMultiplier(1.0) {
+  mMaxGoodDtMultiplier(1.0),
+  mNumExplicitSteps(0u),
+  mNumImplicitSteps(0u) {
 }
 
 //------------------------------------------------------------------------------
@@ -95,6 +99,32 @@ computeResiduals(const State<Dimension>& state1,
   }
   cout.flush();
   return globalMax;
+}
+
+//------------------------------------------------------------------------------
+// Dump the current state of the Integrator to the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ImplicitIntegrator<Dimension>::
+dumpState(FileIO& file, const std::string& pathName) const {
+  Integrator<Dimension>::dumpState(file, pathName);
+  file.write(mMaxGoodDtMultiplier, pathName + "/maxGoodDtMultiplier");
+}  
+
+//------------------------------------------------------------------------------
+// Restore the state of the NodeList from the given file.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+ImplicitIntegrator<Dimension>::
+restoreState(const FileIO& file, const std::string& pathName) {
+  Integrator<Dimension>::restoreState(file, pathName);
+  if (file.pathExists(pathName + "/maxGoodDtMultiplier")) {
+    file.read(mMaxGoodDtMultiplier, pathName + "/maxGoodDtMultiplier");
+  } else {
+    SpheralMessage("ImplicitIntegrator WARNING: unable to load old maxGoodDtMultiplier");
+  }
 }
 
 //------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 #include "DataOutput/registerWithRestart.hh"
 #include "NodeList/NodeListRegistrar.hh"
 #include "Physics/Physics.hh"
-#include "Utilities/DeprecationWarning.hh"
+#include "Utilities/SpheralMessage.hh"
 #include "Utilities/DBC.hh"
 
 #ifdef USE_MPI

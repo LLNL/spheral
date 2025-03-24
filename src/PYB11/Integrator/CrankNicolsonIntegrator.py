@@ -40,17 +40,10 @@ Note: beta is the blending of the (n+1) and (n) time solutions in the fixed-poin
         "Take a step"
         return "bool"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
-
     #...........................................................................
     # Properties
     beta = PYB11property("Scalar", "beta", "beta", doc="The blend of (n+1) and (n) state during fixed-point iteration")
     maxIterations = PYB11property("size_t", "maxIterations", "maxIterations", doc="The maximum allowed iterations to try for advancing a step")
-    numExplicitSteps = PYB11property("size_t", "numExplicitSteps")
-    numImplicitSteps = PYB11property("size_t", "numImplicitSteps")
 
 #-------------------------------------------------------------------------------
 # Inject other interfaces

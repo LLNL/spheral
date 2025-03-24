@@ -33,11 +33,6 @@ class SynchronousRK4Integrator(Integrator):
         "Take a step"
         return "bool"
 
-    @PYB11virtual
-    @PYB11const
-    def label(self):
-        return "std::string"
-
 #-------------------------------------------------------------------------------
 # Inject other interfaces
 #-------------------------------------------------------------------------------

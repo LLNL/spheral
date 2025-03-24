@@ -43,9 +43,7 @@ CrankNicolson(DataBase<Dimension>& dataBase,
               const size_t maxIterations):
   ImplicitIntegrator<Dimension>(dataBase, physicsPackages, tol),
   mBeta(beta),
-  mMaxIterations(maxIterations),
-  mNumExplicitSteps(0u),
-  mNumImplicitSteps(0u) {
+  mMaxIterations(maxIterations) {
   this->allowDtCheck(true);
 }
 

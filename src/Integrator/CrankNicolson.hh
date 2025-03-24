@@ -39,14 +39,9 @@ public:
   // Access internal state
   Scalar beta()                           const { return mBeta; }
   size_t maxIterations()                  const { return mMaxIterations; }
-  size_t numExplicitSteps()               const { return mNumExplicitSteps; }
-  size_t numImplicitSteps()               const { return mNumImplicitSteps; }
 
   void beta(const Scalar x)                     { mBeta = x; }
   void maxIterations(const size_t x)            { mMaxIterations = x; }
-
-  // Restart methods.
-  virtual std::string label() const override   { return "CrankNicolson"; }
 
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
@@ -54,9 +49,11 @@ public:
   //--------------------------- Public Interface ---------------------------//
 private:
   Scalar mBeta;
-  size_t mMaxIterations, mNumExplicitSteps, mNumImplicitSteps;
+  size_t mMaxIterations;
 
   using Integrator<Dimension>::mDtMultiplier;
+  using ImplicitIntegrator<Dimension>::mNumExplicitSteps;
+  using ImplicitIntegrator<Dimension>::mNumImplicitSteps;
 };
 
 }

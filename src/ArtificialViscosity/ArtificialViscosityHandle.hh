@@ -12,7 +12,7 @@
 #include "Physics/Physics.hh"
 #include "Field/FieldList.hh"
 #include "DataOutput/registerWithRestart.hh"
-#include "Utilities/DeprecationWarning.hh"
+#include "Utilities/SpheralMessage.hh"
 
 #include <utility>
 #include <typeindex>

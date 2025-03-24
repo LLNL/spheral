@@ -700,9 +700,10 @@ dumpState(FileIO& file, const string& pathName) const {
   // file.write(dtMin(), pathName + "/dtMin");
   // file.write(dtMax(), pathName + "/dtMax");
   // file.write(dtGrowth(), pathName + "/dtGrowth");
-  file.write(lastDt(), pathName + "/lastDt");
-  file.write(currentTime(), pathName + "/currentTime");
-  file.write(currentCycle(), pathName + "/currentCycle");
+  file.write(mLastDt, pathName + "/lastDt");
+  file.write(mCurrentTime, pathName + "/currentTime");
+  file.write(mCurrentCycle, pathName + "/currentCycle");
+  file.write(mDtMultiplier, pathName + "/dtMultiplier");
 }  
 
 //------------------------------------------------------------------------------
@@ -719,6 +720,7 @@ restoreState(const FileIO& file, const string& pathName) {
   file.read(mLastDt, pathName + "/lastDt");
   file.read(mCurrentTime, pathName + "/currentTime");
   file.read(mCurrentCycle, pathName + "/currentCycle");
+  file.read(mDtMultiplier, pathName + "/dtMultiplier");
 }
 
 //------------------------------------------------------------------------------

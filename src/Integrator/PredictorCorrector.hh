@@ -37,9 +37,6 @@ public:
   // We need to make the simpler form of step visible!
   using Integrator<Dimension>::step;
 
-  // Restart methods.
-  virtual std::string label() const override { return "PredictorCorrector"; }
-
   // Forbidden methods
   PredictorCorrector() = delete;
 };
