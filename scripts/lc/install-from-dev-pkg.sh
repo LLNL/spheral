@@ -6,6 +6,7 @@ BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
 DEV_PKG_NAME=${DEV_PKG_NAME:-$SYS_TYPE-spheral-dev-pkg-undefined}
+DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
 if [[ -z "${DEV_PKG_SPEC}" ]]; then
   echo "DEV_PKG_SPEC var must be set."
@@ -20,17 +21,13 @@ fi
 echo $DEV_PKG_SPEC
 echo $SPACK_URL
 echo $INSTALL_DIR
+echo $DEV_TAR_FILE
 echo $SCRIPT_DIR
 echo $BUILD_ALLOC
 echo $PWD
 
-DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
-
-# Copy the tar file to one directory up so it is not deleted
-cp $INSTALL_DIR/$DEV_TAR_FILE $INSTALL_DIR/..
-rm -rf $INSTALL_DIR
-mkdir -p $INSTALL_DIR
-mv $INSTALL_DIR/../$DEV_TAR_FILE $INSTALL_DIR/
+# Clear the INSTALL_DIR, leave the dev-pkg tar intact.
+find $INSTALL_DIR -mindepth 1 ! -name "*.tar" -exec rm -rf {} +
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls
