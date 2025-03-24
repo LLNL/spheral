@@ -27,7 +27,7 @@ echo $BUILD_ALLOC
 echo $PWD
 
 # Clear the INSTALL_DIR, leave the dev-pkg tar intact.
-find $INSTALL_DIR -mindepth 1 ! -name "*.tar" -exec rm -rf {} +
+drm --exclude ".*spheral.*.tar.gz" $INSTALL_DIR/*
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls

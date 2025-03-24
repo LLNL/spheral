@@ -178,6 +178,7 @@
     - cd $DEV_PKG_NAME
     - pwd
 
+    - ml load mpifileutils
     - env INSTALL_DIR=$INSTALL_DIR DEV_PKG_SPEC=$DEV_PKG_SPEC DEV_PKG_NAME=$DEV_PKG_NAME BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
 
