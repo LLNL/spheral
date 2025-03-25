@@ -155,6 +155,7 @@
     - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
     - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
+    - echo $DEV_PKG_NAME &> dev-pkg-name.txt
     - echo $CI_BUILD_DIR &> ci-dir.txt
     - echo $INSTALL_DIR &> install-dir.txt
     - mkdir -p $CI_BUILD_DIR/$DEV_PKG_NAME && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR/$DEV_PKG_NAME
@@ -162,8 +163,6 @@
 
     - env SCRIPT_DIR=$SCRIPT_DIR DEV_PKG_NAME=$DEV_PKG_NAME CI_BULD_DIR=$CI_BUILD_DIR
       bash ./$SCRIPT_DIR/lc/generate-buildcache.sh
-
-    - echo $DEV_PKG_NAME &> dev-pkg-name.txt
 
   artifacts:
     paths:
