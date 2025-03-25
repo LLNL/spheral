@@ -27,6 +27,8 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+
 using std::vector;
 using std::string;
 using std::pair;
@@ -39,6 +41,16 @@ using std::max;
 using std::abs;
 
 namespace Spheral {
+
+//------------------------------------------------------------------------------
+// Provide to_string for tensors
+//------------------------------------------------------------------------------
+template<int nDim>
+std::string to_string(const GeomSymmetricTensor<nDim>& x) {
+  std::stringstream ss;
+  ss << x;
+  return ss.str();
+}
 
 //------------------------------------------------------------------------------
 // Constructor.
@@ -204,6 +216,60 @@ finalize(const Scalar /*time*/,
     // if (Process::getRank() == 0) std::cout << "DamageModel dfrac = " << nD << "/" << ntot << " = " << dfrac << " : " << mComputeIntersectConnectivity << std::endl;
   }
   TIME_END("DamageModel_finalize");
+}
+
+//------------------------------------------------------------------------------
+// Return the maximum state change we care about for checking for convergence
+// in the implicit integration methods.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename DamageModel<Dimension>::ResidualType
+DamageModel<Dimension>::
+maxResidual(const DataBase<Dimension>& dataBase, 
+            const State<Dimension>& state1,
+            const State<Dimension>& state0,
+            const Scalar tol) const {
+  REQUIRE(tol > 0.0);
+
+  // Define some functions to compute residuals
+  auto fresT = [](const SymTensor& x1, const SymTensor& x2, const Scalar tol) { auto dx = std::abs((x2 - x1).Trace()); return dx/std::max(std::abs(x1.Trace()) + std::abs(x2.Trace()), Dimension::nDim*tol); };
+
+  // Initialize the return value to some impossibly high value.
+  auto result = ResidualType(-1.0, "You should not see me!");
+
+  // Grab the state we're comparing
+  const auto  buildKey = [&](const std::string& fkey) { return StateBase<Dimension>::buildFieldKey(fkey, mNodeList.name()); };
+  const auto& D0 = state0.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
+  const auto& D1 = state1.field(buildKey(SolidFieldNames::tensorDamage), SymTensor::zero);
+  
+  // Walk the nodes
+  const auto n = mNodeList.numInternalNodes();
+  const auto rank = Process::getRank();
+#pragma omp parallel
+  {
+    auto maxResidual_local = result;
+#pragma omp for
+    for (auto i = 0u; i < n; ++i) {
+
+      // We limit by the change in damage
+      const auto Dres = fresT(D0(i), D1(i), tol);
+      if (Dres > maxResidual_local.first) {
+        maxResidual_local = ResidualType(Dres, ("Damage change: residual = " + std::to_string(Dres) + "\n" +
+                                                "                     D0 = " + to_string(D0(i)) + 
+                                                "                     D1 = " + to_string(D1(i)) + 
+                                                "      (nodeList, i, rank) = (" + mNodeList.name() + " " + std::to_string(i) + " " + std::to_string(rank) + ")\n"));
+      }
+    }
+
+#pragma omp critical
+    {
+      if (maxResidual_local.first > result.first) {
+        result = maxResidual_local;
+      }
+    }
+  }
+
+  return result;
 }
 
 //------------------------------------------------------------------------------

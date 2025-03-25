@@ -100,7 +100,7 @@ public:
   virtual ResidualType maxResidual(const DataBase<Dimension>& dataBase, 
                                    const State<Dimension>& state1,
                                    const State<Dimension>& state0,
-                                   const Scalar tol) const { return std::make_pair<double, std::string>(0.0, this->label() + " no vote"); }
+                                   const Scalar tol) const override;
   //...........................................................................
   // Access the SolidNodeList we're damaging.
   SolidNodeList<Dimension>& nodeList();

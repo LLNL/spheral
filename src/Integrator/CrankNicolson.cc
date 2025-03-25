@@ -71,6 +71,11 @@ step(typename Dimension::Scalar maxTime,
                                    state,
                                    derivs);
 
+  // We now assume we can reuse the last steps derivative estimate as the
+  // beginning of step for this iteration.  Similar assumption used in
+  // CheapSynchronousRK2.  If you want to be more rigorous uncomment the
+  // following block to explicitly determine the beginning of step derivatives.
+
   // Evaluate the beginning of step derivatives.
   this->initializeDerivatives(t, dt, state, derivs);
   derivs.Zero();
