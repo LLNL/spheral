@@ -176,6 +176,7 @@
   extends: [.spheral_rev_str]
   script:
     - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
+    - echo $INSTALL_DIR &> install-dir.txt
     - rm -rf $INSTALL_DIR
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
@@ -186,10 +187,13 @@
 
     - env INSTALL_DIR=$INSTALL_DIR DEV_PKG_SPEC=$DEV_PKG_SPEC BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
+    - ml load mpifileutils
+    - dchmod --mode go+rx $INSTALL_DIR
 
   artifacts:
     paths:
       - ci-dir.txt
+      - install-dir.txt
 
 
 .prod_permissions:
@@ -202,8 +206,6 @@
     - sed 's/YYYY\.MM\.p/'"$ALIAS"'/g' $SCRIPT_DIR/lc/modulefile-template.lua > /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
     - chmod go+r /usr/gapps/Spheral/modulefiles/Spheral/"$ALIAS".lua
 
-    - ml load mpifileutils
-    - dchmod --mode go+rx $INSTALL_DIR
     - ln -sfn $INSTALL_DIR /usr/gapps/Spheral/$SYS_TYPE/$ALIAS
 
 
