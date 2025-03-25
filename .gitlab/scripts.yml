@@ -153,8 +153,10 @@
   extends: [.spheral_rev_str]
   script:
     - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
+    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
     - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
     - echo $CI_BUILD_DIR &> ci-dir.txt
+    - echo $INSTALL_DIR &> install-dir.txt
     - mkdir -p $CI_BUILD_DIR/$DEV_PKG_NAME && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR/$DEV_PKG_NAME
     - cd $CI_BUILD_DIR/$DEV_PKG_NAME
 
@@ -167,16 +169,14 @@
     paths:
       - dev-pkg-name.txt
       - ci-dir.txt
-
+      - install-dir.txt
 
 .install_dev_pkg:
   stage: install_production
   variables:
     GIT_STRATEGY: empty
-  extends: [.spheral_rev_str]
   script:
-    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
-    - echo $INSTALL_DIR &> install-dir.txt
+    - INSTALL_DIR=$(cat install-dir.txt)
     - rm -rf $INSTALL_DIR
     - CI_BUILD_DIR=$(cat ci-dir.txt)
     - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
@@ -194,7 +194,6 @@
     paths:
       - ci-dir.txt
       - install-dir.txt
-
 
 .prod_permissions:
   stage: update_permissions
