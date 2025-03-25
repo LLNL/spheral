@@ -34,6 +34,7 @@
     paths:
       - ci-dir.txt
       - job-name.txt
+  interruptible: true
 
 .build:
   stage: build_and_install
@@ -47,6 +48,7 @@
     paths:
       - ci-dir.txt
       - job-name.txt
+  interruptible: true
 
 .build_and_test:
   extends: [.build]
@@ -59,6 +61,7 @@
     paths:
       - ci-dir.txt
       - job-name.txt
+  interruptible: true
 
 .run_ats:
   stage: run_ats
@@ -81,6 +84,7 @@
   allow_failure:
     exit_codes:
       - 80
+  interruptible: true
 
 # Run the performance suite and move the resulting Caliper files into the benchmark location
 .run_perf:
@@ -110,6 +114,7 @@
     - ml load mpifileutils
     - cd $SPHERAL_BUILDS_DIR
     - $RUN_CMD -n 20 drm $CI_BUILD_DIR/..
+  interruptible: true
 
 # ------------------------------------------------------------------------------
 # Shared TPL scripts.
@@ -147,40 +152,44 @@
   stage: generate_buildcache
   extends: [.spheral_rev_str]
   script:
-    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
     - DEV_PKG_NAME=$SYS_TYPE-spheral-dev-pkg-$SPHERAL_REV_STR
+    - CI_BUILD_DIR=$SPHERAL_BUILDS_DIR/$CI_JOB_ID
+    - echo $CI_BUILD_DIR &> ci-dir.txt
+    - mkdir -p $CI_BUILD_DIR/$DEV_PKG_NAME && cp -a $CI_PROJECT_DIR/. $CI_BUILD_DIR/$DEV_PKG_NAME
+    - cd $CI_BUILD_DIR/$DEV_PKG_NAME
 
-    - env INSTALL_DIR=$INSTALL_DIR SCRIPT_DIR=$SCRIPT_DIR DEV_PKG_NAME=$DEV_PKG_NAME
+    - env SCRIPT_DIR=$SCRIPT_DIR DEV_PKG_NAME=$DEV_PKG_NAME CI_BULD_DIR=$CI_BUILD_DIR
       bash ./$SCRIPT_DIR/lc/generate-buildcache.sh
 
-    - echo $INSTALL_DIR &> install-dir.txt
     - echo $DEV_PKG_NAME &> dev-pkg-name.txt
 
   artifacts:
     paths:
-      - install-dir.txt
       - dev-pkg-name.txt
+      - ci-dir.txt
 
 
 .install_dev_pkg:
   stage: install_production
   variables:
-    GIT_STRATEGY: none
+    GIT_STRATEGY: empty
+  extends: [.spheral_rev_str]
   script:
-    - INSTALL_DIR=$(cat install-dir.txt)
+    - INSTALL_DIR=/usr/gapps/Spheral/$SYS_TYPE/spheral-$SPHERAL_REV_STR
+    - rm -rf $INSTALL_DIR
+    - CI_BUILD_DIR=$(cat ci-dir.txt)
     - DEV_PKG_NAME=$(cat dev-pkg-name.txt)
 
-    - cp $INSTALL_DIR/$DEV_PKG_NAME.tar.gz .
+    - cp $CI_BUILD_DIR/$DEV_PKG_NAME.tar.gz .
     - tar -xzf $DEV_PKG_NAME.tar.gz
     - cd $DEV_PKG_NAME
 
-    - ml load mpifileutils
-    - env INSTALL_DIR=$INSTALL_DIR DEV_PKG_SPEC=$DEV_PKG_SPEC DEV_PKG_NAME=$DEV_PKG_NAME BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
+    - env INSTALL_DIR=$INSTALL_DIR DEV_PKG_SPEC=$DEV_PKG_SPEC BUILD_ALLOC="" SCRIPT_DIR=$SCRIPT_DIR
       bash ./$SCRIPT_DIR/lc/install-from-dev-pkg.sh
 
   artifacts:
     paths:
-      - install-dir.txt
+      - ci-dir.txt
 
 
 .prod_permissions:

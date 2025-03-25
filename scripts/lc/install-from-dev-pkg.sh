@@ -5,8 +5,6 @@ SPACK_URL=${SPACK_URL:-'https://github.com/spack/spack'}
 BUILD_ALLOC=${BUILD_ALLOC}
 SCRIPT_DIR=${SCRIPT_DIR:-'scripts'}
 SPHERAL_PIP_CACHE_DIR=${SPHERAL_PIP_CACHE_DIR:-~/.cache/spheral_pip}
-DEV_PKG_NAME=${DEV_PKG_NAME:-$SYS_TYPE-spheral-dev-pkg-undefined}
-DEV_TAR_FILE=$DEV_PKG_NAME.tar.gz
 
 if [[ -z "${DEV_PKG_SPEC}" ]]; then
   echo "DEV_PKG_SPEC var must be set."
@@ -21,15 +19,11 @@ fi
 echo $DEV_PKG_SPEC
 echo $SPACK_URL
 echo $INSTALL_DIR
-echo $DEV_TAR_FILE
 echo $SCRIPT_DIR
 echo $BUILD_ALLOC
 echo $PWD
 
-# Clear the INSTALL_DIR, leave the dev-pkg tar intact.
-shopt -s extglob
-rm -rf $INSTALL_DIR/!($DEV_TAR_FILE)
-
+mkdir -p $INSTALL_DIR
 cp -a $PWD/resources/pip_cache/. $SPHERAL_PIP_CACHE_DIR
 
 ./$SCRIPT_DIR/devtools/tpl-manager.py --spack-url $SPACK_URL --init-only --no-upstream --spack-dir $INSTALL_DIR/spheral-spack-tpls
@@ -52,6 +46,3 @@ $BUILD_ALLOC ./$SCRIPT_DIR/devtools/tpl-manager.py --no-upstream --spack-dir $IN
 
 HOST_CONFIG_FILE=$(ls -t | grep -E "*\.cmake" | head -1)
 $BUILD_ALLOC ./$SCRIPT_DIR/devtools/host-config-build.py --host-config $HOST_CONFIG_FILE -i $INSTALL_DIR --build --no-clean -DSPHERAL_PIP_CACHE_DIR=$SPHERAL_PIP_CACHE_DIR -DSPHERAL_NETWORK_CONNECTED=Off
-
-# Now delete the tar file
-rm -f $INSTALL_DIR/$DEV_TAR_FILE
