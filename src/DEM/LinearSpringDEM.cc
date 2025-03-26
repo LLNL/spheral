@@ -61,7 +61,20 @@ vec_to_string(const Vector& vec) {
   return oss.str();
 }
 
+// function to calculate the contact durations
+double
+computeContactDuration(double m, 
+                       double k, 
+                       double B){
+  CHECK(m >= 0);
+  CHECK(k > 0);
+  CHECK(B > 0);
+  return M_PI*std::sqrt(0.5*m/k * (1.0 + 1.0/(B*B)));
 }
+
+}
+
+
 
 //------------------------------------------------------------------------------
 // Default constructor
@@ -107,7 +120,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
 
     const auto mass = dataBase.DEMMass();
     const auto minMass = mass.min();
-    mCollisionDuration = M_PI*std::sqrt(0.5*minMass/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)));
+    mCollisionDuration = computeContactDuration(minMass,mNormalSpringConstant,mNormalBeta);
 }
 
 //------------------------------------------------------------------------------
@@ -157,6 +170,16 @@ fixedTimeStep() const {
 }
 
 template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+recomputeContactDuration()  {
+  const auto& db = this->dataBase();
+  const auto mass = db.DEMMass();
+  const auto minMass = mass.min();
+  mCollisionDuration = computeContactDuration(minMass,mNormalSpringConstant,mNormalBeta);
+}
+
+template<typename Dimension>
 typename LinearSpringDEM<Dimension>::TimeStepType
 LinearSpringDEM<Dimension>::
 variableTimeStep(const DataBase<Dimension>& dataBase,
@@ -182,7 +205,7 @@ variableTimeStep(const DataBase<Dimension>& dataBase,
 
   // Compute the spring timestep constraint (except for the mass)
   const auto nsteps = this->stepsPerCollision();
-  const auto dtSpring0 = M_PI*std::sqrt(0.5/mNormalSpringConstant * (1.0 + 1.0/(mNormalBeta*mNormalBeta)))/nsteps;
+  const auto dtSpring0 = computeContactDuration(1.0,mNormalSpringConstant,mNormalBeta)/nsteps;
 
   CHECK(nsteps > 0);
 
@@ -316,6 +339,21 @@ variableTimeStep(const DataBase<Dimension>& dataBase,
   }
 
   return result;
+}
+
+//------------------------------------------------------------------------------
+// method that fires once on startup
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+LinearSpringDEM<Dimension>::
+preStepInitialize(const DataBase<Dimension>& dataBase,
+                  State<Dimension>& state,
+                  StateDerivatives<Dimension>& derivs){
+  TIME_BEGIN("preStepInitialize");
+  DEMBase<Dimension>::preStepInitialize(dataBase,state,derivs);
+  this->recomputeContactDuration();
+  TIME_END("preStepInitialize");
 }
 
 //------------------------------------------------------------------------------
