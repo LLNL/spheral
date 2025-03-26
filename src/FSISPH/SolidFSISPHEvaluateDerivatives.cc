@@ -496,6 +496,8 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         }
 
         // save our max pressure from the AV for each node
+        Qi *= rhoj/max(rhoi,tiny);
+        Qj *= rhoi/max(rhoj,tiny);
         maxViscousPressurei = max(maxViscousPressurei, Qi);
         maxViscousPressurej = max(maxViscousPressurej, Qj);
         effViscousPressurei += volj * Qi * Wi;
