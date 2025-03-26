@@ -240,5 +240,5 @@
     - if: '$CI_COMMIT_MESSAGE =~ /test-prod/'
       when: manual
     - changes:
-        - scripts/lc/*
+        - $SCRIPT_DIR/lc/*
       when: manual
