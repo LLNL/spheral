@@ -164,11 +164,11 @@ variableTimeStep(const DataBase<Dimension>& dataBase,
                  const StateDerivatives<Dimension>& /*derivs*/,
                  const typename Dimension::Scalar /*currentTime*/) const {
   
-  // Get some useful fluid variables from the DataBase.
-  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
-  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
-  const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
-  const auto  r = state.fields(DEMFieldNames::particleRadius, 0.0);
+  // FieldLists we'll need for the timestep calc.
+  const auto mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
+  const auto r = state.fields(DEMFieldNames::particleRadius, 0.0);
 
   const auto& contacts = this->contactStorageIndices();
   const unsigned int numP2PContacts = this->numParticleParticleContacts();
@@ -209,8 +209,6 @@ variableTimeStep(const DataBase<Dimension>& dataBase,
     const auto& rj = position(nodeListj, j);
     const auto& vj = velocity(nodeListj, j);
     const auto  Rj = r(nodeListj, j);
-    
-    // Spring constant timestep for this pair
 
     // Compare closing speed to separation
     const auto rji = rj - ri;
@@ -705,6 +703,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // Get the derivs from node i
         auto& DvDti = DvDt_thread(nodeListi, i);
         auto& DomegaDti = DomegaDt_thread(nodeListi, i);
+        auto& maxOverlapi = newMaxOverlap_thread(nodeListi,i);
 
         // get pairwise variables
         const auto& deltaSlidib = shearDisplacement(nodeListi,i)[contacti];
@@ -774,6 +773,9 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         const auto Mrolling = -DEMDimension<Dimension>::cross(rhatib,fr);
         const auto Mtorsion = MtorsionMag * this->torsionMoment(rhatib,omegai,0*omegai); // rename torsionDirection
         DomegaDti += (Msliding*li - (Mtorsion + Mrolling) * lib)/Ii;
+
+        // update max overlaps
+        maxOverlapi = max(maxOverlapi,delta);
 
         // for spring updates
         newShearDisplacement(nodeListi,i)[contacti] = newDeltaSlidib;
