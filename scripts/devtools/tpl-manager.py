@@ -121,6 +121,7 @@ class SpheralTPL:
                     sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
         self.add_spack_paths(spack_dir)
         if (self.args.clean):
+            sexe("rm -rf ~/.spack")
             sexe(f"git -C {spack_dir} clean -df")
 
     def find_spack_package(self, package_names):
@@ -256,10 +257,7 @@ class SpheralTPL:
                 add_cmd(self.args.spec)
         print("Concretizing environment")
         conc_cmd = SpackCommand("concretize")
-        if (self.args.clean):
-            conc_cmd("-U", "-f")
-        else:
-            conc_cmd("-U")
+        conc_cmd("-U", "-f")
         if (check_spec):
             matches = self.spack_env.matching_spec(self.spack_spec)
             if (not matches):
