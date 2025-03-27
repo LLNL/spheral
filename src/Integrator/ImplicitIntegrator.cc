@@ -110,6 +110,8 @@ ImplicitIntegrator<Dimension>::
 dumpState(FileIO& file, const std::string& pathName) const {
   Integrator<Dimension>::dumpState(file, pathName);
   file.write(mMaxGoodDtMultiplier, pathName + "/maxGoodDtMultiplier");
+  file.write(mNumExplicitSteps, pathName + "/numExplicitSteps");
+  file.write(mNumImplicitSteps, pathName + "/numImplicitSteps");
 }  
 
 //------------------------------------------------------------------------------
@@ -120,11 +122,14 @@ void
 ImplicitIntegrator<Dimension>::
 restoreState(const FileIO& file, const std::string& pathName) {
   Integrator<Dimension>::restoreState(file, pathName);
-  if (file.pathExists(pathName + "/maxGoodDtMultiplier")) {
-    file.read(mMaxGoodDtMultiplier, pathName + "/maxGoodDtMultiplier");
-  } else {
+  // When restarting from a non-implicit integrator these values may not be available.
+  // This is not a fatal condition, so we make restarting these variables optional
+  if (file.readIfAvailable(mMaxGoodDtMultiplier, pathName + "/maxGoodDtMultiplier") != 0)
     SpheralMessage("ImplicitIntegrator WARNING: unable to load old maxGoodDtMultiplier");
-  }
+  if (file.readIfAvailable(mNumExplicitSteps, pathName + "/numExplicitSteps") != 0)
+    SpheralMessage("ImplicitIntegrator WARNING: unable to load old numExplicitSteps");
+  if (file.readIfAvailable(mNumImplicitSteps, pathName + "/numExplicitSteps") != 0)
+    SpheralMessage("ImplicitIntegrator WARNING: unable to load old numImplicitSteps");
 }
 
 //------------------------------------------------------------------------------
