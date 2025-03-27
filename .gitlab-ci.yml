@@ -16,7 +16,7 @@ variables:
   PERF_ATS_FILE: "tests/performance.py"
   SPHERAL_MODULE: "Spheral"
   SPACK_PKG_NAME: spheral
-  DEV_PKG_SPEC: "spheral@develop%gcc+mpi~caliper~network"
+  DEV_PKG_SPEC: "spheral@develop+mpi~caliper~network%gcc"
 
 .spheral_rev_str:
   before_script:

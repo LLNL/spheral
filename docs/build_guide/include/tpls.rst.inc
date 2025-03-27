@@ -51,14 +51,15 @@ Running tpl-manager
 
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec spheral%gcc
+  ./scripts/devtools/tpl-manager.py --spec spheral+mpi%gcc
 
 To see what specs are available for the current environment, run
 
 ::
+
   ./scripts/devtools/tpl-manager.py --show-specs
 
-This will download a new Spack instance in a directory adjacent to your Spheral root directory called ``spheral-spack-tpls/spack``. You can use ``--spack-dir`` if you would like to setup the Spack instance somewhere else. By default, Spheral is built with MPI support unless the spec is appended with ``~mpi``. The ``%`` symbol denotes the compiler to use.
+This will download a new Spack instance in a directory adjacent to your Spheral root directory called ``spheral-spack-tpls/spack``. You can use ``--spack-dir`` if you would like to setup the Spack instance somewhere else. The ``%`` symbol denotes the compiler to use.
 
 When run for the first time, ``tpl-manager`` will do a few things:
 
@@ -73,7 +74,7 @@ When run for the first time, ``tpl-manager`` will do a few things:
 #. Install the TPLs and create the host config file for the given spec with ``spack install -u initconfig <spec>``.
 
 .. note::
-   By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``spheral%gcc+mpi+python~docs`` will build the same TPL set as just ``spheral%gcc``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
+   By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``spheral+mpi+python~docs%gcc`` will build the same TPL set as just ``spheral+mpi%gcc``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
 
 .. note::
    Spheral minimally requires a C++14 compliant compiler.
@@ -90,32 +91,37 @@ Running tpl-manager
 
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec spheral%gcc@8.3.1
+  ./scripts/devtools/tpl-manager.py --spec spheral+mpi%gcc
 
 This will install the local Spheral Spack instance into the adjacent directory of your Spheral root dir. You can use ``--spack-dir`` if you would like to setup the spack instance somewhere else. 
 
 .. warning::
    If running on LC be sure to launch ``tpl-manager`` in a resource allocation, as ``tpl-manager`` will take advantage of parallel builds when compiling libraries.  An example appropriate for use on rzgenie would be::
 
-    srun --exclusive ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1
+    srun --exclusive ./scripts/devtools/tpl-manager.py --spec spheral+mpi%gcc
 
-Above we are telling ``tpl-manager`` to build our TPLs with ``gcc`` at version ``8.3.1``. By default this will build with ``+mpi`` support, however we can disable ``mpi`` support for the TPLs and Spheral by appending ``~mpi`` to our spec.
+Above we are telling ``tpl-manager`` to build our TPLs with ``gcc``. The Spack compiler file for the current system (in ``./scripts/spack/configs/$SYS_TYPE/compilers.yaml``) only has one gcc compiler version, so that is the one that will be used. If the compiler file is aware of multiple versions of gcc, a specific version should be given, ie ``spheral+mpi%gcc@10.3.1``. Which variants should be provided depend on the root specs in the current environment. For example, the TOSS4 machine environment has three specs: ``spheral+mpi%gcc``, ``spheral~mpi%gcc``, and ``spheral+mpi%clang``. To turn off mpi with the gcc compiler, use the following spec:
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec gcc@8.3.1~mpi
+  ./scripts/devtools/tpl-manager.py --spec spheral~mpi%gcc
+
+To see what specs are available for the current environment, run
+::
+
+  ./scripts/devtools/tpl-manager.py --show-specs
 
 .. note::
-   By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``gcc@8.3.1+mpi+python~docs`` will build the same TPL set as just ``gcc@8.3.1``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
+   By default we have ``python`` bindings enabled (``+python``) and docs disabled (``~docs``). Therefore the spec ``spheral+mpi+python~docs%gcc`` will build the same TPL set as just ``spheral+mpi%gcc``.For more information on ``spec`` syntax please see the spack documentation on `specs-dependencies <https://spack.readthedocs.io/en/latest/basic_usage.html#specs-dependencies>`_.
 
-.. note::
-   ``gcc@8.3.1`` is the recommended compiler for building Spheral on LC (Livermore Computing). Spheral minimally requires a C++14 compliant compiler.
 
 CUDA Support
 ------------
 
-To build Spheral TPLs and configure Spheral to build with CUDA on LC systems we need to add the spack variant ``+cuda`` to our spec. We also need to define the cuda hardware architecture we are targetting Spheral to run on. This can be done with ``cuda_arch=XX``. On most LC NVIDIA systems we will be targetting ``sm_70`` architecture. Therefore a gcc spec with cuda support will look as such.::
+To build Spheral TPLs and configure Spheral to build with CUDA on LC systems we need to add the spack variant ``+cuda`` to our spec. We also need to define the cuda hardware architecture we are targetting Spheral to run on. This can be done with ``cuda_arch=XX``. On most LC NVIDIA systems we will be targetting ``sm_70`` architecture. Therefore a gcc spec with cuda support will look as such.
 
-  ./scripts/devtools/tpl-manager.py --spec "spheral%gcc@8.3.1+cuda cuda_arch=70"
+::
+
+  ./scripts/devtools/tpl-manager.py --spec "spheral+cuda cuda_arch=70%gcc"
 
 .. note::
    We need to use "" here as spack requires spacing to define ``cuda_arch``. This ensures tpl-manager doesn't register the spec as separate arguments.
@@ -127,12 +133,9 @@ The simplest way to have ``tpl-manager`` build all TPLs for all supported Sphera
 
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec-list scripts/devtools/spec-list.json
+  ./scripts/devtools/tpl-manager.py
 
-spec-list.json
---------------
-
-``spec-list.json`` contains a list of specs supported for common development system types. You can add or edit the specs in this file to build a variety of TPLs for various compiler combinations. The specs are grouped by the ``$SYS_TYPE`` environment variable for LC (Livemore Computing) machines and will default to x86_64 for eveything else.
+Note, this will build TPLs for all permutations of the specs in the current SYS_TYPE environment. It will not produce any host config files.
 
 [lc_running_tpl_manager-end]
 

@@ -1,8 +1,8 @@
 spack:
   specs:
-    - "spheral%gcc+mpi"
-    - "spheral%gcc~mpi"
-    - "spheral%clang+mpi"
+    - "spheral+mpi%gcc"
+    - "spheral~mpi%gcc"
+    - "spheral+mpi%clang"
   view: false
   concretizer:
     unify: false

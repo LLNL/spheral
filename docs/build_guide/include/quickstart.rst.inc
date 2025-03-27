@@ -36,18 +36,13 @@ Create a directory structure and clone spheral.
 Build our TPL dependencies from source with the Spheral tpl-management tool (``tpl-manager.py``).
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec spheral%gcc+mpi
-
-To see what specs are available for the current environment, run
-
-::
-  ./scripts/devtools/tpl-manager.py --show-specs
+  ./scripts/devtools/tpl-manager.py --spec spheral%gcc
 
 .. note::
    This command sequence assumes ``gcc`` is installed and will use the version in your system path. If you wish to use a different compiler (such as ``clang``) ensure it is in your path and replace ``gcc`` with the compiler name of your choice (e.g. ``clang``).
 
 .. note::
-  This command will generate a ``.cmake`` file with the naming convention ``<system-type>-<compiler-spec>``. The following commands will refer to this format as ``<host-config>`` for generalization across operating systems and architectures. You will need to substitute the correct format in the following commands. 
+  This command will generate a ``.cmake`` file with the naming convention ``<system-type>-<compiler-spec>``. The following commands will refer to this format as ``<host-config>`` for generalization across operating systems and architectures. You will need to substitute the correct format in the following commands.
 
 .. warning::
    For operating systems other than Ubuntu 20.04 you should get an error to the effect of:
@@ -61,7 +56,7 @@ To see what specs are available for the current environment, run
 Build our TPL dependencies from source with the Spheral tpl-management tool (``tpl-manager.py``).
 ::
 
-  ./scripts/devtools/tpl-manager.py --spec spheral%gcc@8.3.1+mpi
+  ./scripts/devtools/tpl-manager.py --spec spheral+mpi%gcc
 
 .. warning::
   This command needs to be run under an allocation as any TPLs that need to be built will be built in parallel.

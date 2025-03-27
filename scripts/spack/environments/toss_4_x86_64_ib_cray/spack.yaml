@@ -4,17 +4,17 @@ spack:
       - [spheral]
       - ["+mpi", "~mpi"]
       - ["+rocm amdgpu_target=gfx942", "~rocm"]
+  view: false
+  concretizer:
+    unify: false
+  develop:
+    spheral:
+      path: ../../../../
+      spec: spheral@=develop
   include:
     - ../../configs/toss_4_x86_64_ib_cray/packages.yaml
     - ../../configs/toss_4_x86_64_ib_cray/compilers.yaml
     - ../../configs/config.yaml
     - ../../configs/upstreams.yaml
-  view: false
-  concretizer:
-    unify: false
   repos:
     - ../../
-  develop:
-    spheral:
-      path: ../../../../
-      spec: spheral@=develop
