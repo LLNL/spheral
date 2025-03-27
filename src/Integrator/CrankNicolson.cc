@@ -70,6 +70,10 @@ step(typename Dimension::Scalar maxTime,
                                    min(this->dtMax(), maxTime - t),
                                    state,
                                    derivs);
+  const auto hdt = 0.5*dt;
+  const auto hdt1 = hdt*(1.0 - mBeta);
+  const auto hdt2 = hdt*mBeta;
+  CHECK(hdt1 + hdt2 == hdt);
 
   // We now assume we can reuse the last steps derivative estimate as the
   // beginning of step for this iteration.  Similar assumption used in
@@ -84,10 +88,11 @@ step(typename Dimension::Scalar maxTime,
 
   // Make a copy of the initial state and derivatives
   State<Dimension> state0(state), state1(state);
-  StateDerivatives<Dimension> derivs0(derivs);
+  StateDerivatives<Dimension> derivs0(derivs), derivs1(derivs);
   state0.copyState();
   state1.copyState();
   derivs0.copyState();
+  derivs1.copyState();
   CHECK(state0 == state);
 
   // If we have not yet accrued enough previous step information to make a
@@ -97,7 +102,6 @@ step(typename Dimension::Scalar maxTime,
     //..........................................................................
     // Do a standard RK2 step
     ++mNumExplicitSteps;
-    const auto hdt = 0.5*dt;
     
     // Trial advance the state to the mid timestep point.
     state.update(derivs, hdt, t, hdt);
@@ -141,8 +145,9 @@ step(typename Dimension::Scalar maxTime,
 
       // Last pass on new state
       state1.assign(state);
+      if (mBeta < 1.0) derivs1.assign(derivs);
       state1.serializeIndependentData(solution1);
-      const auto n = solution1.size();
+      // const auto n = solution1.size();
 
       // Derivatives at the last prediction
       this->initializeDerivatives(t + dt, dt, state, derivs);
@@ -151,18 +156,19 @@ step(typename Dimension::Scalar maxTime,
       this->finalizeDerivatives(t + dt, dt, db, state, derivs);
 
       // Estimate new n+1 solution
-      state.assign(state0);
-      state.update(derivs0, 0.5*dt, t,          0.5*dt);
-      state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt);
-
       // Are we blending old and new solutions?
+      state.assign(state0);
       if (mBeta < 1.0) {
-        state.serializeIndependentData(solution);
-        CHECK(solution.size() == n);
-        for (auto i = 0u; i < n; ++i) solution[i] = (1.0 - mBeta)*solution1[i] + mBeta*solution[i];
-        state.deserializeIndependentData(solution);
-        state.update(derivs0, 0.5*dt, t,          0.5*dt, false);
-        state.update(derivs,  0.5*dt, t + 0.5*dt, 0.5*dt, false);
+        // state.serializeIndependentData(solution);
+        // CHECK(solution.size() == n);
+        // for (auto i = 0u; i < n; ++i) solution[i] = (1.0 - mBeta)*solution1[i] + mBeta*solution[i];
+        // state.deserializeIndependentData(solution);
+        state.update(derivs0, hdt,    t,              hdt);
+        state.update(derivs1, hdt1,   t + hdt,        hdt1);
+        state.update(derivs,  hdt2,   t + hdt + hdt1, hdt2);
+      } else {
+        state.update(derivs0, hdt, t,          hdt);
+        state.update(derivs,  hdt, t + 0.5*dt, hdt);
       }
 
       // Finish state update

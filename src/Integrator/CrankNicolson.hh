@@ -25,7 +25,7 @@ public:
   // Constructors.
   CrankNicolson(DataBase<Dimension>& dataBase,
                 const std::vector<Physics<Dimension>*> physicsPackages = std::vector<Physics<Dimension>*>(),
-                const Scalar beta = 1.0,
+                const Scalar beta = 0.5,
                 const Scalar tol = 1.0e-4,
                 const size_t maxIterations = 10u);
   CrankNicolson& operator=(const CrankNicolson& rhs) = default;
