@@ -1,3 +1,28 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+    * The tpl-manager.py is completely overhauled to include the following:
+      * Utilize the Spheral Spack environments.
+      * Handle some build cache functionality.
+      * Do things Uberenv did like download and install Spack itself.
+
+  * Build changes / improvements:
+    * Native Spack environments are now being used.
+      * Uberenv is no longer used.
+      * Adds logic to simplify building on non-LC systems; tries to find existing installed compilers and packages.
+      * Adds spack.yaml environment files for current LC systems and a dev_pkg environment, which is used for creating the build cache.
+      * Local Spack packages for TPLs are removed or simplified when possible since the builtin Spack packages are no longer replaced.
+      * The upstream Spack instance is no longer used when creating the build cache.
+      * The package.yaml for Spheral is improved to allow full Spheral installation through Spack.
+      * Centralizes things like upstream location, compiler types and versions, and specs in the environments and configs.
+
+  * Bug Fixes / improvements:
+    * ATS submodule is updated to fix bug with latest Flux update on LC systems.
+
 Version v2025.01.0 -- Release date 2025-01-31
 ==============================================
   * Important Notes:
@@ -34,6 +59,11 @@ Notable changes include:
       is correct.
     * Performance regression testing is now available. All developers are encouraged to run the performance testing suite for any code changes that might impact performance. See documentation for more details.
     * Added our old ASPH IdealH H update as an option. While it is not as reliable as our current default ASPH, it does not require building the Voronoi and is therefore signifcantly faster.
+    * Converted artificial viscosities to Physics packages, and add them as pre-subpackages to Hydro objects.
+    * Split artificial viscosities based on the type of pressure they compute (currently Scalar or Tensor), which is slightly more efficient.
+      * This required making the hydro packages evaluateDerivatives into templated methods based on the type of Q they are handed.
+      * Also introduced a new base class (ArtificialViscosityHandle), which provides a handle class not templated on the type
+        of Q pressure for Hydro objects to hold onto.
 
   * Build changes / improvements:
     * Distributed source directory must always be built now.
