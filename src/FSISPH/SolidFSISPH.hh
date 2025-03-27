@@ -79,6 +79,7 @@ public:
               const bool evolveTotalEnergy,
               const bool linearCorrectGradients,
               const bool planeStrain,
+              const bool decoupleDamagedMaterial,
               const double interfacePmin,
               const double interfaceNeighborAngleThreshold,
               const FSIMassDensityMethod densityUpdate,
@@ -184,6 +185,9 @@ public:
 
   bool planeStrain() const;
   void planeStrain(bool val);
+  
+  bool decoupleDamagedMaterial() const;
+  void decoupleDamagedMaterial(bool val);
 
   std::vector<int> sumDensityNodeLists() const;
   void sumDensityNodeLists(std::vector<int> x);
@@ -277,6 +281,7 @@ private:
   bool mEvolveTotalEnergy; 
   bool mLinearCorrectGradients;
   bool mPlaneStrain;
+  bool mDecoupleDamagedMaterial;
   bool mApplySelectDensitySum;                        // switch for density sum
   std::vector<int> mSumDensityNodeLists;              // turn on density sum subset of nodeLists
 
