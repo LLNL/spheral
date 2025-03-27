@@ -44,7 +44,7 @@ public:
 
   // Internal data
   Scalar convergenceTolerance()                  const { return mTol; }
-  Scalar maxAllowedDtMultiplier()                const { return mMaxGoodDtMultiplier; }
+  Scalar maxAllowedDtMultiplier()                const { return mMaxAllowedDtMultiplier; }
   Scalar maxGoodDtMultiplier()                   const { return mMaxGoodDtMultiplier; }
   size_t numExplicitSteps()               const { return mNumExplicitSteps; }
   size_t numImplicitSteps()               const { return mNumImplicitSteps; }
