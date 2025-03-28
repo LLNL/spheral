@@ -98,11 +98,10 @@ step(typename Dimension::Scalar maxTime,
   // If we have not yet accrued enough previous step information to make a
   // prediction about the next state, just advance explicitly
   if (mDtMultiplier < 1.0) {
+    ++mNumExplicitSteps;
 
     //..........................................................................
     // Do a standard RK2 step
-    ++mNumExplicitSteps;
-    
     // Trial advance the state to the mid timestep point.
     state.update(derivs, hdt, t, hdt);
     this->currentTime(t + hdt);
@@ -183,12 +182,13 @@ step(typename Dimension::Scalar maxTime,
     }
 
     // Did we succeed?
-    if (iterations >= mMaxIterations) {
+    if (not done) {
+      if (not this->verbose()) this->computeResiduals(state, state1, true);
       state.assign(state0);
       return false;
     }
+    ++mNumImplicitSteps;
   }
-  ++mNumImplicitSteps;
   
   // Apply any physics specific finalizations.
   this->postStepFinalize(t + dt, dt, state, derivs);

@@ -38,7 +38,8 @@ class ImplicitIntegrator(Integrator):
     @PYB11const
     def computeResiduals(self,
                          state1 = "const State<%(Dimension)s>&",
-                         state0 = "const State<%(Dimension)s>&"):
+                         state0 = "const State<%(Dimension)s>&",
+                         forceVerbose = ("bool", "false")):
         "Compute the maximum residual difference across all physics packages between two States"
         return "Scalar"
 

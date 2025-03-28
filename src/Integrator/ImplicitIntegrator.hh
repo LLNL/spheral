@@ -40,7 +40,8 @@ public:
 
   // Find the maximum residual difference in the states
   virtual Scalar computeResiduals(const State<Dimension>& state1,
-                                  const State<Dimension>& state0) const;
+                                  const State<Dimension>& state0,
+                                  const bool forceVerbose = false) const;
 
   // Internal data
   Scalar convergenceTolerance()                  const { return mTol; }

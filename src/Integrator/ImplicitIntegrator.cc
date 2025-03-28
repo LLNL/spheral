@@ -74,7 +74,8 @@ template<typename Dimension>
 typename Dimension::Scalar
 ImplicitIntegrator<Dimension>::
 computeResiduals(const State<Dimension>& state1,
-                 const State<Dimension>& state0) const {
+                 const State<Dimension>& state0,
+                 const bool forceVerbose) const {
 
   // Get the local (to this MPI rank) answer
   const auto& db = this->dataBase();
@@ -88,7 +89,7 @@ computeResiduals(const State<Dimension>& state1,
 
   // Reduce for the global result, and optionally print out some verbose info
   const auto globalMax = allReduce(result.first, SPHERAL_OP_MAX);
-  if (result.first == globalMax and this->verbose()) {
+  if (result.first == globalMax and (forceVerbose or this->verbose())) {
     cout << "Global residual of "
          << result.first << endl
          << result.second << endl;
