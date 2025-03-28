@@ -55,19 +55,15 @@ step(const typename Dimension::Scalar maxTime) {
 
     // Adjust the current timestep multiplier based on whether we succeeded or not
     mDtMultiplier *= (success ?
-                      (mDtMultiplier < 0.8*mMaxGoodDtMultiplier ? 1.2 : 1.05) :
-                      0.8);
+                      (mDtMultiplier < 0.9*mMaxGoodDtMultiplier ? 1.2 : 1.01) :
+                      0.95);
     mDtMultiplier = min(mMaxAllowedDtMultiplier, mDtMultiplier);
 
-    if (not success and
-        this->verbose() and
-        Process::getRank() == 0) {
-      cerr << "ImplicitIntegrator::step did not converge with tolerance on iteration " << count << "/" << maxIterations << endl
-           << "                         reducing timestep multiplier to " << mDtMultiplier << endl;
+    if (not success and this->verbose()) {
+      SpheralMessage("ImplicitIntegrator::step did not converge with tolerance on iteration " << count << "/" << maxIterations << endl
+                     << "                         reducing timestep multiplier to " << mDtMultiplier);
     }
   }
-
-  // VERIFY(success);
   return success;
 }
 
