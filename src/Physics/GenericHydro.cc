@@ -575,9 +575,13 @@ maxResidual(const DataBase<Dimension>& dataBase,
   const auto  position0 = state0.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity0 = state0.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  eps0 = state0.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  c0 = state0.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto  H0 = state0.fields(HydroFieldNames::H, SymTensor::zero);
   const auto  position1 = state1.fields(HydroFieldNames::position, Vector::zero);
   const auto  velocity1 = state1.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  eps1 = state1.fields(HydroFieldNames::specificThermalEnergy, 0.0);
+  const auto  c1 = state1.fields(HydroFieldNames::soundSpeed, 0.0);
+  const auto  H1 = state1.fields(HydroFieldNames::H, SymTensor::zero);
 
   // Initialize the return value to some impossibly high value.
   auto result = ResidualType(-1.0, "You should not see me!");
@@ -606,12 +610,16 @@ maxResidual(const DataBase<Dimension>& dataBase,
         const auto& xi0 = position0(nodeListi, i);
         const auto& vi0 = velocity0(nodeListi, i);
         const auto  epsi0 = eps0(nodeListi, i);
+        const auto  ci0 = c0(nodeListi, i);
+        const auto& Hi0 = H0(nodeListi, i);
         const auto& xi1 = position1(nodeListi, i);
         const auto& vi1 = velocity1(nodeListi, i);
         const auto  epsi1 = eps1(nodeListi, i);
+        const auto  ci1 = c0(nodeListi, i);
+        const auto& Hi1 = H1(nodeListi, i);
 
         // Position
-        auto xres = fresV(xi0, xi1, tol);
+        auto xres = fresV(Hi0*(xi1 - xi0), Hi1*(xi1 - xi0), tol);
         if (xres > maxResidual_local.first) {
           maxResidual_local = ResidualType(xres, ("Position change: residual = " + to_string(xres) + "\n" +
                                                   "                     pos0 = " + vec_to_string(xi0) + 
@@ -620,11 +628,11 @@ maxResidual(const DataBase<Dimension>& dataBase,
           rank_local = rank;
           nodeList_local = nodeListi;
           node_local = i;
-          reason_local = "velocity magnitude";
+          reason_local = "position";
         }
 
         // Velocity
-        auto vres = fresV(vi0, vi1, tol);
+        auto vres = fresV(vi0*safeInv(ci0, tol), vi1*safeInv(ci1, tol), tol);
         if (vres > maxResidual_local.first) {
           maxResidual_local = ResidualType(vres, ("Velocity change: residual = " + to_string(vres) + "\n" +
                                                   "                     pos0 = " + vec_to_string(xi0) + 
@@ -635,11 +643,11 @@ maxResidual(const DataBase<Dimension>& dataBase,
           rank_local = rank;
           nodeList_local = nodeListi;
           node_local = i;
-          reason_local = "velocity magnitude";
+          reason_local = "velocity";
         }
 
         // Thermal energy
-        auto epsres = fresS(epsi0, epsi1, tol);
+        auto epsres = fresS(epsi0*safeInv(ci0*ci0, tol), epsi1*safeInv(ci1*ci1, tol), tol);
         if (epsres > maxResidual_local.first) {
           maxResidual_local = ResidualType(epsres, ("Thermal energy change: residual = " + to_string(epsres) + "\n" +
                                                     "                           pos0 = " + vec_to_string(xi0) + 
@@ -650,7 +658,7 @@ maxResidual(const DataBase<Dimension>& dataBase,
           rank_local = rank;
           nodeList_local = nodeListi;
           node_local = i;
-          reason_local = "velocity magnitude";
+          reason_local = "specific thermal energy";
         }
       }
 
