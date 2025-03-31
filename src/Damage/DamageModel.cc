@@ -69,15 +69,8 @@ DamageModel(SolidNodeList<Dimension>& nodeList,
   mExcludeNode("Nodes excluded from damage", nodeList, 0),
   mNodeCouplingPtr(new NodeCoupling()),
   mComputeIntersectConnectivity(false),
+  mFreezeDamage(false),
   mRestart(registerWithRestart(*this)) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DamageModel<Dimension>::
-~DamageModel() {
 }
 
 //------------------------------------------------------------------------------
@@ -96,30 +89,37 @@ computeScalarDDDt(const DataBase<Dimension>& /*dataBase*/,
   // Pre-conditions.
   REQUIRE(DDDt.nodeListPtr() == &mNodeList);
 
-  // Get the state fields.
-  const auto  clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, mNodeList.name());
-  const auto  HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
-  const auto& cl = state.field(clKey, 0.0);
-  const auto& H = state.field(HKey, SymTensor::zero);
+  if (mFreezeDamage) {
 
-  // Constant multiplicative parameter for the crack growth.
-  const auto A = mCrackGrowthMultiplier / mW.kernelExtent();
+    DDDt = 0.0;
 
-  // Iterate over the internal nodes.
-  const auto ni = mNodeList.numInternalNodes();
+  } else {
+
+    // Get the state fields.
+    const auto  clKey = State<Dimension>::buildFieldKey(SolidFieldNames::longitudinalSoundSpeed, mNodeList.name());
+    const auto  HKey = State<Dimension>::buildFieldKey(HydroFieldNames::H, mNodeList.name());
+    const auto& cl = state.field(clKey, 0.0);
+    const auto& H = state.field(HKey, SymTensor::zero);
+
+    // Constant multiplicative parameter for the crack growth.
+    const auto A = mCrackGrowthMultiplier / mW.kernelExtent();
+
+    // Iterate over the internal nodes.
+    const auto ni = mNodeList.numInternalNodes();
 #pragma omp parallel for
-  for (auto i = 0u; i < ni; ++i) {
-    if (mExcludeNode(i) == 1) {
+    for (auto i = 0u; i < ni; ++i) {
+      if (mExcludeNode(i) == 1) {
 
-      DDDt(i) = 0.0;
+        DDDt(i) = 0.0;
 
-    } else {
+      } else {
 
-      const double hrInverse = Dimension::rootnu(H(i).Determinant());
-      DDDt(i) = A * cl(i) * hrInverse;
+        const double hrInverse = Dimension::rootnu(H(i).Determinant());
+        DDDt(i) = A * cl(i) * hrInverse;
 
+      }
+      CHECK(DDDt(i) >= 0.0);
     }
-    CHECK(DDDt(i) >= 0.0);
   }
 
   // Post-conditions.

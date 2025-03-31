@@ -87,6 +87,8 @@ not fill out the complete physics package interface."""
                                  doc="The NodeCoupling implementation")
     excludeNodes = PYB11property("std::vector<int>", "excludeNodes", "excludeNodes",
                                  doc="Allow the user to specify a set of nodes to be excluded from damage.")
+    freezeDamage = PYB11property("bool", "freezeDamage", "freezeDamage",
+                                 doc="Optionally freeze damage magnitude on each point")
 
 #-------------------------------------------------------------------------------
 # Add the restart methods
