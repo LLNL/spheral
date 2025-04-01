@@ -58,7 +58,7 @@ class DEMBase(Physics):
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the DEM before we start a derivative evaluation."
-        return "void"                
+        return "bool"                
 
     @PYB11virtual
     @PYB11const

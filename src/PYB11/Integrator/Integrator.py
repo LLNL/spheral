@@ -20,9 +20,6 @@ class Integrator:
 
     #...........................................................................
     # Constructors
-    def pyinit(self):
-        "Construct an itegrator"
-
     def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an integrator with a DataBase"
 
@@ -50,6 +47,7 @@ class Integrator:
         return "Scalar"
 
     @PYB11virtual
+    @PYB11const
     def preStepInitialize(self,
                           state = "State<%(Dimension)s>&",
                           derivs = "StateDerivatives<%(Dimension)s>&"):
@@ -58,6 +56,7 @@ To be called once per advance cycle."""
         return "void"
 
     @PYB11virtual
+    @PYB11const
     def initializeDerivatives(self,
                               t = "const double",
                               dt = "const double",
@@ -69,6 +68,7 @@ several times during a time step."""
         return "void"
 
     @PYB11virtual
+    @PYB11const
     def postStepFinalize(self,
                          t = "const double",
                          dt = "const double",
@@ -107,7 +107,7 @@ several times during a time step."""
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
         "Iterate over all physics packages and call postStateUpdate"
-        return "bool"
+        return "void"
 
     def appendPhysicsPackage(self, package="Physics<%(Dimension)s>&"):
         "Add a Physics package."
@@ -133,24 +133,29 @@ several times during a time step."""
         "Get the unique set of boundary conditions across all physics packages."
         return "std::vector<Boundary<%(Dimension)s>*>"
 
+    @PYB11const
     def setGhostNodes(self):
         "Set the ghost nodes for all node lists according to the boundary conditions."
         return "void"
 
+    @PYB11const
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
                              derivs = "StateDerivatives<%(Dimension)s>&"):
         "Set the ghost node values on the Fields of the nodes lists in the data base."
         return "void"
 
+    @PYB11const
     def finalizeGhostBoundaries(self):
         "Finalize the ghost node boundary conditions."
         return "void"
 
+    @PYB11const
     def setViolationNodes(self):
         "Find the nodes in violation of the boundary conditions."
         return "void"
 
+    @PYB11const
     def enforceBoundaries(self,
                           state = "State<%(Dimension)s>&",
                           derivs = "StateDerivatives<%(Dimension)s>&"):

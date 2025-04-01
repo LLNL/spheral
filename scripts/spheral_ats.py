@@ -99,7 +99,7 @@ def main():
     toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"] # Machines using Slurm scheduler
     toss_cray_machine_names = ["rzadams", "rzvernal", "tioga"] # Machines using Flux scheduler
     np_max_dict = {"rzadams": 84, "rzvernal": 64, "tioga": 64} # Maximum number of processors for ATS to use per node
-    ci_launch_flags = {"ruby": "--res=ci", "rzadams": "-q pdebug"}
+    ci_launch_flags = {"ruby": "--reservation=ci", "rzadams": "-q pdebug"}
     temp_uname = os.uname()
     hostname = temp_uname[1].rstrip("0123456789")
     sys_type = os.getenv("SYS_TYPE")
@@ -157,7 +157,6 @@ def main():
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
             mac_args.append(f"--numNodes {numNodes}")
         elif any(x in hostname for x in toss_cray_machine_names):
-            os.environ['MACHINE_TYPE'] = 'flux00'
             numNodes = numNodes if numNodes else 2
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["FLUX_JOB_ID", "FLUX_CONNECTOR_PATH", "FLUX_TERMINUS_SESSION"]

@@ -407,7 +407,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 // Initialize the hydro before evaluating derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 CRKSPHVariant<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,

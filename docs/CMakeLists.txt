@@ -9,16 +9,11 @@ if(ENABLE_DOCS)
   # HTML output directory
   set(SPHINX_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/html")
 
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
-    "${BINARY_BUILD_DIR}/conf.py"
-    @ONLY)
-
   get_target_property(DOCS_ACTIVATE_VENV_CMD python_build_env ACTIVATE_VENV)
 
   add_custom_target(docs ALL
     COMMAND ${DOCS_ACTIVATE_VENV_CMD} && python -m sphinx -q -b html
-    -c "${BINARY_BUILD_DIR}"
+    -c "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${SPHINX_HTML_DIR}"
     DEPENDS ${DOC_DEPENDS} python_build_env

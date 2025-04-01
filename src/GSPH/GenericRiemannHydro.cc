@@ -30,6 +30,7 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 
@@ -122,8 +123,8 @@ GenericRiemannHydro(DataBase<Dimension>& dataBase,
   mRiemannDvDx(FieldStorageType::CopyFields),
   mNewRiemannDpDx(FieldStorageType::CopyFields),
   mNewRiemannDvDx(FieldStorageType::CopyFields),
-  mPairAccelerations(),
-  mPairDepsDt() {
+  mPairAccelerationsPtr(),
+  mPairDepsDtPtr() {
 
   // Create storage for our internal state.
   mTimeStepMask = dataBase.newFluidFieldList(int(0), HydroFieldNames::timeStepMask);
@@ -143,17 +144,6 @@ GenericRiemannHydro(DataBase<Dimension>& dataBase,
   mRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,GSPHFieldNames::RiemannVelocityGradient);
   mNewRiemannDpDx = dataBase.newFluidFieldList(Vector::zero,ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannPressureGradient);
   mNewRiemannDvDx = dataBase.newFluidFieldList(Tensor::zero,ReplaceState<Dimension, Scalar>::prefix() + GSPHFieldNames::RiemannVelocityGradient);
-  mPairAccelerations.clear();
-  mPairDepsDt.clear();
-
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-GenericRiemannHydro<Dimension>::
-~GenericRiemannHydro() {
 }
 
 //------------------------------------------------------------------------------
@@ -302,8 +292,14 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mDspecificThermalEnergyDt);
   derivs.enroll(mDvDx);
   derivs.enroll(mM);
-  derivs.enroll(HydroFieldNames::pairAccelerations, mPairAccelerations);
-  derivs.enroll(HydroFieldNames::pairWork, mPairDepsDt);
+
+  if (mCompatibleEnergyEvolution) {
+    const auto& connectivityMap = dataBase.connectivityMap();
+    mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    mPairDepsDtPtr = std::make_unique<PairWorkType>(connectivityMap);
+    derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+    derivs.enroll(HydroFieldNames::pairWork, *mPairDepsDtPtr);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -476,14 +472,14 @@ dt(const DataBase<Dimension>& dataBase,
 // Initialize the hydro before calling evaluateDerivatives
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 GenericRiemannHydro<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs) {
-  
+  return false;
 }
 
 //------------------------------------------------------------------------------

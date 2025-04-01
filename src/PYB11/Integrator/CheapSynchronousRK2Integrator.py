@@ -25,9 +25,6 @@ sacrificing some accuracy vs. the the true RK2 algorithm."""
 
     #...........................................................................
     # Constructors
-    def pyinit(self):
-        "Construct an itegrator"
-
     def pyinit1(self, dataBase = "DataBase<%(Dimension)s>&"):
         "Construct an integrator with a DataBase"
 

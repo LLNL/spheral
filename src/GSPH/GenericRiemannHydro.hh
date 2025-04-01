@@ -9,6 +9,7 @@
 #define __Spheral_GenericRiemannHydro_hh__
 
 #include <string>
+#include <memory>
 
 #include "Physics/GenericHydro.hh"
 #include "Physics/Physics.hh"
@@ -36,8 +37,9 @@ template<typename Dimension> class StateDerivatives;
 template<typename Dimension> class TableKernel;
 template<typename Dimension> class RiemannSolverBase;
 template<typename Dimension> class DataBase;
-template<typename Dimension, typename DataType> class Field;
-template<typename Dimension, typename DataType> class FieldList;
+template<typename Dimension, typename Value> class Field;
+template<typename Dimension, typename Value> class FieldList;
+template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
@@ -53,6 +55,9 @@ public:
 
   using TimeStepType = typename Physics<Dimension>::TimeStepType;
   using ConstBoundaryIterator = typename Physics<Dimension>::ConstBoundaryIterator;
+
+  using PairAccelerationsType = PairwiseField<Dimension, Vector, 1u>;
+  using PairWorkType = PairwiseField<Dimension, Scalar, 2u>;
 
   // Constructors.
   GenericRiemannHydro(DataBase<Dimension>& dataBase,
@@ -78,7 +83,7 @@ public:
   GenericRiemannHydro& operator=(const GenericRiemannHydro&) = delete;
 
   // Destructor.
-  virtual ~GenericRiemannHydro();
+  virtual ~GenericRiemannHydro() = default;
 
     // We require all Physics packages to provide a method returning their vote
   // for the next time step.
@@ -113,7 +118,7 @@ public:
 
   // Initialize the Hydro before we start a derivative evaluation.
   virtual
-  void initialize(const Scalar time,
+  bool initialize(const Scalar time,
                   const Scalar dt,
                   const DataBase<Dimension>& dataBase,
                   State<Dimension>& state,
@@ -202,8 +207,8 @@ public:
   const FieldList<Dimension, Scalar>&    DspecificThermalEnergyDt() const;
   const FieldList<Dimension, Tensor>&    DvDx() const;
   
-  const std::vector<Vector>&             pairAccelerations() const;
-  const std::vector<Scalar>&             pairDepsDt() const;
+  const PairAccelerationsType&           pairAccelerations() const;
+  const PairWorkType&                    pairDepsDt() const;
 
   const FieldList<Dimension, Vector>&    DrhoDx() const;
   const FieldList<Dimension, Vector>&    riemannDpDx() const;
@@ -267,8 +272,8 @@ private:
   FieldList<Dimension, Vector>    mNewRiemannDpDx;
   FieldList<Dimension, Tensor>    mNewRiemannDvDx;
 
-  std::vector<Vector>             mPairAccelerations;
-  std::vector<Scalar>             mPairDepsDt;
+  std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;    // store pairwise contribution to DvDt for compatible
+  std::unique_ptr<PairWorkType>          mPairDepsDtPtr;           // store pairwise contribution to DepsDt for compatible
 };
 
 }
