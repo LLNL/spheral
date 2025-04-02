@@ -166,8 +166,8 @@ step(typename Dimension::Scalar maxTime,
         state.update(derivs1, hdt1,   t + hdt,        hdt1);
         state.update(derivs,  hdt2,   t + hdt + hdt1, hdt2);
       } else {
-        state.update(derivs0, hdt, t,          hdt);
-        state.update(derivs,  hdt, t + 0.5*dt, hdt);
+        state.update(derivs0, hdt, t,       hdt);
+        state.update(derivs,  hdt, t + hdt, hdt);
       }
 
       // Finish state update
