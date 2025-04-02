@@ -234,7 +234,7 @@ protected:
                           const StateDerivatives<Dimension>& derivs,
                           const Scalar currentTime) const;
 
-  Scalar mDtMultiplier;
+  mutable Scalar mDtMultiplier;
 
 private:
   //--------------------------- Private Interface ---------------------------//

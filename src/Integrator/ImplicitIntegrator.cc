@@ -9,6 +9,7 @@
 #include "Distributed/allReduce.hh"
 #include "Utilities/SpheralMessage.hh"
 #include "FileIO/FileIO.hh"
+#include "Distributed/Communicator.hh"
 
 namespace Spheral {
 
@@ -65,6 +66,94 @@ step(const typename Dimension::Scalar maxTime) {
     }
   }
   return success;
+}
+
+//------------------------------------------------------------------------------
+// Loop over the stored physics packages and pick the minimum timestep.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+typename Dimension::Scalar
+ImplicitIntegrator<Dimension>::
+selectDt(const typename Dimension::Scalar dtMin,
+         const typename Dimension::Scalar dtMax,
+         const State<Dimension>& state,
+         const StateDerivatives<Dimension>& derivs) const {
+
+  REQUIRE(dtMin >= 0 and dtMax > 0);
+  REQUIRE(dtMin <= dtMax);
+
+  // Get the current time and data base.
+  auto        t = this->currentTime();
+  const auto& db = this->dataBase();
+
+  // Loop over each package, and pick their timesteps.
+  TimeStepType dt(dtMax, ""), dtImp(dtMax, "");
+  const auto& pkgs = this->physicsPackages();
+  for (auto* pkg: pkgs) {
+    auto dtVote = pkg->dt(db, state, derivs, t);
+    if (dtVote.first > 0.0 and dtVote.first < dt.first) dt = dtVote;
+    dtVote = pkg->dtImplicit(db, state, derivs, t);
+    if (dtVote.first > 0.0 and dtVote.first < dtImp.first) dtImp = dtVote;
+  }
+
+  // In the parallel case we need to find the minimum timestep across all processors.
+  const auto globalDt = allReduce(dt.first, SPHERAL_OP_MIN);
+  const auto globalDtImp = allReduce(dtImp.first, SPHERAL_OP_MIN);
+
+  // If we're verbose we have to know which rank(s) are limiting things
+  const auto rank = Process::getRank();
+  const auto numProcs = Process::getTotalNumberOfProcesses();
+  auto dtRank    = (dt.first    == globalDt    ? rank : numProcs);
+  auto dtRankImp = (dtImp.first == globalDtImp ? rank : numProcs);
+  dtRank = allReduce(dtRank, SPHERAL_OP_MIN);
+  dtRankImp = allReduce(dtRankImp, SPHERAL_OP_MIN);
+
+  // Limit the curent mulitplier such that the timestep cannot exceed the implicit vote
+  mDtMultiplier *= std::min(1.0, globalDtImp/globalDt);
+
+  // Now set the dt to the global answer
+  dt.first = globalDt;
+#ifdef USE_MPI
+  {
+    int msgSize = dt.second.size();
+    MPI_Bcast(&msgSize, 1, MPI_INT, dtRank, Communicator::communicator());
+    dt.second.resize(msgSize);
+    MPI_Bcast(&dt.second[0], msgSize, MPI_CHAR, dtRank, Communicator::communicator());
+  }
+#endif
+
+  // Apply any dt scaling due to iteration
+  dt.first *= mDtMultiplier;
+
+  // We also require that the timestep is not allowed to grow faster than a
+  // prescribed fraction.
+  dt.first = std::min(dt.first, this->dtGrowth()*this->lastDt());
+
+  // Enforce the timestep boundaries.
+  dt.first = std::min(dtMax, std::max(dtMin, dt.first));
+
+  CHECK(dt.first >= 0.0 and
+        dt.first >= dtMin and dt.first <= dtMax);
+
+  // Are we verbose?
+  if (rank == dtRank and
+      (this->verbose() or globalDt < this->dtMin())) {
+    cout << "----------------------------------------" << endl
+         << "Overall timestep chosen " << dt.first << endl
+         << dt.second << endl;
+  }
+  if (rank == dtRankImp and
+      (this->verbose() or globalDt < this->dtMin())) {
+    cout << "Implicit limiting timestep " << dtImp.first << endl
+         << dtImp.second << endl;
+  }
+  cout.flush();
+
+#ifdef USE_MPI
+  MPI_Barrier(Communicator::communicator());
+#endif
+
+  return dt.first;
 }
 
 //------------------------------------------------------------------------------

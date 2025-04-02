@@ -36,6 +36,16 @@ class ImplicitIntegrator(Integrator):
 
     @PYB11virtual
     @PYB11const
+    def selectDt(self,
+                 dtMin = "const Scalar",
+                 dtMax = "const Scalar",
+                 state = "const State<%(Dimension)s>&",
+                 derivs = "const StateDerivatives<%(Dimension)s>&"):
+        "Provide a method of looping over the physics packages and picking a time step."
+        return "Scalar"
+
+    @PYB11virtual
+    @PYB11const
     def computeResiduals(self,
                          state1 = "const State<%(Dimension)s>&",
                          state0 = "const State<%(Dimension)s>&",

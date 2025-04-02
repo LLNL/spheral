@@ -38,6 +38,13 @@ public:
   // Override the step method for our implicit approach
   virtual bool step(Scalar maxTime) override;
 
+  // Provide a method of looping over the physics packages and picking a
+  // time step.
+  virtual Scalar selectDt(const Scalar dtMin, 
+                          const Scalar dtMax,
+                          const State<Dimension>& state,
+                          const StateDerivatives<Dimension>& derivs) const override;
+
   // Find the maximum residual difference in the states
   virtual Scalar computeResiduals(const State<Dimension>& state1,
                                   const State<Dimension>& state0,
