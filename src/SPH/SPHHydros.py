@@ -22,6 +22,7 @@ def SPH(W,
         sumMassDensityOverAllNodeLists = True,
         densityUpdate = RigorousSumDensity,
         HUpdate = IdealH,
+        planeStrain = False,
         epsTensile = 0.0,
         nTensile = 4.0,
         damageRelieveRubble = False,
@@ -115,7 +116,8 @@ def SPH(W,
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
     if nsolid > 0:
-        kwargs.update({"WGrad"                    : WGrad,
+        kwargs.update({"planeStrain"              : planeStrain,
+                       "WGrad"                    : WGrad,
                        "damageRelieveRubble"      : damageRelieveRubble,
                        "strengthInDamage"         : strengthInDamage})
 

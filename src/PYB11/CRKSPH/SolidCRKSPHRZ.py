@@ -35,6 +35,7 @@ class SolidCRKSPHRZ(SolidCRKSPH):
                evolveTotalEnergy = "const bool",
                XSPH = "const bool",
                densityUpdate = "const MassDensityType",
+               planeStrain = "const bool",
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool"):

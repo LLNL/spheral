@@ -328,13 +328,8 @@ registerState(DataBase<Dimension>& dataBase,
   auto interfaceNormalsPolicy = make_policy<PureReplaceState<Dimension,Vector>>();
   auto interfaceSmoothnessPolicy = make_policy<PureReplaceState<Dimension,Scalar>>();
   
-  if(this->planeStrain()){
-    auto deviatoricStressPolicy = make_policy<IncrementState<Dimension, SymTensor>>();
-    state.enroll(deviatoricStress, deviatoricStressPolicy);
-  }else{
-    auto deviatoricStressPolicy = make_policy<DeviatoricStressPolicy<Dimension>>();
-    state.enroll(deviatoricStress, deviatoricStressPolicy);
-  }
+  auto deviatoricStressPolicy = make_policy<DeviatoricStressPolicy<Dimension>>(mPlaneStrain);
+  state.enroll(deviatoricStress, deviatoricStressPolicy);
 
   if(this->compatibleEnergyEvolution()){
     auto  thermalEnergyPolicy = make_policy<CompatibleDifferenceSpecificThermalEnergyPolicy<Dimension>>(dataBase);

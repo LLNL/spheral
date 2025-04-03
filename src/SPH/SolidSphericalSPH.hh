@@ -121,6 +121,9 @@ public:
   const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
   const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
 
+  // Forbid turning off planeStrain
+  virtual void planeStrain(bool x)                     override { VERIFY2(x, "SolidSPHRZ WARNING: planeStrain required to be True, ignoring"); }
+
   //****************************************************************************
   // Methods required for restarting.
   virtual std::string label()          const override { return "SolidSphericalSPH"; }

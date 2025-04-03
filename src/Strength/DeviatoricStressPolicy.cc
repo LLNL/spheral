@@ -27,8 +27,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
-DeviatoricStressPolicy():
-  FieldUpdatePolicy<Dimension, SymTensor>({}) {
+DeviatoricStressPolicy(const bool planeStrain):
+  FieldUpdatePolicy<Dimension, SymTensor>({}),
+  mPlaneStrain(planeStrain) {
 }
 
 //------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ update(const KeyType& key,
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
   const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
+  const auto oneThird = mPlaneStrain ? 1.0/3.0 : 1.0/Dimension::nDim;
 
   // Iterate over the internal nodes.
   const auto n = S.numInternalElements();
@@ -88,11 +90,8 @@ update(const KeyType& key,
 
     // Update S
     // Note -- purely elastic flow.  The plastic yielding is accounted for when we update the plastic strain.
-    S(i) += multiplier*DSDti;                                // Elastic prediction for the new deviatoric stress
-    if (zeroTrace) {
-      S(i) -= SymTensor::one * S(i).Trace()/Dimension::nDim; // Ensure the deviatoric stress is traceless (all but RZ and spherical)
-      CHECK(fuzzyEqual(S(i).Trace(), 0.0));
-    }
+    S(i) += multiplier*DSDti;                                          // Elastic prediction for the new deviatoric stress
+    if (zeroTrace) S(i) -= oneThird * S(i).Trace() * SymTensor::one;   // Ensure the (full 3D) deviatoric stress is traceless
   }
 
 //     // Finally apply the pressure limits to the allowed deviatoric stress.
@@ -108,9 +107,10 @@ DeviatoricStressPolicy<Dimension>::
 operator==(const UpdatePolicyBase<Dimension>& rhs) const {
 
   // We're only equal if the other guy is a DeviatoricStress operator, and has
-  // the same cutoff values.
+  // the same internal parameters
   const auto rhsPtr = dynamic_cast<const DeviatoricStressPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr);
+  return (rhsPtr != nullptr and
+          rhsPtr->planeStrain() == mPlaneStrain);
 }
 
 }

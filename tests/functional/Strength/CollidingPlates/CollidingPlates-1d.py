@@ -48,7 +48,7 @@ commandLine(# Geometry
             etamax = 1.5,
 
             # Hydro
-            crksph = False,
+            hydroType = "SPH",  # (SPH, CRKSPH, FSISPH)
             nPerh = 1.25,
             hmin = 1e-5,
             hmax = 1.0,
@@ -58,7 +58,7 @@ commandLine(# Geometry
             evolveTotalEnergy = False,
             gradhCorrection = False,
             correctVelocityGradient = True,
-            filter = 0.0,
+            planeStrain = False,
 
             # Time advancement.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -87,13 +87,11 @@ commandLine(# Geometry
             comparisonFile = None,
             )
 
-if crksph:
-    hydroname = "CRKSPH"
-else:
-    hydroname = "SPH"
+hydroType = hydroType.upper()
+assert hydroType in ("SPH", "CRKSPH", "FSISPH")
 
 dataDir = os.path.join(dataDirBase,
-                       hydroname,
+                       hydroType,
                        str(nx))
 restartDir = os.path.join(dataDir, "restarts")
 restartBaseName = os.path.join(restartDir, "CollidingPlates-%i" % nx)
@@ -224,13 +222,27 @@ output("db.numSolidNodeLists")
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if crksph:
+if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    W = WT,
                    compatibleEnergyEvolution = compatibleEnergy,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   planeStrain = planeStrain)
+
+elif hydroType == "FSISPH":
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   interfaceMethod = HLLCInterface,
+                   sumDensityNodeLists = nodeSet,
+                   densityStabilizationCoefficient = 0.00,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   linearCorrectGradients = correctVelocityGradient,
+                   HUpdate = HUpdate,
+                   planeStrain = planeStrain)
+
 else:
+    assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
                 compatibleEnergyEvolution = compatibleEnergy,
@@ -238,15 +250,16 @@ else:
                 gradhCorrection = gradhCorrection,
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
-                HUpdate = HUpdate)
+                HUpdate = HUpdate,
+                planeStrain = planeStrain)
+
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
 output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.kernel")
-output("hydro.PiKernel")
+output("hydro.planeStrain")
 output("hydro.Q")
 output("hydro.Q.Cl")
 output("hydro.Q.Cq")
@@ -327,25 +340,25 @@ if compatibleEnergy and abs(Eerror) > 1e-13:
 # Plot the state.
 #-------------------------------------------------------------------------------
 if graphics:
-    from SpheralGnuPlotUtilities import *
+    from SpheralMatplotlib import *
     state = State(db, integrator.physicsPackages())
     rhoPlot = plotFieldList(state.scalarFields("mass density"),
-                            plotStyle = "linespoints",
+                            plotStyle = "r-",
                             winTitle = "rho @ %g %i" % (control.time(), mpi.procs))
     velPlot = plotFieldList(state.vectorFields("velocity"),
                             yFunction = "%s.x",
-                            plotStyle = "linespoints",
+                            plotStyle = "r-",
                             winTitle = "vel @ %g %i" % (control.time(), mpi.procs))
     mPlot = plotFieldList(state.scalarFields("mass"),
-                          plotStyle = "linespoints",
+                          plotStyle = "r-",
                           winTitle = "mass @ %g %i" % (control.time(), mpi.procs))
     PPlot = plotFieldList(state.scalarFields("pressure"),
-                          plotStyle = "linespoints",
+                          plotStyle = "r-",
                           winTitle = "pressure @ %g %i" % (control.time(), mpi.procs))
     SPlot = plotFieldList(state.symTensorFields(SolidFieldNames.deviatoricStress),
-                                                yFunction = "%s.xx",
-                                                plotStyle = "linespoints",
-                                                winTitle = "Deviatoric stress @ %g %i" % (control.time(), mpi.procs))
+                          yFunction = "%s.xx",
+                          plotStyle = "r-",
+                          winTitle = "Deviatoric stress @ %g %i" % (control.time(), mpi.procs))
 
 #-------------------------------------------------------------------------------
 # If requested, write out the state in a global ordering to a file.

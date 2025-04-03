@@ -110,6 +110,7 @@ SolidCRKSPHRZ(DataBase<Dimension>& dataBase,
               const bool evolveTotalEnergy,
               const bool XSPH,
               const MassDensityType densityUpdate,
+              const bool planeStrain,
               const double epsTensile,
               const double nTensile,
               const bool damageRelieveRubble):
@@ -122,6 +123,7 @@ SolidCRKSPHRZ(DataBase<Dimension>& dataBase,
                          evolveTotalEnergy,
                          XSPH,
                          densityUpdate,
+                         planeStrain,
                          epsTensile,
                          nTensile,
                          damageRelieveRubble),
@@ -654,7 +656,7 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
       const auto spin = localDvDxi.SkewSymmetric();
       const auto deviatoricDeformation = deformation - ((deformation.Trace() + deformationTT)/3.0)*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
-      DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
+      DSDti = spinCorrection + 2.0*mui*deviatoricDeformation;
 
       // In the presence of damage, add a term to reduce the stress on this point.
       DSDti = (1.0 - Di)*DSDti - Di*Si*0.25/dt;

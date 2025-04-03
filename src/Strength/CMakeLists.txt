@@ -23,6 +23,7 @@ set(Strength_headers
     SolidFieldNames.hh
     YieldStrengthPolicy.hh
     effectiveKernelVolume.hh
+    computeDeviatoricDeformation.hh
     )
 
 spheral_add_obj_library(Strength SPHERAL_OBJ_LIBS)

@@ -129,7 +129,7 @@ commandLine(length = 3.0,
             # Optionally we can initialize a break near the origin.
             initialBreakRadius = 0.0,
             
-            crksph = False,
+            hydroType = "SPH",                 # one of (SPH, CRKSPH, FSISPH)
             hmin = 1e-5,
             hmax = 1.0,
             cfl = 0.5,
@@ -179,19 +179,16 @@ commandLine(length = 3.0,
 if "SYS_TYPE" in os.environ and os.environ["SYS_TYPE"] == "blueos_3_ppc64le_ib_p9":
     testtol *= 20.0
 
-if crksph:
-    hydroname = "CRKSPH"
-    nPerh = 1.51
-    order = 5
-else:
-    hydroname = "SPH"
-    nPerh = 1.51
-    order = 5
+hydroType = hydroType.upper()
+assert hydroType in ("SPH", "CRKSPH", "FSISPH")
+
+nPerh = 1.51
+order = 5
+
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen, ProbabilisticDamageModel):
     damageName = os.path.join(str(DamageModelConstructor.__name__), str(damageCoupling))
 else:
     damageName = DamageModelConstructor.__name__
-                              
 
 #kWeibull = 8.8e4 * kWeibullFactor
 #kWeibull = 6.52e3 * kWeibullFactor
@@ -199,7 +196,7 @@ kWeibull = 6.52e5 * kWeibullFactor
 mWeibull = 2.63   * mWeibullFactor
 
 dataDir = os.path.join(dataDirBase,
-                       hydroname,
+                       hydroType,
                        damageName,
                        "nx=%i" % nx,
                        "k=%4.2f_m=%4.2f" % (kWeibull, mWeibull))
@@ -433,27 +430,45 @@ bcs = [xbc0, xbc1]
 #-------------------------------------------------------------------------------
 # Construct the hydro physics object.
 #-------------------------------------------------------------------------------
-if crksph:
+if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
-                   filter = filter,
+                   W = WT,
+                   order = correctionOrder,
                    cfl = cfl,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate)
+                   HUpdate = HUpdate,
+                   crktype = crktype)
+
+elif hydroType == "FSISPH":
+    hydro = FSISPH(dataBase = db,
+                   W = WT,
+                   cfl = cfl,
+                   interfaceMethod = HLLCInterface,
+                   sumDensityNodeLists=[nodes],                       
+                   densityStabilizationCoefficient = 0.00,
+                   useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
+                   compatibleEnergyEvolution = compatibleEnergy,
+                   linearCorrectGradients = correctVelocityGradient,
+                   HUpdate = HUpdate,
+                   planeStrain = True)
 else:
+    assert hydroType == "SPH"
     hydro = SPH(dataBase = db,
                 W = WT,
-                filter = filter,
                 cfl = cfl,
+                useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                 compatibleEnergyEvolution = compatibleEnergy,
                 gradhCorrection = gradhCorrection,
+                XSPH = XSPH,
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
-                HUpdate = HUpdate,
-                XSPH = XSPH,
                 epsTensile = epsilonTensile,
-                nTensile = nTensile)
+                nTensile = nTensile,
+                HUpdate = HUpdate)
+
 output("hydro")
 output("hydro.cfl")
 output("hydro.useVelocityMagnitudeForDt")
@@ -536,21 +551,19 @@ elif DamageModelConstructor is ProbabilisticDamageModel:
                                          damageInCompression = damageInCompression)
 
 output("damageModel")
+output("damageModel.strainAlgorithm")
+output("damageModel.damageCouplingAlgorithm")
+
 if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
     if cullToWeakestFlaws:
         damageModel.cullToWeakestFlaws()
-    output("damageModel.strainAlgorithm")
-    output("damageModel.damageCouplingAlgorithm")
 
 # damageModel.excludeNodes = xNodes
-output("damageModel")
 
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db)
-integrator.appendPhysicsPackage(hydro)
-integrator.appendPhysicsPackage(damageModel)
+integrator = IntegratorConstructor(db, [hydro, damageModel])
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -666,6 +679,11 @@ if graphics:
              (uPlot, "u.png"),
              (hPlot, "h.png"),
              (dPlot, "damage.png")]
+
+    if hydroType == "FSISPH":
+        DPPlot = plotFieldList(hydro.damagedPressure,
+                               plotStyle="o-",
+                               winTitle="damaged pressure @ %g %i" % (control.time(), mpi.procs))
 
     if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
         ts = damageModel.strain

@@ -36,25 +36,25 @@ public:
 
   // Constructors.
   SolidSPHRZ(DataBase<Dimension>& dataBase,
-                      ArtificialViscosityHandle<Dimension>& Q,
-                      const TableKernel<Dimension>& W,
-                      const TableKernel<Dimension>& WPi,
-                      const TableKernel<Dimension>& WGrad,
-                      const double cfl,
-                      const bool useVelocityMagnitudeForDt,
-                      const bool compatibleEnergyEvolution,
-                      const bool evolveTotalEnergy,
-                      const bool gradhCorrection,
-                      const bool XSPH,
-                      const bool correctVelocityGradient,
-                      const bool sumMassDensityOverAllNodeLists,
-                      const MassDensityType densityUpdate,
-                      const double epsTensile,
-                      const double nTensile,
-                      const bool damageRelieveRubble,
-                      const bool strengthInDamage,
-                      const Vector& xmin,
-                      const Vector& xmax);
+             ArtificialViscosityHandle<Dimension>& Q,
+             const TableKernel<Dimension>& W,
+             const TableKernel<Dimension>& WPi,
+             const TableKernel<Dimension>& WGrad,
+             const double cfl,
+             const bool useVelocityMagnitudeForDt,
+             const bool compatibleEnergyEvolution,
+             const bool evolveTotalEnergy,
+             const bool gradhCorrection,
+             const bool XSPH,
+             const bool correctVelocityGradient,
+             const bool sumMassDensityOverAllNodeLists,
+             const MassDensityType densityUpdate,
+             const double epsTensile,
+             const double nTensile,
+             const bool damageRelieveRubble,
+             const bool strengthInDamage,
+             const Vector& xmin,
+             const Vector& xmax);
 
   // No default constructor, copying, or assignment.
   SolidSPHRZ() = delete;
@@ -108,6 +108,9 @@ public:
   // Access our state.
   const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SPH ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
   const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
+
+  // Forbid turning off planeStrain
+  virtual void planeStrain(bool x)                     override { VERIFY2(x, "SolidSPHRZ WARNING: planeStrain required to be True, ignoring"); }
 
   //****************************************************************************
   // Methods required for restarting.
