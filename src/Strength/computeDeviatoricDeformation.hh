@@ -21,20 +21,21 @@ inline
 SymTensor
 computeDeviatoricDeformation(const SymTensor& deformation,
                              const bool planeStrain) {
-  const auto Dtrace = (planeStrain ?
-                       deformation.Trace() :
-                       0.0);
-  return deformation - Dtrace/3.0*SymTensor::one;
+  return deformation - deformation.Trace()/3.0*SymTensor::one;
+  // const auto Dtrace = (planeStrain ?
+  //                      deformation.Trace() :
+  //                      0.0);
+  // return deformation - Dtrace/3.0*SymTensor::one;
 }
 
-// In 3D the plane-strain vs. plane-stress distinction is not used
-template<>
-inline
-GeomSymmetricTensor<3>
-computeDeviatoricDeformation<GeomSymmetricTensor<3>>(const GeomSymmetricTensor<3>& deformation,
-                                                     const bool planeStrain) {
-  return deformation - deformation.Trace()/3.0*GeomSymmetricTensor<3>::one;
-}
+// // In 3D the plane-strain vs. plane-stress distinction is not used
+// template<>
+// inline
+// GeomSymmetricTensor<3>
+// computeDeviatoricDeformation<GeomSymmetricTensor<3>>(const GeomSymmetricTensor<3>& deformation,
+//                                                      const bool planeStrain) {
+//   return deformation - deformation.Trace()/3.0*GeomSymmetricTensor<3>::one;
+// }
 
 }
 

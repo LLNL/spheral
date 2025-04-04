@@ -71,7 +71,7 @@ update(const KeyType& key,
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
   const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
-  const auto oneThird = mPlaneStrain ? 1.0/3.0 : 1.0/Dimension::nDim;
+  const auto oneThird = 1.0/3.0; // mPlaneStrain ? 1.0/3.0 : 1.0/Dimension::nDim;
 
   // Iterate over the internal nodes.
   const auto n = S.numInternalElements();
