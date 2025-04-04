@@ -5,10 +5,10 @@
 #ATS:t13 = testif(t11, SELF, "--DamageModelConstructor GradyKippTensorDamageOwen --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-GradyKipp-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-GradyKipp-1d-1proc-reproducing.gnu' --restoreCycle 500", np=4, label="Tensile rod (GradyKippOwen damage) domain independence test 4 DOMAIN RESTART RUN")
 #
 # Probabilistic damage
-#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
-#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
-#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
-#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20240816.gnu' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
+#ATS:t20 = test(SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories True --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20250404.gnu' ", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RUN")
+#ATS:t21 = testif(t20, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20250404.gnu'", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RUN")
+#ATS:t22 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-1proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20250404.gnu' --restoreCycle 500", np=1, label="Tensile rod (probabilistic damage) domain independence test SERIAL RESTART RUN")
+#ATS:t23 = testif(t21, SELF, "--DamageModelConstructor ProbabilisticDamageModel --graphics False --clearDirectories False --domainIndependent True --outputFile 'TensileRod-Probabilistic-1d-4proc-reproducing-restart.gnu' --comparisonFile 'TensileRod-Probabilistic-1d-1proc-reproducing.gnu' --referenceFile 'Reference/TensileRod-Probabilistic-1d-1proc-reproducing-20250404.gnu' --restoreCycle 500", np=4, label="Tensile rod (probabilistic damage) domain independence test 4 DOMAIN RESTART RUN")
 
 #-------------------------------------------------------------------------------
 # A rod of stainless steel undergoing tensile strain.  This is intended as a
@@ -169,7 +169,7 @@ commandLine(length = 3.0,
 
             testtol = 1.0e-4,
             clearDirectories = False,
-            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20240816.gnu",
+            referenceFile = "Reference/TensileRod-GradyKippOwen-1d-1proc-reproducing-20250404.gnu",
             dataDirBase = "dumps-TensileRod-1d",
             outputFile = None,
             comparisonFile = None,
@@ -433,14 +433,12 @@ bcs = [xbc0, xbc1]
 if hydroType == "CRKSPH":
     hydro = CRKSPH(dataBase = db,
                    W = WT,
-                   order = correctionOrder,
                    cfl = cfl,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    XSPH = XSPH,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
-                   crktype = crktype)
+                   HUpdate = HUpdate)
 
 elif hydroType == "FSISPH":
     hydro = FSISPH(dataBase = db,
@@ -642,23 +640,23 @@ if graphics:
     h = db.newFluidScalarFieldList(0.0, "h")
     for i in range(nodes.numInternalNodes):
         h[0][i] = 1.0/H[0][i].xx
-    rhoPlot = plotFieldList(state.scalarFields("mass density"),
+    rhoPlot = plotFieldList(state.scalarFields(HydroFieldNames.massDensity),
                             plotStyle="o-",
                             winTitle="rho @ %g %i" % (control.time(), mpi.procs))
-    velPlot = plotFieldList(state.vectorFields("velocity"),
+    velPlot = plotFieldList(state.vectorFields(HydroFieldNames.velocity),
                             yFunction = "%s.x",
                             plotStyle="o-",
                             winTitle="vel @ %g %i" % (control.time(), mpi.procs))
-    mPlot = plotFieldList(state.scalarFields("mass"),
+    mPlot = plotFieldList(state.scalarFields(HydroFieldNames.mass),
                           plotStyle="o-",
                           winTitle="mass @ %g %i" % (control.time(), mpi.procs))
-    PPlot = plotFieldList(state.scalarFields("pressure"),
+    PPlot = plotFieldList(state.scalarFields(HydroFieldNames.pressure),
                           plotStyle="o-",
                           winTitle="pressure @ %g %i" % (control.time(), mpi.procs))
-    uPlot = plotFieldList(state.scalarFields("specific thermal energy"),
+    uPlot = plotFieldList(state.scalarFields(HydroFieldNames.specificThermalEnergy),
                           plotStyle="o-",
                           winTitle="specific thermal energy @ %g %i" % (control.time(), mpi.procs))
-    SPlot = plotFieldList(state.symTensorFields("deviatoric stress"),
+    SPlot = plotFieldList(state.symTensorFields(SolidFieldNames.deviatoricStress),
                           yFunction = "%s.xx",
                           plotStyle="o-",
                           winTitle="$S_{xx}$ @ %g %i" % (control.time(), mpi.procs))
@@ -666,7 +664,7 @@ if graphics:
                           plotStyle="o-",
                           winTitle="h @ %g %i" % (control.time(), mpi.procs))
 
-    d = state.symTensorFields("tensor damage")
+    d = state.symTensorFields(SolidFieldNames.tensorDamage)
     dPlot = plotFieldList(d,
                           yFunction = "%s.xx",
                           winTitle="damage @ %g %i" % (control.time(), mpi.procs),
