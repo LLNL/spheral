@@ -116,10 +116,11 @@ def SPH(W,
               "xmax" : eval("Vector%id(%g, %g, %g)" % xmax)}
 
     if nsolid > 0:
-        kwargs.update({"planeStrain"              : planeStrain,
-                       "WGrad"                    : WGrad,
+        kwargs.update({"WGrad"                    : WGrad,
                        "damageRelieveRubble"      : damageRelieveRubble,
                        "strengthInDamage"         : strengthInDamage})
+        if GeometryRegistrar.coords() == CoordinateType.Cartesian:
+            kwargs.update({"planeStrain"              : planeStrain})
 
     # Build the SPH hydro
     result = constructor(**kwargs)
