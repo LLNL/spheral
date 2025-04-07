@@ -34,7 +34,6 @@ class SolidSPH(SPHBase):
                correctVelocityGradient = "const bool",
                sumMassDensityOverAllNodeLists = "const bool",
                densityUpdate = "const MassDensityType",
-               planeStrain = "const bool",
                epsTensile = "const double",
                nTensile = "const double",
                damageRelieveRubble = "const bool",
@@ -105,7 +104,6 @@ mass density, velocity, and specific thermal energy."""
     shearModulus =         PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "shearModulus",        returnpolicy="reference_internal")
     yieldStrength =        PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "yieldStrength",       returnpolicy="reference_internal")
     plasticStrain0 =       PYB11property("const FieldList<%(Dimension)s, Scalar>&",    "plasticStrain0",      returnpolicy="reference_internal")
-    planeStrain =           PYB11property("bool", "planeStrain", "planeStrain")
 
 #-------------------------------------------------------------------------------
 # Inject methods

@@ -27,7 +27,7 @@ public:
   using KeyType = typename UpdatePolicyBase<Dimension>::KeyType;
 
   // Constructors, destructor.
-  DeviatoricStressPolicy(const bool planeStrain = false);
+  DeviatoricStressPolicy();
   virtual ~DeviatoricStressPolicy() = default;
   
   // Overload the methods describing how to update Fields.
@@ -41,17 +41,9 @@ public:
   // Equivalence.
   virtual bool operator==(const UpdatePolicyBase<Dimension>& rhs) const override;
 
-  // Plane-strain
-  bool planeStrain()             const { return mPlaneStrain; }
-  void planeStrain(const bool x)       { mPlaneStrain = x; }
-
   // Forbidden methods
   DeviatoricStressPolicy(const DeviatoricStressPolicy& rhs) = delete;
   DeviatoricStressPolicy& operator=(const DeviatoricStressPolicy& rhs) = delete;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  bool mPlaneStrain;
 };
 
 }

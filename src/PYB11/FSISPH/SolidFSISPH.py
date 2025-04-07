@@ -38,7 +38,6 @@ class SolidFSISPH(GenericHydro):
                compatibleEnergyEvolution = "const bool",
                evolveTotalEnergy = "const bool",
                linearCorrectGradients = "const bool",
-               planeStrain = "const bool",
                interfacePmin = "const double",
                interfaceNeighborAngleThreshold = "const double ",
                densityUpdate = "const FSIMassDensityMethod",

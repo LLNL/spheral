@@ -51,7 +51,6 @@ public:
            const bool correctVelocityGradient,
            const bool sumMassDensityOverAllNodeLists,
            const MassDensityType densityUpdate,
-           const bool planeStrain,
            const double epsTensile,
            const double nTensile,
            const bool damageRelieveRubble,
@@ -120,10 +119,6 @@ public:
   const FieldList<Dimension, Scalar>& yieldStrength()          const { return mYieldStrength; }
   const FieldList<Dimension, Scalar>& plasticStrain0()         const { return mPlasticStrain0; }
 
-  // Toggle how lower-dimensional deviatoric stress is handled
-  bool planeStrain()                                           const { return mPlaneStrain; }
-  virtual void planeStrain(bool x)                                   { mPlaneStrain = x; }
-
   // Control whether allow damaged material to have stress relieved.
   bool damageRelieveRubble()                                   const { return mDamageRelieveRubble; }
   void damageRelieveRubble(bool x)                                   { mDamageRelieveRubble = x; }
@@ -141,7 +136,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  bool mPlaneStrain, mDamageRelieveRubble, mStrengthInDamage;
+  bool mDamageRelieveRubble, mStrengthInDamage;
 
 private:
   //--------------------------- Private Interface ---------------------------//

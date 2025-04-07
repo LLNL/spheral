@@ -71,7 +71,6 @@ commandLine(# Geometry
             evolveTotalEnergy = False,
             gradhCorrection = False,
             correctVelocityGradient = True,
-            planeStrain = False,
 
             # Time advancement.
             IntegratorConstructor = CheapSynchronousRK2Integrator,
@@ -241,8 +240,7 @@ if hydroType == "CRKSPH":
                    W = WT,
                    compatibleEnergyEvolution = compatibleEnergy,
                    densityUpdate = densityUpdate,
-                   HUpdate = HUpdate,
-                   planeStrain = planeStrain)
+                   HUpdate = HUpdate)
 
 elif hydroType == "FSISPH":
     hydro = FSISPH(dataBase = db,
@@ -251,8 +249,7 @@ elif hydroType == "FSISPH":
                    densityStabilizationCoefficient = 0.00,
                    compatibleEnergyEvolution = compatibleEnergy,
                    linearCorrectGradients = correctVelocityGradient,
-                   HUpdate = HUpdate,
-                   planeStrain = planeStrain)
+                   HUpdate = HUpdate)
 
 else:
     assert hydroType == "SPH"
@@ -263,8 +260,7 @@ else:
                 gradhCorrection = gradhCorrection,
                 correctVelocityGradient = correctVelocityGradient,
                 densityUpdate = densityUpdate,
-                HUpdate = HUpdate,
-                planeStrain = planeStrain)
+                HUpdate = HUpdate)
 
 output("hydro")
 output("hydro.cfl")
@@ -272,7 +268,6 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
-output("hydro.planeStrain")
 output("hydro.Q")
 output("hydro.Q.Cl")
 output("hydro.Q.Cq")

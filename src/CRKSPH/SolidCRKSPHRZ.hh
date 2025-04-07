@@ -42,7 +42,6 @@ public:
                 const bool evolveTotalEnergy,
                 const bool XSPH,
                 const MassDensityType densityUpdate,
-                const bool planeStrain,
                 const double epsTensile,
                 const double nTensile,
                 const bool damageRelieveRubble);

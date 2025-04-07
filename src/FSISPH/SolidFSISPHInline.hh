@@ -130,24 +130,6 @@ SolidFSISPH<Dimension>::linearCorrectGradients(bool val) {
 }
 
 //------------------------------------------------------------------------------
-// plane strain (instead of plane stress) mode for 1D and 2D problems
-//------------------------------------------------------------------------------
-template<typename Dimension>
-inline
-bool
-SolidFSISPH<Dimension>::planeStrain() const {
-  return mPlaneStrain;
-}
-
-template<typename Dimension>
-inline
-void
-SolidFSISPH<Dimension>::planeStrain(bool val) {
-  mPlaneStrain = val;
-}
-
-
-//------------------------------------------------------------------------------
 // switch to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
 template<typename Dimension>

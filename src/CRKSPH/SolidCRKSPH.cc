@@ -19,7 +19,6 @@
 #include "Strength/PlasticStrainPolicy.hh"
 #include "Strength/ShearModulusPolicy.hh"
 #include "Strength/YieldStrengthPolicy.hh"
-#include "Strength/computeDeviatoricDeformation.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
@@ -110,7 +109,6 @@ SolidCRKSPH(DataBase<Dimension>& dataBase,
             const bool evolveTotalEnergy,
             const bool XSPH,
             const MassDensityType densityUpdate,
-            const bool planeStrain,
             const double epsTensile,
             const double nTensile,
             const bool damageRelieveRubble):
@@ -125,7 +123,6 @@ SolidCRKSPH(DataBase<Dimension>& dataBase,
                     densityUpdate,
                     epsTensile,
                     nTensile),
-  mPlaneStrain(planeStrain),
   mDamageRelieveRubble(damageRelieveRubble),
   mDdeviatoricStressDt(FieldStorageType::CopyFields),
   mBulkModulus(FieldStorageType::CopyFields),
@@ -184,7 +181,7 @@ registerState(DataBase<Dimension>& dataBase,
   // Register the deviatoric stress and plastic strain to be evolved.
   auto ps = dataBase.solidPlasticStrain();
   auto S = dataBase.solidDeviatoricStress();
-  state.enroll(S, make_policy<DeviatoricStressPolicy<Dimension>>(mPlaneStrain));
+  state.enroll(S, make_policy<DeviatoricStressPolicy<Dimension>>());
   state.enroll(ps, make_policy<PlasticStrainPolicy<Dimension>>());
 
   // Register the bulk modulus, shear modulus, and yield strength.
@@ -291,7 +288,6 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
   const auto  evolveTotalEnergy = this->evolveTotalEnergy();
   const auto  XSPH = this->XSPH();
   const auto  damageRelieveRubble = this->damageRelieveRubble();
-  const auto  planeStrain = this->planeStrain();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -582,7 +578,7 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = computeDeviatoricDeformation(deformation, planeStrain);
+      const auto deviatoricDeformation = deformation - deformation.Trace()/3.0*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti = spinCorrection + 2.0*mui*deviatoricDeformation;
 

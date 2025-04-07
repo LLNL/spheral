@@ -125,7 +125,6 @@ SolidSphericalSPH(DataBase<Dimension>& dataBase,
                    correctVelocityGradient,
                    sumMassDensityOverAllNodeLists,
                    densityUpdate,
-                   true,               // plane-strain
                    epsTensile,
                    nTensile,
                    damageRelieveRubble,

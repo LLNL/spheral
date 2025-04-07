@@ -18,7 +18,6 @@ def CRKSPH(dataBase,
            XSPH = True,
            densityUpdate = RigorousSumDensity,
            HUpdate = IdealH,
-           planeStrain = False,
            epsTensile = 0.0,
            nTensile = 4.0,
            damageRelieveRubble = False,
@@ -82,8 +81,7 @@ def CRKSPH(dataBase,
               "nTensile" : nTensile}
 
     if nsolid > 0:
-        kwargs.update({"planeStrain"         : planeStrain,
-                       "damageRelieveRubble" : damageRelieveRubble})
+        kwargs.update({"damageRelieveRubble" : damageRelieveRubble})
 
     # Build the thing.
     result = constructor(**kwargs)

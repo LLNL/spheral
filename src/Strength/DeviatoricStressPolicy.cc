@@ -27,9 +27,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 DeviatoricStressPolicy<Dimension>::
-DeviatoricStressPolicy(const bool planeStrain):
-  FieldUpdatePolicy<Dimension, SymTensor>({}),
-  mPlaneStrain(planeStrain) {
+DeviatoricStressPolicy():
+  FieldUpdatePolicy<Dimension, SymTensor>({}) {
 }
 
 //------------------------------------------------------------------------------
@@ -71,7 +70,7 @@ update(const KeyType& key,
   // We only want to enforce zeroing the trace in Cartesian coordinates.   In RZ or R
   // we assume the missing components on the diagonal sum to -Trace(S).
   const auto zeroTrace = GeometryRegistrar::coords() == CoordinateType::Cartesian;
-  const auto oneThird = 1.0/3.0; // mPlaneStrain ? 1.0/3.0 : 1.0/Dimension::nDim;
+  const auto oneThird = 1.0/3.0;
 
   // Iterate over the internal nodes.
   const auto n = S.numInternalElements();
@@ -109,8 +108,7 @@ operator==(const UpdatePolicyBase<Dimension>& rhs) const {
   // We're only equal if the other guy is a DeviatoricStress operator, and has
   // the same internal parameters
   const auto rhsPtr = dynamic_cast<const DeviatoricStressPolicy<Dimension>*>(&rhs);
-  return (rhsPtr != nullptr and
-          rhsPtr->planeStrain() == mPlaneStrain);
+  return (rhsPtr != nullptr);
 }
 
 }

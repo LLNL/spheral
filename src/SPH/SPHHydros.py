@@ -22,7 +22,6 @@ def SPH(W,
         sumMassDensityOverAllNodeLists = True,
         densityUpdate = RigorousSumDensity,
         HUpdate = IdealH,
-        planeStrain = False,
         epsTensile = 0.0,
         nTensile = 4.0,
         damageRelieveRubble = False,
@@ -119,8 +118,6 @@ def SPH(W,
         kwargs.update({"WGrad"                    : WGrad,
                        "damageRelieveRubble"      : damageRelieveRubble,
                        "strengthInDamage"         : strengthInDamage})
-        if GeometryRegistrar.coords() == CoordinateType.Cartesian:
-            kwargs.update({"planeStrain"              : planeStrain})
 
     # Build the SPH hydro
     result = constructor(**kwargs)

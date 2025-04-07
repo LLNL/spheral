@@ -450,8 +450,7 @@ elif hydroType == "FSISPH":
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
                    linearCorrectGradients = correctVelocityGradient,
-                   HUpdate = HUpdate,
-                   planeStrain = True)
+                   HUpdate = HUpdate)
 else:
     assert hydroType == "SPH"
     hydro = SPH(dataBase = db,

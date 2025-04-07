@@ -1,5 +1,3 @@
-#include "Strength/computeDeviatoricDeformation.hh"
-
 #include <variant>
 
 namespace Spheral {
@@ -88,7 +86,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
   const auto averageInterfaceKernels = (mKernelAveragingMethod==KernelAveragingMethod::AverageInterfaceKernels);
   const auto constructHLLC = (mInterfaceMethod == InterfaceMethod::HLLCInterface);
   const auto activateConstruction = !(mInterfaceMethod == InterfaceMethod::NoInterface);
-  const auto planeStrain = this->planeStrain();
 
   // The connectivity.
   const auto& connectivityMap = dataBase.connectivityMap();
@@ -736,7 +733,7 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = computeDeviatoricDeformation(deformation, planeStrain);
+      const auto deviatoricDeformation = deformation - deformation.Trace()/3.0*SymTensor::one;
       const auto spinCorrection = (spin*Si + Si*spin).Symmetric();
       DSDti += spinCorrection + 2.0*mui*deviatoricDeformation;
       
