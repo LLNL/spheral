@@ -248,7 +248,6 @@ elif hydroType == "FSISPH":
     hydro = FSISPH(dataBase = db,
                    W = WT,
                    interfaceMethod = HLLCInterface,
-                   sumDensityNodeLists = nodeSet,
                    densityStabilizationCoefficient = 0.00,
                    compatibleEnergyEvolution = compatibleEnergy,
                    linearCorrectGradients = correctVelocityGradient,
@@ -415,6 +414,7 @@ if outputFile:
             referenceFile = os.path.join("Reference",
                                          hydroType,
                                          f"compatibleEnergy={compatibleEnergy}",
+                                         str(nx),
                                          "CollidingPlates-1d-1proc-reproducing.txt")
             import filearraycmp as fcomp
             assert fcomp.filearraycmp(outputFile, referenceFile, testtol, testtol)
