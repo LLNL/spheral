@@ -110,6 +110,26 @@ if(adiak_FOUND)
   list(APPEND SPHERAL_FP_DIRS ${adiak_DIR})
   message("Found Adiak External Package")
 endif()
+
+message("-----------------------------------------------------------------------------")
+# Use find_package to get polytope
+find_package(polytope NO_DEFAULT_PATH PATHS ${polytope_DIR}/lib/cmake)
+if(POLYTOPE_FOUND)
+  list(APPEND SPHERAL_BLT_DEPENDS polytope)
+  list(APPEND SPHERAL_FP_TPLS polytope)
+  list(APPEND SPHERAL_FP_DIRS ${polytope_DIR})
+  # Install Polytope python library to our site-packages
+  install(FILES ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
+  )
+  if (NOT EXISTS ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so)
+    message(FATAL_ERROR
+      "${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so not found")
+  endif()
+  message("Found Polytope External Package")
+else()
+  list(APPEND SPHERAL_EXTERN_LIBS polytope)
+endif()
 message("-----------------------------------------------------------------------------")
 # Use find_package to get caliper
 if (ENABLE_TIMER)
@@ -164,7 +184,7 @@ set_property(GLOBAL PROPERTY SPHERAL_FP_DIRS ${SPHERAL_FP_DIRS})
 message("-----------------------------------------------------------------------------")
 
 # TPLs that must be imported
-list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
+list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5)
 
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)

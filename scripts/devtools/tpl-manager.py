@@ -46,6 +46,8 @@ class SpheralTPL:
                            choices=list(dev_specs.keys()))
         parser.add_argument("--show-specs", action="store_true",
                             help="Show the specs for the current environment and stop.")
+        parser.add_argument("--show-info", action="store_true",
+                            help="Show the Spheral Spack info, including dependencies and variants.")
         parser.add_argument("--add-spec", action="store_true",
                             help="Set this flag to add the --spec to the environment.")
         parser.add_argument("--spack-dir", type=str,
@@ -113,6 +115,8 @@ class SpheralTPL:
                 sexe(f"git -C {spack_dir} remote add origin {self.args.spack_url}")
                 sexe(f"git -C {spack_dir} fetch --depth=2 origin {spack_commit}")
                 sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
+                if (self.args.clean):
+                    sexe(f"git -C {spack_dir} clean -df")
             else:
                 # Check commit hash of Spack repo
                 cur_hash = sexe(f"git -C {spack_dir} rev-parse HEAD", ret_output=True, echo=False).strip()
@@ -120,9 +124,6 @@ class SpheralTPL:
                     sexe(f"git -C {spack_dir} fetch --depth=2 origin {spack_commit}")
                     sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
         self.add_spack_paths(spack_dir)
-        if (self.args.clean):
-            sexe("rm -rf ~/.spack")
-            sexe(f"git -C {spack_dir} clean -df")
 
     def find_spack_package(self, package_names):
         """
@@ -163,7 +164,8 @@ class SpheralTPL:
         from spack import environment
         if (not self.args.spec):
             raise Exception("Must supply a --spec for a custom environment")
-
+        if (self.args.clean and os.path.exists(env_dir)):
+            shutil.rmtree(env_dir)
         if (not os.path.exists(os.path.join(env_dir, "spack.yaml"))):
             # Create a new environment
             env_cmd = SpackCommand("env")
@@ -257,7 +259,10 @@ class SpheralTPL:
                 add_cmd(self.args.spec)
         print("Concretizing environment")
         conc_cmd = SpackCommand("concretize")
-        conc_cmd("-U", "-f")
+        conc_args = ["-U"]
+        if (self.args.clean):
+            conc_args.append("-f")
+        conc_cmd(*conc_args)
         if (check_spec):
             matches = self.spack_env.matching_spec(self.spack_spec)
             if (not matches):
@@ -296,7 +301,7 @@ class SpheralTPL:
             spec_cmd = SpackCommand("spec")
             print(f"Running spack spec -IL {spec}")
             spec_cmd("-IL", spec)
-        install_args = ["-u", "initconfig"]
+        install_args = ["-u", "initconfig", "--fail-fast"]
         if (self.args.dev_pkg):
             # Spec is provided so assumes we are building from a buildcache
             install_args.extend(["--use-buildcache", "package:never,dependencies:only", "--no-check-signature"])
@@ -322,6 +327,10 @@ class SpheralTPL:
             find_cmd = SpackCommand("find")
             find_cmd("-r")
             sys.exit(0)
+        if (self.args.show_info):
+            info_cmd = SpackCommand("info")
+            info_cmd("spheral")
+            sys.exit(0)
         if (self.args.spec):
             # If --spec is given, install TPLs and create host config file
             self.concretize_spec(check_spec=True)
@@ -330,7 +339,7 @@ class SpheralTPL:
             # Concretize the current environment
             self.concretize_spec(check_spec=False)
             # No spec is given, install TPLs for all env specs
-            install_args = ["--only", "dependencies"]
+            install_args = ["-u", "initconfig", "--fail-fast"]
             self.do_install(install_args, package_name)
 
         # Undo any file changes we made to spack.yaml

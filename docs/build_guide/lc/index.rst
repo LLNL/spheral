@@ -1,17 +1,32 @@
-#################################################################
+###############################################
 Building Spheral on Livermore Computing systems
-#################################################################
+###############################################
 
 This guide explains the process for setting up and running Spheral on LC (Livermore Computing) systems.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Livermore Computing Building Guide:
+.. warning::
 
-   quickstart.rst
-   cloning.rst
-   tpls.rst
-   configure.rst
-   building.rst
-   tests.rst
-   appendecies.rst
+   Do not run the provided terminal commands on login nodes. Make sure to grab an allocation first, using ``salloc -N 2`` for SLURM machines or ``flux alloc -xN 2`` for Flux machines.
+
+Cloning/Updating Spheral
+========================
+
+.. include:: ../include/cloning.rst.inc
+
+
+Third Party Libraries (TPLs)
+============================
+
+Spheral uses Spack to build and install TPLs used by Spheral. Spheral includes Spack configurations and environments pre-configured for LC systems in ``scripts/spack/configs/$SYS_TYPE`` and ``scripts/spack/environments/$SYS_TYPE``. This greatly simplifies building TPLs for Spheral.
+
+.. include:: ../include/tpls.rst.inc
+
+Configuring
+===========
+
+.. include:: ../include/configure.rst.inc
+
+Build and Install
+=================
+
+.. include:: ../include/building.rst.inc
