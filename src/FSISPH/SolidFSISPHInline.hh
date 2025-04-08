@@ -130,6 +130,24 @@ SolidFSISPH<Dimension>::linearCorrectGradients(bool val) {
 }
 
 //------------------------------------------------------------------------------
+// deactivate our decoupling algo for same material damaged nodes
+//------------------------------------------------------------------------------
+template<typename Dimension>
+inline
+void
+SolidFSISPH<Dimension>::
+decoupleDamagedMaterial(bool x) {
+  mDecoupleDamagedMaterial = x;
+}
+template<typename Dimension>
+inline
+bool
+SolidFSISPH<Dimension>::
+decoupleDamagedMaterial() const {
+  return mDecoupleDamagedMaterial;
+}
+
+//------------------------------------------------------------------------------
 // switch to turn on density sum for different nodeLists
 //------------------------------------------------------------------------------
 template<typename Dimension>
