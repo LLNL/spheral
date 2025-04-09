@@ -95,7 +95,7 @@ def main():
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print("~~~~~ Building Spheral")
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    build_cmd = f"{ml_cmd} {cmake_cmd} --build . --target install -j {args.nprocs}"
+    build_cmd = f"{cmake_cmd} --build . --target install -j {args.nprocs}"
 
     sexe(build_cmd, echo=True, ret_output=False)
 
