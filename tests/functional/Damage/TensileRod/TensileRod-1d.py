@@ -95,6 +95,7 @@ commandLine(length = 3.0,
             etamax = 1.5,
 
             # Parameters for the time dependent strain and cracking.
+            useDamage = True,
             DamageModelConstructor = ProbabilisticDamageModel,
             volumeMultiplier = (3.0/100.0)**2,
             numFlawsPerNode = 1,
@@ -376,12 +377,13 @@ output("mpi.reduce(nodes.numInternalNodes, mpi.SUM)")
 # nodes.specificThermalEnergy(ScalarField("tmp", nodes, eps0))
 
 # Set node velocites.
+pos = nodes.positions()
+vel = nodes.velocity()
 for i in range(nodes.numInternalNodes):
-    nodes.velocity()[i].x = nodes.positions()[i].x/(0.5*length)*v0
+    vel[i].x = pos[i].x/(0.5*length)*v0
 
 # Set an initial damage if requested.
 if initialBreakRadius > 0.0:
-    pos = nodes.positions()
     D = nodes.damage()
     fragIDs = nodes.fragmentIDs()
     for i in range(nodes.numInternalNodes):
@@ -408,19 +410,17 @@ output("db.numFluidNodeLists")
 #-------------------------------------------------------------------------------
 x0Nodes = vector_of_int()
 x1Nodes = vector_of_int()
-dummy = [x0Nodes.append(i) for i in range(nodes.numInternalNodes)
-         if nodes.positions()[i].x < -0.5*length + 5*dx]
-dummy = [x1Nodes.append(i) for i in range(nodes.numInternalNodes)
-         if nodes.positions()[i].x >  0.5*length - 5*dx]
+dummy = [x0Nodes.append(i) for i in range(nodes.numInternalNodes) if pos[i].x < -0.5*length + 5*dx]
+dummy = [x1Nodes.append(i) for i in range(nodes.numInternalNodes) if pos[i].x >  0.5*length - 5*dx]
 print("Selected %i constant velocity nodes." % (mpi.allreduce(len(x0Nodes) + len(x1Nodes), mpi.SUM)))
 
 # Set the nodes we're going to control to one single velocity at each end.
-v0 = mpi.allreduce(min([nodes.velocity()[i].x for i in x0Nodes] + [100.0]), mpi.MIN)
-v1 = mpi.allreduce(max([nodes.velocity()[i].x for i in x1Nodes] + [-100.0]), mpi.MAX)
+v0 = mpi.allreduce(max([vel[i].x for i in x0Nodes] + [-100.0]), mpi.MAX)
+v1 = mpi.allreduce(min([vel[i].x for i in x1Nodes] + [ 100.0]), mpi.MIN)
 for i in x0Nodes:
-    nodes.velocity()[i].x = v0
+    vel[i].x = v0
 for i in x1Nodes:
-    nodes.velocity()[i].x = v1
+    vel[i].x = v1
 
 xbc0 = ConstantVelocityBoundary(nodes, x0Nodes)
 xbc1 = ConstantVelocityBoundary(nodes, x1Nodes)
@@ -445,7 +445,7 @@ elif hydroType == "FSISPH":
                    W = WT,
                    cfl = cfl,
                    interfaceMethod = HLLCInterface,
-                   sumDensityNodeLists=[nodes],                       
+                   #decoupleDamagedMaterial = True,
                    densityStabilizationCoefficient = 0.00,
                    useVelocityMagnitudeForDt = useVelocityMagnitudeForDt,
                    compatibleEnergyEvolution = compatibleEnergy,
@@ -472,6 +472,8 @@ output("hydro.useVelocityMagnitudeForDt")
 output("hydro._smoothingScaleMethod.HEvolution")
 output("hydro.densityUpdate")
 output("hydro.compatibleEnergyEvolution")
+
+packages = [hydro]
 
 #-------------------------------------------------------------------------------
 # Construct a damage model.
@@ -557,10 +559,13 @@ if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
 
 # damageModel.excludeNodes = xNodes
 
+if useDamage:
+    packages.append(damageModel)
+
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db, [hydro, damageModel])
+integrator = IntegratorConstructor(db, packages)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -615,7 +620,9 @@ output("control")
 #-------------------------------------------------------------------------------
 # Monitor the evolution of the mass averaged strain.
 #-------------------------------------------------------------------------------
-if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug, GradyKippTensorDamageOwen):
+if DamageModelConstructor in (GradyKippTensorDamageBenzAsphaug,
+                              GradyKippTensorDamageOwen,
+                              ProbabilisticDamageModel):
     strainHistory = AverageStrain(damageModel,
                                   os.path.join(dataDir, "strainhistory.gnu"))
     control.appendPeriodicWork(strainHistory.sample, 1)
@@ -681,6 +688,7 @@ if graphics:
         DPPlot = plotFieldList(hydro.damagedPressure,
                                plotStyle="o-",
                                winTitle="damaged pressure @ %g %i" % (control.time(), mpi.procs))
+        plots += [(DPPlot, "pressure_damaged.png")]
 
     if DamageModelConstructor in (GradyKippTensorDamage, GradyKippTensorDamageOwen):
         ts = damageModel.strain
@@ -806,6 +814,3 @@ if outputFile:
                 comparisonFile = os.path.join(dataDir, comparisonFile)
                 import filecmp
                 assert filecmp.cmp(outputFile, comparisonFile)
-
-if graphics:
-    plt.show()
