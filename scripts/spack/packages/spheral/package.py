@@ -193,7 +193,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         # TPL locations
         if (spec.satisfies("+caliper")):
             entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
-            entries.append(cmake_cache_option('ENABLE_TIMER', True))
+            #entries.append(cmake_cache_option('ENABLE_TIMER', True))
 
         entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
