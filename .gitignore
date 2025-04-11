@@ -41,5 +41,6 @@ spack.lock
 rz*
 toss_*.cmake
 blueos_*.cmake
+*.cali
 
 /build-*
