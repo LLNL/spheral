@@ -1,3 +1,4 @@
+#ATS:test(SELF, label="Kinsol unit test")
 #-------------------------------------------------------------------------------
 # Setup a non-linear set of equations and solve them with Nox
 #
@@ -8,6 +9,12 @@
 from Spheral import *
 import numpy as np
 from scipy.optimize import fsolve
+
+# Sundials currently only works for us for MPI enabled builds, so if this is a
+# non-MPI version of Spheral just tap out...
+import mpi
+if mpi.is_fake_mpi():
+    exit(0)
 
 #-------------------------------------------------------------------------------
 # Use numpy to create our reference solution we'll check against
