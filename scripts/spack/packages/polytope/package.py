@@ -13,7 +13,7 @@ class Polytope(CMakePackage):
     git = "https://github.com/LLNL/polytope.git"
     url = "https://github.com/LLNL/polytope/archive/0.7.3.tar.gz"
     # TODO: Update polytope and the version here
-    version('master', commit="17a8b24fa05600afa72ac385500c6dce0cd3675c", submodules=True, preferred=True)
+    version('master', commit="44a0cf701708220777654c9a3f1585450890137f", submodules=True, preferred=True)
     version('0.7.3', tag='0.7.3', submodules=True)
 
     variant('python', default=True, description='Enable Python Support.')
