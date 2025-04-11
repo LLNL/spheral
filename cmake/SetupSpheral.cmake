@@ -11,6 +11,7 @@ if (NOT SPHERAL_CMAKE_MODULE_PATH)
 endif()
 list(APPEND CMAKE_MODULE_PATH "${SPHERAL_CMAKE_MODULE_PATH}")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #-------------------------------------------------------------------------------
 # Add Spheral CMake Macros for tests and executables
 #-------------------------------------------------------------------------------
@@ -33,13 +34,13 @@ set(ENABLE_MPI ON CACHE BOOL "")
 set(ENABLE_OPENMP ON CACHE BOOL "")
 set(BLT_DOCS_TARGET_NAME "blt_docs" CACHE STRING "")
 
-if(NOT SPHERAL_BLT_DIR) 
+if(NOT SPHERAL_BLT_DIR)
   set (SPHERAL_BLT_REL_DIR "${SPHERAL_ROOT_DIR}/cmake/blt" CACHE PATH "")
   get_filename_component(SPHERAL_BLT_DIR "${SPHERAL_BLT_REL_DIR}" ABSOLUTE)
 endif()
 
 if (NOT EXISTS "${SPHERAL_BLT_DIR}/SetupBLT.cmake")
-    message(FATAL_ERROR 
+  message(FATAL_ERROR
             "${SPHERAL_BLT_DIR} is not present.\n"
             "call cmake with -DSPHERAL_BLT_DIR=/your/installation/of/blt\n")
 endif()
