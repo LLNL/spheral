@@ -13,7 +13,7 @@ set(Integrator_inst
 
 set(Integrator_sources )
 
-if (ENABLE_SUNDIALS)
+if (ENABLE_SUNDIALS AND ENABLE_MPI)
   list(APPEND Integrator_inst
     BackwardEuler
     ImplicitIntegrationVectorOperator
@@ -33,6 +33,7 @@ set(Integrator_headers
   Verlet.hh
   BackwardEuler.hh
   CrankNicolson.hh
+  ImplicitIntegrationVectorOperator.hh
 )
 
 spheral_add_obj_library(Integrator SPHERAL_OBJ_LIBS)
