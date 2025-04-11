@@ -44,3 +44,4 @@ blueos_*.cmake
 *.cali
 
 /build-*
+compile_commands.json
