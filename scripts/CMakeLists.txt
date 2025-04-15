@@ -42,13 +42,6 @@ if (NOT ENABLE_CXXONLY)
     REQUIREMENTS runtime-requirements.txt 
     PREFIX ${CMAKE_INSTALL_PREFIX}
   )
-
-  if(NOT POLYTOPE_SITE_PACKAGES_PATH)
-    install(FILES ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
-    )
-  endif()
-
   install(CODE "execute_process( \
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh)"
   )

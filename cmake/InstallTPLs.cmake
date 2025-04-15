@@ -41,6 +41,7 @@ if (NOT ENABLE_CXXONLY)
 
   # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
   set(BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/build-requirements.txt)
+  list(APPEND BUILD_REQ_LIST ${CMAKE_BINARY_DIR}/scripts/runtime-requirements.txt)
   if(ENABLE_DOCS)
     list(APPEND BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/docs-requirements.txt)
   endif()
@@ -223,3 +224,14 @@ endforeach()
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
+
+configure_file(
+  ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+  ${CMAKE_BINARY_DIR}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+  COPYONLY)
+
+install(FILES ${polytope_DIR}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
+)
+
