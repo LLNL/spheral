@@ -41,7 +41,7 @@ if (NOT ENABLE_CXXONLY)
 
   # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
   set(BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/build-requirements.txt)
-  list(APPEND BUILD_REQ_LIST ${CMAKE_BINARY_DIR}/scripts/runtime-requirements.txt)
+  list(APPEND BUILD_REQ_LIST ${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt)
   if(ENABLE_DOCS)
     list(APPEND BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/docs-requirements.txt)
   endif()

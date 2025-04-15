@@ -17,10 +17,16 @@ if (NOT ENABLE_CXXONLY)
   set(SPHERAL_EXEC_DIR ${CMAKE_BINARY_DIR})
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-env.in"
-    "${CMAKE_BINARY_DIR}/spheral"
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+    "${CMAKE_BINARY_DIR}/spheral-exe"
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+  )
 
   set(SPHERAL_EXEC_DIR ${CMAKE_INSTALL_PREFIX})
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/spheral-env.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/spheral-env.sh"
+  )
+
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/spheral-setup-venv.in"
     "${CMAKE_CURRENT_BINARY_DIR}/spheral-setup-venv.sh"
