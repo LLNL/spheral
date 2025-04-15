@@ -49,7 +49,6 @@ if (NOT ENABLE_CXXONLY)
     REQUIREMENTS ${BUILD_REQ_LIST}
     PREFIX ${CMAKE_BINARY_DIR}
   )
-
 endif()
 
 # This is currently unfilled in spheral
@@ -71,9 +70,9 @@ if (NOT polyclipper_DIR)
     EXPORT spheral_cxx-targets
     DESTINATION lib/cmake)
   set_target_properties(PolyClipperAPI PROPERTIES EXPORT_NAME spheral::PolyClipperAPI)
+  message("Found PolyClipper External Package")
 else()
-  Spheral_Handle_TPL(polyclipper ${TPL_SPHERAL_CMAKE_DIR})
-  list(APPEND SPHERAL_BLT_DEPENDS polyclipper)
+  list(APPEND SPHERAL_EXTERN_LIBS polyclipper)
 endif()
 
 #-----------------------------------------------------------------------------------
@@ -118,15 +117,18 @@ if(POLYTOPE_FOUND)
   list(APPEND SPHERAL_BLT_DEPENDS polytope)
   list(APPEND SPHERAL_FP_TPLS polytope)
   list(APPEND SPHERAL_FP_DIRS ${polytope_DIR})
-  # Install Polytope python library to our site-packages
-  install(FILES ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
-  )
   blt_convert_to_system_includes(TARGET polytope)
-  if (NOT EXISTS ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so)
-    message(FATAL_ERROR
-      "${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so not found")
+  # Install Polytope python library to our site-packages
+  if (NOT ENABLE_CXXONLY)
+    install(FILES ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
+    )
+    if (NOT EXISTS ${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so)
+      message(FATAL_ERROR
+        "${POLYTOPE_INSTALL_PREFIX}/${POLYTOPE_SITE_PACKAGES_PATH}/polytope.so not found")
+    endif()
   endif()
+  set_target_properties(polytope PROPERTIES EXPORT_NAME spheral::polytope)
   message("Found Polytope External Package")
 else()
   list(APPEND SPHERAL_EXTERN_LIBS polytope)

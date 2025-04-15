@@ -71,7 +71,8 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('opensubdiv@3.4.3+pic', type='build', when="+opensubdiv")
 
-    depends_on('polytope +python', type='build')
+    depends_on('polytope +python', type='build', when="+python")
+    depends_on('polytope ~python', type='build', when="~python")
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
