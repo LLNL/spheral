@@ -217,10 +217,10 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         if (spec.satisfies("+opensubdiv")):
             entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
-            entries.append(cmake_cache_path('ENABLE_OPENSUBDIV', True))
+            entries.append(cmake_cache_option('ENABLE_OPENSUBDIV', True))
 
         if (spec.satisfies("~network")):
-            entries.append(cmake_cache_path('SPHERAL_NETWORK_CONNECTED', False))
+            entries.append(cmake_cache_option('SPHERAL_NETWORK_CONNECTED', False))
 
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
 
