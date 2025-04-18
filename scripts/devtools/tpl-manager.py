@@ -352,7 +352,7 @@ class SpheralTPL:
         build_dirs = glob.glob("build-*")
         for i in build_dirs:
             if (os.path.islink(i)):
-                shutil.rmtree(i)
+                os.unlink(i)
 
 if __name__=="__main__":
     spheral_tpl = SpheralTPL()
