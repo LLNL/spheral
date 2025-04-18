@@ -248,6 +248,14 @@ class SpheralTPL:
             env_dir = os.path.join(config_env_dir, env_name)
             self.custom_spack_env(env_dir, env_name)
 
+    def check_for_leos(self):
+        "Check if leos is available and add to spec if so"
+        leos_available = os.path.exists("/usr/gapps/bdivrepo/tarballs/leos")
+        if leos_available and "+leos" not in self.args.spec:
+            print("Found LEOS -- adding to spec list")
+            self.args.spec += "+leos"
+            print("self.args.spec : ", self.args.spec)
+
     def concretize_spec(self, check_spec):
         "Concretize the spec"
         if (check_spec):
