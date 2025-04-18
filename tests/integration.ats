@@ -59,8 +59,8 @@ source("unit/SolidMaterial/testANEOS.py")
 source("functional/Material/UnitConversion.py")
 
 # LEOS tests
-source("LEOS/testLEOSFieldvsSingle.py")
-source("LEOS/testLEOSvsReference.py")
+source("functional/LEOS/testLEOSFieldvsSingle.py")
+source("functional/LEOS/testLEOSvsReference.py")
 
 # Test the sampling to lattice method.
 source("unit/FieldOperations/testSampleMultipleFields2Lattice1d.py")
