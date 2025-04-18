@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse, os, sys, re, shutil
+import argparse, os, sys, re, shutil, glob
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from spheralutils import sexe
@@ -348,6 +348,11 @@ class SpheralTPL:
         if (self.args.no_upstream and os.path.exists(orig_file)):
             # Revert env file if it was modified
             os.rename(orig_file, os.path.join(self.spack_env.path, "spack.yaml"))
+        # Remove symbolic directory created by Spack
+        build_dirs = glob.glob("build-*")
+        for i in build_dirs:
+            if (os.path.islink(i)):
+                shutil.rmtree(i)
 
 if __name__=="__main__":
     spheral_tpl = SpheralTPL()

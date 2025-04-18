@@ -6,7 +6,7 @@ This guide explains the process for setting up and running Spheral on LC (Liverm
 
 .. warning::
 
-   Do not run the provided terminal commands on login nodes. Make sure to grab an allocation first, using ``salloc -N 2`` for SLURM machines or ``flux alloc -xN 2`` for Flux machines.
+   Do not run the provided terminal commands on login nodes. Make sure to grab an allocation first, using ``salloc -N 2`` for SLURM machines or ``flux alloc -xN 2`` for Flux machines. Do not use the ``srun`` or ``flux run`` commands when running ``tpl-manager.py`` or ``spheral-ats``.
 
 Cloning/Updating Spheral
 ========================
@@ -30,3 +30,8 @@ Build and Install
 =================
 
 .. include:: ../include/building.rst.inc
+
+Running Tests
+=============
+
+.. include:: ../include/tests.rst.inc

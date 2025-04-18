@@ -96,7 +96,7 @@ def install_ats_args():
 #---------------------------------------------------------------------------
 def main():
     test_log_name = "test-logs"
-    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"] # Machines using Slurm scheduler
+    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby", "rztrona"] # Machines using Slurm scheduler
     toss_cray_machine_names = ["rzadams", "rzvernal", "tioga"] # Machines using Flux scheduler
     np_max_dict = {"rzadams": 84, "rzvernal": 64, "tioga": 64} # Maximum number of processors for ATS to use per node
     ci_launch_flags = {"ruby": "--reservation=ci", "rzadams": "-q pdebug"}
