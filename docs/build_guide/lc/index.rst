@@ -6,10 +6,22 @@ This guide explains the process for setting up and running Spheral on LC (Liverm
 
 .. warning::
 
-   Do not run the provided terminal commands on login nodes. Make sure to grab an allocation first, using ``salloc -N 2`` for SLURM machines or ``flux alloc -xN 2`` for Flux machines. Do not use the ``srun`` or ``flux run`` commands when running ``tpl-manager.py`` or ``spheral-ats``.
+   Do not run the provided terminal commands on login nodes. Instead, select the proper scheduler and do one of the two options below:
 
-Cloning/Updating Spheral
-========================
+   .. tab-set::
+
+      .. tab-item:: SLURM Scheduler
+
+         - Grab an allocation using ``salloc -N <# of nodes> --exclusive`` and run terminal commands normally.
+         - Prepend terminal commands with ``srun -N <# of nodes> --exclusive``.
+
+      .. tab-item:: Flux Scheduler
+
+         - Grab an allocation using ``flux alloc -xN <# of nodes>`` and run terminal commands normally.
+         - Prepend terminal commands with ``flux run -xN <# of nodes>``.
+
+Cloning/Updating
+================
 
 .. include:: ../include/cloning.rst.inc
 
@@ -18,6 +30,9 @@ Third Party Libraries (TPLs)
 ============================
 
 Spheral uses Spack to build and install TPLs used by Spheral. Spheral includes Spack configurations and environments pre-configured for LC systems in ``scripts/spack/configs/$SYS_TYPE`` and ``scripts/spack/environments/$SYS_TYPE``. This greatly simplifies building TPLs for Spheral.
+
+Running TPL Manager
+-------------------
 
 .. include:: ../include/tpls.rst.inc
 

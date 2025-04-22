@@ -1,7 +1,4 @@
 
-Running TPL Manager
--------------------
-
 Spheral provides a tool (``tpl-manager.py``) in an attempt to simplify the Spack process for the user, which does the following:
 
  - Clone and setup a local Spack instance for Spheral.

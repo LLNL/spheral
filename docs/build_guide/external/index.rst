@@ -67,8 +67,8 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf install epel-release
             dnf group install "Development Tools"
             dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
-            # Recommended packages and commands
-            dnf install environment-modules cmake autoconf automake mpich-devel
+            # Recommended packages
+            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
             # Be sure to add your mpi install to your PATH so Spack can find it
             module load mpi
 
@@ -83,6 +83,9 @@ Third Party Libraries (TPLs)
 ============================
 
 Spheral uses Spack to facilitate building and linking in external Third Party Libraries (TPLs).
+
+Running TPL Manager
+-------------------
 
 .. include:: ../include/tpls.rst.inc
 

@@ -5,10 +5,10 @@ Valgrind
 ========
 
 We advise using Valgrind to check memory leaks when doing development on Spheral.
-When using Valgrind to check Spheral, be sure to use the provided suppression file
+When using Valgrind to check Spheral, be sure to use the provided suppression file and call the Spheral python executable directly:
 ::
 
-   valgrind --suppressions=./scripts/devtools/valgrind_python_suppression ./spheral
+   valgrind --suppressions=./scripts/devtools/valgrind_python_suppression .venv/bin/python
 
 
 Using Caliper

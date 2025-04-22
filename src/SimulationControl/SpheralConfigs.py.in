@@ -17,12 +17,24 @@ def config():
 def spheral_enable_mpi():
     return ("@ENABLE_MPI@".lower() in ["on", "true", "1"])
 
+def spheral_enable_timer():
+    return ("@ENABLE_TIMER@".lower() in ["on", "true", "1"])
+
+def spheral_dims():
+    dims_str = "@SPHERAL_DIMS@"
+    return [int(x) for x in dims_str.split(";")]
+
 def component_configs():
-    return [@SPHERAL_COMP_CONFIG_STR@]
+    comp_str = "@SPHERAL_COMP_CONFIG@"
+    return comp_str.split(";")
+
+def hydro_imports():
+    hydro_str = "@SPHERAL_HYDRO_IMPORTS@"
+    return hydro_str.split(";")
 
 def caliper_module_path():
-    caliper_loc = "@CONFIG_CALIPER_DIR@"
-    if (caliper_loc and os.path.exists(caliper_loc)):
+    if (spheral_enable_timer()):
+        caliper_loc = "@CONFIG_CALIPER_DIR@"
         return os.path.join(caliper_loc, "lib64/caliper")
     else:
         return None

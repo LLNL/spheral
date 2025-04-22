@@ -349,6 +349,7 @@ class SpheralTPL:
             # Revert env file if it was modified
             os.rename(orig_file, os.path.join(self.spack_env.path, "spack.yaml"))
         # Remove symbolic directory created by Spack
+        print("Removing Spack symbolic build directories")
         build_dirs = glob.glob("build-*")
         for i in build_dirs:
             if (os.path.islink(i)):

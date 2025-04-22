@@ -22,6 +22,9 @@ Notable changes include:
 
   * Bug Fixes / improvements:
     * ATS submodule is updated to fix bug with latest Flux update on LC systems.
+    * Update Polytope version.
+    * TPL manager removes the symoblic links to the install directory.
+    * Consolidated CMake configured files into SpheralConfigs.py.in
 
 Version v2025.01.0 -- Release date 2025-01-31
 ==============================================
