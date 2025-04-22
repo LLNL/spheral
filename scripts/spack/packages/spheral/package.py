@@ -26,7 +26,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     # -------------------------------------------------------------------------
     # Is LEOS available in a standard place?
     # -------------------------------------------------------------------------
-    LEOSpresent = os.path.exists("/usr/apps/leos/src")
+    LEOSpresent = os.path.exists("/usr/gapps/leos/srcs")
 
     # -------------------------------------------------------------------------
     # VARIANTS
