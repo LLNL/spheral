@@ -6,7 +6,7 @@ class Leos(CMakePackage, CudaPackage, ROCmPackage):
     """This is derived from llnl.wci.legacy Leos package, but makes silo optional
        and excludes ascmemory.
     """
-    fileLoc = 'file:///usr/apps/leos/src/'
+    fileLoc = 'file:///usr/gapps/leos/srcs'
     version("8.4.1", sha256="93abeea9e336e3a81cc6cc9de10b2a2fd61eda2a89abece50cac80fef58ec38b",
             url=os.path.join(fileLoc, "leos-8.4.1.tar.gz"))
     version("8.4.2", sha256="08eb87580e30d7a1db72b1e1a457652dda9535df1c0caf7b5badb9cadf39f2a9",
