@@ -6,7 +6,8 @@ import SpheralConfigs
 
 def spheralDimensions():
     spheralDimensions.PYB11ignore = True     # Screen from PYB11
-    return SpheralConfigs.spheral_dims()
+    dims_str = "@SPHERAL_DIMS@"
+    return [int(x) for x in dims_str.split(";")]
 
 #-------------------------------------------------------------------------------
 # Return a dictionary of useful Spheral Dimensional types.

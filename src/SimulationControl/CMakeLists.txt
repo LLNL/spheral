@@ -52,6 +52,11 @@ endif()
 if (SPHERAL_ENABLE_SVPH)
   list(APPEND SPHERAL_HYDRO_IMPORTS "SVPHHydros")
 endif()
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
+  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
+
 set(SPHERAL_DIMS 1)
 if(ENABLE_2D)
    list(APPEND SPHERAL_DIMS 2)
@@ -59,12 +64,10 @@ endif()
 if(ENABLE_3D)
    list(APPEND SPHERAL_DIMS 3)
 endif()
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
+  ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
 
 spheral_install_python_files(
   Spheral.py
@@ -77,7 +80,6 @@ spheral_install_python_files(
   SolidSpheral2d.py
   SolidSpheral3d.py
   SolidSpheralRZ.py
-  spheralDimensions.py
   SpheralTestUtilities.py
   SpheralTimer.py
   SpheralConservation.py
@@ -108,4 +110,5 @@ spheral_install_python_files(
   CaptureStdout.py
   ${CMAKE_CURRENT_BINARY_DIR}/Spheral_banner.py
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py
+  ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py
   )
