@@ -12,6 +12,12 @@ from writeLEOSfile import *
 import random
 random.seed(45577959828927)
 
+# LEOS currently only works for us for MPI enabled builds, so if this is a
+# non-MPI version of Spheral just tap out...
+import mpi
+if mpi.is_fake_mpi():
+    exit(0)
+
 # We'll work in CGuS units.
 units = PhysicalConstants(0.01,     # Unit length in meters
                           0.001,    # Unit mass in kg

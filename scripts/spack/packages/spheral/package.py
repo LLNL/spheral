@@ -40,7 +40,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant('opensubdiv', default=True, description='Enable use of opensubdiv to do refinement.')
     variant('network', default=True, description='Disable to build Spheral from a local buildcache.')
     variant('sundials', default=True, when="+mpi", description='Build Sundials package.')
-    variant('leos', default=LEOSpresent, description='Build LEOS package.')
+    variant('leos', default=LEOSpresent, when="+mpi", description='Build LEOS package.')
 
     # -------------------------------------------------------------------------
     # Depends
