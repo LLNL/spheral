@@ -63,6 +63,9 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
 
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/spheralDimensions.py)
+
 spheral_install_python_files(
   Spheral.py
   Spheral1d.py
