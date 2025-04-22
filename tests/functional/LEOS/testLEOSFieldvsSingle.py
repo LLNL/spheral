@@ -10,10 +10,9 @@ import unittest
 import random
 random.seed(45577959828927)
 
-# LEOS currently only works for us for MPI enabled builds, so if this is a
-# non-MPI version of Spheral just tap out...
-import mpi
-if mpi.is_fake_mpi():
+# LEOS is not always built, so if we don't have it just pass
+import Spheral
+if not hasattr(Spheral, "LEOS1d"):
     exit(0)
 
 # We'll work in CGuS units.
