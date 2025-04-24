@@ -12,8 +12,6 @@ from SpheralTestUtilities import globalFrame
 # as supported, but seem to be broken.
 import mpi4py
 mpi4py.rc.recv_mprobe = False
-if (SpheralConfigs.spheral_enable_timer()):
-    mpi4py.rc.finalize = False
 
 # Now go on as usual...
 from mpi4py import MPI

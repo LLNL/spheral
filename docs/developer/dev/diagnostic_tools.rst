@@ -104,7 +104,7 @@ Adiak metadata can be added inside python code using the following function call
 
                 adiak_values("value_name", value)
 
-Below is a list of some of the metadata the is added to Adiak by default:
+Below is a list of some of the metadata that Spheral adds to Adiak by default:
 
 ======================== ==========================
 Adiak Key                Description
