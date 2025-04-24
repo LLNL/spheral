@@ -133,7 +133,7 @@ set(Utilities_headers
     uniform_random_Inline.hh
     range.hh
     AnyVisitor.hh
-    DeprecationWarning.hh
+    SpheralMessage.hh
     StrideIterator.hh
   )
 

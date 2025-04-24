@@ -1,12 +1,12 @@
 //---------------------------------Spheral++----------------------------------//
-// SynchronousRK1 -- Advance the set of Physics packages in time using first
-// order Runge-Kutta -- i.e., forward Euler.  All packages are advanced at one
+// ForwardEuler -- Advance the set of Physics packages in time using first
+// order Forward Euler method.  All packages are advanced at one
 // timestep simultaneously each step, i.e., synchronously.
 //
 // Created by JMO, Tue Aug  1 14:44:27 PDT 2006
 //----------------------------------------------------------------------------//
 #include "DataOutput/Restart.hh"
-#include "SynchronousRK1.hh"
+#include "ForwardEuler.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
 #include "DataBase/StateDerivatives.hh"
@@ -29,20 +29,11 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SynchronousRK1<Dimension>::
-SynchronousRK1(DataBase<Dimension>& dataBase):
-  Integrator<Dimension>(dataBase) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase and Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-SynchronousRK1<Dimension>::
-SynchronousRK1(DataBase<Dimension>& dataBase,
+ForwardEuler<Dimension>::
+ForwardEuler(DataBase<Dimension>& dataBase,
                const vector<Physics<Dimension>*>& physicsPackages):
   Integrator<Dimension>(dataBase, physicsPackages) {
 }
@@ -52,7 +43,7 @@ SynchronousRK1(DataBase<Dimension>& dataBase,
 //------------------------------------------------------------------------------
 template<typename Dimension>
 bool
-SynchronousRK1<Dimension>::
+ForwardEuler<Dimension>::
 step(typename Dimension::Scalar maxTime,
      State<Dimension>& state,
      StateDerivatives<Dimension>& derivs) {
