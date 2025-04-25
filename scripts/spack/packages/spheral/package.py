@@ -34,9 +34,10 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant('caliper', default=True, description='Enable Caliper timers.')
     variant('opensubdiv', default=True, description='Enable use of opensubdiv to do refinement.')
     variant('network', default=True, description='Disable to build Spheral from a local buildcache.')
+    variant('sundials', default=True, when="+mpi", description='Build Sundials package.')
 
     # -------------------------------------------------------------------------
-    # DEPENDS
+    # Depends
     # -------------------------------------------------------------------------
     depends_on('mpi', when='+mpi')
 
@@ -73,6 +74,8 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('polytope +python', type='build', when="+python")
     depends_on('polytope ~python', type='build', when="~python")
+
+    depends_on('sundials@7.0.0 ~shared cxxstd=17', type='build', when='+sundials')
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
@@ -238,8 +241,11 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         if "+python" in spec:
             entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
-        return entries
+        if spec.satisfies("+sundials"):
+            entries.append(cmake_cache_path('sundials_DIR', spec['sundials'].prefix))
+            entries.append(cmake_cache_option('ENABLE_SUNDIALS', True))
 
+        return entries
 
     def cmake_args(self):
         options = []
