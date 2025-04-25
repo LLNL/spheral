@@ -26,6 +26,8 @@ from IPython.display import display
 from IPython.display import HTML
 
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdate
 
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -53,6 +55,10 @@ def compute_threshold(sf, metric):
         sigma = sf.dataframe[metric+"_std"]
         return percent*mu + 2.*sigma
     return percent*mu
+
+def check_for_region(data, region):
+    "Check if region exists in Thicket/Hatchet"
+    return data.dataframe[data.dataframe["name"] == region].empty
 
 def get_times(gf, region, metric = "Avg time/rank"):
     """
@@ -108,8 +114,7 @@ def group_tests(data):
     filt: GroupBy of Thickets based on tests
     """
     test_group = ["test_name", "total_internal_nodes", "total_steps"]
-    filt = data.groupby(test_group)
-    return remove_nans(filt)
+    return data.groupby(test_group)
 
 def compare_metadata(cdata, rdata, tests):
     cmdata = cdata.get_unique_metadata()
@@ -139,7 +144,58 @@ def compare_config(cdata, rdata):
 def filter_tests(data, test_name):
     return data.filter_metadata(lambda x: x["test_name"] == test_name)
 
-def get_caliper_files(file_path):
+def group_dates(tk):
+    "Group Thickets based on day they were launched. Returns a GroupBy of Thickets."
+    # Add metadata pertaining to the day they are launched
+    mus = mdate.MUSECONDS_PER_DAY
+    tk.metadata["nday"] = tk.metadata["launchdate"].apply(lambda x: int(x*1E6/mus))
+    return tk.groupby(["nday"])
+
+def get_hist_times(bench_path, test_name):
+    """
+    For a given benchmark directory of type install_configs/machine_name,
+    retrieve the historical benchmark times for a given test (test_name).
+    """
+    pkl_files = glob.glob(os.path.join(bench_path, "**", "data.pkl"))
+    if (not pkl_files):
+        hist_cali_files = glob.glob(os.path.join(bench_path, "**", test_name+"*.cali"))
+        if (not hist_cali_files):
+            raise Exception(f"No {test_name}_*.cali files found")
+        hist_data = th.Thicket.from_caliperreader(hist_cali_files)
+    else:
+        thdata = [th.Thicket.from_pickle(x) for x in pkl_files]
+        hist_data = th.Thicket.concat_thickets(thdata)
+        hist_data = filter_tests(hist_data, test_name)
+    test_dict = group_tests(hist_data)
+    test_dict = remove_nans(test_dict)
+    test_keys = list(test_dict.keys())
+    if (len(test_keys) > 1):
+        print(f"Warning: Multiple test keys found.\n")
+        print(test_keys)
+    return test_dict
+
+def plot_hist_times(test_dict, region = "advance", metric = "Avg time/rank"):
+    """
+    Convert and plot historical times provided by the get_hist_times function
+    """
+    figs, ax = plt.subplots()
+    for key, tk in test_dict.items():
+        date_group = group_dates(tk)
+        times = []
+        dates = []
+        for cdate, ctest in date_group.items():
+            new_metric = th.stats.mean(ctest, [metric])[0]
+            times.append(get_times(ctest.statsframe, region, new_metric)[0])
+            dates.append(cdate)
+        ax.scatter(dates, times, label=key)
+        ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
+        for label in ax.get_xticklabels(which='major'):
+            label.set(rotation=30, horizontalalignment='right')
+        ax.legend()
+    plt.show()
+    print("Plot legend is: (test name, number of nodes, number of steps)")
+
+def get_caliper_files_and_bench(file_path):
     atsFile = os.path.join(file_path, "atsr.py")
     cali_files = []
     benchmarks = None
@@ -163,6 +219,10 @@ def get_caliper_files(file_path):
         print(f"Searching {newpath}")
         cali_files = glob.glob(newpath, recursive=True)
     return cali_files, benchmarks
+
+def get_caliper_files(file_path):
+    cali_files, unused_bench = get_caliper_files_and_bench(file_path)
+    return cali_files
 
 def main():
     #---------------------------------------------------------------------------
@@ -198,17 +258,18 @@ def main():
     #-------------------------------------------------
     if (not os.path.exists(args.perfdata1)):
         raise Exception(f"Cannot find {args.perfdata1}")
-    cali_files, benchmarks = get_caliper_files(args.perfdata1)
+    cali_files, benchmarks = get_caliper_files_and_bench(args.perfdata1)
     if (len(cali_files) == 0):
         raise Exception(f"No .cali files found in {args.perfdata1}")
     curdata = th.Thicket.from_caliperreader(cali_files)
     # Filter data set by tests
     cur_test_data = group_tests(curdata)
+    cur_test_data = remove_nans(cur_test_data)
     if (args.no_comp):
         for test_key, ctest in cur_test_data.items():
-            metric = "Avg time/rank (exc)"
+            metric = "Avg time/rank"
             if (len(ctest.profile) > 1):
-                th.stats.mean(ctest, metric)
+                th.stats.mean(ctest, [metric])
                 metric += "_mean"
             else:
                 ctest.move_metrics_to_statsframe([metric])
@@ -222,17 +283,16 @@ def main():
     if (args.perfdata2):
         if (not os.path.exists(args.perfdata2)):
             raise Exception(f"--perfdata2 location {args.perfdata2} does not exist")
-        cali_ref_files, unused_benchmark = get_caliper_files(args.perfdata2)
+        cali_ref_files = get_caliper_files(args.perfdata2)
     else:
         do_thresh_test = True
         if (args.ref):
             if (not os.path.exists(args.ref)):
                 raise Exception(f"--ref location {args.ref} does not exist")
-            cali_ref_files, unused_benchmark = get_caliper_files(args.ref)
+            cali_ref_files = get_caliper_files(args.ref)
         else:
             # If no ref or benchmark_dir is provided, look for the benchmark in the
-            # atsr.py file or a Caliper file
-            # Check for reference from atsr.py
+            # atsr.py file
             ref_files = benchmarks
             # Check in a Caliper file
             if (not ref_files):
@@ -259,8 +319,10 @@ def main():
 
     # Filter data set by tests
     ref_test_data = group_tests(refdata)
+    ref_test_data = remove_nans(ref_test_data)
 
     test_status = {}
+    # Iterate over each test
     for test_key, ctest in cur_test_data.items():
         test_name = test_key[0]
         if (args.test_name and args.test_name != test_name):
@@ -300,7 +362,13 @@ def main():
             rmetrics = [x+"_mean" for x in rmetrics]
         else:
             rtest.move_metrics_to_statsframe(rmetrics)
-        # Extract times of "main" region
+        # Extract times of comp_region
+        if (not check_for_region(ctest, comp_region)):
+            print(f"{comp_region} not found in {args.perfdata1}")
+            continue
+        if (not check_for_region(rtest, comp_region)):
+            print(f"{comp_region} not found in {os.path.dirname(cali_ref_files[0])}")
+            continue
         cmain = get_times(ctest.statsframe, comp_region, cmetrics[0])[0]
         rmain = get_times(rtest.statsframe, comp_region, rmetrics[0])[0]
         main_diff = cmain - rmain
@@ -331,10 +399,10 @@ def main():
             test_status.update({test_name: ("NA", cmain, rmain)})
     num_failed = 0
     if (do_thresh_test):
-        print("Test name: test status, % change in time of 'main' region")
+        print(f"Test name: test status, % change in time of {comp_region} region")
         print("Negative values mean perfdata was faster than reference")
     else:
-        print("Test name: % change in time of 'main' region")
+        print(f"Test name: % change in time of {comp_region} region")
         print("Negative values mean perfdata1 was faster than perfdata2")
     for test_name, val in test_status.items():
         if ("SKIPPED" in val[0]):

@@ -91,6 +91,7 @@ def gather_files(manager):
     filtered = [test for test in manager.testlist if test.status is PASSED]
     # Set read/write/execute permissions for owner and group
     perms = stat.S_IRWXU | stat.S_IRWXG
+    bfiles = []
     for test in filtered:
         run_dir = test.directory
         cali_filename = test.options["caliper_filename"]
@@ -100,10 +101,16 @@ def gather_files(manager):
         log(f"Copying {cali_filename} to {outdir}", echo=True)
         if (CIRun):
             shutil.copy(cfile, outfile)
+            bfiles.append(outfile)
             os.chmod(outfile, perms)
             shutil.chown(outfile, group="sduser")
     if (CIRun):
-        cpaths = [outdir, macpath, instpath, benchmark_dir]
+        # Create and pickle a Thicket of the benchmark Caliper files
+        import thicket as th
+        data = th.Thicket.from_caliperreader(bfiles)
+        pklfile = os.path.join(outdir, "data.pkl")
+        data.to_pickle(pklfile)
+        cpaths = [outdir, macpath, instpath, benchmark_dir, pklfile]
         for p in cpaths:
             os.chmod(p, perms)
             shutil.chown(p, group="sduser")
