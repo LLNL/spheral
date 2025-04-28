@@ -58,7 +58,7 @@ def compute_threshold(sf, metric):
 
 def check_for_region(data, region):
     "Check if region exists in Thicket/Hatchet"
-    return data.dataframe[data.dataframe["name"] == region].empty
+    return not data.dataframe[data.dataframe["name"] == region].empty
 
 def get_times(gf, region, metric = "Avg time/rank"):
     """
@@ -167,7 +167,6 @@ def get_hist_times(bench_path, test_name):
         hist_data = th.Thicket.concat_thickets(thdata)
         hist_data = filter_tests(hist_data, test_name)
     test_dict = group_tests(hist_data)
-    test_dict = remove_nans(test_dict)
     test_keys = list(test_dict.keys())
     if (len(test_keys) > 1):
         print(f"Warning: Multiple test keys found.\n")
@@ -185,8 +184,9 @@ def plot_hist_times(test_dict, region = "advance", metric = "Avg time/rank"):
         dates = []
         for cdate, ctest in date_group.items():
             new_metric = th.stats.mean(ctest, [metric])[0]
-            times.append(get_times(ctest.statsframe, region, new_metric)[0])
-            dates.append(cdate)
+            if (check_for_region(ctest, region)):
+                times.append(get_times(ctest.statsframe, region, new_metric)[0])
+                dates.append(cdate)
         ax.scatter(dates, times, label=key)
         ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
         for label in ax.get_xticklabels(which='major'):
@@ -304,8 +304,7 @@ def main():
             # Get install config and machine name from current data
             install_config = curdata.metadata["install_config"].iloc[0]
             machine_name = curdata.metadata["cluster"].iloc[0]
-            ref_loc = os.path.join(ref_files, install_config,
-                                   machine_name, "latest")
+            ref_loc = os.path.join(ref_files, install_config, machine_name, "latest")
             if (not os.path.exists(ref_loc)):
                 raise Exception(f"Benchmark location {ref_loc} does not exists")
             cali_ref_files = glob.glob(os.path.join(ref_loc, "*.cali"), recursive=True)
@@ -347,21 +346,13 @@ def main():
                 test_status.update({test_name: ("SKIPPED-CONF", fh_configs)})
                 continue
         metrics = [comp_metric, disp_metric]
-        cmetrics = metrics
-        rmetrics = metrics
+        cmetrics = [x+"_mean" for x in metrics]
         # Get stats for current tests
-        if (len(ctest.profile) > 1):
-            th.stats.mean(ctest, metrics)
-            cmetrics = [x+"_mean" for x in cmetrics]
-        else:
-            ctest.move_metrics_to_statsframe(cmetrics)
+        th.stats.mean(ctest, metrics)
+        th.stats.mean(rtest, metrics)
         # Get stats for other tests
         if (len(rtest.profile) > 1):
-            th.stats.mean(rtest, metrics)
             th.stats.std(rtest, metrics)
-            rmetrics = [x+"_mean" for x in rmetrics]
-        else:
-            rtest.move_metrics_to_statsframe(rmetrics)
         # Extract times of comp_region
         if (not check_for_region(ctest, comp_region)):
             print(f"{comp_region} not found in {args.perfdata1}")
@@ -370,33 +361,34 @@ def main():
             print(f"{comp_region} not found in {os.path.dirname(cali_ref_files[0])}")
             continue
         cmain = get_times(ctest.statsframe, comp_region, cmetrics[0])[0]
-        rmain = get_times(rtest.statsframe, comp_region, rmetrics[0])[0]
+        rmain = get_times(rtest.statsframe, comp_region, cmetrics[0])[0]
         main_diff = cmain - rmain
         if (do_thresh_test):
-            # Compute the max allowable time for the main region
+            # Compute the max allowable time for the comp_region
             ctest.statsframe.dataframe["thresh"] = compute_threshold(rtest.statsframe, metrics[0])
-            ref_thresh = get_times(ctest.statsframe, "main", "thresh")[0]
+            ref_thresh = get_times(ctest.statsframe, comp_region, "thresh")[0]
             if (main_diff > ref_thresh):
                 cur_status = "FAILED"
                 if args.display:
                     # Display the relative difference of the exclusive avg time/rank
                     vals1 = ctest.statsframe.dataframe[cmetrics[1]]
-                    vals2 = rtest.statsframe.dataframe[rmetrics[1]]
+                    vals2 = rtest.statsframe.dataframe[cmetrics[1]]
                     ctest.statsframe.dataframe["exc_rel_diff_percent"] = (vals1/vals2 - 1.)*100.
                     display(ctest.statsframe.tree("exc_rel_diff_percent", cmetrics[1]))
             elif (main_diff < -ref_thresh):
                 cur_status = "PASSED"
                 if args.display:
-                    vals1 = ctest.statsframe.dataframe[cmetrics[1]]
-                    vals2 = rtest.statsframe.dataframe[rmetrics[1]]
-                    ctest.statsframe.dataframe["exc_rel_diff_percent"] = (vals1/vals2 - 1.)*100.
-                    display(ctest.statsframe.tree("exc_rel_diff_percent", cmetrics[1]))
-                    display(ctest.statsframe.tree(cmetrics[1], rmetrics[1]))
+                    vals2 = rtest.statsframe.dataframe[cmetrics[1]]
+                    ctest.statsframe.dataframe["pdata2"] = vals2
+                    display(ctest.statsframe.tree(cmetrics[1], "pdata2"))
             else:
                 cur_status = "PASSED"
             test_status.update({test_name: (cur_status, cmain, rmain, ref_thresh)})
         else:
             test_status.update({test_name: ("NA", cmain, rmain)})
+            if args.display:
+                ctest.statsframe.dataframe["pdata2"] = rtest.statsframe.dataframe[cmetrics[1]]
+                display(ctest.statsframe.tree(cmetrics[1], "pdata2"))
     num_failed = 0
     if (do_thresh_test):
         print(f"Test name: test status, % change in time of {comp_region} region")
