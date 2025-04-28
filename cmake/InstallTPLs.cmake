@@ -158,6 +158,12 @@ else()
   add_subdirectory(${chai_DIR})
 endif()
 
+list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
+list(APPEND SPHERAL_FP_TPLS RAJA umpire)
+list(APPEND SPHERAL_FP_DIRS ${raja_DIR} ${umpire_DIR})
+set_property(GLOBAL PROPERTY SPHERAL_FP_TPLS ${SPHERAL_FP_TPLS})
+set_property(GLOBAL PROPERTY SPHERAL_FP_DIRS ${SPHERAL_FP_DIRS})
+
 message("-----------------------------------------------------------------------------")
 # Use find_package to get Sundials
 if (ENABLE_SUNDIALS)
@@ -173,15 +179,12 @@ if (ENABLE_SUNDIALS)
   endif()
 endif()
 
-list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
-list(APPEND SPHERAL_FP_TPLS RAJA umpire)
-list(APPEND SPHERAL_FP_DIRS ${raja_DIR} ${umpire_DIR})
-set_property(GLOBAL PROPERTY SPHERAL_FP_TPLS ${SPHERAL_FP_TPLS})
-set_property(GLOBAL PROPERTY SPHERAL_FP_DIRS ${SPHERAL_FP_DIRS})
-
 message("-----------------------------------------------------------------------------")
 # TPLs that must be imported
 list(APPEND SPHERAL_EXTERN_LIBS boost eigen qhull silo hdf5 polytope)
+if (ENABLE_LEOS)
+  list(APPEND SPHERAL_EXTERN_LIBS leos)
+endif()
 
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS aneos IF ENABLE_ANEOS)
 blt_list_append( TO SPHERAL_EXTERN_LIBS ELEMENTS opensubdiv IF ENABLE_OPENSUBDIV)
