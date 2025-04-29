@@ -43,17 +43,13 @@ blt_list_append( TO SPHERAL_HYDRO_IMPORTS ELEMENTS "FSISPHHydros;SlideSurfaces" 
 blt_list_append( TO SPHERAL_HYDRO_IMPORTS ELEMENTS "GSPHHydros" IF SPHERAL_ENABLE_GSPH)
 blt_list_append( TO SPHERAL_HYDRO_IMPORTS ELEMENTS "SVPHHydros" IF SPHERAL_ENABLE_SVPH)
 
+set(SPHERAL_DIMS 1)
+blt_list_append( TO SPHERAL_DIMS ELEMENTS 2 IF ENABLE_2D)
+blt_list_append( TO SPHERAL_DIMS ELEMENTS 3 IF ENABLE_3D)
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralConfigs.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralConfigs.py)
-
-set(SPHERAL_DIMS 1)
-if(ENABLE_2D)
-   list(APPEND SPHERAL_DIMS 2)
-endif()
-if(ENABLE_3D)
-   list(APPEND SPHERAL_DIMS 3)
-endif()
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/spheralDimensions.py
