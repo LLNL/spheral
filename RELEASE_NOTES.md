@@ -21,6 +21,8 @@ Notable changes include:
       couple damaged to undamaged material.
       * planeStrain has been removed as an option in FSISPH as part of unifying deviatoric evolution with other
         hydros.
+    * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
+      package itself, which most folks outside LLNL will not necessarily have.
 
   * Build changes / improvements:
     * Native Spack environments are now being used.

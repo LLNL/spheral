@@ -143,3 +143,5 @@ if mpi.rank == 0:
     sys.ps1 = "Spheral> "
 else:
     sys.ps1 = ""
+
+    

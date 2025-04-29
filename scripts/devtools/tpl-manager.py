@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import argparse, os, sys, re, shutil, glob
+import argparse, os, sys, re, shutil, glob, time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from spheralutils import sexe
@@ -126,6 +126,21 @@ class SpheralTPL:
                     sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
         self.add_spack_paths(spack_dir)
 
+    def check_lock_file(self):
+        "Check if any files in scripts/spack are newer than the spack.lock file"
+        spack_lock = os.path.join(self.env_dir, "spack.lock")
+        if (not os.path.exists(spack_lock)):
+            return False
+        lock_time = os.path.getmtime(spack_lock)
+        for package, path in package_dirs.items():
+            internal_spack_dir = os.path.abspath(get_config_dir(path))
+            internal_spack_files = glob.glob(os.path.join(internal_spack_dir, "**"), recursive=True)
+            for ff in internal_spack_files:
+                ctime = os.path.getmtime(ff)
+                if ("__pycache__" not in ff and ctime > lock_time):
+                    return True
+        return False
+
     def find_spack_package(self, package_names):
         """
         Find if the package name/s is already in the environment.
@@ -160,19 +175,19 @@ class SpheralTPL:
         with open(env_file, 'w') as ff:
             spack_yaml.dump(loader, ff)
 
-    def custom_spack_env(self, env_dir, env_name):
+    def custom_spack_env(self, env_name):
         "Use/create a custom Spack environment"
         from spack import environment
         if (not self.args.spec):
             raise Exception("Must supply a --spec for a custom environment")
-        if (self.args.clean and os.path.exists(env_dir)):
-            shutil.rmtree(env_dir)
-        if (not os.path.exists(os.path.join(env_dir, "spack.yaml"))):
+        if (self.args.clean and os.path.exists(self.env_dir)):
+            shutil.rmtree(self.env_dir)
+        if (not os.path.exists(os.path.join(self.env_dir, "spack.yaml"))):
             # Create a new environment
             env_cmd = SpackCommand("env")
-            env_cmd("create", "--without-view", "-d", env_dir)
+            env_cmd("create", "--without-view", "-d", self.env_dir)
 
-        self.spack_env = environment.Environment(env_dir)
+        self.spack_env = environment.Environment(self.env_dir)
         environment.activate(self.spack_env)
         # Get all the Spack commands
         repo_cmd = SpackCommand("repo")
@@ -207,7 +222,7 @@ class SpheralTPL:
         # Always add the spec for a custom environment
         self.args.add_spec = True
 
-    def remove_upstream(self, env_dir):
+    def remove_upstream(self):
         "Modify the spack.yaml to remove the upstream"
         # TODO: Currently, Spack has no other way to
         # to remove an include: line from an environment
@@ -224,8 +239,8 @@ class SpheralTPL:
 
         # Copy spack.yaml to origspack.yaml and overwrite spack.yaml
         # with upstreams removed
-        env_file = os.path.join(env_dir, "spack.yaml")
-        shutil.copyfile(env_file, os.path.join(env_dir, "origspack.yaml"))
+        env_file = os.path.join(self.env_dir, "spack.yaml")
+        shutil.copyfile(env_file, os.path.join(self.env_dir, "origspack.yaml"))
         self.modify_env_file(env_file, do_remove)
 
     def activate_spack_env(self):
@@ -237,19 +252,19 @@ class SpheralTPL:
             default_env = "dev_pkg"
         if default_env and os.path.exists(os.path.join(config_env_dir, default_env)):
             # For LC systems
-            env_dir = os.path.join(config_env_dir, default_env)
-            print(f"Activating Spack environment in {env_dir}")
+            self.env_dir = os.path.join(config_env_dir, default_env)
+            print(f"Activating Spack environment in {self.env_dir}")
             if self.args.no_upstream:
-                self.remove_upstream(env_dir)
+                self.remove_upstream()
             from spack import environment
-            self.spack_env = environment.Environment(env_dir)
+            self.spack_env = environment.Environment(self.env_dir)
             environment.activate(self.spack_env)
         else:
             # Otherwise, check if environment has been created
             arch_cmd = SpackCommand("arch")
             env_name = arch_cmd().strip()
-            env_dir = os.path.join(config_env_dir, env_name)
-            self.custom_spack_env(env_dir, env_name)
+            self.env_dir = os.path.join(config_env_dir, env_name)
+            self.custom_spack_env(env_name)
 
     def concretize_spec(self, check_spec):
         "Concretize the spec"
@@ -332,6 +347,9 @@ class SpheralTPL:
             info_cmd = SpackCommand("info")
             info_cmd("spheral")
             sys.exit(0)
+        # Check if any files in scripts/spack are newer than the spack.lock
+        if (not self.args.clean):
+            self.args.clean = self.check_spack_files()
         if (self.args.spec):
             # If --spec is given, install TPLs and create host config file
             self.concretize_spec(check_spec=True)
