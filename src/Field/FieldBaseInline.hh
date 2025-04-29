@@ -58,8 +58,11 @@ inline
 FieldBase<Dimension>&
 FieldBase<Dimension>::operator=(const FieldBase<Dimension>& rhs) {
   if (this != &rhs) {
+    if (mNodeListPtr) 
+      mNodeListPtr->unregisterField(*this);
     mNodeListPtr = rhs.mNodeListPtr;
     mFieldListBaseList = std::vector<const FieldListBase<Dimension>*>();
+    mNodeListPtr->registerField(*this);
   }
   return *this;
 }
@@ -154,7 +157,6 @@ registerFieldList(const FieldListBase<Dimension>& fieldListBase) const {
 // Unregister a FieldList from this Field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
 void
 FieldBase<Dimension>::
 unregisterFieldList(const FieldListBase<Dimension>& fieldListBase) const {
