@@ -2,6 +2,7 @@
 #include "test-utilities.hh"
 
 #include "Utilities/ManagedVector.hh"
+#include "Geometry/GeomPolygon.hh"
 
 using MVDouble = Spheral::ManagedVector<double>;
 using MVValType = typename MVDouble::value_type;
@@ -100,6 +101,61 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, CopyConstructor) {
   SPHERAL_ASSERT_EQ(&arr[0], &copy_arr[0]);
 
   copy_arr.free();
+}
+
+GPU_TYPED_TEST(ManagedVectorTypedTest, DeepCopy) {
+  using WORK_EXEC_POLICY = TypeParam;
+
+  MVDouble arr(6);
+
+  // MVDouble copy_arr = arr.slice(0, arr.size());
+
+  RAJA::forall<WORK_EXEC_POLICY>(
+      TRS_UINT(0, arr.size()),
+      [=] RAJA_HOST_DEVICE(unsigned i) { arr[i] = i; });
+
+  MVDouble copy_arr = arr.clone();
+
+  SPHERAL_ASSERT_NE(&arr[0], &copy_arr[0]);
+
+  SPHERAL_ASSERT_EQ(arr.size(), copy_arr.size());
+  SPHERAL_ASSERT_EQ(arr.capacity(), copy_arr.capacity());
+
+  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0, 6), [=] RAJA_HOST(unsigned i) {
+    SPHERAL_ASSERT_EQ(copy_arr[i], i);
+    SPHERAL_ASSERT_NE(&arr[i], &copy_arr[i]);
+  });
+
+  arr.free();
+  copy_arr.free();
+}
+
+GPU_TYPED_TEST(ManagedVectorTypedTest, DeepCopyPolygon) {
+  using WORK_EXEC_POLICY = TypeParam;
+
+  using MV = Spheral::ManagedVector<Spheral::GeomPolygon>;
+  MV arr(6);
+
+  RAJA::forall<WORK_EXEC_POLICY>(
+      TRS_UINT(0, arr.size()),
+      [=] RAJA_HOST_DEVICE(unsigned i) 
+    { arr[i] = Spheral::GeomPolygon({{0,0},{1,0},{1,1},{0.5,1.5},{0,1}}); });
+
+  SPHERAL_ASSERT_EQ(arr.size(), 6);
+  MV copy_arr = arr.clone();
+
+  SPHERAL_ASSERT_NE(&arr[0], &copy_arr[0]);
+
+  SPHERAL_ASSERT_EQ(arr.size(), copy_arr.size());
+  SPHERAL_ASSERT_EQ(arr.capacity(), copy_arr.capacity());
+
+  RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0, 6), [=] RAJA_HOST(unsigned i) {
+    SPHERAL_ASSERT_EQ(copy_arr[i], arr[i]);
+    SPHERAL_ASSERT_NE(&arr[i], &copy_arr[i]);
+  });
+
+  copy_arr.free();
+  arr.free();
 }
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, AssignmentOperator) {
