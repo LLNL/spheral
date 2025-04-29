@@ -136,9 +136,10 @@ class SpheralTPL:
             internal_spack_dir = os.path.abspath(get_config_dir(path))
             internal_spack_files = glob.glob(os.path.join(internal_spack_dir, "**"), recursive=True)
             for ff in internal_spack_files:
-                ctime = os.path.getmtime(ff)
-                if ("__pycache__" not in ff and ctime > lock_time):
-                    return True
+                if ("__pycache__" not in ff and os.path.isfile(ff)):
+                    ctime = os.path.getmtime(ff)
+                    if (ctime > lock_time):
+                        return True
         return False
 
     def find_spack_package(self, package_names):
@@ -179,7 +180,7 @@ class SpheralTPL:
         "Use/create a custom Spack environment"
         from spack import environment
         if (not self.args.spec):
-            raise Exception("Must supply a --spec for a custom environment")
+            raise Exception("Must supply a --spec for a custom environment (IE --spec spheral+mpi%gcc")
         if (self.args.clean and os.path.exists(self.env_dir)):
             shutil.rmtree(self.env_dir)
         if (not os.path.exists(os.path.join(self.env_dir, "spack.yaml"))):
@@ -324,16 +325,18 @@ class SpheralTPL:
             # Spec is provided so assumes we are building from a buildcache
             install_args.extend(["--use-buildcache", "package:never,dependencies:only", "--no-check-signature"])
         self.do_install(install_args, spec)
-        print(f"Created {host_config_file}")
-
         if (self.args.ci_run):
             shutil.copyfile(host_config_file, "gitlab.cmake")
-
+            host_config_file = "gitlab.cmake"
         if (mod_host_config):
             # Apply --id and bring back original host config file
             new_name = host_config_file.replace(".cmake", f"{self.args.id}.cmake")
             os.rename(host_config_file, new_name)
             os.rename("orig"+host_config_file, host_config_file)
+            host_config_file = new_name
+        print(f"Created {host_config_file}. To configure, run:\n")
+        scr_path = os.path.relpath(package_dirs['spheral'], base_dir)
+        print(f"{scr_path}/scripts/devtools/host-config-build.py --host-config {host_config_file}\n")
 
     def __init__(self):
         self.parse_args()
