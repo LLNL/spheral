@@ -84,7 +84,14 @@ public:
     MA::registerTouch(chai::CPU);
   }
 
-  using MA::free;
+  // using MA::free;
+
+  SPHERAL_HOST void free() {
+    for (size_t i = 0; i < m_size; i++)
+      MA::operator[](i).~DataType();
+    MA::free();
+  }
+
   using MA::move;
 
   // ---------------------
@@ -269,13 +276,22 @@ public:
     // #endif
   }
 
+  SPHERAL_HOST ManagedVector clone() const {
+    ManagedVector copy = MA::clone();
+    copy.m_size = m_size;
+    for (size_t i = 0; i < m_size; i++) {
+      new (&copy[i]) DataType(MA::data()[i]);
+    }
+    return copy;
+  }
+
 private:
   size_t m_size = 0;
 
   SPHERAL_HOST void destroy(iterator first, iterator last) {
     if (!std::is_trivially_destructible<DataType>::value) {
       for (iterator it = first; it < last; it++) {
-        *it = DataType();
+        it->~DataType();
       }
     }
   }
