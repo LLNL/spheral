@@ -99,6 +99,46 @@
    ...
    fun:_PyFunction_Vectorcall
 }
+{
+   ROCm_COMGR_Init_StillReachable
+   Memcheck:Leak
+   ...
+   obj:*/libamd_comgr.so*
+}
+{
+   rtld_malloc_StillReachable
+   Memcheck:Leak
+   ...
+   fun:*dlopen*
+   ...
+   fun:*_PyImport_*
+   ...
+}
+{
+   libhsa_runtime64_StillReachable
+   Memcheck:Leak
+   ...
+   obj:*/libhsa-runtime64.so*
+}
+{
+   libamdhip64_exit_StillReachable
+   Memcheck:Leak
+   ...
+   obj:*/libamdhip64.so*
+}
+{
+   libamdhip64_exit_StillReachable
+   Memcheck:Leak
+   ...
+   obj:*/libamdhip64.so*
+}
+{
+   DBMakeOptlist_Leak
+   Memcheck:Leak
+   ...
+   fun:DBMakeOptlist
+   ...
+}
 ################################################################################
 ## COPYRIGHT AND LICENSE
 ## 
