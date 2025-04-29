@@ -241,16 +241,14 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  // No default constructor.
+  Field() = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
   bool mValid;
-
-  // No default constructor.
-  Field();
 };
 
 } // namespace Spheral
