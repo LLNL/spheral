@@ -332,7 +332,6 @@ GeomPolygon():
   mXmin(),
   mXmax(),
   mConvex(true) {
-  if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 }
 
 //------------------------------------------------------------------------------
@@ -348,7 +347,6 @@ GeomPolygon(const vector<GeomPolygon::Vector>& points):
   mXmin(),
   mXmax(),
   mConvex(true) {
-  if (mDevnull == NULL) mDevnull = fopen("/dev/null", "w");
 
   if (points.size() > 0) {
 
@@ -526,7 +524,7 @@ GeomPolygon::
 operator=(const GeomPolygon& rhs) {
   if (this != &rhs) {
     mVertices = rhs.mVertices;
-    mFacets = vector<Facet>();
+    mFacets.clear();
     mFacets.reserve(rhs.mFacets.size());
     for (const Facet& facet: rhs.mFacets) mFacets.push_back(Facet(mVertices,
                                                                   facet.ipoint1(),
@@ -540,13 +538,6 @@ operator=(const GeomPolygon& rhs) {
   }
   ENSURE(mFacets.size() == rhs.mFacets.size());
   return *this;
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-GeomPolygon::
-~GeomPolygon() {
 }
 
 //------------------------------------------------------------------------------
@@ -1091,11 +1082,6 @@ std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon) {
   return os;
 }
 
-//------------------------------------------------------------------------------
-// Initialization.
-//------------------------------------------------------------------------------
-FILE* GeomPolygon::mDevnull = NULL;
-
-}
+} // namespace Spheral
 
 

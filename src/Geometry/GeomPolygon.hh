@@ -39,7 +39,6 @@ public:
 
   GeomPolygon(const GeomPolygon& rhs);
   GeomPolygon& operator=(const GeomPolygon& rhs);
-  ~GeomPolygon();
 
   // Test if the given point is internal to the polygon.
   // This method works for any polygon.
@@ -144,8 +143,6 @@ private:
   std::vector<std::vector<unsigned> > mVertexFacetConnectivity, mFacetFacetConnectivity;
   Vector mXmin, mXmax;
   bool mConvex;
-
-  static FILE* mDevnull;
 };
 
 std::ostream& operator<<(std::ostream& os, const GeomPolygon& polygon);
