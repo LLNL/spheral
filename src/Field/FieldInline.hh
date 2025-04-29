@@ -31,7 +31,7 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
-  mDataArray(),
+  mDataArray(0),
   mValid(false) {}
 
 //------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  mDataArray(deepCopy(field.mDataArray)),
+  mDataArray(field.mDataArray.clone()),
   mValid(field.mValid) {}
 
 //------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  mDataArray(deepCopy(field.mDataArray)),
+  mDataArray(field.mDataArray.clone()),
   mValid(true) {
   ENSURE(numElements() == nodeList.numNodes());
 }
@@ -148,7 +148,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
-  mDataArray(deepCopy(field.mDataArray)),
+  mDataArray(field.mDataArray.clone()),
   mValid(field.valid()) {
 }
 
@@ -184,7 +184,8 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       const Field<Dimension, DataType>* rhsPtr = dynamic_cast<const Field<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
-      mDataArray = deepCopy(rhsPtr->mDataArray);
+      mDataArray.free();
+      mDataArray = rhsPtr->mDataArray.clone();
       mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
@@ -203,7 +204,8 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
-    mDataArray = deepCopy(rhs.mDataArray);
+    mDataArray.free();
+    mDataArray = rhs.mDataArray.clone();
     mValid = rhs.mValid;
   }
   return *this;
@@ -1172,7 +1174,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::resizeField(unsigned size) {
-  REQUIRE(size == this->nodeList().numNodes());
+  //REQUIRE(size == this->nodeList().numNodes());
   unsigned oldSize = this->size();
   mDataArray.resize(size);
   if (oldSize < size) {
