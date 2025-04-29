@@ -273,11 +273,13 @@ class SpheralTPL:
             if (self.args.add_spec):
                 add_cmd = SpackCommand("add")
                 add_cmd(self.args.spec)
-        print("Concretizing environment")
         conc_cmd = SpackCommand("concretize")
         conc_args = ["-U"]
         if (self.args.clean):
             conc_args.append("-f")
+            print("Cleaning and concretizing environment")
+        else:
+            print("Concretizing environment")
         conc_cmd(*conc_args)
         if (check_spec):
             matches = self.spack_env.matching_spec(self.spack_spec)
@@ -349,7 +351,7 @@ class SpheralTPL:
             sys.exit(0)
         # Check if any files in scripts/spack are newer than the spack.lock
         if (not self.args.clean):
-            self.args.clean = self.check_spack_files()
+            self.args.clean = self.check_lock_file()
         if (self.args.spec):
             # If --spec is given, install TPLs and create host config file
             self.concretize_spec(check_spec=True)
