@@ -162,9 +162,10 @@ class SpheralTPL:
         for i in package_names:
             if (i in find_out):
                 return i
-        raise Exception(f"System install of {package_names} not found. "+\
-                        "If software is installed, add location to $PATH "+\
-                        "environment variable. Otherwise, install package.")
+        if (req):
+            raise Exception(f"System install of {package_names} not found. "+\
+                            "If software is installed, add location to $PATH "+\
+                            "environment variable. Otherwise, install package.")
 
     def modify_env_file(self, env_file, mod_func):
         "Modify the spack.yaml file"
