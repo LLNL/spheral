@@ -1,5 +1,5 @@
 ###############################################
-Building Spheral on Livermore Computing systems
+Building Spheral on LC Systems
 ###############################################
 
 This guide explains the process for setting up and running Spheral on LC (Livermore Computing) systems.

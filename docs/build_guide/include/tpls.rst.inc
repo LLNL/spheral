@@ -14,7 +14,7 @@ The most common usage of ``tpl-manager.py`` will look like:
 
   ./scripts/devtools/tpl-manager.py --spec spheral+mpi%gcc
 
-The command above tells the TPL manager to build and install TPLs for Spheral with MPI turned on and using the GCC compiler.
+The command above tells the TPL manager to build and install TPLs for Spheral with MPI enabled and using the GCC compiler.
 Overall, the following options can be provided to ``tpl-manager.py``:
 
 .. option:: --spec <SPEC>
@@ -31,7 +31,7 @@ Overall, the following options can be provided to ``tpl-manager.py``:
 
 .. option:: --spack-dir <SPACK_DIR>
 
-            Where to create the Spack instance to use. Optional, default ``$PWD/../spheral-spack-tpls``.
+            Where to create the Spack instance to use. Optional, default ``./../spheral-spack-tpls``.
 
 .. option:: --clean
 

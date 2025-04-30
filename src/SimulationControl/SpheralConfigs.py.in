@@ -33,7 +33,7 @@ def hydro_imports():
     return hydro_str.split(";")
 
 def caliper_module_path():
-    if (spheral_enable_timer()):
+    if (enable_timer()):
         caliper_loc = "@CONFIG_CALIPER_DIR@"
         return os.path.join(caliper_loc, "lib64/caliper")
     else:
