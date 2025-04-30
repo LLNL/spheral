@@ -39,11 +39,13 @@ class Field(FieldBase):
     def __ne__(self):
         return
 
-    def __eq__(self, rhs="%(Value)s()"):
+    @PYB11pycppname("__eq__")
+    def __eq___S__(self, rhs="%(Value)s()"):
         "Equivalence comparision with a %(Value)s"
         return "bool"
 
-    def __ne__(self, rhs="%(Value)s()"):
+    @PYB11pycppname("__ne__")
+    def __ne__S__(self, rhs="%(Value)s()"):
         "Not equal comparision with a %(Value)s"
         return "bool"
 

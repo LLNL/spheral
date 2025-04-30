@@ -27,6 +27,7 @@ template<typename Dimension> class CoarseNodeIterator;
 template<typename Dimension> class RefineNodeIterator;
 template<typename Dimension> class NodeList;
 template<typename Dimension> class TableKernel;
+template<typename Dimension, typename DataType> class FieldSpan;
 
 #ifdef USE_UVM
 template<typename DataType>
@@ -187,9 +188,6 @@ public:
 //   splatToFieldMash(const NodeList<Dimension>& splatNodeList,
 //                    const TableKernel<Dimension>& W) const;
 
-  // Test if this Field is in a valid, internally consistent state.
-  bool valid() const;
-
   // Provide the standard iterator methods over the field.
   iterator begin();
   iterator end();
@@ -248,7 +246,8 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
-  bool mValid;
+
+  friend FieldSpan<Dimension, DataType>;
 };
 
 } // namespace Spheral

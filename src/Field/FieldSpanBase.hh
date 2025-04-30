@@ -18,10 +18,11 @@ public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructor
   FieldSpanBase() = default;
+  FieldSpanBase(const FieldSpanBase& rhs) = default;
   virtual ~FieldSpanBase() = default;
 
   // Assignment operator.
-  virtual FieldSpanBase& operator=(const FieldSpanBase& rhs) = default;
+  virtual FieldSpanBase& operator=(const FieldSpanBase& rhs) = 0;
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldSpanBase& rhs) const = 0;

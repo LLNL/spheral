@@ -21,7 +21,7 @@ class FieldBase {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  using FieldName = typename std::string;
+  using FieldName = std::string;
   using Scalar = typename Dimension::Scalar;
 
   // Constructors.

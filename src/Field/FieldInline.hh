@@ -31,8 +31,7 @@ inline
 Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name):
   FieldBase<Dimension>(name),
-  mDataArray(),
-  mValid(false) {}
+  mDataArray() {}
 
 //------------------------------------------------------------------------------
 // Construct with name and field values.
@@ -43,8 +42,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(name, *field.nodeListPtr()),
-  mDataArray(field.mDataArray),
-  mValid(field.mValid) {}
+  mDataArray(field.mDataArray) {}
 
 //------------------------------------------------------------------------------
 // Construct with the given name and NodeList.
@@ -55,8 +53,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), DataType()),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), DataType()) {
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -66,8 +63,7 @@ Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), 0.0) {
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -77,8 +73,7 @@ Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), 0.0) {
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -88,8 +83,7 @@ Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), 0.0) {
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -103,8 +97,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), value),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes(), value) {
   REQUIRE(numElements() == nodeList.numNodes());
 }
 
@@ -119,8 +112,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes()),
-  mValid(true) {
+  mDataArray((size_t) nodeList.numNodes()) {
   REQUIRE(numElements() == nodeList.numNodes());
   REQUIRE(numElements() == array.size());
   mDataArray = array;
@@ -135,8 +127,7 @@ inline
 Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
                                   const Field<Dimension, DataType>& field):
   FieldBase<Dimension>(field.name(), nodeList),
-  mDataArray(field.mDataArray),
-  mValid(true) {
+  mDataArray(field.mDataArray) {
   ENSURE(numElements() == nodeList.numNodes());
 }
 
@@ -147,8 +138,7 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::Field(const Field& field):
   FieldBase<Dimension>(field),
-  mDataArray(field.mDataArray),
-  mValid(field.valid()) {
+  mDataArray(field.mDataArray) {
 }
 
 //------------------------------------------------------------------------------
@@ -183,7 +173,6 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       CHECK2(rhsPtr != 0, "Passed incorrect Field to operator=!");
       FieldBase<Dimension>::operator=(rhs);
       mDataArray = rhsPtr->mDataArray;
-      mValid = rhsPtr->mValid;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
     }
@@ -198,11 +187,9 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
-  REQUIRE(rhs.valid());
   if (this != &rhs) {
     FieldBase<Dimension>::operator=(rhs);
     mDataArray = rhs.mDataArray;
-    mValid = rhs.mValid;
   }
   return *this;
 }
@@ -214,7 +201,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs) {
-  REQUIRE(mValid);
   REQUIRE(this->nodeList().numNodes() == rhs.size());
   mDataArray = rhs;
   return *this;
@@ -227,7 +213,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator=(const DataType& rhs) {
-  REQUIRE(mValid);
   std::fill(begin(), end(), rhs);
   return *this;
 }
@@ -417,7 +402,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::Zero() {
-  REQUIRE(mValid);
   std::fill(begin(), end(), DataTypeTraits<DataType>::zero());
 }
 
@@ -428,7 +412,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::applyMin(const DataType& dataMin) {
-  REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
@@ -440,7 +423,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::applyMax(const DataType& dataMax) {
-  REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
@@ -452,7 +434,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
-  REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
@@ -464,7 +445,6 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
-  REQUIRE(mValid);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
@@ -476,7 +456,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::operator+(const Field<Dimension, DataType>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
   const unsigned n = this->numElements();
@@ -491,7 +470,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::operator-(const Field<Dimension, DataType>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
   const unsigned n = this->numElements();
@@ -506,7 +484,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const Field<Dimension, DataType>& rhs) {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs(i);
@@ -520,7 +497,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const Field<Dimension, DataType>& rhs) {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs(i);
@@ -534,7 +510,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::operator+(const DataType& rhs) const {
-  REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) result(i) += rhs;
@@ -548,7 +523,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::operator-(const DataType& rhs) const {
-  REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) result(i) -= rhs;
@@ -562,7 +536,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const DataType& rhs) {
-  REQUIRE(valid());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs;
   return *this;
@@ -575,7 +548,6 @@ template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const DataType& rhs) {
-  REQUIRE(valid());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs;
   return *this;
@@ -589,7 +561,6 @@ inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::
 operator*(const Field<Dimension, Scalar>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
   result *= rhs;
@@ -604,7 +575,6 @@ inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::
 operator/(const Field<Dimension, Scalar>& rhs) const {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
   result /= rhs;
@@ -619,7 +589,6 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator*=(const Field<Dimension, Scalar>& rhs) {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs(i);
@@ -634,7 +603,6 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
-  REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   const unsigned n = this->numElements();
   for (auto i = 0u; i < n; ++i) {
@@ -651,7 +619,6 @@ inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::
 operator*(const Scalar& rhs) const {
-  REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
   result *= rhs;
   return result;
@@ -665,7 +632,6 @@ inline
 Field<Dimension, DataType>
 Field<Dimension, DataType>::
 operator/(const Scalar& rhs) const {
-  REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   Field<Dimension, DataType> result(*this);
   result /= rhs;
@@ -680,7 +646,6 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator*=(const Scalar& rhs) {
-  REQUIRE(valid());
   const unsigned n = this->numElements();
   for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
   return *this;
@@ -694,7 +659,6 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator/=(const Scalar& rhs) {
-  REQUIRE(valid());
   REQUIRE(rhs != 0.0);
   const unsigned n = this->numElements();
   for (int i = 0; i < (int)n; ++i) (*this)(i) /= rhs;
@@ -990,16 +954,6 @@ operator<=(const DataType& rhs) const {
 }
 
 //------------------------------------------------------------------------------
-// Test if the field is valid.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-bool
-Field<Dimension, DataType>::valid() const {
-  return mValid && this->nodeListPtr();
-}
-
-//------------------------------------------------------------------------------
 // Iterator pointing to the beginning of the field values.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
@@ -1155,7 +1109,6 @@ Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
   }
-  mValid = true;
 }
 
 //------------------------------------------------------------------------------
@@ -1174,7 +1127,6 @@ Field<Dimension, DataType>::resizeField(unsigned size) {
               mDataArray.end(),
               DataTypeTraits<DataType>::zero());
   }
-  mValid = true;
 }
 
 //------------------------------------------------------------------------------
@@ -1272,8 +1224,6 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
       (*this)(j) = oldGhostValues[i];
     }
   }
-
-  mValid = true;
 }
 
 //------------------------------------------------------------------------------
@@ -1300,8 +1250,6 @@ Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
               mDataArray.end(),
               DataTypeTraits<DataType>::zero());
   }
-
-  mValid = true;
 }
 
 //------------------------------------------------------------------------------
@@ -1456,7 +1404,6 @@ template<typename Dimension, typename DataType, typename OtherDataType>
 Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 operator*(const Field<Dimension, DataType>& lhs,
           const Field<Dimension, OtherDataType>& rhs) {
-  CHECK(lhs.valid() && rhs.valid());
   CHECK(lhs.nodeList().numNodes() == rhs.nodeList().numNodes());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
@@ -1473,7 +1420,6 @@ template<typename Dimension, typename DataType, typename OtherDataType>
 Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 operator*(const Field<Dimension, DataType>& lhs,
           const OtherDataType& rhs) {
-  CHECK(lhs.valid());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
   for (int i = 0; i < result.numElements(); ++i) {
@@ -1486,7 +1432,6 @@ template<typename Dimension, typename DataType, typename OtherDataType>
 Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
 operator*(const DataType& lhs,
           const Field<Dimension, OtherDataType>& rhs) {
-  CHECK(rhs.valid());
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, OtherDataType>&>(rhs).nodeList());
   for (auto i = 0u; i < result.numElements(); ++i) {
@@ -1502,7 +1447,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // abs(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::abs(result(i));
@@ -1517,7 +1461,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // acos(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::acos(result(i));
@@ -1532,7 +1475,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // asin(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::asin(result(i));
@@ -1547,7 +1489,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // atan(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::atan(result(i));
@@ -1563,7 +1504,6 @@ operator*(const DataType& lhs,
 // atan2(const Field<Dimension, typename Dimension::Scalar>& field1,
 //       const Field<Dimension, typename Dimension::Scalar>& field2) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field1.valid() && field2.valid());
 //   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
 //   Field<Dimension, Scalar> result(field1);
 //   for (int i = 0; i < result.numElements(); ++i) {
@@ -1579,7 +1519,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // ceil(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::ceil(result(i));
@@ -1594,7 +1533,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // cos(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::cos(result(i));
@@ -1609,7 +1547,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // cosh(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::cosh(result(i));
@@ -1624,7 +1561,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // exp(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::exp(result(i));
@@ -1639,7 +1575,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // fabs(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::abs(result(i));
@@ -1654,7 +1589,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // floor(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::floor(result(i));
@@ -1669,7 +1603,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // log(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::log(result(i));
@@ -1684,7 +1617,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // log10(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::log10(result(i));
@@ -1700,7 +1632,6 @@ operator*(const DataType& lhs,
 // pow(const Field<Dimension, typename Dimension::Scalar>& field,
 //     const double exponent) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::pow(result(i), exponent);
@@ -1715,7 +1646,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow2(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow2(result(i));
@@ -1727,7 +1657,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow3(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow3(result(i));
@@ -1739,7 +1668,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow4(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow4(result(i));
@@ -1751,7 +1679,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow5(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow5(result(i));
@@ -1763,7 +1690,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow6(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow6(result(i));
@@ -1775,7 +1701,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // pow7(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = FastMath::pow7(result(i));
@@ -1801,7 +1726,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // sin(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::sin(result(i));
@@ -1816,7 +1740,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // sinh(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     result(i) = std::sinh(result(i));
@@ -1840,7 +1763,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, typename Dimension::Scalar>
 // sqrt(const Field<Dimension, typename Dimension::Scalar>& field) {
 //   typedef typename Dimension::Scalar Scalar;
-//   CHECK(field.valid());
 //   Field<Dimension, Scalar> result(field);
 //   for (int i = 0; i < result.numElements(); ++i) {
 //     CHECK(result(i) >= 0.0);
@@ -1856,7 +1778,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // min(const Field<Dimension, DataType>& field1,
 //     const Field<Dimension, DataType>& field2) {
-//   CHECK(field1.valid() && field2.valid());
 //   CHECK(field1.numElements() == field2.numElements());
 //   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
 //   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field1.nodeList()));
@@ -1870,7 +1791,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // min(const DataType& value,
 //     const Field<Dimension, DataType>& field) {
-//   CHECK(field.valid());
 //   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
 //   for (int i = 0; i < field.numElements(); ++i) {
 //     result(i) = std::min(value, field(i));
@@ -1882,7 +1802,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // min(const Field<Dimension, DataType>& field, 
 //     const DataType& value) {
-//   CHECK(field.valid());
 //   Field<Dimension, DataType> result("min", const_cast<NodeList<Dimension>&>(field.nodeList()));
 //   for (int i = 0; i < field.numElements(); ++i) {
 //     result(i) = std::min(field(i), value);
@@ -1897,7 +1816,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // max(const Field<Dimension, DataType>& field1,
 //     const Field<Dimension, DataType>& field2) {
-//   CHECK(field1.valid() && field2.valid());
 //   CHECK(field1.numElements() == field2.numElements());
 //   CHECK(field1.nodeListPtr() == field2.nodeListPtr());
 //   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field1.nodeList()));
@@ -1911,7 +1829,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // max(const DataType& value,
 //     const Field<Dimension, DataType>& field) {
-//   CHECK(field.valid());
 //   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
 //   for (int i = 0; i < field.numElements(); ++i) {
 //     result(i) = std::max(value, field(i));
@@ -1923,7 +1840,6 @@ operator*(const DataType& lhs,
 // Field<Dimension, DataType>
 // max(const Field<Dimension, DataType>& field, 
 //     const DataType& value) {
-//   CHECK(field.valid());
 //   Field<Dimension, DataType> result("max", const_cast<NodeList<Dimension>&>(field.nodeList()));
 //   for (int i = 0; i < field.numElements(); ++i) {
 //     result(i) = std::max(field(i), value);

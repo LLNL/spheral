@@ -24,12 +24,12 @@ public:
   using FieldDataType = DataType;
   using value = DataType;      // STL compatibility.
 
-  using iterator = typename std::vector<DataType,DataAllocator<DataType>>::iterator;
-  using const_iterator = typename std::vector<DataType,DataAllocator<DataType>>::const_iterator;
+  using iterator = typename std::span<DataType>::iterator;
+  // using const_iterator = typename std::span<DataType>::const_iterator;  // Not until C++23
 
   // Constructors, destructor
-  FieldSpan(const Field<Dimension>& field);
-  FieldSpan(const FieldSpan& rhs) = default;
+  FieldSpan(Field<Dimension, DataType>& field);
+  FieldSpan(FieldSpan& rhs) = default;
   virtual ~FieldSpan() = default;
 
   // Assignment operator.
@@ -113,13 +113,6 @@ public:
   iterator internalEnd();
   iterator ghostBegin();
   iterator ghostEnd();
-
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_iterator internalBegin() const;
-  const_iterator internalEnd() const;
-  const_iterator ghostBegin() const;
-  const_iterator ghostEnd() const;
 
   // No default constructor.
   FieldSpan() = delete;
