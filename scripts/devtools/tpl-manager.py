@@ -142,7 +142,7 @@ class SpheralTPL:
                         return True
         return False
 
-    def find_spack_package(self, package_names):
+    def find_spack_package(self, package_names, req=True):
         """
         Find if the package name/s is already in the environment.
         If any one of them are found, return the name of that package.
@@ -155,7 +155,10 @@ class SpheralTPL:
             if (i in cur_packages):
                 return i
         ext_cmd = SpackCommand("external")
-        find_out = ext_cmd("find", "--not-buildable", *package_names)
+        if (req):
+            find_out = ext_cmd("find", "--not-buildable", *package_names)
+        else:
+            find_out = ext_cmd("find", *package_names)
         for i in package_names:
             if (i in find_out):
                 return i
@@ -209,8 +212,8 @@ class SpheralTPL:
         ext_cmd("find") # spack external find
 
         # req_packages are packages we refuse to let spack build
-        # If they aren't found, an error will be thrown telling the user
-        # to install the package or ensure an install is in $PATH
+        # If they aren't found on the system, an error will be thrown
+        # telling the user to install the package or ensure an install is in $PATH
         req_packages = ["python", "perl"]
         for i in req_packages:
             self.find_spack_package(i)
@@ -220,6 +223,11 @@ class SpheralTPL:
             mpi_pack = self.find_spack_package(mpi_packages)
             if (f"^{mpi_pack}" not in self.args.spec):
                 self.args.spec += f"^{mpi_pack}"
+        # opt_packages are packages we would like to find on the system
+        # but are ok with Spack installing if they are not found
+        opt_packages = ["hdf5", "ncurses"]
+        for i in opt_packages:
+            self.find_spack_package(i, req=False)
         # Always add the spec for a custom environment
         self.args.add_spec = True
 

@@ -18,11 +18,11 @@ Users are not required to install Spack themselves, but they can use the `System
 Select the following dropdown menu for the appropriate commands to run for a given Linux distribution.
 
 
-.. dropdown:: Debian/Ubuntu
+.. dropdown:: Ubuntu
 
    .. tab-set::
 
-      .. tab-item:: Minimum required
+      .. tab-item:: Version 20.04
 
          .. code-block::
 
@@ -31,26 +31,29 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
             sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
             sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
-            sudo apt-get install build-essential python3-dev curl python3-pip python3-venv
-
-      .. tab-item:: Recommended
-
-         .. code-block::
-
-            sudo apt-get update
-            sudo apt-get upgrade
-            sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
-            sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
-            sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
-            sudo apt-get install build-essential python3-dev curl python3-pip python3-venv
+            sudo apt-get install build-essential python3-dev python3-pip python3-venv
             # Recommended packages
             sudo apt-get install cmake autoconf automake mpich
 
-.. dropdown:: RHEL
+      .. tab-item:: Version 22.04
+
+         .. code-block::
+
+            sudo apt-get update
+            sudo apt-get upgrade
+            sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
+            sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
+            sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
+            sudo apt-get install build-essential python3-dev python3-pip python3-venv
+            # HIGHLY recommended packages to avoid issues between mpich and hdf5
+            sudo apt-get install cmake autoconf automake mpich libhdf5-mpich-dev libreadline-dev
+
+
+.. dropdown:: RHEL/AlmaLinux
 
    .. tab-set::
 
-      .. tab-item:: Minimum required
+      .. tab-item:: Version 8
 
          .. code-block::
 
@@ -58,8 +61,12 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf install epel-release
             dnf group install "Development Tools"
             dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
+            # Recommended packages
+            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
+            # Be sure to add your mpi install to your PATH so Spack can find it
+            module load mpi
 
-      .. tab-item:: Recommended
+      .. tab-item:: Version 9
 
          .. code-block::
 
