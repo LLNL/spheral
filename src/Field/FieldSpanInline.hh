@@ -40,12 +40,11 @@ template<typename Dimension, typename DataType>
 inline
 FieldSpanBase<Dimension>&
 FieldSpan<Dimension, DataType>::
-operator=(const FieldSpanBase<Dimension>& rhs) {
+operator=(FieldSpanBase<Dimension>& rhs) {
   if (this != &rhs) {
     try {
       const FieldSpan<Dimension, DataType>* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
       CHECK2(rhsPtr != nullptr, "Passed incorrect Field to operator=!");
-      FieldSpanBase<Dimension>::operator=(rhs);
       mDataSpan = rhsPtr->mDataSpan;
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a FieldSpan to an incompatible field type.");

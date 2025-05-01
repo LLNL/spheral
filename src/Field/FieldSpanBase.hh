@@ -22,7 +22,7 @@ public:
   virtual ~FieldSpanBase() = default;
 
   // Assignment operator.
-  virtual FieldSpanBase& operator=(const FieldSpanBase& rhs) = 0;
+  virtual FieldSpanBase& operator=(FieldSpanBase& rhs) = 0;
 
   // Require descendent fields be able to test equivalence.
   virtual bool operator==(const FieldSpanBase& rhs) const = 0;

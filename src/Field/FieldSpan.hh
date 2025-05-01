@@ -33,8 +33,8 @@ public:
   virtual ~FieldSpan() = default;
 
   // Assignment operator.
-  virtual FieldSpanBase<Dimension>& operator=(const FieldSpanBase<Dimension>& rhs) override;
-  FieldSpan& operator=(const FieldSpan& rhs) = default;
+  virtual FieldSpanBase<Dimension>& operator=(FieldSpanBase<Dimension>& rhs) override;
+  // FieldSpan& operator=(const FieldSpan& rhs) = default;
   FieldSpan& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldSpanBase.
