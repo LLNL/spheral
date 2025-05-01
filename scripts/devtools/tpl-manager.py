@@ -161,7 +161,7 @@ class SpheralTPL:
 
     def find_all_spack_packages(self, packages, req=True):
         for i in packages:
-            if (not self.find_spack_packages(i, req) and req):
+            if (not self.find_spack_package(i, req) and req):
                 raise Exception(f"System install of {i} not found. "+\
                                 "If software is installed, add location to $PATH "+\
                                 "environment variable. Otherwise, install package.")
