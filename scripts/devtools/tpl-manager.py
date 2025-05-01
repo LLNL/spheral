@@ -133,39 +133,38 @@ class SpheralTPL:
             return False
         lock_time = os.path.getmtime(spack_lock)
         for package, path in package_dirs.items():
-            internal_spack_dir = os.path.abspath(get_config_dir(path))
-            internal_spack_files = glob.glob(os.path.join(internal_spack_dir, "**"), recursive=True)
-            for ff in internal_spack_files:
-                if ("__pycache__" not in ff and os.path.isfile(ff)):
-                    ctime = os.path.getmtime(ff)
-                    if (ctime > lock_time):
-                        return True
+            internal_spack_dir = os.path.join(os.path.abspath(get_config_dir(path)), "**")
+            sp_files = glob.glob(internal_spack_dir, recursive=True)
+            ctimes = [os.path.getmtime(ff) for ff in sp_files\
+                      if os.path.isfile(ff) and "__pycache__" not in ff]
+            if (any(x > lock_time for x in ctimes)):
+                return True
         return False
 
-    def find_spack_package(self, package_names, req=True):
+    def find_spack_package(self, package_name, req=True):
         """
         Find if the package name/s is already in the environment.
         If any one of them are found, return the name of that package.
         If not, run spack external find and raise an error if none are found.
         """
         cur_packages = spack.config.get("packages")
-        if (type(package_names) is not list):
-            package_names = [package_names]
-        for i in package_names:
-            if (i in cur_packages):
-                return i
+        if (package_name in cur_packages):
+            return True
         ext_cmd = SpackCommand("external")
         if (req):
-            find_out = ext_cmd("find", "--not-buildable", *package_names)
+            find_out = ext_cmd("find", "--not-buildable", package_name)
         else:
-            find_out = ext_cmd("find", *package_names)
-        for i in package_names:
-            if (i in find_out):
-                return i
-        if (req):
-            raise Exception(f"System install of {package_names} not found. "+\
-                            "If software is installed, add location to $PATH "+\
-                            "environment variable. Otherwise, install package.")
+            find_out = ext_cmd("find", package_name)
+        if (package_name in find_out):
+            return True
+        return None
+
+    def find_all_spack_packages(self, packages, req=True):
+        for i in packages:
+            if (not self.find_spack_packages(i, req) and req):
+                raise Exception(f"System install of {i} not found. "+\
+                                "If software is installed, add location to $PATH "+\
+                                "environment variable. Otherwise, install package.")
 
     def modify_env_file(self, env_file, mod_func):
         "Modify the spack.yaml file"
@@ -187,11 +186,15 @@ class SpheralTPL:
             raise Exception("Must supply a --spec for a custom environment (IE --spec spheral+mpi%gcc")
         if (self.args.clean and os.path.exists(self.env_dir)):
             shutil.rmtree(self.env_dir)
-        if (not os.path.exists(os.path.join(self.env_dir, "spack.yaml"))):
+        env_file = os.path.join(self.env_dir, "spack.yaml")
+        if (not os.path.exists(env_file)):
             # Create a new environment
             env_cmd = SpackCommand("env")
             env_cmd("create", "--without-view", "-d", self.env_dir)
-
+            def set_concretize(loader):
+                loader["spack"]["concretizer"]["unify"] = "false"
+                return loader
+            self.modify_env_file(env_file, set_concretize)
         self.spack_env = environment.Environment(self.env_dir)
         environment.activate(self.spack_env)
         # Get all the Spack commands
@@ -208,22 +211,26 @@ class SpheralTPL:
                 repo_cmd("add", f"{repo_path}") # spack repo add <repo_path>
             dev_path = os.path.abspath(path)
             dev_cmd("-p", dev_path, f"{package}@=develop") # spack develop <package>@=develop
-
         comp_cmd("find") # spack compiler find
         ext_cmd("find") # spack external find
 
         # req_packages are packages we refuse to let spack build
         # If they aren't found on the system, an error will be thrown
         # telling the user to install the package or ensure an install is in $PATH
-        req_packages = ["python", "perl"]
-        for i in req_packages:
-            self.find_spack_package(i)
+        self.find_all_spack_packages(["python", "perl"])
         # Look for MPI installs
         if (not spack.spec.Spec(self.args.spec).satisfies("~mpi")):
-            mpi_packages = ["mpich", "openmpi"]
-            mpi_pack = self.find_spack_package(mpi_packages)
-            if (f"^{mpi_pack}" not in self.args.spec):
-                self.args.spec += f"^{mpi_pack}"
+            found_mpi = False
+            for i in ["openmpi", "mpich"]:
+                if (self.find_spack_package(i)):
+                    found_mpi = True
+                    provider_dict = {"mpi": i}
+                    self.config_env_providers(provider_dict)
+                    break
+            if (not found_mpi):
+                raise Exception(f"System MPI install not found. "+\
+                                "If software is installed, add location to $PATH "+\
+                                "environment variable. Otherwise, install package.")
         # opt_packages are packages we would like to find on the system
         # but are ok with Spack installing if they are not found
         opt_packages = ["hdf5", "ncurses"]
@@ -232,11 +239,16 @@ class SpheralTPL:
         # Always add the spec for a custom environment
         self.args.add_spec = True
 
+    def config_env_providers(self, config_dict):
+        env_file = os.path.join(self.env_dir, "spack.yaml")
+        def set_providers(loader):
+            loader["spack"]["packages"]["providers"].update(config_dict)
+            return loader
+        self.modify_env_file(env_file, set_providers)
+
     def remove_upstream(self):
         "Modify the spack.yaml to remove the upstream"
-        # TODO: Currently, Spack has no other way to
-        # to remove an include: line from an environment
-        # than to directly change the spack.yaml file
+        # TODO: Ideally use spack config command to achieve this
         # Remove upstream.yaml or upstream entry
         def do_remove(loader):
             if ("upstreams" in loader["spack"]):

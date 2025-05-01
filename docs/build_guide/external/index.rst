@@ -30,7 +30,7 @@ Select the following dropdown menu for the appropriate commands to run for a giv
          sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
          sudo apt-get install build-essential python3-dev python3-pip python3-venv
          # Recommended packages
-         sudo apt-get install cmake autoconf automake mpich libreadline-dev hdf5
+         sudo apt-get install cmake autoconf automake mpich libreadline-dev
 
    .. tab-item:: RHEL/AlmaLinux
 
