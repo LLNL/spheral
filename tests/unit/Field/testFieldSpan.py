@@ -1,4 +1,5 @@
-#ATS:test(SELF, label="Field unit tests")
+#ATS:test(SELF, label="FieldSpan unit tests")
+
 from math import *
 import unittest
 from Spheral2d import *
@@ -16,22 +17,32 @@ nodes = makeVoidNodeList("test bed",
 #-------------------------------------------------------------------------------
 import random
 g = random.Random()
-
-def randInt():
-    return g.randint(-10000, 100000)
-
 def randScalar():
     return g.uniform(-1e10, 1e10)
 
-def randTensor():
-    return Tensor(randScalar(), randScalar(),
-                  randScalar(), randScalar())
+class IntTraits:
+    zero = 0
+    def __call__(self):
+        return g.randint(-10000, 100000)
 
-def randTRT():
-    result = ThirdRankTensor()
-    for j in range(len(result)):
-        result[j] = randScalar()
-    return result
+class ScalarTraits:
+    zero = 0.0
+    def __call__(self):
+        return randScalar()
+
+class TensorTraits:
+    zero = Tensor.zero
+    def __call__(self):
+        return Tensor(randScalar(), randScalar(),
+                      randScalar(), randScalar())
+
+class TRTTraits:
+    zero = ThirdRankTensor.zero
+    def __call__(self):
+        result = ThirdRankTensor()
+        for j in range(len(result)):
+            result[j] = randScalar()
+        return result
 
 #-------------------------------------------------------------------------------
 # Test class
@@ -54,10 +65,10 @@ class testFieldSpan(unittest.TestCase):
         self.tensorSpan = TensorFieldSpan(self.tensorField)
         self.trtSpan = ThirdRankTensorFieldSpan(self.trtField)
 
-        self.stuff = [(self.intField,    self.intSpan,      randInt),
-                      (self.scalarField, self.scalarSpan,   randScalar),
-                      (self.tensorField, self.tensorSpan,   randTensor),
-                      (self.trtField,    self.trtSpan,      randTRT)]
+        self.stuff = [(self.intField,    self.intSpan,      IntTraits()),
+                      (self.scalarField, self.scalarSpan,   ScalarTraits()),
+                      (self.tensorField, self.tensorSpan,   TensorTraits()),
+                      (self.trtField,    self.trtSpan,      TRTTraits())]
 
         return
 
@@ -89,6 +100,45 @@ class testFieldSpan(unittest.TestCase):
             for f, s, gen in self.stuff:
                 s[i] = gen()
                 assert f[i] == s[i]
+        return
+
+    #---------------------------------------------------------------------------
+    # size
+    #---------------------------------------------------------------------------
+    def testSize(self):
+        for f, s, gen in self.stuff:
+            assert f.size() == s.size() == nTot
+        return
+
+    #---------------------------------------------------------------------------
+    # numInternal
+    #---------------------------------------------------------------------------
+    def testNumInternal(self):
+        for f, s, gen in self.stuff:
+            assert f.numInternalElements == s.numInternalElements == nInt
+        return
+
+    #---------------------------------------------------------------------------
+    # numGhosts
+    #---------------------------------------------------------------------------
+    def testNumGhosts(self):
+        for f, s, gen in self.stuff:
+            assert f.numGhostElements == s.numGhostElements == nGhost
+        return
+
+    #---------------------------------------------------------------------------
+    # Zero
+    #---------------------------------------------------------------------------
+    def testZero(self):
+        for f, s, gen in self.stuff:
+            for k in range(self.ntests):
+                i = g.randint(0, nTot - 1)
+                s[i] = gen()
+            assert s != gen.zero
+            assert f != gen.zero
+            s.Zero()
+            assert s == gen.zero
+            assert f == gen.zero
         return
 
 #-------------------------------------------------------------------------------
