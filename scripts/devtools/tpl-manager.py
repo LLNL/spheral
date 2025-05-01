@@ -192,7 +192,7 @@ class SpheralTPL:
             env_cmd = SpackCommand("env")
             env_cmd("create", "--without-view", "-d", self.env_dir)
             def set_concretize(loader):
-                loader["spack"]["concretizer"]["unify"] = "false"
+                loader["spack"]["concretizer"]["unify"] = False
                 return loader
             self.modify_env_file(env_file, set_concretize)
         self.spack_env = environment.Environment(self.env_dir)
