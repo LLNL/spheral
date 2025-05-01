@@ -17,34 +17,65 @@ Users are not required to install Spack themselves, but they can use the `System
 
 Select the following dropdown menu for the appropriate commands to run for a given Linux distribution.
 
-.. tab-set::
+.. dropdown:: Ubuntu
 
-   .. tab-item:: Ubuntu 20.04/24.04 (22.04 not supported)
+   .. tab-set::
 
-      .. code-block::
+      .. tab-item:: Version 20.04
 
-         sudo apt-get update
-         sudo apt-get upgrade
-         sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
-         sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
-         sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
-         sudo apt-get install build-essential python3-dev python3-pip python3-venv
-         # Recommended packages
-         sudo apt-get install cmake autoconf automake mpich libreadline-dev
+         .. code-block::
 
-   .. tab-item:: RHEL/AlmaLinux
+            sudo apt-get update
+            sudo apt-get upgrade
+            sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
+            sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
+            sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
+            sudo apt-get install build-essential python3-dev python3-pip python3-venv
+            # Recommended packages
+            sudo apt-get install cmake autoconf automake mpich libreadline-dev texlive-latex-base
 
-      .. code-block::
+      .. tab-item:: Version 24.04 (22.04 unsupported)
 
-         dnf update
-         dnf install epel-release
-         dnf group install "Development Tools"
-         dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
-         # Recommended packages
-         dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
-         # Be sure to add your mpi install to your PATH so Spack can find it
-         module load mpi
+         .. code-block::
 
+            sudo apt-get update
+            sudo apt-get upgrade
+            sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
+            sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
+            sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
+            sudo apt-get install build-essential python3-dev python3-pip python3-venv
+            # Recommended packages (MPICH library is broken for 24.04, use openmpi)
+            sudo apt-get install cmake autoconf automake libopenmpi-dev libreadline-dev texlive-latex-base
+
+.. dropdown:: RHEL/AlmaLinux
+
+   .. tab-set::
+
+      .. tab-item:: Version 8
+
+         .. code-block::
+
+            dnf update
+            dnf install epel-release
+            dnf group install "Development Tools"
+            dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
+            # Recommended packages
+            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
+            # Be sure to add your mpi install to your PATH so Spack can find it
+            module load mpi
+
+      .. tab-item:: Version 9
+
+         .. code-block::
+
+            dnf update
+            dnf install epel-release
+            dnf group install "Development Tools"
+            dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
+            # Recommended packages
+            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
+            # Be sure to add your mpi install to your PATH so Spack can find it
+            module load mpi
 
 Cloning/Updating
 ================

@@ -183,16 +183,15 @@ class SpheralTPL:
         "Use/create a custom Spack environment"
         from spack import environment
         if (not self.args.spec):
-            raise Exception("Must supply a --spec for a custom environment (IE --spec spheral+mpi%gcc")
-        if (self.args.clean and os.path.exists(self.env_dir)):
-            shutil.rmtree(self.env_dir)
+            raise Exception("Must supply a --spec for a custom environment (IE --spec spheral+mpi%gcc)")
         env_file = os.path.join(self.env_dir, "spack.yaml")
         if (not os.path.exists(env_file)):
             # Create a new environment
             env_cmd = SpackCommand("env")
             env_cmd("create", "--without-view", "-d", self.env_dir)
             def set_concretize(loader):
-                loader["spack"]["concretizer"]["unify"] = False
+                new_dict = {"concretizer": {"unify": False}}
+                loader["spack"].update(new_dict)
                 return loader
             self.modify_env_file(env_file, set_concretize)
         self.spack_env = environment.Environment(self.env_dir)
@@ -213,6 +212,7 @@ class SpheralTPL:
             dev_cmd("-p", dev_path, f"{package}@=develop") # spack develop <package>@=develop
         comp_cmd("find") # spack compiler find
         ext_cmd("find") # spack external find
+        provider_dict = {}
 
         # req_packages are packages we refuse to let spack build
         # If they aren't found on the system, an error will be thrown
@@ -224,8 +224,7 @@ class SpheralTPL:
             for i in ["openmpi", "mpich"]:
                 if (self.find_spack_package(i)):
                     found_mpi = True
-                    provider_dict = {"mpi": i}
-                    self.config_env_providers(provider_dict)
+                    provider_dict.update({"mpi": [i]})
                     break
             if (not found_mpi):
                 raise Exception(f"System MPI install not found. "+\
@@ -236,13 +235,20 @@ class SpheralTPL:
         opt_packages = ["hdf5", "ncurses"]
         for i in opt_packages:
             self.find_spack_package(i, req=False)
+        # Hard-coding providers for these packages vastly improves TPL system
+        provider_dict.update({"zlib-api": ["zlib"],
+                              "blas": ["openblas"],
+                              "lapack": ["openblas"]})
         # Always add the spec for a custom environment
+        if (provider_dict):
+            self.config_env_providers(provider_dict)
         self.args.add_spec = True
 
     def config_env_providers(self, config_dict):
         env_file = os.path.join(self.env_dir, "spack.yaml")
         def set_providers(loader):
-            loader["spack"]["packages"]["providers"].update(config_dict)
+            new_dict = {"all": {"providers": config_dict}}
+            loader["spack"]["packages"].update(new_dict)
             return loader
         self.modify_env_file(env_file, set_providers)
 
