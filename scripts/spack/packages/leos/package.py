@@ -27,7 +27,6 @@ class Leos(CMakePackage, CudaPackage, ROCmPackage):
     depends_on("silo", when="+silo")
     depends_on("boost")
     depends_on("cmake")
-    depends_on("zlib")
     depends_on("raja", when="+raja")
     depends_on("raja+cuda", when="+cuda")
     depends_on("cnmem", when="+cuda @:8.2.5")

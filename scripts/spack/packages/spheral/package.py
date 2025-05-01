@@ -52,8 +52,6 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('boost@1.74.0 +system +filesystem -atomic -container -coroutine -chrono -context -date_time -exception -fiber -graph -iostreams -locale -log -math -mpi -program_options -python -random -regex -test -thread -timer -wave +pic', type='build')
 
-    depends_on('zlib@1.3 +shared +pic', type='build')
-
     depends_on('qhull@2020.2 +pic', type='build')
 
     depends_on('m-aneos@1.0')
