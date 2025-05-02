@@ -9,6 +9,7 @@ set (_python_packages
   Field
   FieldList
   FieldSpan
+  FieldSpanList
   Kernel
   Neighbor
   Material

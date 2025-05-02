@@ -1,7 +1,7 @@
 """
-Spheral FieldList module.
+Spheral FieldSpanList module.
 
-Provides the FieldList classes.
+Provides the FieldSpanList classes.
 """
 
 from PYB11Generator import *
@@ -9,22 +9,19 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from FieldListBase import *
-from FieldList import *
-from FieldListSet import *
+#from FieldSpanListBase import *
+from FieldSpanList import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Geometry/Dimension.hh"',
-                  '"Field/FieldBase.hh"',
-                  '"Field/Field.hh"',
-                  '"Field/FieldList.hh"',
-                  '"Field/FieldListSet.hh"',
+                  '"Field/FieldSpanBase.hh"',
+                  '"Field/FieldSpan.hh"',
+                  '"Field/FieldSpanList.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
                   '"Utilities/DomainNode.hh"',
-                  '"Geometry/CellFaceFlag.hh"',
-                  '<vector>']
+                  '"Geometry/CellFaceFlag.hh"']
 
 #-------------------------------------------------------------------------------
 # Namespaces
@@ -41,15 +38,14 @@ for ndim in dims:
     SymTensor = f"{Dimension}::SymTensor"
     FacetedVolume = f"{Dimension}::FacetedVolume"
 
-    #...........................................................................
-    # FieldListBase, FieldListSet
-    exec(f'''
-FieldListBase{ndim}d = PYB11TemplateClass(FieldListBase, template_parameters="{Dimension}")
-FieldListSet{ndim}d = PYB11TemplateClass(FieldListSet, template_parameters="{Dimension}")
-''')
+#     #...........................................................................
+#     # FieldSpanListBase
+#     exec(f'''
+# FieldSpanListBase{ndim}d = PYB11TemplateClass(FieldSpanListBase, template_parameters="{Dimension}")
+# ''')
 
     #...........................................................................
-    # FieldList -- non-numeric types
+    # FieldSpan -- non-numeric types 
     for (value, label) in (( FacetedVolume,                 "FacetedVolume"), 
                            ( "std::vector<int>",            "VectorInt"),
                            ( "std::vector<double>",         "VectorDouble"),
@@ -60,18 +56,5 @@ FieldListSet{ndim}d = PYB11TemplateClass(FieldListSet, template_parameters="{Dim
                            (f"DomainNode<{Dimension}>",     "DomainNode"),
                            (f"RKCoefficients<{Dimension}>", "RKCoefficients")):
         exec(f'''
-{label}FieldList{ndim}d = PYB11TemplateClass(FieldList, template_parameters=("{Dimension}", "{value}"))
-''')
-
-    #...........................................................................
-    # STL collections of FieldList types
-    for value, label in (("int",     "Int"),
-                         ("double",  "Scalar"),
-                         (Vector,    "Vector"),
-                         (Tensor,    "Tensor"),
-                         (SymTensor, "SymTensor")):
-        exec(f'''
-vector_of_{label}FieldList{ndim}d = PYB11_bind_vector("FieldList<{Dimension}, {value}>", opaque=True, local=False)
-vector_of_{label}FieldListPtr{ndim}d = PYB11_bind_vector("FieldList<{Dimension}, {value}>*", opaque=True, local=False)
-vector_of_vector_of_{label}FieldList{ndim}d = PYB11_bind_vector("std::vector<FieldList<{Dimension}, {value}>>", opaque=True, local=False)
+{label}FieldSpanList{ndim}d = PYB11TemplateClass(FieldSpanList, template_parameters=("{Dimension}", "{value}"))
 ''')
