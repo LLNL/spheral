@@ -1,7 +1,7 @@
 """
-Spheral Field module.
+Spheral FieldSpan module.
 
-Provides the Field classes.
+Provides the FieldSpan classes.
 """
 
 from PYB11Generator import *
@@ -9,19 +9,17 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from FieldBase import *
-from Field import *
-from ArithmeticField import *
-from MinMaxField import *
+from FieldSpanBase import *
+from FieldSpan import *
+from ArithmeticFieldSpan import *
+from MinMaxFieldSpan import *
 
 #-------------------------------------------------------------------------------
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Geometry/Dimension.hh"',
-                  '"Field/FieldBase.hh"',
-                  '"Field/Field.hh"',
-                  '"Field/FieldList.hh"',
-                  '"Field/FieldListSet.hh"',
+                  '"Field/FieldSpanBase.hh"',
+                  '"Field/FieldSpan.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
                   '"Utilities/DomainNode.hh"',
                   '"Geometry/CellFaceFlag.hh"',
@@ -31,12 +29,6 @@ PYB11includes += ['"Geometry/Dimension.hh"',
 # Namespaces
 #-------------------------------------------------------------------------------
 PYB11namespaces = ["Spheral"]
-
-#-------------------------------------------------------------------------------
-# Enums
-#-------------------------------------------------------------------------------
-FieldStorageType = PYB11enum(("ReferenceFields", "CopyFields"), export_values=True,
-                             doc="Storage types for Fields in FieldLists.")
 
 #-------------------------------------------------------------------------------
 # Do our dimension dependent instantiations.
@@ -52,9 +44,9 @@ for ndim in dims:
     FifthRankTensor = f"{Dimension}::FifthRankTensor"
 
     #...........................................................................
-    # FieldBase
+    # FieldSpanBase
     exec(f'''
-FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension}")
+FieldSpanBase{ndim}d = PYB11TemplateClass(FieldSpanBase, template_parameters="{Dimension}")
 ''')
 
     #...........................................................................
@@ -69,7 +61,7 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
                            (f"DomainNode<{Dimension}>",          "DomainNode"),
                            (f"RKCoefficients<{Dimension}>",      "RKCoefficients")):
         exec(f'''
-{label}Field{ndim}d = PYB11TemplateClass(Field, template_parameters=("{Dimension}", "{value}"))
+{label}FieldSpan{ndim}d = PYB11TemplateClass(FieldSpan, template_parameters=("{Dimension}", "{value}"))
 ''')
 
     #...........................................................................
@@ -83,7 +75,7 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
                            (FourthRankTensor, "FourthRankTensor"),
                            (FifthRankTensor,  "FifthRankTensor")):
         exec(f'''
-{label}Field{ndim}d = PYB11TemplateClass(ArithmeticField, template_parameters=("{Dimension}", "{value}"))
+{label}FieldSpan{ndim}d = PYB11TemplateClass(ArithmeticFieldSpan, template_parameters=("{Dimension}", "{value}"))
 ''')
 
     #...........................................................................
@@ -91,18 +83,5 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
     for (value, label) in ((Scalar,     "Scalar"),
                            (SymTensor,  "SymTensor")):
         exec(f'''
-{label}Field{ndim}d = PYB11TemplateClass(MinMaxField, template_parameters=("{Dimension}", "{value}"))
-''')
-
-    #...........................................................................
-    # STL collections of Field types
-    for value, label in (("int",     "Int"),
-                         (Scalar,    "Scalar"),
-                         (Vector,    "Vector"),
-                         (Tensor,    "Tensor"),
-                         (SymTensor, "SymTensor")):
-        exec(f'''
-vector_of_{label}Field{ndim}d = PYB11_bind_vector("Field<{Dimension}, {value}>", opaque=True, local=False)
-vector_of_{label}FieldPtr{ndim}d = PYB11_bind_vector("Field<{Dimension}, {value}>*", opaque=True, local=False)
-vector_of_vector_of_{label}Field{ndim}d = PYB11_bind_vector("std::vector<Field<{Dimension}, {value}>>", opaque=True, local=False)
+{label}FieldSpan{ndim}d = PYB11TemplateClass(MinMaxFieldSpan, template_parameters=("{Dimension}", "{value}"))
 ''')

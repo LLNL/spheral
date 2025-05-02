@@ -34,6 +34,9 @@ set(Field_headers
     FieldSpan.hh
     FieldSpanInline.hh
     FieldSpanBase.hh
+    FieldSpanList.hh
+    FieldSpanListInline.hh
+    FieldSpanListBase.hh
     GhostNodeIterator.hh
     GhostNodeIteratorInline.hh
     InternalNodeIterator.hh

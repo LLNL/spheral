@@ -6,11 +6,12 @@ from FieldSpanBase import FieldSpanBase
 # Field
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
-@PYB11module("SpheralField")
+@PYB11module("SpheralFieldSpan")
 class FieldSpan(FieldSpanBase):
 
     PYB11typedefs = """
   using SelfType = FieldSpan<%(Dimension)s, %(Value)s>;
+  using FSBaseType = FieldSpanBase<%(Dimension)s>;
   using Scalar = %(Dimension)s::Scalar;
 """
 
