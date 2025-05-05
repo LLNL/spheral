@@ -65,26 +65,19 @@ public:
 #endif // SPHERAL_GPU_ACTIVE
   }
 
-  SPHERAL_HOST ManagedVector(size_t elems) : MA(), m_size(elems) {
-    MA::allocate(m_size < initial_capacity ? initial_capacity
-                                           : pow2_ceil(m_size),
-                 chai::CPU, getCallback());
+  SPHERAL_HOST ManagedVector(size_t elems)
+      : MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
     for (size_t i = 0; i < m_size; i++)
       new (&MA::operator[](i)) DataType();
     MA::registerTouch(chai::CPU);
   }
 
   SPHERAL_HOST ManagedVector(size_t elems, DataType identity)
-      : MA(), m_size(elems) {
-    MA::allocate(m_size < initial_capacity ? initial_capacity
-                                           : pow2_ceil(m_size),
-                 chai::CPU, getCallback());
+      : MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
     for (size_t i = 0; i < m_size; i++)
       new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
   }
-
-  // using MA::free;
 
   SPHERAL_HOST void free() {
     for (size_t i = 0; i < m_size; i++)
@@ -126,7 +119,7 @@ public:
 
   SPHERAL_HOST void push_back(const DataType &value) {
     if (capacity() == 0)
-      MA::allocate(initial_capacity, chai::CPU, getCallback());
+      MA::allocate(1, chai::CPU, getCallback());
     if (m_size >= capacity())
       MA::reallocate(pow2_ceil(m_size + 1));
     new (&MA::operator[](m_size)) DataType(value);
@@ -135,7 +128,7 @@ public:
 
   SPHERAL_HOST void push_back(DataType &&value) {
     if (capacity() == 0)
-      MA::allocate(initial_capacity, chai::CPU, getCallback());
+      MA::allocate(1, chai::CPU, getCallback());
     if (m_size >= capacity())
       MA::reallocate(pow2_ceil(m_size + 1));
     new (&MA::operator[](m_size)) DataType(value);
@@ -145,7 +138,7 @@ public:
   template <typename... Args>
   SPHERAL_HOST DataType &emplace_back(Args &&...args) {
     if (capacity() == 0)
-      MA::allocate(initial_capacity, chai::CPU, getCallback());
+      MA::allocate(1, chai::CPU, getCallback());
     if (m_size >= capacity())
       MA::reallocate(pow2_ceil(m_size + 1));
 
@@ -156,8 +149,7 @@ public:
   SPHERAL_HOST
   void reserve(size_t c) {
     if (capacity() == 0)
-      MA::allocate(c < initial_capacity ? initial_capacity : pow2_ceil(c),
-                   chai::CPU, getCallback());
+      MA::allocate(pow2_ceil(c), chai::CPU, getCallback());
     if (c >= capacity())
       MA::reallocate(pow2_ceil(c));
   }
@@ -169,9 +161,7 @@ public:
     if (old_size != size) {
       if (old_size < size) {
         if (capacity() == 0)
-          MA::allocate(size < initial_capacity ? initial_capacity
-                                               : pow2_ceil(size),
-                       chai::CPU, getCallback());
+          MA::allocate(pow2_ceil(size), chai::CPU, getCallback());
         else if (capacity() < size)
           MA::reallocate(pow2_ceil(size));
         for (size_t i = old_size; i < size; i++)
@@ -286,7 +276,7 @@ public:
   }
 
 private:
-  size_t m_size = 0;
+  uint64_t m_size = 0;
 
   SPHERAL_HOST void destroy(iterator first, iterator last) {
     if (!std::is_trivially_destructible<DataType>::value) {

@@ -27,6 +27,34 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, DefaultConstructor) {
   arr.free();
 }
 
+TEST(ManagedVectorTest, stdVectorCapComparison) {
+  // Size Constructor will allocate initial capacity if elements
+  // are below initial_capacity
+  MVDouble arr(0);
+  std::vector<double> vec(0);
+  std::cout << vec.max_size() << std::endl;
+
+  size_t vec_cap = vec.capacity();
+  for (size_t i = 0; i < INT_MAX; ++i) {
+    vec.push_back(i + 0.2);
+    arr.push_back(i + 0.2);
+    if (vec_cap != vec.capacity()) {
+      //std::cout << "Capacity Increase : " << vec.capacity() << " @ i : " << i << std::endl;
+      //std::cout << "    ManagedVector : " << arr.capacity() << " @ i : " << i << std::endl;
+      SPHERAL_ASSERT_EQ(arr.size(), vec.size());
+      SPHERAL_ASSERT_EQ(arr.capacity(), vec.capacity());
+      vec_cap = vec.capacity();
+    }
+  }
+
+  arr.free();
+}
+
+TEST(ManagedVectorTest, DefCtorDeepCopy) {
+  MVDouble arr;
+  MVDouble copy = arr.clone();
+}
+
 TEST(ManagedVectorTest, SizeConstructor) {
   // Size Constructor will allocate initial capacity if elements
   // are below initial_capacity
@@ -213,7 +241,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, PushBackDefault) {
   arr.push_back(val);
 
   SPHERAL_ASSERT_EQ(arr.size(), 1u);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 1u);
   SPHERAL_ASSERT_EQ(arr[0], val);
 
   MVDouble arr2;
@@ -247,7 +275,7 @@ TEST(ManagedVectorTest, PushBackMove) {
   arr.push_back(std::move(5));
 
   SPHERAL_ASSERT_EQ(arr.size(), 1u);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 1u);
   SPHERAL_ASSERT_EQ(arr[0], 5);
 
   MVDouble arr2;
@@ -263,6 +291,8 @@ TEST(ManagedVectorTest, PushBackMove) {
   arr.free();
   arr2.free();
 }
+
+
 
 GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc) {
   using WORK_EXEC_POLICY = TypeParam;
@@ -282,11 +312,11 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeLargerNoRealloc) {
   SPHERAL_ASSERT_EQ(arr.capacity(), 16);
   EXEC_IN_SPACE_END()
 
-  MVDouble arr2(4);
+  MVDouble arr2(5);
   MVValType *pre_resize_ptr = &(arr2[0]);
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-  SPHERAL_ASSERT_EQ(arr2.size(), 4);
+  SPHERAL_ASSERT_EQ(arr2.size(), 5);
   // SPHERAL_ASSERT_EQ(arr2.capacity(), MVDouble::initial_capacity);
   EXEC_IN_SPACE_END()
 
@@ -341,7 +371,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeSmaller) {
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(arr.size(), 4);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 4);
   EXEC_IN_SPACE_END()
 
   arr.resize(2);
@@ -349,7 +379,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, ResizeSmaller) {
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   SPHERAL_ASSERT_EQ(arr.size(), 2);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 4);
   EXEC_IN_SPACE_END()
 
   // No reallocation has been performed the data should be in the same location.
