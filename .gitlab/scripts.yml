@@ -238,5 +238,4 @@
     - changes:
         paths:
           - $SCRIPT_DIR/lc/*
-        compare_to: 'develop'
       when: manual
