@@ -32,7 +32,7 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
             sudo apt-get install build-essential python3-dev python3-pip python3-venv
             # Recommended packages
-            sudo apt-get install cmake autoconf automake mpich libreadline-dev texlive-latex-base
+            sudo apt-get install cmake autoconf automake mpich libreadline-dev
 
       .. tab-item:: Version 24.04 (22.04 unsupported)
 
@@ -45,7 +45,7 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
             sudo apt-get install build-essential python3-dev python3-pip python3-venv
             # Recommended packages (MPICH library is broken for 24.04, use openmpi)
-            sudo apt-get install cmake autoconf automake libopenmpi-dev libreadline-dev texlive-latex-base
+            sudo apt-get install cmake autoconf automake libopenmpi-dev libreadline-dev
 
 .. dropdown:: RHEL/AlmaLinux
 
@@ -60,7 +60,7 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf group install "Development Tools"
             dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
             # Recommended packages
-            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
+            dnf install environment-modules cmake autoconf automake mpich-devel
             # Be sure to add your mpi install to your PATH so Spack can find it
             module load mpi
 
@@ -73,7 +73,7 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf group install "Development Tools"
             dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
             # Recommended packages
-            dnf install environment-modules cmake autoconf automake mpich-devel texlive-latex
+            dnf install environment-modules cmake autoconf automake mpich-devel
             # Be sure to add your mpi install to your PATH so Spack can find it
             module load mpi
 

@@ -70,21 +70,21 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on('axom +shared', when='~cuda', type='build')
     depends_on('axom ~shared', when='+cuda', type='build')
 
-    with when("+caliper"):
-        depends_on("caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic", type="build")
-        depends_on("caliper+mpi", type="build", when="+mpi")
-        depends_on("caliper~mpi", type="build", when="~mpi")
+    with when('+caliper'):
+        depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind cppflags="-fPIC"', type='build')
+        depends_on('caliper+mpi', type='build', when='+mpi')
+        depends_on('caliper~mpi', type='build', when='~mpi')
 
-    depends_on("raja@2024.02.0", type="build")
+    depends_on('raja@2024.02.0', type='build')
 
     depends_on('opensubdiv@3.4.3+pic', type='build', when="+opensubdiv")
 
     depends_on('polytope +python', type='build', when="+python")
     depends_on('polytope ~python', type='build', when="~python")
 
-    depends_on('sundials@7.0.0 ~shared cxxstd=17', type='build', when='+sundials')
+    depends_on('sundials@7.0.0 ~shared cxxstd=17 cppflags="-fPIC"', type='build', when='+sundials')
 
-    depends_on("leos@8.4.2", type="build", when="+leos")
+    depends_on('leos@8.4.2', type='build', when='+leos')
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
@@ -104,6 +104,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     # Conflicts
     # -------------------------------------------------------------------------
     conflicts("+cuda", when="+rocm")
+    conflicts("%pgi")
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
