@@ -60,20 +60,22 @@ public:
   // Constructors
   // ---------------------
   SPHERAL_HOST_DEVICE ManagedVector() : MA() {
-#if !defined(SPHERAL_GPU_ACTIVE)
-    setCallback();
-#endif // SPHERAL_GPU_ACTIVE
+//#if !defined(SPHERAL_GPU_ACTIVE)
+//    setCallback();
+//#endif // SPHERAL_GPU_ACTIVE
   }
 
   SPHERAL_HOST ManagedVector(size_t elems)
-      : MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
+      : MA(elems, chai::CPU), m_size(elems) {
+      //: MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
     for (size_t i = 0; i < m_size; i++)
       new (&MA::operator[](i)) DataType();
     MA::registerTouch(chai::CPU);
   }
 
   SPHERAL_HOST ManagedVector(size_t elems, DataType identity)
-      : MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
+      : MA(elems, chai::CPU), m_size(elems) {
+      //: MA(pow2_ceil(elems), chai::CPU), m_size(elems) {
     for (size_t i = 0; i < m_size; i++)
       new (&MA::operator[](i)) DataType(identity);
     MA::registerTouch(chai::CPU);
@@ -118,29 +120,32 @@ public:
   }
 
   SPHERAL_HOST void push_back(const DataType &value) {
-    if (capacity() == 0)
-      MA::allocate(1, chai::CPU, getCallback());
-    if (m_size >= capacity())
-      MA::reallocate(pow2_ceil(m_size + 1));
+    if (!MA::m_pointer_record)
+      MA(1, chai::CPU);
+    else if (m_size >= capacity())
+      MA::reallocate(std::max(m_size * 2, 1ul));
+      //MA::reallocate(pow2_ceil(m_size + 1));
     new (&MA::operator[](m_size)) DataType(value);
     m_size++;
   }
 
-  SPHERAL_HOST void push_back(DataType &&value) {
-    if (capacity() == 0)
-      MA::allocate(1, chai::CPU, getCallback());
-    if (m_size >= capacity())
-      MA::reallocate(pow2_ceil(m_size + 1));
-    new (&MA::operator[](m_size)) DataType(value);
-    m_size++;
-  }
+  //SPHERAL_HOST void push_back(DataType &&value) {
+  //  if (!MA::m_pointer_record)
+  //    MA(1, chai::CPU);
+  //  else if (m_size >= capacity())
+  //    MA::reallocate(m_size * 2);
+  //    //MA::reallocate(pow2_ceil(m_size + 1));
+  //  new (&MA::operator[](m_size)) DataType(std::move(value));
+  //  m_size++;
+  //}
 
   template <typename... Args>
   SPHERAL_HOST DataType &emplace_back(Args &&...args) {
-    if (capacity() == 0)
-      MA::allocate(1, chai::CPU, getCallback());
+    if (!MA::m_pointer_record || capacity() == 0)
+      MA(1, chai::CPU);
     if (m_size >= capacity())
-      MA::reallocate(pow2_ceil(m_size + 1));
+      MA::reallocate(std::max(m_size * 2, 1ul));
+      //MA::reallocate(pow2_ceil(m_size + 1));
 
     new (&MA::data()[m_size]) DataType(std::forward<Args>(args)...);
     return MA::data()[m_size++];
@@ -148,10 +153,12 @@ public:
 
   SPHERAL_HOST
   void reserve(size_t c) {
-    if (capacity() == 0)
-      MA::allocate(pow2_ceil(c), chai::CPU, getCallback());
-    if (c >= capacity())
-      MA::reallocate(pow2_ceil(c));
+    if (!MA::m_pointer_record)
+      MA(c, chai::CPU);
+      //MA(pow2_ceil(c), chai::CPU);
+    else if (c >= capacity())
+      //MA::reallocate(pow2_ceil(c));
+      MA::reallocate(c);
   }
 
   SPHERAL_HOST
@@ -160,10 +167,12 @@ public:
 
     if (old_size != size) {
       if (old_size < size) {
-        if (capacity() == 0)
-          MA::allocate(pow2_ceil(size), chai::CPU, getCallback());
+        if (!MA::m_pointer_record)
+          MA(size, chai::CPU);
+          //MA(pow2_ceil(size), chai::CPU);
         else if (capacity() < size)
-          MA::reallocate(pow2_ceil(size));
+          MA::reallocate(size);
+          //MA::reallocate(pow2_ceil(size));
         for (size_t i = old_size; i < size; i++)
           new (&MA::data(chai::CPU, false)[i]) DataType();
       }
@@ -191,7 +200,7 @@ public:
 
   SPHERAL_HOST
   void clear() {
-    destroy(begin(), end());
+    //destroy(begin(), end());
     m_size = 0;
   }
 
@@ -207,10 +216,10 @@ public:
   SPHERAL_HOST_DEVICE size_t size() const { return m_size; }
 
   SPHERAL_HOST_DEVICE DataType &operator[](size_t idx) {
-    return MA::data()[idx];
+    return MA::m_active_pointer[idx];
   }
   SPHERAL_HOST_DEVICE DataType &operator[](size_t idx) const {
-    return MA::data()[idx];
+    return MA::m_active_pointer[idx];
   }
 
   // *******************************************************
