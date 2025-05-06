@@ -63,10 +63,10 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf update
             dnf install epel-release
             dnf group install "Development Tools"
-            dnf install gcc-fortran gcc-c++ redhat-lsb-core unzip python3.11-devel
+            dnf install gcc-fortran gcc-c++ redhat-lsb-core unzip python3-devel
 
             # Recommended packages
-            dnf install environment-modules cmake autoconf automake mpich-devel
+            dnf install environment-modules cmake autoconf automake mpich-devel ncurses
             # Be sure to add your mpi install to your PATH so Spack can find it
             module load mpi
 
@@ -78,10 +78,10 @@ Select the following dropdown menu for the appropriate commands to run for a giv
             dnf update
             dnf install epel-release
             dnf group install "Development Tools"
-            dnf install gcc-fortran gcc-c++ unzip python3.11-devel
+            dnf install gcc-fortran gcc-c++ unzip python3-devel
 
             # Recommended packages
-            dnf install environment-modules cmake autoconf automake mpich-devel
+            dnf install environment-modules cmake autoconf automake mpich-devel ncurses
             # Be sure to add your mpi install to your PATH so Spack can find it
             module load mpi
 
