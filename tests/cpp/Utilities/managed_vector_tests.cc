@@ -30,8 +30,8 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, DefaultConstructor) {
 TEST(ManagedVectorTest, stdVectorCapComparison) {
   // Size Constructor will allocate initial capacity if elements
   // are below initial_capacity
-  MVDouble arr(0);
-  std::vector<double> vec(0);
+  MVDouble arr(5);
+  std::vector<double> vec(5);
   std::cout << vec.max_size() << std::endl;
 
   size_t vec_cap = vec.capacity();
@@ -60,7 +60,7 @@ TEST(ManagedVectorTest, SizeConstructor) {
   // are below initial_capacity
   MVDouble arr(6);
   SPHERAL_ASSERT_EQ(arr.size(), 6u);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 6u);
 
   // Size Constructor will allocate n elements if elements
   // are above initial_capacity
@@ -75,7 +75,7 @@ TEST(ManagedVectorTest, SizeConstructor) {
 TEST(ManagedVectorTest, IdentityConstructor) {
   MVDouble arr(6, 5);
   SPHERAL_ASSERT_EQ(arr.size(), 6u);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 6u);
 
   for (auto &elem : arr) {
     SPHERAL_ASSERT_EQ(elem, 5);
@@ -90,7 +90,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, IdentityConstructor) {
   MVDouble arr(6, 5);
   MVDouble arr2(6);
   SPHERAL_ASSERT_EQ(arr.size(), 6u);
-  SPHERAL_ASSERT_EQ(arr.capacity(), MVDouble::initial_capacity);
+  SPHERAL_ASSERT_EQ(arr.capacity(), 6u);
 
   RAJA::forall<WORK_EXEC_POLICY>(
       TRS_UINT(0, 6),
@@ -108,7 +108,6 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, CopyConstructor) {
 
   MVDouble arr(4);
   MVDouble copy_arr(arr);
-  // MVDouble copy_arr = arr.slice(0, arr.size());
 
   arr.resize(6);
 
@@ -135,8 +134,6 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, DeepCopy) {
   using WORK_EXEC_POLICY = TypeParam;
 
   MVDouble arr(6);
-
-  // MVDouble copy_arr = arr.slice(0, arr.size());
 
   RAJA::forall<WORK_EXEC_POLICY>(
       TRS_UINT(0, arr.size()),
@@ -238,6 +235,7 @@ GPU_TYPED_TEST(ManagedVectorTypedTest, PushBackDefault) {
   MVDouble arr;
   double val = 5;
 
+  std::cout << "check\n";
   arr.push_back(val);
 
   SPHERAL_ASSERT_EQ(arr.size(), 1u);
