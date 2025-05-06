@@ -7,7 +7,7 @@ This guide is designed to help users build and install Spheral external (meaning
 System Requirements
 ===================
 
-Spheral has system requirements and recommendations. Many come installed on Linux distributions by default. The package names will vary depending on what distribution you have.
+Spheral has system requirements and recommendations. Many come installed on Linux distributions by default. The package names will vary depending on what distribution/version you have.
 Spheral uses `Spack <https://github.com/spack/spack>`_ under the hood to handle building our Third Party Library (TPL) dependencies.
 Users are not required to install Spack themselves, but they can use the `System Prerequisites <https://spack.readthedocs.io/en/latest/getting_started.html#system-prerequisites>`_ page for Spack to check the proper system requirements.
 
@@ -15,7 +15,7 @@ Users are not required to install Spack themselves, but they can use the `System
 
    Any packages that Spack does not find on the system will be installed through Spack, potentially causing excessively long install times. To avoid this, there are some packages we require (and some we recommend) installing for the system first.
 
-Select the following dropdown menu for the appropriate commands to run for a given Linux distribution.
+Select the following dropdown menu for the appropriate commands to run for a given Linux distribution and version.
 
 .. dropdown:: Ubuntu
 
@@ -25,26 +25,30 @@ Select the following dropdown menu for the appropriate commands to run for a giv
 
          .. code-block::
 
+            # Required packages
             sudo apt-get update
             sudo apt-get upgrade
             sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
             sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
             sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
             sudo apt-get install build-essential python3-dev python3-pip python3-venv
+
             # Recommended packages
             sudo apt-get install cmake autoconf automake mpich libreadline-dev
 
-      .. tab-item:: Version 24.04 (22.04 unsupported)
+      .. tab-item:: Version 22.04/24.04
 
          .. code-block::
 
+            # Required packages
             sudo apt-get update
             sudo apt-get upgrade
             sudo apt-get install bzip2 ca-certificates g++ gcc gfortran git gzip
             sudo apt-get install lsb-release patch python3 tar unzip xz-utils zstd
             sudo apt-get install libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
             sudo apt-get install build-essential python3-dev python3-pip python3-venv
-            # Recommended packages (MPICH library is broken for 24.04, use openmpi)
+
+            # Recommended packages (MPICH library is broken for 22.04/24.04, use openmpi)
             sudo apt-get install cmake autoconf automake libopenmpi-dev libreadline-dev
 
 .. dropdown:: RHEL/AlmaLinux
@@ -55,10 +59,12 @@ Select the following dropdown menu for the appropriate commands to run for a giv
 
          .. code-block::
 
+            # Required packages
             dnf update
             dnf install epel-release
             dnf group install "Development Tools"
-            dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
+            dnf install gcc-fortran gcc-c++ redhat-lsb-core unzip python3.11-devel
+
             # Recommended packages
             dnf install environment-modules cmake autoconf automake mpich-devel
             # Be sure to add your mpi install to your PATH so Spack can find it
@@ -68,10 +74,12 @@ Select the following dropdown menu for the appropriate commands to run for a giv
 
          .. code-block::
 
+            # Required packages
             dnf update
             dnf install epel-release
             dnf group install "Development Tools"
-            dnf install gcc-fortran redhat-lsb-core unzip python3.11-devel
+            dnf install gcc-fortran gcc-c++ unzip python3.11-devel
+
             # Recommended packages
             dnf install environment-modules cmake autoconf automake mpich-devel
             # Be sure to add your mpi install to your PATH so Spack can find it
