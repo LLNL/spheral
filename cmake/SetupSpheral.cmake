@@ -91,11 +91,13 @@ if(ENABLE_CUDA)
   #set(CMAKE_CUDA_FLAGS  "${CMAKE_CUDA_FLAGS} -arch=${CUDA_ARCH} --expt-relaxed-constexpr --extended-lambda -Xcudafe --display_error_number")
   set(CMAKE_CUDA_STANDARD 17)
   list(APPEND SPHERAL_CXX_DEPENDS cuda)
+  set(SPHERAL_ENABLE_CUDA ON)
 endif()
 
 if(ENABLE_HIP)
   list(APPEND SPHERAL_CXX_DEPENDS blt::hip)
   list(APPEND SPHERAL_CXX_DEPENDS blt::hip_runtime)
+  set(SPHERAL_ENABLE_HIP ON)
 endif()
 
 #-------------------------------------------------------------------------------#
