@@ -156,16 +156,10 @@ def get_hist_times(bench_path, test_name):
     For a given benchmark directory of type install_configs/machine_name,
     retrieve the historical benchmark times for a given test (test_name).
     """
-    pkl_files = glob.glob(os.path.join(bench_path, "**", "data.pkl"))
-    if (not pkl_files):
-        hist_cali_files = glob.glob(os.path.join(bench_path, "**", test_name+"*.cali"))
-        if (not hist_cali_files):
-            raise Exception(f"No {test_name}_*.cali files found")
-        hist_data = th.Thicket.from_caliperreader(hist_cali_files)
-    else:
-        thdata = [th.Thicket.from_pickle(x) for x in pkl_files]
-        hist_data = th.Thicket.concat_thickets(thdata)
-        hist_data = filter_tests(hist_data, test_name)
+    hist_cali_files = glob.glob(os.path.join(bench_path, "**", test_name+"*.cali"))
+    if (not hist_cali_files):
+        raise Exception(f"No {test_name}_*.cali files found")
+    hist_data = th.Thicket.from_caliperreader(hist_cali_files)
     test_dict = group_tests(hist_data)
     test_keys = list(test_dict.keys())
     if (len(test_keys) > 1):
@@ -173,25 +167,34 @@ def get_hist_times(bench_path, test_name):
         print(test_keys)
     return test_dict
 
-def plot_hist_times(test_dict, region = "advance", metric = "Avg time/rank"):
-    """
-    Convert and plot historical times provided by the get_hist_times function
-    """
+def plot_hist_times(bench_path, test_name, region = "advance", metric = "Avg time/rank"):
+    "Plot historical times"
+    test_dict = get_hist_times(bench_path, test_name)
     figs, ax = plt.subplots()
     for key, tk in test_dict.items():
         date_group = group_dates(tk)
+        avgtimes = []
+        avgdates = []
         times = []
         dates = []
         for cdate, ctest in date_group.items():
             new_metric = th.stats.mean(ctest, [metric])[0]
             if (check_for_region(ctest, region)):
-                times.append(get_times(ctest.statsframe, region, new_metric)[0])
-                dates.append(cdate)
-        ax.scatter(dates, times, label=key)
-        ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
-        for label in ax.get_xticklabels(which='major'):
-            label.set(rotation=30, horizontalalignment='right')
-        ax.legend()
+                avgtimes.append(get_times(ctest.statsframe, region, new_metric)[0])
+                avgdates.append(cdate)
+                vals = get_times(ctest, region, metric)
+                dates.extend([cdate for x in range(len(vals))])
+                times.extend(vals)
+        lgd_entry = f"SPH Nodes: {key[1]:1.6g}, Steps: {key[2]}"
+        ax.scatter(dates, times, label=lgd_entry)
+        ax.plot(avgdates, avgtimes, label=f"Avg {lgd_entry}")
+    ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
+    for label in ax.get_xticklabels(which='major'):
+        label.set(rotation=30, horizontalalignment='right')
+    ax.legend(loc="upper right", fancybox=True)
+    ax.set_xlabel("Date")
+    ax.set_ylabel(f"'{region}' Runtime")
+    ax.set_title(test_name)
     plt.show()
     print("Plot legend is: (test name, number of nodes, number of steps)")
 
