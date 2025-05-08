@@ -20,7 +20,7 @@ macro(spheral_add_executable)
   endif ()
 
   if (${arg_TEST})
-    set (_output_dir ${CMAKE_BINARY_DIR}/test)
+    set (_output_dir ${CMAKE_BINARY_DIR}/tests)
   elseif (${arg_REPRODUCER})
     set (_output_dir ${CMAKE_BINARY_DIR}/reproducers)
   elseif (${arg_BENCHMARK})
