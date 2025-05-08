@@ -111,19 +111,15 @@ class SpheralTPL:
         spack_dir = os.path.join(tpl_root, "spack")
         if (not self.args.skip_init):
             if (not os.path.exists(spack_dir)):
-                sexe(f"git init {spack_dir}")
-                sexe(f"git -C {spack_dir} remote add origin {self.args.spack_url}")
+                sexe(f"git -C {spack_dir} clone --depth=2 {self.args.spack_url}")
+            # Check commit hash of Spack repo
+            cur_hash = sexe(f"git -C {spack_dir} rev-parse HEAD", ret_output=True, echo=False).strip()
+            if (cur_hash != spack_commit):
                 sexe(f"git -C {spack_dir} fetch --depth=2 origin {spack_commit}")
                 sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
-                uber_env_trash = os.path.join(spack_dir, "etc/spack/defaults/upstreams.yaml")
-                if (self.args.clean and os.path.exists(uber_env_trash)):
-                    sexe(f"git -C {spack_dir} clean -df")
-            else:
-                # Check commit hash of Spack repo
-                cur_hash = sexe(f"git -C {spack_dir} rev-parse HEAD", ret_output=True, echo=False).strip()
-                if (cur_hash != spack_commit):
-                    sexe(f"git -C {spack_dir} fetch --depth=2 origin {spack_commit}")
-                    sexe(f"git -C {spack_dir} checkout FETCH_HEAD")
+            uber_env_trash = os.path.join(spack_dir, "etc/spack/defaults/upstreams.yaml")
+            if (self.args.clean and os.path.exists(uber_env_trash)):
+                sexe(f"git -C {spack_dir} clean -df")
         self.add_spack_paths(spack_dir)
 
     def check_lock_file(self):
