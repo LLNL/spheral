@@ -40,11 +40,17 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
     assert(0);                                                                 \
   }
 
-#defing SPHERALSPHERAL_ASSERT_TRUE(VAL) if (!result){                          \
-    printf("ERROR @ cuda_assert\n"); assert(0); }
+#define SPHERALSPHERAL_ASSERT_TRUE(VAL)                                        \
+  if (!result) {                                                               \
+    printf("ERROR @ cuda_assert\n");                                           \
+    assert(0);                                                                 \
+  }
 
-#defing SPHERALSPHERAL_ASSERT_FALSE(VAL) if (result){                          \
-    printf("ERROR @ cuda_assert\n"); assert(0); }
+#define SPHERALSPHERAL_ASSERT_FALSE(VAL)                                       \
+  if (result) {                                                                \
+    printf("ERROR @ cuda_assert\n");                                           \
+    assert(0);                                                                 \
+  }
 
 #endif
 
