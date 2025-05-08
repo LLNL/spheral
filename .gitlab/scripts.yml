@@ -235,10 +235,6 @@
       when: manual
     - if: '$CI_COMMIT_MESSAGE =~ /test-prod/'
       when: manual
-    - changes:
-        paths:
-          - $SCRIPT_DIR/lc/*
-      when: manual
 
 .retry_rule:
   retry:
