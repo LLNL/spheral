@@ -23,6 +23,10 @@ Notable changes include:
         hydros.
     * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
       package itself, which most folks outside LLNL will not necessarily have.
+    * Both ASPH and ASPHClassic now allow the user to override the final H evolution through optional functors added to the classes:
+      - HidealFilter
+      - RadialFunctor
+    * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method)
 
   * Build changes / improvements:
     * Native Spack environments are now being used.
