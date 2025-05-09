@@ -23,6 +23,9 @@ public:
 TYPED_TEST_SUITE_P(FieldTypedTest);
 template <typename T> class FieldTypedTest : public FieldTest {};
 
+/**
+ * Basic Host CTor test for the Field Ctor that only takes a name.
+ */
 TEST_F(FieldTest, NameCtor) {
   {
     std::string field_name = "Field::NameCtor";
@@ -34,6 +37,10 @@ TEST_F(FieldTest, NameCtor) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Basic Host CTor test for the Field Ctor that takes a name and a nodelist.
+ * - Uses the FieldTest Nodelist constructed for the testing suite above.
+ */
 TEST_F(FieldTest, NameNodeListCtor) {
   {
     std::string field_name = "Field::NodeListCtor";
@@ -45,6 +52,12 @@ TEST_F(FieldTest, NameNodeListCtor) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
+/**
+ * HOST/Devices CTor test for the Field Ctor that takes a name, nodelist and
+ * initial value.
+ * - Uses the FieldTest Nodelist constructed for the testing suite above.
+ * TODO: Test GPU values == init val.
+ */
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
   // using WORK_EXEC_POLICY = TypeParam;
   {
@@ -53,14 +66,21 @@ GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
+    for (size_t i = 0; i < field.size(); ++i) {
+      SPHERAL_ASSERT_EQ(field[i], 4);
+    }
+
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Copy CTor test for the Field.
+ * - Test w/ double and GeomPolygon.
+ */
 GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor) {
   // using WORK_EXEC_POLICY = TypeParam;
-
   {
     std::string field_name = "Field::CopyCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -89,9 +109,12 @@ GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor) {
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Test to ensure resizeField works as expected.
+ * - Test w/ double and GeomPolygon.
+ */
 GPU_TYPED_TEST_P(FieldTypedTest, ResizeField) {
   // using WORK_EXEC_POLICY = TypeParam;
-
   {
     std::string field_name = "Field::ResizeField";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -122,27 +145,9 @@ GPU_TYPED_TEST_P(FieldTypedTest, ResizeField) {
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
-GPU_TYPED_TEST_P(FieldTypedTest, SPtrCopy) {
-  // using WORK_EXEC_POLICY = TypeParam;
-
-  {
-    std::string field_name = "Field::CopyCtor";
-    FieldDouble field(field_name, gpu_this->test_node_list, 4);
-
-    std::shared_ptr<FieldDouble> copy_field =
-        std::make_shared<FieldDouble>(field);
-    std::shared_ptr<FieldDouble> copy_field2 =
-        std::make_shared<FieldDouble>(*copy_field.get());
-
-    SPHERAL_ASSERT_EQ(copy_field->name(), field_name);
-    SPHERAL_ASSERT_EQ(copy_field->size(), 10);
-
-    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 8);
-    SPHERAL_ASSERT_NE(&field[0], &(copy_field->operator[](0)));
-  }
-  SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
-}
-
+/**
+ * Assignment operator to a FieldBase pointer.
+ */
 TEST_F(FieldTest, AssignmentFieldBase) {
   {
     std::string field_name = "Field::AssignmentFieldBase";
@@ -157,9 +162,11 @@ TEST_F(FieldTest, AssignmentFieldBase) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Assignment operator of a Field to another Field.
+ */
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField) {
   // using WORK_EXEC_POLICY = TypeParam;
-
   {
     std::string field_name = "Field::AssignmentField";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -177,11 +184,11 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField) {
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Assignment operator of a Field to by a std::vector container.
+ */
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType) {
-  // Field is not inplemented with VVI at this time
-  // only run on host.
   // using WORK_EXEC_POLICY = TypeParam;
-
   {
     std::string field_name = "Field::AssignmentContainer";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -211,6 +218,10 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType) {
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Assignment operator of a Field by a single value. Setting all values of
+ * the field.
+ */
 TEST_F(FieldTest, AssignmentDataType) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
   {
@@ -234,6 +245,9 @@ TEST_F(FieldTest, AssignmentDataType) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
+/**
+ * Delete Elemnts from the front of the Field.
+ */
 TEST_F(FieldTest, RemoveNodesFront) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
   {
@@ -265,25 +279,8 @@ TEST_F(FieldTest, RemoveNodesFront) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
-GPU_TYPED_TEST_P(FieldTypedTest, size) {
-  // using WORK_EXEC_POLICY = TypeParam;
-
-  {
-    std::string field_name = "Field::size";
-    FieldDouble field(field_name, gpu_this->test_node_list);
-    // auto field_v = field.toView();
-    SPHERAL_ASSERT_EQ(field.size(), 10);
-
-    // EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
-    //   SPHERAL_ASSERT_EQ(field_v.size(), 10);
-    // EXEC_IN_SPACE_END()
-    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
-  }
-  SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
-}
-
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest, NameNodeListValCtor, CopyCtor,
-                            ResizeField, SPtrCopy, AssignmentField,
-                            AssignmentContainerType, size);
+                            ResizeField, AssignmentField,
+                            AssignmentContainerType);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, EXEC_TYPES, );

@@ -31,6 +31,10 @@ public:
 
 #define TEST_SIZE 50
 
+/**
+ * Testing execution of a RAJA kernel for Host & any compiled offload
+ * platforms.
+*/
 GPU_TYPED_TEST_P(OffloadTypedTest, RajaLoop) {
   using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
   using WORK_RESOURCE = typename camp::at<TypeParam, camp::num<1>>::type;
