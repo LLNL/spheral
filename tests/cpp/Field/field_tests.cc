@@ -47,7 +47,6 @@ TEST_F(FieldTest, NameNodeListCtor) {
 
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
   // using WORK_EXEC_POLICY = TypeParam;
-
   {
     std::string field_name = "Field::NodeListValCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -75,7 +74,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor) {
     SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
   }
   {
-    using FieldGP =Spheral::Field<Spheral::Dim<3>, Spheral::GeomPolygon>;
+    using FieldGP = Spheral::Field<Spheral::Dim<3>, Spheral::GeomPolygon>;
     std::string field_name = "Field::CopyCtorGeomPolygon";
     FieldGP field(field_name, gpu_this->test_node_list);
 
@@ -100,17 +99,14 @@ GPU_TYPED_TEST_P(FieldTypedTest, ResizeField) {
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
-    std::cout << field.size() << std::endl;
     field.resizeField(50);
-
-    std::cout << field.size() << std::endl;
 
     SPHERAL_ASSERT_EQ(field.size(), 50);
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
   {
-    using FieldGP =Spheral::Field<Spheral::Dim<3>, Spheral::GeomPolygon>;
+    using FieldGP = Spheral::Field<Spheral::Dim<3>, Spheral::GeomPolygon>;
     std::string field_name = "Field::ResizeField";
     FieldGP field(field_name, gpu_this->test_node_list);
 
@@ -252,7 +248,7 @@ TEST_F(FieldTest, RemoveNodesFront) {
     std::iota(idxs.begin(), idxs.end(), 0);
 
     for (size_t i = 0; i < answer.size(); ++i) {
-      std::cout << answer[i] << ", " << field[i] << std::endl;
+      SPHERAL_ASSERT_EQ(answer[i], field[i]);
     }
 
     field.deleteElements(idxs);
@@ -263,7 +259,6 @@ TEST_F(FieldTest, RemoveNodesFront) {
     }
 
     for (size_t i = 0; i < answer.size(); ++i) {
-      std::cout << answer[i] << ", " << field[i] << std::endl;
       ASSERT_EQ(answer[i], field[i]);
     }
   }
@@ -288,7 +283,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, size) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest, NameNodeListValCtor, CopyCtor,
-                            ResizeField, SPtrCopy, AssignmentField, AssignmentContainerType,
-                            size);
+                            ResizeField, SPtrCopy, AssignmentField,
+                            AssignmentContainerType, size);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, EXEC_TYPES, );
