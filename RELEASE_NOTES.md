@@ -23,6 +23,8 @@ Notable changes include:
         hydros.
     * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
       package itself, which most folks outside LLNL will not necessarily have.
+    * gtest suite integration for writing minimal c++ unit tests on the host and device without needing to
+      compile large potions of the code.
 
   * Build changes / improvements:
     * Native Spack environments are now being used.
