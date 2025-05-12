@@ -111,7 +111,7 @@ class SpheralTPL:
         spack_dir = os.path.join(tpl_root, "spack")
         if (not self.args.skip_init):
             if (not os.path.exists(spack_dir)):
-                sexe(f"git -C {spack_dir} clone --depth=2 {self.args.spack_url}")
+                sexe(f"git -C {tpl_root} clone --depth=2 {self.args.spack_url}")
             # Check commit hash of Spack repo
             cur_hash = sexe(f"git -C {spack_dir} rev-parse HEAD", ret_output=True, echo=False).strip()
             if (cur_hash != spack_commit):
