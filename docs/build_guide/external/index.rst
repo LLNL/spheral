@@ -15,6 +15,10 @@ Users are not required to install Spack themselves, but they can use the `System
 
    Any packages that Spack does not find on the system will be installed through Spack, potentially causing excessively long install times. To avoid this, there are some packages we require (and some we recommend) installing for the system first.
 
+.. warning::
+
+   These instructions are currently not applicable to newer distributions that ship with Python 3.13 (like Fedora 42). We hope to remedy this in the near future.
+
 Select the following dropdown menu for the appropriate commands to run for a given Linux distribution and version.
 
 .. dropdown:: Ubuntu
