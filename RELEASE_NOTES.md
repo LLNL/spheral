@@ -29,6 +29,7 @@ Notable changes include:
       - HidealFilter
       - RadialFunctor
     * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method).
+    * Field resizing operations have been removed from the public interface.
 
   * Build changes / improvements:
     * Native Spack environments are now being used.
