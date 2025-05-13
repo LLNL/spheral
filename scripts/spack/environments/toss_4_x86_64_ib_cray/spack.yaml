@@ -1,9 +1,9 @@
 spack:
   specs:
   - matrix:
-      - [spheral]
-      - ["+mpi", "~mpi"]
-      - ["+rocm amdgpu_target=gfx942", "~rocm"]
+    - [spheral]
+    - [+mpi, ~mpi]
+    - [+rocm amdgpu_target=gfx942, +rocm amdgpu_target=gfx90a, ~rocm]
   view: false
   concretizer:
     unify: false

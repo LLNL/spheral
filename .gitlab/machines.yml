@@ -10,6 +10,7 @@
     SCHEDULER_PARAMETERS: "--exclusive -N 2 -t 120"
     NPROC: 128
     HOSTNAME: 'tioga'
+    OFFLOAD_ARCH: 'gfx90a'
   timeout: 120 minutes
   extends: [.on_toss_4_x86_cray]
 
