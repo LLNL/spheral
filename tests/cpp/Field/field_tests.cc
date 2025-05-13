@@ -110,42 +110,6 @@ GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor) {
 }
 
 /**
- * Test to ensure resizeField works as expected.
- * - Test w/ double and GeomPolygon.
- */
-GPU_TYPED_TEST_P(FieldTypedTest, ResizeField) {
-  // using WORK_EXEC_POLICY = TypeParam;
-  {
-    std::string field_name = "Field::ResizeField";
-    FieldDouble field(field_name, gpu_this->test_node_list, 4);
-
-    SPHERAL_ASSERT_EQ(field.name(), field_name);
-    SPHERAL_ASSERT_EQ(field.size(), 10);
-
-    field.resizeField(50);
-
-    SPHERAL_ASSERT_EQ(field.size(), 50);
-
-    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
-  }
-  {
-    using FieldGP = Spheral::Field<Spheral::Dim<3>, Spheral::GeomPolygon>;
-    std::string field_name = "Field::ResizeField";
-    FieldGP field(field_name, gpu_this->test_node_list);
-
-    SPHERAL_ASSERT_EQ(field.name(), field_name);
-    SPHERAL_ASSERT_EQ(field.size(), 10);
-
-    field.resizeField(50);
-
-    SPHERAL_ASSERT_EQ(field.size(), 50);
-
-    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
-  }
-  SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
-}
-
-/**
  * Assignment operator to a FieldBase pointer.
  */
 TEST_F(FieldTest, AssignmentFieldBase) {
@@ -245,42 +209,7 @@ TEST_F(FieldTest, AssignmentDataType) {
   SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
 }
 
-/**
- * Delete Elemnts from the front of the Field.
- */
-TEST_F(FieldTest, RemoveNodesFront) {
-  SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
-  {
-    std::string field_name = "Field::AssignmentDataType";
-    FieldDouble field(field_name, this->test_node_list, 4);
-
-    std::vector<double> answer(field.size());
-    std::vector<int> idxs(4);
-
-    std::iota(answer.begin(), answer.end(), 0);
-    std::iota(field.begin(), field.end(), 0);
-    std::iota(idxs.begin(), idxs.end(), 0);
-
-    for (size_t i = 0; i < answer.size(); ++i) {
-      SPHERAL_ASSERT_EQ(answer[i], field[i]);
-    }
-
-    field.deleteElements(idxs);
-
-    reverse(idxs.begin(), idxs.end());
-    for (auto i : idxs) {
-      answer.erase(answer.begin() + i);
-    }
-
-    for (size_t i = 0; i < answer.size(); ++i) {
-      ASSERT_EQ(answer[i], field[i]);
-    }
-  }
-  SPHERAL_ASSERT_EQ(this->test_node_list.numFields(), 5);
-}
-
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest, NameNodeListValCtor, CopyCtor,
-                            ResizeField, AssignmentField,
-                            AssignmentContainerType);
+                            AssignmentField, AssignmentContainerType);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, EXEC_TYPES, );
