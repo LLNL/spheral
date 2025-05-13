@@ -24,6 +24,12 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     version('1.0', tag='FSISPH-v1.0', submodules=True)
 
     # -------------------------------------------------------------------------
+    # Is LEOS available in a standard place?
+    # -------------------------------------------------------------------------
+    from spack.pkg.spheral.leos import Leos
+    LEOSpresent = os.path.exists(Leos.fileLoc)
+
+    # -------------------------------------------------------------------------
     # VARIANTS
     # -------------------------------------------------------------------------
     variant('mpi', default=True, description='Enable MPI Support.')
@@ -34,9 +40,11 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant('caliper', default=True, description='Enable Caliper timers.')
     variant('opensubdiv', default=True, description='Enable use of opensubdiv to do refinement.')
     variant('network', default=True, description='Disable to build Spheral from a local buildcache.')
+    variant('sundials', default=True, when="+mpi", description='Build Sundials package.')
+    variant('leos', default=LEOSpresent, when="+mpi", description='Build LEOS package.')
 
     # -------------------------------------------------------------------------
-    # DEPENDS
+    # Depends
     # -------------------------------------------------------------------------
     depends_on('mpi', when='+mpi')
 
@@ -72,6 +80,10 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on('opensubdiv@3.4.3+pic', type='build', when="+opensubdiv")
 
     depends_on('polytope +python', type='build')
+
+    depends_on('sundials@7.0.0 ~shared cxxstd=17', type='build', when='+sundials')
+
+    depends_on("leos@8.4.2", type="build", when="+leos")
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
@@ -190,7 +202,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         # TPL locations
         if (spec.satisfies("+caliper")):
             entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
-            entries.append(cmake_cache_option('ENABLE_TIMER', True))
+            #entries.append(cmake_cache_option('ENABLE_TIMER', True))
 
         entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
@@ -238,8 +250,15 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         if "+python" in spec:
             entries.append(cmake_cache_path('python_DIR', spec['python'].prefix))
 
-        return entries
+        if spec.satisfies("+sundials"):
+            entries.append(cmake_cache_path('sundials_DIR', spec['sundials'].prefix))
+            entries.append(cmake_cache_option('ENABLE_SUNDIALS', True))
 
+        if spec.satisfies("+leos"):
+            entries.append(cmake_cache_path('leos_DIR', spec['leos'].prefix))
+            entries.append(cmake_cache_option('ENABLE_LEOS', True))
+
+        return entries
 
     def cmake_args(self):
         options = []
