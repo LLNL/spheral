@@ -21,7 +21,7 @@ spack:
   packages:
     spheral:
       require:
-        - spec: "amdgpu_targets=gfx90a"
+        - spec: "amdgpu_target=gfx90a"
           when: "+rocm arch=linux-rhel8-zen3"
-        - spec: "amdgpu_targets=gfx942"
+        - spec: "amdgpu_target=gfx942"
           when: "+rocm arch=linux-rhel8-zen4"
