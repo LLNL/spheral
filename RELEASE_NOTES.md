@@ -43,6 +43,9 @@ Notable changes include:
 
   * Bug Fixes / improvements:
     * ATS submodule is updated to fix bug with latest Flux update on LC systems.
+    * Update Polytope version.
+    * TPL manager removes the symoblic links to the install directory.
+    * Consolidated CMake configured files into SpheralConfigs.py.in
     * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros
 
 Version v2025.01.0 -- Release date 2025-01-31
