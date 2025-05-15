@@ -9,7 +9,6 @@
 
 #include "Boundary/Boundary.hh"
 #include "DataBase/DataBase.hh"
-#include "Registrar/CombinedRegistrar.hh"
 #include "Solvers/containsConstantNodes.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"

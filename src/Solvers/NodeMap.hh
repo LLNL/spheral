@@ -10,15 +10,11 @@
 #include <vector>
 #include "Field/FieldList.hh"
 #include "KernelIntegrator/FlatConnectivity.hh"
-#include "Registrar/BoundaryDependent.hh"
-#include "Registrar/ConnectivityDependent.hh"
-#include "Registrar/UpdateDependent.hh"
 #include "MatrixMap.hh"
 
 namespace Spheral {
 
 template<typename Dimension> class DataBase;
-template<typename Dimension> class CombinedRegistrar;
 
 template<typename Dimension>
 class NodeMap : public MatrixMap {
