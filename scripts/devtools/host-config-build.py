@@ -106,7 +106,7 @@ def main():
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
       print("~~~~~ Running Spheral gtest suite.")
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      ctest_cmd = f"{ml_cmd} ctest --test-dir {build_dir}/tests"
+      ctest_cmd = f"ctest --test-dir {build_dir}/tests"
 
       sexe(ctest_cmd, echo=True, ret_output=False)
 
