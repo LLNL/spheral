@@ -26,7 +26,7 @@ PYB11includes = ['"Solvers/containsConstantNodes.hh"',
                  '"Solvers/NodeMap.hh"',
                  '"Solvers/OverlapNodeMap.hh"',
                  '"Solvers/SimpleMatrixData.hh"',
-                 '"Solvers/SimpleMatrixMap.hh"'
+                 '"Solvers/SimpleMatrixMap.hh"',
                  '"Solvers/SolverFunction.hh"',
                  '"Solvers/KINSOL.hh"']
 
@@ -57,11 +57,11 @@ for ndim in dims:
     # Dimension-dependent
     exec('''
 @PYB11pycppname("containsConstantNodes")
-def containsConstantNodes1%(ndim)id(boundary = "const Boundary<%(Dimension)s>*"):
+def containsConstantNodes1%(ndim)id(boundary = "const Boundary<Dim<%(ndim)i>>*"):
     "Does this boundary contain constant boundary nodes?"
     return "bool"
 @PYB11pycppname("containsConstantNodes")
-def containsConstantNodes2%(ndim)id(boundaries = "const std::vector<Boundary<%(Dimension)s>*>&"):
+def containsConstantNodes2%(ndim)id(boundaries = "const std::vector<Boundary<Dim<%(ndim)i>>*>&"):
     "Do these boundaries contain constant boundary nodes?"
     return "bool"
 
