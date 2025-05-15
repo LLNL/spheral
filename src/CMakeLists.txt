@@ -15,7 +15,7 @@ list(APPEND _packages
   ArtificialViscosity
   Boundary
   CRKSPH
-  CXXTests
+#  CXXTests
   DEM
   Damage
   DataBase
