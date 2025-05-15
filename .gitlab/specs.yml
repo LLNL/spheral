@@ -55,8 +55,8 @@
 
 .hip_rocm_mpich:
   variables:
-    SPEC: '%rocmcc+mpi+rocm amdgpu_target=gfx942'
+    SPEC: '%rocmcc+mpi+rocm'
 
 .hip_rocm_~mpi:
   variables:
-    SPEC: '%rocmcc~mpi+rocm amdgpu_target=gfx942'
+    SPEC: '%rocmcc~mpi+rocm'
