@@ -84,7 +84,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     with when("+solvers"):
         depends_on('sundials@7.0.0 ~shared cxxstd=17 cppflags="-fPIC"', type='build')
-        depends_on('hypre@2.26.0 ~shared cppflags="-fPIC"', type='build')
+        depends_on('hypre@2.26.0 ~shared+pic', type='build')
 
     depends_on('leos@8.4.2', type='build', when='+leos')
 
