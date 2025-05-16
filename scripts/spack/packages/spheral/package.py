@@ -84,7 +84,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     with when("+solvers"):
         depends_on('sundials@7.0.0 ~shared cxxstd=17 cppflags="-fPIC"', type='build')
-        depends_on('hypre@2.26.0 ~shared cppflags="-fPIC"', type='build')
+        depends_on('hypre@2.26.0 ~shared cppflags="-fPIC" cflags="-fPIC"', type='build')
 
     depends_on('leos@8.4.2', type='build', when='+leos')
 
@@ -256,6 +256,9 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         if spec.satisfies("+solvers"):
             entries.append(cmake_cache_path('sundials_DIR', spec['sundials'].prefix))
             entries.append(cmake_cache_path('hypre_DIR', spec['hypre'].prefix))
+            entries.append(cmake_cache_path('hypre_INCLUDES', spec['hypre'].prefix.include))
+            hypre_libs = spec["blas"].libs + spec["lapack"].libs
+            entries.append(cmake_cache_path('hypre_EXT_LIBRARIES', hypre_libs.joined(";")))
             entries.append(cmake_cache_option('ENABLE_SOLVERS', True))
 
         if spec.satisfies("+leos"):
