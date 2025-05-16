@@ -4,6 +4,7 @@
 from PYB11Generator import *
 
 @PYB11template("Dimension")
+@PYB11holder("std::shared_ptr")
 class ConnectivityMap:
 
     PYB11typedefs = """
@@ -103,7 +104,7 @@ common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
                             nodeListPtr = "const NodeListType*",
                             nodeID = "const int"):
         "Compute the number of neighbors for the given node."
-        return "int"
+        return "size_t"
 
     @PYB11const
     @PYB11pycppname("numNeighborsForNode")
@@ -111,7 +112,7 @@ common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
                              nodeListID = "const int",
                              nodeID = "const int"):
         "Compute the number of neighbors for the given node."
-        return "int"
+        return "size_t"
 
     @PYB11const
     def globalConnectivity(self,
@@ -132,7 +133,7 @@ common when (i,j) are ALSO neighbors.  Overlap connectivity may exist for
     @PYB11const
     def numNodes(self, nodeList="const int"):
         "Return the number of nodes we should walk for the given NodeList."
-        return "int"
+        return "size_t"
 
     @PYB11const
     def ithNode(self,

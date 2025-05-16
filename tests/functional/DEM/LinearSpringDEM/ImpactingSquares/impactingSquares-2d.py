@@ -143,7 +143,7 @@ if restoreCycle is None:
 
     generator1 = GenerateDEMfromSPHGenerator2d(WT,
                                                generator0,
-                                               particleRadius= 0.5/(numParticlePerLength+1),
+                                               particleRadius= 0.5/float(numParticlePerLength+1),
                                                DEMParticleGenerator=DEMParticleGenerator)
 
     distributeNodes2d((nodes1, generator1))
@@ -184,7 +184,7 @@ packages = [dem]
 #-------------------------------------------------------------------------------
 
 numNodeLists = db.numNodeLists
-nodeLists = db.nodeLists()
+nodeLists = db.nodeLists
 for i in range(db.numNodeLists):
     nodeListi = nodeLists[i]
     numNodes = nodeListi.numInternalNodes

@@ -1,10 +1,26 @@
 include_directories(.)
 
+set(Distributed_sources
+    Communicator.cc
+    Process.cc
+    RegisterMPIDataTypes.cc
+    )
+
+set(Distributed_inst )
+
+set(Distributed_headers
+    allReduce.hh
+    Communicator.hh
+    Process.hh
+    RegisterMPIDataTypes.hh
+    RegisterMPIDataTypesInline.hh
+    )
+
 if (ENABLE_MPI)
   #----------------------------------------------------------------------------
   # MPI parallel on
   #----------------------------------------------------------------------------
-  set(Distributed_sources Communicator.cc waitAllWithDeadlockDetection.cc)
+  list(APPEND Distributed_sources waitAllWithDeadlockDetection.cc)
 
   if (ENABLE_1D)
     list(APPEND Distributed_sources SortAndDivideRedistributeNodes1d.cc)
@@ -18,26 +34,23 @@ if (ENABLE_MPI)
     list(APPEND Distributed_sources SortAndDivideRedistributeNodes3d.cc)
   endif()
 
-  set(Distributed_inst
-      DistributedBoundary
-      NestedGridDistributedBoundary
-      TreeDistributedBoundary
-      BoundingVolumeDistributedBoundary
-      RedistributeNodes
-      DistributeByXPosition
-      SortAndDivideRedistributeNodes
-      SpaceFillingCurveRedistributeNodes
-      MortonOrderRedistributeNodes
-      PeanoHilbertOrderRedistributeNodes
-      VoronoiRedistributeNodes
-      )
+  list(APPEND Distributed_inst
+       DistributedBoundary
+       NestedGridDistributedBoundary
+       TreeDistributedBoundary
+       BoundingVolumeDistributedBoundary
+       RedistributeNodes
+       DistributeByXPosition
+       SortAndDivideRedistributeNodes
+       SpaceFillingCurveRedistributeNodes
+       MortonOrderRedistributeNodes
+       PeanoHilbertOrderRedistributeNodes
+       VoronoiRedistributeNodes
+       )
 
-  instantiate(Distributed_inst Distributed_sources)
-
-  set(Distributed_headers
+ list(APPEND Distributed_headers
       BoundingVolumeDistributedBoundary.hh
       BoundingVolumeDistributedBoundaryInline.hh
-      Communicator.hh
       CompareDomainNodesByPosition.hh
       DistributeByXPosition.hh
       DistributedBoundary.hh
@@ -65,21 +78,22 @@ if (ENABLE_MPI)
       waitAllWithDeadlockDetection.hh
       )
 
-  install(FILES       mpi_mpi4py.py
-          DESTINATION Spheral
-          RENAME      mpi.py
-          )
-
-  spheral_add_obj_library(Distributed SPHERAL_OBJ_LIBS)
+  set(MPIPY_FILE_NAME "mpi_mpi4py.py")
 
 else()
   #----------------------------------------------------------------------------
   # MPI parallel off
   #----------------------------------------------------------------------------
-  install(FILES       fakempi.py
-          DESTINATION Spheral
-          RENAME      mpi.py
-          )
+  set(MPIPY_FILE_NAME "fakempi.py")
 
 endif()
 
+if (NOT ENABLE_CXXONLY)
+  install(FILES       ${MPIPY_FILE_NAME}
+          DESTINATION ${SPHERAL_SITE_PACKAGES_PATH}/Spheral
+          RENAME      mpi.py
+          )
+endif()
+instantiate(Distributed_inst Distributed_sources)
+
+spheral_add_obj_library(Distributed SPHERAL_OBJ_LIBS)

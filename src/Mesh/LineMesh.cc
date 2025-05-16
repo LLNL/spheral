@@ -6,7 +6,7 @@
 #include "Mesh.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/bisectSearch.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
@@ -56,8 +56,7 @@ reconstructInternal(const vector<Mesh<Dim<1> >::Vector>& localGenerators,
                     const Mesh<Dim<1> >::Vector& xmax) {
 
   // Is there anything to do?
-  if (allReduce(unsigned(localGenerators.size()), MPI_SUM, Communicator::communicator()) == 0) return;
-
+  if (allReduce(unsigned(localGenerators.size()), SPHERAL_OP_SUM) == 0) return;
 
   // Pre-conditions.
   BEGIN_CONTRACT_SCOPE
@@ -284,8 +283,8 @@ boundingSurface() const {
     xmin = std::min(xmin, mNodePositions[i].x());
     xmax = std::max(xmax, mNodePositions[i].x());
   }
-  xmin = allReduce(xmin, MPI_MIN, Communicator::communicator());
-  xmax = allReduce(xmax, MPI_MAX, Communicator::communicator());
+  xmin = allReduce(xmin, SPHERAL_OP_MIN);
+  xmax = allReduce(xmax, SPHERAL_OP_MAX);
   return FacetedVolume(Vector(0.5*(xmin + xmax)), 0.5*(xmax - xmin));
 }
 

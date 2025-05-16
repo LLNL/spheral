@@ -48,7 +48,6 @@
 #include "Field/NodeIterators.hh"
 #include "Boundary/Boundary.hh"
 #include "Neighbor/ConnectivityMap.hh"
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/newtonRaphson.hh"
 #include "Utilities/SpheralFunctions.hh"
@@ -408,7 +407,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
 // Initialize the hydro before evaluating derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 CRKSPHVariant<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,

@@ -13,11 +13,10 @@
 #include "Material/EquationOfState.hh"
 #include "Utilities/testBoxIntersection.hh"
 #include "Utilities/safeInv.hh"
-#include "State.hh"
 #include "Hydro/HydroFieldNames.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/globalNodeIDs.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
 
@@ -41,107 +40,115 @@ using std::shared_ptr;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
+// Constructor
 //------------------------------------------------------------------------------
 template<typename Dimension>
-DataBase<Dimension>::DataBase():
-  mNodeListPtrs(0),
-  mFluidNodeListPtrs(0),
-  mFluidNodeListAsNodeListPtrs(0),
-  mSolidNodeListPtrs(0),
-  mSolidNodeListAsNodeListPtrs(0),
-  mDEMNodeListPtrs(0),
-  mDEMNodeListAsNodeListPtrs(0),
-  mConnectivityMapPtr(new ConnectivityMap<Dimension>()) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DataBase<Dimension>::~DataBase() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-DataBase<Dimension>&
 DataBase<Dimension>::
-operator=(const DataBase<Dimension>& rhs) {
-  REQUIRE(rhs.valid());
-  if (this != &rhs) {
-    mNodeListPtrs = rhs.mNodeListPtrs;
-    mFluidNodeListPtrs = rhs.mFluidNodeListPtrs;
-    mFluidNodeListAsNodeListPtrs = rhs.mFluidNodeListAsNodeListPtrs;
-    mSolidNodeListPtrs = rhs.mSolidNodeListPtrs;
-    mSolidNodeListAsNodeListPtrs = rhs.mSolidNodeListAsNodeListPtrs;
-    mDEMNodeListPtrs = rhs.mDEMNodeListPtrs;
-    mDEMNodeListAsNodeListPtrs = rhs.mDEMNodeListAsNodeListPtrs;
-    mConnectivityMapPtr = std::shared_ptr<ConnectivityMap<Dimension> >(new ConnectivityMap<Dimension>());
-  }
-  ENSURE(valid());
-  return *this;
+DataBase():
+  mNodeListPtrs(),
+  mFluidNodeListPtrs(),
+  mFluidNodeListAsNodeListPtrs(),
+  mSolidNodeListPtrs(),
+  mSolidNodeListAsNodeListPtrs(),
+  mDEMNodeListPtrs(),
+  mDEMNodeListAsNodeListPtrs(),
+  mConnectivityMapPtr(std::make_shared<ConnectivityMap<Dimension>>()) {
+}
+
+//------------------------------------------------------------------------------
+// Numbers of nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numInternalNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mNodeListPtrs) result += xptr->numInternalNodes();
+  return result;
+}
+
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numGhostNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mNodeListPtrs) result += xptr->numGhostNodes();
+  return result;
+}
+
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mNodeListPtrs) result += xptr->numNodes();
+  return result;
+}
+
+//------------------------------------------------------------------------------
+// Numbers of fluid nodes in the DataBase.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numFluidInternalNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mFluidNodeListPtrs) result += xptr->numInternalNodes();
+  return result;
+}
+
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numFluidGhostNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mFluidNodeListPtrs) result += xptr->numGhostNodes();
+  return result;
+}
+
+template<typename Dimension>
+size_t
+DataBase<Dimension>::numFluidNodes() const {
+  size_t result = 0u;
+  for (const auto* xptr: mFluidNodeListPtrs) result += xptr->numNodes();
+  return result;
 }
 
 //------------------------------------------------------------------------------
 // Global numbers of nodes in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumInternalNodes() const {
-  int localResult = numInternalNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numInternalNodes(), SPHERAL_OP_SUM);
 }
 
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumGhostNodes() const {
-  int localResult = numGhostNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numGhostNodes(), SPHERAL_OP_SUM);
 }
 
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumNodes() const {
-  int localResult = numNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numNodes(), SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
 // Global numbers of fluid nodes in the DataBase.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumFluidInternalNodes() const {
-  int localResult = numFluidInternalNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numFluidInternalNodes(), SPHERAL_OP_SUM);
 }
 
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumFluidGhostNodes() const {
-  int localResult = numFluidGhostNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numFluidGhostNodes(), SPHERAL_OP_SUM);
 }
 
 template<typename Dimension>
-int
+size_t
 DataBase<Dimension>::globalNumFluidNodes() const {
-  int localResult = numFluidNodes();
-  int result = localResult;
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
-  return result;
+  return allReduce(numFluidNodes(), SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -527,13 +534,13 @@ reinitializeNeighbors() const {
   // Find the global result across all processors.
   auto box = 0.0;
   for (auto i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
     box = std::max(box, xmax(i) - xmin(i));
   }
-  havg = allReduce(havg, MPI_SUM, Communicator::communicator());
-  ntot = allReduce(ntot, MPI_SUM, Communicator::communicator());
-  hmax = allReduce(hmax, MPI_MAX, Communicator::communicator());
+  havg = allReduce(havg, SPHERAL_OP_SUM);
+  ntot = allReduce(ntot, SPHERAL_OP_SUM);
+  hmax = allReduce(hmax, SPHERAL_OP_MAX);
   if (ntot > 0) {
     havg /= ntot;
 
@@ -561,8 +568,7 @@ DataBase<Dimension>::
 updateConnectivityMap(const bool computeGhostConnectivity,
                       const bool computeOverlapConnectivity,
                       const bool computeIntersectionConnectivity) const {
-  REQUIRE(mConnectivityMapPtr != 0 and
-          mConnectivityMapPtr.get() != 0);
+  REQUIRE(mConnectivityMapPtr);
   mConnectivityMapPtr->rebuild(nodeListBegin(), nodeListEnd(),
                                computeGhostConnectivity, computeOverlapConnectivity, computeIntersectionConnectivity);
 }
@@ -575,8 +581,7 @@ void
 DataBase<Dimension>::
 patchConnectivityMap(const FieldList<Dimension, int>& flags,
                      const FieldList<Dimension, int>& old2new) const {
-  REQUIRE(mConnectivityMapPtr != 0 and
-          mConnectivityMapPtr.get() != 0);
+  REQUIRE(mConnectivityMapPtr);
   mConnectivityMapPtr->patchConnectivity(flags, old2new);
 }
 
@@ -842,39 +847,17 @@ haveNodeList(const NodeList<Dimension>& nodeList) const {
 }
 
 //------------------------------------------------------------------------------
-// Return the const list of NodeList pointers.
+// Get the NodeList index for the given NodeList
 //------------------------------------------------------------------------------
 template<typename Dimension>
-const vector<NodeList<Dimension>*>&
-DataBase<Dimension>::nodeListPtrs() const {
-  return mNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of FluidNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<FluidNodeList<Dimension>*>&
-DataBase<Dimension>::fluidNodeListPtrs() const {
-  return mFluidNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of SolidNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<SolidNodeList<Dimension>*>&
-DataBase<Dimension>::solidNodeListPtrs() const {
-  return mSolidNodeListPtrs;
-}
-
-//------------------------------------------------------------------------------
-// Return the const list of DEMNodeList pointers.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-const vector<DEMNodeList<Dimension>*>&
-DataBase<Dimension>::DEMNodeListPtrs() const {
-  return mDEMNodeListPtrs;
+size_t
+DataBase<Dimension>::
+nodeListIndex(const NodeList<Dimension>& nodeList) const {
+  ConstNodeListIterator itr = find(nodeListBegin(),
+                                   nodeListEnd(),
+                                   &nodeList);
+  VERIFY(itr != nodeListEnd());
+  return std::distance(nodeListBegin(), itr);
 }
 
 //------------------------------------------------------------------------------
@@ -1738,7 +1721,7 @@ template<typename Dimension>
 FieldList<Dimension, int>
 DataBase<Dimension>::numNeighbors() const {
   REQUIRE(valid());
-  VERIFY(mConnectivityMapPtr != 0);
+  VERIFY(mConnectivityMapPtr);
   FieldList<Dimension, int> result = newFluidFieldList(int(), "number of neighbors");
   for (ConstFluidNodeListIterator nodeListItr = fluidNodeListBegin();
        nodeListItr != fluidNodeListEnd(); 
@@ -1831,8 +1814,8 @@ boundingBox(typename Dimension::Vector& xmin,
 
   // Now find the global bounds across all processors.
   for (int i = 0; i != Dimension::nDim; ++i) {
-    xmin(i) = allReduce(xmin(i), MPI_MIN, Communicator::communicator());
-    xmax(i) = allReduce(xmax(i), MPI_MAX, Communicator::communicator());
+    xmin(i) = allReduce(xmin(i), SPHERAL_OP_MIN);
+    xmax(i) = allReduce(xmax(i), SPHERAL_OP_MAX);
   }
 }
 
@@ -1929,15 +1912,15 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
     size_t nlocal = this->numInternalNodes();
     centroid *= nlocal;
     for (int i = 0; i != Dimension::nDim; ++i) {
-      xminNodes(i) = allReduce(xminNodes(i), MPI_MIN, Communicator::communicator());
-      xmaxNodes(i) = allReduce(xmaxNodes(i), MPI_MAX, Communicator::communicator());
-      xminSample(i) = allReduce(xminSample(i), MPI_MIN, Communicator::communicator());
-      xmaxSample(i) = allReduce(xmaxSample(i), MPI_MAX, Communicator::communicator());
-      centroid(i) = allReduce(centroid(i), MPI_SUM, Communicator::communicator());
+      xminNodes(i) = allReduce(xminNodes(i), SPHERAL_OP_MIN);
+      xmaxNodes(i) = allReduce(xmaxNodes(i), SPHERAL_OP_MAX);
+      xminSample(i) = allReduce(xminSample(i), SPHERAL_OP_MIN);
+      xmaxSample(i) = allReduce(xmaxSample(i), SPHERAL_OP_MAX);
+      centroid(i) = allReduce(centroid(i), SPHERAL_OP_SUM);
     }
 
     // Fix up the centroid and radii.
-    size_t nglobal = allReduce((uint64_t) nlocal, MPI_SUM, Communicator::communicator());
+    size_t nglobal = allReduce((uint64_t) nlocal, SPHERAL_OP_SUM);
     if (nglobal > 0) {
       centroid /= nglobal;
       radiusNodes = 0.0;
@@ -1957,8 +1940,8 @@ globalSamplingBoundingVolume(typename Dimension::Vector& centroid,
 	  radiusSample = max(radiusSample, drMag + 2.0*hi);
 	}
       }
-      radiusNodes = allReduce(radiusNodes, MPI_MAX, Communicator::communicator());
-      radiusSample = allReduce(radiusSample, MPI_MAX, Communicator::communicator());
+      radiusNodes = allReduce(radiusNodes, SPHERAL_OP_MAX);
+      radiusSample = allReduce(radiusSample, SPHERAL_OP_MAX);
       const Vector delta = 0.001*(xmaxSample - xminSample);
       radiusNodes *= 1.001;
       radiusSample *= 1.001;

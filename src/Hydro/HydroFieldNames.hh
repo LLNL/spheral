@@ -19,20 +19,21 @@ struct HydroFieldNames {
   static const std::string work;
   static const std::string velocityGradient;
   static const std::string internalVelocityGradient;
-  static const std::string hydroAcceleration;
+  static const std::string acceleration;            // Non-hydro (things that don't modify the thermal energy) use this
+  static const std::string hydroAcceleration;       // Normal hydro sources (things that do modify material thermal energy)
+  static const std::string ahgAcceleration;
   static const std::string massDensity;
   static const std::string normalization;
   static const std::string specificThermalEnergy;
   static const std::string maxViscousPressure;
   static const std::string effectiveViscousPressure;
   static const std::string massDensityCorrection;
-  static const std::string viscousWork;
   static const std::string XSPHDeltaV;
   static const std::string XSPHWeightSum;
   static const std::string Hsmooth;
+  static const std::string massZerothMoment;
   static const std::string massFirstMoment;
   static const std::string massSecondMoment;
-  static const std::string weightedNeighborSum;
   static const std::string pressure;
   static const std::string partialPpartialEps;
   static const std::string partialPpartialRho;
@@ -40,6 +41,7 @@ struct HydroFieldNames {
   static const std::string soundSpeed;
   static const std::string pairAccelerations;
   static const std::string pairWork;
+  static const std::string selfAccelerations;
   static const std::string gamma;
   static const std::string entropy;
   static const std::string PSPHcorrection;
@@ -64,6 +66,8 @@ struct HydroFieldNames {
   static const std::string massDensityGradient;
   static const std::string ArtificialViscousClMultiplier;
   static const std::string ArtificialViscousCqMultiplier;
+  static const std::string ArtificialViscosityVelocityGradient;
+  static const std::string pairQPi;
   static const std::string specificHeat;
   static const std::string normal;
   static const std::string surfaceArea;

@@ -12,6 +12,9 @@
 #include "FieldOperations/FieldListFunctions.hh"
 #include "RK/RKFieldNames.hh"
 #include "RK/gradientRK.hh"
+#include "DataBase/DataBase.hh"
+#include "DataBase/State.hh"
+#include "DataBase/StateDerivatives.hh"
 #include "Neighbor/ConnectivityMap.hh"
 #include "Utilities/safeInv.hh"
 
@@ -121,10 +124,10 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
   ReproducingKernel<Dimension> WR;
   auto maxOrder = RKOrder::ZerothOrder;
   if (useRK) {
-    const auto& rkOrders = state.template getAny<std::set<RKOrder>>(RKFieldNames::rkOrders);
+    const auto& rkOrders = state.template get<std::set<RKOrder>>(RKFieldNames::rkOrders);
     CHECK(not rkOrders.empty());
     const auto maxOrder = *rkOrders.rbegin();
-    WR = state.template getAny<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(maxOrder));
+    WR = state.template get<ReproducingKernel<Dimension>>(RKFieldNames::reproducingKernel(maxOrder));
   }
 
   // The connectivity map

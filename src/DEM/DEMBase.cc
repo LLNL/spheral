@@ -18,7 +18,6 @@
 #include "DataBase/ReplaceState.hh"
 #include "DataBase/DataBase.hh"
 
-
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
 
@@ -26,7 +25,6 @@
 
 #include "Neighbor/ConnectivityMap.hh"
 
-#include "Utilities/timingUtilities.hh"
 #include "Utilities/safeInv.hh"
 #include "Utilities/globalBoundingVolumes.hh"
 #include "Utilities/registerWithRedistribution.hh"
@@ -46,7 +44,6 @@
 #ifdef _OPENMP
 #include "omp.h"
 #endif
-
 
 #include <iostream>
 #include <stdexcept>
@@ -81,6 +78,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
         const Vector& xmax):
   Physics<Dimension>(),
   mDataBase(dataBase),
+  mNewSolidBoundaryIndex(0),
   mSolidBoundaries(),
   mCycle(0),
   mContactRemovalFrequency((int)stepsPerCollision),
@@ -268,6 +266,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
         boundItr != this->boundaryEnd();
         ++boundItr){
     (*boundItr)->applyFieldListGhostBoundary(particleRadius);
+    (*boundItr)->applyFieldListGhostBoundary(uniqueIndex);
     (*boundItr)->applyFieldListGhostBoundary(particleIndex);
   }
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -316,9 +315,12 @@ registerState(DataBase<Dimension>& dataBase,
   auto rollingDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Vector>>>();
   auto torsionalDisplacementPolicy = make_policy<ReplaceAndIncrementPairFieldList<Dimension,std::vector<Scalar>>>();
 
+  // solid boundary conditions w/ properties that need to be integrated
   auto boundaryPolicy = make_policy<DEMBoundaryPolicy<Dimension>>(mSolidBoundaries);
-
-  state.enroll(DEMFieldNames::solidBoundaries,boundaryPolicy);
+  state.enroll(DEMFieldNames::solidBoundaryPolicy,boundaryPolicy);
+  
+  for (auto ibc = 0u; ibc < this->numSolidBoundaries(); ++ibc){
+    mSolidBoundaries[ibc]->registerState(dataBase,state);}
 
   state.enroll(mTimeStepMask);
   state.enroll(mass);
@@ -411,18 +413,35 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// This method is called once at the beginning of a timestep, after all state registration.
+//------------------------------------------------------------------------------
+// template<typename Dimension>
+// void
+// DEMBase<Dimension>::
+// finalize(const DataBase<Dimension>& dataBase, 
+//                   State<Dimension>& state,
+//                   StateDerivatives<Dimension>& derivatives) {
+//   TIME_BEGIN("DEMfinalize");
+
+
+//   TIME_END("DEMfinalize");
+// }
+
+//------------------------------------------------------------------------------
 // Call before deriv evaluation
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 DEMBase<Dimension>::
 initialize(const Scalar  time,
            const Scalar dt,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs){
+TIME_BEGIN("DEMinitialize");
 
-
+TIME_END("DEMinitialize");
+ return false;
 }
 
 
@@ -576,6 +595,8 @@ void
 DEMBase<Dimension>::
 initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex){
 
+  TIME_BEGIN("DEMinitializeOverlap");
+  
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  numPairs = pairs.size();
@@ -616,6 +637,7 @@ initializeOverlap(const DataBase<Dimension>& dataBase, const int startingComposi
       mEquilibriumOverlap(storeNodeList,storeNode)[storeContact] = delta0;
     }
   }
+  TIME_END("DEMinitializeOverlap");
 }
 //------------------------------------------------------------------------------
 // Redistribution methods -- before we redistribute, we are going to make sure
@@ -628,6 +650,9 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 initializeBeforeRedistribution(){
+
+  TIME_BEGIN("DEMinitializeBeforeRedistribution");
+
   this->prepNeighborIndicesForRedistribution();
 
   this->prepPairFieldListForRedistribution(mShearDisplacement);
@@ -641,6 +666,9 @@ initializeBeforeRedistribution(){
   this->prepPairFieldListForRedistribution(mNewRollingDisplacement);
   this->prepPairFieldListForRedistribution(mDDtTorsionalDisplacement);
   this->prepPairFieldListForRedistribution(mNewTorsionalDisplacement);
+
+  TIME_END("DEMinitializeBeforeRedistribution");
+
 }
 
 template<typename Dimension>
@@ -650,7 +678,14 @@ finalizeAfterRedistribution() {
 }
 
 //------------------------------------------------------------------------------
-// redistribution sub function
+// redistribution sub function  -- we store the pairwise fields in one of the 
+//     nodes. Prior to redistribution, we don't know where the new domain 
+//     boundaries will be so we want to store the pairwise data in both nodes.
+//     pairs that span a domain boundary already do this so we just need to make
+//     sure all the internal contacts data is stored in both nodes. We do this
+//     by looking through the contacts for each node. If the pair node is an 
+//     internal node than it needs to add the current (storage node) as a contact.
+//     The NeighborIndices needs special treatement so it gets its own method
 //------------------------------------------------------------------------------
 template<typename Dimension>
 template<typename Value>
@@ -752,6 +787,8 @@ void
 DEMBase<Dimension>::
 updateContactMap(const DataBase<Dimension>& dataBase){
   
+  TIME_BEGIN("DEMupdateContactMap");
+
   const auto& uniqueIndex = dataBase.DEMUniqueIndex();
   const auto& radius = dataBase.DEMParticleRadius();
   const auto& position = dataBase.DEMPosition();
@@ -785,8 +822,8 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     const auto uIDj = uniqueIndex(nodeListj,j);
   
     // get our number of internal nodes
-    const int numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
-    const int numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
+    const auto numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
+    const auto numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
 
     // boolean operations to decide which pair-node maintains pair fields
     const auto nodeiIsInternal = i < numInternalNodesi;
@@ -846,7 +883,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
         if (disBc.magnitude() < Ri*(1+bufferDistance)){
 
           // create a unique index for the boundary condition 
-          const auto uId_bc = this->getSolidBoundaryUniqueIndex(ibc);
+          const auto uId_bc = solidBoundaryi->uniqueIndex();
 
           // check to see if it already exists
           const auto neighborContacts = mNeighborIndices(nodeListi,i);
@@ -861,7 +898,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           // now add our contact
           #pragma omp critical
           {
-            mContactStorageIndices.push_back(ContactIndex(nodeListi,            // storage nodelist index
+            mContactStorageIndices.push_back(ContactIndex(nodeListi,          // storage nodelist index
                                                         i,                    // storage node index
                                                         storageContactIndex,  // storage contact index
                                                         ibc));                // bc index
@@ -870,6 +907,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
       }   // loop nodes
     }     // loop nodelists
   }       // loop solid boundaries
+  TIME_END("DEMupdateContactMap");
 }         // method
 
 //------------------------------------------------------------------------------
@@ -879,7 +917,7 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 identifyInactiveContacts(const DataBase<Dimension>& dataBase){
-
+  TIME_BEGIN("DEMidentifyInactiveContacts");
   const auto bufferDistance = dataBase.maxNeighborSearchBuffer();
   const auto  numNodeLists = dataBase.numNodeLists();
   const auto& nodeListPtrs = dataBase.DEMNodeListPtrs();
@@ -934,5 +972,6 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
 
   } // loop particle bc contacts
 }   // omp parallel region
+TIME_END("DEMidentifyInactiveContacts");
 }   // class
 }   // namespace

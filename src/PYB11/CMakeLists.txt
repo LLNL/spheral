@@ -1,3 +1,4 @@
+# When Python targets are created, they add the module name to SPHERAL_MODULE_LIST
 set (_python_packages
   CXXTypes
   CXXTests
@@ -13,6 +14,7 @@ set (_python_packages
   FileIO
   Utilities
   RK
+  VoronoiCells
   DataBase
   Boundary
   Physics
@@ -22,10 +24,7 @@ set (_python_packages
   FieldOperations
   SPH
   CRKSPH
-  SVPH
   DEM
-  GSPH
-  FSISPH
   ArtificialViscosity
   Mesh
   Damage
@@ -33,6 +32,7 @@ set (_python_packages
   Strength
   Porosity
   KernelIntegrator
+  SmoothingScale
   polytope
   OpenMP
   )
@@ -57,15 +57,37 @@ if (SPHERAL_ENABLE_EXTERNAL_FORCE)
   list(APPEND _python_packages ExternalForce)
 endif()
 
+if (SPHERAL_ENABLE_FSISPH)
+  list(APPEND _python_packages FSISPH)
+endif()
+
 if (SPHERAL_ENABLE_GRAVITY)
   list(APPEND _python_packages Gravity)
+endif()
+
+if (SPHERAL_ENABLE_GSPH)
+  list(APPEND _python_packages GSPH)
+endif()
+
+if (SPHERAL_ENABLE_SVPH)
+  list(APPEND _python_packages SVPH)
+endif()
+
+if (ENABLE_SUNDIALS)
+  list(PREPEND _python_packages Solvers)
+endif()
+
+if (ENABLE_LEOS)
+  list(APPEND _python_packages LEOS)
 endif()
 
 foreach(_python_package ${_python_packages})
   add_subdirectory(${_python_package})
 endforeach()
 
-string(REPLACE ";" " " PYTHONPKGS "${_python_packages}")
+# This global list is filled in each spheral_add_pybind11_library call
+get_property(SPHERAL_MODULE_LIST GLOBAL PROPERTY SPHERAL_MODULE_LIST)
+string(REPLACE ";" " " PYTHONPKGS "${SPHERAL_MODULE_LIST}")
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SpheralCompiledPackages.py.in
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py)
@@ -76,10 +98,7 @@ set(PYB11_python_targets
   ${CMAKE_CURRENT_BINARY_DIR}/SpheralCompiledPackages.py
   )
 
-install(FILES       ${PYB11_python_targets}
-        DESTINATION Spheral
-        )
+spheral_install_python_files(${PYB11_python_targets})
 
 install(FILES       Spheral.pth 
-        DESTINATION .
-        )
+        DESTINATION ${SPHERAL_SITE_PACKAGES_PATH})

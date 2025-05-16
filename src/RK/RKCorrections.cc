@@ -86,14 +86,28 @@ template<typename Dimension>
 void
 RKCorrections<Dimension>::
 initializeProblemStartup(DataBase<Dimension>& dataBase) {
+  for (auto order: mOrders) {
+    mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
+  }
+}
+
+//------------------------------------------------------------------------------
+// Optional hook to initialize once when the problem is starting up
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+RKCorrections<Dimension>::
+initializeProblemStartupDependencies(DataBase<Dimension>& dataBase,
+                                     State<Dimension>& state,
+                                     StateDerivatives<Dimension>& derivs) {
   // Get some more data
   const auto& connectivityMap = dataBase.connectivityMap();
   const auto& W = mWR.begin()->second.kernel();
-  const auto  mass = dataBase.fluidMass();
-  const auto  H = dataBase.fluidHfield();
-  const auto  position = dataBase.fluidPosition();
-  const auto  massDensity = dataBase.fluidMassDensity();
-  const auto  damage = dataBase.solidDamage();
+  const auto  mass = state.fields(HydroFieldNames::mass, 0.0);
+  const auto  H = state.fields(HydroFieldNames::H, SymTensor::zero);
+  const auto  position = state.fields(HydroFieldNames::position, Vector::zero);
+  const auto  massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
+  const auto  damage = state.fields(SolidFieldNames::tensorDamage, SymTensor::zero);
   
   // Compute the volumes
   computeRKVolumes(connectivityMap, W,
@@ -117,8 +131,8 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
     (*boundItr)->finalizeGhostBoundary();
   }
   
-  // Allocate correction fields
-  for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
+  // // Allocate correction fields
+  // for (auto order: mOrders) mCorrections[order] = dataBase.newFluidFieldList(RKCoefficients<Dimension>(), RKFieldNames::rkCorrections(order));
   
   // Compute corrections
   for (auto order: mOrders) {
@@ -155,9 +169,9 @@ RKCorrections<Dimension>::
 registerState(DataBase<Dimension>& dataBase,
               State<Dimension>& state) {
   // Stuff RKCorrections owns
-  state.enrollAny(RKFieldNames::rkOrders, mOrders);
+  state.enroll(RKFieldNames::rkOrders, mOrders);
   for (auto order: mOrders) {
-    state.enrollAny(RKFieldNames::reproducingKernel(order), mWR[order]);
+    state.enroll(RKFieldNames::reproducingKernel(order), mWR[order]);
     state.enroll(mCorrections[order]);
   }
   state.enroll(mVolume);
@@ -209,6 +223,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto normal = state.fields(HydroFieldNames::normal, Vector::zero);
   auto surfacePoint = state.fields(HydroFieldNames::surfacePoint, 0);
   auto etaVoidPoints = state.fields(HydroFieldNames::etaVoidPoints, std::vector<Vector>());
+  auto zerothCorrections = state.fields(RKFieldNames::rkCorrections(RKOrder::ZerothOrder), RKCoefficients<Dimension>());
 
   // Apply ghost boundary conditions
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
@@ -325,7 +340,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 // Compute new RK corrections
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void
+bool
 RKCorrections<Dimension>::
 initialize(const typename Dimension::Scalar time,
            const typename Dimension::Scalar dt,
@@ -354,20 +369,22 @@ initialize(const typename Dimension::Scalar time,
   }
   
   // Apply ghost boundaries to corrections
-  for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) {
-    (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
-    (*boundaryItr)->applyFieldListGhostBoundary(surfaceArea);
-    (*boundaryItr)->applyFieldListGhostBoundary(normal);
-    for (auto order: mOrders) {
-      if (order != RKOrder::ZerothOrder) {
-        auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
-        (*boundaryItr)->applyFieldListGhostBoundary(corrections);
-      }
-    }
-  }
-  for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
-    (*boundItr)->finalizeGhostBoundary();
-  }
+  return true;
+
+  // for (auto boundaryItr = this->boundaryBegin(); boundaryItr < this->boundaryEnd(); ++boundaryItr) {
+  //   (*boundaryItr)->applyFieldListGhostBoundary(zerothCorrections);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(surfaceArea);
+  //   (*boundaryItr)->applyFieldListGhostBoundary(normal);
+  //   for (auto order: mOrders) {
+  //     if (order != RKOrder::ZerothOrder) {
+  //       auto corrections = state.fields(RKFieldNames::rkCorrections(order), RKCoefficients<Dimension>());
+  //       (*boundaryItr)->applyFieldListGhostBoundary(corrections);
+  //     }
+  //   }
+  // }
+  // for (auto boundItr = this->boundaryBegin(); boundItr < this->boundaryEnd(); ++boundItr) {
+  //   (*boundItr)->finalizeGhostBoundary();
+  // }
 }
 
 //------------------------------------------------------------------------------

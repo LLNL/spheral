@@ -1,7 +1,175 @@
-Version vX.Y.Z -- Release date xxxx-xx-xx
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
 ==============================================
   * Important Notes:
-    * 
+
+Notable changes include:
+
+  * New features / API changes:
+    * The tpl-manager.py is completely overhauled to include the following:
+      * Utilize the Spheral Spack environments.
+      * Handle some build cache functionality.
+      * Do things Uberenv did like download and install Spack itself.
+    * Implicit time integration is now supported.
+      * CrankNicolsonIntegrator is the current implicit default
+      * The Physics package interface has been augmented to support implicit integration with two important
+        methods that must be provide:
+        * Physics::dtImplicit to provide a maximum bounding time step
+        * Physics::maxResidual should provide a maximum dimensionles residual change to check for convergence
+      * Sundials is now an optional (but default) third-party lib in Spheral, and provides a non-linear solver
+        we now wrap in a new Solver interface in Spheral (wrapping Sundials KINSOL solver).
+    * FSISPH has a new flag (decoupleDamagedMaterial, default True) which can be turned off to more tightly
+      couple damaged to undamaged material.
+      * planeStrain has been removed as an option in FSISPH as part of unifying deviatoric evolution with other
+        hydros.
+    * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
+      package itself, which most folks outside LLNL will not necessarily have.
+    * Both ASPH and ASPHClassic now allow the user to override the final H evolution through optional functors added to the classes:
+      - HidealFilter
+      - RadialFunctor
+    * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method)
+
+  * Build changes / improvements:
+    * Native Spack environments are now being used.
+      * Uberenv is no longer used.
+      * Adds logic to simplify building on non-LC systems; tries to find existing installed compilers and packages.
+      * Adds spack.yaml environment files for current LC systems and a dev_pkg environment, which is used for creating the build cache.
+      * Local Spack packages for TPLs are removed or simplified when possible since the builtin Spack packages are no longer replaced.
+      * The upstream Spack instance is no longer used when creating the build cache.
+      * The package.yaml for Spheral is improved to allow full Spheral installation through Spack.
+      * Centralizes things like upstream location, compiler types and versions, and specs in the environments and configs.
+
+  * Bug Fixes / improvements:
+    * ATS submodule is updated to fix bug with latest Flux update on LC systems.
+    * Update Polytope version.
+    * TPL manager removes the symoblic links to the install directory.
+    * Consolidated CMake configured files into SpheralConfigs.py.in
+    * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros
+
+Version v2025.01.0 -- Release date 2025-01-31
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+    * MPI variables are now wrapped as
+      ```
+      SPHERAL_OP_SUM, SPHERAL_OP_MAX, SPHERAL_OP_MIN
+      ```
+    * CHAI added as a submodule of Spheral for co-developing features necessary for GPU port.
+    * RAJA & Umpire added as first level dependencies.
+    * Axom updated to v0.9.0.
+    * TPL builds have been split off into a separate Gitlab CI stage to help with timeouts on allocations.
+    * Failed ATS runs are automatically retested once in the Gitlab CI.
+    * Python execute command is centralized in scripts/spheralutils.py now.
+    * Caliper updated v2.11.
+    * Adiak added as TPL.
+    * Created singleton wrapper for cali::ConfigManger and python wrapped Caliper timer and Adiak routines.
+    * New ASPH idealH algorithm implemented, which is much more robust and accurate as H elongations become extreme.
+    * New experimental hourglass control algorithm implemented, along with some basic tests/demonstrations.
+    * H update algorithms converted to their own independent physics packages, no longer part of the various hydro packages.
+    * Physics interface updated slightly:
+      * Physics::postStateUpdate now returns a bool indicating if boundary conditions should be enforced again.
+      * Physics packages can now have Physics sub-packages, which can be run before or after the main package.  The SpheralController
+        now checks for these packages and adds them to the physics package list as needed.
+      * Physics packages can indicate if they require Voronoi cell information be available. If so, a new package which computes and
+        updates the Voronoi information is automatically added to the package list by the SpheralController (similar to how the
+        Reproducing Kernel corrections are handled).
+    * Command line options are now consistent. Default values of a string "None" are no longer allowed and any input through the command line of "None" will become the python NoneType None.
+    * Cleaned up use of std::any in State objects using a visitor pattern to be rigorous ensuring all state entries are handled properly
+      during assignement, equality, and cloning operations. This is intended to help ensure our Physics advance during time integration
+      is correct.
+    * Performance regression testing is now available. All developers are encouraged to run the performance testing suite for any code changes that might impact performance. See documentation for more details.
+    * Added our old ASPH IdealH H update as an option. While it is not as reliable as our current default ASPH, it does not require building the Voronoi and is therefore signifcantly faster.
+    * Converted artificial viscosities to Physics packages, and add them as pre-subpackages to Hydro objects.
+    * Split artificial viscosities based on the type of pressure they compute (currently Scalar or Tensor), which is slightly more efficient.
+      * This required making the hydro packages evaluateDerivatives into templated methods based on the type of Q they are handed.
+      * Also introduced a new base class (ArtificialViscosityHandle), which provides a handle class not templated on the type
+        of Q pressure for Hydro objects to hold onto.
+
+  * Build changes / improvements:
+    * Distributed source directory must always be built now.
+    * Git strategies in the Gitlab CI are fixed so a clone only occurs on the first stage for each job, instead of for all stages for each job.
+    * New Gitlab CI pipeline cleanup strategy deletes job directories immediately upon successful completion.
+    * The FSISPH package is now optional (SPHERAL\_ENABLE\_FSISPH).
+    * The GSPH package is now optional (SPHERAL\_ENABLE\_GSPH).
+    * The SVPH package is now optional (SPHERAL\_ENABLE\_SVPH).
+    * Cleaner Spheral Spack package.
+    * ENABLE\_DEV\_BUILD can now export targets properly.
+    * Added a GCC flag to prevent building variable tracking symbols when building PYB11 modules.  This is unnecessary, and
+      on some platforms trying to build such symbols is very expensive and in some cases fails.
+    * Consolidates lcatstest.in and run\_ats.py into a single spheral\_ats.py script.
+    * SPHERAL\_TEST\_INSTALL\_PREFIX now includes the tests directory.
+    * Removed most configured files and added a SpheralConfigs.py file to use at runtime instead.
+    * Python runtime packages are now handled in the Spheral build pipeline with pip.
+      * Removed pip package dependencies from spack.
+      * Introduced Spheral_Python_Env function to manage Python environments for build and runtime dependencies.
+      * spheral-setup-venv now only copies installed Spheral libraries to environments at install time.
+      * Added pip cache support to local directory (~/.cache/spheral_pip/), customizable via SPHERAL_PIP_CACHE_DIR.
+      * Added ATS as a submodule due to lack of PyPI package.
+
+    * Moved Spheral from BlueOS/NVIDIA systems to support CRAY/AMD.
+      * Migrated CI to CRAY/AMD due to pip compatibility issues with BlueOS.
+      * Added HIP support for device/offload tests and updated TPLs for HIP-enabled builds.
+      * Updated GitLab CI and Developer scripts for flux scheduling system compatibility.
+
+  * Bug Fixes / improvements:
+    * Wrappers for MPI calls are simplified and improved.
+    * Time step estimate due to velocity divergence in RZ space has been fixed.
+    * Fixed tolerances for ANEOS equation of state temperature lookup
+    * Clang C++ warnings have eliminated, so the Clang CI tests have been updated to treat warnings as errors.
+    * Fix for installing libraries when building individual package with ENABLE\_DEV\_BUILD=On.
+    * Bugfix for RZ solid CRKSPH with compatible energy.
+    * Parsing of None string now always becomes None python type. Tests have been updated accordingly.
+    * IO for checkpoints and visuzalization can now be properly turned off through SpheralController input options.
+    * Bugfix for atomicWeight in ANEOS.
+    * Fixed porosity model interaction with damage for zero porosity case.
+
+Version v2024.06.1 -- Release date 2024-07-09
+==============================================
+
+  * Important Notes:
+    * This is a patch release for v2024.06.0.
+
+  * Bug Fixes / improvements:
+    * CD pipeline hotfix for installing release builds on LC machines.
+    * Fixes an issue with the use of the axom::quest::SignedDistance interface. 
+
+Version v2024.06.0 -- Release date 2024-06-27
+==============================================
+  * Important Notes:
+    * External users of the code will need to supply config files for tpl-manager to find system libraries correctly. Steps to do this are detailed in the external user build guide. 
+
+Notable changes include:
+
+  * New features / API changes:
+    * Added MFV hydro from Hopkins 2015 with extension for ALE options.
+    * Adding optional user specified smoothing scale method for SPH, FSISPH, and CRKSPH.
+
+  * Build changes / improvements:
+    * PYBind11 libraries no longer depend on the structure of the PYB11 source directory.
+      * CMake interface for adding PYBind11 target libraries is modified to more closely match how C++ libraries are created.
+      * Multiple Spheral Python modules / CMake targets can be specified for a single directory.
+      * KernelIntegrator and FieldList directories are divided into 2 modules / targets.
+    * tpl-manager.py will no longer use generic x86_64 configs for non LC systems. Users will be required to supply their own configs for pointing spack at external packages.
+    * Spack version is increased from 0.19 to 0.22.
+    * Spack upstream is updated.
+    * Removed the python 3 module load for the Gitlab CI to fix an issue with pkg-config changing.
+    * Zlib target and TPL cmake file is removed.
+    * PYB11Generator repo is updated.
+    * Spack config and package files inside Spheral are updated to accommodate Spack 0.22.
+      * Package recipes for py-numpy-stl, py-pillow, py-pipreqs, td, and tk are removed.
+      * Versions for python dependencies in the Spheral spack recipe are fixed and updated (in some cases).
+
+  * Bug Fixes / improvements:
+    * Corrected an erroneous VERIFY in the P-alpha porosity constructor (with Fields of porosity and sound speed) that forced runs to stop even with correct input parameters
+    * Fixed a bug in the standard ASPH hydros (ASPH, SolidASPH, and RZ varieties) that gave incorrect results.  FSI ad CRK models with ASPH smoothing scales were OK, but standard
+      SPH using ASPH smoothing scales were simply incorrect for non-unit aspect ratio H's.  Also added ATS tests to help catch such errors going forward.
+
+Version v2024.01.1 -- Release date 2024-02-17
+==============================================
+  * Important Notes:
+    * This is a patch release for v2024.01.0.
 
 Notable changes include:
 
@@ -9,13 +177,22 @@ Notable changes include:
     * Adding an optional second-stage problem start-up hook to the Physics package interface: Physics::initializeProblemStartupDependencies.  The idea is to keep basic sizing
       of arrays and such in the first stage (Physics::initializeProblemStartup), while this new hook is used for updating any initial Physics state (and therefore provides a
       State and StateDerivatives object).
-
+    * DEM
+      * new field list to track max particle overlap
+      * user can optional turn off fast time stepping
+      
   * Build changes / improvements:
-    * 
+    * Improved the target export functionality.
 
   * Bug Fixes / improvements:
     * Fixed bug with ConstantBoundary in the presence of porosity with the new porosity models introduced in v2024.01.00.
+    * Updating header lists for including Spheral modules in external projects.
+    * Adding effective viscous pressure back to FSISPH.
     * Initial volumes for damage models were incorrectly not taking into account pore space when computing failure statistics for seeding flaws.  Fixed.
+    * DEM
+      * fixed bug in solid boundary unique indices that causes particle sticking
+      * fixed bug in solid boundary update policies 
+      * fixed solid boundary restartability for moving bcs
 
 Version v2024.01.00 -- Release date 2024-01-19
 ==============================================
@@ -192,7 +369,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 
 Notable changes include:
 
-  * New features/ API changes:
+  * New features / API changes:
 
   * Build changes / improvements:
 

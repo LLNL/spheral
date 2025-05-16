@@ -5,7 +5,7 @@
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
-#include "Utilities/allReduce.hh"
+#include "Distributed/allReduce.hh"
 #include "Distributed/Communicator.hh"
 
 #include <cmath>
@@ -710,7 +710,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 sumElements() const {
-  return allReduce(this->localSumElements(), MPI_SUM, Communicator::communicator());
+  return allReduce(this->localSumElements(), SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -721,7 +721,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 min() const {
-  return allReduce(this->localMin(), MPI_MIN, Communicator::communicator());
+  return allReduce(this->localMin(), SPHERAL_OP_MIN);
 }
 
 //------------------------------------------------------------------------------
@@ -732,7 +732,7 @@ inline
 DataType
 Field<Dimension, DataType>::
 max() const {
-  return allReduce(this->localMax(), MPI_MAX, Communicator::communicator());
+  return allReduce(this->localMax(), SPHERAL_OP_MAX);
 }
 
 //------------------------------------------------------------------------------
@@ -1036,8 +1036,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::iterator
 Field<Dimension, DataType>::internalEnd() {
-  CHECK(this->nodeList().firstGhostNode() >= 0 &&
-         this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  CHECK(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
@@ -1098,8 +1097,7 @@ template<typename Dimension, typename DataType>
 inline
 typename Field<Dimension, DataType>::const_iterator
 Field<Dimension, DataType>::internalEnd() const {
-  REQUIRE(this->nodeList().firstGhostNode() >= 0 &&
-          this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
+  REQUIRE(this->nodeList().firstGhostNode() <= this->nodeList().numNodes());
   return mDataArray.begin() + this->nodeList().firstGhostNode();
 }
 
@@ -1287,8 +1285,8 @@ void
 Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
   const unsigned currentSize = this->size();
   const unsigned numInternalNodes = this->nodeList().numInternalNodes();
+  CHECK(currentSize >= numInternalNodes);
   const unsigned currentNumGhostNodes = currentSize - numInternalNodes;
-  REQUIRE(currentNumGhostNodes >= 0);
   const unsigned newSize = numInternalNodes + size;
   REQUIRE(newSize == this->nodeList().numNodes());
 

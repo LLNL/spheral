@@ -703,6 +703,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
     {
       CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
+      CONTRACT_VAR(totalNumRecvs);
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
@@ -742,6 +743,7 @@ beginExchangeFieldFixedSize(FieldBase<Dimension>& field) const {
     {
       CHECK(mSendBuffers.size() == mField2SendBuffer.size());
       int totalNumSends = 0;
+      CONTRACT_VAR(totalNumSends);
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
@@ -897,6 +899,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
     {
       CHECK(mSendBuffers.size() == mField2SendBuffer.size());
       int totalNumSends = 0;
+      CONTRACT_VAR(totalNumSends);
       for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
            itr != mSendBuffers.end();
            ++itr) totalNumSends += itr->size();
@@ -949,6 +952,7 @@ beginExchangeFieldVariableSize(FieldBase<Dimension>& field) const {
     {
       CHECK2(mRecvBuffers.size() == mField2RecvBuffer.size(), mRecvBuffers.size() << " != " << mField2RecvBuffer.size());
       int totalNumRecvs = 0;
+      CONTRACT_VAR(totalNumRecvs);
       for (typename list< list< vector<char> > >::const_iterator itr = mRecvBuffers.begin();
            itr != mRecvBuffers.end();
            ++itr) totalNumRecvs += itr->size();
@@ -1287,6 +1291,8 @@ DistributedBoundary<Dimension>::finalizeExchanges() {
     // Count the numbers of send and receive buffers and requests.
     int numSendBuffers = 0;
     int numRecvBuffers = 0;
+    CONTRACT_VAR(numSendBuffers);
+    CONTRACT_VAR(numRecvBuffers);
     for (typename list< list< vector<char> > >::const_iterator itr = mSendBuffers.begin();
          itr != mSendBuffers.end();
          ++itr) numSendBuffers += itr->size();
@@ -1403,8 +1409,7 @@ setControlAndGhostNodes() {
 
         // Add the send nodes for this domain to the control node list.
         const vector<int>& sendNodes = domainNodes.sendNodes;
-        CHECK(controlNodes.size() + sendNodes.size() >= 0 and
-              controlNodes.size() + sendNodes.size() < 10000000);
+        CHECK(controlNodes.size() + sendNodes.size() < 10000000);
         controlNodes.reserve(controlNodes.size() + sendNodes.size());
         for (vector<int>::const_iterator sendItr = sendNodes.begin();
              sendItr < sendNodes.end();
@@ -1412,8 +1417,7 @@ setControlAndGhostNodes() {
 
         // Add the receive nodes to the ghost node list.
         const vector<int>& recvNodes = domainNodes.receiveNodes;
-        CHECK(ghostNodes.size() + sendNodes.size() >= 0 and
-              ghostNodes.size() + sendNodes.size() < 10000000);
+        CHECK(ghostNodes.size() + sendNodes.size() < 10000000);
         ghostNodes.reserve(ghostNodes.size() + sendNodes.size());
         for (vector<int>::const_iterator recvItr = recvNodes.begin();
              recvItr < recvNodes.end();

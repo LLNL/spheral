@@ -6,7 +6,6 @@
 
 #include "FSIFieldNames.hh"
 
-const std::string Spheral::FSIFieldNames::damagedPressure = "damaged pressure";
 const std::string Spheral::FSIFieldNames::pressureGradient = "pressureGradient";
 const std::string Spheral::FSIFieldNames::specificThermalEnergyGradient = "specificThermalEnergyGradient";
 const std::string Spheral::FSIFieldNames::interfaceFlags = "interfaceFlags";

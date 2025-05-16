@@ -77,7 +77,10 @@ public:
 
   // Get the set of NodeLists.
   const std::vector<const NodeList<Dimension>*>& nodeLists() const;
+
+  // The set of pairs
   const NodePairList& nodePairList() const;
+  std::shared_ptr<NodePairList> nodePairListPtr() const;
 
   // A functor to specify the coupling between nodes
   NodeCoupling& coupling();
@@ -133,18 +136,18 @@ public:
                             const int nodeListj, const int j) const;
 
   // Compute the number of neighbors for the given node.
-  int numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
-                          const int nodeID) const;
+  size_t numNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+                             const int nodeID) const;
 
-  int numNeighborsForNode(const int nodeListID,
-                          const int nodeID) const;
+  size_t numNeighborsForNode(const int nodeListID,
+                             const int nodeID) const;
 
   // Compute the number of overlap neighbors for the given node.
-  int numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
-                                 const int nodeID) const;
+  size_t numOverlapNeighborsForNode(const NodeList<Dimension>* nodeListPtr,
+                                    const int nodeID) const;
 
-  int numOverlapNeighborsForNode(const int nodeListID,
-                                 const int nodeID) const;
+  size_t numOverlapNeighborsForNode(const int nodeListID,
+                                    const int nodeID) const;
   
   // Return the connectivity in terms of global node IDs.
   std::map<int, std::vector<int> > globalConnectivity(std::vector<Boundary<Dimension>*>& boundaries) const;
@@ -163,7 +166,7 @@ public:
   const_iterator end(const int nodeList) const;
 
   // Return the number of nodes we should walk for the given NodeList.
-  int numNodes(const int nodeList) const;
+  size_t numNodes(const int nodeList) const;
 
   // The ith node (ordered) in the given NodeList.
   int ithNode(const int nodeList, const int index) const;
@@ -194,7 +197,7 @@ private:
   ConnectivityStorageType mConnectivity;
 
   // List of Node conncetion pairs.
-  NodePairList mNodePairList;
+  std::shared_ptr<NodePairList> mNodePairListPtr;
 
   // Same for overlap connectivity.
   ConnectivityStorageType mOverlapConnectivity;

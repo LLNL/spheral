@@ -20,7 +20,7 @@
 #include "Utilities/globalNodeIDs.hh"
 #include "Utilities/bisectSearch.hh"
 #include "Utilities/RedistributionRegistrar.hh"
-#include "Utilities/allReduce.hh"
+#include "allReduce.hh"
 #include "Communicator.hh"
 
 #include "Utilities/DBC.hh"
@@ -157,27 +157,27 @@ redistributeNodes(DataBase<Dimension>& dataBase,
 
     // Compute the target work per domain.
     const Scalar targetWork = workField.sumElements()/numProcs;
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Target work per process " << targetWork << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Target work per process " << targetWork << endl;
 
     // Compute the Key indices for each point on this processor.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Hashing indices" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Hashing indices" << endl;
     FieldList<Dimension, Key> indices = computeHashedIndices(dataBase);
 
     // Find the range of hashed indices.
     const Key indexMin = indices.min();
     const Key indexMax = indices.max();
     CHECK(indexMax < indexMax + indexMax);
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Index min/max : " << indexMin << " " << indexMax << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Index min/max : " << indexMin << " " << indexMax << endl;
 
     // Build the array of (hashed index, DomainNode) pairs.
     // Note this comes back locally sorted.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: sorting indices" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: sorting indices" << endl;
     vector<pair<Key, DomainNode<Dimension> > > sortedIndices = buildIndex2IDPairs(indices,
                                                                                   nodeDistribution);
     const int numLocalNodes = nodeDistribution.size();
 
     // Build our set of unique indices and their count.
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: Counting uniques and such" << endl;
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: Counting uniques and such" << endl;
     vector<Key> uniqueIndices;
     vector<int> count;
     vector<Scalar> work;
@@ -208,8 +208,8 @@ redistributeNodes(DataBase<Dimension>& dataBase,
       CHECK(count.size() == uniqueIndices.size());
       CHECK(work.size() == uniqueIndices.size());
     }
-    maxCount = allReduce(maxCount, MPI_MAX, Communicator::communicator());
-    if (procID == 0) cerr << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
+    maxCount = allReduce(maxCount, SPHERAL_OP_MAX);
+    if (procID == 0) cout << "SpaceFillingCurveRedistributeNodes: max redundancy is " << maxCount << endl;
 
     //   // DEBUG
     //   {
@@ -446,7 +446,7 @@ numIndicesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimen
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  result = allReduce(result, SPHERAL_OP_SUM);
 
   return result;
 }
@@ -478,7 +478,7 @@ workInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension>:
   }
 
   // Globally reduce that sucker.
-  result = allReduce(result, MPI_SUM, Communicator::communicator());
+  result = allReduce(result, SPHERAL_OP_SUM);
 
   return result;
 }
@@ -518,8 +518,8 @@ workAndNodesInRange(const vector<typename SpaceFillingCurveRedistributeNodes<Dim
   }
 
   // Globally reduce that sucker.
-  workInRange = allReduce(workInRange, MPI_SUM, Communicator::communicator());
-  countInRange = allReduce(countInRange, MPI_SUM, Communicator::communicator());
+  workInRange = allReduce(workInRange, SPHERAL_OP_SUM);
+  countInRange = allReduce(countInRange, SPHERAL_OP_SUM);
 }
 
 //------------------------------------------------------------------------------
@@ -563,7 +563,7 @@ findNextIndex(const vector<typename SpaceFillingCurveRedistributeNodes<Dimension
   }
 
   // Get the global answer.
-  result = allReduce(result, MPI_MIN, Communicator::communicator());
+  result = allReduce(result, SPHERAL_OP_MIN);
 
   // That's it.
   ENSURE(result <= maxIndex);

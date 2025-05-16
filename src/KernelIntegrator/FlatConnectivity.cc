@@ -6,17 +6,14 @@
 #include "FlatConnectivity.hh"
 
 #include <algorithm>
-#ifdef USE_MPI
-#include "mpi.h"
-#endif
 
 #include "Boundary/ConstantBoundary.hh"
 #include "Boundary/InflowOutflowBoundary.hh"
 #include "DataBase/DataBase.hh"
 #include "DataBase/State.hh"
-#include "Distributed/Communicator.hh"
 #include "Geometry/CellFaceFlag.hh"
 #include "Hydro/HydroFieldNames.hh"
+#include "Distributed/allReduce.hh"
 #include "Utilities/DBC.hh"
 #include "Utilities/globalNodeIDs.hh"
 
@@ -216,9 +213,9 @@ computeOverlapIndices(const DataBase<Dimension>& dataBase) {
   VERIFY(!requireGhostConnectivity || mGhostIndexingInitialized);
   
   // Make sure number of nodes has not changed since computing indices
-  VERIFY(numNodesDB == mNumLocalNodes);
+  VERIFY(numNodesDB == size_t(mNumLocalNodes));
   VERIFY(numNodeListsDB == mNodeToLocalIndex.size());
-  VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
+  VERIFY(numInternalNodesDB == size_t(mNumInternalLocalNodes));
   
   // Store the flattened overlap connectivity
   mNumOverlapNeighbors.resize(mNumConnectivityNodes);
@@ -324,23 +321,18 @@ computeGlobalIndices(const DataBase<Dimension>& dataBase,
   const auto numGlobalNodesDB = dataBase.globalNumFluidInternalNodes();
 
   // Make sure number of nodes has not changed since computing indices
-  VERIFY(numNodesDB == mNumLocalNodes);
+  VERIFY(numNodesDB == size_t(mNumLocalNodes));
   VERIFY(numNodeListsDB == mNodeToLocalIndex.size());
-  VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
+  VERIFY(numInternalNodesDB == size_t(mNumInternalLocalNodes));
   
   // Get global indices manually
-#ifdef USE_MPI
-  int globalScan = 0;
-  MPI_Scan(&mNumInternalLocalNodes, &globalScan, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+  int globalScan = distScan(mNumInternalLocalNodes, SPHERAL_OP_SUM);
   VERIFY(globalScan >= mNumInternalLocalNodes);
   mFirstGlobalIndex = globalScan - mNumInternalLocalNodes;
   mLastGlobalIndex = globalScan - 1;
-  MPI_Allreduce(&mNumInternalLocalNodes, &mNumGlobalNodes, 1, MPI_INT, MPI_SUM, Communicator::communicator());
+  mNumGlobalNodes = allReduce(mNumInternalLocalNodes, SPHERAL_OP_SUM);
   VERIFY(mNumGlobalNodes >= mNumInternalLocalNodes);
-#else
-  mNumGlobalNodes = mNumInternalLocalNodes;
-#endif
-  VERIFY(mNumGlobalNodes == numGlobalNodesDB);
+  VERIFY(mNumGlobalNodes == int(numGlobalNodesDB));
   // std::cout << Process::getRank() << "\t" << mNumInternalLocalNodes << "\t" << mNumGlobalNodes << "\t" << mFirstGlobalIndex << "\t" << mLastGlobalIndex << std::endl;
   
   FieldList<Dimension, int> globalNodeIndices = dataBase.newFluidFieldList(0, "global node IDs");
@@ -421,9 +413,9 @@ computeSurfaceIndices(const DataBase<Dimension>& dataBase,
 #endif
   
   // Make sure number of nodes has not changed since computing indices
-  VERIFY(numNodesDB == mNumLocalNodes);
+  VERIFY(numNodesDB == size_t(mNumLocalNodes));
   VERIFY(numNodeListsDB == mNodeToLocalIndex.size());
-  VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
+  VERIFY(numInternalNodesDB == size_t(mNumInternalLocalNodes));
 
   // Since we are doing a gather operation, we need to make sure to clear out old data first
   mSurfaceNormal.resize(mNumLocalNodes);
@@ -559,9 +551,9 @@ computeBoundaryInformation(const DataBase<Dimension>& dataBase,
   const auto numInternalNodesDB = dataBase.numFluidInternalNodes();
 
   // Make sure the sizes haven't changed since the indexing was initialized
-  VERIFY(numNodesDB == mNumLocalNodes);
+  VERIFY(numNodesDB == size_t(mNumLocalNodes));
   VERIFY(numNodeListsDB == mNodeToLocalIndex.size());
-  VERIFY(numInternalNodesDB == mNumInternalLocalNodes);
+  VERIFY(numInternalNodesDB == size_t(mNumInternalLocalNodes));
   
   // Initialize the arrays
   mConstantBoundaryNodes.clear();

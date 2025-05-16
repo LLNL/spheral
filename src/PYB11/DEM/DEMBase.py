@@ -10,12 +10,13 @@ from Physics import *
 class DEMBase(Physics):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename DEMDimension<%(Dimension)s>::AngularVector RotationType;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using RotationType = typename DEMDimension<%(Dimension)s>::AngularVector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
 """
     
     def pyinit(dataBase = "const DataBase<%(Dimension)s>&",
@@ -58,8 +59,7 @@ class DEMBase(Physics):
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the DEM before we start a derivative evaluation."
-        return "void"
-                       
+        return "bool"                
 
     @PYB11virtual
     @PYB11const
@@ -105,19 +105,13 @@ class DEMBase(Physics):
         return "void"
 
     @PYB11const
-    def numSolidBoundaries(self):
-        "return the number of solid boundaries being tracked"
-        return "unsigned int"
-
-    @PYB11const
     def haveSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
         "is this boundary being tracked?"
         return "bool"
-
-    @PYB11const
-    def getSolidBoundaryUniqueIndex(x="const int"):
-        "Unique index for neighborIndices pairFieldList (returns -x-1)"
-        return "int"
+    
+    def removeSolidBoundary(boundary = "const SolidBoundaryBase<%(Dimension)s>&"):
+        "remove the specified solid boundary"
+        return "void"
 
     #...........................................................................
     # Properties
@@ -145,6 +139,8 @@ class DEMBase(Physics):
     DDtShearDisplacement = PYB11property("const FieldList<%(Dimension)s, vector<Vector>>&","DDtShearDisplacement", returnpolicy="reference_internal")
     isActiveContact = PYB11property("const FieldList<%(Dimension)s, vector<int>>&","isActiveContact", returnpolicy="reference_internal")
     
+    newSolidBoundaryIndex = PYB11property("int", "newSolidBoundaryIndex", doc="index of the most recent solid bc added to the package")
+    numSolidBoundaries = PYB11property("unsigned int", "numSolidBoundaries", doc="number of solid boundaries")
     numContacts = PYB11property("unsigned int", "numContacts", doc="Total number of contacts")
     numParticleParticleContacts = PYB11property("unsigned int", "numParticleParticleContacts", doc="Number of interactions with other dem particles")
     numParticleBoundaryContacts = PYB11property("unsigned int", "numParticleBoundaryContacts", doc="Number interactions with solid boundaries")

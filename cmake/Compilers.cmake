@@ -14,7 +14,10 @@ option(ENABLE_MISSING_INCLUDE_DIR_WARNINGS "show unused parameter warnings" ON)
 set(CXX_WARNING_FLAGS "")
 if (ENABLE_WARNINGS)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    list(APPEND CXX_WARNING_FLAGS -Wno-unused-command-line-argument -Wno-c++17-extensions)
+    list(APPEND CXX_WARNING_FLAGS -fdiagnostics-show-option -Wno-unused-command-line-argument -Wno-c++17-extensions)
+    if(CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 18.0.0)
+      list(APPEND CXX_WARNING_FLAGS -Wno-enum-constexpr-conversion -Wno-deprecated-declarations)
+    endif()
   endif()
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
@@ -59,7 +62,6 @@ message("-- using warning flags ${CXX_WARNING_FLAGS}")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wno-missing-include-dirs")
 message("-- Fortran flags: ${CMAKE_Fortran_FLAGS}")
 
-
 #-------------------------------------------------------------------------------
 # PYB11 Target Flags
 #-------------------------------------------------------------------------------
@@ -75,7 +77,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-delete-abstract-non-virtual-dtor)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   list(APPEND SPHERAL_PYB11_TARGET_FLAGS
-    -Wno-pedantic)
+    -Wno-pedantic
+    -fno-var-tracking-assignments)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -85,3 +88,21 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(CMAKE_CXX_FLAGS -wd11074,11076,654)
   set(SPHERAL_PYB11_TARGET_FLAGS )
 endif()
+
+#-------------------------------------------------------------------------------
+# BlueOS specific flags
+#-------------------------------------------------------------------------------
+if (DEFINED ENV{SYS_TYPE})
+  if ("$ENV{SYS_TYPE}" STREQUAL "blueos_3_ppc64le_ib_p9")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+      set(CXX_BLUEOS_FLAGS "-Os")    # Needed to prevent relocation overflow errors during link
+      add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${CXX_BLUEOS_FLAGS}>")
+      message("-- Adding ${CXX_BLUEOS_FLAGS} to C++ compile flags")
+    endif()
+  endif()
+endif()
+#set(CXX_STRIP_FLAGS "-fdata-sections;-ffunction-sections")
+#set(CXX_LINK_STRIP_FLAGS "-Wl,--gc-sections")
+#set(CXX_LINK_STRIP_FLAGS "-Wl,-z combreloc")
+#add_link_options("${CXX_LINK_STRIP_FLAGS}")
+

@@ -317,6 +317,7 @@ integrateThroughMeshAlongSegment(const vector<vector<Value> >& values,
     REQUIRE(ncells.size() == Dimension::nDim);
     for (unsigned level = 0; level != values.size(); ++level) {
       unsigned ncellsTotal = 1;
+      CONTRACT_VAR(ncellsTotal);
       for (int i = 0; i != Dimension::nDim; ++i) ncellsTotal *= ncells[i]/(1U << level);
       REQUIRE(values[level].size() == ncellsTotal);
     }
@@ -334,6 +335,7 @@ integrateThroughMeshAlongSegment(const vector<vector<Value> >& values,
   Value result = DataTypeTraits<Value>::zero();
   Vector lastPoint = s0;
   double cumulativeLength = 0.0;
+  CONTRACT_VAR(cumulativeLength);
   for (typename vector<Vector>::const_iterator itr = intersections.begin();
        itr != intersections.end();
        ++itr) {

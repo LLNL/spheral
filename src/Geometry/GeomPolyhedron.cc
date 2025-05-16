@@ -17,9 +17,14 @@
 #include "Utilities/pointInPolyhedron.hh"
 #include "Utilities/safeInv.hh"
 
-#include <vector>
-#include <map>
+#include "axom/mint.hpp"
+
 #include <algorithm>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <vector>
+
 using std::vector;
 using std::map;
 using std::pair;
@@ -34,12 +39,6 @@ extern "C" {
 }
 
 #include "Utilities/Timer.hh"
-
-#include <algorithm>
-#include <numeric>
-#include <map>
-#include <limits>
-#include <iterator>
 
 namespace Spheral {
 
@@ -984,9 +983,7 @@ buildAxomData() const {
   mSurfaceMeshQueryPtr = new AxOctree(bb, mSurfaceMeshPtr);
   mSurfaceMeshQueryPtr->generateIndex();
   mSignedDistancePtr = new AxDistance(mSurfaceMeshPtr,
-                                      true,               // is_watertight
-                                      25,                 // max_objects
-                                      10);                // max_levels
+                                      true);               // is_watertight
 }
 
 //------------------------------------------------------------------------------
@@ -1062,6 +1059,7 @@ decompose(std::vector<GeomPolyhedron>& subcells) const {
   {
     const auto originalVolume = this->volume();
     auto volumesum = 0.;
+    CONTRACT_VAR(volumesum);
     for (auto& subcell : subcells) {
       const auto subvolume = subcell.volume();
       CONTRACT_VAR(subvolume);
