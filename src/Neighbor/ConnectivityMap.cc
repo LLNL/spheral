@@ -8,6 +8,7 @@
 #include "ConnectivityMap.hh"
 #include "NodeList/NodeList.hh"
 #include "Neighbor/Neighbor.hh"
+#include "Neighbor/NodePairList.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Boundary/Boundary.hh"
@@ -271,7 +272,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     NodePairList culledPairs_thread;
     const auto npairs = currentPairs.size();
     culledPairs_thread.reserve(npairs);
-#pragma omp for
+#pragma omp for 
     for (auto k = 0u; k < npairs; ++k) {
       const auto iNodeList = currentPairs[k].i_list;
       const auto jNodeList = currentPairs[k].j_list;
@@ -280,12 +281,14 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       if (flags(iNodeList, i) != 0 and flags(jNodeList, j) != 0) {
         culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
                                                      old2new(jNodeList, j), jNodeList));
-    }
+      }
 #pragma omp critical
-    {
-      culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
+      {
+        culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
+      }
     }
   }
+  
   mNodePairListPtr = culledPairListPtr;
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
@@ -1144,7 +1147,7 @@ computeConnectivity() {
   //   }
   // }
 
-  mNodePairList.makeUnique();
+  mNodePairListPtr->makeUnique();
   
   // Post conditions.
   BEGIN_CONTRACT_SCOPE
@@ -1198,19 +1201,20 @@ removeConnectivity(std::function<bool(int, int, int, int)> excludePairs)
     }
   }
 
-  const auto npairs = mNodePairList.size();
+  auto& nodePairList = *mNodePairListPtr;
+  const auto npairs = nodePairList.size();
   auto l = 0u;
   for (auto k = 0u; k < npairs; ++k) {
-    const auto iNodeList = mNodePairList[k].i_list;
-    const auto jNodeList = mNodePairList[k].j_list;
-    const auto i = mNodePairList[k].i_node;
-    const auto j = mNodePairList[k].j_node;
+    const auto iNodeList = nodePairList[k].i_list;
+    const auto jNodeList = nodePairList[k].j_list;
+    const auto i = nodePairList[k].i_node;
+    const auto j = nodePairList[k].j_node;
     if (!excludePairs(iNodeList, i, jNodeList, j))
     {
-      mNodePairList[l++] = mNodePairList[k];
+      nodePairList[l++] = nodePairList[k];
     }
   }
-  mNodePairList.resize(l);
+  nodePairList.resize(l);
 }
 
 }
