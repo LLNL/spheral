@@ -64,7 +64,7 @@ public:
   SolidSPH& operator=(const SolidSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidSPH() = default;
+  virtual ~SolidSPH();
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.

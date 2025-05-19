@@ -94,7 +94,7 @@ public:
   SolidFSISPH(const SolidFSISPH&) = delete;
   SolidFSISPH& operator=(const SolidFSISPH&) = delete;
 
-  virtual ~SolidFSISPH() = default;
+  virtual ~SolidFSISPH();
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.

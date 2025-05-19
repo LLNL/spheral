@@ -61,7 +61,7 @@ public:
   CRKSPHRZ& operator=(const CRKSPHRZ&) = delete;
 
   // Destructor.
-  virtual ~CRKSPHRZ() = default;
+  virtual ~CRKSPHRZ();
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.

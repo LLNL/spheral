@@ -62,7 +62,7 @@ public:
   CRKSPH& operator=(const CRKSPH&) = delete;
 
   // Destructor.
-  virtual ~CRKSPH() = default;
+  virtual ~CRKSPH();
 
   // Register the state Hydro expects to use and evolve.
   virtual 

@@ -61,7 +61,7 @@ public:
   SPHRZ& operator=(const SPHRZ&) = delete;
 
   // Destructor.
-  virtual ~SPHRZ() = default;
+  virtual ~SPHRZ();
 
   // Register the state Hydro expects to use and evolve.
   virtual 

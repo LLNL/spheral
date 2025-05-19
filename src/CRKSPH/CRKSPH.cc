@@ -90,6 +90,15 @@ CRKSPH(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Destructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+CRKSPH<Dimension>::
+~CRKSPH(){
+  // Needs to be here due to implicit PairwiseField delete
+}
+
+//------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 template<typename Dimension>

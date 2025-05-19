@@ -61,7 +61,7 @@ public:
   SPH& operator=(const SPH&) = delete;
 
   // Destructor.
-  virtual ~SPH() = default;
+  virtual ~SPH();
 
   // Register the state
   virtual 

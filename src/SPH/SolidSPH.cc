@@ -180,6 +180,15 @@ SolidSPH(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
+// Destructor.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+SolidSPH<Dimension>::
+~SolidSPH(){
+  // Needs to be here due to implicit PairwiseField delete
+}
+
+//------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 template<typename Dimension>
