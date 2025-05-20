@@ -32,6 +32,9 @@ if "cirun" in opts and opts["cirun"]:
     CIRun = True
     test_runs = 5
     benchmark_dir = opts["benchmark_dir"]
+is_rerun = False
+if "rerun" in opts and opts["rerun"]:
+    is_rerun = True
 #---------------------------------------------------------------------------
 # Hardware configuration
 #---------------------------------------------------------------------------
@@ -82,12 +85,13 @@ def gather_files(manager):
     instpath = os.path.join(benchmark_dir, spheral_install_config)
     macpath = os.path.join(instpath, hostname)
     outdir = os.path.join(macpath, "latest")
-    if (os.path.exists(outdir)):
-        # Move existing benchmark data to a different directory
-        log(f"Renaming existing {outdir} to {int(time.time())}", echo=True)
-        os.rename(outdir, os.path.join(macpath, f"{int(time.time())}"))
-    log(f"Creating {outdir}", echo=True)
-    os.makedirs(outdir)
+    if (not is_rerun):
+        if (os.path.exists(outdir)):
+            # Move existing benchmark data to a different directory
+            log(f"Renaming existing {outdir} to {int(time.time())}", echo=True)
+            os.rename(outdir, os.path.join(macpath, f"{int(time.time())}"))
+        log(f"Creating {outdir}", echo=True)
+        os.makedirs(outdir)
     filtered = [test for test in manager.testlist if test.status is PASSED]
     # Set read/write/execute permissions for owner and group
     perms = stat.S_IRWXU | stat.S_IRWXG

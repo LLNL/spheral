@@ -202,6 +202,8 @@ def plot_hist_times(bench_path, test_name, region = comp_region, metric = comp_m
     ax.set_xlabel("Date")
     ax.set_ylabel(f"{metric} (s)")
     ax.set_title(f"{test_name}, region: {region}")
+    figs.tight_layout(pad=1.1)
+    figs.set_figheight(4.2)
     if (savefile):
         plt.savefig(savefile)
     else:
