@@ -95,7 +95,6 @@ def gather_files(manager):
     filtered = [test for test in manager.testlist if test.status is PASSED]
     # Set read/write/execute permissions for owner and group
     perms = stat.S_IRWXU | stat.S_IRWXG
-    bfiles = []
     for test in filtered:
         run_dir = test.directory
         cali_filename = test.options["caliper_filename"]
@@ -105,7 +104,6 @@ def gather_files(manager):
         log(f"Copying {cali_filename} to {outdir}", echo=True)
         if (CIRun):
             shutil.copy(cfile, outfile)
-            bfiles.append(outfile)
             os.chmod(outfile, perms)
             shutil.chown(outfile, group="sduser")
     if (CIRun):
