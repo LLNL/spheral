@@ -272,7 +272,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
     NodePairList culledPairs_thread;
     const auto npairs = currentPairs.size();
     culledPairs_thread.reserve(npairs);
-#pragma omp for 
+#pragma omp for
     for (auto k = 0u; k < npairs; ++k) {
       const auto iNodeList = currentPairs[k].i_list;
       const auto jNodeList = currentPairs[k].j_list;
@@ -288,7 +288,7 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
       culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
     }
   }
-  
+
   mNodePairListPtr = culledPairListPtr;
 
   // Sort the NodePairList in order to enforce domain decomposition independence.
