@@ -2,8 +2,8 @@
 
 import sys, os, shutil, glob, argparse
 # Import performance_analysis module
-file_loc = os.path.join(os.path.dirname(__file__), "../devtools")
-sys.path.append(file_loc)
+file_loc = os.path.dirname(__file__)
+sys.path.append(os.path.join(file_loc, "../devtools"))
 import performance_analysis as pf
 import thicket as th
 import matplotlib.pyplot as plt
@@ -88,7 +88,8 @@ def plot_hist_times(test_name, bench, clusters, region, metric, savefile=None):
 if (os.path.exists(out_dir)):
     shutil.rmtree(out_dir)
 os.mkdir(out_dir)
-shutil.copy("./docs/conf.py", out_dir)
+conf_loc = os.path.join(file_loc, "../../docs/conf.py")
+shutil.copy(conf_loc, out_dir)
 indx_file = """
 Historical Timings
 ##################

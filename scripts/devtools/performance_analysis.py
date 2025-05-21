@@ -161,7 +161,7 @@ def get_hist_times(test_name, bench_path, cluster, region):
                                              test_name+"*.cali"), recursive=True)
     if (not hist_cali_files):
         raise Exception(f"No {test_name}_*.cali files found for {cluster}")
-    hist_data = th.Thicket.from_caliperreader(hist_cali_files)
+    hist_data = th.Thicket.from_caliperreader(hist_cali_files, disable_tqdm=True)
     query = th.query.Query().match("+", lambda row: not row[row["name"] == region].empty)
     hist_data = hist_data.query(query)
     test_group = ["install_config"]
@@ -234,7 +234,7 @@ def main():
     cali_files, benchmarks = get_caliper_files_and_bench(args.perfdata1)
     if (len(cali_files) == 0):
         raise Exception(f"No .cali files found in {args.perfdata1}")
-    curdata = th.Thicket.from_caliperreader(cali_files)
+    curdata = th.Thicket.from_caliperreader(cali_files, disable_tqdm=True)
     # Filter data set by tests
     cur_test_data = group_tests(curdata)
     cur_test_data = remove_nans(cur_test_data)
@@ -284,7 +284,7 @@ def main():
 
     if (len(cali_ref_files) == 0):
         raise Exception(f"No Caliper files found in {cali_ref_files}")
-    refdata = th.Thicket.from_caliperreader(cali_ref_files)
+    refdata = th.Thicket.from_caliperreader(cali_ref_files, disable_tqdm=True)
 
     # Group, filter, and compare performance data
     #--------------------------------------------
