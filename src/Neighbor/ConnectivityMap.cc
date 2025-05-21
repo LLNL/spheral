@@ -282,10 +282,10 @@ patchConnectivity(const FieldList<Dimension, int>& flags,
         culledPairs_thread.push_back(NodePairIdxType(old2new(iNodeList, i), iNodeList,
                                                      old2new(jNodeList, j), jNodeList));
       }
+    }
 #pragma omp critical
-      {
-        culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
-      }
+    {
+      culledPairs.insert(culledPairs.end(), culledPairs_thread.begin(), culledPairs_thread.end());
     }
   }
   
