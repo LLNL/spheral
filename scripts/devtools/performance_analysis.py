@@ -108,7 +108,7 @@ def remove_nans(gf, metric="Avg time/rank"):
 
 def group_tests(data):
     """
-    Groups input data based on tests and removes NaNs.
+    Groups input data based on tests.
     Parameters:
     data: Thicket to filter
     Returns:
@@ -152,62 +152,21 @@ def group_dates(tk):
     tk.metadata["nday"] = tk.metadata["launchdate"].apply(lambda x: int(x*1E6/mus))
     return tk.groupby(["nday"])
 
-def get_hist_times(bench_path, test_name, region):
+def get_hist_times(test_name, bench_path, cluster, region):
     """
-    For a given benchmark directory of type install_configs/machine_name,
-    retrieve the historical benchmark times for a given test (test_name).
+    Retrieve the historical benchmark times for a given test, benchmark directory,
+    and machine. Only includes tests that contain the provided region.
     """
-    hist_cali_files = glob.glob(os.path.join(bench_path, "**", test_name+"*.cali"))
+    hist_cali_files = glob.glob(os.path.join(bench_path, "**", cluster, "**",
+                                             test_name+"*.cali"), recursive=True)
     if (not hist_cali_files):
-        raise Exception(f"No {test_name}_*.cali files found")
+        raise Exception(f"No {test_name}_*.cali files found for {cluster}")
     hist_data = th.Thicket.from_caliperreader(hist_cali_files)
     query = th.query.Query().match("+", lambda row: not row[row["name"] == region].empty)
     hist_data = hist_data.query(query)
-    test_dict = group_tests(hist_data)
-    test_keys = list(test_dict.keys())
-    if (len(test_keys) > 1):
-        print(f"Warning: Multiple test keys found.\n")
-        print(test_keys)
+    test_group = ["install_config"]
+    test_dict = hist_data.groupby(test_group)
     return test_dict
-
-def plot_hist_times(bench_path, test_name, region = comp_region, metric = comp_metric, savefile=None):
-    "Plot historical times"
-    test_dict = get_hist_times(bench_path, test_name, region)
-    figs, ax = plt.subplots()
-    lgd_tups = []
-    lgd_names = []
-    for key, tk in test_dict.items():
-        date_group = group_dates(tk)
-        avgtimes = []
-        avgdates = []
-        times = []
-        dates = []
-        for cdate, ctest in date_group.items():
-            new_metric = th.stats.mean(ctest, [metric])[0]
-            if (check_for_region(ctest, region)):
-                avgtimes.append(get_times(ctest.statsframe, region, new_metric)[0])
-                avgdates.append(cdate)
-                vals = get_times(ctest, region, metric)
-                dates.extend([cdate for x in range(len(vals))])
-                times.extend(vals)
-        lgd_entry = f"SPH Nodes: {key[1]:1.2e}, Steps: {key[2]}"
-        p1, = ax.plot(dates, times, "o", markersize=6)
-        p2, = ax.plot(avgdates, avgtimes, color=p1.get_color())
-        lgd_tups.append((p1, p2))
-        lgd_names.append(lgd_entry)
-    ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
-    for label in ax.get_xticklabels(which='major'):
-        label.set(rotation=30, horizontalalignment='right')
-    ax.legend(lgd_tups, lgd_names, fancybox=True, handler_map={tuple: HandlerTuple(ndivide=None)})
-    ax.set_xlabel("Date")
-    ax.set_ylabel(f"{metric} (s)")
-    ax.set_title(f"{test_name}, region: {region}")
-    figs.tight_layout(pad=1.1)
-    figs.set_figheight(4.2)
-    if (savefile):
-        plt.savefig(savefile)
-    else:
-        plt.show()
 
 def get_caliper_files_and_bench(file_path):
     atsFile = os.path.join(file_path, "atsr.py")
