@@ -9,6 +9,7 @@
 #define __Spheral_SolidFSISPH_hh__
 
 #include "Physics/GenericHydro.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Utilities/SpheralMessage.hh"
 
 #include <string>
@@ -44,7 +45,6 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
 template<typename Dimension, typename Value> class FieldList;
-template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
@@ -94,7 +94,7 @@ public:
   SolidFSISPH(const SolidFSISPH&) = delete;
   SolidFSISPH& operator=(const SolidFSISPH&) = delete;
 
-  virtual ~SolidFSISPH();
+  virtual ~SolidFSISPH() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.

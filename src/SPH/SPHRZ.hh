@@ -18,10 +18,9 @@
 
 #include "SPHBase.hh"
 #include "Geometry/Dimension.hh"
+#include "Neighbor/PairwiseField.hh"
 
 namespace Spheral {
-
-template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 
 class SPHRZ: public SPHBase<Dim<2> > {
 
@@ -61,7 +60,7 @@ public:
   SPHRZ& operator=(const SPHRZ&) = delete;
 
   // Destructor.
-  virtual ~SPHRZ();
+  virtual ~SPHRZ() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 

@@ -62,7 +62,7 @@ public:
   SolidSPHRZ& operator=(const SolidSPHRZ&) = delete;
 
   // Destructor.
-  virtual ~SolidSPHRZ();
+  virtual ~SolidSPHRZ() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 

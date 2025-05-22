@@ -86,15 +86,6 @@ SPH(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SPH<Dimension>::
-~SPH(){
-  // Needs to be here due to implicit PairwiseField delete
-}
-
-//------------------------------------------------------------------------------
 // Register the state we need/are going to evolve.
 //------------------------------------------------------------------------------
 template<typename Dimension>

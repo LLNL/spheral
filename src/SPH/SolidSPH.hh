@@ -20,7 +20,6 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
 template<typename Dimension, typename Value> class FieldList;
-template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 
 template<typename Dimension>
@@ -64,7 +63,7 @@ public:
   SolidSPH& operator=(const SolidSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidSPH();
+  virtual ~SolidSPH() = default;
 
   // A second optional method to be called on startup, after Physics::initializeProblemStartup has
   // been called.

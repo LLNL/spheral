@@ -48,7 +48,7 @@ public:
   SolidCRKSPH& operator=(const SolidCRKSPH&) = delete;
 
   // Destructor.
-  virtual ~SolidCRKSPH();
+  virtual ~SolidCRKSPH() = default;
 
   // Tasks we do once on problem startup.
   virtual

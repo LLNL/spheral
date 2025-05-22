@@ -130,14 +130,6 @@ SolidCRKSPHRZ(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-SolidCRKSPHRZ::
-~SolidCRKSPHRZ(){
-  // Needs to be here due to implicit PairwiseField delete
-}
-
-//------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
 //------------------------------------------------------------------------------
 void

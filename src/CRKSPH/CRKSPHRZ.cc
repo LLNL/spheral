@@ -88,14 +88,6 @@ CRKSPHRZ(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-CRKSPHRZ::
-~CRKSPHRZ(){
-  // Needs to be here due to implicit PairwiseField delete
-}
-
-//------------------------------------------------------------------------------
 // On problem start up some dependent state needs to be calculated
 //------------------------------------------------------------------------------
 void

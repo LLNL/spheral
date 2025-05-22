@@ -8,6 +8,7 @@
 
 #include "CRKSPH/CRKSPHBase.hh"
 #include "Geometry/CellFaceFlag.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "RK/RKCorrectionParams.hh"
 
 #include <memory>
@@ -20,7 +21,6 @@ template<typename Dimension> class TableKernel;
 template<typename Dimension> class DataBase;
 template<typename Dimension, typename Value> class Field;
 template<typename Dimension, typename Value> class FieldList;
-template<typename Dimension, typename Value, size_t numElements> class PairwiseField;
 class FileIO;
 }
 
@@ -62,7 +62,7 @@ public:
   CRKSPH& operator=(const CRKSPH&) = delete;
 
   // Destructor.
-  virtual ~CRKSPH();
+  virtual ~CRKSPH() = default;
 
   // Register the state Hydro expects to use and evolve.
   virtual 
