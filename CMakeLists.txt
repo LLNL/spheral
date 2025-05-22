@@ -5,7 +5,7 @@ include(cmake/SpheralVersion.cmake)
 project(spheral LANGUAGES C CXX Fortran VERSION ${SPHERAL_VERSION})
 
 set(SPHERAL_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH "Path to Spheral source directory")
-set(SPHERAL_TEST_INSTALL_PREFIX "")
+set(SPHERAL_TEST_INSTALL_PREFIX "test")
 
 include(cmake/SetupSpheral.cmake)
 

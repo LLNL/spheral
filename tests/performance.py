@@ -247,7 +247,7 @@ for tname, tinp in fluid_variations.items():
     spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
 # Check to see if LLNLSpheral performance test file exists
-llnl_perf_file = "llnlperformance.py"
+llnl_perf_file = os.path.join("tests/llnlperformance.py")
 if (os.path.exists(llnl_perf_file)):
     exec(open(llnl_perf_file).read())
 # Add a wait to ensure all timer files are done
