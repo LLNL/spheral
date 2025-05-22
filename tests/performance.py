@@ -70,6 +70,7 @@ else:
 #---------------------------------------------------------------------------
 # Test configurations
 #---------------------------------------------------------------------------
+test_dir = os.path.dirname(__file__)
 # General number of SPH nodes per core
 # 5k-10k nodes per core for 3d, 1k nodes per core for 2d
 n_per_core_3d = 8000
@@ -149,10 +150,10 @@ glue(keep=True, independent=True)
 #---------------------------------------------------------------------------
 # Taylor impact test
 #---------------------------------------------------------------------------
-test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Strength/TaylorImpact")
+test_loc = os.path.join(test_dir, "functional/Strength/TaylorImpact")
 
 test_file = "TaylorImpact.py"
-test_path = os.path.join(test_dir, test_file)
+test_path = os.path.join(test_loc, test_file)
 test_name = "3DTAYLOR"
 
 rlen = 0.945
@@ -178,10 +179,10 @@ for tname, tinp in test_inp.items():
 #---------------------------------------------------------------------------
 # 3D convection test
 #---------------------------------------------------------------------------
-test_dir = os.path.join(SpheralConfigs.test_install_path(), "unit/Boundary")
+test_loc = os.path.join(test_dir, "unit/Boundary")
 
 test_file = "testPeriodicBoundary-3d.py"
-test_path = os.path.join(test_dir, test_file)
+test_path = os.path.join(test_loc, test_file)
 test_name = "3DCONV"
 
 # Number of SPH nodes per direction
@@ -200,7 +201,7 @@ fluid_variations = {"SPH": "--crksph False --solid True",
                     "GSPH": "--gsph True",
                     "MFM": "--mfm True",
                     "MFV": "--mfv True"}
-test_dir = os.path.join(SpheralConfigs.test_install_path(), "functional/Hydro/Noh")
+test_loc = os.path.join(test_dir, "functional/Hydro/Noh")
 
 # General input for all Noh tests
 gen_noh_inps = "--cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
@@ -211,7 +212,7 @@ gen_noh_inps = "--cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
 # Noh cylindrical 2d
 #++++++++++++++++++++
 test_file = "Noh-cylindrical-2d.py"
-test_path = os.path.join(test_dir, test_file)
+test_path = os.path.join(test_loc, test_file)
 test_name = "NC2D"
 
 steps = 100
@@ -236,7 +237,7 @@ for tname, tinp in fluid_variations.items():
 # Noh spherical 3d
 #++++++++++++++++++++
 test_file = "Noh-spherical-3d.py"
-test_path = os.path.join(test_dir, test_file)
+test_path = os.path.join(test_loc, test_file)
 test_name = "NS3D"
 
 steps = 10
@@ -246,9 +247,5 @@ for tname, tinp in fluid_variations.items():
     inps = gen_inps + " " + tinp
     spheral_setup_test(test_path, test_name+tname, inps, num_cores, num_threads)
 
-# Check to see if LLNLSpheral performance test file exists
-llnl_perf_file = os.path.join("tests/llnlperformance.py")
-if (os.path.exists(llnl_perf_file)):
-    exec(open(llnl_perf_file).read())
 # Add a wait to ensure all timer files are done
 wait()
