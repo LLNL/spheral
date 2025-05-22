@@ -36,7 +36,7 @@ def plot_hist_times(test_name, bench, clusters, region, metric, savefile=None):
     figs, axes = plt.subplots(num_clusters, 1, sharex=True)
     if (num_clusters == 1):
         axes = [axes]
-    marker_style = dict(marker="o", alpha=0.5, markersize=5, fillstyle="none")
+    marker_style = dict(alpha=0.5, markersize=5, fillstyle="none")
     for i, cluster in enumerate(clusters):
         lgd_tups = []
         lgd_names = []
@@ -65,7 +65,7 @@ def plot_hist_times(test_name, bench, clusters, region, metric, savefile=None):
             lgd_entry = f"{cluster} {config_shorthand[install_config]}"
             p1, = ax.plot(dates, avgtimes)
             p2 = ax.fill_between(dates, lotimes, hitimes, color=p1.get_color(), alpha=0.2)
-            p3, = ax.plot(alldates, alltimes, color=p1.get_color(), **marker_style)
+            p3, = ax.plot(alldates, alltimes, "o", color=p1.get_color(), **marker_style)
             lgd_tups.append((p1, p2, p3))
             lgd_names.append(lgd_entry)
         ax.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%b'))
