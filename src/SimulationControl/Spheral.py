@@ -49,10 +49,11 @@ from VoidNodeLists import *
 from DEMNodeLists import *
 
 # ------------------------------------------------------------------------------
-# Import SPH, SVPH, and CRKSPH
+# Import hydro configurations
 # ------------------------------------------------------------------------------
-hydroImports_string = "@HYDRO_IMPORTS@"
-for x in hydroImports_string.split():
+import SpheralConfigs
+hydroImports = SpheralConfigs.hydro_imports()
+for x in hydroImports:
     exec(f"from {x} import *")
 
 # ------------------------------------------------------------------------------
@@ -124,11 +125,6 @@ for shadowedthing in ("TillotsonEquationOfState",
                       "ANEOS"):
     for dim in dims:
         exec(f"from Shadow{shadowedthing} import {shadowedthing}{dim}d")
-
-# ------------------------------------------------------------------------------
-# Prepare for timing
-# ------------------------------------------------------------------------------
-# EasyProfilerStart()
 
 # ------------------------------------------------------------------------------
 # Output some useful Spheral configuration info to stdout
