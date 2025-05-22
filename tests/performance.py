@@ -70,7 +70,7 @@ else:
 #---------------------------------------------------------------------------
 # Test configurations
 #---------------------------------------------------------------------------
-test_dir = os.path.dirname(__file__)
+
 # General number of SPH nodes per core
 # 5k-10k nodes per core for 3d, 1k nodes per core for 2d
 n_per_core_3d = 8000
@@ -150,7 +150,7 @@ glue(keep=True, independent=True)
 #---------------------------------------------------------------------------
 # Taylor impact test
 #---------------------------------------------------------------------------
-test_loc = os.path.join(test_dir, "functional/Strength/TaylorImpact")
+test_loc = "functional/Strength/TaylorImpact"
 
 test_file = "TaylorImpact.py"
 test_path = os.path.join(test_loc, test_file)
@@ -179,7 +179,7 @@ for tname, tinp in test_inp.items():
 #---------------------------------------------------------------------------
 # 3D convection test
 #---------------------------------------------------------------------------
-test_loc = os.path.join(test_dir, "unit/Boundary")
+test_loc = "unit/Boundary"
 
 test_file = "testPeriodicBoundary-3d.py"
 test_path = os.path.join(test_loc, test_file)
@@ -201,7 +201,7 @@ fluid_variations = {"SPH": "--crksph False --solid True",
                     "GSPH": "--gsph True",
                     "MFM": "--mfm True",
                     "MFV": "--mfv True"}
-test_loc = os.path.join(test_dir, "functional/Hydro/Noh")
+test_loc = "functional/Hydro/Noh"
 
 # General input for all Noh tests
 gen_noh_inps = "--cfl 0.25 --Cl 1.0 --Cq 1.0 --xfilter 0.0 "+\
