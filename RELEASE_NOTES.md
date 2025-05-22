@@ -27,6 +27,7 @@ Notable changes include:
       - HidealFilter
       - RadialFunctor
     * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method)
+    * Added linear solvers from Eigen and Hypre
 
   * Build changes / improvements:
     * Native Spack environments are now being used.
