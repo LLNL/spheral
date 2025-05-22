@@ -8,7 +8,7 @@ from ArithmeticFieldSpanList import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldSpanList")
-class MinMaxFieldSpanList(FieldSpanListBase.FieldSpanListBase):
+class MinMaxFieldSpanList:
 
     PYB11typedefs = """
     using FieldType = Field<%(Dimension)s, %(Value)s>;

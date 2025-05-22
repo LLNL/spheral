@@ -7,7 +7,7 @@ import FieldSpanListBase
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldSpanList")
-class ArithmeticFieldSpanList(FieldSpanListBase.FieldSpanListBase):
+class ArithmeticFieldSpanList:
 
     PYB11typedefs = """
     using FieldType = Field<%(Dimension)s, %(Value)s>;

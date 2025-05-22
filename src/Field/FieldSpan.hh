@@ -29,12 +29,11 @@ public:
 
   // Constructors, destructor
   FieldSpan(Field<Dimension, DataType>& field);
-  FieldSpan(FieldSpan& rhs) = default;
   virtual ~FieldSpan() = default;
 
   // Assignment operator.
-  virtual FieldSpanBase<Dimension>& operator=(FieldSpanBase<Dimension>& rhs) override;
-  // FieldSpan& operator=(const FieldSpan& rhs) = default;
+  // virtual FieldSpanBase<Dimension>& operator=(FieldSpanBase<Dimension>& rhs) override;
+  FieldSpan(FieldSpan& rhs) = default;
   FieldSpan& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldSpanBase.

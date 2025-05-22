@@ -33,25 +33,25 @@ FieldSpan(Field<Dimension, DataType>& field):
   mNumGhostElements(field.numGhostElements()) {
 }
 
-//------------------------------------------------------------------------------
-// Assignment operator with FieldSpanBase.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-FieldSpanBase<Dimension>&
-FieldSpan<Dimension, DataType>::
-operator=(FieldSpanBase<Dimension>& rhs) {
-  if (this != &rhs) {
-    try {
-      const FieldSpan<Dimension, DataType>* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
-      CHECK2(rhsPtr != nullptr, "Passed incorrect Field to operator=!");
-      mDataSpan = rhsPtr->mDataSpan;
-    } catch (const std::bad_cast &) {
-      VERIFY2(false, "Attempt to assign a FieldSpan to an incompatible field type.");
-    }
-  }
-  return *this;
-}
+// //------------------------------------------------------------------------------
+// // Assignment operator with FieldSpanBase.
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// FieldSpanBase<Dimension>&
+// FieldSpan<Dimension, DataType>::
+// operator=(FieldSpanBase<Dimension>& rhs) {
+//   if (this != &rhs) {
+//     try {
+//       const auto* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
+//       CHECK2(rhsPtr != nullptr, "Passed incorrect Field to operator=!");
+//       mDataSpan = rhsPtr->mDataSpan;
+//     } catch (const std::bad_cast &) {
+//       VERIFY2(false, "Attempt to assign a FieldSpan to an incompatible field type.");
+//     }
+//   }
+//   return *this;
+// }
 
 //------------------------------------------------------------------------------
 // Assignment operator with a constant value of DataType
@@ -81,7 +81,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::operator==(const FieldSpanBase<Dimension>& rhs) const {
   try {
-    const FieldSpan<Dimension, DataType>* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
+    const auto* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
     if (rhsPtr == nullptr) return false;
     const auto n = this->size();
     if (rhsPtr->size() != n) return false;
