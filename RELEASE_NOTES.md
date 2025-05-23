@@ -1,3 +1,53 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+    * The tpl-manager.py is completely overhauled to include the following:
+      * Utilize the Spheral Spack environments.
+      * Handle some build cache functionality.
+      * Do things Uberenv did like download and install Spack itself.
+    * Implicit time integration is now supported.
+      * CrankNicolsonIntegrator is the current implicit default
+      * The Physics package interface has been augmented to support implicit integration with two important
+        methods that must be provide:
+        * Physics::dtImplicit to provide a maximum bounding time step
+        * Physics::maxResidual should provide a maximum dimensionles residual change to check for convergence
+      * Sundials is now an optional (but default) third-party lib in Spheral, and provides a non-linear solver
+        we now wrap in a new Solver interface in Spheral (wrapping Sundials KINSOL solver).
+    * FSISPH has a new flag (decoupleDamagedMaterial, default True) which can be turned off to more tightly
+      couple damaged to undamaged material.
+      * planeStrain has been removed as an option in FSISPH as part of unifying deviatoric evolution with other
+        hydros.
+    * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
+      package itself, which most folks outside LLNL will not necessarily have.
+    * gtest suite integration for writing minimal c++ unit tests on the host and device without needing to
+      compile large potions of the code.
+    * Both ASPH and ASPHClassic now allow the user to override the final H evolution through optional functors added to the classes:
+      - HidealFilter
+      - RadialFunctor
+    * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method).
+    * Field resizing operations have been removed from the public interface.
+
+  * Build changes / improvements:
+    * Native Spack environments are now being used.
+      * Uberenv is no longer used.
+      * Adds logic to simplify building on non-LC systems; tries to find existing installed compilers and packages.
+      * Adds spack.yaml environment files for current LC systems and a dev_pkg environment, which is used for creating the build cache.
+      * Local Spack packages for TPLs are removed or simplified when possible since the builtin Spack packages are no longer replaced.
+      * The upstream Spack instance is no longer used when creating the build cache.
+      * The package.yaml for Spheral is improved to allow full Spheral installation through Spack.
+      * Centralizes things like upstream location, compiler types and versions, and specs in the environments and configs.
+
+  * Bug Fixes / improvements:
+    * ATS submodule is updated to fix bug with latest Flux update on LC systems.
+    * Update Polytope version.
+    * TPL manager removes the symoblic links to the install directory.
+    * Consolidated CMake configured files into SpheralConfigs.py.in
+    * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros
+
 Version v2025.01.0 -- Release date 2025-01-31
 ==============================================
   * Important Notes:

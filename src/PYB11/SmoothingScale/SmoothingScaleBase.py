@@ -8,18 +8,23 @@ from Physics import *
 class SmoothingScaleBase(Physics):
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
+    using HidealFilterType = typename ASPHSmoothingScale<%(Dimension)s>::HidealFilterType;
+    using RadialFunctorType = typename ASPHSmoothingScale<%(Dimension)s>::RadialFunctorType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
-               HUpdate = "HEvolutionType"):
+               HUpdate = "HEvolutionType",
+               fixShape = "const bool",
+               radialOnly = "const bool"):
         "SmoothingScaleBase constructor"
 
     #...........................................................................
@@ -76,6 +81,24 @@ call Physics::registerState for instance to create full populated State objects.
         return "void"
 
     @PYB11virtual
+    def preStepInitialize(self,
+                          dataBase = "const DataBase<%(Dimension)s>&", 
+                          state = "State<%(Dimension)s>&",
+                          derivs = "StateDerivatives<%(Dimension)s>&"):
+        "Optional hook to be called at the beginning of a time step."
+        return "void"
+
+    @PYB11virtual
+    @PYB11const
+    def maxResidual(self,
+                    dataBase = "const DataBase<%(Dimension)s>&",
+                    state1 = "const State<%(Dimension)s>&",
+                    state0 = "const State<%(Dimension)s>&",
+                    tol = "const Scalar"):
+        "Compute the maximum residual difference between the States"
+        return "ResidualType"
+
+    @PYB11virtual
     @PYB11const
     def dumpState(self, file="FileIO&", pathName="const std::string&"):
         "Serialize under the given path in a FileIO object"
@@ -100,3 +123,8 @@ call Physics::registerState for instance to create full populated State objects.
     HEvolution = PYB11property("HEvolutionType", "HEvolution", "HEvolution", doc="The H evolution choice")
     Hideal = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "Hideal", doc="The ideal H storage FieldList")
     DHDt = PYB11property("const FieldList<%(Dimension)s, SymTensor>&", "DHDt", doc="The H time derivative storage FieldList")
+    radius0 = PYB11property("const FieldList<%(Dimension)s, Scalar>&", "radius0", doc="The radius of a point at the beginning of a timestep (if using radialOnly=True)")
+    HidealFilter = PYB11property("std::shared_ptr<HidealFilterType>", "HidealFilter", "HidealFilter", doc="Optional functor to manipulate the Hideal calculation")
+    RadialFunctor = PYB11property("std::shared_ptr<RadialFunctorType>", "RadialFunctor", "RadialFunctor", doc="Optional functor to manipulate the radial normal and radius are computed when using radialOnly")
+    fixShape = PYB11property("bool", "fixShape", "fixShape", doc="Force the H tensor shape to be fixed -- only adjust volume")
+    radialOnly = PYB11property("bool", "radialOnly", "radialOnly", doc="Force the H tensor to evolve solely in the radial direction")
