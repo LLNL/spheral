@@ -9,7 +9,7 @@
 #ifndef __Spheral__FieldSpanList__
 #define __Spheral__FieldSpanList__
 
-#include "FieldSpanListBase.hh"
+#include "Field/FieldSpanListBase.hh"
 
 #include <span>
 
@@ -36,9 +36,10 @@ public:
   // Constructors, destructor
   FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs);
   FieldSpanList(FieldSpanList& rhs) = default;
+  FieldSpanList(FieldSpanList&& rhs) = default;
   virtual ~FieldSpanList() = default;
 
-  // Assignment.
+  // Assignment
   FieldSpanList& operator=(FieldSpanList& rhs) = default;
   FieldSpanList& operator=(const DataType& rhs);
 
@@ -124,6 +125,9 @@ public:
   
   // The number of ghost nodes in the FieldSpanList.
   size_t numGhostElements() const;
+
+  // No default constructor.
+  FieldSpanList() = delete;
 
 private:
   //--------------------------- Private Interface ---------------------------//

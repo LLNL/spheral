@@ -7,7 +7,7 @@
 #ifndef __Spheral_FieldSpan__
 #define __Spheral_FieldSpan__
 
-#include "FieldSpanBase.hh"
+#include "Field/FieldSpanBase.hh"
 
 #include <span>
 
@@ -29,11 +29,13 @@ public:
 
   // Constructors, destructor
   FieldSpan(Field<Dimension, DataType>& field);
+  FieldSpan(FieldSpan& rhs) = default;
+  FieldSpan(FieldSpan&& rhs) = default;
   virtual ~FieldSpan() = default;
 
-  // Assignment operator.
+  // Assignment
   // virtual FieldSpanBase<Dimension>& operator=(FieldSpanBase<Dimension>& rhs) override;
-  FieldSpan(FieldSpan& rhs) = default;
+  FieldSpan& operator=(FieldSpan& rhs) = default;
   FieldSpan& operator=(const DataType& rhs);
 
   // Required method to test equivalence with a FieldSpanBase.

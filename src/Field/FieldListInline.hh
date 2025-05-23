@@ -6,6 +6,8 @@
 #include "NodeList/NodeListRegistrar.hh"
 #include "Neighbor/Neighbor.hh"
 #include "Field/Field.hh"
+#include "Field/FieldSpan.hh"
+#include "Field/FieldSpanList.hh"
 #include "Kernel/TableKernel.hh"
 #include "Distributed/allReduce.hh"
 
@@ -1840,6 +1842,20 @@ threadReduce() const {
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+// Extract a view
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+typename FieldList<Dimension, DataType>::ViewType
+FieldList<Dimension, DataType>::
+view() {
+  mFieldSpans.clear();
+  for (auto* fptr: mFieldPtrs) mFieldSpans.emplace_back(*fptr);
+  mSpanFieldSpans = SpanType(mFieldSpans.begin(), mFieldSpans.end());
+  return ViewType(mSpanFieldSpans);
 }
 
 //****************************** Global Functions ******************************

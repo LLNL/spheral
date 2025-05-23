@@ -8,17 +8,18 @@
 //
 // Created by JMO, Thu Jun 10 23:26:50 PDT 1999
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_Field_hh__
-#define __Spheral_Field_hh__
+#ifndef __Spheral_Field__
+#define __Spheral_Field__
 
-#include "FieldBase.hh"
+#include "Field/FieldBase.hh"
+
 #include "axom/sidre.hpp"
-
-#include <vector>
 
 #ifdef USE_UVM
 #include "uvm_allocator.hh"
 #endif
+
+#include <vector>
 
 namespace Spheral {
 
@@ -38,23 +39,24 @@ using DataAllocator = std::allocator<DataType>;
 #endif
 
 template<typename Dimension, typename DataType>
-class Field: 
-    public FieldBase<Dimension> {
+class Field: public FieldBase<Dimension> {
    
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
   
-  typedef typename FieldBase<Dimension>::FieldName FieldName;
-  typedef Dimension FieldDimension;
-  typedef DataType FieldDataType;
-  typedef DataType value_type;      // STL compatibility.
+  using FieldName = typename FieldBase<Dimension>::FieldName;
+  using FieldDimension = Dimension;
+  using FieldDataType = DataType;
+  using value_type = DataType;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+  using iterator = typename std::vector<DataType,DataAllocator<DataType>>::iterator;
+  using const_iterator = typename std::vector<DataType,DataAllocator<DataType>>::const_iterator;
+
+  using ViewType = FieldSpan<Dimension, DataType>;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -233,6 +235,9 @@ public:
 
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
+
+  // Return a view of the Field (appropriate for on accelerator devices)
+  ViewType view();
 
   // No default constructor.
   Field() = delete;

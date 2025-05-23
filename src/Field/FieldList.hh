@@ -7,15 +7,16 @@
 //
 // Created by JMO, Sat Feb  5 12:57:58 PST 2000
 //----------------------------------------------------------------------------//
-#ifndef __Spheral__FieldSpace__FieldList_hh__
-#define __Spheral__FieldSpace__FieldList_hh__
+#ifndef __Spheral_FieldList__
+#define __Spheral_FieldList__
 
-#include "FieldListBase.hh"
+#include "Field/FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
 
 #include <vector>
 #include <list>
 #include <map>
+#include <span>
 #include <memory>
 
 namespace Spheral {
@@ -31,6 +32,8 @@ template<typename Dimension> class RefineNodeIterator;
 template<typename Dimension> class NodeList;
 template<typename Dimension> class TableKernel;
 template<typename Dimension, typename DataType> class Field;
+template<typename Dimension, typename DataType> class FieldSpan;
+template<typename Dimension, typename DataType> class FieldSpanList;
 
 // An enum for selecting how Fields are stored in FieldLists.
 enum class FieldStorageType {
@@ -42,27 +45,29 @@ template<typename Dimension, typename DataType>
 class FieldList: public FieldListBase<Dimension> {
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
   
-  typedef Dimension FieldDimension;
-  typedef DataType FieldDataType;
+  using FieldDimension = Dimension;
+  using FieldDataType = DataType;
 
-  typedef FieldBase<Dimension>* BaseElementType;
-  typedef Field<Dimension, DataType>* ElementType;
-  typedef Field<Dimension, DataType>* value_type;    // STL compatibility
-  typedef std::vector<ElementType> StorageType;
+  using BaseElementType = FieldBase<Dimension>*;
+  using ElementType = Field<Dimension, DataType>*;
+  using value_type = Field<Dimension, DataType>*;    // STL compatibility
+  using StorageType = std::vector<ElementType>;
 
-  typedef typename StorageType::iterator iterator;
-  typedef typename StorageType::const_iterator const_iterator;
-  typedef typename StorageType::reverse_iterator reverse_iterator;
-  typedef typename StorageType::const_reverse_iterator const_reverse_iterator;
+  using iterator = typename StorageType::iterator;
+  using const_iterator = typename StorageType::const_iterator;
+  using reverse_iterator = typename StorageType::reverse_iterator;
+  using const_reverse_iterator = typename StorageType::const_reverse_iterator;
 
-  typedef std::vector<DataType> CacheElementsType;
-  typedef typename CacheElementsType::iterator cache_iterator;
-  typedef typename CacheElementsType::const_iterator const_cache_iterator;
+  using CacheElementsType = std::vector<DataType>;
+  using cache_iterator = typename CacheElementsType::iterator;
+  using const_cache_iterator = typename CacheElementsType::const_iterator;
+
+  using ViewType = FieldSpanList<Dimension, DataType>;
 
   // Constructors.
   FieldList();
@@ -280,15 +285,24 @@ public:
   // Reduce the values in the FieldList with the passed thread-local values.
   void threadReduce() const;
 
+  //----------------------------------------------------------------------------
+  // Return a view of the Field (appropriate for on accelerator devices)
+  ViewType view();
+
 private:
   //--------------------------- Private Interface ---------------------------//
-  typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
-  typedef std::map<const NodeList<Dimension>*, int> HashMapType;
+  using FieldCacheType = std::list<std::shared_ptr<Field<Dimension, DataType>>>;
+  using HashMapType = std::map<const NodeList<Dimension>*, int>;
 
   std::vector<ElementType> mFieldPtrs;
   std::vector<BaseElementType> mFieldBasePtrs;
   FieldCacheType mFieldCache;
   FieldStorageType mStorageType;
+
+  // For use when building a span view of the FieldList
+  using SpanType = std::span<FieldSpan<Dimension, DataType>>;
+  std::vector<FieldSpan<Dimension, DataType>> mFieldSpans;
+  SpanType mSpanFieldSpans;
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
   // construct NodeIterators.
@@ -297,6 +311,7 @@ private:
 
   // Internal method to build the NodeListIndexMap from scratch.
   void buildNodeListIndexMap();
+
 public:
   // A data attribute to indicate how to reduce this field across threads.
   ThreadReduction reductionType;

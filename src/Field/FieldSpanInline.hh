@@ -1,4 +1,3 @@
-#include "Field/FieldSpanBase.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/safeInv.hh"
 #include "Distributed/allReduce.hh"

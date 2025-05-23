@@ -11,9 +11,10 @@ from Field import Field
 class ArithmeticField(FieldBase):
 
     PYB11typedefs = """
-  using FieldType = Field<%(Dimension)s, %(Value)s>;
-  using Scalar = typename FieldType::Scalar;
-  using ScalarFieldType = Field<%(Dimension)s, Scalar>;
+    using FieldType = Field<%(Dimension)s, %(Value)s>;
+    using ViewType = typename FieldType::ViewType;
+    using Scalar = typename FieldType::Scalar;
+    using ScalarFieldType = Field<%(Dimension)s, Scalar>;
 """
 
     def __add__(self):

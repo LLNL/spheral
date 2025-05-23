@@ -10,7 +10,8 @@ from FieldBase import FieldBase
 class Field(FieldBase):
 
     PYB11typedefs = """
-  typedef Field<%(Dimension)s, %(Value)s> FieldType;
+    using FieldType = Field<%(Dimension)s, %(Value)s>;
+    using ViewType = typename FieldType::ViewType;
 """
 
     def pyinit(self, name="std::string"):
@@ -150,6 +151,9 @@ class Field(FieldBase):
     def allValues(self):
         "Return a python list (as a copy) of all values in the Field"
         return "py::list"
+
+    def view(self):
+        return "ViewType"
 
     #...........................................................................
     # Properties

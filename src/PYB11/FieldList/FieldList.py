@@ -9,11 +9,12 @@ from FieldListBase import *
 class FieldList(FieldListBase):
 
     PYB11typedefs = """
-    typedef FieldList<%(Dimension)s, %(Value)s> FieldListType;
-    typedef Field<%(Dimension)s, %(Value)s> FieldType;
-    typedef NodeList<%(Dimension)s> NodeListType;
-    typedef %(Dimension)s::Vector Vector;
-    typedef %(Dimension)s::SymTensor SymTensor;
+    using FieldListType = FieldList<%(Dimension)s, %(Value)s>;
+    using FieldType = Field<%(Dimension)s, %(Value)s>;
+    using NodeListType = NodeList<%(Dimension)s>;
+    using Vector = %(Dimension)s::Vector;
+    using SymTensor = %(Dimension)s::SymTensor;
+    using ViewType = typename FieldListType::ViewType;
 """
 
     def pyinit(self):
@@ -145,6 +146,9 @@ class FieldList(FieldListBase):
     def allValues(self):
         "Return a python list (as a copy) of all values in the FieldList"
         return "py::list"
+
+    def view(self):
+        return "ViewType"
 
     #...........................................................................
     # Comparators

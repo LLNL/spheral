@@ -1,7 +1,8 @@
-#include "Field/FieldBase.hh"
+#include "Field/NodeIterators.hh"
+#include "Field/FieldSpan.hh"
+
 #include "Geometry/Dimension.hh"
 #include "NodeList/NodeList.hh"
-#include "Field/NodeIterators.hh"
 #include "Utilities/packElement.hh"
 #include "Utilities/removeElements.hh"
 #include "Utilities/safeInv.hh"
@@ -1888,9 +1889,6 @@ operator<<(std::ostream& os, const Field<Dimension, DataType>& field) {
   return os;
 }
 
-
-
-
 //------------------------------------------------------------------------------
 // getAxomType
 //------------------------------------------------------------------------------
@@ -1902,5 +1900,15 @@ getAxomTypeID() const {
   return DataTypeTraits<DataType>::axomTypeID();
 }
 
+//------------------------------------------------------------------------------
+// Extract a view
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+typename Field<Dimension, DataType>::ViewType
+Field<Dimension, DataType>::
+view() {
+  return ViewType(*this);
+}
 
 } // namespace Spheral
