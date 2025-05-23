@@ -893,8 +893,11 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);  
 
           // if it doesn't exists create it 
-          if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(uId_bc);
-
+          if (contactIndexPtr == neighborContacts.end()){
+            #pragma omp critical {
+              mNeighborIndices(nodeListi,i).push_back(uId_bc);
+            }
+          }
           // now add our contact
           #pragma omp critical
           {
@@ -968,7 +971,7 @@ identifyInactiveContacts(const DataBase<Dimension>& dataBase){
     const auto& solidBoundary = solidBoundaries[ibc];
     const auto  rib = solidBoundary->distance(ri);
 
-    if (rib.magnitude() <Ri*(1+bufferDistance)) mIsActiveContact(nodeListi,i)[contacti] = 1;
+    if (rib.magnitude() < Ri*(1+bufferDistance)) mIsActiveContact(nodeListi,i)[contacti] = 1;
 
   } // loop particle bc contacts
 }   // omp parallel region

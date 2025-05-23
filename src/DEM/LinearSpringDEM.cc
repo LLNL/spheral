@@ -669,7 +669,7 @@ evaluateDerivatives(const typename Dimension::Scalar /*time*/,
         // accelerations
         //------------------------------------------------------------
         // Rectilinear Acceleration 
-        const Vector fij = fn - fc + fs;
+        const auto fij = fn - fc + fs;
         DvDti += fij/mi;
         DvDtj -= fij/mj;
 
