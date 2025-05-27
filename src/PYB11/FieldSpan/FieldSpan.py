@@ -12,7 +12,7 @@ class FieldSpan(FieldSpanBase):
     PYB11typedefs = """
   using SelfType = FieldSpan<%(Dimension)s, %(Value)s>;
   using FSBaseType = FieldSpanBase<%(Dimension)s>;
-  using Scalar = %(Dimension)s::Scalar;
+  using Scalar = typename %(Dimension)s::Scalar;
 """
 
     def pyinit(self, field="Field<%(Dimension)s, %(Value)s>&"):
