@@ -23,11 +23,17 @@ Notable changes include:
         hydros.
     * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
       package itself, which most folks outside LLNL will not necessarily have.
+    * gtest suite integration for writing minimal c++ unit tests on the host and device without needing to
+      compile large potions of the code.
     * Both ASPH and ASPHClassic now allow the user to override the final H evolution through optional functors added to the classes:
       - HidealFilter
       - RadialFunctor
-    * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method)
-    * Added linear solvers from Eigen and Hypre
+    * Added linear solvers from Eigen and Hypre.
+    * FacetedSurfaceASPHHydro has been removed in favor of providing user filters to the ASPH methods (i.e., the RadialFunctor method).
+    * Field resizing operations have been removed from the public interface.
+    * Performance analysis tools are improved.
+      - Added an "advance" Caliper timer to be used in the future as the default reference timer.
+      - Added a deploy CI stage to create a GitLab page with the historical performance benchmarks.
 
   * Build changes / improvements:
     * Native Spack environments are now being used.
@@ -43,8 +49,10 @@ Notable changes include:
     * ATS submodule is updated to fix bug with latest Flux update on LC systems.
     * Update Polytope version.
     * TPL manager removes the symoblic links to the install directory.
-    * Consolidated CMake configured files into SpheralConfigs.py.in
-    * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros
+    * Consolidated CMake configured files into SpheralConfigs.py.in.
+    * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros.
+    * Changes the `SPHERAL_TEST_INSTALL_PREFIX` to be relative to `CMAKE_INSTALL_PREFIX/tests` directory.
+    * Fixed bug where performance tests would incorrectly move a benchmark directory if rerunning failed jobs.
 
 Version v2025.01.0 -- Release date 2025-01-31
 ==============================================

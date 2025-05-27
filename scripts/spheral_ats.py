@@ -23,11 +23,11 @@ spheral_exe = os.path.join(install_prefix, "spheral")
 benchmark_dir = "/usr/WS2/sduser/Spheral/benchmarks"
 
 #------------------------------------------------------------------------------
-# Run ats.py to check results and return the number of failed tests
+# Run atsr.py to check results and return the number of failed tests
 def report_results(output_dir):
     ats_py = os.path.join(output_dir, "atsr.py")
     if (not os.path.exists(ats_py)):
-        raise Exception("ats.py does not exists. Tests likely did not run.")
+        raise Exception("atsr.py does not exists. Tests likely did not run.")
     exec(compile(open(ats_py).read(), ats_py, 'exec'), globals())
     state = globals()["state"]
     failed_tests = [t for t in state['testlist'] if t['status'] in [FAILED,TIMEDOUT] ]
@@ -72,7 +72,7 @@ def run_and_report(run_command, ci_output, num_runs):
             ats_cont_file = os.path.join(ci_output, "continue.ats")
             if (not os.path.exists(ats_cont_file)):
                 raise Exception(f"{ats_cont_file} not found, ATS cannot be rerun")
-            rerun_command = f"{run_command} {ats_cont_file}"
+            rerun_command = f"{run_command} --glue='rerun=True' {ats_cont_file}"
         print("WARNING: Test failure, rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
