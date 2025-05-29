@@ -101,21 +101,26 @@ cluster_names = set(os.path.basename(x) for x in bdirs)
 # Retrieve all test names from benchmark file names
 all_files = glob.glob(os.path.join(bench, "**/*.cali"), recursive=True)
 test_names = set(os.path.basename(x).split("_")[0] for x in all_files)
+plot_images = {}
 for test in test_names:
     if (test not in disp_tests):
         continue
     print(f"Getting data for {test}")
+    pfile = f"{test}.png"
+    plot_file = os.path.join(out_dir, pfile)
+    plot_hist_times(test, bench, cluster_names, region, metric, savefile=plot_file)
+    plot_images.update({test: pfile})
+
+plot_images = dict(sorted(plot_images.items()))
+for test, pfile in plot_images.items():
     indx_file += f"""
 .. dropdown:: {test}
 
 """
-    pfile = f"{test}.png"
-    plot_file = os.path.join(out_dir, pfile)
     indx_file += f"""
     .. image:: {pfile}
 
 """
-    plot_hist_times(test, bench, cluster_names, region, metric, savefile=plot_file)
 
 with open(os.path.join(out_dir, "index.rst"), "w") as f:
     f.write(indx_file)
