@@ -67,23 +67,27 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     depends_on('conduit@0.9.1 +shared +hdf5~hdf5_compat -test ~parmetis', type='build')
 
     depends_on('axom@0.9.0 +hdf5 -lua -examples -python -fortran', type='build')
-    depends_on('axom +shared', when='~cuda', type='build')
-    depends_on('axom ~shared', when='+cuda', type='build')
+    with when('+rocm') or when('+cuda'):
+        depends_on('axom ~shared', type='build')
 
-    with when("+caliper"):
-        depends_on("caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind +pic", type="build")
-        depends_on("caliper+mpi", type="build", when="+mpi")
-        depends_on("caliper~mpi", type="build", when="~mpi")
+    with when('~rocm') or when('~cuda'):
+        depends_on('axom +shared', type='build')
 
-    depends_on("raja@2024.02.0", type="build")
+    with when('+caliper'):
+        depends_on('caliper@2.11 ~shared +adiak +gotcha ~libdw ~papi ~libunwind cppflags="-fPIC"', type='build')
+        depends_on('caliper+mpi', type='build', when='+mpi')
+        depends_on('caliper~mpi', type='build', when='~mpi')
+
+    depends_on('raja@2024.02.0', type='build')
 
     depends_on('opensubdiv@3.4.3+pic', type='build', when="+opensubdiv")
 
-    depends_on('polytope +python', type='build')
+    depends_on('polytope +python', type='build', when="+python")
+    depends_on('polytope ~python', type='build', when="~python")
 
-    depends_on('sundials@7.0.0 ~shared cxxstd=17', type='build', when='+sundials')
+    depends_on('sundials@7.0.0 ~shared cxxstd=17 cppflags="-fPIC"', type='build', when='+sundials')
 
-    depends_on("leos@8.4.2", type="build", when="+leos")
+    depends_on('leos@8.4.2', type='build', when='+leos')
 
     # Forward MPI Variants
     mpi_tpl_list = ["hdf5", "conduit", "axom", "adiak~shared"]
@@ -103,6 +107,7 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
     # Conflicts
     # -------------------------------------------------------------------------
     conflicts("+cuda", when="+rocm")
+    conflicts("%pgi")
 
     def _get_sys_type(self, spec):
         sys_type = spec.architecture
@@ -122,6 +127,16 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         if (spec.satisfies("+rocm")):
             config_name += "_rocm"
         return config_name.replace(" ", "_")
+
+    def _get_short_spec(self, spec):
+        short_spec = spec.compiler.name
+        if (spec.satisfies("+mpi")):
+            short_spec += spec.format("+{^mpi.name}")
+        if (spec.satisfies("+cuda")):
+            short_spec += spec.format("{^cuda.name}")
+        if (spec.satisfies("+rocm")):
+            short_spec += "+rocm"
+        return short_spec
 
     @property
     def cache_name(self):
@@ -198,11 +213,11 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         entries.append(cmake_cache_string('SPHERAL_SYS_ARCH', self._get_sys_type(spec)))
         entries.append(cmake_cache_string('SPHERAL_CONFIGURATION', self._get_config_name(spec)))
+        entries.append(cmake_cache_string('SPHERAL_SPEC', self._get_short_spec(spec)))
 
         # TPL locations
         if (spec.satisfies("+caliper")):
             entries.append(cmake_cache_path('caliper_DIR', spec['caliper'].prefix))
-            #entries.append(cmake_cache_option('ENABLE_TIMER', True))
 
         entries.append(cmake_cache_path('adiak_DIR', spec['adiak'].prefix))
 
@@ -229,10 +244,10 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         if (spec.satisfies("+opensubdiv")):
             entries.append(cmake_cache_path('opensubdiv_DIR', spec['opensubdiv'].prefix))
-            entries.append(cmake_cache_path('ENABLE_OPENSUBDIV', True))
+            entries.append(cmake_cache_option('ENABLE_OPENSUBDIV', True))
 
         if (spec.satisfies("~network")):
-            entries.append(cmake_cache_path('SPHERAL_NETWORK_CONNECTED', False))
+            entries.append(cmake_cache_option('SPHERAL_NETWORK_CONNECTED', False))
 
         entries.append(cmake_cache_path('polytope_DIR', spec['polytope'].prefix))
 

@@ -5,10 +5,10 @@ Valgrind
 ========
 
 We advise using Valgrind to check memory leaks when doing development on Spheral.
-When using Valgrind to check Spheral, be sure to use the provided suppression file
+When using Valgrind to check Spheral, be sure to use the provided suppression file and call the Spheral python executable directly:
 ::
 
-   valgrind --suppressions=./scripts/devtools/valgrind_python_suppression ./spheral
+   valgrind --suppressions=./scripts/devtools/valgrind_python_suppression .venv/bin/python
 
 
 Using Caliper
@@ -104,7 +104,7 @@ Adiak metadata can be added inside python code using the following function call
 
                 adiak_values("value_name", value)
 
-Below is a list of some of the metadata the is added to Adiak by default:
+Below is a list of some of the metadata that Spheral adds to Adiak by default:
 
 ======================== ==========================
 Adiak Key                Description
@@ -172,11 +172,22 @@ The general procedure to comparing performance regression tests is:
 
       \delta_{\mathrm{thresh}} = 0.08 \mu + 2 \sigma
 
-   If the :math:`t_c - \mu > \delta_{\mathrm{thresh}}` for the ``main`` region, where :math:`t_c` is the new performance time, the test is considered to have failed and the timing tree of the exclusive average time per rank (``Avg time/rank (exc)``) will be displayed.
-   If the test configurations, like the number of time steps differed between the runs, or the hardware/install configurations did not match, it will consider the test skipped.
-   Otherwise, the test is considered to have passed.
-   If the :math:`t_c - \mu < -\delta_{\mathrm{thresh}}`, the performance improved significantly and the timing tree will be displayed.
+   There are 3 possible outcomes for each test:
+
+      - ``FAILED`` if :math:`t_c - \mu > \delta_{\mathrm{thresh}}` for the ``main`` region, where :math:`t_c` is the new performance time. The timing tree of the exclusive average time per rank (``Avg time/rank (exc)``) will be displayed.
+      - ``SKIPPED`` if test configurations do not match (number of time steps, number of SPH nodes, or hardware/install configurations).
+      - ``PASSED`` otherwise. Additionally, if :math:`t_c - \mu < -\delta_{\mathrm{thresh}}`, the performance improved significantly and the timing tree will be displayed.
 
 .. note::
 
    If ``performance.py`` is run on a non-MPI Spheral build, it will only use 1 rank and will thread all other available cores.
+
+Historical Timing Benchmarks
+----------------------------
+
+After the CI creates performance benchmark data during a merge to the develop branch, a deploy stage is run that creates plots showing the history of the benchmark timers over time.
+This page can be accessed by going to the repo page on GitLab (not GitHub), and either:
+
+* Click ``GitLab Pages`` on the right side of the repos home page.
+
+* Click ``Deploy->Pages`` on the left side of the page and select the link in the ``Deployments`` section.
