@@ -6,7 +6,7 @@
     - tioga
     - flux
   variables:
-    SCHEDULER_ACTION: alloc
+    JACAMAR_SCHEDULER_ACTION: default
     SCHEDULER_PARAMETERS: "--exclusive -N 2 -t 120"
     NPROC: 128
     HOSTNAME: 'tioga'
@@ -26,7 +26,7 @@
     - ruby
     - batch
   variables:
-    SCHEDULER_ACTION: allocate
+    JACAMAR_SCHEDULER_ACTION: default
     SCHEDULER_PARAMETERS: "--reservation=ci --exclusive -N 2 -t 120"
     NPROC: 112
     HOSTNAME: 'ruby'
