@@ -4,6 +4,9 @@
 //            should all be derived from this class or one of its daughters
 //
 // J.M. Pearl 2022
+// ---------------------------------------------------------------------------//
+// numParticleParticleContacts is currently kind of dangerous since it comes 
+//     from the pair list not the contact list.
 //----------------------------------------------------------------------------//
 
 #ifndef __Spheral_DEMBase_hh__
@@ -135,6 +138,9 @@ public:
   void resizeStatePairFieldLists(State<Dimension>& state) const;
 
   virtual 
+  void removeInactiveContactsFromPairFieldLists();
+
+  virtual 
   void removeInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const;
 
   virtual 
@@ -142,10 +148,13 @@ public:
   //#############################################################################
 
   void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
-
+  
+  void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
   void updateContactMap(const DataBase<Dimension>& dataBase);
   
   void identifyInactiveContacts(const DataBase<Dimension>& dataBase);
+
+  void updatePairwiseFields(const bool purgeInactiveContacts = false);
 
   // Optionally we can provide a bounding box for use generating the mesh
   // for the Voronoi mass density update.
