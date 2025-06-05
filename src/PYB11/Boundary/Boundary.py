@@ -37,8 +37,16 @@ class Boundary:
     @PYB11pycppname("applyGhostBoundary")
     @PYB11virtual
     @PYB11const
-    def applyGhostBoundary1(self,
-                            field = "Field<%(Dimension)s, int>&"):
+    def applyGhostBoundaryInt(self,
+                              field = "Field<%(Dimension)s, int>&"):
+        "Apply the boundary condition to the ghost node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("applyGhostBoundary")
+    @PYB11virtual
+    @PYB11const
+    def applyGhostBoundarySizeT(self,
+                                field = "Field<%(Dimension)s, size_t>&"):
         "Apply the boundary condition to the ghost node values in the given Field."
         return "void"
 
@@ -142,8 +150,16 @@ class Boundary:
     @PYB11pycppname("enforceBoundary")
     @PYB11virtual
     @PYB11const
-    def enforceBoundary1(self,
-                         field = "Field<%(Dimension)s, int>&"):
+    def enforceBoundaryInt(self,
+                           field = "Field<%(Dimension)s, int>&"):
+        "Apply the boundary condition to the violation node values in the given Field."
+        return "void"
+
+    @PYB11pycppname("enforceBoundary")
+    @PYB11virtual
+    @PYB11const
+    def enforceBoundarySizeT(self,
+                             field = "Field<%(Dimension)s, size_t>&"):
         "Apply the boundary condition to the violation node values in the given Field."
         return "void"
 
