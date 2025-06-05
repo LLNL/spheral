@@ -151,7 +151,10 @@ def main():
     if hostname:
         mac_args = [] # Machine specific arguments to give to ATS
         if any(x in hostname for x in toss_machine_names):
-            numNodes = numNodes if numNodes else 2
+            if "rzwhippet" in hostname:
+                numNodes = numNodes if numNodes else 1
+            else:
+                numNodes = numNodes if numNodes else 2
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
