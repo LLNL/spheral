@@ -33,7 +33,6 @@ set(Field_headers
     FieldListThreadWrapper.hh
     FieldSpan.hh
     FieldSpanInline.hh
-    FieldSpanBase.hh
     FieldSpanList.hh
     FieldSpanListInline.hh
     FieldSpanListBase.hh

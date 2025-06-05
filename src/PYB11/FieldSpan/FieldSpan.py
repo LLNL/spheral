@@ -1,17 +1,15 @@
 import inspect
 from PYB11Generator import *
-from FieldSpanBase import FieldSpanBase
 
 #-------------------------------------------------------------------------------
 # Field
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11module("SpheralFieldSpan")
-class FieldSpan(FieldSpanBase):
+class FieldSpan:
 
     PYB11typedefs = """
   using SelfType = FieldSpan<%(Dimension)s, %(Value)s>;
-  using FSBaseType = FieldSpanBase<%(Dimension)s>;
   using Scalar = typename %(Dimension)s::Scalar;
 """
 
@@ -38,19 +36,19 @@ class FieldSpan(FieldSpanBase):
 
     #...........................................................................
     # Sequence methods
-    @PYB11cppname("size")
+    @PYB11cppname("numElements")
     @PYB11const
     def __len__(self):
         return "size_t"
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation('[](SelfType& self, int i) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
+    @PYB11implementation('[](SelfType& self, int i) { const auto n = self.numElements(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
     def __getitem__(self):
         #return "%(Value)s&"
         return
 
-    @PYB11implementation("[](SelfType& self, int i, const %(Value)s v) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
+    @PYB11implementation("[](SelfType& self, int i, const %(Value)s v) { const auto n = self.numElements(); if (size_t(i) >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
     def __setitem__(self):
         "Set a value"
 
@@ -59,23 +57,10 @@ class FieldSpan(FieldSpanBase):
         "Python iteration through a FieldSpan."
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](SelfType& self, int i) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
+    @PYB11implementation("[](SelfType& self, int i) { const auto n = self.numElements(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
     def __call__(self):
         "Index into a FieldSpan"
         return
-
-    #...........................................................................
-    # Methods
-    @PYB11virtual
-    @PYB11const
-    def size(self):
-        "Number of elements"
-        return "size_t"
-
-    @PYB11virtual
-    def Zero(self):
-        "Set all element values equal to zero"
-        return "void"
 
     #...........................................................................
     # Properties

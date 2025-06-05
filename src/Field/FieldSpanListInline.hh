@@ -44,7 +44,7 @@ assignFields(FieldSpanList<Dimension, DataType>& rhs) {
     const auto n = this->size();
     CHECK(rhs.size() == n);
     for (size_t k = 0u; k < n; ++k) {
-      CHECK((*this)[k].size() == rhs[k].size());
+      CHECK((*this)[k].numElements() == rhs[k].numElements());
       (*this)[k] = rhs[k];
     }
   } // OMP critical
@@ -100,7 +100,7 @@ FieldSpanList<Dimension, DataType>::
 operator()(const size_t fieldIndex,
            const size_t nodeIndex) {
   REQUIRE2(fieldIndex < mFieldSpans.size(), "FieldSpanList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldSpans.size());
-  REQUIRE2(nodeIndex < mFieldSpans[fieldIndex].size(), "FieldSpanList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldSpans[fieldIndex].size());
+  REQUIRE2(nodeIndex < mFieldSpans[fieldIndex].numElements(), "FieldSpanList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldSpans[fieldIndex].numElements());
   return mFieldSpans[fieldIndex][nodeIndex];
 }
 
@@ -111,18 +111,8 @@ FieldSpanList<Dimension, DataType>::
 operator()(const size_t fieldIndex,
            const size_t nodeIndex) const {
   REQUIRE2(fieldIndex < mFieldSpans.size(), "FieldSpanList index ERROR: out of bounds " << fieldIndex << " !< " << mFieldSpans.size());
-  REQUIRE2(nodeIndex < mFieldSpans[fieldIndex].size(), "FieldSpanList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldSpans[fieldIndex].size());
+  REQUIRE2(nodeIndex < mFieldSpans[fieldIndex].numElements(), "FieldSpanList node index ERROR: out of bounds " << nodeIndex << " !< " << mFieldSpans[fieldIndex].numElements());
   return mFieldSpans[fieldIndex][nodeIndex];
-}
-
-//------------------------------------------------------------------------------
-// Zero out the FieldList.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldSpanList<Dimension, DataType>::Zero() {
-  for (auto& x: mFieldSpans) x.Zero();
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +168,7 @@ FieldSpanList<Dimension, DataType>::operator+=(const FieldSpanList<Dimension, Da
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -199,7 +189,7 @@ FieldSpanList<Dimension, DataType>::operator-=(const FieldSpanList<Dimension, Da
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -245,7 +235,7 @@ operator*=(const FieldSpanList<Dimension, typename Dimension::Scalar>& rhs) {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -279,7 +269,7 @@ operator/=(const FieldSpanList<Dimension, typename Dimension::Scalar>& rhs) {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -387,7 +377,7 @@ operator==(const FieldSpanList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -424,7 +414,7 @@ operator>(const FieldSpanList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -450,7 +440,7 @@ operator<(const FieldSpanList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -476,7 +466,7 @@ operator>=(const FieldSpanList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -502,7 +492,7 @@ operator<=(const FieldSpanList<Dimension, DataType>& rhs) const {
   BEGIN_CONTRACT_SCOPE
   {
     REQUIRE(rhs.size() == n);
-    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].size() == rhs.mFieldSpans[i].size());
+    for (size_t i = 0u; i < n; ++i) REQUIRE(mFieldSpans[i].numElements() == rhs.mFieldSpans[i].numElements());
   }
   END_CONTRACT_SCOPE
 
@@ -625,7 +615,7 @@ size_t
 FieldSpanList<Dimension, DataType>::
 numElements() const {
   size_t result = 0u;
-  for (const auto& x: mFieldSpans) result += x.size();
+  for (const auto& x: mFieldSpans) result += x.numElements();
   return result;
 }
 

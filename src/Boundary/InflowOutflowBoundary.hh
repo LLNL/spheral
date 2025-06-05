@@ -65,9 +65,9 @@ public:
   virtual void updateViolationNodes(NodeList<Dimension>& nodeList) override;
 
   // This boundary does not cull ghosts, but others might have.
-  virtual void cullGhostNodes(const FieldList<Dimension, int>& flagSet,
-                              FieldList<Dimension, int>& old2newIndexMap,
-                              std::vector<int>& numNodesRemoved) override;
+  virtual void cullGhostNodes(const FieldList<Dimension, size_t>& flagSet,
+                              FieldList<Dimension, size_t>& old2newIndexMap,
+                              std::vector<size_t>& numNodesRemoved) override;
 
   // After physics have been initialized we take a snapshot of the node state.
   virtual void initializeProblemStartup(const bool final) override;

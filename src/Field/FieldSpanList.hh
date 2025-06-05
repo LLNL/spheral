@@ -67,7 +67,6 @@ public:
                              const size_t nodeIndex) const;
 
   // Reproduce the standard Field operators for FieldSpanLists.
-  void Zero();
   void applyMin(const DataType& dataMin);
   void applyMax(const DataType& dataMax);
 

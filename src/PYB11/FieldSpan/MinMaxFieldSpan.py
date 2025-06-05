@@ -1,6 +1,5 @@
 import inspect
 from PYB11Generator import *
-from FieldSpanBase import *
 from ArithmeticFieldSpan import *
 
 #-------------------------------------------------------------------------------
@@ -8,7 +7,7 @@ from ArithmeticFieldSpan import *
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldSpan")
-class MinMaxFieldSpan(FieldSpanBase):
+class MinMaxFieldSpan:
 
     PYB11typedefs = """
   using SelfType = FieldSpan<%(Dimension)s, %(Value)s>;

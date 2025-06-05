@@ -9,7 +9,6 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-from FieldSpanBase import *
 from FieldSpan import *
 from ArithmeticFieldSpan import *
 from MinMaxFieldSpan import *
@@ -18,7 +17,6 @@ from MinMaxFieldSpan import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Geometry/Dimension.hh"',
-                  '"Field/FieldSpanBase.hh"',
                   '"Field/FieldSpan.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',
                   '"Utilities/DomainNode.hh"',
@@ -42,12 +40,6 @@ for ndim in dims:
     ThirdRankTensor = f"{Dimension}::ThirdRankTensor"
     FourthRankTensor = f"{Dimension}::FourthRankTensor"
     FifthRankTensor = f"{Dimension}::FifthRankTensor"
-
-    #...........................................................................
-    # FieldSpanBase
-    exec(f'''
-FieldSpanBase{ndim}d = PYB11TemplateClass(FieldSpanBase, template_parameters="{Dimension}")
-''')
 
     #...........................................................................
     # non-numeric types

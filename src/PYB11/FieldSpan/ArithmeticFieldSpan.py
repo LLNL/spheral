@@ -1,6 +1,5 @@
 import inspect
 from PYB11Generator import *
-from FieldSpanBase import FieldSpanBase
 from FieldSpan import FieldSpan
 
 #-------------------------------------------------------------------------------
@@ -8,7 +7,7 @@ from FieldSpan import FieldSpan
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("FieldSpan")
-class ArithmeticFieldSpan(FieldSpanBase):
+class ArithmeticFieldSpan:
 
     PYB11typedefs = """
   using SelfType = FieldSpan<%(Dimension)s, %(Value)s>;

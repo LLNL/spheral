@@ -7,14 +7,14 @@
 #ifndef __Spheral_FieldSpan__
 #define __Spheral_FieldSpan__
 
-#include "Field/FieldSpanBase.hh"
-
 #include <span>
 
 namespace Spheral {
 
+template<typename Dimension, typename DataType> class Field;
+
 template<typename Dimension, typename DataType>
-class FieldSpan: public FieldSpanBase<Dimension> {
+class FieldSpan {
    
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -22,7 +22,7 @@ public:
 
   using FieldDimension = Dimension;
   using FieldDataType = DataType;
-  using value = DataType;      // STL compatibility.
+  using value_type = DataType;      // STL compatibility.
 
   using iterator = typename std::span<DataType>::iterator;
   // using const_iterator = typename std::span<DataType>::const_iterator;  // Not until C++23
@@ -34,12 +34,8 @@ public:
   virtual ~FieldSpan() = default;
 
   // Assignment
-  // virtual FieldSpanBase<Dimension>& operator=(FieldSpanBase<Dimension>& rhs) override;
   FieldSpan& operator=(FieldSpan& rhs) = default;
   FieldSpan& operator=(const DataType& rhs);
-
-  // Required method to test equivalence with a FieldSpanBase.
-  virtual bool operator==(const FieldSpanBase<Dimension>& rhs) const override;
 
   // Element access.
   DataType& operator()(size_t index);
@@ -55,10 +51,6 @@ public:
   size_t numElements() const;
   size_t numInternalElements() const;
   size_t numGhostElements() const;
-  virtual size_t size() const override;
-
-  // Zero out the field elements.
-  virtual void Zero() override;
 
   // Methods to apply limits to Field data members.
   void applyMin(const DataType& dataMin);
@@ -94,10 +86,10 @@ public:
   // Comparison operators (Field-Field element wise).
   bool operator==(const FieldSpan& rhs) const;
   bool operator!=(const FieldSpan& rhs) const;
-  bool operator> (const FieldSpan& rhs) const;
-  bool operator< (const FieldSpan& rhs) const;
-  bool operator>=(const FieldSpan& rhs) const;
-  bool operator<=(const FieldSpan& rhs) const;
+  // bool operator> (const FieldSpan& rhs) const;
+  // bool operator< (const FieldSpan& rhs) const;
+  // bool operator>=(const FieldSpan& rhs) const;
+  // bool operator<=(const FieldSpan& rhs) const;
 
   // Comparison operators (Field-value element wise).
   bool operator==(const DataType& rhs) const;
@@ -108,18 +100,18 @@ public:
   bool operator<=(const DataType& rhs) const;
 
   // Provide the standard iterator methods over the field.
-  iterator begin();
-  iterator end();
-  iterator internalBegin();
-  iterator internalEnd();
-  iterator ghostBegin();
-  iterator ghostEnd();
+  iterator begin() const                                              { return mDataSpan.begin(); }
+  iterator end() const                                                { return mDataSpan.end(); }
+  iterator internalBegin() const                                      { return mDataSpan.begin(); }
+  iterator internalEnd() const                                        { return mDataSpan.begin() + mNumInternalElements; }
+  iterator ghostBegin() const                                         { return mDataSpan.begin() + mNumInternalElements; }
+  iterator ghostEnd() const                                           { return mDataSpan.end(); }
 
   // No default constructor.
   FieldSpan() = delete;
 
-private:
-  //--------------------------- Private Interface ---------------------------//
+protected:
+  //--------------------------- Protected Interface ---------------------------//
   // Private Data
   std::span<DataType> mDataSpan;
   size_t mNumInternalElements, mNumGhostElements;

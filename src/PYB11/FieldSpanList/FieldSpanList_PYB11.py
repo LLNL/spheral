@@ -16,7 +16,6 @@ from FieldSpanList import *
 # Includes
 #-------------------------------------------------------------------------------
 PYB11includes += ['"Geometry/Dimension.hh"',
-                  '"Field/FieldSpanBase.hh"',
                   '"Field/FieldSpan.hh"',
                   '"Field/FieldSpanList.hh"',
                   '"Utilities/FieldDataTypeTraits.hh"',

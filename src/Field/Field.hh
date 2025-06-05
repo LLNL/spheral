@@ -12,6 +12,7 @@
 #define __Spheral_Field__
 
 #include "Field/FieldBase.hh"
+#include "Field/FieldSpan.hh"
 
 #include "axom/sidre.hpp"
 
@@ -28,7 +29,6 @@ template<typename Dimension> class CoarseNodeIterator;
 template<typename Dimension> class RefineNodeIterator;
 template<typename Dimension> class NodeList;
 template<typename Dimension> class TableKernel;
-template<typename Dimension, typename DataType> class FieldSpan;
 
 #ifdef USE_UVM
 template<typename DataType>
@@ -39,7 +39,9 @@ using DataAllocator = std::allocator<DataType>;
 #endif
 
 template<typename Dimension, typename DataType>
-class Field: public FieldBase<Dimension> {
+class Field:
+    public FieldBase<Dimension>,
+    public FieldSpan<Dimension, DataType> {
    
 public:
   //--------------------------- Public Interface ---------------------------//
@@ -53,10 +55,14 @@ public:
   using FieldDataType = DataType;
   using value_type = DataType;      // STL compatibility.
 
-  using iterator = typename std::vector<DataType,DataAllocator<DataType>>::iterator;
+  using iterator = typename FieldSpan<Dimension, DataType>::iterator;
   using const_iterator = typename std::vector<DataType,DataAllocator<DataType>>::const_iterator;
 
   using ViewType = FieldSpan<Dimension, DataType>;
+
+  // Bring in various methods hidden in FieldSpan
+  using FieldSpan<Dimension, DataType>::operator();
+  using FieldSpan<Dimension, DataType>::operator[];
 
   // Constructors.
   explicit Field(FieldName name);
@@ -74,7 +80,7 @@ public:
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  virtual ~Field();
+  virtual ~Field() = default;
 
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
@@ -82,146 +88,74 @@ public:
   Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
-  // Required method to test equivalence with a FieldBase.
+  // Comparisons
   virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
-  // Element access.
-  DataType& operator()(int index);
-  const DataType& operator()(int index) const;
+  // Foward the FieldSpan Field-Field comparison operators
+  bool operator==(const Field& rhs) const { return FieldSpan<Dimension, DataType>::operator==(rhs); }
+  bool operator!=(const Field& rhs) const { return FieldSpan<Dimension, DataType>::operator!=(rhs); }
 
+  // Comparison operators (Field-value element wise).
+  bool operator==(const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator==(rhs); }
+  bool operator!=(const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator!=(rhs); }
+  bool operator> (const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator> (rhs); }
+  bool operator< (const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator< (rhs); }
+  bool operator>=(const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator>=(rhs); }
+  bool operator<=(const DataType& rhs) const { return FieldSpan<Dimension, DataType>::operator<=(rhs); }
+
+  // Element access by NodeIterator
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
   const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
 
-  DataType& at(int index);
-  const DataType& at(int index) const;
-
   // The number of elements in the field.
-  unsigned numElements() const;
-  unsigned numInternalElements() const;
-  unsigned numGhostElements() const;
-  virtual unsigned size() const override;
+  virtual size_t size() const override                                      { return mDataArray.size(); }
 
   // Zero out the field elements.
   virtual void Zero() override;
-
-  // Methods to apply limits to Field data members.
-  void applyMin(const DataType& dataMin);
-  void applyMax(const DataType& dataMax);
-
-  void applyScalarMin(const double dataMin);
-  void applyScalarMax(const double dataMax);
 
   // Standard field additive operators.
   Field operator+(const Field& rhs) const;
   Field operator-(const Field& rhs) const;
 
-  Field& operator+=(const Field& rhs);
-  Field& operator-=(const Field& rhs);
-
   Field operator+(const DataType& rhs) const;
   Field operator-(const DataType& rhs) const;
 
-  Field& operator+=(const DataType& rhs);
-  Field& operator-=(const DataType& rhs);
-
-//   // Multiplication of two fields, possibly by another DataType.
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const Field<Dimension, OtherDataType>& rhs) const;
-
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const OtherDataType& rhs) const;
-
   // Multiplication and division by scalar(s)
-  Field<Dimension, DataType> operator*(const Field<Dimension, Scalar>& rhs) const;
-  Field<Dimension, DataType> operator/(const Field<Dimension, Scalar>& rhs) const;
+  Field operator*(const Field<Dimension, Scalar>& rhs) const;
+  Field operator/(const Field<Dimension, Scalar>& rhs) const;
 
-  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
-  Field<Dimension, DataType>& operator/=(const Field<Dimension, Scalar>& rhs);
-
-  Field<Dimension, DataType> operator*(const Scalar& rhs) const;
-  Field<Dimension, DataType> operator/(const Scalar& rhs) const;
-
-  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
-  Field<Dimension, DataType>& operator/=(const Scalar& rhs);
-
-  // Some useful reduction operations.
-  DataType sumElements() const;
-  DataType min() const;
-  DataType max() const;
-
-  // Some useful reduction operations (local versions -- no MPI reductions)
-  DataType localSumElements() const;
-  DataType localMin() const;
-  DataType localMax() const;
-
-  // Comparison operators (Field-Field element wise).
-  bool operator==(const Field& rhs) const;
-  bool operator!=(const Field& rhs) const;
-  bool operator>(const Field& rhs) const;
-  bool operator<(const Field& rhs) const;
-  bool operator>=(const Field& rhs) const;
-  bool operator<=(const Field& rhs) const;
-
-  // Comparison operators (Field-value element wise).
-  bool operator==(const DataType& rhs) const;
-  bool operator!=(const DataType& rhs) const;
-  bool operator>(const DataType& rhs) const;
-  bool operator<(const DataType& rhs) const;
-  bool operator>=(const DataType& rhs) const;
-  bool operator<=(const DataType& rhs) const;
-
-//   // Interpolate from this Field onto the given position.  Assumes that the
-//   // neighbor initializations have already been performed for the given
-//   // position!
-//   DataType operator()(const Vector& r,
-//                       const TableKernel<Dimension>& W) const;
-
-//   // Interpolate from this Field onto a new Field defined at the positions
-//   // of the given NodeList.
-//   Field<Dimension, DataType>
-//   sampleField(const NodeList<Dimension>& splatNodeList,
-//               const TableKernel<Dimension>& W) const;
-
-//   // Conservatively splat values from this Field onto a new Field defined
-//   // at the positions of the given NodeList, using the MASH formalism.
-//   Field<Dimension, DataType>
-//   splatToFieldMash(const NodeList<Dimension>& splatNodeList,
-//                    const TableKernel<Dimension>& W) const;
+  Field operator*(const Scalar& rhs) const;
+  Field operator/(const Scalar& rhs) const;
 
   // Provide the standard iterator methods over the field.
-  iterator begin();
-  iterator end();
-  iterator internalBegin();
-  iterator internalEnd();
-  iterator ghostBegin();
-  iterator ghostEnd();
+  const_iterator begin() const                                              { return mDataArray.begin(); }
+  const_iterator end() const                                                { return mDataArray.end(); }
+  const_iterator internalBegin() const                                      { return mDataArray.begin(); }
+  const_iterator internalEnd() const                                        { return mDataArray.begin() + mNumInternalElements; }
+  const_iterator ghostBegin() const                                         { return mDataArray.begin() + mNumInternalElements; }
+  const_iterator ghostEnd() const                                           { return mDataArray.end(); }
 
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_iterator internalBegin() const;
-  const_iterator internalEnd() const;
-  const_iterator ghostBegin() const;
-  const_iterator ghostEnd() const;
-
-  // Index operator.
-  DataType& operator[](const unsigned int index);
-  const DataType& operator[](const unsigned int index) const;
+  // We have to explicitly redefine the non-const iterators
+  iterator begin()                                                          { return FieldSpan<Dimension, DataType>::begin(); }
+  iterator end()                                                            { return FieldSpan<Dimension, DataType>::end(); }
+  iterator internalBegin()                                                  { return FieldSpan<Dimension, DataType>::internalBegin(); }
+  iterator internalEnd()                                                    { return FieldSpan<Dimension, DataType>::internalEnd(); }
+  iterator ghostBegin()                                                     { return FieldSpan<Dimension, DataType>::ghostBegin(); }
+  iterator ghostEnd()                                                       { return FieldSpan<Dimension, DataType>::ghostEnd(); }
 
   // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList) override;
-  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const override;
-  virtual void unpackValues(const std::vector<int>& nodeIDs,
+  virtual std::vector<char> packValues(const std::vector<size_t>& nodeIDs) const override;
+  virtual void unpackValues(const std::vector<size_t>& nodeIDs,
                             const std::vector<char>& buffer) override;
-  virtual void copyElements(const std::vector<int>& fromIndices,
-                            const std::vector<int>& toIndices) override;
+  virtual void copyElements(const std::vector<size_t>& fromIndices,
+                            const std::vector<size_t>& toIndices) override;
   virtual bool fixedSizeDataType() const override;
-  virtual int numValsInDataType() const override;
-  virtual int sizeofDataType() const override;
-  virtual int computeCommBufferSize(const std::vector<int>& packIndices,
-                                    const int sendProc,
-                                    const int recvProc) const override;
+  virtual size_t numValsInDataType() const override;
+  virtual size_t sizeofDataType() const override;
+  virtual size_t computeCommBufferSize(const std::vector<size_t>& packIndices,
+                                       const int sendProc,
+                                       const int recvProc) const override;
 
   // Serialization methods
   std::vector<char> serialize() const;
@@ -237,17 +171,17 @@ public:
   axom::sidre::DataTypeId getAxomTypeID() const;
 
   // Return a view of the Field (appropriate for on accelerator devices)
-  ViewType view();
+  ViewType& view();
 
   // No default constructor.
   Field() = delete;
 
 protected:
-  virtual void resizeField(unsigned size) override;
-  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode) override;
-  virtual void resizeFieldGhost(unsigned size) override;
-  virtual void deleteElement(int nodeID) override;
-  virtual void deleteElements(const std::vector<int>& nodeIDs) override;
+  virtual void resizeField(size_t size) override;
+  virtual void resizeFieldInternal(size_t size, size_t oldFirstGhostNode) override;
+  virtual void resizeFieldGhost(size_t size) override;
+  virtual void deleteElement(size_t nodeID) override;
+  virtual void deleteElements(const std::vector<size_t>& nodeIDs) override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
@@ -255,6 +189,9 @@ private:
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
 
   friend FieldSpan<Dimension, DataType>;
+  using FieldSpan<Dimension, DataType>::mDataSpan;
+  using FieldSpan<Dimension, DataType>::mNumInternalElements;
+  using FieldSpan<Dimension, DataType>::mNumGhostElements;
 };
 
 } // namespace Spheral

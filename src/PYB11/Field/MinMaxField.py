@@ -11,9 +11,9 @@ from ArithmeticField import *
 class MinMaxField(FieldBase):
 
     PYB11typedefs = """
-    using FieldType = Field<%(Dimension)s, %(Value)s>;
-    using ViewType = typename FieldType::ViewType;
-    using Scalar = typename FieldType::Scalar;
+    using SelfType = Field<%(Dimension)s, %(Value)s>;
+    using ViewType = typename SelfType::ViewType;
+    using Scalar = typename SelfType::Scalar;
     using ScalarFieldType = Field<%(Dimension)s, Scalar>;
 """
 

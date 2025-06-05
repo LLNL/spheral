@@ -24,10 +24,6 @@ class FieldSpanList:
         "Set all Fields pointed to by this FieldSpanList equal to those of the given FieldSpanList."
         return "void"
 
-    def Zero(self):
-        "Set all element values equal to zero"
-        return "void"
-
     @PYB11const
     def size(self):
         "Number of Fields"

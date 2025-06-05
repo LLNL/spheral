@@ -1,3 +1,4 @@
+#include "Field/Field.hh"
 #include "Geometry/Dimension.hh"
 #include "Utilities/safeInv.hh"
 #include "Distributed/allReduce.hh"
@@ -26,31 +27,10 @@ template<typename Dimension, typename DataType>
 inline
 FieldSpan<Dimension, DataType>::
 FieldSpan(Field<Dimension, DataType>& field):
-  FieldSpanBase<Dimension>(),
   mDataSpan(field.mDataArray),
   mNumInternalElements(field.numInternalElements()),
   mNumGhostElements(field.numGhostElements()) {
 }
-
-// //------------------------------------------------------------------------------
-// // Assignment operator with FieldSpanBase.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// FieldSpanBase<Dimension>&
-// FieldSpan<Dimension, DataType>::
-// operator=(FieldSpanBase<Dimension>& rhs) {
-//   if (this != &rhs) {
-//     try {
-//       const auto* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
-//       CHECK2(rhsPtr != nullptr, "Passed incorrect Field to operator=!");
-//       mDataSpan = rhsPtr->mDataSpan;
-//     } catch (const std::bad_cast &) {
-//       VERIFY2(false, "Attempt to assign a FieldSpan to an incompatible field type.");
-//     }
-//   }
-//   return *this;
-// }
 
 //------------------------------------------------------------------------------
 // Assignment operator with a constant value of DataType
@@ -62,38 +42,6 @@ FieldSpan<Dimension, DataType>::
 operator=(const DataType& rhs) {
   for (auto& x: mDataSpan) x = rhs;
   return *this;
-}
-
-//------------------------------------------------------------------------------
-// Test equivalence with a FieldSpanBase.
-//------------------------------------------------------------------------------
-// template<typename Value>
-// struct CrappyFieldCompareMethod {
-//   static bool compare(const std::vector<Value,DataAllocator<Value>>& lhs, 
-//                       const std::vector<Value,DataAllocator<Value>>& rhs) {
-//     return lhs == rhs;
-//   }
-// };
-
-template<typename Dimension, typename DataType>
-inline
-bool
-FieldSpan<Dimension, DataType>::operator==(const FieldSpanBase<Dimension>& rhs) const {
-  try {
-    const auto* rhsPtr = dynamic_cast<const FieldSpan<Dimension, DataType>*>(&rhs);
-    if (rhsPtr == nullptr) return false;
-    const auto n = this->size();
-    if (rhsPtr->size() != n) return false;
-    size_t i = 0u;
-    auto result = true;
-    while (i < n and result) {
-      result = (*this)[i] == (*rhsPtr)[i];
-      i++;
-    }
-    return result;
-  } catch (const std::bad_cast &) {
-    return false;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -117,19 +65,22 @@ FieldSpan<Dimension, DataType>::operator()(size_t index) const {
 
 //------------------------------------------------------------------------------
 // at version, for consistency with STL interface.
+// Since std::span doesn't support at() until C++26, we emulate it with VERIFY
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
 DataType&
 FieldSpan<Dimension, DataType>::at(size_t index) {
-  return mDataSpan.at(index);
+  VERIFY2(index < mDataSpan.size(), "FieldSpan index out of range: " << index << " " << mDataSpan.size());
+  return mDataSpan[index];
 }
 
 template<typename Dimension, typename DataType>
 inline
 const DataType&
 FieldSpan<Dimension, DataType>::at(size_t index) const {
-  return mDataSpan.at(index);
+  VERIFY2(index < mDataSpan.size(), "FieldSpan index out of range: " << index << " " << mDataSpan.size());
+  return mDataSpan[index];
 }
 
 //------------------------------------------------------------------------------
@@ -175,23 +126,6 @@ inline
 size_t
 FieldSpan<Dimension, DataType>::numGhostElements() const {
   return mNumGhostElements;
-}
-
-template<typename Dimension, typename DataType>
-inline
-size_t
-FieldSpan<Dimension, DataType>::size() const {
-  return mDataSpan.size();
-}
-
-//------------------------------------------------------------------------------
-// Zero out the elements.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-void
-FieldSpan<Dimension, DataType>::Zero() {
-  std::fill(this->begin(), this->end(), DataTypeTraits<DataType>::zero());
 }
 
 //------------------------------------------------------------------------------
@@ -425,8 +359,8 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator==(const FieldSpan<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (rhs.size() != n) return false;
+  const auto n = this->numElements();
+  if (rhs.numElements() != n) return false;
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -447,80 +381,80 @@ operator!=(const FieldSpan<Dimension, DataType>& rhs) const {
   return !((*this) == rhs);
 }
 
-//------------------------------------------------------------------------------
-// operator>(FieldSpan)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-bool
-FieldSpan<Dimension, DataType>::
-operator>(const FieldSpan<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (rhs.size() != n) return false;
-  auto result = true;
-  size_t i = 0u;
-  while (i < n and result) {
-    result = (*this)[i] > rhs[i];
-    ++i;
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // operator>(FieldSpan)
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// bool
+// FieldSpan<Dimension, DataType>::
+// operator>(const FieldSpan<Dimension, DataType>& rhs) const {
+//   const auto n = this->numElements();
+//   if (rhs.numElements() != n) return false;
+//   auto result = true;
+//   size_t i = 0u;
+//   while (i < n and result) {
+//     result = (*this)[i] > rhs[i];
+//     ++i;
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// operator<(FieldSpan)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-bool
-FieldSpan<Dimension, DataType>::
-operator<(const FieldSpan<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (rhs.size() != n) return false;
-  auto result = true;
-  size_t i = 0u;
-  while (i < n and result) {
-    result = (*this)[i] < rhs[i];
-    ++i;
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // operator<(FieldSpan)
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// bool
+// FieldSpan<Dimension, DataType>::
+// operator<(const FieldSpan<Dimension, DataType>& rhs) const {
+//   const auto n = this->numElements();
+//   if (rhs.numElements() != n) return false;
+//   auto result = true;
+//   size_t i = 0u;
+//   while (i < n and result) {
+//     result = (*this)[i] < rhs[i];
+//     ++i;
+//   }
+//   return result;
+// }
 
-//------------------------------------------------------------------------------
-// operator>=(FieldSpan)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-bool
-FieldSpan<Dimension, DataType>::
-operator>=(const FieldSpan<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (rhs.size() != n) return false;
-  auto result = true;
-  size_t i = 0u;
-  while (i < n and result) {
-    result = (*this)[i] >= rhs[i];
-    ++i;
-  }
-}
+// //------------------------------------------------------------------------------
+// // operator>=(FieldSpan)
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// bool
+// FieldSpan<Dimension, DataType>::
+// operator>=(const FieldSpan<Dimension, DataType>& rhs) const {
+//   const auto n = this->numElements();
+//   if (rhs.numElements() != n) return false;
+//   auto result = true;
+//   size_t i = 0u;
+//   while (i < n and result) {
+//     result = (*this)[i] >= rhs[i];
+//     ++i;
+//   }
+// }
 
-//------------------------------------------------------------------------------
-// operator<=(Field)
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-bool
-FieldSpan<Dimension, DataType>::
-operator<=(const FieldSpan<Dimension, DataType>& rhs) const {
-  const auto n = this->size();
-  if (rhs.size() != n) return false;
-  auto result = true;
-  size_t i = 0u;
-  while (i < n and result) {
-    result = (*this)[i] <= rhs[i];
-    ++i;
-  }
-  return result;
-}
+// //------------------------------------------------------------------------------
+// // operator<=(Field)
+// //------------------------------------------------------------------------------
+// template<typename Dimension, typename DataType>
+// inline
+// bool
+// FieldSpan<Dimension, DataType>::
+// operator<=(const FieldSpan<Dimension, DataType>& rhs) const {
+//   const auto n = this->numElements();
+//   if (rhs.numElements() != n) return false;
+//   auto result = true;
+//   size_t i = 0u;
+//   while (i < n and result) {
+//     result = (*this)[i] <= rhs[i];
+//     ++i;
+//   }
+//   return result;
+// }
 
 //------------------------------------------------------------------------------
 // operator==(value)
@@ -530,7 +464,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator==(const DataType& rhs) const {
-  const auto n = this->size();
+  const auto n = this->numElements();
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -559,7 +493,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator>(const DataType& rhs) const {
-  const auto n = this->size();
+  const auto n = this->numElements();
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -577,7 +511,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator<(const DataType& rhs) const {
-  const auto n = this->size();
+  const auto n = this->numElements();
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -595,7 +529,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator>=(const DataType& rhs) const {
-  const auto n = this->size();
+  const auto n = this->numElements();
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -613,7 +547,7 @@ inline
 bool
 FieldSpan<Dimension, DataType>::
 operator<=(const DataType& rhs) const {
-  const auto n = this->size();
+  const auto n = this->numElements();
   auto result = true;
   size_t i = 0u;
   while (i < n and result) {
@@ -622,128 +556,6 @@ operator<=(const DataType& rhs) const {
   }
   return result;
 }
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the beginning of the span
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::begin() {
-  return mDataSpan.begin();
-}
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the end of the span
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::end() {
-  return mDataSpan.end();
-}
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the beginning of the internal span values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::internalBegin() {
-  return mDataSpan.begin();
-}
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the end of the internal span values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::internalEnd() {
-  REQUIRE(mDataSpan.size() >= mNumInternalElements);
-  return mDataSpan.begin() + mNumInternalElements;
-}
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the beginning of the ghost values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::ghostBegin() {
-  return this->internalEnd();
-}
-
-//------------------------------------------------------------------------------
-// Iterator pointing to the end of the ghost values.
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-typename FieldSpan<Dimension, DataType>::iterator
-FieldSpan<Dimension, DataType>::ghostEnd() {
-  return mDataSpan.end();
-}
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the beginning of the values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::begin() const {
-//   return mDataSpan.begin();
-// }
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the end of the values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::end() const {
-//   return mDataSpan.end();
-// }
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the beginning of the internal values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::internalBegin() const {
-//   return mDataSpan.begin();
-// }
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the end of the internal values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::internalEnd() const {
-//   REQUIRE(mDataSpan.size() >= mNumInternalElements);
-//   return mDataSpan.begin() + mNumInternalElements;
-// }
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the beginning of the ghost values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::ghostBegin() const {
-//   return this->internalEnd();
-// }
-
-// //------------------------------------------------------------------------------
-// // Const_iterator pointing to the end of the ghost values.
-// //------------------------------------------------------------------------------
-// template<typename Dimension, typename DataType>
-// inline
-// typename FieldSpan<Dimension, DataType>::const_iterator
-// FieldSpan<Dimension, DataType>::ghostEnd() const {
-//   return mDataSpan.end();
-// }
 
 //****************************** Global Functions ******************************
 //------------------------------------------------------------------------------

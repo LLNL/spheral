@@ -6,10 +6,10 @@ set (_python_packages
   Silo
   DataOutput
   NodeList
-  Field
-  FieldList
   FieldSpan
   FieldSpanList
+  Field
+  FieldList
   Kernel
   Neighbor
   Material

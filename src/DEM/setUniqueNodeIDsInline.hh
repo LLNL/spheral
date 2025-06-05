@@ -24,7 +24,7 @@ namespace Spheral {
 template<typename Dimension>
 // inline
 void
-setUniqueNodeIDs(FieldList<Dimension,int>& uniqueIndex) {
+setUniqueNodeIDs(FieldList<Dimension,size_t>& uniqueIndex) {
 
   // Prepare the result.
   const auto numFields = uniqueIndex.numFields();
