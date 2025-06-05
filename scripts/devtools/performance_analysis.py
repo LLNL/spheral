@@ -162,8 +162,6 @@ def get_hist_times(test_name, bench_path, cluster, region):
     if (not hist_cali_files):
         raise Exception(f"No {test_name}_*.cali files found for {cluster}")
     hist_data = th.Thicket.from_caliperreader(hist_cali_files, disable_tqdm=True)
-    query = th.query.Query().match("+", lambda row: not row[row["name"] == region].empty)
-    hist_data = hist_data.query(query)
     test_group = ["install_config"]
     test_dict = hist_data.groupby(test_group)
     return test_dict
