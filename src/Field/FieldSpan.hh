@@ -48,9 +48,9 @@ public:
   const DataType& operator[](const size_t index) const;
 
   // The number of elements in the field.
-  size_t numElements() const;
-  size_t numInternalElements() const;
-  size_t numGhostElements() const;
+  size_t numElements()         const { return mDataSpan.size(); }
+  size_t numInternalElements() const { return mNumInternalElements; }
+  size_t numGhostElements()    const { return mNumGhostElements; }
 
   // Methods to apply limits to Field data members.
   void applyMin(const DataType& dataMin);

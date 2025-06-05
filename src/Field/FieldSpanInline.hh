@@ -105,30 +105,6 @@ operator[](const size_t index) const {
 }
 
 //------------------------------------------------------------------------------
-// Number of elements in the FieldSpan
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-size_t
-FieldSpan<Dimension, DataType>::numElements() const {
-  return mDataSpan.size();
-}
-
-template<typename Dimension, typename DataType>
-inline
-size_t
-FieldSpan<Dimension, DataType>::numInternalElements() const {
-  return mNumInternalElements;
-}
-
-template<typename Dimension, typename DataType>
-inline
-size_t
-FieldSpan<Dimension, DataType>::numGhostElements() const {
-  return mNumGhostElements;
-}
-
-//------------------------------------------------------------------------------
 // Apply a minimum value to the elements.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>

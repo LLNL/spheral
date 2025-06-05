@@ -36,6 +36,8 @@ Field(typename FieldBase<Dimension>::FieldName name):
   FieldSpan<Dimension, DataType>(*this),
   mDataArray() {
   mDataSpan = mDataArray;
+  mNumInternalElements = 0u;
+  mNumGhostElements = 0u;
 }
 
 //------------------------------------------------------------------------------
@@ -50,6 +52,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
   FieldSpan<Dimension, DataType>(*this),
   mDataArray(field.mDataArray) {
   mDataSpan = mDataArray;
+  mNumInternalElements = this->nodeList().numInternalNodes();
+  mNumGhostElements = this->nodeList().numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -65,6 +69,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
   mDataArray((size_t) nodeList.numNodes(), DataTypeTraits<DataType>::zero()) {
   REQUIRE(this->size() == nodeList.numNodes());
   mDataSpan = mDataArray;
+  mNumInternalElements = nodeList.numInternalNodes();
+  mNumGhostElements = nodeList.numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -81,6 +87,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
   mDataArray((size_t) nodeList.numNodes(), value) {
   REQUIRE(this->size() == nodeList.numNodes());
   mDataSpan = mDataArray;
+  mNumInternalElements = nodeList.numInternalNodes();
+  mNumGhostElements = nodeList.numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -99,6 +107,8 @@ Field(typename FieldBase<Dimension>::FieldName name,
   REQUIRE(size() == array.size());
   mDataArray = array;
   mDataSpan = mDataArray;
+  mNumInternalElements = nodeList.numInternalNodes();
+  mNumGhostElements = nodeList.numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -114,6 +124,8 @@ Field<Dimension, DataType>::Field(const NodeList<Dimension>& nodeList,
   mDataArray(field.mDataArray) {
   ENSURE(size() == nodeList.numNodes());
   mDataSpan = mDataArray;
+  mNumInternalElements = this->nodeList().numInternalNodes();
+  mNumGhostElements = this->nodeList().numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -126,6 +138,8 @@ Field<Dimension, DataType>::Field(const Field& field):
   FieldSpan<Dimension, DataType>(*this),
   mDataArray(field.mDataArray) {
   mDataSpan = mDataArray;
+  mNumInternalElements = this->nodeList().numInternalNodes();
+  mNumGhostElements = this->nodeList().numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -153,6 +167,8 @@ Field<Dimension, DataType>::operator=(const FieldBase<Dimension>& rhs) {
       FieldBase<Dimension>::operator=(rhs);
       mDataArray = rhsPtr->mDataArray;
       mDataSpan = mDataArray;
+      mNumInternalElements = this->nodeList().numInternalNodes();
+      mNumGhostElements = this->nodeList().numGhostNodes();
     } catch (const std::bad_cast &) {
       VERIFY2(false, "Attempt to assign a field to an incompatible field type.");
     }
@@ -171,6 +187,8 @@ Field<Dimension, DataType>::operator=(const Field<Dimension, DataType>& rhs) {
     FieldBase<Dimension>::operator=(rhs);
     mDataArray = rhs.mDataArray;
     mDataSpan = mDataArray;
+    mNumInternalElements = this->nodeList().numInternalNodes();
+    mNumGhostElements = this->nodeList().numGhostNodes();
   }
   return *this;
 }
@@ -446,6 +464,8 @@ Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
     std::fill(mDataArray.begin() + oldSize, mDataArray.end(), DataTypeTraits<DataType>::zero());
   }
   mDataSpan = mDataArray;
+  mNumInternalElements = nodeList.numInternalNodes();
+  mNumGhostElements = nodeList.numGhostNodes();
 }
 
 //------------------------------------------------------------------------------
@@ -574,7 +594,7 @@ deserialize(const std::vector<char>& buf) {
 }
 
 //------------------------------------------------------------------------------
-// Construct std::vectors of pointers to the values.
+// Construct std::vectors of the values.
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline

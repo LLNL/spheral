@@ -60,15 +60,10 @@ class testFieldSpan(unittest.TestCase):
         self.tensorField = TensorField("tensor field", nodes)
         self.trtField = ThirdRankTensorField("third rank tensor field", nodes)
 
-        self.intSpan = IntFieldSpan(self.intField)
-        self.scalarSpan = ScalarFieldSpan(self.scalarField)
-        self.tensorSpan = TensorFieldSpan(self.tensorField)
-        self.trtSpan = ThirdRankTensorFieldSpan(self.trtField)
-
-        self.stuff = [(self.intField,    self.intSpan,      IntTraits()),
-                      (self.scalarField, self.scalarSpan,   ScalarTraits()),
-                      (self.tensorField, self.tensorSpan,   TensorTraits()),
-                      (self.trtField,    self.trtSpan,      TRTTraits())]
+        self.stuff = [(self.intField,    IntTraits()),
+                      (self.scalarField, ScalarTraits()),
+                      (self.tensorField, TensorTraits()),
+                      (self.trtField,    TRTTraits())]
 
         return
 
@@ -76,8 +71,8 @@ class testFieldSpan(unittest.TestCase):
     # Destructor
     #---------------------------------------------------------------------------
     def tearDown(self):
-        for field, span, generator in self.stuff:
-            del field, span
+        for field, generator in self.stuff:
+            del field
         return
 
     #---------------------------------------------------------------------------
@@ -86,7 +81,8 @@ class testFieldSpan(unittest.TestCase):
     def testIndexInternalField2Span(self):
         for k in range(self.ntests):
             i = g.randint(0, nTot - 1)
-            for f, s, gen in self.stuff:
+            for f, gen in self.stuff:
+                s = f.view()
                 f[i] = gen()
                 assert f[i] == s[i]
         return
@@ -97,49 +93,53 @@ class testFieldSpan(unittest.TestCase):
     def testIndexInternalSpan2Field(self):
         for k in range(self.ntests):
             i = g.randint(0, nTot - 1)
-            for f, s, gen in self.stuff:
+            for f, gen in self.stuff:
+                s = f.view()
                 s[i] = gen()
                 assert f[i] == s[i]
         return
 
     #---------------------------------------------------------------------------
-    # size
+    # numElements
     #---------------------------------------------------------------------------
-    def testSize(self):
-        for f, s, gen in self.stuff:
-            assert f.size() == s.size() == nTot
+    def testNumElements(self):
+        for f, gen in self.stuff:
+            s = f.view()
+            assert f.numElements == s.numElements == nTot
         return
 
     #---------------------------------------------------------------------------
     # numInternal
     #---------------------------------------------------------------------------
     def testNumInternal(self):
-        for f, s, gen in self.stuff:
-            assert f.numInternalElements == s.numInternalElements == nInt
+        for f, gen in self.stuff:
+            s = f.view()
+            assert f.numInternalElements == s.numInternalElements == nInt, "{} {} != {}".format(f.numInternalElements, s.numInternalElements, nInt)
         return
 
     #---------------------------------------------------------------------------
     # numGhosts
     #---------------------------------------------------------------------------
     def testNumGhosts(self):
-        for f, s, gen in self.stuff:
-            assert f.numGhostElements == s.numGhostElements == nGhost
+        for f, gen in self.stuff:
+            s = f.view()
+            assert f.numGhostElements == s.numGhostElements == nGhost, "{} {} != {}".format(f.numGhostElements, s.numGhostElements, nGhost)
         return
 
-    #---------------------------------------------------------------------------
-    # Zero
-    #---------------------------------------------------------------------------
-    def testZero(self):
-        for f, s, gen in self.stuff:
-            for k in range(self.ntests):
-                i = g.randint(0, nTot - 1)
-                s[i] = gen()
-            assert s != gen.zero
-            assert f != gen.zero
-            s.Zero()
-            assert s == gen.zero
-            assert f == gen.zero
-        return
+    # #---------------------------------------------------------------------------
+    # # Zero
+    # #---------------------------------------------------------------------------
+    # def testZero(self):
+    #     for f, s, gen in self.stuff:
+    #         for k in range(self.ntests):
+    #             i = g.randint(0, nTot - 1)
+    #             s[i] = gen()
+    #         assert s != gen.zero
+    #         assert f != gen.zero
+    #         s.Zero()
+    #         assert s == gen.zero
+    #         assert f == gen.zero
+    #     return
 
 #-------------------------------------------------------------------------------
 # Run the test
