@@ -894,7 +894,8 @@ updateContactMap(const DataBase<Dimension>& dataBase){
 
           // if it doesn't exists create it 
           if (contactIndexPtr == neighborContacts.end()){
-            #pragma omp critical {
+            #pragma omp critical 
+            {
               mNeighborIndices(nodeListi,i).push_back(uId_bc);
             }
           }
