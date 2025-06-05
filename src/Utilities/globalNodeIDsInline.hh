@@ -102,51 +102,47 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     // Process 0 receives and builds the global info.
     for (auto recvDomain = 1u; recvDomain < numProcs; ++recvDomain) {
       MPI_Status status;
+      size_t bufsize;
+      MPI_Recv(&bufsize, 1, DataTypeTraits<size_t>::MpiDataType(), recvDomain, 10, Communicator::communicator(), &status);
+      CHECK(bufsize > 0u);
+      std::vector<char> buf(bufsize);
+      MPI_Recv(&buf.front(), bufsize, MPI_CHAR, recvDomain, 11, Communicator::communicator(), &status);
+
       size_t numRecvNodes;
-      MPI_Recv(&numRecvNodes, 1, DataTypeTraits<size_t>::MpiDataType(), recvDomain, 10, Communicator::communicator(), &status);
-      CHECK(numRecvNodes >= 0);
-      nglobal += numRecvNodes;
-      std::vector<Key> packedKeys(numRecvNodes);
-      std::vector<size_t> packedLocalIDs(numRecvNodes);
-      if (numRecvNodes > 0) {
-        MPI_Recv(&(*packedKeys.begin()), numRecvNodes, DataTypeTraits<Key>::MpiDataType(),
-                 recvDomain, 11, Communicator::communicator(), &status);
-        MPI_Recv(&(*packedLocalIDs.begin()), numRecvNodes, DataTypeTraits<size_t>::MpiDataType(),
-                 recvDomain, 12, Communicator::communicator(), &status);
-      }
+      std::vector<char>::const_iterator bufItr = buf.begin();
+      unpackElement(numRecvNodes, bufItr, buf.end());
+      Key key;
+      size_t id;
       for (auto i = 0u; i < numRecvNodes; ++i) {
-        nodeInfo.push_back(std::make_tuple(packedKeys[i], packedLocalIDs[i], recvDomain));
+        unpackElement(key, bufItr, buf.end());
+        unpackElement(id, bufItr, buf.end());
+        nodeInfo.emplace_back(key, id, recvDomain);
       }
+      nglobal += numRecvNodes;
+      CHECK(bufItr == buf.end());
     }
+    CHECK(nodeInfo.size() == nglobal);
 
   } else {
              
     // Send our local info to processor 0.
-    std::vector<Key> packedKeys;
-    std::vector<size_t> packedLocalIDs;
-    for (typename InfoType::const_iterator itr = nodeInfo.begin();
-         itr != nodeInfo.end();
-         ++itr) {
-      packedKeys.push_back(std::get<0>(*itr));
-      packedLocalIDs.push_back(std::get<1>(*itr));
+    std::vector<char> buf;
+    packElement(numLocalNodes, buf);
+    for (const auto& [key, id, proc]: nodeInfo) {
+      packElement(key, buf);
+      packElement(id, buf);
     }
-    CHECK(packedKeys.size() == nodeInfo.size());
-    CHECK(packedLocalIDs.size() == nodeInfo.size());
-
-    MPI_Send(&numLocalNodes, 1, DataTypeTraits<size_t>::MpiDataType(), 0, 10, Communicator::communicator());
-    if (numLocalNodes > 0u) {
-      MPI_Send(&(*packedKeys.begin()), numLocalNodes, DataTypeTraits<Key>::MpiDataType(),
-               0, 11, Communicator::communicator());
-      MPI_Send(&(*packedLocalIDs.begin()), numLocalNodes, DataTypeTraits<size_t>::MpiDataType(),
-               0, 12, Communicator::communicator());
-    }
+    size_t bufsize = buf.size();
+    MPI_Send(&bufsize, 1, DataTypeTraits<size_t>::MpiDataType(), 0, 10, Communicator::communicator());
+    MPI_Send(&buf.front(), bufsize, MPI_CHAR, 0, 11, Communicator::communicator());
   }
-  CHECK(nodeInfo.size() == nglobal);
+
+  CHECK((procID == 0u and nodeInfo.size() == nglobal) or nodeInfo.size() == numLocalNodes);
 #endif
 
   // Sort the node info.
   if (nodeInfo.size() > 0) {
-    sort(nodeInfo.begin(), nodeInfo.end());
+    std::sort(nodeInfo.begin(), nodeInfo.end());
     BEGIN_CONTRACT_SCOPE
     for (auto i = 0u; i < nodeInfo.size() - 1u; ++i) {
       CHECK(std::get<0>(nodeInfo[i]) <= std::get<0>(nodeInfo[i + 1]));
@@ -156,13 +152,16 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
   // Now we can assign consecutive global IDs based on the sorted list.
   std::vector<std::vector<size_t>> globalIDs(numProcs);
-  for (auto i = 0u; i < nodeInfo.size(); ++i) {
-    const auto recvProc = std::get<2>(nodeInfo[i]);
-    const auto localID = std::get<1>(nodeInfo[i]);
-    CHECK(recvProc < globalIDs.size());
-    if (localID + 1u > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1u);
-    globalIDs[recvProc][localID] = i;
+  if (procID == 0u) {
+    size_t iglobal = 0u;
+    for (const auto& [key, localID, recvProc]: nodeInfo) {
+      CHECK(recvProc < globalIDs.size());
+      if (localID + 1u > globalIDs[recvProc].size()) globalIDs[recvProc].resize(localID + 1u);
+      globalIDs[recvProc][localID] = iglobal++;
+    }
+    CHECK(iglobal == nglobal);
   }
+  MPI_Barrier(Communicator::communicator());
 
   // Assign process 0's Ids.
   Field<Dimension, size_t> result("global IDs", nodeList);
@@ -176,19 +175,19 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
 
     // Process 0 sends the info.
     for (auto recvProc = 1u; recvProc < numProcs; ++recvProc) {
-      auto numRecvNodes = globalIDs[recvProc].size();
+      size_t numRecvNodes = globalIDs[recvProc].size();
       MPI_Send(&numRecvNodes, 1, DataTypeTraits<size_t>::MpiDataType(), recvProc, 20, Communicator::communicator());
       if (numRecvNodes > 0u) MPI_Send(&(*globalIDs[recvProc].begin()), numRecvNodes, DataTypeTraits<size_t>::MpiDataType(),
                                       recvProc, 21, Communicator::communicator());
     }
 
-  } else if (result.size() > 0u) {
+  } else {
 
     // Get our ids from process 0.
     MPI_Status status;
     size_t numRecvNodes;
     MPI_Recv(&numRecvNodes, 1, DataTypeTraits<size_t>::MpiDataType(), 0, 20, Communicator::communicator(), &status);
-    CHECK(numRecvNodes == numLocalNodes);
+    CHECK2(numRecvNodes == numLocalNodes, numRecvNodes << " != " << numLocalNodes);
     if (numRecvNodes > 0) MPI_Recv(&(result[0]), numRecvNodes, DataTypeTraits<size_t>::MpiDataType(), 0, 21,
                                    Communicator::communicator(), &status);
 
