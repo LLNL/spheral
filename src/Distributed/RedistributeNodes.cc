@@ -132,6 +132,7 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
       result.back().position = nodeList.positions()(localID);
     }
     offset += nodeList.numInternalNodes();
+    ++nodeListID;
   }
   CHECK(nodeListID == (int)dataBase.numNodeLists());
 
