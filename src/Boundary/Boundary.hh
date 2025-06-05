@@ -80,6 +80,7 @@ public:
 
   // Specific Field ValueTypes -- default to just calling base method
   virtual void applyGhostBoundary(Field<Dimension, int>& field) const                       { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
+  virtual void applyGhostBoundary(Field<Dimension, size_t>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void applyGhostBoundary(Field<Dimension, Scalar>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void applyGhostBoundary(Field<Dimension, Vector>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void applyGhostBoundary(Field<Dimension, Tensor>& field) const                    { this->applyGhostBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
@@ -99,6 +100,7 @@ public:
 
   // Specific Field ValueTypes -- default to just calling base method
   virtual void enforceBoundary(Field<Dimension, int>& field) const                       { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
+  virtual void enforceBoundary(Field<Dimension, size_t>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void enforceBoundary(Field<Dimension, Scalar>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void enforceBoundary(Field<Dimension, Vector>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
   virtual void enforceBoundary(Field<Dimension, Tensor>& field) const                    { this->enforceBoundary(dynamic_cast<FieldBase<Dimension>&>(field)); }
@@ -128,6 +130,7 @@ public:
   //****************************************************************************
   // Apply the boundary condition to face centered fields on a tessellation.
   virtual void enforceBoundary(std::vector<int>&              /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
+  virtual void enforceBoundary(std::vector<size_t>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<Scalar>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<Vector>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
   virtual void enforceBoundary(std::vector<Tensor>&           /*faceField*/, const Mesh<Dimension>& /*mesh*/) const { VERIFY2(false, "Not implemented"); }
