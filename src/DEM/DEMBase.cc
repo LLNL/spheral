@@ -293,6 +293,7 @@ updatePairwiseFields(const bool purgeInactiveContacts){
     this->identifyInactiveContacts(mDataBase);        // create pairFieldList tracking active/inactive contacts
     this->removeInactiveContactsFromPairFieldLists(); // use it to remove old contacts from state fields
     this->updateContactMap(mDataBase);                // now we update the contact map to account for changes
+    mCycle = 0;                                       // reset cycle counter
   }
 }
 
@@ -439,6 +440,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
   // make sure we have a valid set of unique indices
   auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+
   if(uniqueIndex.min()==0){
     setUniqueNodeIDs(uniqueIndex);
   }
@@ -448,7 +450,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                                       false);
 
   this->updatePairwiseFields(purgeInactiveContacts);
-
+  
   mCycle++;
 
   TIME_END("DEMpreStepInitialize");
@@ -721,8 +723,6 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 finalizeAfterRedistribution() {
-  // purge the now unnecessary duplicate contacts we generate in the initialize hook.
-  this->updatePairwiseFields(true);
 }
 
 //------------------------------------------------------------------------------
@@ -857,7 +857,6 @@ updateContactMap(const DataBase<Dimension>& dataBase){
   //---------------------------------------------------------------
   mContactStorageIndices.resize(numPairs);
 
-#pragma omp parallel for
   for (auto kk = 0u; kk < numPairs; ++kk) {
 
     const auto i = pairs[kk].i_node;
@@ -900,10 +899,7 @@ updateContactMap(const DataBase<Dimension>& dataBase){
 
     // add the contact if it is new
     if (contactIndexPtr == neighborContacts.end()){
-      #pragma omp critical
-      {
-        mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
-      }
+      mNeighborIndices(contactkk.storeNodeList,contactkk.storeNode).push_back(uniqueSearchIndex);
     }
   }
 
@@ -920,7 +916,6 @@ updateContactMap(const DataBase<Dimension>& dataBase){
     const auto nodeList = nodeLists[nodeListi];
     const auto ni = nodeList->numInternalNodes();
 
-    #pragma omp parallel for
       for (auto i = 0u; i < ni; ++i) {
         const auto Ri = radius(nodeListi,i);
         const auto ri = position(nodeListi,i);
@@ -944,13 +939,10 @@ updateContactMap(const DataBase<Dimension>& dataBase){
           if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(uId_bc);
 
           // now add our contact
-          #pragma omp critical
-          {
-            mContactStorageIndices.push_back(ContactIndex(nodeListi,          // storage nodelist index
+          mContactStorageIndices.push_back(ContactIndex(nodeListi,          // storage nodelist index
                                                         i,                    // storage node index
                                                         storageContactIndex,  // storage contact index
                                                         ibc));                // bc index
-          }
         } //if contacting
       }   // loop nodes
     }     // loop nodelists
