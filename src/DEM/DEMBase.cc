@@ -274,6 +274,27 @@ removeInactiveContactsFromDerivativePairFieldLists(StateDerivatives<Dimension>& 
 
 }
 
+//----------------------------------------------------------------------------------------
+// Gets all our pairwise fields fully consistent with the current pairwise interactions,
+// this is used in preStepInitialize method and before and after redistribution with the 
+// redistribution hooks.
+//----------------------------------------------------------------------------------------
+template<typename Dimension>
+void
+DEMBase<Dimension>::
+updatePairwiseFields(const bool purgeInactiveContacts){
+
+  // add new contacts
+  this->updateContactMapAndNeighborIndices(mDataBase);// set our contactMap and neighborIndices pairFieldList
+  this->resizePairFieldLists();                       // add new contacts to pairwise fieldlists
+
+  // remove old contacts
+  if (purgeInactiveContacts){ 
+    this->identifyInactiveContacts(mDataBase);        // create pairFieldList tracking active/inactive contacts
+    this->removeInactiveContactsFromPairFieldLists(); // use it to remove old contacts from state fields
+    this->updateContactMap(mDataBase);                // now we update the contact map to account for changes
+  }
+}
 
 //------------------------------------------------------------------------------
 // On problem start up, we need to initialize our internal data.
@@ -403,26 +424,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   derivs.enroll(mNewTorsionalDisplacement);
 
   TIME_END("DEMregisterDerivs");
-}
-
-//------------------------------------------------------------------------------
-// Gets all our pairwise fields fully consisten with the current pairwise interactions
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-updatePairwiseFields(const bool purgeInactiveContacts){
-
-  // add new contacts
-  this->updateContactMapAndNeighborIndices(mDataBase);// set our contactMap and neighborIndices pairFieldList
-  this->resizePairFieldLists();                       // add new contacts to pairwise fieldlists
-
-  // remove old contacts
-  if (purgeInactiveContacts){ 
-    this->identifyInactiveContacts(mDataBase);        // create pairFieldList tracking active/inactive contacts
-    this->removeInactiveContactsFromPairFieldLists(); // use it to remove old contacts from state fields
-    this->updateContactMap(mDataBase);                // now we update the contact map to account for changes
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -694,6 +695,10 @@ initializeBeforeRedistribution(){
 
   TIME_BEGIN("DEMinitializeBeforeRedistribution");
 
+  // make sure we have a complete clean set of pairwise field lists & contact map
+  this->updatePairwiseFields(true);
+
+  // make sure we have a complete clean set of pairwise field lists & contact map
   this->prepNeighborIndicesForRedistribution();
 
   this->prepPairFieldListForRedistribution(mShearDisplacement);
@@ -716,6 +721,8 @@ template<typename Dimension>
 void
 DEMBase<Dimension>::
 finalizeAfterRedistribution() {
+  // purge the now unnecessary duplicate contacts we generate in the initialize hook.
+  this->updatePairwiseFields(true);
 }
 
 //------------------------------------------------------------------------------
