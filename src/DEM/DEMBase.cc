@@ -149,7 +149,7 @@ resizePairFieldLists() {
   this->addContactsToPairFieldList(mShearDisplacement,Vector::zero);
   this->addContactsToPairFieldList(mRollingDisplacement,Vector::zero);
   this->addContactsToPairFieldList(mTorsionalDisplacement,0.0);
-  this->addContactsToPairFieldList(mIsActiveContact,0.0);
+  this->addContactsToPairFieldList(mIsActiveContact,int(0));
 
   //derivatives
   this->addContactsToPairFieldList(mDDtShearDisplacement,Vector::zero);
@@ -285,8 +285,8 @@ DEMBase<Dimension>::
 updatePairwiseFields(const bool purgeInactiveContacts){
 
   // add new contacts
-  this->updateContactMapAndNeighborIndices(mDataBase);// set our contactMap and neighborIndices pairFieldList
-  this->resizePairFieldLists();                       // add new contacts to pairwise fieldlists
+  this->updateContactMap(mDataBase); // set our contactMap and neighborIndices pairFieldList
+  this->resizePairFieldLists();      // add new contacts to pairwise fieldlists
 
   // remove old contacts
   if (purgeInactiveContacts){ 
@@ -325,7 +325,7 @@ initializeProblemStartup(DataBase<Dimension>& dataBase) {
          ++boundaryItr) (*boundaryItr)->finalizeGhostBoundary();
 
   // We're jumping the gun a little herr
-  this->updateContactMapAndNeighborIndices(dataBase);
+  this->updateContactMap(dataBase);
   this->addContactsToPairFieldList(mEquilibriumOverlap,0.0);
   this->initializeOverlap(dataBase,0);
  
@@ -835,126 +835,6 @@ void
 DEMBase<Dimension>::
 updateContactMap(const DataBase<Dimension>& dataBase){
   
-  //TIME_BEGIN("DEMupdateContactMap");
-
-  const auto& uniqueIndex = dataBase.DEMUniqueIndex();
-  const auto& radius = dataBase.DEMParticleRadius();
-  const auto& position = dataBase.DEMPosition();
-
-  // The connectivity.
-  const auto& connectivityMap = dataBase.connectivityMap();
-  const auto& nodeLists = connectivityMap.nodeLists();
-  const auto& pairs = connectivityMap.nodePairList();
-  const auto  numNodeLists = nodeLists.size();
-  const auto  numPairs = pairs.size();
-  
-  const auto& solidBoundaries = this->solidBoundaryConditions();
-  const auto  numSolidBoundaries = this->numSolidBoundaries();
-
-  const auto bufferDistance = dataBase.maxNeighborSearchBuffer();
-
-  // Particle-Particle Contacts
-  //---------------------------------------------------------------
-  mContactStorageIndices.resize(numPairs);
-
-#pragma omp parallel for
-  for (auto kk = 0u; kk < numPairs; ++kk) {
-
-    const auto i = pairs[kk].i_node;
-    const auto j = pairs[kk].j_node;
-    const auto nodeListi = pairs[kk].i_list;
-    const auto nodeListj = pairs[kk].j_list;
-    
-    // get our unique global ID numbers
-    const auto uIDi = uniqueIndex(nodeListi,i);
-    const auto uIDj = uniqueIndex(nodeListj,j);
-  
-    // get our number of internal nodes
-    const auto numInternalNodesi = uniqueIndex[nodeListi]->numInternalElements();
-    const auto numInternalNodesj = uniqueIndex[nodeListj]->numInternalElements();
-
-    // boolean operations to decide which pair-node maintains pair fields
-    const auto nodeiIsInternal = i < numInternalNodesi;
-    const auto nodejIsGhost = j >= numInternalNodesj;
-    const auto nodeiIsMinUnique = uIDi <= uIDj;
-    const auto selectNodei = nodeiIsInternal and (nodeiIsMinUnique or nodejIsGhost);
-
-    // store info on storage/dummy locations
-    auto& contactkk = mContactStorageIndices[kk];
-    
-    contactkk.storeNodeList = (selectNodei ? nodeListi : nodeListj);
-    contactkk.storeNode     = (selectNodei ? i         : j);
-    contactkk.pairNodeList  = (selectNodei ? nodeListj : nodeListi);
-    contactkk.pairNode      = (selectNodei ? j         : i);
-    contactkk.solidBoundary = -1;
-
-    // find contact if it already exists 
-    const auto uniqueSearchIndex = (selectNodei ? uIDj : uIDi);
-    const auto neighborContacts = mNeighborIndices(contactkk.storeNodeList,
-                                                   contactkk.storeNode);
-    const auto contactIndexPtr = std::find(neighborContacts.begin(),
-                                           neighborContacts.end(),
-                                           uniqueSearchIndex);
-    const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);
-    contactkk.storeContact = storageContactIndex;
-  }
-
-  /// Particle-Solid-Boundary Contacts
-  //--------------------------------------------------------------
-  // Iterate over solid boundaries, we're going to treat the solid
-  // boundaries like contacts between dem particles to leverage all
-  // the machinery in place which integrates pairwise values
-  
-  for (auto ibc = 0u; ibc < numSolidBoundaries; ++ibc){
-    const auto solidBoundaryi = solidBoundaries[ibc];
-    
-    for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {
-    const auto nodeList = nodeLists[nodeListi];
-    const auto ni = nodeList->numInternalNodes();
-
-    #pragma omp parallel for
-      for (auto i = 0u; i < ni; ++i) {
-        const auto Ri = radius(nodeListi,i);
-        const auto ri = position(nodeListi,i);
-
-        const auto disBc = solidBoundaryi->distance(ri);
-
-        // if node i contacts boundary ibc
-        if (disBc.magnitude() < Ri*(1+bufferDistance)){
-
-          // create a unique index for the boundary condition 
-          const auto uId_bc = solidBoundaryi->uniqueIndex();
-
-          // check to see if it already exists
-          const auto neighborContacts = mNeighborIndices(nodeListi,i);
-          const auto contactIndexPtr = std::find(neighborContacts.begin(),
-                                                 neighborContacts.end(),
-                                                 uId_bc);
-          const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);  
-
-          // now add our contact
-          #pragma omp critical
-          {
-            mContactStorageIndices.push_back(ContactIndex(nodeListi,          // storage nodelist index
-                                                        i,                    // storage node index
-                                                        storageContactIndex,  // storage contact index
-                                                        ibc));                // bc index
-          }
-        } //if contacting
-      }   // loop nodes
-    }     // loop nodelists
-  }       // loop solid boundaries
-  //TIME_END("DEMupdateContactMap");
-}         // method
-
-//------------------------------------------------------------------------------
-// get all of our state pair-fields up to date with the number of contacts
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-DEMBase<Dimension>::
-updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
-  
   TIME_BEGIN("DEMupdateContactMap");
 
   const auto& uniqueIndex = dataBase.DEMUniqueIndex();
@@ -1061,12 +941,8 @@ updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase){
           const int  storageContactIndex = std::distance(neighborContacts.begin(),contactIndexPtr);  
 
           // if it doesn't exists create it 
-          if (contactIndexPtr == neighborContacts.end()){
-            #pragma omp critical 
-            {
-              mNeighborIndices(nodeListi,i).push_back(uId_bc);
-            }
-          }
+          if (contactIndexPtr == neighborContacts.end()) mNeighborIndices(nodeListi,i).push_back(uId_bc);
+
           // now add our contact
           #pragma omp critical
           {

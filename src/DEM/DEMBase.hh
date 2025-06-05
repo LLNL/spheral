@@ -149,7 +149,6 @@ public:
 
   void initializeOverlap(const DataBase<Dimension>& dataBase, const int startingCompositeParticleIndex);
   
-  void updateContactMapAndNeighborIndices(const DataBase<Dimension>& dataBase);
   void updateContactMap(const DataBase<Dimension>& dataBase);
   
   void identifyInactiveContacts(const DataBase<Dimension>& dataBase);
