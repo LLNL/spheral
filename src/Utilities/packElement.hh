@@ -801,7 +801,7 @@ packFieldValues(const Field<Dimension, DataType>& field,
   // Loop over the elements of the Field we are packing, and push the 
   // packed elements onto the result.
   for (auto i: packIndices) {
-    CHECK(i >= 0u and i < field.numElements());
+    CHECK(i < field.numElements());
     packElement(field(i), result);
   }
 
@@ -833,7 +833,7 @@ unpackFieldValues(Field<Dimension, DataType>& field,
   // Loop over the elements of the Field we are unpacking.
   auto bufItr = packedValues.begin();
   for (auto i: packIndices) {
-    CHECK(i >= 0u && i < field.numElements());
+    CHECK(i < field.numElements());
     CHECK(bufItr < packedValues.end());
     unpackElement(field(i), bufItr, packedValues.end());
     CHECK(bufItr <= packedValues.end());
