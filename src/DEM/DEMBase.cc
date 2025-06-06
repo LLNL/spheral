@@ -293,7 +293,7 @@ updatePairwiseFields(const bool purgeInactiveContacts){
     this->identifyInactiveContacts(mDataBase);        // create pairFieldList tracking active/inactive contacts
     this->removeInactiveContactsFromPairFieldLists(); // use it to remove old contacts from state fields
     this->updateContactMap(mDataBase);                // now we update the contact map to account for changes
-    mCycle = 0;                                       // reset cycle counter
+    mCycle = 0;                                       // reset counter (cycles since last purge)
   }
 }
 
@@ -440,17 +440,19 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
 
   // make sure we have a valid set of unique indices
   auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
-
   if(uniqueIndex.min()==0){
     setUniqueNodeIDs(uniqueIndex);
   }
 
+  // switch to purge contactMap of old contacts 
   const bool purgeInactiveContacts = (mCycle % mContactRemovalFrequency == 0 ?
                                       true :
                                       false);
-
+  
+  // get pairwise fieldLists current with the connectivityMap
   this->updatePairwiseFields(purgeInactiveContacts);
   
+  // step counter (cycles since we last purged inactive contacts)
   mCycle++;
 
   TIME_END("DEMpreStepInitialize");
@@ -482,10 +484,10 @@ initialize(const Scalar  time,
            const DataBase<Dimension>& dataBase,
                  State<Dimension>& state,
                  StateDerivatives<Dimension>& derivs){
-TIME_BEGIN("DEMinitialize");
+  TIME_BEGIN("DEMinitialize");
 
-TIME_END("DEMinitialize");
- return false;
+  TIME_END("DEMinitialize");
+  return false;
 }
 
 
