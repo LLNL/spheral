@@ -44,9 +44,11 @@ for ndim in dims:
 # ''')
 
     #...........................................................................
-    # FieldSpan -- non-numeric types 
+    # FieldSpanList -- non-numeric types 
     for (value, label) in (( FacetedVolume,                 "FacetedVolume"), 
                            ( "std::vector<int>",            "VectorInt"),
+                           ( "std::vector<unsigned>",       "VectorUnsigned"),
+                           ( "std::vector<uint64_t>",       "VectorULL"),
                            ( "std::vector<double>",         "VectorDouble"),
                            (f"std::vector<{Vector}>",       "VectorVector"),
                            (f"std::vector<{Tensor}>",       "VectorTensor"),

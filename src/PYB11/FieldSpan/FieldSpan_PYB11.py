@@ -45,6 +45,8 @@ for ndim in dims:
     # non-numeric types
     for (value, label) in ((f"{Dimension}::FacetedVolume",       "FacetedVolume"),
                            ( "std::vector<int>",                 "VectorInt"),
+                           ( "std::vector<unsigned>",            "VectorUnsigned"),
+                           ( "std::vector<uint64_t>",            "VectorULL"),
                            ( "std::vector<double>",              "VectorDouble"),
                            (f"std::vector<{Vector}>",            "VectorVector"),
                            (f"std::vector<{Tensor}>",            "VectorSymTensor"),

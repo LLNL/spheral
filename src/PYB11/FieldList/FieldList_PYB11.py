@@ -52,6 +52,8 @@ FieldListSet{ndim}d = PYB11TemplateClass(FieldListSet, template_parameters="{Dim
     # FieldList -- non-numeric types
     for (value, label) in (( FacetedVolume,                 "FacetedVolume"), 
                            ( "std::vector<int>",            "VectorInt"),
+                           ( "std::vector<unsigned>",       "VectorUnsigned"),
+                           ( "std::vector<uint64_t>",       "VectorULL"),
                            ( "std::vector<double>",         "VectorDouble"),
                            (f"std::vector<{Vector}>",       "VectorVector"),
                            (f"std::vector<{Tensor}>",       "VectorTensor"),

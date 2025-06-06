@@ -61,6 +61,8 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
     # non-numeric types
     for (value, label) in ((f"{Dimension}::FacetedVolume",       "FacetedVolume"),
                            ( "std::vector<int>",                 "VectorInt"),
+                           ( "std::vector<unsigned>",            "VectorUnsigned"),
+                           ( "std::vector<uint64_t>",            "VectorULL"),
                            ( "std::vector<double>",              "VectorDouble"),
                            (f"std::vector<{Vector}>",            "VectorVector"),
                            (f"std::vector<{Tensor}>",            "VectorSymTensor"),
