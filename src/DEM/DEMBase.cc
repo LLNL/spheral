@@ -206,7 +206,7 @@ void
 DEMBase<Dimension>::
 removeInactiveContactsFromStatePairFieldLists(State<Dimension>& state) const{
 
-  auto neighborIndices = state.fields(DEMFieldNames::neighborIndices,vector<int>());
+  auto neighborIndices = state.fields(DEMFieldNames::neighborIndices,vector<size_t>());
   auto eqOverlap = state.fields(DEMFieldNames::equilibriumOverlap, vector<Scalar>());
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
@@ -476,7 +476,7 @@ applyGhostBoundaries(State<Dimension>& state,
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
-  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,size_t(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
@@ -506,7 +506,7 @@ enforceBoundaries(State<Dimension>& state,
   auto angularVelocity = state.fields(DEMFieldNames::angularVelocity, DEMDimension<Dimension>::zero);
   auto radius = state.fields(DEMFieldNames::particleRadius, 0.0);
   auto compositeParticleIndex = state.fields(DEMFieldNames::compositeParticleIndex,int(0));
-  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,size_t(0));
 
   for (ConstBoundaryIterator boundaryItr = this->boundaryBegin(); 
        boundaryItr != this->boundaryEnd();
