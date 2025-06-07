@@ -76,7 +76,7 @@ computeContactDuration(double m,
 // 1 and more than zero with a small buffer to prevent singular behavior w/out resorting
 // to if statements.
 double
-setBeta(double restitutionCoefficient){
+computeBeta(double restitutionCoefficient){
   CHECK(restitutionCoefficient >= 0);
   CHECK(restitutionCoefficient <= 1);
   const double tiny = 1.0e-8;
@@ -119,8 +119,8 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor),
-  mNormalBeta(setBeta(normalRestitutionCoefficient)),
-  mTangentialBeta(setBeta(tangentialRestitutionCoefficient)),
+  mNormalBeta(computeBeta(normalRestitutionCoefficient)),
+  mTangentialBeta(computeBeta(tangentialRestitutionCoefficient)),
   mCollisionDuration(0.0),
   mMomentOfInertia(FieldStorageType::CopyFields),
   mMaximumOverlap(FieldStorageType::CopyFields),
