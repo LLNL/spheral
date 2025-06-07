@@ -72,6 +72,17 @@ computeContactDuration(double m,
   return M_PI*std::sqrt(0.5*m/k * (1.0 + 1.0/(B*B)));
 }
 
+// our lumped damping term were going to force the restitution coefficient to be less than
+// 1 and more than zero with a small buffer to prevent singular behavior w/out resorting
+// to if statements.
+double
+setBeta(double restitutionCoefficient){
+  CHECK(restitutionCoefficient >= 0);
+  CHECK(restitutionCoefficient <= 1);
+  const double tiny = 1.0e-8;
+  return M_PI/std::log(std::min(std::max(restitutionCoefficient,tiny),1.0-tiny));
+}
+
 }
 
 
@@ -108,12 +119,13 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
   mTorsionalFrictionCoefficient(torsionalFrictionCoefficient),
   mCohesiveTensileStrength(cohesiveTensileStrength),
   mShapeFactor(shapeFactor),
-  mNormalBeta(M_PI/std::log(std::max(normalRestitutionCoefficient,1.0e-3))),
-  mTangentialBeta(M_PI/std::log(std::max(tangentialRestitutionCoefficient,1.0e-3))),
+  mNormalBeta(setBeta(normalRestitutionCoefficient)),
+  mTangentialBeta(setBeta(tangentialRestitutionCoefficient)),
   mCollisionDuration(0.0),
   mMomentOfInertia(FieldStorageType::CopyFields),
   mMaximumOverlap(FieldStorageType::CopyFields),
   mNewMaximumOverlap(FieldStorageType::CopyFields) { 
+
     mMomentOfInertia = dataBase.newDEMFieldList(0.0, DEMFieldNames::momentOfInertia);
     mMaximumOverlap = dataBase.newDEMFieldList(0.0, DEMFieldNames::maximumOverlap);
     mNewMaximumOverlap = dataBase.newDEMFieldList(0.0,MaxReplaceState<Dimension, Scalar>::prefix() + DEMFieldNames::maximumOverlap);
@@ -121,6 +133,7 @@ LinearSpringDEM(const DataBase<Dimension>& dataBase,
     const auto mass = dataBase.DEMMass();
     const auto minMass = mass.min();
     mCollisionDuration = computeContactDuration(minMass,mNormalSpringConstant,mNormalBeta);
+
 }
 
 //------------------------------------------------------------------------------
