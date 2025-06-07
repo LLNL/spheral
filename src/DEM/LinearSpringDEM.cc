@@ -68,7 +68,7 @@ computeContactDuration(double m,
                        double B){
   CHECK(m >= 0);
   CHECK(k > 0);
-  CHECK(B > 0);
+  CHECK(B < 0);
   return M_PI*std::sqrt(0.5*m/k * (1.0 + 1.0/(B*B)));
 }
 
