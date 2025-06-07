@@ -282,7 +282,7 @@ removeInactiveContactsFromDerivativePairFieldLists(StateDerivatives<Dimension>& 
 template<typename Dimension>
 void
 DEMBase<Dimension>::
-updatePairwiseFields(const bool purgeInactiveContacts){
+updatePairwiseFieldLists(const bool purgeInactiveContacts){
 
   // add new contacts
   this->updateContactMap(mDataBase); // set our contactMap and neighborIndices pairFieldList
@@ -450,7 +450,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
                                       false);
   
   // get pairwise fieldLists current with the connectivityMap
-  this->updatePairwiseFields(purgeInactiveContacts);
+  this->updatePairwiseFieldLists(purgeInactiveContacts);
   
   // step counter (cycles since we last purged inactive contacts)
   mCycle++;
@@ -700,7 +700,7 @@ initializeBeforeRedistribution(){
   TIME_BEGIN("DEMinitializeBeforeRedistribution");
 
   // make sure we have a complete clean set of pairwise field lists & contact map
-  this->updatePairwiseFields(true);
+  this->updatePairwiseFieldLists(true);
 
   // make sure we have a complete clean set of pairwise field lists & contact map
   this->prepNeighborIndicesForRedistribution();

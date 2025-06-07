@@ -153,10 +153,8 @@ public:
   
   void identifyInactiveContacts(const DataBase<Dimension>& dataBase);
 
-  void updatePairwiseFields(const bool purgeInactiveContacts = false);
+  void updatePairwiseFieldLists(const bool purgeInactiveContacts = false);
 
-  // Optionally we can provide a bounding box for use generating the mesh
-  // for the Voronoi mass density update.
   const Vector& xmin() const;
   const Vector& xmax() const;
   void xmin(const Vector& x);
