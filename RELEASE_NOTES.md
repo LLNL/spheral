@@ -53,6 +53,7 @@ Notable changes include:
     * Changes the `SPHERAL_TEST_INSTALL_PREFIX` to be relative to `CMAKE_INSTALL_PREFIX/tests` directory.
     * Fixed bug where performance tests would incorrectly move a benchmark directory if rerunning failed jobs.
     * Cleaned out some old unused code
+    * Fixed bugs related to DEM timestep, redistribution, and thread safety.
 
 Version v2025.01.0 -- Release date 2025-01-31
 ==============================================
