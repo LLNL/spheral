@@ -195,11 +195,13 @@ resizeStatePairFieldLists(State<Dimension>& state) const{
   auto shearDisp = state.fields(DEMFieldNames::shearDisplacement, vector<Vector>());
   auto rollingDisplacement = state.fields(DEMFieldNames::rollingDisplacement, vector<Vector>());
   auto torsionalDisplacement = state.fields(DEMFieldNames::torsionalDisplacement, vector<Scalar>());
+  auto isActive = state.fields(DEMFieldNames::isActiveContact, vector<int>());
 
   this->addContactsToPairFieldList(eqOverlap,0.0);
   this->addContactsToPairFieldList(shearDisp,Vector::zero);
   this->addContactsToPairFieldList(rollingDisplacement,Vector::zero);
   this->addContactsToPairFieldList(torsionalDisplacement,0.0);
+  this->addContactsToPairFieldList(isActive,int(0));
 }
 
 //------------------------------------------------------------------------------
