@@ -17,7 +17,7 @@ if (os.path.islink(__file__)):
 
 spheral_prefix = sys.executable.split(".venv")[0]
 ats_exe = os.path.join(spheral_prefix, ".venv/bin/ats")
-spheral_exe = os.path.join(spheral_prefix, "spheral")
+spheral_exe = os.path.join(spheral_prefix, "bin/spheral")
 
 # Benchmark file directory
 # This is passed into both ATS and Caliper
