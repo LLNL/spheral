@@ -11,6 +11,7 @@
 #define __Spheral_FieldList__
 
 #include "Field/FieldListBase.hh"
+#include "Field/FieldSpanList.hh"
 #include "Utilities/OpenMP_wrapper.hh"
 
 #include <vector>
@@ -42,7 +43,10 @@ enum class FieldStorageType {
 };
 
 template<typename Dimension, typename DataType>
-class FieldList: public FieldListBase<Dimension> {
+class FieldList:
+    public FieldListBase<Dimension>,
+    public FieldSpanList<Dimension, DataType> {
+
 public:
   //--------------------------- Public Interface ---------------------------//
   using Scalar = typename Dimension::Scalar;
@@ -69,13 +73,17 @@ public:
 
   using ViewType = FieldSpanList<Dimension, DataType>;
 
+  // Bring in various methods hidden in FieldSpanList
+  using FieldSpanList<Dimension, DataType>::operator();
+  // using FieldSpanList<Dimension, DataType>::operator[];
+
   // Constructors.
   FieldList();
   explicit FieldList(FieldStorageType aStorageType);
   FieldList(const FieldList& rhs);
 
   // Destructor.
-  ~FieldList();
+  virtual ~FieldList();
 
   // Assignment.
   FieldList& operator=(const FieldList& rhs);
@@ -111,34 +119,31 @@ public:
                       const NodeList<Dimension>& nodeList,
                       const DataType value);
 
-  // Provide the standard iterators over the Fields.
-  iterator begin();
-  iterator end();
-  reverse_iterator rbegin();
-  reverse_iterator rend();
+  // Index operator.
+  value_type operator[](const size_t index) const;
+  value_type at(const size_t index) const;
 
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_reverse_iterator rbegin() const;
-  const_reverse_iterator rend() const;
+  // Provide the standard iterators over the Fields.
+  iterator begin()                                                                      { return mFieldPtrs.begin(); } 
+  iterator end()                                                                        { return mFieldPtrs.end(); }   
+  reverse_iterator rbegin()                                                             { return mFieldPtrs.rbegin(); }
+  reverse_iterator rend()                                                               { return mFieldPtrs.rend(); }  
+
+  const_iterator begin()                                                          const { return mFieldPtrs.begin(); } 
+  const_iterator end()                                                            const { return mFieldPtrs.end(); }   
+  const_reverse_iterator rbegin()                                                 const { return mFieldPtrs.rbegin(); }
+  const_reverse_iterator rend()                                                   const { return mFieldPtrs.rend(); }  
 
   // Iterators over FieldBase* required by base class.
-  virtual typename FieldListBase<Dimension>::iterator begin_base();
-  virtual typename FieldListBase<Dimension>::iterator end_base();
-  virtual typename FieldListBase<Dimension>::reverse_iterator rbegin_base();
-  virtual typename FieldListBase<Dimension>::reverse_iterator rend_base();
+  virtual typename FieldListBase<Dimension>::iterator begin_base()                      { return mFieldBasePtrs.begin(); } 
+  virtual typename FieldListBase<Dimension>::iterator end_base()                        { return mFieldBasePtrs.end(); }   
+  virtual typename FieldListBase<Dimension>::reverse_iterator rbegin_base()             { return mFieldBasePtrs.rbegin(); }
+  virtual typename FieldListBase<Dimension>::reverse_iterator rend_base()               { return mFieldBasePtrs.rend(); }  
 
-  virtual typename FieldListBase<Dimension>::const_iterator begin_base() const;
-  virtual typename FieldListBase<Dimension>::const_iterator end_base() const;
-  virtual typename FieldListBase<Dimension>::const_reverse_iterator rbegin_base() const;
-  virtual typename FieldListBase<Dimension>::const_reverse_iterator rend_base() const;
-
-  // Index operator.
-  ElementType operator[](const unsigned index);
-  ElementType operator[](const unsigned index) const;
-
-  ElementType at(const unsigned index);
-  ElementType at(const unsigned index) const;
+  virtual typename FieldListBase<Dimension>::const_iterator begin_base()          const { return mFieldBasePtrs.begin(); } 
+  virtual typename FieldListBase<Dimension>::const_iterator end_base()            const { return mFieldBasePtrs.end(); }   
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rbegin_base() const { return mFieldBasePtrs.rbegin(); }
+  virtual typename FieldListBase<Dimension>::const_reverse_iterator rend_base()   const { return mFieldBasePtrs.rend(); }  
 
   // Return an iterator to the Field associated with the given NodeList.
   iterator fieldForNodeList(const NodeList<Dimension>& nodeList);
@@ -147,13 +152,6 @@ public:
   // Provide access to the Field elements via NodeIterators.
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
   const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
-
-  // Provide a more primitive access to Field elements, based on the index of the Field
-  // and the node index within that field.
-  DataType& operator()(const unsigned int fieldIndex,
-                       const unsigned int nodeIndex);
-  const DataType& operator()(const unsigned int fieldIndex,
-                             const unsigned int nodeIndex) const;
 
   // Return the interpolated value of the FieldList at a position.
   DataType operator()(const Vector& position,
@@ -194,77 +192,37 @@ public:
                           const std::vector<std::vector<int>>& coarseNeighbors,
                           std::vector<std::vector<int>>& refineNeighbors) const;
 
-  // Reproduce the standard Field operators for FieldLists.
+  // Zero a FieldList
   void Zero();
-  void applyMin(const DataType& dataMin);
-  void applyMax(const DataType& dataMax);
 
-  void applyScalarMin(const double dataMin);
-  void applyScalarMax(const double dataMax);
-
+  // Reproduce the standard Field operators for FieldLists.
   FieldList operator+(const FieldList& rhs) const;
   FieldList operator-(const FieldList& rhs) const;
-
-  FieldList& operator+=(const FieldList& rhs);
-  FieldList& operator-=(const FieldList& rhs);
 
   FieldList operator+(const DataType& rhs) const;
   FieldList operator-(const DataType& rhs) const;
 
-  FieldList& operator+=(const DataType& rhs);
-  FieldList& operator-=(const DataType& rhs);
-
-  FieldList<Dimension, DataType>& operator*=(const FieldList<Dimension, Scalar>& rhs);
-  FieldList<Dimension, DataType>& operator*=(const Scalar& rhs);
-
-  FieldList<Dimension, DataType> operator/(const FieldList<Dimension, Scalar>& rhs) const;
-  FieldList<Dimension, DataType> operator/(const Scalar& rhs) const;
-
-  FieldList<Dimension, DataType>& operator/=(const FieldList<Dimension, Scalar>& rhs);
-  FieldList<Dimension, DataType>& operator/=(const Scalar& rhs);
-
-  // Some useful reduction operations.
-  DataType sumElements() const;
-  DataType min() const;
-  DataType max() const;
-
-  // Some useful reduction operations (local versions -- no MPI reductions)
-  DataType localSumElements() const;
-  DataType localMin() const;
-  DataType localMax() const;
+  FieldList operator/(const FieldList<Dimension, Scalar>& rhs) const;
+  FieldList operator/(const Scalar& rhs) const;
 
   // Comparison operators (Field-Field element wise).
-  bool operator==(const FieldList& rhs) const;
-  bool operator!=(const FieldList& rhs) const;
-  bool operator>(const FieldList& rhs) const;
-  bool operator<(const FieldList& rhs) const;
-  bool operator>=(const FieldList& rhs) const;
-  bool operator<=(const FieldList& rhs) const;
+  bool operator==(const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator==(rhs); }
+  bool operator!=(const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator!=(rhs); }
+  bool operator> (const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator> (rhs); }
+  bool operator< (const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator< (rhs); }
+  bool operator>=(const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator>=(rhs); }
+  bool operator<=(const FieldList& rhs) const { return FieldSpanList<Dimension, DataType>::operator<=(rhs); }
 
   // Comparison operators (Field-value element wise).
-  bool operator==(const DataType& rhs) const;
-  bool operator!=(const DataType& rhs) const;
-  bool operator>(const DataType& rhs) const;
-  bool operator<(const DataType& rhs) const;
-  bool operator>=(const DataType& rhs) const;
-  bool operator<=(const DataType& rhs) const;
-
-  // The number of fields in the FieldList.
-  unsigned numFields() const;
-  unsigned size() const;
-  bool empty() const;
-
-  // The number of nodes in the FieldList.
-  unsigned numNodes() const;
-  
-  // The number of internal nodes in the FieldList.
-  unsigned numInternalNodes() const;
-  
-  // The number of ghost nodes in the FieldList.
-  unsigned numGhostNodes() const;
+  bool operator==(const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator==(rhs); }
+  bool operator!=(const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator!=(rhs); }
+  bool operator> (const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator> (rhs); }
+  bool operator< (const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator< (rhs); }
+  bool operator>=(const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator>=(rhs); }
+  bool operator<=(const DataType& rhs) const { return FieldSpanList<Dimension, DataType>::operator<=(rhs); }
 
   // Get the NodeLists this FieldList is defined on.
-  const std::vector<NodeList<Dimension>*>& nodeListPtrs() const;
+  const std::vector<NodeList<Dimension>*>& nodeListPtrs() const { return mNodeListPtrs; }
 
   // Helpers to flatten the values across all Fields to a single array.
   std::vector<DataType> internalValues() const;
@@ -300,17 +258,17 @@ private:
   FieldStorageType mStorageType;
 
   // For use when building a span view of the FieldList
-  using SpanType = std::span<FieldSpan<Dimension, DataType>>;
   std::vector<FieldSpan<Dimension, DataType>> mFieldSpans;
-  SpanType mSpanFieldSpans;
+  using FieldSpanList<Dimension, DataType>::mSpanFieldSpans;
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
   // construct NodeIterators.
   std::vector<NodeList<Dimension>*> mNodeListPtrs;
   HashMapType mNodeListIndexMap;
 
-  // Internal method to build the NodeListIndexMap from scratch.
+  // Internal methods
   void buildNodeListIndexMap();
+  void buildFieldSpans();
 
 public:
   // A data attribute to indicate how to reduce this field across threads.

@@ -2,19 +2,22 @@ import inspect
 from PYB11Generator import *
 from FieldBase import FieldBase
 from Field import Field
+from ArithmeticFieldSpan import ArithmeticFieldSpan
 
 #-------------------------------------------------------------------------------
 # Add numeric operations to a Field
 #-------------------------------------------------------------------------------
 @PYB11template("Dimension", "Value")
 @PYB11pycppname("Field")
-class ArithmeticField(FieldBase):
+class ArithmeticField(FieldBase,
+                      ArithmeticFieldSpan):
 
     PYB11typedefs = """
     using SelfType = Field<%(Dimension)s, %(Value)s>;
     using ViewType = typename SelfType::ViewType;
     using Scalar = typename SelfType::Scalar;
     using ScalarFieldType = Field<%(Dimension)s, Scalar>;
+    using ScalarFieldSpan = FieldSpan<%(Dimension)s, Scalar>;
 """
 
     def __add__(self):

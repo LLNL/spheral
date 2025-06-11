@@ -35,6 +35,9 @@ for ndim in dims:
     Vector = f"{Dimension}::Vector"
     Tensor = f"{Dimension}::Tensor"
     SymTensor = f"{Dimension}::SymTensor"
+    ThirdRankTensor = f"{Dimension}::ThirdRankTensor"
+    FourthRankTensor = f"{Dimension}::FourthRankTensor"
+    FifthRankTensor = f"{Dimension}::FifthRankTensor"
 
     #...........................................................................
     # arithmetic fields
@@ -42,7 +45,11 @@ for ndim in dims:
                            ("unsigned",       "Unsigned"),
                            ("uint64_t",       "ULL"),
                            (Vector,           "Vector"),
-                           (Tensor,           "Tensor")):
+                           (Tensor,           "Tensor"),
+                           (SymTensor,        "SymTensor"),
+                           (ThirdRankTensor,  "ThirdRankTensor"),
+                           (FourthRankTensor, "FourthRankTensor"),
+                           (FifthRankTensor,  "FifthRankTensor")):
         exec(f'''
 {label}FieldSpanList{ndim}d = PYB11TemplateClass(ArithmeticFieldSpanList, template_parameters=("{Dimension}", "{value}"))
 ''')

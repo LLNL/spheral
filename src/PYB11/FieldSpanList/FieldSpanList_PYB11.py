@@ -9,7 +9,6 @@ from SpheralCommon import *
 from spheralDimensions import *
 dims = spheralDimensions()
 
-#from FieldSpanListBase import *
 from FieldSpanList import *
 
 #-------------------------------------------------------------------------------
@@ -36,12 +35,6 @@ for ndim in dims:
     Tensor = f"{Dimension}::Tensor"
     SymTensor = f"{Dimension}::SymTensor"
     FacetedVolume = f"{Dimension}::FacetedVolume"
-
-#     #...........................................................................
-#     # FieldSpanListBase
-#     exec(f'''
-# FieldSpanListBase{ndim}d = PYB11TemplateClass(FieldSpanListBase, template_parameters="{Dimension}")
-# ''')
 
     #...........................................................................
     # FieldSpanList -- non-numeric types 

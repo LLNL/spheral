@@ -1,6 +1,5 @@
 from PYB11Generator import *
 import FieldSpanList
-import FieldSpanListBase
 from ArithmeticFieldSpanList import *
 
 #-------------------------------------------------------------------------------

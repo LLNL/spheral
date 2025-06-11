@@ -1,5 +1,4 @@
 from PYB11Generator import *
-#import FieldSpanListBase
 
 #-------------------------------------------------------------------------------
 # FieldSpanList
@@ -20,14 +19,14 @@ class FieldSpanList:
 
     #...........................................................................
     # Methods
-    def assignFields(self, rhs="FieldSpanListType&"):
-        "Set all Fields pointed to by this FieldSpanList equal to those of the given FieldSpanList."
-        return "void"
-
     @PYB11const
     def size(self):
         "Number of Fields"
         return "size_t"
+
+    @PYB11const
+    def empty(self):
+        return "bool"
 
     #...........................................................................
     # Comparators

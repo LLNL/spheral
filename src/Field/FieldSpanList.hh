@@ -9,8 +9,6 @@
 #ifndef __Spheral__FieldSpanList__
 #define __Spheral__FieldSpanList__
 
-#include "Field/FieldSpanListBase.hh"
-
 #include <span>
 
 namespace Spheral {
@@ -19,7 +17,7 @@ namespace Spheral {
 template<typename Dimension, typename DataType> class FieldSpan;
 
 template<typename Dimension, typename DataType>
-class FieldSpanList: public FieldSpanListBase<Dimension> {
+class FieldSpanList {
 public:
   //--------------------------- Public Interface ---------------------------//
   using Scalar = typename Dimension::Scalar;
@@ -34,6 +32,7 @@ public:
   using reverse_iterator = typename StorageType::reverse_iterator;
 
   // Constructors, destructor
+  FieldSpanList() = default;
   FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs);
   FieldSpanList(FieldSpanList& rhs) = default;
   FieldSpanList(FieldSpanList&& rhs) = default;
@@ -43,15 +42,11 @@ public:
   FieldSpanList& operator=(FieldSpanList& rhs) = default;
   FieldSpanList& operator=(const DataType& rhs);
 
-  // Force the FieldSpan members of this FieldSpanList to be equal to those of
-  // another FieldSpanList.
-  void assignFields(FieldSpanList& rhs);
-
   // Provide the standard iterators over the FieldSpans
-  iterator begin()                 { return mFieldSpans.begin(); }
-  iterator end()                   { return mFieldSpans.end(); }
-  reverse_iterator rbegin()        { return mFieldSpans.rbegin(); }
-  reverse_iterator rend()          { return mFieldSpans.rend(); }
+  iterator begin()                 { return mSpanFieldSpans.begin(); }
+  iterator end()                   { return mSpanFieldSpans.end(); }
+  reverse_iterator rbegin()        { return mSpanFieldSpans.rbegin(); }
+  reverse_iterator rend()          { return mSpanFieldSpans.rend(); }
 
   // Index operator.
   value_type& operator[](const size_t index);
@@ -79,11 +74,11 @@ public:
   FieldSpanList& operator+=(const DataType& rhs);
   FieldSpanList& operator-=(const DataType& rhs);
 
-  FieldSpanList<Dimension, DataType>& operator*=(const FieldSpanList<Dimension, Scalar>& rhs);
-  FieldSpanList<Dimension, DataType>& operator*=(const Scalar& rhs);
+  FieldSpanList& operator*=(const FieldSpanList<Dimension, Scalar>& rhs);
+  FieldSpanList& operator*=(const Scalar& rhs);
 
-  FieldSpanList<Dimension, DataType>& operator/=(const FieldSpanList<Dimension, Scalar>& rhs);
-  FieldSpanList<Dimension, DataType>& operator/=(const Scalar& rhs);
+  FieldSpanList& operator/=(const FieldSpanList<Dimension, Scalar>& rhs);
+  FieldSpanList& operator/=(const Scalar& rhs);
 
   // Some useful reduction operations.
   DataType sumElements() const;
@@ -112,9 +107,9 @@ public:
   bool operator<=(const DataType& rhs) const;
 
   // The number of fields in the FieldSpanList.
-  size_t numFields() const      { return mFieldSpans.size(); }
-  size_t size() const           { return mFieldSpans.size(); }
-  bool empty() const            { return mFieldSpans.empty(); }
+  size_t numFields() const      { return mSpanFieldSpans.size(); }
+  size_t size() const           { return mSpanFieldSpans.size(); }
+  bool empty() const            { return mSpanFieldSpans.empty(); }
 
   // The number of nodes in the FieldSpanList.
   size_t numElements() const;
@@ -125,12 +120,9 @@ public:
   // The number of ghost nodes in the FieldSpanList.
   size_t numGhostElements() const;
 
-  // No default constructor.
-  FieldSpanList() = delete;
-
-private:
-  //--------------------------- Private Interface ---------------------------//
-  StorageType mFieldSpans;
+protected:
+  //--------------------------- Protected Interface ---------------------------//
+  StorageType mSpanFieldSpans;
 };
 
 }
