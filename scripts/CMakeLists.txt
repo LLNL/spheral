@@ -4,7 +4,7 @@ if (NOT ENABLE_CXXONLY)
   # submodule path.
   configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime-requirements.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/runtime-requirements.txt"
+    "${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt"
   )
 
   # ***********
