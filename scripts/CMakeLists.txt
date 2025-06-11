@@ -30,6 +30,12 @@ if (NOT ENABLE_CXXONLY)
   # Install Stage
   # *************
 
+  # Install Runtime python dependencies into the Install directory.
+  Spheral_Python_Env(python_runtime_env
+    REQUIREMENTS ${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt
+    PREFIX ${CMAKE_INSTALL_PREFIX}
+  )
+
   # Move the contents of our site-packages dir into the venv.
   install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/${SPHERAL_SITE_PACKAGES_PATH}/
           DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH})

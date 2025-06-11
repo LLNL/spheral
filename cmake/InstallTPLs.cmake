@@ -40,6 +40,9 @@ if (NOT ENABLE_CXXONLY)
   set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
 
   # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
+
+  # Need to set up the build env here so the python library targets can depend on
+  # python_build_env.
   set(BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/build-requirements.txt)
   list(APPEND BUILD_REQ_LIST ${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt)
   if(ENABLE_DOCS)
