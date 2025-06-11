@@ -65,7 +65,7 @@ class DEMNodeList(NodeList):
         "set the unique particle indices"
         return "void"
 
-    def setHfieldFromParticleRadius(uniqueIndex = "const int"):
+    def setHfieldFromParticleRadius(uniqueIndex = "const size_t"):
         "set a good H value for the neighbor search based on the particle radius"
         return "void"
 
