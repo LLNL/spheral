@@ -131,6 +131,8 @@ def main():
                         help="Print the help output for ATS. Useful for seeing ATS options.")
     parser.add_argument("--threads", type=int, default=None,
                         help="Set number of threads per rank to use. Only used by performance.py")
+    parser.add_argument("--delay", action="store_true",
+                        help="Defer running job until after 7 pm.")
     options, unknown_options = parser.parse_known_args()
     if (options.atsHelp):
         subprocess.run(f"{ats_exe} --help", shell=True, check=True, text=True)
@@ -151,16 +153,20 @@ def main():
     if hostname:
         mac_args = [] # Machine specific arguments to give to ATS
         if any(x in hostname for x in toss_machine_names):
-            numNodes = numNodes if numNodes else 2
+            numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
             launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (options.delay):
+                launch_cmd += "--begin=19:10:00 "
             mac_args.append(f"--numNodes {numNodes}")
         elif any(x in hostname for x in toss_cray_machine_names):
-            numNodes = numNodes if numNodes else 2
+            numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["FLUX_JOB_ID", "FLUX_CONNECTOR_PATH", "FLUX_TERMINUS_SESSION"]
             launch_cmd = f"flux alloc -xN {numNodes} -t {timeLimit} "
+            if (options.delay):
+                launch_cmd += "--begin-time='7 pm' "
             mac_args.append(f"--npMax {np_max_dict[hostname]}")
         if (options.ciRun):
             for i, j in ci_launch_flags.items():
