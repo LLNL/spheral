@@ -55,7 +55,7 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
   CHECK(mass.size() == numNodeLists);
   CHECK(massDensity.size() == numNodeLists);
   CHECK(H.size() == numNodeLists);
-  CHECK(position.numGhostNodes() == 0);
+  CHECK(position.numGhostElements() == 0);
 
   // Zero out the result.
   pressure = 0.0;
@@ -68,7 +68,7 @@ computeSPHHydrostaticEquilibriumPressure(const DataBase<Dim<3> >& db,
 
   // Build the sparse matrix that represents the full pressure gradient operator.
   // We have one of these matrix operators for each dimension, hence the 3 vector.
-  const unsigned n = pressure.numInternalNodes();
+  const unsigned n = pressure.numInternalElements();
   vector<Eigen::SparseMatrix<double, Eigen::RowMajor> > M(3, Eigen::SparseMatrix<double, Eigen::RowMajor>(n, n));
   vector<Eigen::VectorXd> s(3, Eigen::VectorXd(n));
   for (unsigned nodeListi = 0; nodeListi != numNodeLists; ++nodeListi) {
