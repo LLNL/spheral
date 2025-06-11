@@ -34,7 +34,7 @@ toss_gcc_mvapich2_test:
   needs: [toss_gcc_mvapich2_build]
 
 toss_gcc_mvapich2_perf:
-  extends: [.toss_shell2, .gcc_mvapich2, .run_perf, .merge_pr_rule]
+  extends: [.toss_shell1, .gcc_mvapich2, .run_perf, .merge_pr_rule]
   needs: [toss_gcc_mvapich2_build]
 
 toss_gcc_mvapich2_cleanup:
@@ -86,7 +86,7 @@ cray_rocm_mpich_test:
   needs: [cray_rocm_mpich_build]
 
 cray_rocm_mpich_perf:
-  extends: [.cray_shell2, .rocm_mpich, .run_perf, .merge_pr_rule]
+  extends: [.cray_shell1, .rocm_mpich, .run_perf, .merge_pr_rule]
   needs: [cray_rocm_mpich_build]
 
 cray_rocm_mpich_cleanup:
