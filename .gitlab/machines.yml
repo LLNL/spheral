@@ -54,14 +54,12 @@
 
 # Use for performance tests
 .toss_shell2:
-  resource_group: toss2
   extends: [.ruby_shell]
 
 .cray_shell1:
   extends: [.tioga_shell]
 
 .cray_shell2:
-  resource_group: cray2
   extends: [.tioga_shell]
 
 # ------------------------------------------------------------------------------
