@@ -84,9 +84,6 @@
 # Run the performance suite and move the resulting Caliper files into the benchmark location
 .run_perf:
   extends: [.retry_rule]
-  rules:
-    - if: '$CI_COMMIT_MESSAGE =~ /test-perf/'
-      when: always
   stage: run_perf
   variables:
     GIT_STRATEGY: none
@@ -238,6 +235,13 @@
       when: manual
     - if: '$CI_COMMIT_MESSAGE =~ /test-prod/'
       when: manual
+
+.perf_pr_rule:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "develop"'
+      when: always
+    - if: '$CI_COMMIT_MESSAGE =~ /test-perf/'
+      when: always
 
 .retry_rule:
   retry:
