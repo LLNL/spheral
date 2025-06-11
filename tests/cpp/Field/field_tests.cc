@@ -2,6 +2,8 @@
 #include "test-utilities.hh"
 
 #include "Field/Field.hh"
+#include "Field/FieldView.hh"
+
 #include "NodeList/NodeList.hh"
 
 #include "Geometry/GeomPolygon.hh"
@@ -59,16 +61,21 @@ TEST_F(FieldTest, NameNodeListCtor) {
  * TODO: Test GPU values == init val.
  */
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
-  // using WORK_EXEC_POLICY = TypeParam;
+  using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
+  using WORK_RESOURCE = typename camp::at<TypeParam, camp::num<1>>::type;
   {
     std::string field_name = "Field::NodeListValCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
-    for (size_t i = 0; i < field.size(); ++i) {
-      SPHERAL_ASSERT_EQ(field[i], 4);
-    }
+    field.move(WORK_RESOURCE());
+    auto field_v = field.toView();
+    SPHERAL_ASSERT_EQ(field.size(), 10);
+
+    RAJA::forall<WORK_EXEC_POLICY>(
+        TRS_UINT(0, field.size()),
+        [=] SPHERAL_HOST_DEVICE(int i) { SPHERAL_ASSERT_EQ(field_v[i], 4); });
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
@@ -80,7 +87,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
  * - Test w/ double and GeomPolygon.
  */
 GPU_TYPED_TEST_P(FieldTypedTest, CopyCtor) {
-  // using WORK_EXEC_POLICY = TypeParam;
+  using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
   {
     std::string field_name = "Field::CopyCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -130,7 +137,7 @@ TEST_F(FieldTest, AssignmentFieldBase) {
  * Assignment operator of a Field to another Field.
  */
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField) {
-  // using WORK_EXEC_POLICY = TypeParam;
+  using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
   {
     std::string field_name = "Field::AssignmentField";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -152,7 +159,7 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentField) {
  * Assignment operator of a Field to by a std::vector container.
  */
 GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType) {
-  // using WORK_EXEC_POLICY = TypeParam;
+  using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
   {
     std::string field_name = "Field::AssignmentContainer";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
