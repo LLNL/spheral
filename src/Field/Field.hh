@@ -12,7 +12,9 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
+#include "FieldView.hh"
 #include "axom/sidre.hpp"
+#include "camp/camp.hpp"
 
 #include <vector>
 
@@ -236,6 +238,28 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  template <typename ResourceType> void move(ResourceType const &) {
+    if (mDataArray.empty())
+      return;
+
+    camp::resources::Resource resource = ResourceType::get_default();
+
+    if (!offload_data) {
+      offload_data = resource.template allocate<DataType>(size());
+    }
+
+    resource.memcpy(offload_data, mDataArray.data(), size() * sizeof(DataType));
+  }
+
+  using ViewType = FieldView<Dimension, DataType>;
+
+  ViewType toView() {
+    if (!offload_data) {
+      std::cerr << "Offload_data == nullptr." << std::endl;
+      return ViewType(nullptr, 0);
+    }
+    return ViewType(offload_data, mDataArray.size());
+  }
 
 protected:
   virtual void resizeField(unsigned size) override;
@@ -249,6 +273,8 @@ private:
   // Private Data
 //  std::vector<DataType,std::allocator<DataType> > mDataArray;
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
+  DataType *offload_data = nullptr;
+
   bool mValid;
 
   // No default constructor.
