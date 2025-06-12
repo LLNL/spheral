@@ -162,7 +162,7 @@ def main():
                 launch_cmd = "salloc "
             launch_cmd += f"--exclusive -N {numNodes} -t {timeLimit} "
             if (options.delay):
-                launc_cmd += "--begin=19:10:00 "
+                launch_cmd += "--begin=19:10:00 "
             mac_args.append(f"--numNodes {numNodes}")
         elif any(x in hostname for x in toss_cray_machine_names):
             numNodes = numNodes if numNodes else 1
