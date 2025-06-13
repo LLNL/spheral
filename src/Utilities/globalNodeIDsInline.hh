@@ -18,6 +18,7 @@
 #include "Utilities/peanoHilbertOrderIndices.hh"
 #include "Utilities/KeyTraits.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/range.hh"
 #include "Distributed/allReduce.hh"
 
 #include <vector>
@@ -221,11 +222,9 @@ globalNodeIDs(const NodeListIterator& begin,
 
   // Prepare the result.
   const size_t numNodeLists = std::distance(begin, end);
-  FieldList<Dimension, size_t> result(FieldStorageType::CopyFields);
-  for (NodeListIterator itr = begin; itr != end; ++itr) {
-    result.appendField(Field<Dimension, size_t>("global IDs", **itr));
-  }
   CONTRACT_VAR(numNodeLists);
+  FieldList<Dimension, size_t> result(FieldStorageType::CopyFields);
+  for (auto* nodeListPtr: range(begin, end)) result.appendNewField("global IDs", *nodeListPtr, size_t(0));
   CHECK(result.numFields() == numNodeLists);
 
 #ifdef USE_MPI

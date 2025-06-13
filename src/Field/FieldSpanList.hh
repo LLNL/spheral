@@ -25,7 +25,7 @@ public:
   using FieldDimension = Dimension;
   using FieldDataType = DataType;
 
-  using value_type = FieldSpan<Dimension, DataType>;    // STL compatibility
+  using value_type = FieldSpan<Dimension, DataType>*;    // STL compatibility
   using StorageType = std::span<value_type>;
 
   using iterator = typename StorageType::iterator;
@@ -33,7 +33,7 @@ public:
 
   // Constructors, destructor
   FieldSpanList() = default;
-  FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs);
+  // FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs);
   FieldSpanList(FieldSpanList& rhs) = default;
   FieldSpanList(FieldSpanList&& rhs) = default;
   virtual ~FieldSpanList() = default;
@@ -49,17 +49,12 @@ public:
   reverse_iterator rend()          { return mSpanFieldSpans.rend(); }
 
   // Index operator.
-  value_type& operator[](const size_t index);
-  const value_type& operator[](const size_t index) const;
-
-  value_type& at(const size_t index);
-  const value_type& at(const size_t index) const;
+  value_type operator[](const size_t index) const;
+  value_type at(const size_t index) const;
 
   // Provide direct access to Field elements
   DataType& operator()(const size_t fieldIndex,
-                       const size_t nodeIndex);
-  const DataType& operator()(const size_t fieldIndex,
-                             const size_t nodeIndex) const;
+                       const size_t nodeIndex) const;
 
   // Reproduce the standard Field operators for FieldSpanLists.
   void applyMin(const DataType& dataMin);

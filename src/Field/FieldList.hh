@@ -90,7 +90,7 @@ public:
   FieldList& operator=(const DataType& rhs);
 
   // Access the storage type of the field list.
-  FieldStorageType storageType() const;
+  FieldStorageType storageType() const { return mStorageType; }
 
   // Force the Field storage to be Copy.
   void copyFields();
@@ -258,7 +258,7 @@ private:
   FieldStorageType mStorageType;
 
   // For use when building a span view of the FieldList
-  std::vector<FieldSpan<Dimension, DataType>> mFieldSpans;
+  std::vector<FieldSpan<Dimension, DataType>*> mFieldSpanPtrs;
   using FieldSpanList<Dimension, DataType>::mSpanFieldSpans;
 
   // Maintain a vector of the NodeLists this FieldList is defined in order to
@@ -267,8 +267,7 @@ private:
   HashMapType mNodeListIndexMap;
 
   // Internal methods
-  void buildNodeListIndexMap();
-  void buildFieldSpans();
+  void buildDependentArrays();
 
 public:
   // A data attribute to indicate how to reduce this field across threads.

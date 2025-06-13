@@ -55,13 +55,14 @@ class FieldSpanList:
     @PYB11returnpolicy("reference")
     @PYB11keepalive(0,1)
     def __getitem__(self, index="size_t"):
-        return "FieldSpanType&"
+        return "FieldSpanType*"
 
     @PYB11returnpolicy("reference")
     @PYB11implementation("[](FieldSpanListType& self) { return py::make_iterator(self.begin(), self.end()); }, py::keep_alive<0,1>()")
     def __iter__(self):
         "Python iteration through a FieldSpanList."
 
+    @PYB11const
     def __call__(self,
                  fieldIndex = "size_t",
                  nodeIndex = "size_t"):
