@@ -26,7 +26,7 @@ config_shorthand = {"toss_4_x86_64_ib_clang_14.0.6_mvapich2_2.3.6": "clang",
                     "toss_4_x86_64_ib_cray_rocmcc_6.2.0_cray-mpich_8.1.31_rocm": "+rocm"}
 
 metric = "Avg time/rank"
-region = "main" # This will change to "advance" when more benchmarks exist
+region = "advance"
 # Which tests to display
 disp_tests = ["3DCONV", "3DTAYLORFSI", "3DTAYLORSOLIDSPH",
               "3DTAYLORCRK", "NS3DCRKSPH", "NS3DSPH", "NS3DFSISPH",

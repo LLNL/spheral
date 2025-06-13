@@ -10,7 +10,7 @@
     SCHEDULER_PARAMETERS: "--exclusive -N 1 -t 60"
     NPROC: 64
     HOSTNAME: 'tioga'
-  timeout:  24 hours
+  timeout: 24 hours
   extends: [.on_toss_4_x86_cray]
 
 .tioga_shell:
@@ -19,6 +19,7 @@
     - shell
   variables:
     ENVIRONMENT: "INTERACTIVE"
+  timeout: 24 hours
   extends: [.on_toss_4_x86_cray]
 
 .on_ruby:
@@ -39,6 +40,7 @@
     - shell
   variables:
     ENVIRONMENT: "INTERACTIVE"
+  timeout: 24 hours
   extends: [.on_toss_4_x86]
 
 # ------------------------------------------------------------------------------
@@ -54,14 +56,12 @@
 
 # Use for performance tests
 .toss_shell2:
-  resource_group: toss2
   extends: [.ruby_shell]
 
 .cray_shell1:
   extends: [.tioga_shell]
 
 .cray_shell2:
-  resource_group: cray2
   extends: [.tioga_shell]
 
 # ------------------------------------------------------------------------------
