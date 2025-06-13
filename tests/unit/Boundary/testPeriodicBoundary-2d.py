@@ -10,7 +10,7 @@ from SpheralTestUtilities import *
 from SpheralPointmeshSiloDump import dumpPhysicsState
 import mpi
 
-title("1D periodic boundary test.")
+title("2D periodic boundary test.")
 
 #-------------------------------------------------------------------------------
 # Generic problem parameters
