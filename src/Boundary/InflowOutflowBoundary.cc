@@ -98,7 +98,7 @@ setGhostNodes(NodeList<Dimension>& nodeList) {
 
     // Create the ghost nodes.
     nodeList.numGhostNodes(currentNumGhostNodes + mNumInflowNodes[nodeList.name()]);
-    gNodes = vector<int>(mNumInflowNodes[nodeList.name()]);
+    gNodes = vector<size_t>(mNumInflowNodes[nodeList.name()]);
     for (auto i = 0; i < mNumInflowNodes[nodeList.name()]; ++i) gNodes[i] = firstNewGhostNode + i;
     this->updateGhostNodes(nodeList);
   }
@@ -189,9 +189,9 @@ updateViolationNodes(NodeList<Dimension>&) {
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void
-InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>& flagSet,
-                                                 FieldList<Dimension, int>& old2newIndexMap,
-                                                 vector<int>& numNodesRemoved) {
+InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, size_t>& flagSet,
+                                                 FieldList<Dimension, size_t>& old2newIndexMap,
+                                                 vector<size_t>& numNodesRemoved) {
 
   auto& registrar = NodeListRegistrar<Dimension>::instance();
   REQUIRE((int)numNodesRemoved.size() == registrar.numNodeLists());
@@ -213,7 +213,7 @@ InflowOutflowBoundary<Dimension>::cullGhostNodes(const FieldList<Dimension, int>
         const auto& flags = *(flagSet[nodeListi]);
 
         // Patch up the ghost and control node indices.
-        vector<int> newGhostNodes, newControlNodes;
+        vector<size_t> newGhostNodes, newControlNodes;
         auto newGhostIndex = myNewFirstGhostNode;
         for (auto k = 0u; k < boundaryNodes.ghostNodes.size(); ++k) {
           CHECK(flags(boundaryNodes.ghostNodes[k]) == 1);
@@ -422,7 +422,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
       nodeList.numInternalNodes(firstID + numNew);
 
       // Build the map of ghost IDs --> new internal IDs
-      vector<int> fromIDs(numNew), toIDs(numNew);
+      vector<size_t> fromIDs(numNew), toIDs(numNew);
       for (auto k = 0u; k < numNew; ++k) {
         fromIDs[k] = gNodes[0] + insideNodes[k] + numNew;
         toIDs[k] = firstID + k;
@@ -437,7 +437,7 @@ InflowOutflowBoundary<Dimension>::finalize(const Scalar /*time*/,
     }
 
     // Look for any internal points that have exited through the plane.
-    vector<int> outsideNodes;
+    vector<size_t> outsideNodes;
     const auto ni = nodeList.numInternalNodes();
     for (auto i = 0u; i < ni; ++i) {
       if (mPlane.compare(pos[i]) == 1) outsideNodes.push_back(i);

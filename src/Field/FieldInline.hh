@@ -264,16 +264,16 @@ Field<Dimension, DataType>::operator==(const FieldBase<Dimension>& rhs) const {
 template<typename Dimension, typename DataType>
 inline
 DataType&
-Field<Dimension, DataType>::operator()(int index) {
-  CHECK(index >= 0 && index < (int)numElements());
+Field<Dimension, DataType>::operator()(size_t index) {
+  CHECK(index >= 0 && index < numElements());
   return mDataArray[index];
 }
 
 template<typename Dimension, typename DataType>
 inline
 const DataType&
-Field<Dimension, DataType>::operator()(int index) const {
-  CHECK(index >= 0 && index < (int)numElements());
+Field<Dimension, DataType>::operator()(size_t index) const {
+  CHECK(index >= 0 && index < numElements());
   return mDataArray[index];
 }
 
@@ -283,14 +283,14 @@ Field<Dimension, DataType>::operator()(int index) const {
 template<typename Dimension, typename DataType>
 inline
 DataType&
-Field<Dimension, DataType>::at(int index) {
+Field<Dimension, DataType>::at(size_t index) {
   return this->operator()(index);
 }
 
 template<typename Dimension, typename DataType>
 inline
 const DataType&
-Field<Dimension, DataType>::at(int index) const {
+Field<Dimension, DataType>::at(size_t index) const {
   return this->operator()(index);
 }
 
@@ -384,30 +384,23 @@ operator()(const NodeIteratorBase<Dimension>& itr) const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-unsigned 
+size_t 
 Field<Dimension, DataType>::numElements() const {
   return mDataArray.size();
 }
 
 template<typename Dimension, typename DataType>
 inline
-unsigned 
+size_t 
 Field<Dimension, DataType>::numInternalElements() const {
   return this->nodeList().numInternalNodes();
 }
 
 template<typename Dimension, typename DataType>
 inline
-unsigned 
+size_t 
 Field<Dimension, DataType>::numGhostElements() const {
   return this->nodeList().numGhostNodes();
-}
-
-template<typename Dimension, typename DataType>
-inline
-unsigned 
-Field<Dimension, DataType>::size() const {
-  return numElements();
 }
 
 //------------------------------------------------------------------------------
@@ -429,8 +422,8 @@ inline
 void
 Field<Dimension, DataType>::applyMin(const DataType& dataMin) {
   REQUIRE(mValid);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -441,8 +434,8 @@ inline
 void
 Field<Dimension, DataType>::applyMax(const DataType& dataMax) {
   REQUIRE(mValid);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------
@@ -453,8 +446,8 @@ inline
 void
 Field<Dimension, DataType>::applyScalarMin(const double dataMin) {
   REQUIRE(mValid);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) mDataArray[i] = std::max(mDataArray[i], dataMin);
 }
 
 //------------------------------------------------------------------------------
@@ -465,8 +458,8 @@ inline
 void
 Field<Dimension, DataType>::applyScalarMax(const double dataMax) {
   REQUIRE(mValid);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) mDataArray[i] = std::min(mDataArray[i], dataMax);
 }
 
 //------------------------------------------------------------------------------
@@ -479,8 +472,8 @@ Field<Dimension, DataType>::operator+(const Field<Dimension, DataType>& rhs) con
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) result(i) += rhs(i);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) result(i) += rhs(i);
   return result;
 }
 
@@ -494,8 +487,8 @@ Field<Dimension, DataType>::operator-(const Field<Dimension, DataType>& rhs) con
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
   Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) result(i) -= rhs(i);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) result(i) -= rhs(i);
   return result;
 }
 
@@ -508,8 +501,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs(i);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) += rhs(i);
   return *this;
 }
 
@@ -522,8 +515,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const Field<Dimension, DataType>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs(i);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) -= rhs(i);
   return *this;
 }
 
@@ -536,8 +529,8 @@ Field<Dimension, DataType>
 Field<Dimension, DataType>::operator+(const DataType& rhs) const {
   REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) result(i) += rhs;
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) result(i) += rhs;
   return result;
 }
 
@@ -550,8 +543,8 @@ Field<Dimension, DataType>
 Field<Dimension, DataType>::operator-(const DataType& rhs) const {
   REQUIRE(valid());
   Field<Dimension, DataType> result(*this);
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) result(i) -= rhs;
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) result(i) -= rhs;
   return result;
 }
 
@@ -563,8 +556,8 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator+=(const DataType& rhs) {
   REQUIRE(valid());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) += rhs;
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) += rhs;
   return *this;
 }
 
@@ -576,8 +569,8 @@ inline
 Field<Dimension, DataType>&
 Field<Dimension, DataType>::operator-=(const DataType& rhs) {
   REQUIRE(valid());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) -= rhs;
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) -= rhs;
   return *this;
 }
 
@@ -621,8 +614,8 @@ Field<Dimension, DataType>::
 operator*=(const Field<Dimension, Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs(i);
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) *= rhs(i);
   return *this;
 }
 
@@ -636,7 +629,7 @@ Field<Dimension, DataType>::
 operator/=(const Field<Dimension, typename Dimension::Scalar>& rhs) {
   REQUIRE(valid() && rhs.valid());
   REQUIRE(this->nodeListPtr() == rhs.nodeListPtr());
-  const unsigned n = this->numElements();
+  const size_t n = this->numElements();
   for (auto i = 0u; i < n; ++i) {
     (*this)(i) *= safeInvVar(rhs(i), 1.0e-60);
   }
@@ -681,8 +674,8 @@ Field<Dimension, DataType>&
 Field<Dimension, DataType>::
 operator*=(const Scalar& rhs) {
   REQUIRE(valid());
-  const unsigned n = this->numElements();
-  for (unsigned i = 0; i != n; ++i) (*this)(i) *= rhs;
+  const size_t n = this->numElements();
+  for (size_t i = 0; i != n; ++i) (*this)(i) *= rhs;
   return *this;
 }
 
@@ -696,7 +689,7 @@ Field<Dimension, DataType>::
 operator/=(const Scalar& rhs) {
   REQUIRE(valid());
   REQUIRE(rhs != 0.0);
-  const unsigned n = this->numElements();
+  const size_t n = this->numElements();
   for (int i = 0; i < (int)n; ++i) (*this)(i) /= rhs;
   return *this;
 }
@@ -1128,7 +1121,7 @@ template<typename Dimension, typename DataType>
 inline
 DataType&
 Field<Dimension, DataType>::
-operator[](const unsigned int index) {
+operator[](const size_t index) {
   return mDataArray[index];
 }
 
@@ -1136,7 +1129,7 @@ template<typename Dimension, typename DataType>
 inline
 const DataType&
 Field<Dimension, DataType>::
-operator[](const unsigned int index) const {
+operator[](const size_t index) const {
   return mDataArray[index];
 }
 
@@ -1147,11 +1140,11 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
-  unsigned oldSize = this->size();
+  size_t oldSize = this->size();
   this->setFieldBaseNodeList(nodeList);
   mDataArray.resize(nodeList.numNodes());
   if (this->size() > oldSize) {
-    for (unsigned i = oldSize; i < this->size(); ++i) {
+    for (size_t i = oldSize; i < this->size(); ++i) {
       (*this)(i) = DataTypeTraits<DataType>::zero();
     }
   }
@@ -1165,9 +1158,9 @@ Field<Dimension, DataType>::setNodeList(const NodeList<Dimension>& nodeList) {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeField(unsigned size) {
+Field<Dimension, DataType>::resizeField(size_t size) {
   REQUIRE(size == this->nodeList().numNodes());
-  unsigned oldSize = this->size();
+  size_t oldSize = this->size();
   mDataArray.resize(size);
   if (oldSize < size) {
     std::fill(mDataArray.begin() + oldSize,
@@ -1183,10 +1176,10 @@ Field<Dimension, DataType>::resizeField(unsigned size) {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::deleteElement(int nodeID) {
-  const unsigned originalSize = this->size();
+Field<Dimension, DataType>::deleteElement(size_t nodeID) {
+  const size_t originalSize = this->size();
   CONTRACT_VAR(originalSize);
-  REQUIRE(nodeID >= 0 && nodeID < (int)originalSize);
+  REQUIRE(nodeID >= 0 && nodeID < originalSize);
   mDataArray.erase(mDataArray.begin() + nodeID);
   ENSURE(mDataArray.size() == originalSize - 1);
 }
@@ -1197,7 +1190,7 @@ Field<Dimension, DataType>::deleteElement(int nodeID) {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::deleteElements(const std::vector<int>& nodeIDs) {
+Field<Dimension, DataType>::deleteElements(const std::vector<size_t>& nodeIDs) {
   // The standalone method does the actual work.
   removeElements(mDataArray, nodeIDs);
 }
@@ -1209,7 +1202,7 @@ template<typename Dimension, typename DataType>
 inline
 std::vector<char>
 Field<Dimension, DataType>::
-packValues(const std::vector<int>& nodeIDs) const {
+packValues(const std::vector<size_t>& nodeIDs) const {
   return packFieldValues(*this, nodeIDs);
 }
 
@@ -1220,7 +1213,7 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-unpackValues(const std::vector<int>& nodeIDs,
+unpackValues(const std::vector<size_t>& nodeIDs,
              const std::vector<char>& buffer) {
   unpackFieldValues(*this, nodeIDs, buffer);
 }
@@ -1232,12 +1225,12 @@ unpackValues(const std::vector<int>& nodeIDs,
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
-                                                const unsigned oldFirstGhostNode) {
-  const unsigned currentSize = this->size();
-  const unsigned currentInternalSize = oldFirstGhostNode;
-  const unsigned numGhostNodes = this->nodeList().numGhostNodes();
-  const unsigned newSize = size + numGhostNodes;
+Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
+                                                const size_t oldFirstGhostNode) {
+  const size_t currentSize = this->size();
+  const size_t currentInternalSize = oldFirstGhostNode;
+  const size_t numGhostNodes = this->nodeList().numGhostNodes();
+  const size_t newSize = size + numGhostNodes;
   REQUIRE(numGhostNodes == currentSize - oldFirstGhostNode);
   REQUIRE(newSize == this->nodeList().numNodes());
 
@@ -1247,7 +1240,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
     for (auto i = 0u; i != numGhostNodes; ++i) {
       const int j = oldFirstGhostNode + i;
       CHECK(i < numGhostNodes);
-      CHECK(j >= 0 && j < (int)this->size());
+      CHECK(j >= 0 && j < this->size());
       oldGhostValues[i] = (*this)(j);
     }
   }
@@ -1266,9 +1259,9 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
   // Fill the ghost data back in.
   if (numGhostNodes > 0) {
     for (auto i = 0u; i != numGhostNodes; ++i) {
-      const int j = this->nodeList().firstGhostNode() + i;
+      const size_t j = this->nodeList().firstGhostNode() + i;
       CHECK(i < oldGhostValues.size());
-      CHECK(j >= 0 && j < (int)this->size());
+      CHECK(j >= 0 && j < this->size());
       (*this)(j) = oldGhostValues[i];
     }
   }
@@ -1282,12 +1275,12 @@ Field<Dimension, DataType>::resizeFieldInternal(const unsigned size,
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeFieldGhost(const unsigned size) {
-  const unsigned currentSize = this->size();
-  const unsigned numInternalNodes = this->nodeList().numInternalNodes();
+Field<Dimension, DataType>::resizeFieldGhost(const size_t size) {
+  const size_t currentSize = this->size();
+  const size_t numInternalNodes = this->nodeList().numInternalNodes();
   CHECK(currentSize >= numInternalNodes);
-  const unsigned currentNumGhostNodes = currentSize - numInternalNodes;
-  const unsigned newSize = numInternalNodes + size;
+  const size_t currentNumGhostNodes = currentSize - numInternalNodes;
+  const size_t newSize = numInternalNodes + size;
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // Resize the field data.
@@ -1311,13 +1304,13 @@ template<typename Dimension, typename DataType>
 inline
 void
 Field<Dimension, DataType>::
-copyElements(const std::vector<int>& fromIndices,
-             const std::vector<int>& toIndices) {
+copyElements(const std::vector<size_t>& fromIndices,
+             const std::vector<size_t>& toIndices) {
   REQUIRE(fromIndices.size() == toIndices.size());
   REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
-                      [&](const int i) { return i >= 0 and i < (int)this->size(); }));
+                      [&](const size_t i) { return i >= 0 and i < this->size(); }));
   REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
-                      [&](const int i) { return i >= 0 and i < (int)this->size(); }));
+                      [&](const size_t i) { return i >= 0 and i < this->size(); }));
   const auto ni = fromIndices.size();
   for (auto k = 0u; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
 }
@@ -1338,7 +1331,7 @@ fixedSizeDataType() const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-int
+size_t
 Field<Dimension, DataType>::
 numValsInDataType() const {
   return DataTypeTraits<DataType>::numElements(DataType());
@@ -1349,7 +1342,7 @@ numValsInDataType() const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-int
+size_t
 Field<Dimension, DataType>::
 sizeofDataType() const {
   return sizeof(DataTypeTraits<DataType>::zero());
@@ -1360,9 +1353,9 @@ sizeofDataType() const {
 //------------------------------------------------------------------------------
 template<typename Dimension, typename DataType>
 inline
-int
+size_t
 Field<Dimension, DataType>::
-computeCommBufferSize(const std::vector<int>& packIndices,
+computeCommBufferSize(const std::vector<size_t>& packIndices,
                       const int sendProc,
                       const int recvProc) const {
   return computeBufferSize(*this, packIndices, sendProc, recvProc);

@@ -250,9 +250,9 @@ class Boundary:
 
     @PYB11virtual
     def cullGhostNodes(self,
-                       flagSet = "const FieldList<%(Dimension)s, int>&",
-                       old2newIndexMap = "FieldList<%(Dimension)s, int>&",
-                       numNodesRemoved = "std::vector<int>&"):
+                       flagSet = "const FieldList<%(Dimension)s, size_t>&",
+                       old2newIndexMap = "FieldList<%(Dimension)s, size_t>&",
+                       numNodesRemoved = "std::vector<size_t>&"):
         "Use a set of flags to cull out inactive ghost nodes."
         return "void"
 
@@ -360,19 +360,19 @@ class Boundary:
     @PYB11const
     def controlNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Control nodes for a given NodeList"
-        return "const std::vector<int>&"
+        return "const std::vector<size_t>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
     def ghostNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Ghost nodes for a given NodeList"
-        return "const std::vector<int>&"
+        return "const std::vector<size_t>&"
 
     @PYB11returnpolicy("reference_internal")
     @PYB11const
     def violationNodes(self, nodeList="const NodeList<%(Dimension)s>&"):
         "Violation nodes for a given NodeList"
-        return "const std::vector<int>&"
+        return "const std::vector<size_t>&"
 
     #...........................................................................
     # applyFieldListGhostBoundary/enforceFieldListBoundary

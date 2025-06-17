@@ -114,7 +114,7 @@ DEMBase(const DataBase<Dimension>& dataBase,
     mDomegaDt = dataBase.newDEMFieldList(DEMDimension<Dimension>::zero, IncrementState<Dimension, Scalar>::prefix() + DEMFieldNames::angularVelocity);
     
     mIsActiveContact = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::isActiveContact);
-    mNeighborIndices = dataBase.newDEMFieldList(std::vector<int>(), DEMFieldNames::neighborIndices);
+    mNeighborIndices = dataBase.newDEMFieldList(std::vector<size_t>(), DEMFieldNames::neighborIndices);
     mShearDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::shearDisplacement);
     mRollingDisplacement = dataBase.newDEMFieldList(std::vector<Vector>(), DEMFieldNames::rollingDisplacement);
     mTorsionalDisplacement = dataBase.newDEMFieldList(std::vector<Scalar>(), DEMFieldNames::torsionalDisplacement);
@@ -348,7 +348,7 @@ registerState(DataBase<Dimension>& dataBase,
   dataBase.resizeDEMFieldList(mTimeStepMask, 1, HydroFieldNames::timeStepMask);
   dataBase.resizeDEMFieldList(mOmega, DEMDimension<Dimension>::zero, DEMFieldNames::angularVelocity, false);
   dataBase.resizeDEMFieldList(mIsActiveContact, vector<int>(), DEMFieldNames::isActiveContact, false);
-  dataBase.resizeDEMFieldList(mNeighborIndices, vector<int>(), DEMFieldNames::neighborIndices, false);
+  dataBase.resizeDEMFieldList(mNeighborIndices, vector<size_t>(), DEMFieldNames::neighborIndices, false);
   dataBase.resizeDEMFieldList(mShearDisplacement, vector<Vector>(), DEMFieldNames::shearDisplacement, false);
   dataBase.resizeDEMFieldList(mRollingDisplacement, vector<Vector>(), DEMFieldNames::rollingDisplacement, false);
   dataBase.resizeDEMFieldList(mTorsionalDisplacement, vector<Scalar>(), DEMFieldNames::torsionalDisplacement, false);
@@ -441,8 +441,8 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
   TIME_BEGIN("DEMpreStepInitialize");
 
   // make sure we have a valid set of unique indices
-  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,int(0));
-  if(uniqueIndex.min()==0){
+  auto uniqueIndex = state.fields(DEMFieldNames::uniqueIndices,size_t(0u));
+  if(uniqueIndex.min()==0u){
     setUniqueNodeIDs(uniqueIndex);
   }
 

@@ -8,8 +8,8 @@
 //
 // Created by JMO, Thu Jun 10 23:26:50 PDT 1999
 //----------------------------------------------------------------------------//
-#ifndef __Spheral_Field_hh__
-#define __Spheral_Field_hh__
+#ifndef __Spheral_Field__
+#define __Spheral_Field__
 
 #include "FieldBase.hh"
 #include "axom/sidre.hpp"
@@ -83,20 +83,20 @@ public:
   virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
   // Element access.
-  DataType& operator()(int index);
-  const DataType& operator()(int index) const;
+  DataType& operator()(size_t index);
+  const DataType& operator()(size_t index) const;
 
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
   const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
 
-  DataType& at(int index);
-  const DataType& at(int index) const;
+  DataType& at(size_t index);
+  const DataType& at(size_t index) const;
 
   // The number of elements in the field.
-  unsigned numElements() const;
-  unsigned numInternalElements() const;
-  unsigned numGhostElements() const;
-  virtual unsigned size() const override;
+  size_t numElements() const;
+  size_t numInternalElements() const;
+  size_t numGhostElements() const;
+  virtual size_t size() const override { return mDataArray.size(); }
 
   // Zero out the field elements.
   virtual void Zero() override;
@@ -120,15 +120,6 @@ public:
 
   Field& operator+=(const DataType& rhs);
   Field& operator-=(const DataType& rhs);
-
-//   // Multiplication of two fields, possibly by another DataType.
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const Field<Dimension, OtherDataType>& rhs) const;
-
-//   template<typename OtherDataType>
-//   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
-//   operator*(const OtherDataType& rhs) const;
 
   // Multiplication and division by scalar(s)
   Field<Dimension, DataType> operator*(const Field<Dimension, Scalar>& rhs) const;
@@ -169,24 +160,6 @@ public:
   bool operator>=(const DataType& rhs) const;
   bool operator<=(const DataType& rhs) const;
 
-//   // Interpolate from this Field onto the given position.  Assumes that the
-//   // neighbor initializations have already been performed for the given
-//   // position!
-//   DataType operator()(const Vector& r,
-//                       const TableKernel<Dimension>& W) const;
-
-//   // Interpolate from this Field onto a new Field defined at the positions
-//   // of the given NodeList.
-//   Field<Dimension, DataType>
-//   sampleField(const NodeList<Dimension>& splatNodeList,
-//               const TableKernel<Dimension>& W) const;
-
-//   // Conservatively splat values from this Field onto a new Field defined
-//   // at the positions of the given NodeList, using the MASH formalism.
-//   Field<Dimension, DataType>
-//   splatToFieldMash(const NodeList<Dimension>& splatNodeList,
-//                    const TableKernel<Dimension>& W) const;
-
   // Test if this Field is in a valid, internally consistent state.
   bool valid() const;
 
@@ -206,22 +179,22 @@ public:
   const_iterator ghostEnd() const;
 
   // Index operator.
-  DataType& operator[](const unsigned int index);
-  const DataType& operator[](const unsigned int index) const;
+  DataType& operator[](const size_t index);
+  const DataType& operator[](const size_t index) const;
 
   // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList) override;
-  virtual std::vector<char> packValues(const std::vector<int>& nodeIDs) const override;
-  virtual void unpackValues(const std::vector<int>& nodeIDs,
+  virtual std::vector<char> packValues(const std::vector<size_t>& nodeIDs) const override;
+  virtual void unpackValues(const std::vector<size_t>& nodeIDs,
                             const std::vector<char>& buffer) override;
-  virtual void copyElements(const std::vector<int>& fromIndices,
-                            const std::vector<int>& toIndices) override;
+  virtual void copyElements(const std::vector<size_t>& fromIndices,
+                            const std::vector<size_t>& toIndices) override;
   virtual bool fixedSizeDataType() const override;
-  virtual int numValsInDataType() const override;
-  virtual int sizeofDataType() const override;
-  virtual int computeCommBufferSize(const std::vector<int>& packIndices,
-                                    const int sendProc,
-                                    const int recvProc) const override;
+  virtual size_t numValsInDataType() const override;
+  virtual size_t sizeofDataType() const override;
+  virtual size_t computeCommBufferSize(const std::vector<size_t>& packIndices,
+                                       const int sendProc,
+                                       const int recvProc) const override;
 
   // Serialization methods
   std::vector<char> serialize() const;
@@ -238,11 +211,11 @@ public:
 
 
 protected:
-  virtual void resizeField(unsigned size) override;
-  virtual void resizeFieldInternal(unsigned size, unsigned oldFirstGhostNode) override;
-  virtual void resizeFieldGhost(unsigned size) override;
-  virtual void deleteElement(int nodeID) override;
-  virtual void deleteElements(const std::vector<int>& nodeIDs) override;
+  virtual void resizeField(size_t size) override;
+  virtual void resizeFieldInternal(size_t size, size_t oldFirstGhostNode) override;
+  virtual void resizeFieldGhost(size_t size) override;
+  virtual void deleteElement(size_t nodeID) override;
+  virtual void deleteElements(const std::vector<size_t>& nodeIDs) override;
 
 private:
   //--------------------------- Private Interface ---------------------------//
