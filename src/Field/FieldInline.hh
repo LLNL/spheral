@@ -382,6 +382,12 @@ operator()(const NodeIteratorBase<Dimension>& itr) const {
 //------------------------------------------------------------------------------
 // Number of elements in the field.
 //------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+size_t
+Field<Dimension, DataType>::numElements() const {
+  return size();
+}
 
 template<typename Dimension, typename DataType>
 inline

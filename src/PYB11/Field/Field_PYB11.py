@@ -65,7 +65,6 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
                            ( "std::vector<double>",              "VectorDouble"),
                            (f"std::vector<{Vector}>",            "VectorVector"),
                            (f"std::vector<{Tensor}>",            "VectorSymTensor"),
-                           (f"std::vector<{Tensor}>",            "VectorSymTensor"),
                            ( "std::vector<CellFaceFlag>",        "vector_of_CellFaceFlag"),
                            (f"DomainNode<{Dimension}>",          "DomainNode"),
                            (f"RKCoefficients<{Dimension}>",      "RKCoefficients")):
@@ -93,4 +92,17 @@ FieldBase{ndim}d = PYB11TemplateClass(FieldBase, template_parameters="{Dimension
                            (SymTensor,  "SymTensor")):
         exec(f'''
 {label}Field{ndim}d = PYB11TemplateClass(MinMaxField, template_parameters=("{Dimension}", "{value}"))
+''')
+
+    #...........................................................................
+    # STL collections of Field types
+    for value, label in (("int",     "Int"),
+                         ("double",  "Scalar"),
+                         (Vector,    "Vector"),
+                         (Tensor,    "Tensor"),
+                         (SymTensor, "SymTensor")):
+        exec(f'''
+vector_of_{label}Field{ndim}d = PYB11_bind_vector("Field<{Dimension}, {value}>", opaque=True, local=False)
+vector_of_{label}FieldPtr{ndim}d = PYB11_bind_vector("Field<{Dimension}, {value}>*", opaque=True, local=False)
+vector_of_vector_of_{label}Field{ndim}d = PYB11_bind_vector("std::vector<Field<{Dimension}, {value}>>", opaque=True, local=False)
 ''')

@@ -10,7 +10,7 @@ from FieldBase import FieldBase
 class Field(FieldBase):
 
     PYB11typedefs = """
-  typedef Field<%(Dimension)s, %(Value)s> FieldType;
+  using FieldType = Field<%(Dimension)s, %(Value)s>;
 """
 
     def pyinit(self, name="std::string"):
@@ -56,12 +56,12 @@ class Field(FieldBase):
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation('[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
+    @PYB11implementation('[](FieldType& self, int i) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }')
     def __getitem__(self):
         #return "%(Value)s&"
         return
 
-    @PYB11implementation("[](FieldType& self, int i, const %(Value)s v) { const int n = self.size(); if (i >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
+    @PYB11implementation("[](FieldType& self, int i, const %(Value)s v) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); self[(i %% n + n) %% n] = v; }")
     def __setitem__(self):
         "Set a value"
 
@@ -70,7 +70,7 @@ class Field(FieldBase):
         "Python iteration through a Field."
 
     @PYB11returnpolicy("reference_internal")
-    @PYB11implementation("[](FieldType& self, int i) { const int n = self.size(); if (i >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
+    @PYB11implementation("[](FieldType& self, int i) { const auto n = self.size(); if (size_t(i) >= n) throw py::index_error(); return &self[(i %% n + n) %% n]; }")
     def __call__(self):
         "Index into a Field"
         #return "%(Value)s&"
