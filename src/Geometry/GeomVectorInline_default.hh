@@ -14,6 +14,7 @@ namespace Spheral {
 // Construct with the given values for the elements.
 //------------------------------------------------------------------------------
 template<>
+SPHERAL_HOST_DEVICE
 inline
 GeomVector<1>::GeomVector(const double x,
                           const double /*y*/,
@@ -22,6 +23,7 @@ GeomVector<1>::GeomVector(const double x,
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 GeomVector<2>::GeomVector(const double x,
                           const double y,
@@ -30,20 +32,12 @@ GeomVector<2>::GeomVector(const double x,
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 GeomVector<3>::GeomVector(const double x,
                           const double y,
                           const double z):
   GeomVectorBase<3>(x, y, z) {
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>::GeomVector(const GeomVector<nDim>& vec):
-  GeomVectorBase<nDim>(vec) {
 }
 
 //------------------------------------------------------------------------------
@@ -68,37 +62,6 @@ template<typename Derived>
 inline
 GeomVector<3>::GeomVector(const Eigen::MatrixBase<Derived>& vec):
   GeomVectorBase<3>(vec(0), vec(1), vec(2)) {
-}
-
-
-//------------------------------------------------------------------------------
-// The assignment operator.
-//------------------------------------------------------------------------------
-template<>
-inline
-GeomVector<1>&
-GeomVector<1>::operator=(const GeomVector<1>& vec) {
-  this->mx = vec.mx;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<2>&
-GeomVector<2>::operator=(const GeomVector<2>& vec) {
-  this->mx = vec.mx;
-  this->my = vec.my;
-  return *this;
-}
-
-template<>
-inline
-GeomVector<3>&
-GeomVector<3>::operator=(const GeomVector<3>& vec) {
-  this->mx = vec.mx;
-  this->my = vec.my;
-  this->mz = vec.mz;
-  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -163,13 +126,6 @@ GeomVector<3>::operator=(const double val) {
   this->mz = val;
   return *this;
 }
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-inline
-GeomVector<nDim>::~GeomVector() {}
 
 //------------------------------------------------------------------------------
 // Return the (index) element using the parenthesis operator.
@@ -349,6 +305,7 @@ GeomVector<nDim>::end() const {
 // Zero out the Vector.
 //------------------------------------------------------------------------------
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<1>::Zero() {
@@ -356,6 +313,7 @@ GeomVector<1>::Zero() {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<2>::Zero() {
@@ -364,6 +322,7 @@ GeomVector<2>::Zero() {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<3>::Zero() {
@@ -724,6 +683,7 @@ GeomVector<3>::compare(const double val) const {
 // The equivalence comparator.
 //------------------------------------------------------------------------------
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<1>::operator==(const GeomVector<1>& vec) const {
@@ -731,6 +691,7 @@ GeomVector<1>::operator==(const GeomVector<1>& vec) const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<2>::operator==(const GeomVector<2>& vec) const {
@@ -738,6 +699,7 @@ GeomVector<2>::operator==(const GeomVector<2>& vec) const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<3>::operator==(const GeomVector<3>& vec) const {
@@ -748,6 +710,7 @@ GeomVector<3>::operator==(const GeomVector<3>& vec) const {
 // The non-equivalence comparator.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<nDim>::operator!=(const GeomVector<nDim>& vec) const {
@@ -798,6 +761,7 @@ GeomVector<nDim>::operator>=(const GeomVector<nDim>& rhs) const {
 // The equivalence comparator (double).
 //------------------------------------------------------------------------------
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<1>::operator==(const double val) const {
@@ -805,6 +769,7 @@ GeomVector<1>::operator==(const double val) const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<2>::operator==(const double val) const {
@@ -812,6 +777,7 @@ GeomVector<2>::operator==(const double val) const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<3>::operator==(const double val) const {
@@ -822,6 +788,7 @@ GeomVector<3>::operator==(const double val) const {
 // The non-equivalence comparator (double).
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 bool
 GeomVector<nDim>::operator!=(const double val) const {
