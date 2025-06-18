@@ -31,8 +31,15 @@ ARG HOST_CONFIG=docker-$SPEC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y
 RUN apt-get upgrade -y
-RUN apt-get install -y build-essential git gfortran mpich autotools-dev autoconf sqlite pkg-config uuid gettext cmake libncurses-dev libgdbm-dev libffi-dev libssl-dev libexpat-dev libreadline-dev libbz2-dev locales python python3 unzip libtool wget curl libcurl4-openssl-dev tk-dev
-RUN apt-get install -y python3-dev python3-venv python3-pip
+
+# Required packages
+RUN apt-get install -y bzip2 ca-certificates g++ gcc gfortran git gzip
+RUN apt-get install -y lsb-release patch python3 tar unzip xz-utils zstd
+RUN apt-get install -y libtool curl wget libcurl4-openssl-dev tk-dev autotools-dev
+RUN apt-get install -y build-essential python3-dev python3-pip python3-venv
+
+# Recommended packages (MPICH library is broken for 22.04/24.04, use openmpi)
+RUN apt-get install -y cmake autoconf automake libopenmpi-dev libreadline-dev
 RUN apt-get install -y iputils-ping
 
 # Setup system locale for pip package encoding/decoding 
@@ -94,12 +101,6 @@ RUN make install
 
 # Run ATS testing suite.
 WORKDIR ../install
-
-# ATS currently does not allow us to run in parallel for regular linux machines
-# If it did, we would need some of the following commands
-#RUN export OMP_NUM_THREADS=1
-#RUN export MACHINE_TYPE="winParallel"
-#RUN ./spheral-ats --level 99 --mpiexe mpiexec --npMax $JCXX tests/integration.ats
 
 # Instead, we will just run it normally
 RUN ./spheral-ats --level 99 tests/integration.ats
