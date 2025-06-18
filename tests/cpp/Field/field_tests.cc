@@ -1,4 +1,4 @@
-#include "test-basic-exec-policies.hh"
+#include "field-test-types.hh"
 #include "test-utilities.hh"
 
 #include "Field/Field.hh"
@@ -62,14 +62,12 @@ TEST_F(FieldTest, NameNodeListCtor) {
  */
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
   using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
-  using WORK_RESOURCE = typename camp::at<TypeParam, camp::num<1>>::type;
   {
     std::string field_name = "Field::NodeListValCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
-    field.move(WORK_RESOURCE());
     auto field_v = field.toView();
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
@@ -171,16 +169,15 @@ GPU_TYPED_TEST_P(FieldTypedTest, AssignmentContainerType) {
                                    [&] SPHERAL_HOST(int i) { data[i] = i; });
 
     field = data;
-    auto field_v = &field;
+    auto field_v = field.toView();
 
-    RAJA::forall<LOOP_EXEC_POLICY>(
-        TRS_UINT(0, 10),
-        [=] SPHERAL_HOST_DEVICE(int i) { field_v->at(i) *= 2; });
+    RAJA::forall<WORK_EXEC_POLICY>(
+        TRS_UINT(0, 10), [=] SPHERAL_HOST_DEVICE(int i) { field_v[i] *= 2; });
 
-    RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0, 10),
-                                   [=] SPHERAL_HOST_DEVICE(int i) {
-                                     SPHERAL_ASSERT_EQ(field_v->at(i), i * 2);
-                                   });
+    RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0, 10), [=, &field](int i) {
+      SPHERAL_ASSERT_EQ(field_v[i], i * 2);
+      SPHERAL_ASSERT_EQ(field[i], i * 2);
+    });
 
     SPHERAL_ASSERT_NE(&field[0], &data[0]);
 
@@ -219,4 +216,4 @@ TEST_F(FieldTest, AssignmentDataType) {
 REGISTER_TYPED_TEST_SUITE_P(FieldTypedTest, NameNodeListValCtor, CopyCtor,
                             AssignmentField, AssignmentContainerType);
 
-INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, EXEC_TYPES, );
+INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldTypedTest, FIELD_TEST_TYPES, );
