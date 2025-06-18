@@ -62,9 +62,14 @@ TEST_F(FieldTest, NameNodeListCtor) {
  */
 GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
   using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
+  using DATATYPE = typename camp::at<TypeParam, camp::num<1>>::type;
   {
+    using FieldType = typename Spheral::Field<Spheral::Dim<3>, DATATYPE>;
+
     std::string field_name = "Field::NodeListValCtor";
-    FieldDouble field(field_name, gpu_this->test_node_list, 4);
+    FieldType field(field_name, gpu_this->test_node_list,
+                    Spheral::DataTypeTraits<DATATYPE>::zero());
+
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
@@ -72,8 +77,10 @@ GPU_TYPED_TEST_P(FieldTypedTest, NameNodeListValCtor) {
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
     RAJA::forall<WORK_EXEC_POLICY>(
-        TRS_UINT(0, field.size()),
-        [=] SPHERAL_HOST_DEVICE(int i) { SPHERAL_ASSERT_EQ(field_v[i], 4); });
+        TRS_UINT(0, field.size()), [=] SPHERAL_HOST_DEVICE(int i) {
+          SPHERAL_ASSERT_EQ(field_v[i],
+                            Spheral::DataTypeTraits<DATATYPE>::zero());
+        });
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
   }
