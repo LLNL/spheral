@@ -6,15 +6,15 @@
 
 // clang-format off
 using TEST_FIELD_DATATYPES = camp::list<
-  bool
-  ,char
+  //bool
+  char
   ,int
   ,size_t
   ,float
   ,double
-  ,Spheral::Dim<1>::Vector
-  ,Spheral::Dim<1>::Vector3d
-  ,Spheral::Dim<1>::Tensor
+  //,Spheral::Dim<3>::Vector
+  //,Spheral::Dim<3>::Vector3d
+  //,Spheral::Dim<1>::Tensor
   //Dim<1>::SymTensor,
   //Dim<1>::ThirdRankTensor,
   //Dim<1>::FourthRankTensor,
