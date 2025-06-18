@@ -22,7 +22,7 @@
 # -----------------------------------------------------------------------------
 # SPHERAL-BUILD-ENV
 # -----------------------------------------------------------------------------
-FROM ubuntu:20.04 AS spheral-build-env-local
+FROM ubuntu:24.04 AS spheral-build-env-local
 
 ARG SPEC=gcc
 ARG HOST_CONFIG=docker-$SPEC
