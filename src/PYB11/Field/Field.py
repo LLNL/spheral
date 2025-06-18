@@ -52,7 +52,7 @@ class Field(FieldBase):
     @PYB11cppname("size")
     @PYB11const
     def __len__(self):
-        return "unsigned"
+        return "size_t"
 
     @PYB11cppname("operator[]")
     @PYB11returnpolicy("reference_internal")
@@ -82,7 +82,7 @@ class Field(FieldBase):
     @PYB11const
     def size(self):
         "Number of elements"
-        return "unsigned"
+        return "size_t"
 
     @PYB11virtual
     def Zero(self):
@@ -96,21 +96,21 @@ class Field(FieldBase):
 
     @PYB11virtual
     @PYB11const
-    def packValues(self, nodeIDs="const std::vector<int>&"):
+    def packValues(self, nodeIDs="const std::vector<size_t>&"):
         "Serialize the indicated elements into a vector<char>"
         return "std::vector<char>"
 
     @PYB11virtual
     def unpackValues(self,
-                     nodeIDs="const std::vector<int>&",
+                     nodeIDs="const std::vector<size_t>&",
                      buffer = "const std::vector<char>&"):
         "Deserialize values from the given buffer"
         return "void"
 
     @PYB11virtual
     def copyElements(self,
-                     fromIndices="const std::vector<int>&",
-                     toIndices="const std::vector<int>&"):
+                     fromIndices="const std::vector<size_t>&",
+                     toIndices="const std::vector<size_t>&"):
         "Copy a range of values from/to elements of the Field"
         return "void"
 
@@ -151,6 +151,6 @@ class Field(FieldBase):
 
     #...........................................................................
     # Properties
-    numElements = PYB11property("unsigned", doc="Number of elements in field")
-    numInternalElements = PYB11property("unsigned", doc="Number of internal elements in field")
-    numGhostElements = PYB11property("unsigned", doc="Number of ghost elements in field")
+    numElements = PYB11property("size_t", doc="Number of elements in field")
+    numInternalElements = PYB11property("size_t", doc="Number of internal elements in field")
+    numGhostElements = PYB11property("size_t", doc="Number of ghost elements in field")

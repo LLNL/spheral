@@ -1707,7 +1707,7 @@ inline
 std::vector<DataType>
 FieldList<Dimension, DataType>::
 ghostValues() const {
-  const size_t ntot = this->numGhostNodes();
+  const size_t ntot = this->numGhostElements();
   std::vector<DataType> result(ntot);
   size_t offset = 0;
   for (auto itr = this->begin(); itr != this->end(); ++itr) {
