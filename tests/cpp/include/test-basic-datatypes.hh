@@ -12,7 +12,7 @@ using TEST_FIELD_DATATYPES = camp::list<
   ,size_t
   ,float
   ,double
-  //,Spheral::Dim<3>::Vector
+  ,Spheral::Dim<3>::Vector
   //,Spheral::Dim<3>::Vector3d
   //,Spheral::Dim<1>::Tensor
   //Dim<1>::SymTensor,
