@@ -161,7 +161,7 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
     }
     CHECK(iglobal == nglobal);
   }
-  Barrier(Communicator::communicator());
+  MPI_Barrier(Communicator::communicator());
 
   // Assign process 0's Ids.
   Field<Dimension, size_t> result("global IDs", nodeList);
