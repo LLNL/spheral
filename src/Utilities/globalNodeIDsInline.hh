@@ -94,8 +94,8 @@ globalNodeIDs(const NodeList<Dimension>& nodeList) {
   }
 
   // Reduce the list of node info to processor 0.
-#ifdef USE_MPI
   auto nglobal = numLocalNodes;
+#ifdef USE_MPI
   CONTRACT_VAR(nglobal);
   if (procID == 0u) {
 
