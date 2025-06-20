@@ -73,7 +73,7 @@ distScan(const Value& value, const int /*op*/, const int = 0) {
   return value;
 }
 
-void
+inline void
 MPI_Barrier(const int = 0) {
   return;
 }
