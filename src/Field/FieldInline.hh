@@ -55,7 +55,7 @@ Field<Dimension, DataType>::
 Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), DataType()),
+  mDataArray(nodeList.numNodes(), DataType()),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
 }
@@ -66,7 +66,7 @@ Field<Dim<1>, Dim<1>::Scalar>::
 Field(FieldBase<Dim<1> >::FieldName name,
       const NodeList<Dim<1> >& nodeList):
   FieldBase<Dim<1> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray(nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
 }
@@ -77,7 +77,7 @@ Field<Dim<2>, Dim<2>::Scalar>::
 Field(FieldBase<Dim<2> >::FieldName name,
       const NodeList<Dim<2> >& nodeList):
   FieldBase<Dim<2> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray(nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
 }
@@ -88,7 +88,7 @@ Field<Dim<3>, Dim<3>::Scalar>::
 Field(FieldBase<Dim<3> >::FieldName name,
       const NodeList<Dim<3> >& nodeList):
   FieldBase<Dim<3> >(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), 0.0),
+  mDataArray(nodeList.numNodes(), 0.0),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
 }
@@ -103,7 +103,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       DataType value):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes(), value),
+  mDataArray(nodeList.numNodes(), value),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
 }
@@ -119,7 +119,7 @@ Field(typename FieldBase<Dimension>::FieldName name,
       const NodeList<Dimension>& nodeList,
       const std::vector<DataType,DataAllocator<DataType>>& array):
   FieldBase<Dimension>(name, nodeList),
-  mDataArray((size_t) nodeList.numNodes()),
+  mDataArray(nodeList.numNodes()),
   mValid(true) {
   REQUIRE(size() == nodeList.numNodes());
   REQUIRE(size() == array.size());
@@ -1238,7 +1238,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0) {
     for (auto i = 0u; i != numGhostNodes; ++i) {
-      const int j = oldFirstGhostNode + i;
+      const size_t j = oldFirstGhostNode + i;
       CHECK(i < numGhostNodes);
       CHECK(j >= 0 && j < this->size());
       oldGhostValues[i] = (*this)(j);
