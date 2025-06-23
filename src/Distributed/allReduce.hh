@@ -49,7 +49,7 @@ distScan(const Value& value, const MPI_Op op,
   return result;
 }
 
-void
+inline void
 Barrier(const MPI_Comm comm = Communicator::communicator()) {
   MPI_Barrier(comm);
 }
