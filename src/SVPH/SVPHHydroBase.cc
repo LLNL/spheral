@@ -25,7 +25,7 @@
 #include "Hydro/PositionPolicy.hh"
 #include "Mesh/MeshPolicy.hh"
 #include "Mesh/generateMesh.hh"
-#include "ArtificialViscosity/ArtificialViscosity.hh"
+#include "ArtificialViscosity/ArtificialViscosityHandle.hh"
 #include "DataBase/DataBase.hh"
 #include "Field/FieldList.hh"
 #include "Field/NodeIterators.hh"
@@ -52,7 +52,7 @@ namespace Spheral {
 template<typename Dimension>
 SVPHHydroBase<Dimension>::
 SVPHHydroBase(const TableKernel<Dimension>& W,
-              ArtificialViscosity<Dimension>& Q,
+              ArtificialViscosityHandle<Dimension>& Q,
               const double cfl,
               const bool useVelocityMagnitudeForDt,
               const bool compatibleEnergyEvolution,
@@ -79,7 +79,6 @@ SVPHHydroBase(const TableKernel<Dimension>& W,
   mPressure(FieldStorageType::Copy),
   mSoundSpeed(FieldStorageType::Copy),
   mVolume(FieldStorageType::Copy),
-  mMaxViscousPressure(FieldStorageType::Copy),
   mMassDensitySum(FieldStorageType::Copy),
   mXSVPHDeltaV(FieldStorageType::Copy),
   mDxDt(FieldStorageType::Copy),
@@ -250,7 +249,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   // info here may be used by other algorithms (like the CheapSynchronousRK2 integrator or
   // the ArtificialVisocisity::initialize step).
   dataBase.resizeFluidFieldList(mHideal, SymTensor::zero, ReplaceBoundedState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::H, false);
-  dataBase.resizeFluidFieldList(mMaxViscousPressure, 0.0, HydroFieldNames::maxViscousPressure, false);
   dataBase.resizeFluidFieldList(mMassDensitySum, 0.0, ReplaceState<Dimension, Field<Dimension, SymTensor> >::prefix() + HydroFieldNames::massDensity, false);
   dataBase.resizeFluidFieldList(mWeightedNeighborSum, 0.0, HydroFieldNames::weightedNeighborSum, false);
   dataBase.resizeFluidFieldList(mMassFirstMoment, Vector::zero, HydroFieldNames::massFirstMoment, false);
@@ -268,7 +266,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
   for (auto [i, fluidNodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
     derivs.enroll(*mHideal[i]);
-    derivs.enroll(*mMaxViscousPressure[i]);
     derivs.enroll(*mMassDensitySum[i]);
     derivs.enroll(*mWeightedNeighborSum[i]);
     derivs.enroll(*mMassFirstMoment[i]);
@@ -294,31 +291,6 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 }
 
 //------------------------------------------------------------------------------
-// Initialize the hydro before trying to evaluateDerivatives.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-void
-SVPHHydroBase<Dimension>::
-initialize(const typename Dimension::Scalar time,
-           const typename Dimension::Scalar dt,
-           const DataBase<Dimension>& dataBase,
-           State<Dimension>& state,
-           StateDerivatives<Dimension>& derivs) {
-
-  // Get the artificial viscosity and initialize it.
-  // We depend on the caller knowing to finalize the ghost boundaries for the Q.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
-  Q.initialize(dataBase, 
-               state,
-               derivs,
-               this->boundaryBegin(),
-               this->boundaryEnd(),
-               time, 
-               dt,
-               this->kernel());
-}
-
-//------------------------------------------------------------------------------
 // Determine the principle derivatives.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -330,8 +302,34 @@ evaluateDerivatives(const typename Dimension::Scalar time,
                     const State<Dimension>& state,
                     StateDerivatives<Dimension>& derivatives) const {
 
-  // Get the ArtificialViscosity.
-  ArtificialViscosity<Dimension>& Q = this->artificialViscosity();
+  // Depending on the type of the ArtificialViscosity, dispatch the call to
+  // the secondDerivativesLoop
+  auto& Qhandle = this->artificialViscosity();
+  if (Qhandle.QPiTypeIndex() == std::type_index(typeid(Scalar))) {
+      const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Scalar>&>(Qhandle);
+      this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  } else {
+    CHECK(Qhandle.QPiTypeIndex() == std::type_index(typeid(Tensor)));
+    const auto& Q = dynamic_cast<const ArtificialViscosity<Dimension, Tensor>&>(Qhandle);
+    this->evaluateDerivativesImpl(time, dt, dataBase, state, derivatives, Q);
+  }
+}
+  
+//------------------------------------------------------------------------------
+// Determine the principle derivatives.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+template<typename QType>
+void
+SVPHHydroBase<Dimension>::
+evaluateDerivativesImpl(const typename Dimension::Scalar time,
+                        const typename Dimension::Scalar dt,
+                        const DataBase<Dimension>& dataBase,
+                        const State<Dimension>& state,
+                        StateDerivatives<Dimension>& derivatives,
+                        const QType& Q) const {
+
+  using QPiType = typename QType::ReturnType;
 
   // The kernels and such.
   const TableKernel<Dimension>& W = this->kernel();
@@ -357,6 +355,9 @@ evaluateDerivatives(const typename Dimension::Scalar time,
   const FieldList<Dimension, Scalar> soundSpeed = state.fields(HydroFieldNames::soundSpeed, 0.0);
   const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::volume, 0.0);
   const FieldList<Dimension, Scalar> A = state.fields(SVPHFieldNames::A_SVPH, 0.0);
+  const auto fClQ = state.fields(HydroFieldNames::ArtificialViscousClMultiplier, 0.0);
+  const auto fCqQ = state.fields(HydroFieldNames::ArtificialViscousCqMultiplier, 0.0);
+  const auto DvDxQ = state.fields(HydroFieldNames::ArtificialViscosityVelocityGradient, Tensor::zero);
   CHECK(mass.size() == numNodeLists);
   CHECK(position.size() == numNodeLists);
   CHECK(velocity.size() == numNodeLists);
@@ -549,19 +550,21 @@ evaluateDerivatives(const typename Dimension::Scalar time,
               // maxViscousPressurej = max(maxViscousPressurej, Qj);
 
               // Compute the pair-wise artificial viscosity.
-              const pair<Tensor, Tensor> QPiij = Q.Piij(nodeListi, i, nodeListj, j,
-                                                        ri, etai, vi, rhoi, ci, Hi,
-                                                        rj, etaj, vj, rhoj, cj, Hj);
-              const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoi * gradWj;
-              const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij.first - rhoj*rhoj*QPiij.second)/rhoj * gradWi;
+              QPiType QPiij, QPiji;
+              Scalar Qi, Qj;
+              Q.QPiij(QPiij, QPiji, Qi, Qj,
+                      nodeListi, i, nodeListj, j,
+                      ri, Hi, etai, vi, rhoi, ci,  
+                      rj, Hj, etaj, vj, rhoj, cj,
+                      fClQ, fCqQ, DvDxQ); 
+              const Vector Qacci = Ai*Vj*(rhoi*rhoi*QPiij - rhoj*rhoj*QPiji)/rhoi * gradWj;
+              const Vector Qaccj = Aj*Vi*(rhoi*rhoi*QPiij - rhoj*rhoj*QPiji)/rhoj * gradWi;
               // const Vector Qacci = -rhoj*QPiij.second*Ai*Vj * gradWj;
               // const Vector Qaccj =  rhoi*QPiij.first *Aj*Vi * gradWi;
-              const Scalar workQi = Ai*Vj*rhoi*QPiij.first.xx() *vij.dot(gradWj);
-              const Scalar workQj = Aj*Vi*rhoj*QPiij.second.xx()*vij.dot(gradWi);
+              const Scalar workQi = Ai*Vj*rhoi*QPiij*vij.dot(gradWj);
+              const Scalar workQj = Aj*Vi*rhoj*QPiji*vij.dot(gradWi);
               // const Scalar workQi = -mi/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
               // const Scalar workQj = -mj/(mi + mj)*(vi.dot(Qacci) + vj.dot(Qaccj));
-              const Scalar Qi = rhoi*rhoi*(QPiij.first. diagonalElements().maxAbsElement());
-              const Scalar Qj = rhoj*rhoj*(QPiij.second.diagonalElements().maxAbsElement());
               maxViscousPressurei = max(maxViscousPressurei, Qi);
               maxViscousPressurej = max(maxViscousPressurej, Qj);
 

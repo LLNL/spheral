@@ -365,7 +365,7 @@ initializeProblemStartupDependencies(DataBase<Dimension>& db,
 // For TreeGravity, this is where we build the current tree.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-void 
+bool
 TreeGravity<Dimension>::
 initialize(const Scalar /*time*/,
            const Scalar /*dt*/,
@@ -478,6 +478,7 @@ initialize(const Scalar /*time*/,
       }
     }
   }
+  return false;
 }
 
 //------------------------------------------------------------------------------

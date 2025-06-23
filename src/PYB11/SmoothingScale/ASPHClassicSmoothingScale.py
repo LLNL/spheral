@@ -14,13 +14,16 @@ class ASPHClassicSmoothingScale(SmoothingScaleBase):
     using SymTensor = typename %(Dimension)s::SymTensor;
     using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
     using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
 """
 
     #...........................................................................
     # Constructors
     def pyinit(self,
                HUpdate = "HEvolutionType",
-               W = "const TableKernel<%(Dimension)s>&"):
+               W = "const TableKernel<%(Dimension)s>&",
+               fixShape = ("const bool", "false"),
+               radialOnly = ("const bool", "false")):
         "ASPHClassicSmoothingScale constructor"
 
     #...........................................................................

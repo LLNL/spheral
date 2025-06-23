@@ -11,6 +11,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "DataBase/DataBase.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -64,7 +65,7 @@ template<typename Dimension>
 SPHSmoothingScale<Dimension>::
 SPHSmoothingScale(const HEvolutionType HUpdate,
                   const TableKernel<Dimension>& W):
-  SmoothingScaleBase<Dimension>(HUpdate),
+  SmoothingScaleBase<Dimension>(HUpdate, false, false),
   mWT(W),
   mZerothMoment(FieldStorageType::CopyFields),
   mFirstMoment(FieldStorageType::CopyFields) {

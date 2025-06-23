@@ -11,11 +11,14 @@ from RestartMethods import *
 class GenericRiemannHydro(Physics):
 
     PYB11typedefs = """
-  typedef typename %(Dimension)s::Scalar Scalar;
-  typedef typename %(Dimension)s::Vector Vector;
-  typedef typename %(Dimension)s::Tensor Tensor;
-  typedef typename %(Dimension)s::SymTensor SymTensor;
-  typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+  using Scalar = typename %(Dimension)s::Scalar;
+  using Vector = typename %(Dimension)s::Vector;
+  using Tensor = typename %(Dimension)s::Tensor;
+  using SymTensor = typename %(Dimension)s::SymTensor;
+  using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+  using PairAccelerationsType = typename GenericRiemannHydro<%(Dimension)s>::PairAccelerationsType;
+  using PairWorkType = typename GenericRiemannHydro<%(Dimension)s>::PairWorkType;
+  using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
 """
     
     def pyinit(dataBase = "DataBase<%(Dimension)s>&",
@@ -81,7 +84,7 @@ temperature or pressure."""
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
         "Initialize the Hydro before we start a derivative evaluation."
-        return "void"
+        return "bool"
                        
 #     @PYB11virtual
 #     @PYB11const
@@ -183,8 +186,8 @@ temperature or pressure."""
     DspecificThermalEnergyDt =     PYB11property("const FieldList<%(Dimension)s, Scalar>&",   "DspecificThermalEnergyDt", returnpolicy="reference_internal")
     DvDx =                         PYB11property("const FieldList<%(Dimension)s, Tensor>&",   "DvDx",                 returnpolicy="reference_internal")
     
-    pairAccelerations = PYB11property("const std::vector<Vector>&", "pairAccelerations", returnpolicy="reference_internal")
-    pairDepsDt = PYB11property("const std::vector<Scalar>&", "pairDepsDt", returnpolicy="reference_internal")
+    pairAccelerations = PYB11property("const PairAccelerationsType&", "pairAccelerations", returnpolicy="reference_internal")
+    pairDepsDt = PYB11property("const PairWorkType&", "pairDepsDt", returnpolicy="reference_internal")
     riemannDpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&","riemannDpDx",returnpolicy="reference_internal")
     newRiemannDpDx = PYB11property("const FieldList<%(Dimension)s, Vector>&","newRiemannDpDx",returnpolicy="reference_internal")
     riemannDvDx = PYB11property("const FieldList<%(Dimension)s, Tensor>&","riemannDvDx",returnpolicy="reference_internal")

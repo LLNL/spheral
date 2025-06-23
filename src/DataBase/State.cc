@@ -73,17 +73,6 @@ namespace {
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State():
-  StateBase<Dimension>(),
-  mPolicyMap(),
-  mTimeAdvanceOnly(false) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the state for the given set of Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -95,6 +84,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: physicsPackages) pkg->registerState(dataBase, *this);
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
@@ -110,40 +101,8 @@ State(DataBase<Dimension>& dataBase,
   mTimeAdvanceOnly(false) {
   // Iterate over the physics packages, and have them register their state.
   for (auto pkg: range(physicsPackageBegin, physicsPackageEnd)) pkg->registerState(dataBase, *this);
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-State(const State<Dimension>& rhs):
-  StateBase<Dimension>(rhs),
-  mPolicyMap(rhs.mPolicyMap),
-  mTimeAdvanceOnly(rhs.mTimeAdvanceOnly) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>::
-~State() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-State<Dimension>&
-State<Dimension>::
-operator=(const State<Dimension>& rhs) {
-  if (this != &rhs) {
-    StateBase<Dimension>::operator=(rhs);
-    mPolicyMap = rhs.mPolicyMap;
-    mTimeAdvanceOnly = rhs.mTimeAdvanceOnly;
-  }
-  return *this;
+  auto cmp = dataBase.connectivityMapPtr();
+  if (cmp) this->enrollConnectivityMap(cmp);
 }
 
 //------------------------------------------------------------------------------
@@ -265,18 +224,20 @@ State<Dimension>::
 update(StateDerivatives<Dimension>& derivs,
        const double multiplier,
        const double t,
-       const double dt) {
+       const double dt,
+       const bool dependentOnly) {
 
   // cerr << "################################################################################" << endl;
 
   // Prepare lists of the keys to be completed.
   vector<KeyType> fieldsToBeCompleted;
   map<KeyType, set<KeyType>> stateToBeCompleted;
-  for (auto& fieldkey_policy: mPolicyMap) {
-    auto& fieldkey = fieldkey_policy.first;                // Just Field names
-    for (auto& fullkey_policy: fieldkey_policy.second) {
-      auto& fullkey = fullkey_policy.first;                // Fully encoded Field + NodeList names
-      stateToBeCompleted[fieldkey].insert(fullkey);
+  for (auto& fieldkey_policies: mPolicyMap) {
+    auto& fieldkey = fieldkey_policies.first;               // Just Field names
+    for (auto& [fullkey, policyPtr]: fieldkey_policies.second) {
+      // if ((not dependentOnly) or policyPtr->dependent()) {  // Fully encoded Field + NodeList names
+        stateToBeCompleted[fieldkey].insert(fullkey);
+      // }
     }
   }
   for (const auto& key_fullkey: stateToBeCompleted) fieldsToBeCompleted.push_back(key_fullkey.first);
@@ -319,12 +280,19 @@ update(StateDerivatives<Dimension>& derivs,
 
           if (fire) {
             // cerr <<" --> Update " << key << endl;
-            if (mTimeAdvanceOnly) {
-              policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
+            if (dependentOnly and policyPtr->independent()) {
+              if (mTimeAdvanceOnly) {
+                policyPtr->updateAsIncrement(key, *this, derivs, 0.0, t, 0.0);
+              } else {
+                policyPtr->update(key, *this, derivs, 0.0, t, 0.0);
+              }
             } else {
-              policyPtr->update(key, *this, derivs, multiplier, t, dt);
+              if (mTimeAdvanceOnly) {
+                policyPtr->updateAsIncrement(key, *this, derivs, multiplier, t, dt);
+              } else {
+                policyPtr->update(key, *this, derivs, multiplier, t, dt);
+              }
             }
-
             // List this field as completed.
             stateToRemove.push_back(key);
           }
@@ -365,6 +333,80 @@ update(StateDerivatives<Dimension>& derivs,
     fieldsToBeCompleted = vector<KeyType>();
     for (const auto& itr: stateToBeCompleted) fieldsToBeCompleted.push_back(itr.first);
     CHECK(fieldsToBeCompleted.size() == stateToBeCompleted.size());
+  }
+}
+
+//------------------------------------------------------------------------------
+// Serialize independent data to a buffer for use in implicit time integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+serializeIndependentData(std::vector<double>& buf) const {
+  buf.clear();
+
+  // Look for any state with update policies that indicate an independent variable
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        // cerr << "Serializing " << key << endl;
+        policyPtr->serializeData(buf, key, *this);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Deserialize independent data from a buffer; for use in implicit time
+// integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+deserializeIndependentData(const std::vector<double>& buf) const {
+  
+  // Look for any state with update policies that indicate an independent variable
+  size_t offset = 0u;
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        // cerr << "Deserializing " << key << endl;
+        offset = policyPtr->deserializeData(buf, key, *this, offset);
+        CHECK(offset <= buf.size());
+      }
+    }
+  }
+  CHECK(offset == buf.size());
+}
+
+//------------------------------------------------------------------------------
+// Serialize the derivatives associated with independent data to a buffer for
+// use in implicit time integration
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+State<Dimension>::
+serializeDerivatives(std::vector<double>& buf,
+                     const StateDerivatives<Dimension>& derivs) const {
+  buf.clear();
+
+  // Look for any state with update policies that indicate an independent variable
+  for (const auto& stuff: mPolicyMap) {
+    const auto& keys2policies = stuff.second;
+    for (const auto& key2policy: keys2policies) {
+      const auto& key = key2policy.first;
+      const auto& policyPtr = key2policy.second;
+      if (policyPtr->independent()) {
+        // cerr << "Serializing DERIV " << key << endl;
+        policyPtr->serializeDerivatives(buf, key, derivs);
+      }
+    }
   }
 }
 

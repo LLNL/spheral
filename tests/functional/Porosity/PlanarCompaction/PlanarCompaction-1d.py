@@ -100,6 +100,13 @@ commandLine(nx = 500,                          # Number of internal free points
             domainIndependent = True,
             dtverbose = False,
 
+            # Options for implicit integrators
+            ftol = None,
+            convergenceTolerance = None,
+            maxIterations = None,
+            maxAllowedDtMultiplier = None,
+            beta = None,
+
             # Problem control
             restoreCycle = -1,
             restartStep = 500,
@@ -155,23 +162,23 @@ LnormRef = {("SPH", 1.275) : {"Mass density" : {"L1"   : 0.06784186300927694,
                                                 "L2"   : 8.062946952637553e-05,
                                                 "Linf" : 0.014201309070925212}},
 
-            ("SPH", 1.0) : {"Mass density" : {"L1"   : 0.005403187072834507,  
-                                              "L2"   : 0.001992916969258407,  
-                                              "Linf" : 0.22292338017813007},  
-                            "Spec Therm E" : {"L1"   : 2.9770274733200942e-05,
-                                              "L2"   : 1.038711319331483e-05, 
-                                              "Linf" : 0.0010487495498077324},
-                            "velocity    " : {"L1"   : 0.001085888733217598,  
-                                              "L2"   : 0.00040460303212683284,
-                                              "Linf" : 0.04537793164974422},  
-                            "pressure    " : {"L1"   : 0.0018074730403377138, 
-                                              "L2"   : 0.0006629679859824688, 
-                                              "Linf" : 0.0730479929478202},   
+            ("SPH", 1.0) : {"Mass density" : {"L1"   : 0.005416588903113661,  
+                                              "L2"   : 0.001994539770945366,  
+                                              "Linf" : 0.22293554904196977},  
+                            "Spec Therm E" : {"L1"   : 2.9911432798797925e-05,
+                                              "L2"   : 1.0394781088376176e-05,
+                                              "Linf" : 0.001048750342669405}, 
+                            "velocity    " : {"L1"   : 0.0010892623667423551, 
+                                              "L2"   : 0.0004049477641523086, 
+                                              "Linf" : 0.04538028008374117},  
+                            "pressure    " : {"L1"   : 0.0018120800940308072, 
+                                              "L2"   : 0.000663492813279845,  
+                                              "Linf" : 0.07305139125993931},  
                             "alpha       " : {"L1"   : 0.0,                   
                                               "L2"   : 0.0,                   
                                               "Linf" : 0.0},                  
-                            "h           " : {"L1"   : 6.116234877070288e-05, 
-                                              "L2"   : 3.0869281685704505e-05,
+                            "h           " : {"L1"   : 6.11935370574284e-05,  
+                                              "L2"   : 3.08688837519722e-05,  
                                               "Linf" : 0.014204020975568329}},
 
             ("FSISPH", 1.275) : {"Mass density" : {"L1"   : 0.06781314493410028,
@@ -469,9 +476,7 @@ if useDamage:
 #-------------------------------------------------------------------------------
 # Construct a time integrator.
 #-------------------------------------------------------------------------------
-integrator = IntegratorConstructor(db)
-for package in packages:
-    integrator.appendPhysicsPackage(package)
+integrator = IntegratorConstructor(db, packages)
 integrator.lastDt = dt
 if dtMin:
     integrator.dtMin = dtMin
@@ -488,6 +493,27 @@ output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.dtGrowth")
 output("integrator.domainDecompositionIndependent")
+
+# Special stuff for implicit integrators
+if isinstance(integrator, ImplicitIntegrator):
+    if beta:
+        integrator.beta = beta
+    if convergenceTolerance:
+        integrator.convergenceTolerance = convergenceTolerance
+    if maxIterations:
+        integrator.maxIterations = maxIterations
+    if maxAllowedDtMultiplier:
+        integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
+    output("integrator.beta")
+    output("integrator.convergenceTolerance")
+    output("integrator.maxIterations")
+    output("integrator.maxAllowedDtMultiplier")
+try:   # This will only work for BackwardEuler currently
+    if ftol:
+        integrator.ftol = ftol
+    output("integrator.ftol")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Add the boundary conditions.

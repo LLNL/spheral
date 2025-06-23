@@ -5,7 +5,7 @@ import sys, os, gc, warnings, mpi
 
 from SpheralCompiledPackages import *
 from SpheralTimer import SpheralTimer
-from SpheralUtilities import adiak_value
+from SpheralUtilities import adiak_value, TimerMgr
 from SpheralConservation import SpheralConservation
 from GzipFileIO import GzipFileIO
 from SpheralTestUtilities import globalFrame
@@ -238,6 +238,10 @@ class SpheralController:
         for bc in uniquebcs:
             bc.initializeProblemStartup(False)
 
+        # Reconstruct the state and derivs since H and connectivity have updated
+        state = eval("State%s(db, packages)" % (self.dim))
+        derivs = eval("StateDerivatives%s(db, packages)" % (self.dim))
+
         # If requested, initialize the derivatives.
         if initializeDerivatives or stateBCactive:
             self.integrator.preStepInitialize(state, derivs)
@@ -252,7 +256,10 @@ class SpheralController:
         self.integrator.applyGhostBoundaries(state, derivs)
         for bc in uniquebcs:
             bc.initializeProblemStartup(True)
+        db.reinitializeNeighbors()
         self.integrator.setGhostNodes()
+        db.updateConnectivityMap(False)
+        self.integrator.applyGhostBoundaries(state, derivs)
 
         # Set up the default periodic work.
         self.appendPeriodicWork(self.printCycleStatus, printStep)
@@ -354,10 +361,10 @@ class SpheralController:
             db.fluidVelocity.assignFields(smoothedVelocity)
             db.fluidSpecificThermalEnergy.assignFields(smoothedSpecificThermalEnergy)
             db.fluidHfield.assignFields(smoothedHfield)
-            for nodeList in db.fluidNodeLists():
+            for nodeList in db.fluidNodeLists:
                 nodeList.neighbor().updateNodes()
             db.updateConnectivityMap()
-            for nodeList in db.fluidNodeLists():
+            for nodeList in db.fluidNodeLists:
                 nodeList.updateWeight(db.connectivityMap())
 
         return
@@ -374,6 +381,7 @@ class SpheralController:
     # specify a max number of steps to take.
     #--------------------------------------------------------------------------
     def advance(self, goalTime, maxSteps=None):
+        TimerMgr.timer_begin("advance")
         currentSteps = 0
         while (self.time() < goalTime and
                (maxSteps == None or currentSteps < maxSteps) and (self._break == False)):
@@ -407,6 +415,7 @@ class SpheralController:
         adiak_value("total_internal_nodes", numInternal)
         adiak_value("total_ghost_nodes", numGhost)
         adiak_value("total_steps", self.totalSteps)
+        TimerMgr.timer_end("advance")
 
         # Print how much time was spent per integration cycle.
         self.stepTimer.printStatus()
@@ -925,7 +934,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
     def voronoiInitializeMass(self):
         from generateMesh import generateLineMesh, generatePolygonalMesh, generatePolyhedralMesh
         db = self.integrator.dataBase
-        nodeLists = db.fluidNodeLists()
+        nodeLists = db.fluidNodeLists
         boundaries = self.integrator.uniqueBoundaryConditions()
         method = eval("generate%sMesh" % {1 : "Line", 2 : "Polygonal", 3 : "Polyhedral"}[db.nDim])
         mesh, void = method(nodeLists,
@@ -953,7 +962,7 @@ precedeDistributed += [PeriodicBoundary%(dim)sd,
             rho = ConstantRho(rho)
 
         db = self.integrator.dataBase
-        nodeLists = db.fluidNodeLists()
+        nodeLists = db.fluidNodeLists
         boundaries = self.integrator.uniqueBoundaryConditions()
         allpackages = self.integrator.physicsPackages()
         packages = eval("vector_of_Physics%id()" % db.nDim)

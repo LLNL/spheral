@@ -17,6 +17,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
@@ -41,14 +42,6 @@ SpecificThermalEnergyPolicy<Dimension>::
 SpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
   UpdatePolicyBase<Dimension>(),
   mDataBasePtr(&dataBase) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-SpecificThermalEnergyPolicy<Dimension>::
-~SpecificThermalEnergyPolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -79,44 +72,43 @@ update(const KeyType& key,
   const auto  mass = state.fields(HydroFieldNames::mass, Scalar());
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  DvDt = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
-  const auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, Vector>>(HydroFieldNames::pairAccelerations);
+  const auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  const auto  nint = mDataBasePtr->numInternalNodes();
-  CHECK(pairAccelerations.size() == npairs or
-        pairAccelerations.size() == (npairs + nint));
-  const bool selfInteraction = (pairAccelerations.size() == (npairs + nint));
+  CHECK(pairAccelerations.size() == npairs);
+  CHECK(selfAccelerations.numFields() == 0 or selfAccelerations.numFields() == numFields);
+  const bool selfInteraction = selfAccelerations.numFields() == numFields;
 
   const auto hdt = 0.5*multiplier;
   auto DepsDt = mDataBasePtr->newFluidFieldList(0.0, "delta E");
 
   // Check that the partial accelerations sum to the total hydro acceleration, or this isn't going to conserve
-  BEGIN_CONTRACT_SCOPE
-    {
-      auto DvDt_check = mDataBasePtr->newFluidFieldList(Vector::zero, "hydro acceleration check");
-      for (auto kk = 0u; kk < npairs; ++kk) {
-        const auto i = pairs[kk].i_node;
-        const auto j = pairs[kk].j_node;
-        const auto nodeListi = pairs[kk].i_list;
-        const auto nodeListj = pairs[kk].j_list;
-        const auto& paccij = pairAccelerations[kk];
-        const auto  mi = mass(nodeListi, i);
-        const auto  mj = mass(nodeListj, j);
-        DvDt_check(nodeListi, i) += paccij;
-        DvDt_check(nodeListj, j) -= paccij * mi/mj;
-      }
-      const auto numNodeLists = mDataBasePtr->numFluidNodeLists();
-      for (auto k = 0u; k < numNodeLists; ++k) {
-        const auto n = DvDt_check[k]->numInternalElements();
-        for (auto i = 0u; i < n; ++i) {
-          CHECK2(fuzzyEqual(DvDt_check(k, i).dot(DvDt(k, i)), DvDt(k, i).magnitude2(), 1.0e-8),
-                 DvDt_check(k, i) << " != " << DvDt(k, i) << " for (NodeList,i) = " << k << " " << i);
-        }
+  BEGIN_CONTRACT_SCOPE {
+    auto DvDt_check = mDataBasePtr->newFluidFieldList(Vector::zero, "hydro acceleration check");
+    for (auto kk = 0u; kk < npairs; ++kk) {
+      const auto i = pairs[kk].i_node;
+      const auto j = pairs[kk].j_node;
+      const auto nodeListi = pairs[kk].i_list;
+      const auto nodeListj = pairs[kk].j_list;
+      const auto& paccij = pairAccelerations[kk];
+      const auto  mi = mass(nodeListi, i);
+      const auto  mj = mass(nodeListj, j);
+      DvDt_check(nodeListi, i) += paccij;
+      DvDt_check(nodeListj, j) -= paccij * mi/mj;
+    }
+    const auto numNodeLists = mDataBasePtr->numFluidNodeLists();
+    for (auto k = 0u; k < numNodeLists; ++k) {
+      const auto n = DvDt_check[k]->numInternalElements();
+      for (auto i = 0u; i < n; ++i) {
+        CHECK2(fuzzyEqual(DvDt_check(k, i).dot(DvDt(k, i)), DvDt(k, i).magnitude2(), 1.0e-8),
+               DvDt_check(k, i) << " != " << DvDt(k, i) << " for (NodeList,i) = " << k << " " << i);
       }
     }
-  END_CONTRACT_SCOPE
+  }
+  END_CONTRACT_SCOPE;
 
   // Walk all pairs and figure out the discrete work for each point
 #pragma omp parallel
@@ -174,7 +166,7 @@ update(const KeyType& key,
         const auto& vi = velocity(nodeListi, i);
         const auto& ai = DvDt(nodeListi, i);
         const auto  vi12 = vi + ai*hdt;
-        const auto duii = -vi12.dot(pairAccelerations[offset + i]);
+        const auto duii = -vi12.dot(selfAccelerations(nodeListi, i));
         DepsDt(nodeListi, i) += duii;
       }
 

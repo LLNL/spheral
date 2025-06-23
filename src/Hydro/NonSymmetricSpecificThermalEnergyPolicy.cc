@@ -19,6 +19,7 @@
 #include "DataBase/StateDerivatives.hh"
 #include "DataBase/IncrementState.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
 #include "Utilities/DBC.hh"
@@ -43,14 +44,6 @@ NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
 NonSymmetricSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
   UpdatePolicyBase<Dimension>(),
   mDataBasePtr(&dataBase) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-NonSymmetricSpecificThermalEnergyPolicy<Dimension>::
-~NonSymmetricSpecificThermalEnergyPolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -82,15 +75,15 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  acceleration = derivs.fields(HydroFieldNames::hydroAcceleration, Vector::zero);
   const auto  eps0 = state.fields(HydroFieldNames::specificThermalEnergy + "0", Scalar());
-  const auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
+  const auto& pairAccelerations = derivs.template get<PairwiseField<Dimension, Vector, 2u>>(HydroFieldNames::pairAccelerations);
+  const auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero);
   const auto  DepsDt0 = derivs.fields(IncrementState<Dimension, Field<Dimension, Scalar> >::prefix() + HydroFieldNames::specificThermalEnergy, 0.0);
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
   const auto  npairs = pairs.size();
-  const auto  nint = mDataBasePtr->numInternalNodes();
-  CHECK(pairAccelerations.size() == 2*npairs or
-        pairAccelerations.size() == 2*npairs + nint);
-  const bool selfInteraction = (pairAccelerations.size() == 2*npairs + nint);
+  CHECK(pairAccelerations.size() == npairs);
+  CHECK(selfAccelerations.numFields() == 0 or selfAccelerations.numFields() == numFields);
+  const bool selfInteraction = selfAccelerations.numFields() == numFields;
 
   // // Check if there is a surface point flag field registered.  If so, we use non-compatible energy evolution 
   // // on such points.
@@ -122,14 +115,14 @@ update(const KeyType& key,
       const auto& vi = velocity(nodeListi, i);
       const auto& ai = acceleration(nodeListi, i);
       const auto  vi12 = vi + ai*hdt;
-      const auto& pacci = pairAccelerations[2*kk];
+      const auto& pacci = pairAccelerations[kk][0];
 
       // State for node j.
       const auto  mj = mass(nodeListj, j);
       const auto& vj = velocity(nodeListj, j);
       const auto& aj = acceleration(nodeListj, j);
       const auto  vj12 = vj + aj*hdt;
-      const auto& paccj = pairAccelerations[2*kk+1];
+      const auto& paccj = pairAccelerations[kk][1];
 
       const auto dEij = -(mi*vi12.dot(pacci) + mj*vj12.dot(paccj));
       const auto weighti = std::max(numeric_limits<Scalar>::epsilon(), DepsDt0(nodeListi, i)*sgn(dEij));
@@ -154,7 +147,6 @@ update(const KeyType& key,
   }
 
   // Now we can update the energy.
-  auto offset = 2*npairs;
   for (auto nodeListi = 0u; nodeListi < numFields; ++nodeListi) {
     const auto n = eps[nodeListi]->numInternalElements();
 #pragma omp parallel for
@@ -165,13 +157,12 @@ update(const KeyType& key,
         const auto& vi = velocity(nodeListi, i);
         const auto& ai = acceleration(nodeListi, i);
         const auto  vi12 = vi + ai*hdt;
-        const auto duii = -vi12.dot(pairAccelerations[offset + i]);
+        const auto duii = -vi12.dot(selfAccelerations(nodeListi, i));
         DepsDt(nodeListi, i) += duii;
       }
 
       eps(nodeListi, i) += DepsDt(nodeListi, i)*multiplier;
     }
-    offset += n;
   }
 }
 

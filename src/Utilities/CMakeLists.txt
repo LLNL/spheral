@@ -127,13 +127,16 @@ set(Utilities_headers
     simpsonsIntegration.hh
     size_t_bits.hh
     sort_permutation.hh
+    StrideIterator.hh
     testBoxIntersection.hh
     timingUtilities.hh
     uniform_random.hh
     uniform_random_Inline.hh
     range.hh
     AnyVisitor.hh
-    )
+    SpheralMessage.hh
+    StrideIterator.hh
+  )
 
 spheral_install_python_files(fitspline.py)
 

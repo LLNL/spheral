@@ -520,7 +520,7 @@ def plotNodePositions2d(thingy,
     assert colorNodeLists + colorDomains <= 1
 
     if isinstance(thingy, DataBase2d):
-        nodeLists = thingy.nodeLists()
+        nodeLists = thingy.nodeLists
     else:
         nodeLists = thingy
 
@@ -602,14 +602,14 @@ def plotBoundaryNodes(dataBase, boundary):
     # First build one set of position pairs for all of the nodes in the
     # data base.
     positions = []
-    for nodeList in dataBase.nodeLists():
+    for nodeList in dataBase.nodeLists:
         for r in list(nodeList.positions())[:nodeList.numInternalNodes]:
             positions.append((r.x, r.y))
 
     # Now build a list of the control node positions from the boundary
     # condition.
     controlPositions = []
-    for nodeList in dataBase.nodeLists():
+    for nodeList in dataBase.nodeLists:
         controlNodes = boundary.controlNodes(nodeList)
         for nodeID in controlNodes:
             r = nodeList.positions()[nodeID]
@@ -618,7 +618,7 @@ def plotBoundaryNodes(dataBase, boundary):
     # Now build a list of the ghost node positions from the boundary
     # condition.
     ghostPositions = []
-    for nodeList in dataBase.nodeLists():
+    for nodeList in dataBase.nodeLists:
         ghostNodes = boundary.ghostNodes(nodeList)
         for nodeID in ghostNodes:
             r = nodeList.positions()[nodeID]
@@ -739,7 +739,7 @@ def plotVectorField2d(dataBase, fieldList,
     vxNodes = []
     vyNodes = []
     for i in range(dataBase.numNodeLists):
-        nodeList = dataBase.nodeLists()[i]
+        nodeList = dataBase.nodeLists[i]
         assert i < fieldList.numFields
         vectorField = fieldList[i]
         if plotGhosts:
@@ -983,7 +983,7 @@ def plotTableKernel(WT, nPerh):
     plotASPH.plot(xvals, yvals, "r-", label=None)
     plotASPH.set_xlabel(r"$\eta$")
     plotASPH.set_ylabel(r"$W_{ASPH}(\eta)$")
-    plotASPH.set_title(f"$W(\eta)$ for ASPH h lookup with $n_h={nPerh}$")
+    plotASPH.set_title(r"$W(\eta)$ for ASPH h lookup with $n_h="+str(nPerh)+"$")
 
     plots += [plotSPH, plotASPH]
 

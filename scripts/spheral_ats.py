@@ -23,11 +23,11 @@ spheral_exe = os.path.join(install_prefix, "spheral")
 benchmark_dir = "/usr/WS2/sduser/Spheral/benchmarks"
 
 #------------------------------------------------------------------------------
-# Run ats.py to check results and return the number of failed tests
+# Run atsr.py to check results and return the number of failed tests
 def report_results(output_dir):
     ats_py = os.path.join(output_dir, "atsr.py")
     if (not os.path.exists(ats_py)):
-        raise Exception("ats.py does not exists. Tests likely did not run.")
+        raise Exception("atsr.py does not exists. Tests likely did not run.")
     exec(compile(open(ats_py).read(), ats_py, 'exec'), globals())
     state = globals()["state"]
     failed_tests = [t for t in state['testlist'] if t['status'] in [FAILED,TIMEDOUT] ]
@@ -72,7 +72,7 @@ def run_and_report(run_command, ci_output, num_runs):
             ats_cont_file = os.path.join(ci_output, "continue.ats")
             if (not os.path.exists(ats_cont_file)):
                 raise Exception(f"{ats_cont_file} not found, ATS cannot be rerun")
-            rerun_command = f"{run_command} {ats_cont_file}"
+            rerun_command = f"{run_command} --glue='rerun=True' {ats_cont_file}"
         print("WARNING: Test failure, rerunning ATS")
         run_and_report(rerun_command, ci_output, num_runs + 1)
 
@@ -82,12 +82,12 @@ def install_ats_args():
     install_args = []
     if (SpheralConfigs.build_type() == "Debug"):
         install_args.append("--level 99")
-    if (not SpheralConfigs.spheral_enable_mpi()):
+    if (not SpheralConfigs.enable_mpi()):
         install_args.append("--filter='np<2'")
-    comp_configs = SpheralConfigs.component_configs()
+    comp_configs = SpheralConfigs.hydro_imports()
     test_comps = ["FSISPH", "GSPH", "SVPH"]
     for ts in test_comps:
-        if ts not in comp_configs:
+        if not any(ts in ext for ext in comp_configs):
             install_args.append(f"--filter='not {ts.lower()}'")
     return install_args
 
@@ -96,10 +96,10 @@ def install_ats_args():
 #---------------------------------------------------------------------------
 def main():
     test_log_name = "test-logs"
-    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby"] # Machines using Slurm scheduler
+    toss_machine_names = ["rzgenie", "rzwhippet", "rzhound", "ruby", "rztrona"] # Machines using Slurm scheduler
     toss_cray_machine_names = ["rzadams", "rzvernal", "tioga"] # Machines using Flux scheduler
     np_max_dict = {"rzadams": 84, "rzvernal": 64, "tioga": 64} # Maximum number of processors for ATS to use per node
-    ci_launch_flags = {"ruby": "--res=ci", "rzadams": "-q pdebug"}
+    ci_launch_flags = {"ruby": "--reservation=ci", "rzadams": "-q pdebug"}
     temp_uname = os.uname()
     hostname = temp_uname[1].rstrip("0123456789")
     sys_type = os.getenv("SYS_TYPE")
@@ -130,7 +130,9 @@ def main():
     parser.add_argument("--atsHelp", action="store_true",
                         help="Print the help output for ATS. Useful for seeing ATS options.")
     parser.add_argument("--threads", type=int, default=None,
-                        help="Set number of threads per rank to use. Only used by performance.py")
+                        help="Set number of threads per rank to use. Only used by performance.py.")
+    parser.add_argument("--batch", action="store_true", help="Submit job as batch.")
+    parser.add_argument("--delay", action="store_true", help="Defer job until after 7 pm.")
     options, unknown_options = parser.parse_known_args()
     if (options.atsHelp):
         subprocess.run(f"{ats_exe} --help", shell=True, check=True, text=True)
@@ -151,17 +153,28 @@ def main():
     if hostname:
         mac_args = [] # Machine specific arguments to give to ATS
         if any(x in hostname for x in toss_machine_names):
-            numNodes = numNodes if numNodes else 2
+            numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["SLURM_JOB_NUM_NODES", "SLURM_NNODES"]
-            launch_cmd = f"salloc --exclusive -N {numNodes} -t {timeLimit} "
+            if (options.batch):
+                launch_cmd = "sbatch "
+            else:
+                launch_cmd = "salloc "
+            launch_cmd += f"--exclusive -N {numNodes} -t {timeLimit} "
+            if (options.delay):
+                launch_cmd += "--begin=19:10:00 "
             mac_args.append(f"--numNodes {numNodes}")
         elif any(x in hostname for x in toss_cray_machine_names):
-            os.environ['MACHINE_TYPE'] = 'flux00'
-            numNodes = numNodes if numNodes else 2
+            numNodes = numNodes if numNodes else 1
             timeLimit = timeLimit if timeLimit else 120
             inAllocVars = ["FLUX_JOB_ID", "FLUX_CONNECTOR_PATH", "FLUX_TERMINUS_SESSION"]
-            launch_cmd = f"flux alloc -xN {numNodes} -t {timeLimit} "
+            if (options.batch):
+                launch_cmd = "flux batch "
+            else:
+                launch_cmd = "flux alloc "
+            launch_cmd += f"-xN {numNodes} -t {timeLimit} "
+            if (options.delay):
+                launch_cmd += "--begin-time='7 pm' "
             mac_args.append(f"--npMax {np_max_dict[hostname]}")
         if (options.ciRun):
             for i, j in ci_launch_flags.items():
@@ -194,11 +207,13 @@ def main():
     inAlloc = any(e in list(os.environ.keys()) for e in inAllocVars)
     # If already in allocation, do not do a launch
     if inAlloc:
+        if (options.batch or options.delay):
+            print("WARNING: --batch and --delay inputs are ignored if in an allocation")
         run_command = cmd
     else:
         run_command = f"{launch_cmd} {cmd}"
     print(f"\nRunning: {run_command}\n")
-    if (options.ciRun):
+    if (options.ciRun and not options.batch):
         run_and_report(run_command, log_name, 0)
     else:
         try:

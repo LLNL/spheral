@@ -118,24 +118,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
   // Build a list of flags to indicate which nodes have been completed.
   auto flagNodeDone = dataBase.newFluidFieldList(0, "node completed");
 
-  // Prepare the state and derivatives
-  State<Dimension> state(dataBase, packages);
-  StateDerivatives<Dimension> derivs(dataBase, packages);
-
   // Since we don't have a hydro there are a few other fields we need registered.
   auto zerothMoment = dataBase.newFluidFieldList(0.0, HydroFieldNames::massZerothMoment);
   auto firstMoment = dataBase.newFluidFieldList(Vector::zero, HydroFieldNames::massFirstMoment);
   auto DvDx = dataBase.newFluidFieldList(Tensor::zero, HydroFieldNames::velocityGradient);
   auto DHDt = dataBase.newFluidFieldList(SymTensor::zero, IncrementBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
   auto H1 = dataBase.newFluidFieldList(SymTensor::zero, ReplaceBoundedState<Dimension, SymTensor>::prefix() + HydroFieldNames::H);
-  state.enroll(pos);
-  state.enroll(m);
-  state.enroll(rho);
-  derivs.enroll(zerothMoment);
-  derivs.enroll(firstMoment);
-  derivs.enroll(DvDx);
-  derivs.enroll(DHDt);
-  derivs.enroll(H1);
 
   // Iterate until we either hit the max iterations or the H's achieve convergence.
   auto maxDeltaH = 2.0*tolerance;
@@ -162,7 +150,19 @@ iterateIdealH(DataBase<Dimension>& dataBase,
 
     // Update connectivity
     dataBase.updateConnectivityMap(false, false, false);
+
+    // Prepare the state and derivatives
+    State<Dimension> state(dataBase, packages);
     state.enrollConnectivityMap(dataBase.connectivityMapPtr(false, false, false));
+    StateDerivatives<Dimension> derivs(dataBase, packages);
+    state.enroll(pos);
+    state.enroll(m);
+    state.enroll(rho);
+    derivs.enroll(zerothMoment);
+    derivs.enroll(firstMoment);
+    derivs.enroll(DvDx);
+    derivs.enroll(DHDt);
+    derivs.enroll(H1);
 
     // Some methods (ASPH) update both Hideal and H in the finalize, so we make a copy of the state
     // to give the methods
@@ -178,12 +178,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
     for (auto* pkg: packages) pkg->finalize(0.0, 1.0, dataBase, state1, derivs);
     
     // Set the new H and measure how much it changed
-    for (auto [nodeListi, nodeListPtr]: enumerate(dataBase.fluidNodeListBegin(), dataBase.fluidNodeListEnd())) {
+    for (auto [nodeListi_, nodeListPtr_] : enumerate(dataBase.fluidNodeListPtrs())) {     // __clang__
+      const auto nodeListi = nodeListi_;                                                  // __clang__
+      const auto nodeListPtr = nodeListPtr_;                                              // __clang__
       const auto ni = nodeListPtr->numInternalNodes();
 
-#ifndef __clang__        // Clang does not like the nodeListi declared in a structured binding
 #pragma omp parallel for
-#endif
       for (auto i = 0u; i < ni; ++i) {
         if (flagNodeDone(nodeListi, i) == 0) {
 
@@ -200,14 +200,12 @@ iterateIdealH(DataBase<Dimension>& dataBase,
           const auto phimax = phi.maxElement();
           const auto deltaHi = max(abs(phimin - 1.0), abs(phimax - 1.0));
           if (deltaHi <= tolerance) flagNodeDone(nodeListi, i) = 1;
-#ifndef __CLANG__
 #pragma omp critical
-#endif
           {
             maxDeltaH = max(maxDeltaH, deltaHi);
           }
 
-          // Assign the new H
+// Assign the new H
           H(nodeListi, i) = H1(nodeListi, i);
         }
       }

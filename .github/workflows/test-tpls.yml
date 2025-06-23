@@ -3,9 +3,10 @@ name: Test external build.
 on:
   pull_request:
     paths:
-      - .uberenv_config.json
       - scripts/spack/**
       - scripts/devtools/**
+      - scripts/runtime-requirements.txt.in
+      - scripts/build-requirements.txt
 
 env:
   REGISTRY: ghcr.io

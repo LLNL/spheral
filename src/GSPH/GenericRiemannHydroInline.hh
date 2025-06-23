@@ -550,17 +550,20 @@ DvDx() const {
 
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Vector>&
+const typename GenericRiemannHydro<Dimension>::PairAccelerationsType&
 GenericRiemannHydro<Dimension>::
 pairAccelerations() const {
-  return mPairAccelerations;
+  VERIFY2(mPairAccelerationsPtr, "GenericRiemannHydro ERROR: attempt to access uninitialized pairAccelerations");
+  return *mPairAccelerationsPtr;
 }
+
 template<typename Dimension>
 inline
-const std::vector<typename Dimension::Scalar>&
+const typename GenericRiemannHydro<Dimension>::PairWorkType&
 GenericRiemannHydro<Dimension>::
 pairDepsDt() const {
-  return mPairDepsDt;
+  VERIFY2(mPairDepsDtPtr, "GenericRiemannHydro ERROR: attempt to access uninitialized pairDepsDt");
+  return *mPairDepsDtPtr;
 }
 
 template<typename Dimension>
