@@ -149,7 +149,7 @@ selectDt(const typename Dimension::Scalar dtMin,
   }
   cout.flush();
 
-  MPI_Barrier(Communicator::communicator());
+  Barrier(Communicator::communicator());
 
   return dt.first;
 }
