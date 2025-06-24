@@ -22,4 +22,14 @@ using TEST_FIELD_DATATYPES = camp::list<
 >;
 // clang-format on
 
+namespace spheral {
+namespace test {
+
+template <typename T> SPHERAL_HOST_DEVICE void initT(T &ref) { ref = 4; }
+
+template <typename T> SPHERAL_HOST_DEVICE void mutate(T &ref) { ref *= 2; }
+
+} // namespace test
+} // namespace spheral
+
 #endif // SPHERAL_BASIC_DATATYPES_HH
