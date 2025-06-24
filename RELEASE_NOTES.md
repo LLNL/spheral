@@ -1,4 +1,4 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
   * Important Notes:
 
@@ -22,7 +22,7 @@ Notable changes include:
       * planeStrain has been removed as an option in FSISPH as part of unifying deviatoric evolution with other
         hydros.
     * LEOS (Livermore Equation Of State) package now available in Spheral.  Requires access to the LEOS
-      package itself, which most folks outside LLNL will not necessarily have.
+      package itself, which most folks outside LLNL will not have.
     * gtest suite integration for writing minimal c++ unit tests on the host and device without needing to
       compile large potions of the code.
     * Both ASPH and ASPHClassic now allow the user to override the final H evolution through optional functors added to the classes:
@@ -52,7 +52,7 @@ Notable changes include:
     * Deviatoric stress evolution in lower dimensions (1 and 2D) now consistent with other solid hydros.
     * Changes the `SPHERAL_TEST_INSTALL_PREFIX` to be relative to `CMAKE_INSTALL_PREFIX/tests` directory.
     * Fixed bug where performance tests would incorrectly move a benchmark directory if rerunning failed jobs.
-    * Cleaned out some old unused code
+    * Cleaned out some old unused code.
     * Fixed bugs related to DEM timestep, redistribution, and thread safety.
 
 Version v2025.01.0 -- Release date 2025-01-31
