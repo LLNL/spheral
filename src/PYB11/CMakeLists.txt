@@ -6,6 +6,8 @@ set (_python_packages
   Silo
   DataOutput
   NodeList
+  FieldSpan
+  FieldSpanList
   Field
   FieldList
   Kernel

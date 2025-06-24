@@ -20,11 +20,11 @@ WT = TableKernel(BSplineKernel(), 1000)
 def vector_from_list(l):
     n = len(l)
     try:
-        result = vector_of_int(n)    # pybindgen
+        result = vector_of_ULL(n)    # pybindgen
         for i in range(n):
             result[i] = l[i]
     except:
-        result = vector_of_int(l)    # pybind11
+        result = vector_of_ULL(l)    # pybind11
     return result
 
 #-------------------------------------------------------------------------------
