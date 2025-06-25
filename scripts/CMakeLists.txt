@@ -30,7 +30,7 @@ if (NOT ENABLE_CXXONLY)
   # Install Stage
   # *************
 
-  # Install Runtime python dependencies into the Install directory.
+  # Set up the target for building the install python virtual environment.
   Spheral_Python_Env(python_runtime_env
     REQUIREMENTS ${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt
     PREFIX ${CMAKE_INSTALL_PREFIX}
@@ -49,6 +49,10 @@ if (NOT ENABLE_CXXONLY)
 
   # Configure scripts for the install stage.
   install( CODE "
+  message(\"-- Setting up spheral python virtual environment.\")
+
+  execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target python_runtime_env)
+
   message(\"-- Setting up spheral executable scripts.\")
 
   set(SPHERAL_EXEC_DIR ${CMAKE_INSTALL_PREFIX})
