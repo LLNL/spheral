@@ -40,6 +40,7 @@ for ndim in dims:
     Tensor = f"{Dimension}::Tensor"
     SymTensor = f"{Dimension}::SymTensor"
     FacetedVolume = f"{Dimension}::FacetedVolume"
+
     #...........................................................................
     # FieldListBase, FieldListSet
     exec(f'''
@@ -47,7 +48,7 @@ FieldListBase{ndim}d = PYB11TemplateClass(FieldListBase, template_parameters="{D
 FieldListSet{ndim}d = PYB11TemplateClass(FieldListSet, template_parameters="{Dimension}")
 ''')
     #...........................................................................
-    # FieldSpanList -- non-numeric types
+    # FieldList -- non-numeric types
     for (value, label) in (( FacetedVolume,                 "FacetedVolume"),
                            ( "std::vector<int>",            "VectorInt"),
                            ( "std::vector<unsigned>",       "VectorUnsigned"),
@@ -65,11 +66,11 @@ FieldListSet{ndim}d = PYB11TemplateClass(FieldListSet, template_parameters="{Dim
 
     #...........................................................................
     # STL collections of Field types
-    for value, label in (( "int", "Int"),
-                         ( "double", "Scalar"),
-                         (f"{Dimension}::Vector", "Vector"),
-                         (f"{Dimension}::Tensor", "Tensor"),
-                         (f"{Dimension}::SymTensor", "SymTensor")):
+    for value, label in (("int",     "Int"),
+                         ("double",  "Scalar"),
+                         (Vector,    "Vector"),
+                         (Tensor,    "Tensor"),
+                         (SymTensor, "SymTensor")):
         exec(f'''
 vector_of_{label}FieldList{ndim}d = PYB11_bind_vector("FieldList<{Dimension}, {value}>", opaque=True, local=False)
 vector_of_{label}FieldListPtr{ndim}d = PYB11_bind_vector("FieldList<{Dimension}, {value}>*", opaque=True, local=False)

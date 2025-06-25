@@ -11,14 +11,15 @@
 #ifndef __Spheral_Field__
 #define __Spheral_Field__
 
-#include "FieldBase.hh"
-#include "axom/sidre.hpp"
+#include "Field/FieldBase.hh"
 
-#include <vector>
+#include "axom/sidre.hpp"
 
 #ifdef USE_UVM
 #include "uvm_allocator.hh"
 #endif
+
+#include <vector>
 
 namespace Spheral {
 
@@ -42,18 +43,18 @@ class Field:
    
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename Dimension::Scalar Scalar;
-  typedef typename Dimension::Vector Vector;
-  typedef typename Dimension::Tensor Tensor;
-  typedef typename Dimension::SymTensor SymTensor;
+  using Scalar = typename Dimension::Scalar;
+  using Vector = typename Dimension::Vector;
+  using Tensor = typename Dimension::Tensor;
+  using SymTensor = typename Dimension::SymTensor;
   
-  typedef typename FieldBase<Dimension>::FieldName FieldName;
-  typedef Dimension FieldDimension;
-  typedef DataType FieldDataType;
-  typedef DataType value_type;      // STL compatibility.
+  using FieldName = typename FieldBase<Dimension>::FieldName;
+  using FieldDimension = Dimension;
+  using FieldDataType = DataType;
+  using value_type = DataType;      // STL compatibility.
 
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
-  typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
+  using iterator = typename std::vector<DataType,DataAllocator<DataType>>::iterator;
+  using const_iterator = typename std::vector<DataType,DataAllocator<DataType>>::const_iterator;
 
   // Constructors.
   explicit Field(FieldName name);
@@ -71,7 +72,7 @@ public:
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  virtual ~Field();
+  virtual ~Field() = default;
 
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
@@ -79,7 +80,7 @@ public:
   Field& operator=(const std::vector<DataType,DataAllocator<DataType>>& rhs);
   Field& operator=(const DataType& rhs);
 
-  // Required method to test equivalence with a FieldBase.
+  // Comparisons
   virtual bool operator==(const FieldBase<Dimension>& rhs) const override;
 
   // Element access.
@@ -89,6 +90,9 @@ public:
   DataType& operator()(const NodeIteratorBase<Dimension>& itr);
   const DataType& operator()(const NodeIteratorBase<Dimension>& itr) const;
 
+  DataType& operator[](const size_t index);
+  const DataType& operator[](const size_t index) const;
+
   DataType& at(size_t index);
   const DataType& at(size_t index) const;
 
@@ -96,7 +100,7 @@ public:
   size_t numElements() const;
   size_t numInternalElements() const;
   size_t numGhostElements() const;
-  virtual size_t size() const override { return mDataArray.size(); }
+  virtual size_t size() const override                                      { return mDataArray.size(); }
 
   // Zero out the field elements.
   virtual void Zero() override;
@@ -122,17 +126,17 @@ public:
   Field& operator-=(const DataType& rhs);
 
   // Multiplication and division by scalar(s)
-  Field<Dimension, DataType> operator*(const Field<Dimension, Scalar>& rhs) const;
-  Field<Dimension, DataType> operator/(const Field<Dimension, Scalar>& rhs) const;
+  Field operator*(const Field<Dimension, Scalar>& rhs) const;
+  Field operator/(const Field<Dimension, Scalar>& rhs) const;
 
-  Field<Dimension, DataType>& operator*=(const Field<Dimension, Scalar>& rhs);
-  Field<Dimension, DataType>& operator/=(const Field<Dimension, Scalar>& rhs);
+  Field& operator*=(const Field<Dimension, Scalar>& rhs);
+  Field& operator/=(const Field<Dimension, Scalar>& rhs);
 
-  Field<Dimension, DataType> operator*(const Scalar& rhs) const;
-  Field<Dimension, DataType> operator/(const Scalar& rhs) const;
+  Field operator*(const Scalar& rhs) const;
+  Field operator/(const Scalar& rhs) const;
 
-  Field<Dimension, DataType>& operator*=(const Scalar& rhs);
-  Field<Dimension, DataType>& operator/=(const Scalar& rhs);
+  Field& operator*=(const Scalar& rhs);
+  Field& operator/=(const Scalar& rhs);
 
   // Some useful reduction operations.
   DataType sumElements() const;
@@ -160,9 +164,6 @@ public:
   bool operator>=(const DataType& rhs) const;
   bool operator<=(const DataType& rhs) const;
 
-  // Test if this Field is in a valid, internally consistent state.
-  bool valid() const;
-
   // Provide the standard iterator methods over the field.
   iterator begin();
   iterator end();
@@ -177,10 +178,6 @@ public:
   const_iterator internalEnd() const;
   const_iterator ghostBegin() const;
   const_iterator ghostEnd() const;
-
-  // Index operator.
-  DataType& operator[](const size_t index);
-  const DataType& operator[](const size_t index) const;
 
   // Required functions from FieldBase
   virtual void setNodeList(const NodeList<Dimension>& nodeList) override;
@@ -209,6 +206,8 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  // No default constructor.
+  Field() = delete;
 
 protected:
   virtual void resizeField(size_t size) override;
@@ -220,12 +219,7 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
-  bool mValid;
-
-  // No default constructor.
-  Field();
 };
 
 } // namespace Spheral

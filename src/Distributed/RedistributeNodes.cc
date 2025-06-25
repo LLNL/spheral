@@ -102,12 +102,14 @@ currentDomainDecomposition(const DataBase<Dimension>& dataBase,
   BEGIN_CONTRACT_SCOPE
   REQUIRE(dataBase.numNodeLists() == globalNodeIDs.numFields());
   REQUIRE(dataBase.numNodeLists() == workPerNode.numFields());
-  for (typename FieldList<Dimension, size_t>::const_iterator itr = globalNodeIDs.begin();
-       itr != globalNodeIDs.end();
-       ++itr) REQUIRE(dataBase.haveNodeList((*itr)->nodeList()));
-  for (typename FieldList<Dimension, Scalar>::const_iterator itr = workPerNode.begin();
-       itr != workPerNode.end();
-       ++itr) REQUIRE(dataBase.haveNodeList((*itr)->nodeList()));
+  for (auto* fptr: globalNodeIDs) {
+    CONTRACT_VAR(fptr) ;
+    REQUIRE(dataBase.haveNodeList(fptr->nodeList()));
+  }
+  for (auto* fptr: workPerNode) {
+    CONTRACT_VAR(fptr) ;
+    REQUIRE(dataBase.haveNodeList(fptr->nodeList()));
+  }
   END_CONTRACT_SCOPE
 
   // Prepare the result.

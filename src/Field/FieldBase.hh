@@ -21,8 +21,8 @@ class FieldBase {
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename std::string FieldName;
-  typedef typename Dimension::Scalar Scalar;
+  using FieldName = std::string;
+  using Scalar = typename Dimension::Scalar;
 
   // Constructors.
   FieldBase(FieldName name);
@@ -70,6 +70,9 @@ public:
 //   void notifyNewCoarseNodes() const;
 //   void notifyNewRefineNodes() const;
 
+  // Disallow the default constructor.
+  FieldBase() = delete;
+
 protected:
   //--------------------------- Protected Interface ---------------------------//
   void setFieldBaseNodeList(const NodeList<Dimension>& nodeListPtr);
@@ -95,9 +98,6 @@ private:
 
   // The set of FieldLists currently referencing this Field.
   mutable std::vector<const FieldListBase<Dimension>*> mFieldListBaseList;
-
-  // Disallow the default constructor.
-  FieldBase();
 };
 
 }

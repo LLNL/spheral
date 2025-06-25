@@ -10,7 +10,7 @@ import FieldListBase
 class ArithmeticFieldList(FieldListBase.FieldListBase):
 
     PYB11typedefs = """
-    using FieldListType =  FieldList<%(Dimension)s, %(Value)s>;
+    using FieldListType = FieldList<%(Dimension)s, %(Value)s>;
     using FieldType = Field<%(Dimension)s, %(Value)s>;
     using NodeListType = NodeList<%(Dimension)s>;
     using Scalar = %(Dimension)s::Scalar;

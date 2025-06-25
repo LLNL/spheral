@@ -472,17 +472,14 @@ deleteNodes(const vector<size_t>& nodeIDs) {
 
     // Now iterate over the Fields defined on this NodeList, and remove the appropriate
     // elements from each.
-    for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
-         fieldItr != mFieldBaseList.end();
-         ++fieldItr) (*fieldItr)->deleteElements(uniqueIDs);
+    for (auto* fieldPtr: mFieldBaseList) fieldPtr->deleteElements(uniqueIDs);
   }
 
   // Post-conditions.
   BEGIN_CONTRACT_SCOPE
-  for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
-       fieldItr < mFieldBaseList.end();
-       ++fieldItr) {
-    ENSURE((*fieldItr)->size() == mNumNodes);
+  for (auto* fieldPtr: mFieldBaseList) {
+    CONTRACT_VAR(fieldPtr) ;
+    ENSURE(fieldPtr->size() == mNumNodes);
   }
   END_CONTRACT_SCOPE
 }
@@ -508,10 +505,8 @@ packNodeFieldValues(const vector<size_t>& nodeIDs) const {
 
   // Iterate over all the Fields defined on this NodeList, and append it's packed 
   // field values to the stack.
-  for (typename vector<FieldBase<Dimension>*>::const_iterator fieldItr = mFieldBaseList.begin();
-       fieldItr != mFieldBaseList.end();
-       ++fieldItr) {
-    result.push_back((*fieldItr)->packValues(uniqueIDs));
+  for (auto* fieldPtr: mFieldBaseList) {
+    result.push_back(fieldPtr->packValues(uniqueIDs));
   }
 
   ENSURE(result.size() == mFieldBaseList.size());
@@ -543,7 +538,7 @@ appendInternalNodes(const size_t numNewNodes,
     vector<size_t> nodeIDs(numNewNodes);
     for (auto i = 0u; i < numNewNodes; ++i) nodeIDs[i] = beginInsertionIndex + i;
     auto bufItr = packedFieldValues.begin();
-    for (typename vector<FieldBase<Dimension>*>::iterator fieldItr = mFieldBaseList.begin();
+    for (auto fieldItr = mFieldBaseList.begin();
          fieldItr != mFieldBaseList.end();
          ++fieldItr, ++bufItr) {
       CHECK(bufItr != packedFieldValues.end());

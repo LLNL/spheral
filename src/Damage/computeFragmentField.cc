@@ -276,12 +276,11 @@ computeFragmentField(const NodeList<Dimension>& nodes,
 
     BEGIN_CONTRACT_SCOPE
     {
-      for (typename vector<int>::iterator itr = significantNeighbors.begin();
-           itr != significantNeighbors.end();
-           ++itr) {
+      for (auto j: significantNeighbors) {
+        CONTRACT_VAR(j) ;
         CHECK(find(globalNodesRemaining.begin(),
                    globalNodesRemaining.end(),
-                   gIDs[*itr]) == globalNodesRemaining.end());
+                   gIDs[j]) == globalNodesRemaining.end());
       }
     }
     END_CONTRACT_SCOPE
