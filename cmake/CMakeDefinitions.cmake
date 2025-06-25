@@ -78,7 +78,7 @@ if (ENABLE_3D)
   add_definitions(-DSPHERAL3D=1)
 endif()
 
-if (ENABLE_TIMER)
+if (SPHERAL_ENABLE_TIMERS)
   add_definitions(-DTIMER=1)
 endif()
 
