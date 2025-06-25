@@ -169,6 +169,7 @@ GeomVector<nDim>::operator[](typename GeomVector<nDim>::size_type index) {
 // Return the x (first) element.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<nDim>::x() const {
@@ -179,6 +180,7 @@ GeomVector<nDim>::x() const {
 // Return the y (second) element
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<nDim>::y() const {
@@ -187,6 +189,7 @@ GeomVector<nDim>::y() const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<1>::y() const {
@@ -197,6 +200,7 @@ GeomVector<1>::y() const {
 // Return the z (third) element
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<nDim>::z() const {
@@ -205,6 +209,7 @@ GeomVector<nDim>::z() const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<1>::z() const {
@@ -212,6 +217,7 @@ GeomVector<1>::z() const {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomVector<2>::z() const {
@@ -222,6 +228,7 @@ GeomVector<2>::z() const {
 // Set the x (first) element.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<nDim>::x(const double val) {
@@ -232,6 +239,7 @@ GeomVector<nDim>::x(const double val) {
 // Set the y (second) element
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<nDim>::y(const double val) {
@@ -240,6 +248,7 @@ GeomVector<nDim>::y(const double val) {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<1>::y(const double /*val*/) {
@@ -249,6 +258,7 @@ GeomVector<1>::y(const double /*val*/) {
 // Set the z (third) element
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<nDim>::z(const double val) {
@@ -257,12 +267,14 @@ GeomVector<nDim>::z(const double val) {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<1>::z(const double /*val*/) {
 }
 
 template<>
+SPHERAL_HOST_DEVICE
 inline
 void
 GeomVector<2>::z(const double /*val*/) {

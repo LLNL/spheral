@@ -62,12 +62,12 @@ public:
   double& operator[](size_type index);
 
   // Access the individual elements by (x, y, z) notation.
-  double x() const;
-  double y() const;
-  double z() const;
-  void x(const double val);
-  void y(const double val);
-  void z(const double val);
+  SPHERAL_HOST_DEVICE double x() const;
+  SPHERAL_HOST_DEVICE double y() const;
+  SPHERAL_HOST_DEVICE double z() const;
+  SPHERAL_HOST_DEVICE void x(const double val);
+  SPHERAL_HOST_DEVICE void y(const double val);
+  SPHERAL_HOST_DEVICE void z(const double val);
 
   // Iterator access to the raw data.
   iterator begin();
@@ -140,25 +140,17 @@ template<> SPHERAL_HOST_DEVICE GeomVector<1>::GeomVector(const double, const dou
 template<> SPHERAL_HOST_DEVICE GeomVector<2>::GeomVector(const double, const double, const double);
 template<> SPHERAL_HOST_DEVICE GeomVector<3>::GeomVector(const double, const double, const double);
 
-//template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>& vec);
-//template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>& vec);
-//template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>& vec);
-
 template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
 template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
 
-// template<> GeomVector<1>& GeomVector<1>::operator=(const GeomVector<1>::EigenType& vec);
-// template<> GeomVector<2>& GeomVector<2>::operator=(const GeomVector<2>::EigenType& vec);
-// template<> GeomVector<3>& GeomVector<3>::operator=(const GeomVector<3>::EigenType& vec);
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::y() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::z() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::z() const;
 
-template<> double GeomVector<1>::y() const;
-template<> double GeomVector<1>::z() const;
-template<> double GeomVector<2>::z() const;
-
-template<> void GeomVector<1>::y(const double val);
-template<> void GeomVector<1>::z(const double val);
-template<> void GeomVector<2>::z(const double val);
+template<> SPHERAL_HOST_DEVICE void GeomVector<1>::y(const double val);
+template<> SPHERAL_HOST_DEVICE void GeomVector<1>::z(const double val);
+template<> SPHERAL_HOST_DEVICE void GeomVector<2>::z(const double val);
 
 template<> SPHERAL_HOST_DEVICE void GeomVector<1>::Zero();
 template<> SPHERAL_HOST_DEVICE void GeomVector<2>::Zero();
@@ -175,14 +167,6 @@ template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
 template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
 template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
 template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
-
-// template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>::EigenType& vec);
-// template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>::EigenType& vec);
-// template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>::EigenType& vec);
-
-// template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>::EigenType& vec);
-// template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>::EigenType& vec);
-// template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>::EigenType& vec);
 
 #if defined(_OPENMP) && _OPENMP >= 201107
 #pragma omp declare reduction(vecadd : GeomVector<1> : omp_out += omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
@@ -256,10 +240,6 @@ template<> double GeomVector<3>::maxAbsElement() const;
 template<> double GeomVector<1>::sumElements() const;
 template<> double GeomVector<2>::sumElements() const;
 template<> double GeomVector<3>::sumElements() const;
-
-// template<> GeomVector<1>::EigenType GeomVector<1>::eigen() const;
-// template<> GeomVector<2>::EigenType GeomVector<2>::eigen() const;
-// template<> GeomVector<3>::EigenType GeomVector<3>::eigen() const;
 
 // Forward declare the global functions.
 template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
