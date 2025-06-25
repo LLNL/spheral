@@ -6,6 +6,7 @@
 #include "NodeList/NodeList.hh"
 
 #include "Field/FieldView.hh"
+#include <test-basic-datatypes.hh>
 
 /**
  * This is a type test for using common Spheral datatypes with FieldView in a
@@ -43,31 +44,32 @@ GPU_TYPED_TEST_P(FieldViewDataTypeTypedTest, CopyAndMutate) {
   using WORK_EXEC_POLICY = typename camp::at<TypeParam, camp::num<0>>::type;
   using DATATYPE = typename camp::at<TypeParam, camp::num<1>>::type;
   {
-    using FieldType = Spheral::Field<DIM3, DATATYPE>;
+    using namespace Spheral;
+    using FieldType = Field<DIM3, DATATYPE>;
+    using FieldViewType = FieldView<DIM3, DATATYPE>;
 
-    std::string field_name = "Field::NodeListValCtor";
-    FieldType field(field_name, gpu_this->test_node_list, DATATYPE(4));
+    std::string field_name = "Field::OffloadCopyAndMutate";
+    FieldType field(field_name, gpu_this->test_node_list, Spheral::TestUtils::initT(DATATYPE{}));
 
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
-    auto field_v = field.toView();
+    FieldViewType field_v = field.toView();
     SPHERAL_ASSERT_EQ(field.size(), 10);
 
     // clang-format off
     RAJA::forall<WORK_EXEC_POLICY>(
         TRS_UINT(0, field.size()),
         [=] SPHERAL_HOST_DEVICE(int i) {
-          SPHERAL_ASSERT_EQ(field_v[i], DATATYPE(4));
-          field_v[i] = field_v[i] * 2;
-          //Spheral::test::mutate(field_v[i]);
+          SPHERAL_ASSERT_EQ(field_v[i], TestUtils::initT(DATATYPE{}));
+          TestUtils::mutateT(field_v[i]);
         }
     );
 
     RAJA::forall<LOOP_EXEC_POLICY>(
         TRS_UINT(0, field.size()),
         [=] (int i) {
-          SPHERAL_ASSERT_EQ(field_v[i], DATATYPE(8));
+          SPHERAL_ASSERT_EQ(field_v[i], TestUtils::resultT(DATATYPE{}));
         }
     );
     // clang-format on
