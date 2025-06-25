@@ -384,6 +384,7 @@ GeomVector<nDim>::operator-(const GeomVector<nDim>& vec) const {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
+SPHERAL_HOST_DEVICE
 GeomTensor<nDim>
 GeomVector<nDim>::operator*(const GeomVector<nDim>& vec) const {
   return this->dyad(vec);
@@ -394,6 +395,7 @@ GeomVector<nDim>::operator*(const GeomVector<nDim>& vec) const {
 //------------------------------------------------------------------------------
 template<int nDim>
 inline
+SPHERAL_HOST_DEVICE
 GeomVector<nDim>
 GeomVector<nDim>::operator*(const double val) const {
   GeomVector<nDim> result(*this);
@@ -545,6 +547,7 @@ GeomVector<3>::operator-=(const Eigen::MatrixBase<Derived>& vec) {
 //------------------------------------------------------------------------------
 template<>
 inline
+SPHERAL_HOST_DEVICE
 GeomVector<1>&
 GeomVector<1>::operator*=(const double val) {
   this->mx *= val;
@@ -553,6 +556,7 @@ GeomVector<1>::operator*=(const double val) {
 
 template<>
 inline
+SPHERAL_HOST_DEVICE
 GeomVector<2>&
 GeomVector<2>::operator*=(const double val) {
   this->mx *= val;
@@ -562,6 +566,7 @@ GeomVector<2>::operator*=(const double val) {
 
 template<>
 inline
+SPHERAL_HOST_DEVICE
 GeomVector<3>&
 GeomVector<3>::operator*=(const double val) {
   this->mx *= val;
@@ -1139,6 +1144,7 @@ GeomVector<3>::eigen() const {
 // Multiply a scalar by a vector.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomVector<nDim>
 operator*(const double val, const GeomVector<nDim>& vec) {
