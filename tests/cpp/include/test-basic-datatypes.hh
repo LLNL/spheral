@@ -22,14 +22,19 @@ using TEST_FIELD_DATATYPES = camp::list<
 >;
 // clang-format on
 
-namespace spheral {
-namespace test {
+namespace Spheral {
+namespace TestUtils {
 
-template <typename T> SPHERAL_HOST_DEVICE void initT(T &ref) { ref = 4; }
+/**
+ * Specializable functions to be used in datatype tests. The default are set up to perform
+ * a scalar operation on a given type. If scalar multiplication is not available specializations
+ * for the type to be tested should be defined below.
+ */
+template <typename T> SPHERAL_HOST_DEVICE T initT(T const&) { return T(4); }
+template <typename T> SPHERAL_HOST_DEVICE void mutateT(T &val) { val *= 2; }
+template <typename T> SPHERAL_HOST_DEVICE T resultT(T const&) { return T(4) * 2; }
 
-template <typename T> SPHERAL_HOST_DEVICE void mutate(T &ref) { ref *= 2; }
-
-} // namespace test
+} // namespace impl
 } // namespace spheral
 
 #endif // SPHERAL_BASIC_DATATYPES_HH
