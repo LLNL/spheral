@@ -84,6 +84,7 @@ public:
 
   GeomVector operator+(const GeomVector& vec) const;
   GeomVector operator-(const GeomVector& vec) const;
+SPHERAL_HOST_DEVICE
   GeomVector operator*(const double val) const;
   GeomVector operator/(const double val) const;
 
@@ -93,6 +94,7 @@ public:
   template<typename Derived> GeomVector& operator+=(const Eigen::MatrixBase<Derived>& vec);
   template<typename Derived> GeomVector& operator-=(const Eigen::MatrixBase<Derived>& vec);
 
+SPHERAL_HOST_DEVICE
   GeomVector& operator*=(const double val);
   GeomVector& operator/=(const double val);
 
@@ -117,6 +119,7 @@ public:
   GeomVector<3> cross(const GeomVector& vec) const;
   GeomTensor<nDim> dyad(const GeomVector& rhs) const;
   GeomSymmetricTensor<nDim> selfdyad() const;
+SPHERAL_HOST_DEVICE
   GeomTensor<nDim> operator*(const GeomVector& vec) const;
 
   GeomVector unitVector() const;
@@ -190,9 +193,9 @@ template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 #pragma omp declare reduction(vecdif : GeomVector<3> : omp_out -= omp_in ) initializer( omp_priv = GeomVector<3>(0.0,0.0,0.0) )
 #endif
 
-template<> GeomVector<1>& GeomVector<1>::operator*=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator*=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator*=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator*=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator*=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator*=(const double val);
 
 template<> GeomVector<1>& GeomVector<1>::operator/=(const double val);
 template<> GeomVector<2>& GeomVector<2>::operator/=(const double val);
