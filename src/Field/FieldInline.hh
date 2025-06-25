@@ -1079,9 +1079,9 @@ copyElements(const std::vector<size_t>& fromIndices,
              const std::vector<size_t>& toIndices) {
   REQUIRE(fromIndices.size() == toIndices.size());
   REQUIRE(std::all_of(fromIndices.begin(), fromIndices.end(),
-                      [&](const size_t i) { return i >= 0 and i < this->size(); }));
+                      [&](const size_t i) { return i < this->size(); }));
   REQUIRE(std::all_of(toIndices.begin(), toIndices.end(),
-                      [&](const size_t i) { return i >= 0 and i < this->size(); }));
+                      [&](const size_t i) { return i < this->size(); }));
   const auto ni = fromIndices.size();
   for (auto k = 0u; k < ni; ++k) (*this)(toIndices[k]) = (*this)(fromIndices[k]);
 }
