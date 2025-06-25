@@ -1253,7 +1253,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
 
   // If there is ghost data, we must preserve it.
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
-  if (numGhostNodes > 0) {
+  if (numGhostNodes > 0u) {
     std::copy(this->ghostBegin(), this->ghostEnd(), oldGhostValues.begin());
   }
 
@@ -1269,7 +1269,7 @@ Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
   }
 
   // Fill the ghost data back in.
-  if (numGhostNodes > 0) {
+  if (numGhostNodes > 0u) {
     std::copy(oldGhostValues.begin(), oldGhostValues.end(), mDataArray.begin() + size);
   }
 }
@@ -1351,7 +1351,7 @@ operator*(const Field<Dimension, DataType>& lhs,
           const OtherDataType& rhs) {
   Field<Dimension, typename CombineTypes<DataType, OtherDataType>::ProductType>
     result("product", const_cast<Field<Dimension, DataType>&>(lhs).nodeList());
-  for (int i = 0; i < result.size(); ++i) {
+  for (auto i = 0u; i < result.size(); ++i) {
     result(i) = lhs(i) * rhs;
   }
   return result;
