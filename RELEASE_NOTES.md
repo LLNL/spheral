@@ -1,3 +1,16 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+
+  * Build changes / improvements:
+
+  * Bug Fixes / improvements:
+    * Changed `int` to `size_t` for Field and FieldList.
+
 Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
   * Important Notes:
