@@ -50,16 +50,16 @@ public:
   template<typename Derived> GeomVector(const Eigen::MatrixBase<Derived>& vec);
 
   // Assignment.
-  GeomVector& operator=(const double val);
+  SPHERAL_HOST_DEVICE GeomVector& operator=(const double val);
   template<typename Derived> GeomVector& operator=(const Eigen::MatrixBase<Derived>& vec);
 
   // Allow the elements by indicies.
-  double operator()(size_type index) const;
-  double& operator()(size_type index);
+  SPHERAL_HOST_DEVICE double operator()(size_type index) const;
+  SPHERAL_HOST_DEVICE double& operator()(size_type index);
 
   // More C++ style indexing.
-  double operator[](size_type index) const;
-  double& operator[](size_type index);
+  SPHERAL_HOST_DEVICE double operator[](size_type index) const;
+  SPHERAL_HOST_DEVICE double& operator[](size_type index);
 
   // Access the individual elements by (x, y, z) notation.
   SPHERAL_HOST_DEVICE double x() const;
@@ -70,66 +70,63 @@ public:
   SPHERAL_HOST_DEVICE void z(const double val);
 
   // Iterator access to the raw data.
-  iterator begin();
-  iterator end();
+  SPHERAL_HOST_DEVICE iterator begin();
+  SPHERAL_HOST_DEVICE iterator end();
 
-  const_iterator begin() const;
-  const_iterator end() const;
+  SPHERAL_HOST_DEVICE const_iterator begin() const;
+  SPHERAL_HOST_DEVICE const_iterator end() const;
 
   // Zero the vector.
   SPHERAL_HOST_DEVICE void Zero();
 
   // Mathematical operators.
-  GeomVector operator-() const;
+  SPHERAL_HOST_DEVICE GeomVector operator-() const;
 
-  GeomVector operator+(const GeomVector& vec) const;
-  GeomVector operator-(const GeomVector& vec) const;
-SPHERAL_HOST_DEVICE
-  GeomVector operator*(const double val) const;
-  GeomVector operator/(const double val) const;
+  SPHERAL_HOST_DEVICE GeomVector operator+(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE GeomVector operator-(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE GeomVector operator*(const double val) const;
+  SPHERAL_HOST_DEVICE GeomVector operator/(const double val) const;
 
-  GeomVector& operator+=(const GeomVector& vec);
-  GeomVector& operator-=(const GeomVector& vec);
+  SPHERAL_HOST_DEVICE GeomVector& operator+=(const GeomVector& vec);
+  SPHERAL_HOST_DEVICE GeomVector& operator-=(const GeomVector& vec);
 
   template<typename Derived> GeomVector& operator+=(const Eigen::MatrixBase<Derived>& vec);
   template<typename Derived> GeomVector& operator-=(const Eigen::MatrixBase<Derived>& vec);
 
-SPHERAL_HOST_DEVICE
-  GeomVector& operator*=(const double val);
-  GeomVector& operator/=(const double val);
+  SPHERAL_HOST_DEVICE GeomVector& operator*=(const double val);
+  SPHERAL_HOST_DEVICE GeomVector& operator/=(const double val);
 
-  int compare(const GeomVector& vec) const;
-  int compare(const double val) const;
+  SPHERAL_HOST_DEVICE int compare(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE int compare(const double val) const;
 
   SPHERAL_HOST_DEVICE bool operator==(const GeomVector& vec) const;
   SPHERAL_HOST_DEVICE bool operator!=(const GeomVector& vec) const;
-  bool operator<(const GeomVector& vec) const;
-  bool operator>(const GeomVector& vec) const;
-  bool operator<=(const GeomVector& vec) const;
-  bool operator>=(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE bool operator<(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE bool operator>(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE bool operator<=(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE bool operator>=(const GeomVector& vec) const;
 
   SPHERAL_HOST_DEVICE bool operator==(const double val) const;
   SPHERAL_HOST_DEVICE bool operator!=(const double val) const;
-  bool operator<(const double val) const;
-  bool operator>(const double val) const;
-  bool operator<=(const double val) const;
-  bool operator>=(const double val) const;
+  SPHERAL_HOST_DEVICE bool operator<(const double val) const;
+  SPHERAL_HOST_DEVICE bool operator>(const double val) const;
+  SPHERAL_HOST_DEVICE bool operator<=(const double val) const;
+  SPHERAL_HOST_DEVICE bool operator>=(const double val) const;
 
-  double dot(const GeomVector& vec) const;
-  GeomVector<3> cross(const GeomVector& vec) const;
-  GeomTensor<nDim> dyad(const GeomVector& rhs) const;
-  GeomSymmetricTensor<nDim> selfdyad() const;
-SPHERAL_HOST_DEVICE
-  GeomTensor<nDim> operator*(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE double dot(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE GeomVector<3> cross(const GeomVector& vec) const;
+  SPHERAL_HOST_DEVICE GeomTensor<nDim> dyad(const GeomVector& rhs) const;
+  SPHERAL_HOST_DEVICE GeomSymmetricTensor<nDim> selfdyad() const;
+  SPHERAL_HOST_DEVICE GeomTensor<nDim> operator*(const GeomVector& vec) const;
 
-  GeomVector unitVector() const;
+  SPHERAL_HOST_DEVICE GeomVector unitVector() const;
 
-  double magnitude() const;
-  double magnitude2() const;
-  double minElement() const;
-  double maxElement() const;
-  double maxAbsElement() const;
-  double sumElements() const;
+  SPHERAL_HOST_DEVICE double magnitude() const;
+  SPHERAL_HOST_DEVICE double magnitude2() const;
+  SPHERAL_HOST_DEVICE double minElement() const;
+  SPHERAL_HOST_DEVICE double maxElement() const;
+  SPHERAL_HOST_DEVICE double maxAbsElement() const;
+  SPHERAL_HOST_DEVICE double sumElements() const;
   
   //  Convert to an Eigen Vector
   EigenType eigen() const;
@@ -140,9 +137,9 @@ template<> SPHERAL_HOST_DEVICE GeomVector<1>::GeomVector(const double, const dou
 template<> SPHERAL_HOST_DEVICE GeomVector<2>::GeomVector(const double, const double, const double);
 template<> SPHERAL_HOST_DEVICE GeomVector<3>::GeomVector(const double, const double, const double);
 
-template<> GeomVector<1>& GeomVector<1>::operator=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator=(const double val);
 
 template<> SPHERAL_HOST_DEVICE double GeomVector<1>::y() const;
 template<> SPHERAL_HOST_DEVICE double GeomVector<1>::z() const;
@@ -156,17 +153,17 @@ template<> SPHERAL_HOST_DEVICE void GeomVector<1>::Zero();
 template<> SPHERAL_HOST_DEVICE void GeomVector<2>::Zero();
 template<> SPHERAL_HOST_DEVICE void GeomVector<3>::Zero();
 
-template<> GeomVector<1> GeomVector<1>::operator-() const;
-template<> GeomVector<2> GeomVector<2>::operator-() const;
-template<> GeomVector<3> GeomVector<3>::operator-() const;
+template<> SPHERAL_HOST_DEVICE GeomVector<1> GeomVector<1>::operator-() const;
+template<> SPHERAL_HOST_DEVICE GeomVector<2> GeomVector<2>::operator-() const;
+template<> SPHERAL_HOST_DEVICE GeomVector<3> GeomVector<3>::operator-() const;
 
-template<> GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator+=(const GeomVector<1>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator+=(const GeomVector<2>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator+=(const GeomVector<3>& vec);
 
-template<> GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
-template<> GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
-template<> GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator-=(const GeomVector<1>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator-=(const GeomVector<2>& vec);
+template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator-=(const GeomVector<3>& vec);
 
 #if defined(_OPENMP) && _OPENMP >= 201107
 #pragma omp declare reduction(vecadd : GeomVector<1> : omp_out += omp_in ) initializer( omp_priv = GeomVector<1>(0.0,0.0,0.0) )
@@ -181,17 +178,17 @@ template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator*=(const do
 template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator*=(const double val);
 template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator*=(const double val);
 
-template<> GeomVector<1>& GeomVector<1>::operator/=(const double val);
-template<> GeomVector<2>& GeomVector<2>::operator/=(const double val);
-template<> GeomVector<3>& GeomVector<3>::operator/=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<1>& GeomVector<1>::operator/=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<2>& GeomVector<2>::operator/=(const double val);
+template<> SPHERAL_HOST_DEVICE GeomVector<3>& GeomVector<3>::operator/=(const double val);
 
-template<> int GeomVector<1>::compare(const GeomVector<1>& vec) const;
-template<> int GeomVector<2>::compare(const GeomVector<2>& vec) const;
-template<> int GeomVector<3>::compare(const GeomVector<3>& vec) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<1>::compare(const GeomVector<1>& vec) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<2>::compare(const GeomVector<2>& vec) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<3>::compare(const GeomVector<3>& vec) const;
 
-template<> int GeomVector<1>::compare(const double val) const;
-template<> int GeomVector<2>::compare(const double val) const;
-template<> int GeomVector<3>::compare(const double val) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<1>::compare(const double val) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<2>::compare(const double val) const;
+template<> SPHERAL_HOST_DEVICE int GeomVector<3>::compare(const double val) const;
 
 template<> SPHERAL_HOST_DEVICE bool GeomVector<1>::operator==(const GeomVector<1>& vec) const;
 template<> SPHERAL_HOST_DEVICE bool GeomVector<2>::operator==(const GeomVector<2>& vec) const;
@@ -201,64 +198,64 @@ template<> SPHERAL_HOST_DEVICE bool GeomVector<1>::operator==(const double val) 
 template<> SPHERAL_HOST_DEVICE bool GeomVector<2>::operator==(const double val) const;
 template<> SPHERAL_HOST_DEVICE bool GeomVector<3>::operator==(const double val) const;
 
-template<> double GeomVector<1>::dot(const GeomVector<1>& vec) const;
-template<> double GeomVector<2>::dot(const GeomVector<2>& vec) const;
-template<> double GeomVector<3>::dot(const GeomVector<3>& vec) const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::dot(const GeomVector<1>& vec) const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::dot(const GeomVector<2>& vec) const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::dot(const GeomVector<3>& vec) const;
 
-template<> GeomVector<3> GeomVector<1>::cross(const GeomVector<1>& vec) const;
-template<> GeomVector<3> GeomVector<2>::cross(const GeomVector<2>& vec) const;
-template<> GeomVector<3> GeomVector<3>::cross(const GeomVector<3>& vec) const;
+template<> SPHERAL_HOST_DEVICE GeomVector<3> GeomVector<1>::cross(const GeomVector<1>& vec) const;
+template<> SPHERAL_HOST_DEVICE GeomVector<3> GeomVector<2>::cross(const GeomVector<2>& vec) const;
+template<> SPHERAL_HOST_DEVICE GeomVector<3> GeomVector<3>::cross(const GeomVector<3>& vec) const;
 
-template<> GeomTensor<1> GeomVector<1>::dyad(const GeomVector<1>& rhs) const;
-template<> GeomTensor<2> GeomVector<2>::dyad(const GeomVector<2>& rhs) const;
-template<> GeomTensor<3> GeomVector<3>::dyad(const GeomVector<3>& rhs) const;
+template<> SPHERAL_HOST_DEVICE GeomTensor<1> GeomVector<1>::dyad(const GeomVector<1>& rhs) const;
+template<> SPHERAL_HOST_DEVICE GeomTensor<2> GeomVector<2>::dyad(const GeomVector<2>& rhs) const;
+template<> SPHERAL_HOST_DEVICE GeomTensor<3> GeomVector<3>::dyad(const GeomVector<3>& rhs) const;
 
-template<> GeomSymmetricTensor<1> GeomVector<1>::selfdyad() const;
-template<> GeomSymmetricTensor<2> GeomVector<2>::selfdyad() const;
-template<> GeomSymmetricTensor<3> GeomVector<3>::selfdyad() const;
+template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<1> GeomVector<1>::selfdyad() const;
+template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<2> GeomVector<2>::selfdyad() const;
+template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<3> GeomVector<3>::selfdyad() const;
 
-template<> double GeomVector<1>::magnitude() const;
-template<> double GeomVector<2>::magnitude() const;
-template<> double GeomVector<3>::magnitude() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::magnitude() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::magnitude() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::magnitude() const;
 
-template<> double GeomVector<1>::magnitude2() const;
-template<> double GeomVector<2>::magnitude2() const;
-template<> double GeomVector<3>::magnitude2() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::magnitude2() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::magnitude2() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::magnitude2() const;
 
-template<> double GeomVector<1>::minElement() const;
-template<> double GeomVector<2>::minElement() const;
-template<> double GeomVector<3>::minElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::minElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::minElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::minElement() const;
 
-template<> double GeomVector<1>::maxElement() const;
-template<> double GeomVector<2>::maxElement() const;
-template<> double GeomVector<3>::maxElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::maxElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::maxElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::maxElement() const;
 
-template<> double GeomVector<1>::maxAbsElement() const;
-template<> double GeomVector<2>::maxAbsElement() const;
-template<> double GeomVector<3>::maxAbsElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::maxAbsElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::maxAbsElement() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::maxAbsElement() const;
 
-template<> double GeomVector<1>::sumElements() const;
-template<> double GeomVector<2>::sumElements() const;
-template<> double GeomVector<3>::sumElements() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<1>::sumElements() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<2>::sumElements() const;
+template<> SPHERAL_HOST_DEVICE double GeomVector<3>::sumElements() const;
 
 // Forward declare the global functions.
-template<int nDim> GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
+template<int nDim> SPHERAL_HOST_DEVICE GeomVector<nDim> elementWiseMin(const GeomVector<nDim>& lhs,
                                                    const GeomVector<nDim>& rhs);
-template<int nDim> GeomVector<nDim> elementWiseMax(const GeomVector<nDim>& lhs,
+template<int nDim> SPHERAL_HOST_DEVICE GeomVector<nDim> elementWiseMax(const GeomVector<nDim>& lhs,
                                                    const GeomVector<nDim>& rhs);
 
-template<> GeomVector<1> elementWiseMin(const GeomVector<1>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<1> elementWiseMin(const GeomVector<1>& lhs,
                                         const GeomVector<1>& rhs);
-template<> GeomVector<2> elementWiseMin(const GeomVector<2>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<2> elementWiseMin(const GeomVector<2>& lhs,
                                         const GeomVector<2>& rhs);
-template<> GeomVector<3> elementWiseMin(const GeomVector<3>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<3> elementWiseMin(const GeomVector<3>& lhs,
                                         const GeomVector<3>& rhs);
 
-template<> GeomVector<1> elementWiseMax(const GeomVector<1>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<1> elementWiseMax(const GeomVector<1>& lhs,
                                         const GeomVector<1>& rhs);
-template<> GeomVector<2> elementWiseMax(const GeomVector<2>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<2> elementWiseMax(const GeomVector<2>& lhs,
                                         const GeomVector<2>& rhs);
-template<> GeomVector<3> elementWiseMax(const GeomVector<3>& lhs,
+template<> SPHERAL_HOST_DEVICE GeomVector<3> elementWiseMax(const GeomVector<3>& lhs,
                                         const GeomVector<3>& rhs);
 
 template<int nDim> std::istream& operator>>(std::istream& is, GeomVector<nDim>& vec);
