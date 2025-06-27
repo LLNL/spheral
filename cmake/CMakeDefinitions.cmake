@@ -79,7 +79,7 @@ if (ENABLE_3D)
 endif()
 
 if (SPHERAL_ENABLE_TIMERS)
-  add_definitions(-DTIMER=1)
+  add_definitions(-DSPHERAL_ENABLE_TIMERS=1)
 endif()
 
 if (ENABLE_MPI)
