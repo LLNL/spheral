@@ -41,19 +41,19 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
     assert(0);                                                                 \
   }
 
-#define SPHERALSPHERAL_ASSERT_TRUE(VAL)                                        \
-  if (!result) {                                                               \
+#define SPHERAL_ASSERT_TRUE(VAL)                                               \
+  if (!(VAL)) {                                                                \
     printf("ERROR @ cuda_assert\n");                                           \
     assert(0);                                                                 \
   }
 
-#define SPHERALSPHERAL_ASSERT_FALSE(VAL)                                       \
-  if (result) {                                                                \
+#define SPHERAL_ASSERT_FALSE(VAL)                                              \
+  if ((VAL)) {                                                                 \
     printf("ERROR @ cuda_assert\n");                                           \
     assert(0);                                                                 \
   }
 
-#define SPHERALSPHERAL_ASSERT_FLOAT_EQ(LHS, RHS)                               \
+#define SPHERAL_ASSERT_FLOAT_EQ(LHS, RHS)                                      \
   if (fabs(LHS - RHS) > 1e-5) {                                                \
     printf("ERROR @ cuda_assert\n");                                           \
     assert(0);                                                                 \
