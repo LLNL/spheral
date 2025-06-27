@@ -135,7 +135,7 @@ endif()
 
 message("-----------------------------------------------------------------------------")
 # Use find_package to get caliper
-if (ENABLE_TIMER)
+if (SPHERAL_ENABLE_TIMERS)
   # Save caliper_DIR because it gets overwritten by find_package
   if(NOT CONFIG_CALIPER_DIR)
     # Only save if it does not exists already
