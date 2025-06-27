@@ -12,7 +12,13 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
+#include "FieldView.hh"
 #include "axom/sidre.hpp"
+#include "camp/camp.hpp"
+#include "chai/ExecutionSpaces.hpp"
+#include "chai/ManagedArray.hpp"
+#include "chai/PointerRecord.hpp"
+#include "chai/Types.hpp"
 
 #include <vector>
 
@@ -236,6 +242,20 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  using ViewType = FieldView<Dimension, DataType>;
+
+  ViewType toView() {
+    auto managedData = chai::makeManagedArray(
+        mDataArray.data(), mDataArray.size(), chai::CPU, false);
+
+    managedData.setUserCallback([](const chai::PointerRecord *,
+                                   chai::Action action, chai::ExecutionSpace) {
+      if (action == chai::ACTION_MOVE)
+        std::cout << "Chai ManagedArray Moved.\n";
+    });
+
+    return ViewType(managedData);
+  }
 
 protected:
   virtual void resizeField(unsigned size) override;
@@ -247,8 +267,8 @@ protected:
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
+
   bool mValid;
 
   // No default constructor.
