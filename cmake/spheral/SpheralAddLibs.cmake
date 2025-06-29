@@ -175,7 +175,6 @@ function(spheral_add_pybind11_library package_name module_list_name)
   # List directories in which spheral .py files can be found.
   set(PYTHON_ENV 
       ${EXTRA_PYB11_SPHERAL_ENV_VARS}
-      "${BUILDTIME_PYTHONENV_STR}:"
       "${SPHERAL_ROOT_DIR}/src/PYB11:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/${PYB11_MODULE_NAME}:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/polytope:"
@@ -214,6 +213,7 @@ function(spheral_add_pybind11_library package_name module_list_name)
       "${SPHERAL_ROOT_DIR}/src/PYB11/Strength:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/ArtificialConduction:"
       "${SPHERAL_ROOT_DIR}/src/PYB11/KernelIntegrator:"
+      "${SPHERAL_ROOT_DIR}/src/PYB11/Solvers:"
       "${CMAKE_BINARY_DIR}/src/SimulationControl"
       )
 
@@ -237,6 +237,7 @@ function(spheral_add_pybind11_library package_name module_list_name)
                             USE_BLT         ON
                             EXTRA_SOURCE    ${${package_name}_SOURCES}
                             INSTALL         OFF
+                            VIRTUAL_ENV     python_build_env
                             )
   target_include_directories(${MODULE_NAME} SYSTEM PRIVATE ${SPHERAL_EXTERN_INCLUDES})
 

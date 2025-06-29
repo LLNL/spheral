@@ -41,16 +41,14 @@ public:
   using PolicyPointer = typename std::shared_ptr<UpdatePolicyBase<Dimension>>;
 
   // Constructors, destructor.
-  State();
   State(DataBase<Dimension>& dataBase,  PackageList& physicsPackages);
   State(DataBase<Dimension>& dataBase,
         PackageIterator physicsPackageBegin,
         PackageIterator physicsPackageEnd);
-  State(const State& rhs);
-  virtual ~State();
-
-  // Assignment.
-  State& operator=(const State& rhs);
+  State() = default;
+  State(const State& rhs) = default;
+  State& operator=(const State& rhs) = default;
+  virtual ~State() = default;
 
   // Override the base equivalence operator
   virtual bool operator==(const StateBase<Dimension>& rhs) const override;
@@ -92,10 +90,14 @@ public:
 
   //...........................................................................
   // Update the registered state according to the policies.
+  // If the dependentOnly flag is set to true, we assume all policies which report
+  // they are independent state have already been updated (such as with
+  // deserializeIndependentData).
   void update(StateDerivatives<Dimension>& derivs,
               const double multiplier,
               const double t,
-              const double dt);
+              const double dt,
+              const bool dependentOnly = false);
 
   // Optionally trip a flag indicating policies should time advance only -- no replacing state!
   // This is useful when you're trying to cheat and reuse derivatives from a prior advance.
@@ -103,11 +105,16 @@ public:
   void timeAdvanceOnly(const bool x)        { mTimeAdvanceOnly = x; }
 
   //...........................................................................
+  // Serialization of independent data (for use in implicit time integration)
+  void serializeIndependentData(std::vector<double>& buf) const;
+  void deserializeIndependentData(const std::vector<double>& buf) const;
+
+  void serializeDerivatives(std::vector<double>& buf,
+                            const StateDerivatives<Dimension>& derivs) const;
+
+  //...........................................................................
   // Expose the StateBase enroll methods
   using StateBase<Dimension>::enroll;
-  // virtual              void enroll(FieldBase<Dimension>& field) override                     { StateBase<Dimension>::enroll(field); }
-  // virtual              void enroll(std::shared_ptr<FieldBase<Dimension>>& fieldPtr) override { StateBase<Dimension>::enroll(fieldPtr); }
-  // virtual              void enroll(FieldListBase<Dimension>& fieldList) override             { StateBase<Dimension>::enroll(fieldList); }
   template<typename T> void enroll(const KeyType& key, T& thing);
 
 private:

@@ -123,7 +123,7 @@ commandLine(nx1 = 400,
             steps = None,
             goalTime = 0.15,
             dt = 1e-6,
-            dtMin = 1.0e-6,
+            dtMin = 1.0e-8,
             dtMax = 0.1,
             dtGrowth = 2.0,
             rigorousBoundaries = False,
@@ -138,6 +138,12 @@ commandLine(nx1 = 400,
             correctVelocityGradient = True,
             gradhCorrection = True,
             linearConsistent = False,
+
+            ftol = None,
+            convergenceTolerance = None,
+            maxIterations = None,
+            maxAllowedDtMultiplier = None,
+            beta = None,
 
             useRefinement = False,
 
@@ -496,10 +502,10 @@ if not (gsph or mfm or mfv):
     # Construct the MMRV physics object.
     #-------------------------------------------------------------------------------
     if boolReduceViscosity:
-        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(q,nh,nh,aMin,aMax)
+        evolveReducingViscosityMultiplier = MorrisMonaghanReducingViscosity(nh,nh,aMin,aMax)
         packages.append(evolveReducingViscosityMultiplier)
     elif boolCullenViscosity:
-        evolveCullenViscosityMultiplier = CullenDehnenViscosity(q,WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
+        evolveCullenViscosityMultiplier = CullenDehnenViscosity(WT,alphMax,alphMin,betaC,betaD,betaE,fKern,boolHopkinsCorrection)
         packages.append(evolveCullenViscosityMultiplier)
 
 #-------------------------------------------------------------------------------
@@ -552,6 +558,27 @@ output("integrator.lastDt")
 output("integrator.dtMin")
 output("integrator.dtMax")
 output("integrator.rigorousBoundaries")
+
+# Special stuff for implicit integrators
+if isinstance(integrator, ImplicitIntegrator):
+    if beta:
+        integrator.beta = beta
+    if convergenceTolerance:
+        integrator.convergenceTolerance = convergenceTolerance
+    if maxIterations:
+        integrator.maxIterations = maxIterations
+    if maxAllowedDtMultiplier:
+        integrator.maxAllowedDtMultiplier = maxAllowedDtMultiplier
+    output("integrator.beta")
+    output("integrator.convergenceTolerance")
+    output("integrator.maxIterations")
+    output("integrator.maxAllowedDtMultiplier")
+try:   # This will only work for BackwardEuler currently
+    if ftol:
+        integrator.ftol = ftol
+    output("integrator.ftol")
+except:
+    pass
 
 #-------------------------------------------------------------------------------
 # Make the problem controller.
@@ -738,7 +765,7 @@ if graphics:
         plots.append((viscPlot, "Sod-planar-viscosity.png"))
     
     if boolCullenViscosity:
-        cullAlphaPlot = plotFieldList(q.ClMultiplier,
+        cullAlphaPlot = plotFieldList(evolveCullenViscosityMultiplier.ClMultiplier,
                                       winTitle = "Cullen alpha")
         cullDalphaPlot = plotFieldList(evolveCullenViscosityMultiplier.DalphaDt,
                                        winTitle = "Cullen DalphaDt")
@@ -746,7 +773,7 @@ if graphics:
                   (cullDalphaPlot, "Sod-planar-Cullen-DalphaDt.png")]
 
     if boolReduceViscosity:
-        alphaPlot = plotFieldList(q.ClMultiplier,
+        alphaPlot = plotFieldList(evolveReducingViscosityMultiplier.ClMultiplier,
                                   winTitle = "rvAlpha",
                                   colorNodeLists = False)
 

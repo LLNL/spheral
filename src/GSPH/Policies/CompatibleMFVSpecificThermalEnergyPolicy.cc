@@ -20,6 +20,7 @@
 #include "DataBase/StateDerivatives.hh"
 
 #include "Neighbor/ConnectivityMap.hh"
+#include "Neighbor/PairwiseField.hh"
 
 #include "Field/Field.hh"
 #include "Field/FieldList.hh"
@@ -49,14 +50,6 @@ CompatibleMFVSpecificThermalEnergyPolicy(const DataBase<Dimension>& dataBase):
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-CompatibleMFVSpecificThermalEnergyPolicy<Dimension>::
-~CompatibleMFVSpecificThermalEnergyPolicy() {
-}
-
-//------------------------------------------------------------------------------
 // Update the field.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -68,6 +61,10 @@ update(const KeyType& key,
        const double multiplier,
        const double /*t*/,
        const double /*dt*/) {
+
+  using PairAccelerationsType = PairwiseField<Dimension, Vector>;
+  using PairWorkType = PairwiseField<Dimension, Scalar, 2u>;
+  using PairMassFluxType = PairwiseField<Dimension, Scalar, 1u>;
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
@@ -84,9 +81,9 @@ update(const KeyType& key,
   const auto  velocity = state.fields(HydroFieldNames::velocity, Vector::zero);
   const auto  DmassDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + HydroFieldNames::mass, 0.0);
   const auto  DmomentumDt = derivs.fields(IncrementState<Dimension, Vector>::prefix() + GSPHFieldNames::momentum, Vector::zero);
-  const auto& pairAccelerations = derivs.get(HydroFieldNames::pairAccelerations, vector<Vector>());
-  const auto& pairDepsDt = derivs.get(HydroFieldNames::pairWork, vector<Scalar>());
-  const auto& pairMassFlux = derivs.get(GSPHFieldNames::pairMassFlux, vector<Scalar>());
+  const auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  const auto& pairDepsDt = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
+  const auto& pairMassFlux = derivs.template get<PairMassFluxType>(GSPHFieldNames::pairMassFlux);
 
   const auto& connectivityMap = mDataBasePtr->connectivityMap();
   const auto& pairs = connectivityMap.nodePairList();
@@ -94,7 +91,7 @@ update(const KeyType& key,
 
   CHECK(pairAccelerations.size() == npairs);
   CHECK(pairMassFlux.size() == npairs);
-  CHECK(pairDepsDt.size() == 2*npairs);
+  CHECK(pairDepsDt.size() == npairs);
 
   auto  DepsDt = derivs.fields(IncrementState<Dimension, Scalar >::prefix() + GSPHFieldNames::thermalEnergy, 0.0);
   DepsDt.Zero();
@@ -115,8 +112,8 @@ update(const KeyType& key,
       const auto nodeListj = pairs[kk].j_list;
 
       const auto& paccij = pairAccelerations[kk];
-      const auto& DepsDt0i = pairDepsDt[2*kk];
-      const auto& DepsDt0j = pairDepsDt[2*kk+1];
+      const auto& DepsDt0i = pairDepsDt[kk][0];
+      const auto& DepsDt0j = pairDepsDt[kk][1];
       const auto& massFlux = pairMassFlux[kk];
 
       const auto  mi = mass(nodeListi, i);
@@ -195,8 +192,9 @@ updateAsIncrement(const KeyType& key,
 
   KeyType fieldKey, nodeListKey;
   StateBase<Dimension>::splitFieldKey(key, fieldKey, nodeListKey);
-  REQUIRE(fieldKey == HydroFieldNames::specificThermalEnergy and 
-          nodeListKey == UpdatePolicyBase<Dimension>::wildcard());
+  REQUIRE2(fieldKey == HydroFieldNames::specificThermalEnergy and 
+           nodeListKey == UpdatePolicyBase<Dimension>::wildcard(),
+           "Bad key choice: " << key << " " << fieldKey << " " << nodeListKey);
   auto eps = state.fields(fieldKey, Scalar());
 
   // Build an increment policy to use.

@@ -11,7 +11,7 @@ def SPH(W,
         WGrad = None,
         dataBase = None,
         Q = None,
-        filter = 0.0,
+        filter = None,
         cfl = 0.25,
         useVelocityMagnitudeForDt = False,
         compatibleEnergyEvolution = True,
@@ -41,14 +41,18 @@ def SPH(W,
         print("           which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
+    # Check for deprecated arguments
+    if not filter is None:
+        print("SPH DEPRECATION WARNING: filter is no longer used -- ignoring")
+
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
     if GeometryRegistrar.coords() == CoordinateType.Spherical:
         assert ndim == 1
         if nsolid > 0:
-            constructor = SolidSphericalSPHHydroBase
+            constructor = SolidSphericalSPH
         else:
-            constructor = SphericalSPHHydroBase
+            constructor = SphericalSPH
 
         # Build the spherical kernels
         print("Constructing Spherical kernels...")
@@ -64,15 +68,15 @@ def SPH(W,
     elif GeometryRegistrar.coords() == CoordinateType.RZ:
         assert ndim == 2
         if nsolid > 0:
-            constructor = SolidSPHHydroBaseRZ
+            constructor = SolidSPHRZ
         else:
-            constructor = SPHHydroBaseRZ
+            constructor = SPHRZ
 
     else:
         if nsolid > 0:
-            constructor = eval("SolidSPHHydroBase%id" % ndim)
+            constructor = eval("SolidSPH%id" % ndim)
         else:
-            constructor = eval("SPHHydroBase%id" % ndim)
+            constructor = eval("SPH%id" % ndim)
 
     # Fill out the set of kernels
     if WPi is None:
@@ -84,16 +88,18 @@ def SPH(W,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        if GeometryRegistrar.coords() == CoordinateType.Spherical:
+            Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi.baseKernel1d)" % (ndim, Cl, Cq))
+        else:
+            Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
     xmax = (ndim,) + xmax
-    kwargs = {"W" : W,
-              "WPi" : WPi,
-              "dataBase" : dataBase,
+    kwargs = {"dataBase" : dataBase,
               "Q" : Q,
-              "filter" : filter,
+              "W" : W,
+              "WPi" : WPi,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -115,13 +121,19 @@ def SPH(W,
 
     # Build the SPH hydro
     result = constructor(**kwargs)
+
+    # Add the Q as a sub-package (to run before the hydro)
     result.Q = Q
+    result.prependSubPackage(Q)
 
     # Smoothing scale update
     if smoothingScaleMethod is None:
         WH = W.baseKernel1d if GeometryRegistrar.coords() == CoordinateType.Spherical else W
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, WH)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, WH)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, WH)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, WH)")
     result._smoothingScaleMethod = smoothingScaleMethod

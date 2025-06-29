@@ -36,38 +36,41 @@ def CRKSPH(dataBase,
         print("             which will result in fluid behaviour for those nodes.")
         raise RuntimeError("Cannot mix solid and fluid NodeLists.")
 
+    # Check for deprecated arguments
+    if not filter is None:
+        print("CRKSPH DEPRECATION WARNING: filter is no longer used -- ignoring")
+
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
     if GeometryRegistrar.coords() == CoordinateType.RZ:
         # RZ ----------------------------------------
         assert ndim == 2
         if nsolid > 0:
-            constructor = SolidCRKSPHHydroBaseRZ
+            constructor = SolidCRKSPHRZ
         else:
-            constructor = CRKSPHHydroBaseRZ
+            constructor = CRKSPHRZ
     else:
         # Cartesian ---------------------------------
         crktype = crktype.lower()
         assert crktype in ("default", "variant")
         if nsolid > 0:
-            constructor = eval("SolidCRKSPHHydroBase%id" % ndim)
+            constructor = eval("SolidCRKSPH%id" % ndim)
         else:
             if crktype == "variant":
                 constructor = eval("CRKSPHVariant%id" % ndim)
             else:
-                constructor = eval("CRKSPHHydroBase%id" % ndim)
+                constructor = eval("CRKSPH%id" % ndim)
 
     # Artificial viscosity.
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/4.0)
         Cq = 1.0*(dataBase.maxKernelExtent/4.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=W)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     kwargs = {"dataBase" : dataBase,
               "Q" : Q,
               "order" : order,
-              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -84,10 +87,16 @@ def CRKSPH(dataBase,
     result = constructor(**kwargs)
     result.Q = Q
 
+    # Add the Q as a sub-package (to run before the hydro)
+    result.prependSubPackage(Q)
+
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod

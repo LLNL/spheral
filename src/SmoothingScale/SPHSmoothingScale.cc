@@ -11,6 +11,7 @@
 #include "Kernel/TableKernel.hh"
 #include "Field/FieldList.hh"
 #include "Neighbor/ConnectivityMap.hh"
+#include "DataBase/DataBase.hh"
 #include "DataBase/IncrementBoundedState.hh"
 #include "DataBase/ReplaceBoundedState.hh"
 #include "Hydro/HydroFieldNames.hh"
@@ -64,7 +65,7 @@ template<typename Dimension>
 SPHSmoothingScale<Dimension>::
 SPHSmoothingScale(const HEvolutionType HUpdate,
                   const TableKernel<Dimension>& W):
-  SmoothingScaleBase<Dimension>(HUpdate),
+  SmoothingScaleBase<Dimension>(HUpdate, false, false),
   mWT(W),
   mZerothMoment(FieldStorageType::CopyFields),
   mFirstMoment(FieldStorageType::CopyFields) {
@@ -98,7 +99,7 @@ registerDerivatives(DataBase<Dimension>& dataBase,
 
 //------------------------------------------------------------------------------
 // Time derivative of the smoothing scale.
-// We depend on a previous package evaluating the velcoity gradient (DvDx)
+// We depend on a previous package evaluating the velocity gradient (DvDx)
 //------------------------------------------------------------------------------
 template<typename Dimension>
 void

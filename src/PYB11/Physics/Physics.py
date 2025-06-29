@@ -9,12 +9,13 @@ from PhysicsAbstractMethods import *
 class Physics:
 
     PYB11typedefs = """
-    typedef typename %(Dimension)s::Scalar Scalar;
-    typedef typename %(Dimension)s::Vector Vector;
-    typedef typename %(Dimension)s::Tensor Tensor;
-    typedef typename %(Dimension)s::SymTensor SymTensor;
-    typedef typename %(Dimension)s::ThirdRankTensor ThirdRankTensor;
-    typedef typename Physics<%(Dimension)s>::TimeStepType TimeStepType;
+    using Scalar = typename %(Dimension)s::Scalar;
+    using Vector = typename %(Dimension)s::Vector;
+    using Tensor = typename %(Dimension)s::Tensor;
+    using SymTensor = typename %(Dimension)s::SymTensor;
+    using ThirdRankTensor = typename %(Dimension)s::ThirdRankTensor;
+    using TimeStepType = typename Physics<%(Dimension)s>::TimeStepType;
+    using ResidualType = typename Physics<%(Dimension)s>::ResidualType;
 """
 
     #...........................................................................
@@ -24,6 +25,26 @@ class Physics:
 
     #...........................................................................
     # Virtual methods
+    @PYB11virtual
+    @PYB11const
+    def dtImplicit(self,
+                   dataBase = "const DataBase<%(Dimension)s>&",
+                   state = "const State<%(Dimension)s>&",
+                   derivs = "const StateDerivatives<%(Dimension)s>&",
+                   currentTime = "const Scalar"):
+        "Optionally compute a timestep for implicit time advancement"
+        return "TimeStepType"
+
+    @PYB11virtual
+    @PYB11const
+    def maxResidual(self,
+                    dataBase = "const DataBase<%(Dimension)s>&",
+                    state1 = "const State<%(Dimension)s>&",
+                    state0 = "const State<%(Dimension)s>&",
+                    tol = "const Scalar"):
+        "Compute the maximum residual difference between the States"
+        return "ResidualType"
+
     @PYB11virtual
     def applyGhostBoundaries(self,
                              state = "State<%(Dimension)s>&",
@@ -74,8 +95,8 @@ temperature or pressure."""
                    dataBase = "const DataBase<%(Dimension)s>&", 
                    state = "State<%(Dimension)s>&",
                    derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called."
-        return "void"
+        "Some packages might want a hook to do some initializations before the evaluateDerivatives() method is called.  Returns a bool indicating if boundary conditions should be applied."
+        return "bool"
 
     @PYB11virtual
     def finalize(self,
@@ -105,7 +126,8 @@ temperature or pressure."""
                         dataBase = "const DataBase<%(Dimension)s>&", 
                         state = "State<%(Dimension)s>&",
                         derivs = "StateDerivatives<%(Dimension)s>&"):
-        "Provide a hook to be called after the state has been updated and boundary conditions have been enforced."
+        """Provide a hook to be called after the state has been updated and boundary conditions have been enforced.
+Returns a bool indicating if boundary conditions should be applied."""
         return "bool"
 
     @PYB11virtual

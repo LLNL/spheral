@@ -159,18 +159,10 @@ ProbabilisticDamagePolicy<Dimension>::
 ProbabilisticDamagePolicy(const bool damageInCompression,  // allow damage in compression
                           const double kWeibull,           // coefficient in Weibull power-law
                           const double mWeibull):          // exponenent in Weibull power-law
-  UpdatePolicyBase<Dimension>({SolidFieldNames::strain}),
+  FieldUpdatePolicy<Dimension, SymTensor>({SolidFieldNames::strain}),
   mDamageInCompression(damageInCompression),
   mkWeibull(kWeibull),
   mmWeibull(mWeibull) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ProbabilisticDamagePolicy<Dimension>::
-~ProbabilisticDamagePolicy() {
 }
 
 //------------------------------------------------------------------------------
@@ -288,15 +280,16 @@ update(const KeyType& key,
           const auto alpha = (*alphaPtr)(i);
           const auto DalphaDti = std::min(0.0, (*DalphaDtPtr)(i));   // Only allowed to grow damage, not reduce it.
           const auto phi0 = 1.0 - 1.0/alpha0;
-          const auto DD13Dt_p = -FastMath::CubeRootHalley2(phi0)/(3.0 * pow(1.0 - (alpha - 1.0)*safeInv(alpha0 - 1.0) + Dtiny, 2.0/3.0) * (alpha0 - 1.0))*Dtiny1*DalphaDti;
-          CHECK(DD13Dt_p >= 0.0);
+          const auto DD13Dt_p = -FastMath::CubeRootHalley2(phi0)*safeInv(3.0 * pow(1.0 - (alpha - 1.0)*safeInv(alpha0 - 1.0) + Dtiny, 2.0/3.0) * (alpha0 - 1.0))*Dtiny1*DalphaDti;
+          CHECK2(DD13Dt_p >= 0.0, "bad DD13Dt_p: " << DD13Dt_p);
           D113 = std::min(1.0, D113 + multiplier*DD13Dt_p);
         }
 
         // Increment the damage tensor.
         const auto D1 = std::max(0.0, std::min(1.0, FastMath::cube(D113)));
-        CHECK((D1 - D0)*multiplier >= 0.0);
-        Di += (D1 - D0)*strainDirection.selfdyad();
+        const auto deltaD = std::abs(D1 - D0)*sgn(multiplier);
+        CHECK2(deltaD*multiplier >= 0.0, D0 << " " << D1 << " " << multiplier << " " << deltaD*multiplier);
+        Di += deltaD*strainDirection.selfdyad();
       }
     }
 

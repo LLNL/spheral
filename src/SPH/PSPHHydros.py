@@ -10,7 +10,7 @@ def PSPH(dataBase,
          W,
          WPi = None,
          Q = None,
-         filter = 0.0,
+         filter = None,
          cfl = 0.25,
          useVelocityMagnitudeForDt = False,
          compatibleEnergyEvolution = True,
@@ -34,9 +34,13 @@ def PSPH(dataBase,
         print("PSPH Warning: you have provided solid NodeLists, but PSPH currently does not have a solid option.")
         print("              The fluid limit will be provided for now.")
 
+    # Check for deprecated arguments
+    if not filter is None:
+        print("PSPH DEPRECATION WARNING: filter is no longer used -- ignoring")
+
     # Pick the appropriate C++ constructor from dimensionality and coordinates
     ndim = dataBase.nDim
-    constructor = eval("PSPHHydroBase%id" % ndim)
+    constructor = eval("PSPH%id" % ndim)
 
     # Fill out the set of kernels
     if WPi is None:
@@ -46,7 +50,7 @@ def PSPH(dataBase,
     if not Q:
         Cl = 2.0*(dataBase.maxKernelExtent/2.0)
         Cq = 2.0*(dataBase.maxKernelExtent/2.0)**2
-        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g)" % (ndim, Cl, Cq))
+        Q = eval("LimitedMonaghanGingoldViscosity%id(Clinear=%g, Cquadratic=%g, kernel=WPi)" % (ndim, Cl, Cq))
 
     # Build the constructor arguments
     xmin = (ndim,) + xmin
@@ -55,7 +59,6 @@ def PSPH(dataBase,
               "Q" : Q,
               "W" : W,
               "WPi" : WPi,
-              "filter" : filter,
               "cfl" : cfl,
               "useVelocityMagnitudeForDt" : useVelocityMagnitudeForDt,
               "compatibleEnergyEvolution" : compatibleEnergyEvolution,
@@ -72,10 +75,16 @@ def PSPH(dataBase,
     result = constructor(**kwargs)
     result.Q = Q
     
+    # Add the Q as a sub-package (to run before the hydro)
+    result.prependSubPackage(Q)
+
     # Smoothing scale update
     if smoothingScaleMethod is None:
         if ASPH:
-            smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
+            if isinstance(ASPH, str) and ASPH.upper() == "CLASSIC":
+                smoothingScaleMethod = eval(f"ASPHClassicSmoothingScale{ndim}d({HUpdate}, W)")
+            else:
+                smoothingScaleMethod = eval(f"ASPHSmoothingScale{ndim}d({HUpdate}, W)")
         else:
             smoothingScaleMethod = eval(f"SPHSmoothingScale{ndim}d({HUpdate}, W)")
     result._smoothingScaleMethod = smoothingScaleMethod

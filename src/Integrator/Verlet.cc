@@ -34,23 +34,6 @@ using std::abs;
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Empty constructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>::Verlet():
-  Integrator<Dimension>() {
-}
-
-//------------------------------------------------------------------------------
-// Construct with the given DataBase.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>::
-Verlet(DataBase<Dimension>& dataBase):
-  Integrator<Dimension>(dataBase) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given DataBase and Physics packages.
 //------------------------------------------------------------------------------
 template<typename Dimension>
@@ -58,26 +41,6 @@ Verlet<Dimension>::
 Verlet(DataBase<Dimension>& dataBase,
                const vector<Physics<Dimension>*>& physicsPackages):
   Integrator<Dimension>(dataBase, physicsPackages) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>::~Verlet() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-template<typename Dimension>
-Verlet<Dimension>&
-Verlet<Dimension>::
-operator=(const Verlet<Dimension>& rhs) {
-  if (this != &rhs) {
-    Integrator<Dimension>::operator=(rhs);
-  }
-  return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -118,11 +81,11 @@ step(typename Dimension::Scalar maxTime,
   TIME_END("VerletDt");
 
   // If we're doing dt checking, we need to copy the initial state.
-  State<Dimension> state0;
+  std::unique_ptr<State<Dimension>> state0;
   if (dtcheck) {
     TIME_BEGIN("VerletCopyState0");
-    state0 = state;
-    state0.copyState();
+    state0 = std::make_unique<State<Dimension>>(state);
+    state0->copyState();
     TIME_END("VerletCopyState0");
   }
 
@@ -141,10 +104,7 @@ step(typename Dimension::Scalar maxTime,
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + hdt0, hdt0, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + hdt0, hdt0, db, state, derivs);
   TIME_END("VerletPredict1");
 
   // Check if the timestep is still a good idea...
@@ -156,7 +116,7 @@ step(typename Dimension::Scalar maxTime,
                                       derivs);
     if (dtnew < dtcheckFrac*dt0) {
       this->currentTime(t);
-      state.assign(state0);
+      state.assign(*state0);
       return false;
       TIME_END("VerletDtCheck");
     }
@@ -183,10 +143,7 @@ step(typename Dimension::Scalar maxTime,
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + dt0, dt0, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   TIME_END("VerletPredict2");
 
   // Evaluate the derivatives at the predicted end-point.
@@ -207,7 +164,7 @@ step(typename Dimension::Scalar maxTime,
                                       derivs);
     if (dtnew < dtcheckFrac*dt0) {
       this->currentTime(t);
-      state.assign(state0);
+      state.assign(*state0);
       TIME_END("VerletDtCheck");
       return false;
     }
@@ -226,10 +183,7 @@ step(typename Dimension::Scalar maxTime,
   this->enforceBoundaries(state, derivs);
   this->applyGhostBoundaries(state, derivs);
   this->finalizeGhostBoundaries();
-  if (this->postStateUpdate(t + dt0, dt0, db, state, derivs)) {
-    this->applyGhostBoundaries(state, derivs);
-    this->finalizeGhostBoundaries();
-  }
+  this->postStateUpdate(t + dt0, dt0, db, state, derivs);
   TIME_END("VerletUpdateState");
 
   // Apply any physics specific finalizations.
