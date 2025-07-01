@@ -20,6 +20,7 @@
 #include "Field/Field.hh"
 #include "Distributed/Communicator.hh"
 #include "Utilities/DBC.hh"
+#include "Utilities/Hashes.hh"
 
 #include <cstdio>
 #include <cstdlib>
