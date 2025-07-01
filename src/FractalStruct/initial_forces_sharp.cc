@@ -61,9 +61,9 @@ namespace FractalSpace
     for(int lev=0;lev <= highest_level_fft;++lev)
       {
 	FileFractal << "make power " << lev << " " << highest_level_fft << "\n";
-	double boost_power=pow(8.0,lev);
-	double boost_scale=pow(2.0,lev);
-	double force_const=fourpi/boost_scale/boost_scale*length_5;
+	double power=pow(8.0,lev);
+	double scale=pow(2.0,lev);
+	double force_const=fourpi/scale/scale*length_5;
 	int division=Misc::pow(2,frac.get_level_max()-lev);
 	int wrapping=length*division;
 	int cut_lev=-1;
@@ -89,7 +89,7 @@ namespace FractalSpace
 		    bool shorty=(shorty_x && shorty_y && shorty_z) || k < 0.001;
 		    double amplitude_raw=0.0;
 		    if(k > 0.001 && !shorty)
-		      amplitude_raw=sqrt(boost_power*cosmos_power(k/mem.scaling,mem));
+		      amplitude_raw=sqrt(power*cosmos_power(k/mem.scaling,mem));
 		    double angle=0.0;
 		    if(nyquist)
 		      {
