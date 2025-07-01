@@ -91,7 +91,6 @@ set(Utilities_headers
     computeConvexHull.hh
     computeShepardsInterpolation.hh
     erff.hh
-    fakestl.hh
     globalBoundingVolumes.hh
     globalNodeIDs.hh
     globalNodeIDsInline.hh
