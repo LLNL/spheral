@@ -17,9 +17,6 @@
 
 #include <limits>
 
-#include "boost/assign.hpp"
-using namespace boost::assign;
-
 using std::vector;
 using std::string;
 using std::pair;
@@ -71,8 +68,7 @@ hashPosition(const Dim<2>::Vector& position,
   REQUIRE(position.y() >= boxmin.y() and position.y() <= boxmax.y());
 
   // The set of transforms that define the Peano-Hilbert fractal pattern.
-  vector<PeanoHilbertTransform2d> transforms;
-  transforms += 
+  vector<PeanoHilbertTransform2d> transforms = {
     PeanoHilbertTransform2d(0, 1,
                             1, 0),
     PeanoHilbertTransform2d(1, 0,
@@ -80,7 +76,8 @@ hashPosition(const Dim<2>::Vector& position,
     PeanoHilbertTransform2d(1, 0,
                             0, 1),
     PeanoHilbertTransform2d(0, -1,
-                            -1, 0);
+                            -1, 0)
+  };
   CHECK(transforms.size() == 4);
 
   // Get the box dimensions.
@@ -165,8 +162,7 @@ hashPosition(const Dim<3>::Vector& position,
   REQUIRE(position.z() >= boxmin.z() and position.z() <= boxmax.z());
 
   // The set of transforms that define the Peano-Hilbert fractal pattern.
-  vector<PeanoHilbertTransform3d> transforms;
-  transforms += 
+  vector<PeanoHilbertTransform3d> transforms = {
     PeanoHilbertTransform3d(1, 0, 0,
                             0, 0, 1,
                             0, 1, 0),
@@ -190,7 +186,8 @@ hashPosition(const Dim<3>::Vector& position,
                             -1, 0, 0),
     PeanoHilbertTransform3d(1, 0, 0,
                             0, 0, -1,
-                            0, -1, 0);
+                            0, -1, 0)
+  };
   CHECK(transforms.size() == 8);
 
   // Get the box dimensions.
