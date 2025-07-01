@@ -45,22 +45,6 @@ namespace {
 //   }
 // }
 
-// //------------------------------------------------------------------------------
-// // Check if a boost::any object contains a pointer to the given type
-// //------------------------------------------------------------------------------
-// template<typename T>
-// inline
-// bool
-// is_ptype(boost::any& anyT) {
-//   return anyT.type() == typeid(T*);
-// }
-
-// template<typename Dimension>
-// inline
-// bool
-// is_known_noncopy_type(boost::any& anyT) {
-//   return is_ptype<ReproducingKernel<Dimension>>(anyT);
-
 //------------------------------------------------------------------------------
 // Comparison
 //------------------------------------------------------------------------------
