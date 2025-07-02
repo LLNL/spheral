@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <limits.h>
 #include <string>
-#include "boost/static_assert.hpp"
 
 #include "Utilities/SpheralFunctions.hh"
 #include "Utilities/DBC.hh"
