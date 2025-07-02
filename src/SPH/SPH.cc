@@ -25,6 +25,8 @@
 #include "Utilities/range.hh"
 #include "Utilities/Timer.hh"
 #include "Utilities/timingUtilities.hh"
+#include "umpire/ResourceManager.hpp"
+#include "umpire/strategy/QuickPool.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -186,8 +188,11 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
   //static double totalLoopTime = 0.0;
 
   // The kernels and such.
-  const auto& W = this->kernel();
-  const auto& WQ = this->PiKernel();
+  const auto& W_h = this->kernel();
+  const auto& WQ_h = this->PiKernel();
+
+  
+
   const auto  oneKernel = (W == WQ);
 
   // A few useful constants we'll use in the following loop.
@@ -480,6 +485,8 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
 
   }   // OpenMP parallel region
   TIME_END("SPHevalDerivs_pairs");
+
+  
 
   // Finish up the derivatives for each point.
   TIME_BEGIN("SPHevalDerivs_final");

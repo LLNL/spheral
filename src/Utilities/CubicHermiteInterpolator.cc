@@ -85,16 +85,10 @@ CubicHermiteInterpolator::initialize(const double xmin,
   mVals.resize(2u*mN);
 
   // Copy the function values
-  std::copy(yvals.begin(), yvals.end(), mVals.begin());
+  std::copy(yvals.begin(), yvals.end(), mVals.data());
 
   // Estimate the gradients at our lattice points
   this->initializeGradientKnots();
-  // const auto dxInv = 1.0/mXstep;
-  // for (auto i = 1u; i < mN - 1u; ++i) {
-  //   mVals[mN + i] = 0.5*(mVals[i + 1u] - mVals[i - 1u])*dxInv;
-  // }
-  // mVals[mN] = (mVals[1] - mVals[0])*dxInv;
-  // mVals[2u*mN - 1u] = (mVals[mN - 1u] - mVals[mN - 2u])*dxInv;
 }
 
 //------------------------------------------------------------------------------
@@ -109,11 +103,16 @@ CubicHermiteInterpolator::~CubicHermiteInterpolator() {
 bool
 CubicHermiteInterpolator::
 operator==(const CubicHermiteInterpolator& rhs) const {
-  return ((mN == rhs.mN) and
-          (mXmin == rhs.mXmin) and
-          (mXmax == rhs.mXmax) and
-          (mXstep == rhs.mXstep) and
-          (mVals == rhs.mVals));
+    bool same = ((mN == rhs.mN) and
+            (mXmin == rhs.mXmin) and
+            (mXmax == rhs.mXmax) and
+            (mXstep == rhs.mXstep));
+    if(same) {
+        for(size_t i=0; i<2*mN; ++i) {
+            if(mVals[i] != rhs.mVals[i]) return false;
+        }
+    }
+    return same;
 }
 
 //------------------------------------------------------------------------------
@@ -208,11 +207,6 @@ initializeGradientKnots() {
   const Eigen::VectorXd x = solver.solve(b);
   CHECK(solver.info() == Eigen::Success);
   for (auto k = 0u; k < mN; ++k) mVals[mN + k] = x(k);
-
-  // Old crappy but simple method for comparison
-  // mVals[mN] = (mVals[1] - mVals[0])/mXstep;
-  // mVals[2*mN-1] = (mVals[mN-1] - mVals[mN-2])/mXstep;
-  // for (auto i = 1u; i  < mN-1u; ++i) mVals[mN + i] = (mVals[i+1] - mVals[i-1])/(2.0*mXstep);
 }
 
 }

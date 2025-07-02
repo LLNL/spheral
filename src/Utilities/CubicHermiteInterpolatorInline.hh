@@ -9,7 +9,7 @@ namespace Spheral {
 // each point.
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
+RAJA_HOST_DEVICE inline
 CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
                                                    const double xmax,
                                                    const size_t n,
@@ -26,7 +26,7 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
 // Construct to fit the given function with it's gradient
 //------------------------------------------------------------------------------
 template<typename Func, typename GradFunc>
-inline
+RAJA_HOST_DEVICE inline
 CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
                                                    const double xmax,
                                                    const size_t n,
@@ -44,7 +44,7 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
 // (Re)initialize from a function
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
+RAJA_HOST_DEVICE inline
 void
 CubicHermiteInterpolator::initialize(const double xmin,
                                      const double xmax,
@@ -81,7 +81,7 @@ CubicHermiteInterpolator::initialize(const double xmin,
 // (Re)initialize from a function and its gradient
 //------------------------------------------------------------------------------
 template<typename Func, typename GradFunc>
-inline
+RAJA_HOST_DEVICE inline
 void
 CubicHermiteInterpolator::initialize(const double xmin,
                                      const double xmax,
@@ -109,7 +109,7 @@ CubicHermiteInterpolator::initialize(const double xmin,
 //------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::operator()(const double x) const {
   if (x < mXmin) {
@@ -122,7 +122,7 @@ CubicHermiteInterpolator::operator()(const double x) const {
   }
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::operator()(const double x,
                                      const size_t i0) const {
@@ -139,7 +139,7 @@ CubicHermiteInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 // Interpolate for dy/dx
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::prime(const double x) const {
   if (x < mXmin) {
@@ -152,7 +152,7 @@ CubicHermiteInterpolator::prime(const double x) const {
   }
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::prime(const double x,
                                 const size_t i0) const {
@@ -167,7 +167,7 @@ CubicHermiteInterpolator::prime(const double x,
 //------------------------------------------------------------------------------
 // Interpolate for d^2y/dx^2
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::prime2(const double x) const {
   if (x < mXmin or x > mXmax) {
@@ -178,7 +178,7 @@ CubicHermiteInterpolator::prime2(const double x) const {
   }
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::prime2(const double x,
                                  const size_t i0) const {
@@ -192,7 +192,7 @@ CubicHermiteInterpolator::prime2(const double x,
 //------------------------------------------------------------------------------
 // Return the lower bound entry in the table for the given x coordinate
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 size_t
 CubicHermiteInterpolator::lowerBound(const double x) const {
   const auto result = std::min(mN - 2u, size_t(std::max(0.0, x - mXmin)/mXstep));
@@ -203,25 +203,25 @@ CubicHermiteInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 // Hermite basis functions
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::h00(const double t) const {
   return (2.0*t - 3.0)*t*t + 1.0;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::h10(const double t) const {
   return (t - 2.0)*t*t + t;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::h01(const double t) const {
   return (3.0 - 2.0*t)*t*t;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::h11(const double t) const {
   return (t - 1.0)*t*t;
@@ -230,34 +230,34 @@ CubicHermiteInterpolator::h11(const double t) const {
 //------------------------------------------------------------------------------
 // Data accessors
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 size_t
 CubicHermiteInterpolator::size() const {
   return mN;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::xmin() const {
   return mXmin;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::xmax() const {
   return mXmax;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 CubicHermiteInterpolator::xstep() const {
   return mXstep;
 }
 
-inline
-const std::vector<double>&
+RAJA_HOST_DEVICE inline
+const double*
 CubicHermiteInterpolator::vals() const {
-  return mVals;
+  return mVals.data();
 }
 
 }

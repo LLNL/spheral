@@ -8,7 +8,7 @@ namespace Spheral {
 // Return the kernel weight for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 typename Dimension::Scalar
 TableKernel<Dimension>::kernelValue(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
@@ -24,7 +24,7 @@ TableKernel<Dimension>::kernelValue(const Scalar etaij, const Scalar Hdet) const
 // Return the gradient value for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 typename Dimension::Scalar
 TableKernel<Dimension>::gradValue(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
@@ -40,7 +40,7 @@ TableKernel<Dimension>::gradValue(const Scalar etaij, const Scalar Hdet) const {
 // Return the second derivative value for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 typename Dimension::Scalar
 TableKernel<Dimension>::grad2Value(const Scalar etaij, const Scalar Hdet) const {
   REQUIRE(etaij >= 0.0);
@@ -56,7 +56,7 @@ TableKernel<Dimension>::grad2Value(const Scalar etaij, const Scalar Hdet) const 
 // Return the kernel and gradient for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 void
 TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
                                       const typename Dimension::Vector& etai,
@@ -74,8 +74,8 @@ TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
     gradW = H*etaij.unitVector()*deltaWsum;
   } else {
     W = 0.0;
-    deltaWsum = 0.0;
     gradW.Zero();
+    deltaWsum = 0.0;
   }
 }
 
@@ -83,7 +83,7 @@ TableKernel<Dimension>::kernelAndGrad(const typename Dimension::Vector& etaj,
 // Return the kernel and gradient value for a given normalized distance.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 void
 TableKernel<Dimension>::kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
                                            Scalar& Wi, Scalar& gWi) const {
@@ -103,27 +103,22 @@ TableKernel<Dimension>::kernelAndGradValue(const Scalar etaij, const Scalar Hdet
 // Return the kernel and gradient values for a set of normalized distances.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-inline
+RAJA_HOST_DEVICE inline
 void
-TableKernel<Dimension>::kernelAndGradValues(const std::vector<Scalar>& etaijs,
-                                            const std::vector<Scalar>& Hdets,
-                                            std::vector<Scalar>& kernelValues,
-                                            std::vector<Scalar>& gradValues) const {
+TableKernel<Dimension>::kernelAndGradValues(const Scalar* etaijs,
+                                            const Scalar* Hdets,
+                                            Scalar* kernelValues,
+                                            Scalar* gradValues,
+                                            const size_t n) const {
   // Preconditions.
-  const auto n = etaijs.size();
   BEGIN_CONTRACT_SCOPE
   {
-    REQUIRE(Hdets.size() == n);
     for (auto i = 0u; i < n; ++i) {
       REQUIRE(etaijs[i] >= 0.0);
       REQUIRE(Hdets[i] >= 0.0);
     }
   }
   END_CONTRACT_SCOPE
-
-  // Prepare the results.
-  kernelValues.resize(n);
-  gradValues.resize(n);
 
   // Fill those suckers in.
   for (auto i = 0u; i < n; ++i) {
