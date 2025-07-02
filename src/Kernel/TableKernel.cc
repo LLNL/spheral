@@ -23,160 +23,11 @@ using std::abs;
 
 namespace Spheral {
 
-namespace {  // anonymous
-
-//------------------------------------------------------------------------------
-// Sum the Kernel values for the given stepsize (SPH)
-//------------------------------------------------------------------------------
-inline
-double
-sumKernelValues(const TableKernel<Dim<1>>& W,
-                const double nPerh) {
-  REQUIRE(nPerh > 0.0);
-  const auto deta = 1.0/nPerh;
-  double result = 0.0;
-  double etar = deta;
-  while (etar < W.kernelExtent()) {
-    result += 2.0*W.kernelValueSPH(etar);
-    etar += deta;
-  }
-  return result;
-}
-
-inline
-double
-sumKernelValues(const TableKernel<Dim<2>>& W,
-                const double nPerh) {
-  REQUIRE(nPerh > 0.0);
-  const auto deta = 1.0/nPerh;
-  double result = 0.0;
-  double etar = deta;
-  while (etar < W.kernelExtent()) {
-    result += 2.0*M_PI*etar/deta*W.kernelValueSPH(etar);
-    etar += deta;
-  }
-  return sqrt(result);
-}
-
-inline
-double
-sumKernelValues(const TableKernel<Dim<3>>& W,
-                const double nPerh) {
-  REQUIRE(nPerh > 0.0);
-  const auto deta = 1.0/nPerh;
-  double result = 0.0;
-  double etar = deta;
-  while (etar < W.kernelExtent()) {
-    result += 4.0*M_PI*FastMath::square(etar/deta)*W.kernelValueSPH(etar);
-    etar += deta;
-  }
-  return pow(result, 1.0/3.0);
-}
-
-//------------------------------------------------------------------------------
-// Compute the (f1,f2) integrals relation for the given zeta = r/h 
-// (RZ corrections).
-//------------------------------------------------------------------------------
-template<typename KernelType>
-class volfunc {
-  const KernelType& W;
-public:
-  volfunc(const KernelType& W): W(W) {}
-  double operator()(const double eta) const {
-    return W.kernelValue(eta, 1.0);
-  }
-};
-
-template<typename KernelType>
-class f1func {
-  const KernelType& W;
-  double zeta;
-public:
-  f1func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
-  double operator()(const double eta) const {
-    return abs(safeInvVar(zeta)*eta)*W.kernelValue(abs(zeta - eta), 1.0);
-  }
-};
-
-
-template<typename KernelType>
-class f2func {
-  const KernelType& W;
-  double zeta;
-public:
-  f2func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
-  double operator()(const double eta) const {
-    return safeInvVar(zeta*zeta)*eta*abs(eta)*W.kernelValue(abs(zeta - eta), 1.0);
-  }
-};
-
-
-template<typename KernelType>
-class gradf1func {
-  const KernelType& W;
-  double zeta;
-public:
-  gradf1func(const KernelType& W, const double zeta): W(W), zeta(zeta) {}
-  double operator()(const double eta) const {
-    const double Wu = W.kernelValue(abs(zeta - eta), 1.0);
-    const double gWu = W.gradValue(abs(zeta - eta), 1.0);
-    const double gf1inv = safeInvVar(zeta)*abs(eta)*gWu - safeInvVar(zeta*zeta)*abs(eta)*Wu;
-    if (eta < 0.0) {
-      return -gf1inv;
-    } else {
-      return gf1inv;
-    }
-  }
-};
-
-
-template<typename KernelType>
-double
-f1Integral(const KernelType& W,
-           const double zeta,
-           const unsigned numbins) {
-  const double etaMax = W.kernelExtent();
-  CHECK(zeta <= etaMax);
-  return safeInvVar(simpsonsIntegration<f1func<KernelType>, double, double>(f1func<KernelType>(W, zeta), 
-                                                                            zeta - etaMax, 
-                                                                            zeta + etaMax,
-                                                                            numbins));
-}
-
-template<typename KernelType>
-double
-f2Integral(const KernelType& W,
-           const double zeta,
-           const unsigned numbins) {
-  const double etaMax = W.kernelExtent();
-  CHECK(zeta <= etaMax);
-  return safeInvVar(simpsonsIntegration<f2func<KernelType>, double, double>(f2func<KernelType>(W, zeta), 
-                                                                            zeta - etaMax, 
-                                                                            zeta + etaMax,
-                                                                            numbins));
-}
-
-template<typename KernelType>
-double
-gradf1Integral(const KernelType& W,
-               const double zeta,
-               const unsigned numbins) {
-  const double etaMax = W.kernelExtent();
-  CHECK(zeta <= etaMax);
-  return simpsonsIntegration<gradf1func<KernelType>, double, double>(gradf1func<KernelType>(W, zeta), 
-                                                                     zeta - etaMax, 
-                                                                     zeta + etaMax,
-                                                                     numbins);
-}
-
-}  // anonymous
-
 //------------------------------------------------------------------------------
 // Construct from a kernel.
 //------------------------------------------------------------------------------
 template<typename Dimension>
-template<typename KernelType>
-TableKernel<Dimension>::TableKernel(const KernelType& kernel,
+TableKernel<Dimension>::TableKernel(const TableKernel<Dimension>& kernel,
                                     const unsigned numPoints,
                                     const typename Dimension::Scalar minNperh,
                                     const typename Dimension::Scalar maxNperh):
@@ -329,6 +180,21 @@ typename Dimension::Scalar
 TableKernel<Dimension>::
 equivalentWsum(const Scalar nPerh) const {
   return std::max(0.0, mWsumLookup(nPerh));
+}
+
+//------------------------------------------------------------------------------
+// Look up the kernel and first derivative for a set.
+//------------------------------------------------------------------------------
+template<typename Dimension>
+void
+TableKernel<Dimension>::kernelAndGradValues(const Scalar* etaijs,
+                                            const Scalar* Hdets,
+                                            Scalar* kernelValues,
+                                            Scalar* gradValues,
+                                            const size_t n) const {
+  for (size_t i = 0; i < n; ++i) {
+    kernelAndGradValue(etaijs[i], Hdets[i], kernelValues[i], gradValues[i]);
+  }
 }
 
 }

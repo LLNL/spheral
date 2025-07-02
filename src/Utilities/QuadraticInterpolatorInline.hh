@@ -9,7 +9,7 @@ namespace Spheral {
 // Construct to fit the given function
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
+RAJA_HOST_DEVICE inline
 QuadraticInterpolator::QuadraticInterpolator(double xmin,
                                              double xmax,
                                              size_t n,
@@ -26,7 +26,7 @@ QuadraticInterpolator::QuadraticInterpolator(double xmin,
 // Initialize to fit the given function
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
+RAJA_HOST_DEVICE inline
 void
 QuadraticInterpolator::initialize(double xmin,
                                   double xmax,
@@ -47,14 +47,14 @@ QuadraticInterpolator::initialize(double xmin,
 //------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::operator()(const double x,
                                   const size_t i0) const {
@@ -65,14 +65,14 @@ QuadraticInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 // Interpolate the first derivative the given x value.
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime(const double x,
                              const size_t i0) const {
@@ -84,14 +84,14 @@ QuadraticInterpolator::prime(const double x,
 // Interpolate the second derivative for the given x value.
 // Just a constant value, so not a great fit.
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mcoeffs[i0 + 2];
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime2(const double /*x*/,
                               const size_t i0) const {
@@ -102,7 +102,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 //------------------------------------------------------------------------------
 // Return the lower bound entry in the table for the given x coordinate
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
@@ -113,34 +113,34 @@ QuadraticInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 // Data accessors
 //------------------------------------------------------------------------------
-inline
+RAJA_HOST_DEVICE inline
 size_t
 QuadraticInterpolator::size() const {
   return mcoeffs.size();
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::xmin() const {
   return mXmin;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::xmax() const {
   return mXmax;
 }
 
-inline
+RAJA_HOST_DEVICE inline
 double
 QuadraticInterpolator::xstep() const {
   return mXstep;
 }
 
-inline
-const std::vector<double>&
+RAJA_HOST_DEVICE inline
+const double*
 QuadraticInterpolator::coeffs() const {
-  return mcoeffs;
+  return mcoeffs.data();
 }
 
 }

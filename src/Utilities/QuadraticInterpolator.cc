@@ -89,10 +89,15 @@ QuadraticInterpolator::~QuadraticInterpolator() {
 bool
 QuadraticInterpolator::
 operator==(const QuadraticInterpolator& rhs) const {
-  return ((mN1 == rhs.mN1) and
+  bool same = ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
-          (mXmax == rhs.mXmax) and
-          (mcoeffs == rhs.mcoeffs));
+          (mXmax == rhs.mXmax));
+  if(same) {
+    for(size_t i=0; i<3*(mN1+1); ++i) {
+      if(mcoeffs[i] != rhs.mcoeffs[i]) return false;
+    }
+  }
+  return same;
 }
 
 }

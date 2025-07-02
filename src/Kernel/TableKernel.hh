@@ -45,51 +45,52 @@ public:
   bool operator==(const TableKernel& rhs) const;
 
   // Return the kernel weight for a given normalized distance or position.
-  Scalar kernelValue(const Scalar etaij, const Scalar Hdet) const;
+  RAJA_HOST_DEVICE Scalar kernelValue(const Scalar etaij, const Scalar Hdet) const;
 
   // Return the gradient value for a given normalized distance or position.
-  Scalar gradValue(const Scalar etaij, const Scalar Hdet) const;
+  RAJA_HOST_DEVICE Scalar gradValue(const Scalar etaij, const Scalar Hdet) const;
 
   // Return the second derivative value for a given normalized distance or position.
-  Scalar grad2Value(const Scalar etaij, const Scalar Hdet) const;
+  RAJA_HOST_DEVICE Scalar grad2Value(const Scalar etaij, const Scalar Hdet) const;
 
   // Simultaneously return the kernel value and first derivative.
-  void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
+  RAJA_HOST_DEVICE void kernelAndGrad(const Vector& etaj, const Vector& etai, const SymTensor& H,
                      Scalar& W,
                      Vector& gradW,
                      Scalar& deltaWsum) const;
-  void kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
+  RAJA_HOST_DEVICE void kernelAndGradValue(const Scalar etaij, const Scalar Hdet,
                           Scalar& W,
                           Scalar& gW) const;
 
   // Look up the kernel and first derivative for a set.
-  void kernelAndGradValues(const std::vector<Scalar>& etaijs,
-                           const std::vector<Scalar>& Hdets,
-                           std::vector<Scalar>& kernelValues,
-                           std::vector<Scalar>& gradValues) const;
+  void kernelAndGradValues(const Scalar* etaijs,
+                           const Scalar* Hdets,
+                           Scalar* kernelValues,
+                           Scalar* gradValues,
+                           const size_t n) const;
 
   // Special kernel values for use in finding smoothing scales (SPH and ASPH versions)
   // ***These are only intended for use adapting smoothing scales***, and are used
   // for the succeeding equivalentNodesPerSmoothingScale lookups!
-  Scalar kernelValueSPH(const Scalar etaij) const;
-  Scalar kernelValueASPH(const Scalar etaij, const Scalar nPerh) const;
+  RAJA_HOST_DEVICE Scalar kernelValueSPH(const Scalar etaij) const;
+  RAJA_HOST_DEVICE Scalar kernelValueASPH(const Scalar etaij, const Scalar nPerh) const;
 
   // Return the equivalent number of nodes per smoothing scale implied by the given
   // sum of kernel values, using the zeroth moment SPH algorithm
-  Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
-  Scalar equivalentWsum(const Scalar nPerh) const;
+  RAJA_HOST_DEVICE Scalar equivalentNodesPerSmoothingScale(const Scalar Wsum) const;
+  RAJA_HOST_DEVICE Scalar equivalentWsum(const Scalar nPerh) const;
 
   // Access the internal data
-  size_t numPoints() const                                    { return mNumPoints; }
-  Scalar minNperhLookup() const                               { return mMinNperh; }
-  Scalar maxNperhLookup() const                               { return mMaxNperh; }
+  RAJA_HOST_DEVICE size_t numPoints() const                                    { return mNumPoints; }
+  RAJA_HOST_DEVICE Scalar minNperhLookup() const                               { return mMinNperh; }
+  RAJA_HOST_DEVICE Scalar maxNperhLookup() const                               { return mMaxNperh; }
 
   // Direct access to our interpolators
-  const InterpolatorType& Winterpolator() const               { return mInterp; }
-  const InterpolatorType& gradWinterpolator() const           { return mGradInterp; }
-  const InterpolatorType& grad2Winterpolator() const          { return mGrad2Interp; }
-  const NperhInterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
-  const NperhInterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
+  RAJA_HOST_DEVICE const InterpolatorType& Winterpolator() const               { return mInterp; }
+  RAJA_HOST_DEVICE const InterpolatorType& gradWinterpolator() const           { return mGradInterp; }
+  RAJA_HOST_DEVICE const InterpolatorType& grad2Winterpolator() const          { return mGrad2Interp; }
+  RAJA_HOST_DEVICE const NperhInterpolatorType& nPerhInterpolator() const      { return mNperhLookup; }
+  RAJA_HOST_DEVICE const NperhInterpolatorType& WsumInterpolator() const       { return mWsumLookup; }
 
 private:
   //--------------------------- Private Interface ---------------------------//
