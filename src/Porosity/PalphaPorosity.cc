@@ -237,7 +237,6 @@ void
 PalphaPorosity<Dimension>::
 dumpState(FileIO& file, const string& pathName) const {
   PorosityModel<Dimension>::dumpState(file, pathName);
-  file.write(mc0, pathName + "/c0");
   file.write(mdPdU, pathName + "/dPdU");
   file.write(mdPdR, pathName + "/dPdR");
 }
@@ -250,7 +249,6 @@ void
 PalphaPorosity<Dimension>::
 restoreState(const FileIO& file, const string& pathName) {
   PorosityModel<Dimension>::restoreState(file, pathName);
-  file.read(mc0, pathName + "/c0");
   file.read(mdPdU, pathName + "/dPdU");
   file.read(mdPdR, pathName + "/dPdR");
 }
