@@ -1,3 +1,16 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+
+  * Build changes / improvements:
+
+  * Bug Fixes / improvements:
+    * The porosity models now restart the full field of initial sound speeds, rather than assuming they are set during problem initialization every time.
+
 Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
   * Important Notes:
