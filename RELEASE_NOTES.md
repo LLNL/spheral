@@ -1,3 +1,16 @@
+Version vYYYY.MM.p -- Release date YYYY-MM-DD
+==============================================
+  * Important Notes:
+
+Notable changes include:
+
+  * New features / API changes:
+
+  * Build changes / improvements:
+    * The `ENABLE_TIMER` CMake option has been changed to `SPHERAL_ENABLE_TIMERS`.
+
+  * Bug Fixes / improvements:
+
 Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
   * Important Notes:
