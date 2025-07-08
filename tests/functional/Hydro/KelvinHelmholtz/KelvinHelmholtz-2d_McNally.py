@@ -126,7 +126,7 @@ commandLine(nx1 = 256,
             WaveSpeedConstructor = DavisWaveSpeed,
             nodeMotionCoefficient = 1.0,
             nodeMotionType = NodeMotionType.Eulerian, # (Lagrangian, Eulerian, XSPH,  Fician)
-            gsphGradientType = SPHGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
+            gsphGradientType = SPHSameTimeGradient, #(SPHGradient, SPHSameTimeGradient, RiemannGradient, HydroAccelerationGradient, MixedMethodGradient, SPHUncorrectedGradient)
 
             ## integrator
             cfl = 0.35,
