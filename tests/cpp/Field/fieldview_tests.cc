@@ -127,7 +127,6 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
  * - Test w/ double and GeomPolygon.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, CopyCtor) {
-  using WORK_EXEC_POLICY = TypeParam;
   {
     std::string field_name = "Field::CopyCtor";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
@@ -147,7 +146,6 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, CopyCtor) {
  * Assignment operator of a Field to another Field.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, AssignmentField) {
-  using WORK_EXEC_POLICY = TypeParam;
   {
     std::string field_name = "Field::AssignmentField";
     FieldDouble field(field_name, gpu_this->test_node_list, 4);
