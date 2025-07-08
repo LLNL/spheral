@@ -244,17 +244,33 @@ public:
 
   using ViewType = FieldView<Dimension, DataType>;
 
-  ViewType toView() {
-    auto managedData = chai::makeManagedArray(
-        mDataArray.data(), mDataArray.size(), chai::CPU, false);
 
-    managedData.setUserCallback([](const chai::PointerRecord *,
-                                   chai::Action action, chai::ExecutionSpace) {
-      if (action == chai::ACTION_MOVE)
-        std::cout << "Chai ManagedArray Moved.\n";
-    });
 
-    return ViewType(managedData);
+  ViewType toView()
+  {
+    return this->toView(
+      [](const chai::PointerRecord *,
+        chai::Action action,
+        chai::ExecutionSpace) {
+
+        if (action == chai::ACTION_MOVE)
+          std::cout << "Chai ManagedArray Moved.\n";
+        }
+
+    );
+  }
+
+  template<typename F>
+  ViewType toView(F callback)
+  {
+    if (!mManagedData.getActivePointer()) {
+      mManagedData = chai::makeManagedArray(
+          mDataArray.data(), mDataArray.size(), chai::CPU, false);
+
+      mManagedData.setUserCallback(callback);
+    }
+
+    return ViewType(mManagedData);
   }
 
 protected:
@@ -268,6 +284,10 @@ private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
+
+  // ManagedArray owned by the field to ensure proper lifetime of the GPU data.
+  chai::ManagedArray<DataType> mManagedData;
+
 
   bool mValid;
 
