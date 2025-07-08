@@ -7,6 +7,11 @@ Notable changes include:
   * New features / API changes:
 
   * Build changes / improvements:
+    * A python virtual environment is installed in the spheral build dir, removing the
+      need to build the `install` target during regular development.
+    * `./spheral` and `./spheral-ats` have been moved to `/bin` for both build and installs.
+    * CMake directly handles all of the installation environment configuration and setup
+      during the install stage.
     * The `ENABLE_TIMER` CMake option has been changed to `SPHERAL_ENABLE_TIMERS`.
 
   * Bug Fixes / improvements:
