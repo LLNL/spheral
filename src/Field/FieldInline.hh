@@ -168,6 +168,7 @@ Field<Dimension, DataType>::clone() const {
 template<typename Dimension, typename DataType>
 inline
 Field<Dimension, DataType>::~Field() {
+  mManagedData.free();
 }
 
 //------------------------------------------------------------------------------
