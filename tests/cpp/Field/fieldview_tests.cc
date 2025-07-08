@@ -1,3 +1,4 @@
+#include "chai/ExecutionSpaces.hpp"
 #include "test-basic-exec-policies.hh"
 #include "test-utilities.hh"
 
@@ -17,6 +18,24 @@ using FieldBase = Spheral::FieldBase<DIM3>;
 using FieldDouble = Spheral::Field<DIM3, double>;
 using FieldViewDouble = Spheral::FieldView<DIM3, double>;
 using NodeList_t = Spheral::NodeList<DIM3>;
+
+static int HToDCopies = 0;
+static int DToHCopies = 0;
+static auto callback = [](const chai::PointerRecord *,
+                    chai::Action action,
+                    chai::ExecutionSpace space) {
+
+      if (action == chai::ACTION_MOVE) {
+        if (space == chai::CPU) {
+          std::cout << "Chai ManagedArray Moved to CPU\n";
+          DToHCopies++;
+        }
+        if (space == chai::GPU) {
+          std::cout << "Chai ManagedArray Moved to GPU\n";
+          HToDCopies++;
+        }
+  }
+};
 
 class FieldViewTest : public ::testing::Test {
 public:
@@ -52,6 +71,53 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, NameNodeListValCtor) {
         [=] SPHERAL_HOST_DEVICE(int i) { SPHERAL_ASSERT_EQ(field_v[i], 4.0); });
 
     SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
+  }
+  SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
+}
+
+/**
+ * Test the multi-view semantics for a copy. If multiple views are made from a
+ * single Field then only one copy should be performed as both views will reference
+ * the same data.
+ */
+GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
+  using WORK_EXEC_POLICY = TypeParam;
+  {
+    std::string field_name = "Field::MultiViewSemantics";
+    FieldDouble field(field_name, gpu_this->test_node_list, 4.0);
+
+    SPHERAL_ASSERT_EQ(field.name(), field_name);
+    SPHERAL_ASSERT_EQ(field.size(), 10);
+
+    auto field_v0 = field.toView(callback);
+    auto field_v1 = field.toView(callback);
+    auto field_v2 = field.toView(callback);
+    auto field_v3 = field.toView(callback);
+    auto field_v4 = field.toView(callback);
+    auto field_v5 = field.toView(callback);
+    auto field_v6 = field.toView(callback);
+    auto field_v7 = field.toView(callback);
+    auto field_v8 = field.toView(callback);
+    auto field_v9 = field.toView(callback);
+    SPHERAL_ASSERT_EQ(field.size(), 10);
+
+    RAJA::forall<WORK_EXEC_POLICY>(
+        TRS_UINT(0, field.size()),
+        [=] SPHERAL_HOST_DEVICE(int i) {
+          SPHERAL_ASSERT_EQ(field_v0[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v1[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v2[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v3[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v4[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v5[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v6[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v7[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v8[i], 4.0);
+          SPHERAL_ASSERT_EQ(field_v9[i], 4.0);
+      });
+
+    SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 6);
+    SPHERAL_ASSERT_TRUE(HToDCopies <= 1);
   }
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
@@ -131,7 +197,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, AssignmentContainerType) {
   SPHERAL_ASSERT_EQ(gpu_this->test_node_list.numFields(), 5);
 }
 
-REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, NameNodeListValCtor, CopyCtor,
+REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, NameNodeListValCtor, CopyCtor, MultiViewSemantics,
                             AssignmentField, AssignmentContainerType);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldViewTypedTest,
