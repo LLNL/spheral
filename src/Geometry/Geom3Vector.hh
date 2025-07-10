@@ -34,16 +34,8 @@ class Geom3Vector
                        const double y = 0.0,
                        const double z = 0.0);
 
-  SPHERAL_HOST_DEVICE Geom3Vector(const Geom3Vector& vec);
-
   // Implicit conversion from vectors that happen to be 3-D.
   SPHERAL_HOST_DEVICE Geom3Vector(const GeomVector<3>& vec);
-
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~Geom3Vector();
-
-  // Assignment operators.
-  SPHERAL_HOST_DEVICE Geom3Vector& operator=(const Geom3Vector& rhs);
 
   // Access elements by indicies.
   SPHERAL_HOST_DEVICE double operator()(size_type index) const;

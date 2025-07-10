@@ -13,40 +13,12 @@ Geom3Vector(const double x, const double y, const double z):
 }
 
 //------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-SPHERAL_HOST_DEVICE inline
-Geom3Vector::
-Geom3Vector(const Geom3Vector& vec):
-  mGeomVector(vec.mGeomVector) {
-}
-
-//------------------------------------------------------------------------------
 // Implicit conversion.
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 Geom3Vector::
 Geom3Vector(const GeomVector<3>& vec):
   mGeomVector(vec) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-SPHERAL_HOST_DEVICE inline
-Geom3Vector::
-~Geom3Vector() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-SPHERAL_HOST_DEVICE inline
-Geom3Vector&
-Geom3Vector::
-operator=(const Geom3Vector& rhs) {
-  mGeomVector = rhs.mGeomVector;
-  return *this;
 }
 
 //------------------------------------------------------------------------------
