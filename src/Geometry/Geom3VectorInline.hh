@@ -6,7 +6,7 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructor.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector::
 Geom3Vector(const double x, const double y, const double z):
   mGeomVector(x, y, z) {
@@ -15,7 +15,7 @@ Geom3Vector(const double x, const double y, const double z):
 //------------------------------------------------------------------------------
 // Copy constructor.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector::
 Geom3Vector(const Geom3Vector& vec):
   mGeomVector(vec.mGeomVector) {
@@ -24,7 +24,7 @@ Geom3Vector(const Geom3Vector& vec):
 //------------------------------------------------------------------------------
 // Implicit conversion.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector::
 Geom3Vector(const GeomVector<3>& vec):
   mGeomVector(vec) {
@@ -33,7 +33,7 @@ Geom3Vector(const GeomVector<3>& vec):
 //------------------------------------------------------------------------------
 // Destructor.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector::
 ~Geom3Vector() {
 }
@@ -41,7 +41,7 @@ Geom3Vector::
 //------------------------------------------------------------------------------
 // Assignment.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector&
 Geom3Vector::
 operator=(const Geom3Vector& rhs) {
@@ -52,14 +52,14 @@ operator=(const Geom3Vector& rhs) {
 //------------------------------------------------------------------------------
 // Access elements by indicies.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
 Geom3Vector::
 operator()(size_type index) const {
   return mGeomVector(index);
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double&
 Geom3Vector::
 operator()(size_type index) {
@@ -69,21 +69,21 @@ operator()(size_type index) {
 //------------------------------------------------------------------------------
 // Access elements by (x, y, z) notation.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
 Geom3Vector::
 x() const {
   return mGeomVector.x();
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 Geom3Vector::
 y() const {
   return mGeomVector.y();
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 Geom3Vector::
 z() const {
@@ -93,21 +93,21 @@ z() const {
 //------------------------------------------------------------------------------
 // Set elements by (x, y, z) notation.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 void
 Geom3Vector::
 x(const double val) {
   mGeomVector.x(val);
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 void
 Geom3Vector::
 y(const double val) {
   mGeomVector.y(val);
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 void
 Geom3Vector::
 z(const double val) {
@@ -117,7 +117,7 @@ z(const double val) {
 //------------------------------------------------------------------------------
 // dyad
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 GeomTensor<3>
 Geom3Vector::
 dyad(const Geom3Vector& rhs) const {
@@ -127,7 +127,7 @@ dyad(const Geom3Vector& rhs) const {
 //------------------------------------------------------------------------------
 // selfdyad
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 GeomSymmetricTensor<3>
 Geom3Vector::
 selfdyad() const {
@@ -137,7 +137,7 @@ selfdyad() const {
 //------------------------------------------------------------------------------
 // Multiplication by another Vector3.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 GeomTensor<3>
 Geom3Vector::
 operator*(const Geom3Vector& rhs) const {
@@ -147,7 +147,7 @@ operator*(const Geom3Vector& rhs) const {
 //------------------------------------------------------------------------------
 // Multiply a scalar by a vector.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector
 operator*(const double val, const Geom3Vector& vec) {
   return vec*val;
@@ -156,13 +156,13 @@ operator*(const double val, const Geom3Vector& vec) {
 //------------------------------------------------------------------------------
 // Multiplication with tensors.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector
 operator*(const GeomTensor<3>& lhs, const Geom3Vector& rhs) {
   return Geom3Vector(lhs*GeomVector<3>(rhs.x(), rhs.y(), rhs.z()));
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 Geom3Vector
 operator*(const GeomSymmetricTensor<3>& lhs, const Geom3Vector& rhs) {
   return Geom3Vector(lhs*GeomVector<3>(rhs.x(), rhs.y(), rhs.z()));
