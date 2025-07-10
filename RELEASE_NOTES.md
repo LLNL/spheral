@@ -15,6 +15,7 @@ Notable changes include:
     * The `ENABLE_TIMER` CMake option has been changed to `SPHERAL_ENABLE_TIMERS`.
 
   * Bug Fixes / improvements:
+    * Updating boost function calls to std library implementations where possible.
 
 Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
