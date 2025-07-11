@@ -171,6 +171,7 @@ inline bool nearlyEqual(const T& x,
 #define CHECK(x) ASSERT(x)
 #define CHECK2(x, msg) ASSERT2(x, msg)
 
+#ifndef SPHERAL_GPU_ACTIVE
 #define VERIFY2(x, msg) \
    if (!(x)) { \
       std::stringstream s; \
@@ -180,6 +181,13 @@ inline bool nearlyEqual(const T& x,
       ::Spheral::dbc::VERIFYError reason(s.str());\
       throw reason;\
    }
+#else // SPHERAL_GPU_ACTIVE
+#define VERIFY2(x, null_msg) \
+  if (!(x)) { \
+    printf("Verification failed:\n...at line %d of file %s.\n", __LINE__, __FILE__); \
+    abort(); \
+  }
+#endif // SPHERAL_GPU_ACTIVE
 #define VERIFY(x) VERIFY2(x, #x)
 
 // //----------------------------------------------------------------------------
