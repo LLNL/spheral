@@ -6,6 +6,8 @@
 #ifndef __Spheral__GeomTensorBase__
 #define __Spheral__GeomTensorBase__
 
+#include "config.hh"
+
 namespace Spheral {
 
 template<int nDim> class GeomTensorBase {};
@@ -13,23 +15,24 @@ template<int nDim> class GeomTensorBase {};
 template<>
 class GeomTensorBase<1> {
  public:
-  GeomTensorBase(const double xx):
+  SPHERAL_HOST_DEVICE GeomTensorBase(const double xx):
     mxx(xx) {}
  protected:
   double mxx;
  private:
-  GeomTensorBase();
+  SPHERAL_HOST_DEVICE GeomTensorBase();
 };
 
 template<>
 class GeomTensorBase<2> {
  public:
-  GeomTensorBase(const double a):
+  SPHERAL_HOST_DEVICE GeomTensorBase(const double a):
     mxx(a),
     mxy(a),
     myx(a),
     myy(a) {}
-  GeomTensorBase(const double xx, const double xy,
+  SPHERAL_HOST_DEVICE GeomTensorBase(
+                 const double xx, const double xy,
                  const double yx, const double yy):
     mxx(xx),
     mxy(xy),
@@ -39,13 +42,13 @@ class GeomTensorBase<2> {
   double mxx, mxy,
          myx, myy;
  private:
-  GeomTensorBase();
+  SPHERAL_HOST_DEVICE GeomTensorBase();
 };
 
 template<>
 class GeomTensorBase<3> {
  public:
-  GeomTensorBase(const double a):
+  SPHERAL_HOST_DEVICE GeomTensorBase(const double a):
     mxx(a),
     mxy(a),
     mxz(a),
@@ -55,7 +58,8 @@ class GeomTensorBase<3> {
     mzx(a),
     mzy(a), 
     mzz(a) {}
-  GeomTensorBase(const double xx, const double xy, const double xz,
+  SPHERAL_HOST_DEVICE GeomTensorBase(
+                 const double xx, const double xy, const double xz,
                  const double yx, const double yy, const double yz,
                  const double zx, const double zy, const double zz):
     mxx(xx),
@@ -72,7 +76,7 @@ class GeomTensorBase<3> {
          myx, myy, myz,
          mzx, mzy, mzz;
  private:
-  GeomTensorBase();
+  SPHERAL_HOST_DEVICE GeomTensorBase();
 };
 
 }
