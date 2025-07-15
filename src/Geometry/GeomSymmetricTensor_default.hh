@@ -39,7 +39,7 @@ public:
 
   // Useful static memeber data.
   static const size_type nDimensions;
-  static const size_type numElements;
+  static constexpr size_type numElements = (nDim * (nDim+1)) / 2;
   static const GeomSymmetricTensor zero;
   static const GeomSymmetricTensor one;
   static const double onethird;
@@ -220,10 +220,6 @@ private:
 template<> const unsigned GeomSymmetricTensor<1>::nDimensions;
 template<> const unsigned GeomSymmetricTensor<2>::nDimensions;
 template<> const unsigned GeomSymmetricTensor<3>::nDimensions;
-
-template<> const unsigned GeomSymmetricTensor<1>::numElements;
-template<> const unsigned GeomSymmetricTensor<2>::numElements;
-template<> const unsigned GeomSymmetricTensor<3>::numElements;
 #endif
 
 template<> GeomVector<1> GeomSymmetricTensor<1>::eigenValues() const;
