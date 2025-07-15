@@ -684,21 +684,56 @@ GeomSymmetricTensor<nDim>::end() const {
 //------------------------------------------------------------------------------
 // Zero out the GeomSymmetricTensor.
 //------------------------------------------------------------------------------
-template<int nDim>
+template<>
 inline
 void
-GeomSymmetricTensor<nDim>::Zero() {
-  *this = zero;
+GeomSymmetricTensor<1>::Zero() {
+  *this = GeomSymmetricTensor<1>(0.0);
 }
+
+template<>
+inline
+void
+GeomSymmetricTensor<2>::Zero() {
+  *this = GeomSymmetricTensor<2>(0.0, 0.0,
+                                 0.0, 0.0);
+}
+
+template<>
+inline
+void
+GeomSymmetricTensor<3>::Zero() {
+  *this = GeomSymmetricTensor<3>(0.0, 0.0, 0.0,
+                                 0.0, 0.0, 0.0,
+                                 0.0, 0.0, 0.0);
+}
+
 
 //------------------------------------------------------------------------------
 // Force the tensor to be the identity tensor.
 //------------------------------------------------------------------------------
-template<int nDim>
+template<>
 inline
 void
-GeomSymmetricTensor<nDim>::Identity() {
-  *this = one;
+GeomSymmetricTensor<1>::Identity() {
+  *this = GeomSymmetricTensor<1>(1.0);
+}
+
+template<>
+inline
+void
+GeomSymmetricTensor<2>::Identity() {
+  *this = GeomSymmetricTensor<2>(1.0, 0.0,
+                                 0.0, 1.0);
+}
+
+template<>
+inline
+void
+GeomSymmetricTensor<3>::Identity() {
+  *this = GeomSymmetricTensor<3>(1.0, 0.0, 0.0,
+                                 0.0, 1.0, 0.0,
+                                 0.0, 0.0, 1.0);
 }
 
 //------------------------------------------------------------------------------
@@ -1600,7 +1635,7 @@ template<int nDim>
 inline
 GeomTensor<nDim>
 GeomSymmetricTensor<nDim>::SkewSymmetric() const {
-  return GeomTensor<nDim>::zero;
+  return GeomTensor<nDim>();
 }
 
 //------------------------------------------------------------------------------
