@@ -40,7 +40,11 @@ if (NOT ENABLE_CXXONLY)
   set_target_properties(pybind11_headers PROPERTIES EXPORT_NAME spheral::pybind11_headers)
 
   # Install Spheral Python Build Dependencies to a python virtual env in the build tree.
+
+  # Need to set up the build env here so the python library targets can depend on
+  # python_build_env.
   set(BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/build-requirements.txt)
+  list(APPEND BUILD_REQ_LIST ${SPHERAL_BINARY_DIR}/scripts/runtime-requirements.txt)
   if(ENABLE_DOCS)
     list(APPEND BUILD_REQ_LIST ${SPHERAL_ROOT_DIR}/scripts/docs-requirements.txt)
   endif()
@@ -223,3 +227,16 @@ endforeach()
 if (EXISTS ${EXTERNAL_SPHERAL_TPL_CMAKE})
   include(${EXTERNAL_SPHERAL_TPL_CMAKE})
 endif()
+
+if (NOT ENABLE_CXXONLY)
+  configure_file(
+    ${POLYTOPE_INSTALL_PREFIX}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+    ${CMAKE_BINARY_DIR}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    COPYONLY)
+
+  install(FILES ${POLYTOPE_INSTALL_PREFIX}/${SPHERAL_SITE_PACKAGES_PATH}/polytope/polytope.so
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/.venv/${SPHERAL_SITE_PACKAGES_PATH}/polytope/
+  )
+endif()
+
