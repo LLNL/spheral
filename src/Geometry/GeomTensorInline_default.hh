@@ -25,17 +25,6 @@ GeomTensor<nDim>::elementIndex(const typename GeomTensor<nDim>::size_type row,
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<nDim>::
-GeomTensor():
-  GeomTensorBase<nDim>(0.0) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given values for the elements.
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -96,14 +85,6 @@ GeomTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
 //------------------------------------------------------------------------------
 // Copy constructors.
 //------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<nDim>::
-GeomTensor(const GeomTensor<nDim>& ten):
-  GeomTensorBase<nDim>(ten) {
-}
-
 template<>
 SPHERAL_HOST_DEVICE
 inline
@@ -159,58 +140,8 @@ GeomTensor<3>::GeomTensor(const Eigen::MatrixBase<Derived>& ten):
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<nDim>::~GeomTensor() {
-}
-
-//------------------------------------------------------------------------------
 // Assignment operators.
 //------------------------------------------------------------------------------
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<1>&
-GeomTensor<1>::
-operator=(const GeomTensor<1>& ten) {
-  this->mxx = ten.mxx;
-  return *this;
-}
-
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<2>&
-GeomTensor<2>::
-operator=(const GeomTensor<2>& ten) {
-  this->mxx = ten.mxx;
-  this->mxy = ten.mxy;
-  this->myx = ten.myx;
-  this->myy = ten.myy;
-  return *this;
-}
-
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomTensor<3>&
-GeomTensor<3>::
-operator=(const GeomTensor<3>& ten) {
-  this->mxx = ten.mxx;
-  this->mxy = ten.mxy;
-  this->mxz = ten.mxz;
-  this->myx = ten.myx;
-  this->myy = ten.myy;
-  this->myz = ten.myz;
-  this->mzx = ten.mzx;
-  this->mzy = ten.mzy;
-  this->mzz = ten.mzz;
-  return *this;
-}
-
 template<>
 SPHERAL_HOST_DEVICE
 inline

@@ -46,23 +46,18 @@ public:
   static const GeomTensor one;
 
   // Constructors.
-  SPHERAL_HOST_DEVICE GeomTensor();
+  SPHERAL_HOST_DEVICE GeomTensor() = default;
   SPHERAL_HOST_DEVICE explicit GeomTensor(const double a11);
   SPHERAL_HOST_DEVICE GeomTensor(const double a11, const double a12,
              const double a21, const double a22);
   SPHERAL_HOST_DEVICE GeomTensor(const double a11, const double a12, const double a13,
              const double a21, const double a22, const double a23,
              const double a31, const double a32, const double a33);
-  SPHERAL_HOST_DEVICE GeomTensor(const GeomTensor& ten);
   SPHERAL_HOST_DEVICE explicit GeomTensor(const GeomSymmetricTensor<nDim>& ten);
   GeomTensor(const EigenType& ten);
   template<typename Derived> GeomTensor(const Eigen::MatrixBase<Derived>& ten);
 
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~GeomTensor();
-
   // Assignment.
-  SPHERAL_HOST_DEVICE GeomTensor& operator=(const GeomTensor& rhs);
   SPHERAL_HOST_DEVICE GeomTensor& operator=(const GeomSymmetricTensor<nDim>& rhs);
   template<typename Derived> GeomTensor& operator=(const Eigen::MatrixBase<Derived>& rhs);
 
@@ -220,10 +215,6 @@ template<> SPHERAL_HOST_DEVICE GeomTensor<2>::GeomTensor(const double, const dou
 template<> SPHERAL_HOST_DEVICE GeomTensor<3>::GeomTensor(const double, const double, const double,
                                                          const double, const double, const double,
                                                          const double, const double, const double);
-
-template<> SPHERAL_HOST_DEVICE GeomTensor<1>& GeomTensor<1>::operator=(const GeomTensor<1>& rhs);
-template<> SPHERAL_HOST_DEVICE GeomTensor<2>& GeomTensor<2>::operator=(const GeomTensor<2>& rhs);
-template<> SPHERAL_HOST_DEVICE GeomTensor<3>& GeomTensor<3>::operator=(const GeomTensor<3>& rhs);
 
 template<> SPHERAL_HOST_DEVICE GeomTensor<1>& GeomTensor<1>::operator=(const GeomSymmetricTensor<1>& rhs);
 template<> SPHERAL_HOST_DEVICE GeomTensor<2>& GeomTensor<2>::operator=(const GeomSymmetricTensor<2>& rhs);

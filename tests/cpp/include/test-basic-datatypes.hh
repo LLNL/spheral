@@ -14,8 +14,8 @@ using TEST_FIELD_DATATYPES = camp::list<
   ,double
   ,Spheral::Dim<3>::Vector
   //,Spheral::Dim<3>::Vector3d
-  //,Spheral::Dim<1>::Tensor
-  //Dim<1>::SymTensor,
+  ,Spheral::Dim<3>::Tensor
+  ,Spheral::Dim<3>::SymTensor
   ,Spheral::Dim<3>::ThirdRankTensor
   ,Spheral::Dim<3>::FourthRankTensor
   ,Spheral::Dim<3>::FifthRankTensor
