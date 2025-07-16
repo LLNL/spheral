@@ -21,19 +21,6 @@ template<int nDim>
 struct EigenStruct {
   GeomVector<nDim> eigenValues;
   GeomTensor<nDim> eigenVectors;
-
-  SPHERAL_HOST_DEVICE EigenStruct() {}
-  SPHERAL_HOST_DEVICE EigenStruct(const EigenStruct& rhs):
-    eigenValues(rhs.eigenValues),
-    eigenVectors(rhs.eigenVectors) {
-  }
-  SPHERAL_HOST_DEVICE EigenStruct& operator=(const EigenStruct& rhs) {
-    if (this != &rhs) {
-      eigenValues = rhs.eigenValues;
-      eigenVectors = rhs.eigenVectors;
-    }
-    return *this;
-  }
 };
 
 // Forward declarations.
