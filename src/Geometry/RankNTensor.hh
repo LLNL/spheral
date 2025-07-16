@@ -24,6 +24,7 @@ public:
   // Useful static member data.
   static const size_type nrank;
   static const size_type nDimensions;
+  static constexpr size_type numElements = FastMath::calcPower(nDim, rank);
 
   // Constructors.
   RankNTensor();
@@ -87,7 +88,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  double* mElements;
+  double mElements[numElements];
 };
 
 // Forward declare the global functions.
@@ -100,7 +101,6 @@ template<int nDim, int rank, typename Descendant> ::std::ostream& operator<<(std
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nrank = rank;
 template<int nDim, int rank, typename Descendant> const typename RankNTensor<nDim, rank, Descendant>::size_type RankNTensor<nDim, rank, Descendant>::nDimensions = nDim;
 
-template<int nDims, unsigned rank> constexpr int calcNumNRankElements() {return FastMath::calcPower(nDims, rank);}
 }
 
 #ifndef __GCCXML__

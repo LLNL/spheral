@@ -18,11 +18,12 @@ namespace Spheral {
 
 template<int nDim>
 class GeomThirdRankTensor : public RankNTensor<nDim, 3, GeomThirdRankTensor<nDim> > {
+  using BaseType = RankNTensor<nDim, 3, GeomThirdRankTensor<nDim>>;
 
 public:
   //--------------------------- Public Interface ---------------------------//
-  typedef typename RankNTensor<nDim, 3, GeomThirdRankTensor>::size_type size_type;
-  static const size_type numElements;
+  using size_type = typename BaseType::size_type;
+  static constexpr size_type numElements = BaseType::numElements;
 
   // Useful static member data.
   static const GeomThirdRankTensor zero;
@@ -49,7 +50,6 @@ private:
 };
 
 
-template<int nDims> const typename GeomThirdRankTensor<nDims>::size_type GeomThirdRankTensor<nDims>::numElements = calcNumNRankElements<nDims, 3>();
 template<int nDims> const GeomThirdRankTensor<nDims> GeomThirdRankTensor<nDims>::zero = GeomThirdRankTensor<nDims>(0.0);
 
 }
