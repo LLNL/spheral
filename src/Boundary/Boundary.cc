@@ -181,11 +181,10 @@ template<typename Dimension>
 const vector<int>&
 Boundary<Dimension>::controlNodes(const NodeList<Dimension>& nodeList) const {
   auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.controlNodes;
-  } else {
+  if (itr == mBoundaryNodes.end()) {
     VERIFY2(false, "Boundary::controlNodes: no entry for NodeList: " << nodeList.name());
   }
+  return itr->second.controlNodes;
 }
 
 //------------------------------------------------------------------------------
@@ -195,12 +194,11 @@ template<typename Dimension>
 const vector<int>&
 Boundary<Dimension>::ghostNodes(const NodeList<Dimension>& nodeList) const {
   auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.ghostNodes;
-  } else {
+  if (itr == mBoundaryNodes.end()) {
     std::cerr << "Number of known NodeLists: " << mBoundaryNodes.size() << std::endl;
     VERIFY2(false, "Boundary::ghostNodes: no entry for NodeList: " << nodeList.name());
   }
+  return itr->second.ghostNodes;
 }
 
 //------------------------------------------------------------------------------
@@ -210,11 +208,10 @@ template<typename Dimension>
 const vector<int>&
 Boundary<Dimension>::violationNodes(const NodeList<Dimension>& nodeList) const {
   auto itr = mBoundaryNodes.find(const_cast<NodeList<Dimension>*>(&nodeList));
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second.violationNodes;
-  } else {
+  if (itr == mBoundaryNodes.end()) {
     VERIFY2(false, "Boundary::violationNodes: no entry for NodeList: " << nodeList.name());
   }
+  return itr->second.violationNodes;
 }
 
 //------------------------------------------------------------------------------
@@ -284,22 +281,20 @@ template<typename Dimension>
 typename Boundary<Dimension>::BoundaryNodes&
 Boundary<Dimension>::accessBoundaryNodes(NodeList<Dimension>& nodeList) {
   auto itr = mBoundaryNodes.find(&nodeList);
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second;
-  } else {
+  if (itr == mBoundaryNodes.end()) {
     VERIFY2(false, "Boundary::accessBoundaryNodes: no entry for NodeList: " << nodeList.name());
   }
+  return itr->second;
 }
 
 template<typename Dimension>
 const typename Boundary<Dimension>::BoundaryNodes&
 Boundary<Dimension>::accessBoundaryNodes(NodeList<Dimension>& nodeList) const {
   auto itr = mBoundaryNodes.find(&nodeList);
-  if (itr != mBoundaryNodes.end()) {
-    return itr->second;
-  } else {
+  if (itr == mBoundaryNodes.end()) {
     VERIFY2(false, "Boundary::accessBoundaryNodes: no entry for NodeList: " << nodeList.name());
   }
+  return itr->second;
 }
 
 //------------------------------------------------------------------------------

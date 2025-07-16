@@ -89,6 +89,7 @@ performIntegration() {
   // Get some data out of database and state
   VERIFY(mState);
   const auto numNodeLists = mDataBase.numFluidNodeLists();
+  CONTRACT_VAR(numNodeLists);
   const auto position = mState->fields(HydroFieldNames::position, Vector::zero);
   const auto H = mState->fields(HydroFieldNames::H, SymTensor::zero);
   const auto volume = mState->fields(HydroFieldNames::volume, 0.0);
