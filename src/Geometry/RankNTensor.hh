@@ -88,7 +88,7 @@ public:
 
 protected:
   //--------------------------- Protected Interface ---------------------------//
-  double mElements[numElements];
+  double mElements[numElements] = {};
 };
 
 // Forward declare the global functions.
