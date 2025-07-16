@@ -18,9 +18,8 @@ class GeomTensorBase<1> {
   SPHERAL_HOST_DEVICE GeomTensorBase(const double xx):
     mxx(xx) {}
  protected:
-  double mxx;
- private:
-  SPHERAL_HOST_DEVICE GeomTensorBase();
+  double mxx = 0.0;
+  SPHERAL_HOST_DEVICE GeomTensorBase() = default;
 };
 
 template<>
@@ -39,10 +38,11 @@ class GeomTensorBase<2> {
     myx(yx),
     myy(yy) {}
  protected:
-  double mxx, mxy,
-         myx, myy;
- private:
-  SPHERAL_HOST_DEVICE GeomTensorBase();
+  double mxx = 0.0;
+  double mxy = 0.0;
+  double myx = 0.0;
+  double myy = 0.0;
+  SPHERAL_HOST_DEVICE GeomTensorBase() = default;
 };
 
 template<>
@@ -72,11 +72,16 @@ class GeomTensorBase<3> {
     mzy(zy), 
     mzz(zz) {}
  protected:
-  double mxx, mxy, mxz,
-         myx, myy, myz,
-         mzx, mzy, mzz;
- private:
-  SPHERAL_HOST_DEVICE GeomTensorBase();
+  double mxx = 0.0;
+  double mxy = 0.0;
+  double mxz = 0.0;
+  double myx = 0.0;
+  double myy = 0.0;
+  double myz = 0.0;
+  double mzx = 0.0;
+  double mzy = 0.0;
+  double mzz = 0.0;
+  SPHERAL_HOST_DEVICE GeomTensorBase() = default;
 };
 
 }
