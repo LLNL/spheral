@@ -41,7 +41,7 @@ public:
 
   // Useful static memeber data.
   static const size_type nDimensions;
-  static const size_type numElements;
+  static constexpr size_type numElements = nDim * nDim;
   static const GeomTensor zero;
   static const GeomTensor one;
 
@@ -203,17 +203,14 @@ private:
 // Declare specializations.
 #ifndef WIN32
 template<> const unsigned      GeomTensor<1>::nDimensions;
-template<> const unsigned      GeomTensor<1>::numElements;
 template<> const GeomTensor<1> GeomTensor<1>::zero;
 template<> const GeomTensor<1> GeomTensor<1>::one;
 
 template<> const unsigned      GeomTensor<2>::nDimensions;
-template<> const unsigned      GeomTensor<2>::numElements;
 template<> const GeomTensor<2> GeomTensor<2>::zero;
 template<> const GeomTensor<2> GeomTensor<2>::one;
 
 template<> const unsigned      GeomTensor<3>::nDimensions;
-template<> const unsigned      GeomTensor<3>::numElements;
 template<> const GeomTensor<3> GeomTensor<3>::zero;
 template<> const GeomTensor<3> GeomTensor<3>::one;
 #endif
