@@ -17,16 +17,22 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 struct NodePairIdxType {
   using HashType = size_t;
-  size_t i_node, i_list, j_node, j_list;
-  double f_couple;                       // An arbitrary fraction in [0,1] to hold the effective coupling of the pair
+  size_t i_node = 0;
+  size_t i_list = 0;
+  size_t j_node = 0;
+  size_t j_list = 0;
+  double f_couple = 0.0; // An arbitrary fraction in [0,1] to hold the effective coupling of the pair
 
-  NodePairIdxType(size_t i_n,
-                  size_t i_l,
-                  size_t j_n,
-                  size_t j_l,
-                  double f = 1.0): i_node(i_n), i_list(i_l), j_node(j_n), j_list(j_l), f_couple(f) {}
+  SPHERAL_HOST_DEVICE NodePairIdxType() = default;
 
-  HashType hash() const {
+  SPHERAL_HOST_DEVICE NodePairIdxType(size_t i_n,
+                                      size_t i_l,
+                                      size_t j_n,
+                                      size_t j_l,
+                                      double f = 1.0)
+    : i_node(i_n), i_list(i_l), j_node(j_n), j_list(j_l), f_couple(f) {}
+
+  SPHERAL_HOST_DEVICE HashType hash() const {
     // We do this with simple bit shifting, requiring max values for the integer
     // components.  We assume the
     //    i_list, j_list < 32 (2^5)
@@ -48,8 +54,8 @@ struct NodePairIdxType {
   }
 
   // Comparisons
-  bool operator==(const NodePairIdxType& val) const { return (this->hash() == val.hash()); }
-  bool operator< (const NodePairIdxType& val) const { return (this->hash() <  val.hash()); }
+  SPHERAL_HOST_DEVICE bool operator==(const NodePairIdxType& val) const { return (hash() == val.hash()); }
+  SPHERAL_HOST_DEVICE bool operator< (const NodePairIdxType& val) const { return (hash() <  val.hash()); }
 };
 
 //------------------------------------------------------------------------------
