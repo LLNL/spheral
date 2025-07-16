@@ -57,17 +57,6 @@ GeomSymmetricTensor<3>::elementIndex(const GeomSymmetricTensor<3>::size_type row
 }
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<nDim>::
-GeomSymmetricTensor():
-  GeomSymmetricTensorBase<nDim>(0.0) {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given values for the elements.
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -136,14 +125,6 @@ GeomSymmetricTensor(const double /*a11*/, const double /*a12*/, const double /*a
 //------------------------------------------------------------------------------
 // Copy constructors.
 //------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<nDim>::
-GeomSymmetricTensor(const GeomSymmetricTensor<nDim>& ten):
-  GeomSymmetricTensorBase<nDim>(ten) {
-}
-
 template<>
 SPHERAL_HOST_DEVICE
 inline
@@ -200,15 +181,6 @@ GeomSymmetricTensor<3>::GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& te
 }
 
 //------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<nDim>::~GeomSymmetricTensor() {
-}
-
-//------------------------------------------------------------------------------
 // Assignment operators.
 //------------------------------------------------------------------------------
 template<>
@@ -246,43 +218,6 @@ operator=(const GeomTensor<3>& rhs) {
   this->myy = rhs.yy();
   this->myz = rhs.yz();
   this->mzz = rhs.zz();
-  return *this;
-}
-
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<1>&
-GeomSymmetricTensor<1>::
-operator=(const GeomSymmetricTensor<1>& rhs) {
-  this->mxx = rhs.mxx;
-  return *this;
-}
-
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<2>&
-GeomSymmetricTensor<2>::
-operator=(const GeomSymmetricTensor<2>& rhs) {
-  this->mxx = rhs.mxx;
-  this->mxy = rhs.mxy;
-  this->myy = rhs.myy;
-  return *this;
-}
-
-template<>
-SPHERAL_HOST_DEVICE
-inline
-GeomSymmetricTensor<3>&
-GeomSymmetricTensor<3>::
-operator=(const GeomSymmetricTensor<3>& rhs) {
-  this->mxx = rhs.mxx;
-  this->mxy = rhs.mxy;
-  this->mxz = rhs.mxz;
-  this->myy = rhs.myy;
-  this->myz = rhs.myz;
-  this->mzz = rhs.mzz;
   return *this;
 }
 

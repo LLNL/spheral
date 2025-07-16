@@ -48,23 +48,18 @@ public:
   static const double sqrt3;
 
   // Constructors.
-  SPHERAL_HOST_DEVICE GeomSymmetricTensor();
+  SPHERAL_HOST_DEVICE GeomSymmetricTensor() = default;
   SPHERAL_HOST_DEVICE explicit GeomSymmetricTensor(const double a11);
   SPHERAL_HOST_DEVICE GeomSymmetricTensor(const double /*a11*/, const double /*a12*/,
                                           const double /*a21*/, const double /*a22*/);
   SPHERAL_HOST_DEVICE GeomSymmetricTensor(const double /*a11*/, const double /*a12*/, const double /*a13*/,
                                           const double /*a21*/, const double /*a22*/, const double /*a23*/,
                                           const double /*a31*/, const double /*a32*/, const double /*a33*/);
-  SPHERAL_HOST_DEVICE GeomSymmetricTensor(const GeomSymmetricTensor& ten);
   SPHERAL_HOST_DEVICE explicit GeomSymmetricTensor(const GeomTensor<nDim>& ten);
   template<typename Derived> GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten);
 
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~GeomSymmetricTensor();
-
   // Assignment.
   SPHERAL_HOST_DEVICE GeomSymmetricTensor& operator=(const GeomTensor<nDim>& rhs);
-  SPHERAL_HOST_DEVICE GeomSymmetricTensor& operator=(const GeomSymmetricTensor& rhs);
   template<typename Derived> GeomSymmetricTensor& operator=(const Eigen::MatrixBase<Derived>& rhs);
 
   // Access the elements by indicies.
@@ -245,10 +240,6 @@ template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<3>::GeomSymmetricTensor(const
 template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator=(const GeomTensor<1>&);
 template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator=(const GeomTensor<2>&);
 template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator=(const GeomTensor<3>&);
-
-template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<1>& GeomSymmetricTensor<1>::operator=(const GeomSymmetricTensor<1>&);
-template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<2>& GeomSymmetricTensor<2>::operator=(const GeomSymmetricTensor<2>&);
-template<> SPHERAL_HOST_DEVICE GeomSymmetricTensor<3>& GeomSymmetricTensor<3>::operator=(const GeomSymmetricTensor<3>&);
 
 template<> SPHERAL_HOST_DEVICE double GeomSymmetricTensor<1>::xy() const;
 template<> SPHERAL_HOST_DEVICE double GeomSymmetricTensor<1>::xz() const;
