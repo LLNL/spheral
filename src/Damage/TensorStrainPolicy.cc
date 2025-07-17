@@ -137,7 +137,7 @@ update(const KeyType& key,
       switch(mStrainType) {
 
       case(TensorStrainAlgorithm::BenzAsphaugStrain):
-        CHECK(E(i) >= 0.0);
+        CHECK2(E(i) >= 0.0, "Bad Youngs modulus for " << stateField.nodeList().name() << " " << i << " : " << E(i));
         stateField(i) = (S(i) - P(i)*SymTensor::one)/(E(i) + tiny);
         break;
 
