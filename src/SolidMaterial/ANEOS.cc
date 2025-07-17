@@ -152,20 +152,24 @@ public:
     mTinterp(Tinterp) {}
 
   double operator()(const double rho, const double eps) const {
-    if (eps < mEpsMinInterp(rho)) {
-      return mTmin;
-    } else if (eps > mEpsMaxInterp(rho)) {
-      return mTmax;
+    const auto eps0 = mEpsMinInterp(rho);
+    const auto eps1 = mEpsMaxInterp(rho);
+    if (eps < eps0) {
+      return mTinterp(rho, eps0);
+    } else if (eps > eps1) {
+      return mTinterp(rho, eps1);
     } else {
       return mTinterp(rho, eps);
     }
   }
 
   double dTdeps(const double rho, const double eps) const {
-    if (eps < mEpsMinInterp(rho)) {
-      return 0.0;
-    } else if (eps > mEpsMaxInterp(rho)) {
-      return 0.0;
+    const auto eps0 = mEpsMinInterp(rho);
+    const auto eps1 = mEpsMaxInterp(rho);
+    if (eps < eps0) {
+      return mTinterp.prime_y(rho, eps0);
+    } else if (eps > eps1) {
+      return mTinterp.prime_y(rho, eps1);
     } else {
       return mTinterp.prime_y(rho, eps);
     }
@@ -553,53 +557,6 @@ ANEOS(const int materialNumber,
                                                       mEpsMin, mEpsMax,
                                                       mNumRhoVals, mNumTvals, Fdpdrho);
   if (Process::getRank() == 0) cout << "ANEOS: Time to build DPDRinterp: " << double(clock() - t0)/CLOCKS_PER_SEC << endl;
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ANEOS<Dimension>::
-ANEOS(const ANEOS& rhs):
-  SolidEquationOfState<Dimension>(rhs),
-  mUseInterpolation(rhs.mUseInterpolation),
-  mMaterialNumber(rhs.mMaterialNumber),
-  mNumRhoVals(rhs.mNumRhoVals),
-  mNumTvals(rhs.mNumTvals),
-  mRhoMin(rhs.mRhoMin),
-  mRhoMax(rhs.mRhoMax),
-  mTmin(rhs.mTmin),
-  mTmax(rhs.mTmax),
-  mEpsMin(rhs.mEpsMin),
-  mEpsMax(rhs.mEpsMax),
-  mEpsMinInterp(rhs.mEpsMinInterp),
-  mEpsMaxInterp(rhs.mEpsMaxInterp),
-  mEpsInterp(rhs.mEpsInterp),
-  mTinterp(rhs.mTinterp),
-  mPinterp(rhs.mPinterp),
-  mCVinterp(rhs.mCVinterp),
-  mCSinterp(rhs.mCSinterp),
-  mKinterp(rhs.mKinterp),
-  mSinterp(rhs.mSinterp),
-  mDPDepsInterp(rhs.mDPDepsInterp),
-  mDPDRinterp(rhs.mDPDRinterp),
-  mANEOSunits(rhs.mANEOSunits),
-  mRhoConv(rhs.mRhoConv),
-  mTconv(rhs.mTconv),
-  mPconv(rhs.mPconv),
-  mEconv(rhs.mEconv),
-  mCVconv(rhs.mCVconv),
-  mVelConv(rhs.mVelConv),
-  mSconv(rhs.mSconv),
-  mAtomicWeight(rhs.mAtomicWeight) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<typename Dimension>
-ANEOS<Dimension>::
-~ANEOS() {
 }
 
 //------------------------------------------------------------------------------
