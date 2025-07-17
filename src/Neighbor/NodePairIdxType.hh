@@ -1,12 +1,11 @@
-#ifndef _Spheral_NodePairIdxType_hh_
-#define _Spheral_NodePairIdxType_hh_
+#ifndef Spheral_NodePairIdxType_hh
+#define Spheral_NodePairIdxType_hh
 
 #include "Utilities/size_t_bits.hh"
 #include "Utilities/DBC.hh"
 
 #include <iostream>
-#include <iostream>
-#include <functional>   // hash
+#include "config.hh"
 
 // These are based on what we get from size_t_bits
 #define MAX_NODE_INDEX (size_t(1u) << ((SIZE_T_BITS - 10)/2))
@@ -79,4 +78,4 @@ namespace std {
   };
 } // namespace std
 
-#endif // _Spheral_NodePairIdxType_hh_
+#endif // Spheral_NodePairIdxType_hh
