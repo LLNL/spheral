@@ -25,7 +25,7 @@ public:
 
   NodePairList()                                                               = default;
   NodePairList(const NodePairList& rhs)                                        = default;
-  ~NodePairList()                                                              = default;
+  ~NodePairList() { mManagedNPL.free(); }
   NodePairList& operator=(const NodePairList& rhs)                             = default;
   void push_back(NodePairIdxType nodePair)                                     { mNodePairList.push_back(nodePair); }
   void clear()                                                                 { mNodePairList.clear(); mPair2Index.clear(); }
