@@ -140,13 +140,9 @@ private:
 //------------------------------------------------------------------------------
 class Textrapolator {
 public:
-  Textrapolator(const double Tmin,
-                const double Tmax,
-                const InterpolatorType& epsMinInterp,
+  Textrapolator(const InterpolatorType& epsMinInterp,
                 const InterpolatorType& epsMaxInterp,
                 const BiInterpolatorType& Tinterp):
-    mTmin(Tmin),
-    mTmax(Tmax),
     mEpsMinInterp(epsMinInterp),
     mEpsMaxInterp(epsMaxInterp),
     mTinterp(Tinterp) {}
@@ -176,7 +172,6 @@ public:
   }
 
 private:
-  double mTmin, mTmax;
   const InterpolatorType& mEpsMinInterp, mEpsMaxInterp;
   const BiInterpolatorType& mTinterp;
 };
@@ -509,7 +504,7 @@ ANEOS(const int materialNumber,
 
   // And finally the interpolators for most of our derived quantities
   t0 = clock();
-  const auto Textra = Textrapolator(mTmin, mTmax, *mEpsMinInterp, *mEpsMaxInterp, *mTinterp);
+  const auto Textra = Textrapolator(*mEpsMinInterp, *mEpsMaxInterp, *mTinterp);
   const auto Fpres = Pfunc(mMaterialNumber, mRhoConv, mTconv, mPconv, Textra);
   mPinterp = std::make_shared<BiInterpolatorType>(mRhoMin, mRhoMax,
                                                    mEpsMin, mEpsMax,
@@ -776,7 +771,7 @@ ANEOS<Dimension>::
 temperature(const Scalar massDensity,
             const Scalar specificThermalEnergy) const {
   if (mUseInterpolation) {
-    const auto Textra = Textrapolator(mTmin, mTmax, *mEpsMinInterp, *mEpsMaxInterp, *mTinterp);
+    const auto Textra = Textrapolator(*mEpsMinInterp, *mEpsMaxInterp, *mTinterp);
     return Textra(massDensity, specificThermalEnergy);
   } else {
     const auto Feps = epsFunc(mMaterialNumber, mRhoConv, mTconv, mEconv);
