@@ -19,6 +19,8 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
 #define SPHERAL_GPU_ACTIVE
 #endif // SPHERAL_ENABLE_CUDA && __CUDACC__
 
+// Cannot be called on device
+#define SPHERAL_ASSERT_EQ_MSG(LHS, RHS) ASSERT_EQ(LHS, RHS);
 #if !defined(SPHERAL_GPU_ACTIVE)
 
 #define SPHERAL_ASSERT_EQ(LHS, RHS) ASSERT_EQ(LHS, RHS);
@@ -75,4 +77,30 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
   template <typename TypeParam, typename TestFixture>                          \
   static void gpu_test_##X##Y(TestFixture *gpu_this)
 
-#endif // SPHERAL_TEST_UTIILITIES_HH
+struct GPUCounters {
+  int HToDCopies, DToHCopies;
+  int HNumAlloc, DNumAlloc;
+  int HNumFree, DNumFree;
+
+  // Constructor to initialize all counters to zero
+  GPUCounters() {
+    resetCounters();
+  }
+
+  void resetCounters() {
+    HToDCopies = 0, DToHCopies = 0, HNumAlloc = 0;
+    DNumAlloc = 0, HNumFree = 0, DNumFree = 0;
+  }
+
+  // Function to compare with another GPUCounter struct
+  void compareCounters(const GPUCounters& ref) {
+    SPHERAL_ASSERT_EQ_MSG(HToDCopies, ref.HToDCopies);
+    SPHERAL_ASSERT_EQ_MSG(DToHCopies, ref.DToHCopies);
+    SPHERAL_ASSERT_EQ_MSG(HNumAlloc, ref.HNumAlloc);
+    SPHERAL_ASSERT_EQ_MSG(DNumAlloc, ref.DNumAlloc);
+    SPHERAL_ASSERT_EQ_MSG(HNumFree, ref.HNumFree);
+    SPHERAL_ASSERT_EQ_MSG(DNumFree, ref.DNumFree);
+  }
+};
+
+#endif // SPHERAL_TEST_UTILITIES_HH
