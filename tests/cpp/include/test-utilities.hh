@@ -24,19 +24,12 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
 #if !defined(SPHERAL_GPU_ACTIVE)
 
 #define SPHERAL_ASSERT_EQ(LHS, RHS) ASSERT_EQ(LHS, RHS);
-#define SPHERAL_ASSERT_EQ_MSG(LHS, RHS, MSG) ASSERT_EQ(LHS, RHS);
 #define SPHERAL_ASSERT_NE(LHS, RHS) ASSERT_NE(LHS, RHS);
 #define SPHERAL_ASSERT_TRUE(VAL) ASSERT_TRUE(VAL);
 #define SPHERAL_ASSERT_FALSE(VAL) ASSERT_FALSE(VAL);
 #define SPHERAL_ASSERT_FLOAT_EQ(LHS, RHS) ASSERT_FLOAT_EQ(LHS, RHS);
 
 #else
-
-#define SPHERAL_ASSERT_EQ_MSG(LHS, RHS, MSG)                                   \
-  if (LHS != RHS) {                                                            \
-    printf(MSG);                                                               \
-    assert(0);                                                                 \
-  }
 
 #define SPHERAL_ASSERT_EQ(LHS, RHS)                                            \
   if (LHS != RHS) {                                                            \
