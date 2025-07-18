@@ -76,9 +76,12 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, DefaultConstructor) {
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
     ref_count.HToDCopies = 1;
     ref_count.DNumAlloc = 1;
+    ref_count.HNumFree = 1;
     ref_count.DNumFree = 1;
+  } else {
+    ref_count.HNumFree = 1;
   }
-  gcounts.compareCounters(ref_count);
+  COMP_COUNTERS(gcounts, ref_count);
 }
 
 // TODO: Add test for having multiple FL contain the same field
