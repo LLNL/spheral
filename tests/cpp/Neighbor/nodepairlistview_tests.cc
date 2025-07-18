@@ -8,27 +8,21 @@ using NPIT = Spheral::NodePairIdxType;
 using NPLV = Spheral::NodePairListView;
 using NPL = Spheral::NodePairList;
 
-static int HToDCopies, DToHCopies, HNumFree, DNumFree, HNumAlloc, DNumAlloc;
+static GPUCounters gcounts;
 
-static void resetCounters() {
-  HToDCopies = 0;
-  DToHCopies = 0;
-  HNumFree = 0;
-  DNumFree = 0;
-  HNumAlloc = 0;
-  DNumAlloc = 0;
-}
-
-// Increment variables for each actionand space
+// Increment variables for each action and space
 static auto callback = [](const chai::PointerRecord *,
                           chai::Action action,
                           chai::ExecutionSpace space) {
       if (action == chai::ACTION_MOVE) {
-        (space == chai::CPU) ? DToHCopies++ : HToDCopies++;
+        (space == chai::CPU) ?
+          gcounts.DToHCopies++ : gcounts.HToDCopies++;
       } else if (action == chai::ACTION_ALLOC) {
-        (space == chai::CPU) ? HNumAlloc++ : DNumAlloc++;
+        (space == chai::CPU) ?
+          gcounts.HNumAlloc++ : gcounts.DNumAlloc++;
       } else if (action == chai::ACTION_FREE) {
-        (space == chai::CPU) ? HNumFree++ : DNumFree++;
+        (space == chai::CPU) ?
+          gcounts.HNumFree++ : gcounts.DNumFree++;
       }
 };
 
@@ -60,7 +54,7 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, DefaultConstructor) {
 // Test constructor from ContainerType, movement to and from device
 // and modification on the device
 GPU_TYPED_TEST_P(NPLViewTypedTest, ConstructorFromContainer) {
-  resetCounters();
+  gcounts.resetCounters();
   const size_t N = 5;
   NPL npl = gpu_this->createContainer(N);
   NPLV npl_v = npl.toView(callback);
@@ -93,7 +87,7 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, ConstructorFromContainer) {
 // Test constructor from ContainerType, movement to and from device
 // and modification on the device
 GPU_TYPED_TEST_P(NPLViewTypedTest, Touch) {
-  resetCounters();
+  gcounts.resetCounters();
   {
     const size_t N = 5;
     NPL npl = gpu_this->createContainer(N);
@@ -115,22 +109,19 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, Touch) {
            }
          });
   }
-  SPHERAL_ASSERT_EQ(DToHCopies, 0);
-  SPHERAL_ASSERT_EQ(HNumAlloc, 0);
-  SPHERAL_ASSERT_EQ(HNumFree, 0);
-  if (typeid(RAJA::seq_exec) == typeid(TypeParam)) {
-    SPHERAL_ASSERT_EQ(HToDCopies, 0);
-  } else {
-    SPHERAL_ASSERT_EQ(HToDCopies, 2);
-    SPHERAL_ASSERT_EQ(DNumAlloc, 1);
-    SPHERAL_ASSERT_EQ(DNumFree, 1);
+  GPUCounters ref_count;
+  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+    ref_count.HToDCopies = 2;
+    ref_count.DNumAlloc = 1;
+    ref_count.DNumFree = 1;
   }
+  gcounts.compareCounters(ref_count);
 }
 
 // Test constructor from ContainerType, movement to and from device
 // and modification on the device
 GPU_TYPED_TEST_P(NPLViewTypedTest, Resize) {
-  resetCounters();
+  gcounts.resetCounters();
   {
     const size_t N = 4;
     NPL npl = gpu_this->createContainer(N);
@@ -156,17 +147,14 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, Resize) {
     npl_v.move(chai::CPU);
     SPHERAL_ASSERT_EQ(npl_v[N+1].i_node, npl[N+1].i_node);
   }
-  SPHERAL_ASSERT_EQ(HNumAlloc, 0);
-  SPHERAL_ASSERT_EQ(HNumFree, 0);
-  if (typeid(RAJA::seq_exec) == typeid(TypeParam)) {
-    SPHERAL_ASSERT_EQ(HToDCopies, 0);
-    SPHERAL_ASSERT_EQ(DToHCopies, 0);
-  } else {
-    SPHERAL_ASSERT_EQ(DToHCopies, 1);
-    SPHERAL_ASSERT_EQ(HToDCopies, 2);
-    SPHERAL_ASSERT_EQ(DNumAlloc, 2);
-    SPHERAL_ASSERT_EQ(DNumFree, 2);
+  GPUCounters ref_count;
+  if (typeid(RAJA::seq_exec) != typeid(TypeParam)){
+    ref_count.DToHCopies = 1;
+    ref_count.HToDCopies = 2;
+    ref_count.DNumAlloc = 2;
+    ref_count.DNumFree = 2;
   }
+  gcounts.compareCounters(ref_count);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(NPLViewTypedTest, DefaultConstructor,
