@@ -122,13 +122,7 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
 template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::~FieldList() {
-
-//   // Unregister this FieldList from each Field we point to.
-//   if (storageType() == FieldStorageType::ReferenceFields) {
-//     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
-//       unregisterFromField(**fieldPtrItr);
-//   }
-
+  mFieldViews.free();
 }
 
 //------------------------------------------------------------------------------
