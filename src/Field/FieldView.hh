@@ -8,9 +8,6 @@ namespace Spheral {
 
 template <typename Dimension, typename DataType> class FieldView {
 
-  // Ensure the datatype is trivially copyable.
-  static_assert(std::is_trivially_copyable<DataType>::value,
-                "Error: The template type T must be trivially copyable.");
 
   using ContainerType = typename chai::ManagedArray<DataType>;
 

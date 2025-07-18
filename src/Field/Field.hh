@@ -260,8 +260,9 @@ public:
     );
   }
 
-  template<typename F>
-  ViewType toView(F callback)
+  template<typename T=DataType, typename F>
+  std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
+  toView(F callback)
   {
     if (!mManagedData.getActivePointer()) {
       mManagedData = chai::makeManagedArray(
@@ -269,7 +270,14 @@ public:
 
       mManagedData.setUserCallback(callback);
     }
+    return ViewType(mManagedData);
+  }
 
+  template<typename T=DataType, typename F>
+  std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
+  toView(F callback)
+  {
+    ASSERT2(false, "NOOOOO");
     return ViewType(mManagedData);
   }
 
