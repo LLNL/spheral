@@ -51,7 +51,7 @@ public:
     mData.registerTouch(space);
     if (recursive) {
       for (auto d : mData) {
-        d.registerTouch(space);
+        d.touch(space);
       }
     }
   }
