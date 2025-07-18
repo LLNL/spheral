@@ -6,8 +6,8 @@
 
 namespace Spheral {
 
-template <typename Dimension, typename DataType> class FieldView {
-
+template <typename Dimension, typename DataType>
+class FieldView : public chai::CHAICopyable{
 
   using ContainerType = typename chai::ManagedArray<DataType>;
 
@@ -44,6 +44,21 @@ public:
 
   SPHERAL_HOST_DEVICE
   DataType *data() const { return mData.getActivePointer(); }
+
+  SPHERAL_HOST
+  DataType *data(chai::ExecutionSpace space, bool do_move = true) const {
+    return mData.data(space, do_move);
+  }
+
+  SPHERAL_HOST_DEVICE
+  void shallowCopy(FieldView const& other) const {
+    mData.shallowCopy(other.mData);
+  }
+
+  SPHERAL_HOST
+  void touch(chai::ExecutionSpace space) {
+    mData.registerTouch(space);
+  }
 };
 
 } // namespace Spheral
