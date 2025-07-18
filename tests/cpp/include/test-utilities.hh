@@ -103,4 +103,13 @@ struct GPUCounters {
   }
 };
 
+#define COMP_COUNTERS(LHS, RHS) \
+    SPHERAL_ASSERT_EQ_MSG(LHS.HToDCopies, RHS.HToDCopies); \
+    SPHERAL_ASSERT_EQ_MSG(LHS.DToHCopies, RHS.DToHCopies); \
+    SPHERAL_ASSERT_EQ_MSG(LHS.HNumAlloc,  RHS.HNumAlloc); \
+    SPHERAL_ASSERT_EQ_MSG(LHS.DNumAlloc,  RHS.DNumAlloc); \
+    SPHERAL_ASSERT_EQ_MSG(LHS.HNumFree,   RHS.HNumFree); \
+    SPHERAL_ASSERT_EQ_MSG(LHS.DNumFree,   RHS.DNumFree); 
+
+
 #endif // SPHERAL_TEST_UTILITIES_HH
