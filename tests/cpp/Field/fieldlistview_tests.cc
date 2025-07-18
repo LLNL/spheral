@@ -16,6 +16,19 @@ using FieldViewDouble = Spheral::FieldView<DIM3, double>;
 using FieldListDouble = Spheral::FieldList<DIM3, double>;
 using NodeList_t = Spheral::NodeList<DIM3>;
 
+// Increment variables for each actionand space
+static auto callback = [](const chai::PointerRecord *,
+                          chai::Action action,
+                          chai::ExecutionSpace space) {
+      if (action == chai::ACTION_MOVE) {
+        (space == chai::CPU) ? DToHCopies++ : HToDCopies++;
+      } else if (action == chai::ACTION_ALLOC) {
+        (space == chai::CPU) ? HNumAlloc++ : DNumAlloc++;
+      } else if (action == chai::ACTION_FREE) {
+        (space == chai::CPU) ? HNumFree++ : DNumFree++;
+      }
+};
+
 class FieldListViewTest : public ::testing::Test {
 public:
   NodeList_t createNodeList(size_t count) {
@@ -36,22 +49,23 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, DefaultConstructor) {
   std::string field_name = "Field::NodeListValCtor";
   NodeList_t nl = gpu_this->createNodeList(N);
   FieldDouble field(field_name, nl, val);
+  FieldDouble field2("Field2", nl, val);
   FieldListDouble field_list;
+
   field_list.appendField(field);
+  field_list.appendField(field2);
+
+  const size_t numFields = field_list.size() ;
   auto fl_v = field_list.toView();
-  printf("cpu fv %p\n", (void*)(fl_v.data()));
-  auto f_v = field_list[0].toView();
+
   RAJA::forall<TypeParam>(
-       TRS_UINT(0, N),
-       [=] SPHERAL_HOST_DEVICE(size_t i) {
-         printf("gpu %p\n", (void*)(fl_v.data()));
-         //printf("%zu %zu\n", i, fl_v[0].size());
-         SPHERAL_ASSERT_EQ(fl_v[0].size(), N);
-       });
-  // EXEC_IN_SPACE_BEGIN(TypeParam)
-  //   SPHERAL_ASSERT_EQ(fl_v(0, 0), 4.0);
-  // EXEC_IN_SPACE_END()
-  // fl_v.move(chai::CPU);
+        TRS_UINT(0, N),
+        [=] SPHERAL_HOST_DEVICE(size_t i) {
+          SPHERAL_ASSERT_EQ(fl_v.size(), numFields);
+          for (size_t l = 0; l < numFields; ++l) {
+            SPHERAL_ASSERT_EQ(fl_v[l].size(), N);
+          }
+        });
 }
 
 REGISTER_TYPED_TEST_SUITE_P(FieldListViewTypedTest, DefaultConstructor);
