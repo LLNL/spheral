@@ -61,19 +61,19 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, ConstructorFromContainer) {
   SPHERAL_ASSERT_EQ(npl_v.size(), N);
   SPHERAL_ASSERT_EQ(&(npl_v[0]), &(npl[0]));
 
-  RAJA::forall<TypeParam>(
-       TRS_UINT(0, N),
-       [=] SPHERAL_HOST_DEVICE(size_t i) {
-         NPIT nit = npl_v[i];
-         SPHERAL_ASSERT_EQ(nit.i_node, i);
-         SPHERAL_ASSERT_EQ(nit.i_list, i+1);
-         SPHERAL_ASSERT_EQ(nit.j_node, 2*i);
-         SPHERAL_ASSERT_EQ(nit.j_list, 2*i+1);
-         SPHERAL_ASSERT_EQ(nit.f_couple, (double)i);
-         npl_v[i].i_node *= 2;
-         npl_v[i].i_list -= 1;
-         npl_v[i].f_couple *= 2.;
-       });
+  RAJA::forall<TypeParam>
+    (TRS_UINT(0, N),
+     [=] SPHERAL_HOST_DEVICE(size_t i) {
+       NPIT nit = npl_v[i];
+       SPHERAL_ASSERT_EQ(nit.i_node, i);
+       SPHERAL_ASSERT_EQ(nit.i_list, i+1);
+       SPHERAL_ASSERT_EQ(nit.j_node, 2*i);
+       SPHERAL_ASSERT_EQ(nit.j_list, 2*i+1);
+       SPHERAL_ASSERT_EQ(nit.f_couple, (double)i);
+       npl_v[i].i_node *= 2;
+       npl_v[i].i_list -= 1;
+       npl_v[i].f_couple *= 2.;
+     });
 
   npl_v.move(chai::CPU);
 
@@ -101,13 +101,14 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, Touch) {
     npl_v.touch(chai::CPU); // Change the execution space for the MA
     npl_v = npl.toView(callback); // Create a new view
 
-    RAJA::forall<TypeParam>(
-         TRS_UINT(0, N),
-         [=] SPHERAL_HOST_DEVICE(size_t i) {
-           if (i == 0) {
-             SPHERAL_ASSERT_EQ(npl_v[i].i_list, 4);
-           }
-         });
+    RAJA::forall<TypeParam>
+      (TRS_UINT(0, N),
+       [=] SPHERAL_HOST_DEVICE(size_t i) {
+         if (i == 0) {
+           SPHERAL_ASSERT_EQ(npl_v[i].i_list, 4);
+         }
+       });
+    npl_v.touch(chai::CPU);
   }
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
@@ -135,15 +136,15 @@ GPU_TYPED_TEST_P(NPLViewTypedTest, Resize) {
     npl.push_back(nit);
     npl_v = npl.toView(callback);
 
-    RAJA::forall<TypeParam>(
-         TRS_UINT(0, npl.size()),
-         [=] SPHERAL_HOST_DEVICE(size_t i) {
-           SPHERAL_ASSERT_EQ(npl_v.size(), N+1);
-           if (i == N) {
-             SPHERAL_ASSERT_EQ(npl_v[i].i_list, 4);
-             npl_v[i].i_node = 6;
-           }
-         });
+    RAJA::forall<TypeParam>
+      (TRS_UINT(0, npl.size()),
+       [=] SPHERAL_HOST_DEVICE(size_t i) {
+         SPHERAL_ASSERT_EQ(npl_v.size(), N+1);
+         if (i == N) {
+           SPHERAL_ASSERT_EQ(npl_v[i].i_list, 4);
+           npl_v[i].i_node = 6;
+         }
+       });
     npl_v.move(chai::CPU);
     SPHERAL_ASSERT_EQ(npl_v[N+1].i_node, npl[N+1].i_node);
   }
