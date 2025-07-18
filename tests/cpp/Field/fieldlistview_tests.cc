@@ -16,16 +16,21 @@ using FieldViewDouble = Spheral::FieldView<DIM3, double>;
 using FieldListDouble = Spheral::FieldList<DIM3, double>;
 using NodeList_t = Spheral::NodeList<DIM3>;
 
-// Increment variables for each actionand space
+static GPUCounters gcounts;
+
+// Increment variables for each action and space
 static auto callback = [](const chai::PointerRecord *,
                           chai::Action action,
                           chai::ExecutionSpace space) {
       if (action == chai::ACTION_MOVE) {
-        (space == chai::CPU) ? DToHCopies++ : HToDCopies++;
+        (space == chai::CPU) ?
+          gcounts.DToHCopies++ : gcounts.HToDCopies++;
       } else if (action == chai::ACTION_ALLOC) {
-        (space == chai::CPU) ? HNumAlloc++ : DNumAlloc++;
+        (space == chai::CPU) ?
+          gcounts.HNumAlloc++ : gcounts.DNumAlloc++;
       } else if (action == chai::ACTION_FREE) {
-        (space == chai::CPU) ? HNumFree++ : DNumFree++;
+        (space == chai::CPU) ?
+          gcounts.HNumFree++ : gcounts.DNumFree++;
       }
 };
 
@@ -44,6 +49,7 @@ TYPED_TEST_SUITE_P(FieldListViewTypedTest);
 template <typename T> class FieldListViewTypedTest : public FieldListViewTest {};
 
 GPU_TYPED_TEST_P(FieldListViewTypedTest, DefaultConstructor) {
+  gcounts.resetCounters();
   const int N = 10;
   const double val = 4.;
   std::string field_name = "Field::NodeListValCtor";
@@ -56,7 +62,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, DefaultConstructor) {
   field_list.appendField(field2);
 
   const size_t numFields = field_list.size() ;
-  auto fl_v = field_list.toView();
+  auto fl_v = field_list.toView(callback);
 
   RAJA::forall<TypeParam>(
         TRS_UINT(0, N),
@@ -66,6 +72,9 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, DefaultConstructor) {
             SPHERAL_ASSERT_EQ(fl_v[l].size(), N);
           }
         });
+  printf("copies %d %d\n", gcounts.HToDCopies, gcounts.DToHCopies);
+  printf("allocs %d %d\n", gcounts.HNumAlloc, gcounts.DNumAlloc);
+  printf("frees %d %d\n", gcounts.HNumFree, gcounts.DNumFree);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(FieldListViewTypedTest, DefaultConstructor);
