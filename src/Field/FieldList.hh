@@ -304,6 +304,8 @@ public:
     for (size_t i = 0; i < fl_size; ++i) {
       mFieldViews[i] = mFieldPtrs[i]->toView();
     }
+    mFieldViews.registerTouch(chai::CPU);
+    mFieldViews.setUserCallback(callback);
     return ViewType(mFieldViews);
   }
 
