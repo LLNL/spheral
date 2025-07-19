@@ -279,7 +279,7 @@ public:
   std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
   toView(F callback)
   {
-    ASSERT2(false, "NOOOOO");
+    ASSERT2(false, "Spheral::Field::toView() Is invalid when Field::DataType is not trivially copyable.");
     return ViewType(mManagedData);
   }
 
