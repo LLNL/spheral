@@ -12,8 +12,11 @@
 
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
+#include "Utilities/Logger.hh"
 #include "FieldView.hh"
 #include "FieldListView.hh"
+#include "chai/ExecutionSpaces.hpp"
+#include "chai/Types.hpp"
 
 #include <vector>
 #include <list>
@@ -286,27 +289,63 @@ public:
   using ViewType = FieldListView<Dimension, DataType>;
   ViewType toView()
   {
-    return this->toView([](const chai::PointerRecord*,
-                           chai::Action action,
-                           chai::ExecutionSpace) {
-                          if (action == chai::ACTION_MOVE)
-                            std::cout << "FieldList Moved.\n";
-                        }
-                        );
+    auto func = [](
+        const chai::PointerRecord *,
+        chai::Action,
+        chai::ExecutionSpace) {};
+
+    return this->toView(func);
   }
 
   template<typename F>
-  ViewType toView(F callback)
+  ViewType toView(F&& extension)
   {
-    size_t fl_size = mFieldPtrs.size();
-    mFieldViews.free();
-    mFieldViews = chai::ManagedArray<FieldView<Dimension, DataType>>(fl_size);
-    for (size_t i = 0; i < fl_size; ++i) {
+    auto callback = getFieldListCallback(std::forward<F>(extension));
+
+    if (mFieldViews.size() == 0 && !mFieldViews.getPointer(chai::CPU, false)) {
+      mFieldViews.allocate(size(), chai::CPU, callback);
+    } else {
+      mFieldViews.setUserCallback(callback);
+      mFieldViews.reallocate(size());
+    }
+
+    for (size_t i = 0; i < size(); ++i) {
       mFieldViews[i] = mFieldPtrs[i]->toView();
     }
+
     mFieldViews.registerTouch(chai::CPU);
-    mFieldViews.setUserCallback(callback);
+
     return ViewType(mFieldViews);
+  }
+
+protected:
+  template<typename F>
+  auto getFieldListCallback(F callback)
+  {
+    return [callback](
+      const chai::PointerRecord * record,
+      chai::Action action,
+      chai::ExecutionSpace space) {
+        if (action == chai::ACTION_MOVE) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "FieldList : MOVED to the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "FieldList : MOVED to the GPU";
+        }
+        else if (action == chai::ACTION_ALLOC) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "FieldList : ALLOC on the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "FieldList : ALLOC on the GPU";
+        }
+        else if (action == chai::ACTION_FREE) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "FieldList : FREE on the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "FieldList : FREE on the GPU";
+        }
+        callback(record, action, space);
+      };
   }
 
 private:
