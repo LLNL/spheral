@@ -14,6 +14,7 @@ Notable changes include:
     * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
     * Optimizations to RankTensor types:
       * Stack allocation of tensor data; Static casting for CRTP implementation.
+    * GeomTensor & GeomSymmetricTensor have been refactored for use on the GPU.
     * New Logging utility for runtime debug messages.
 
   * Build changes / improvements:
