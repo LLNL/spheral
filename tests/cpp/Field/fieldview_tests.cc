@@ -1,3 +1,7 @@
+// Debug log printing can be quickly enabled for this unit test by uncommenting the
+// definition below even if Spheral was not configured w/ SPHERAL_ENABLE_LOGGER=On.
+// #define SPHERAL_ENABLE_LOGGER
+
 #include "chai/ExecutionSpaces.hpp"
 #include "test-basic-exec-policies.hh"
 #include "test-utilities.hh"
@@ -22,19 +26,36 @@ using NodeList_t = Spheral::NodeList<DIM3>;
 static GPUCounters gcounts;
 
 // Increment variables for each action and space
-static auto callback = [](const chai::PointerRecord *,
-                          chai::Action action,
+static auto callback = [](const chai::PointerRecord *, chai::Action action,
                           chai::ExecutionSpace space) {
-      if (action == chai::ACTION_MOVE) {
-        (space == chai::CPU) ?
-          gcounts.DToHCopies++ : gcounts.HToDCopies++;
-      } else if (action == chai::ACTION_ALLOC) {
-        (space == chai::CPU) ?
-          gcounts.HNumAlloc++ : gcounts.DNumAlloc++;
-      } else if (action == chai::ACTION_FREE) {
-        (space == chai::CPU) ?
-          gcounts.HNumFree++ : gcounts.DNumFree++;
-      }
+  if (action == chai::ACTION_MOVE) {
+    if (space == chai::CPU) {
+      DEBUG_LOG << "Field Moved to the CPU";
+      gcounts.DToHCopies++;
+    }
+    if (space == chai::GPU) {
+      DEBUG_LOG << "Field Moved to the GPU";
+      gcounts.HToDCopies++;
+    }
+  } else if (action == chai::ACTION_ALLOC) {
+    if (space == chai::CPU) {
+      DEBUG_LOG << "Fieldiew Allocated on the CPU";
+      gcounts.HNumAlloc++;
+    }
+    if (space == chai::GPU) {
+      DEBUG_LOG << "Field Allocated on the GPU";
+      gcounts.DNumAlloc++;
+    }
+  } else if (action == chai::ACTION_FREE) {
+    if (space == chai::CPU) {
+      DEBUG_LOG << "Field DeAllocated on the CPU";
+      gcounts.HNumFree++;
+    }
+    if (space == chai::GPU) {
+      DEBUG_LOG << "Field DeAllocated on the GPU";
+      gcounts.DNumFree++;
+    }
+  }
 };
 
 class FieldViewTest : public ::testing::Test {
@@ -154,7 +175,6 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
  * Resize the field after a copy to the execution space. The Second toView
  * Call should trigger a free of any GPU memory and reassign the FieldView
  * CPU pointer to the underlying vectors new address.
- *ManaArr
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   using WORK_EXEC_POLICY = TypeParam;
