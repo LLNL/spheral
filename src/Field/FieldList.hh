@@ -294,13 +294,23 @@ public:
         chai::Action,
         chai::ExecutionSpace) {};
 
-    return this->toView(func);
+    return this->toView(func, func);
   }
 
-  template<typename F>
-  ViewType toView(F&& extension)
+  template<typename FL>
+  ViewType toView(FL&& extension) {
+    auto func = [](
+        const chai::PointerRecord *,
+        chai::Action,
+        chai::ExecutionSpace) {};
+
+    return this->toView(std::forward<FL>(extension), func);
+  }
+
+  template<typename FL, typename F>
+  ViewType toView(FL&& extension, F&& field_extension)
   {
-    auto callback = getFieldListCallback(std::forward<F>(extension));
+    auto callback = getFieldListCallback(std::forward<FL>(extension));
 
     if (mFieldViews.size() == 0 && !mFieldViews.getPointer(chai::CPU, false)) {
       mFieldViews.allocate(size(), chai::CPU, callback);
@@ -310,7 +320,7 @@ public:
     }
 
     for (size_t i = 0; i < size(); ++i) {
-      mFieldViews[i] = mFieldPtrs[i]->toView();
+      mFieldViews[i] = mFieldPtrs[i]->toView(std::forward<F>(field_extension));
     }
 
     mFieldViews.registerTouch(chai::CPU);
