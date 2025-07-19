@@ -5,6 +5,13 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
+    * Spheral::FieldView allows for implicit data migration of Spheral::Field data.
+      * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
+      * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
+      * Unit testing to ensure implicitly copyable Spheral data types can be copied to and from the device correctly.
+    * GeomVector has been converted to be used on the GPU direclty.
+      * CPU & GPU unit testing of the public interface.
+    * New Logging utility for runtime debug messages.
 
   * Build changes / improvements:
     * A python virtual environment is installed in the spheral build dir, removing the
