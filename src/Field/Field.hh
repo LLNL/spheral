@@ -13,8 +13,10 @@
 
 #include "FieldBase.hh"
 #include "FieldView.hh"
+
+#include "Utilities/Logger.hh"
+
 #include "axom/sidre.hpp"
-#include "camp/camp.hpp"
 #include "chai/ExecutionSpaces.hpp"
 #include "chai/ManagedArray.hpp"
 #include "chai/PointerRecord.hpp"
@@ -249,10 +251,13 @@ public:
     return this->toView(
       [](const chai::PointerRecord *,
         chai::Action action,
-        chai::ExecutionSpace) {
-
-        if (action == chai::ACTION_MOVE)
-          std::cout << "Chai ManagedArray Moved.\n";
+        chai::ExecutionSpace space) {
+          if (action == chai::ACTION_MOVE) {
+            if (space == chai::CPU)
+              DEBUG_LOG << "FieldView Moved to the CPU\n";
+            if (space == chai::GPU)
+              DEBUG_LOG << "FieldView Moved to the GPU\n";
+          }
         }
 
     );
