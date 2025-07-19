@@ -88,6 +88,7 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
     SPHERAL_ASSERT_EQ_MSG(LHS.HNumFree,   RHS.HNumFree, "Failed HNumFree\n");\
     SPHERAL_ASSERT_EQ_MSG(LHS.DNumFree,   RHS.DNumFree, "Failed DNumFree\n")
 
+// Counter : { H->D Copy, D->H Copy, H Alloc, D Alloc, H Free, D Free }
 struct GPUCounters {
   int HToDCopies = 0, DToHCopies = 0;
   int HNumAlloc = 0, DNumAlloc = 0;

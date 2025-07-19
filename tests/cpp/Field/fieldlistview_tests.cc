@@ -27,22 +27,35 @@ static constexpr int N = 100;
 
 class FieldListViewTest : public ::testing::Test {
 public:
-  GPUCounters gcounts;
+  GPUCounters fl_count;
+  GPUCounters f_count;
 
   NodeList_t createNodeList(size_t count) {
     return NodeList_t("DataNodeList", count, 0);
   }
 
   // Increment variables for each action and space
-  auto callback() {
+  auto fl_callback() {
     return [&](const chai::PointerRecord *, chai::Action action,
                             chai::ExecutionSpace space) {
     if (action == chai::ACTION_MOVE)
-      (space == chai::CPU) ? gcounts.DToHCopies++ : gcounts.HToDCopies++;
+      (space == chai::CPU) ? fl_count.DToHCopies++ : fl_count.HToDCopies++;
     if (action == chai::ACTION_ALLOC)
-      (space == chai::CPU) ? gcounts.HNumAlloc++ : gcounts.DNumAlloc++;
+      (space == chai::CPU) ? fl_count.HNumAlloc++ : fl_count.DNumAlloc++;
     if (action == chai::ACTION_FREE)
-      (space == chai::CPU) ? gcounts.HNumFree++ : gcounts.DNumFree++;
+      (space == chai::CPU) ? fl_count.HNumFree++ : fl_count.DNumFree++;
+    };
+  }
+
+  auto f_callback() {
+    return [&](const chai::PointerRecord *, chai::Action action,
+                            chai::ExecutionSpace space) {
+    if (action == chai::ACTION_MOVE)
+      (space == chai::CPU) ? f_count.DToHCopies++ : f_count.HToDCopies++;
+    if (action == chai::ACTION_ALLOC)
+      (space == chai::CPU) ? f_count.HNumAlloc++ : f_count.DNumAlloc++;
+    if (action == chai::ACTION_FREE)
+      (space == chai::CPU) ? f_count.HNumFree++ : f_count.DNumFree++;
     };
   }
 };
@@ -64,7 +77,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, BasicCapture) {
     field_list.appendField(field2);
 
     const size_t numFields = field_list.size() ;
-    auto fl_v = field_list.toView(gpu_this->callback());
+    auto fl_v = field_list.toView(gpu_this->fl_callback(), gpu_this->f_callback());
 
     RAJA::forall<TypeParam>(TRS_UINT(0, numFields),
       [=] SPHERAL_HOST_DEVICE (size_t i) {
@@ -73,18 +86,18 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, BasicCapture) {
       });
   }
 
-  GPUCounters ref_count;
+  // Counter : { H->D Copy, D->H Copy, H Alloc, D Alloc, H Free, D Free }
+  GPUCounters fl_ref_count, f_ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
-    ref_count.HToDCopies = 1;
-    ref_count.HNumAlloc = 1;
-    ref_count.DNumAlloc = 1;
-    ref_count.HNumFree = 1;
-    ref_count.DNumFree = 1;
+    fl_ref_count = {1, 0, 1, 1, 1, 1};
+    f_ref_count  = {2, 0, 0, 2, 0, 2};
   } else {
-    ref_count.HNumAlloc = 1;
-    ref_count.HNumFree = 1;
+    fl_ref_count = {0, 0, 1, 0, 1, 0};
+    f_ref_count  = {0, 0, 0, 0, 0, 0};
   }
-  COMP_COUNTERS(gpu_this->gcounts, ref_count);
+
+  COMP_COUNTERS(gpu_this->fl_count, fl_ref_count);
+  COMP_COUNTERS(gpu_this->f_count,  f_ref_count);
 }
 
 // TODO: Add test for having multiple FL contain the same field
@@ -104,7 +117,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeAndTouch) {
     const size_t numFields = field_list.size() ;
 
     { // Scope 1
-    auto fl_v = field_list.toView(gpu_this->callback());
+    auto fl_v = field_list.toView(gpu_this->fl_callback(), gpu_this->f_callback());
 
     DEBUG_LOG << "Start Kernel 1";
     RAJA::forall<TypeParam>(TRS_UINT(0, numFields),
@@ -118,7 +131,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeAndTouch) {
     } // Scope 1
 
     { // Scope 2
-    auto fl_v = field_list.toView(gpu_this->callback());
+    auto fl_v = field_list.toView(gpu_this->fl_callback(), gpu_this->f_callback());
 
     DEBUG_LOG << "Start Kernel 2";
     RAJA::forall<TypeParam>(TRS_UINT(0, numFields),
@@ -130,19 +143,18 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeAndTouch) {
     } // Scope 2
   }
 
-  GPUCounters ref_count;
+  // Counter : { H->D Copy, D->H Copy, H Alloc, D Alloc, H Free, D Free }
+  GPUCounters fl_ref_count, f_ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
-    ref_count.HToDCopies = 2;
-    ref_count.HNumAlloc = 2;
-    ref_count.DNumAlloc = 2;
-    ref_count.HNumFree = 2;
-    ref_count.DNumFree = 2;
+    fl_ref_count = { 2, 0, 2, 2, 2, 2 };
+    f_ref_count  = { 4, 0, 0, 2, 0, 2};
   } else {
-    ref_count.HNumAlloc = 2;
-    ref_count.HNumFree = 2;
+    fl_ref_count = {0, 0, 2, 0, 2, 0};
+    f_ref_count  = {0, 0, 0, 0, 0, 0};
   }
 
-  COMP_COUNTERS(gpu_this->gcounts, ref_count);
+  COMP_COUNTERS(gpu_this->fl_count, fl_ref_count);
+  COMP_COUNTERS(gpu_this->f_count,  f_ref_count);
 }
 
 GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeNoTouch) {
@@ -160,7 +172,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeNoTouch) {
     const size_t numFields = field_list.size() ;
 
     { // Scope 1
-    auto fl_v = field_list.toView(gpu_this->callback());
+    auto fl_v = field_list.toView(gpu_this->fl_callback(), gpu_this->f_callback());
 
     DEBUG_LOG << "Start Kernel 1";
     RAJA::forall<TypeParam>(TRS_UINT(0, numFields),
@@ -172,7 +184,7 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeNoTouch) {
     } // Scope 1
 
     { // Scope 2
-    auto fl_v = field_list.toView(gpu_this->callback());
+    auto fl_v = field_list.toView(gpu_this->fl_callback(), gpu_this->f_callback());
 
     DEBUG_LOG << "Start Kernel 2";
     RAJA::forall<TypeParam>(TRS_UINT(0, numFields),
@@ -184,19 +196,18 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeNoTouch) {
     } // Scope 2
   }
 
-  GPUCounters ref_count;
+  // Counter : { H->D Copy, D->H Copy, H Alloc, D Alloc, H Free, D Free }
+  GPUCounters fl_ref_count, f_ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
-    ref_count.HToDCopies = 2;
-    ref_count.HNumAlloc = 2;
-    ref_count.DNumAlloc = 2;
-    ref_count.HNumFree = 2;
-    ref_count.DNumFree = 2;
+    fl_ref_count = { 2, 0, 2, 2, 2, 2 };
+    f_ref_count  = { 2, 0, 0, 2, 0, 2};
   } else {
-    ref_count.HNumAlloc = 2;
-    ref_count.HNumFree = 2;
+    fl_ref_count = {0, 0, 2, 0, 2, 0};
+    f_ref_count  = {0, 0, 0, 0, 0, 0};
   }
 
-  COMP_COUNTERS(gpu_this->gcounts, ref_count);
+  COMP_COUNTERS(gpu_this->fl_count, fl_ref_count);
+  COMP_COUNTERS(gpu_this->f_count,  f_ref_count);
 }
 
 // TODO: Add test where 
