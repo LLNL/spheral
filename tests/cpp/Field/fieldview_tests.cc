@@ -151,6 +151,71 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
 }
 
 /**
+ * Resize the field after a copy to the execution space. The Second toView
+ * Call should trigger a free of any GPU memory and reassign the FieldView
+ * CPU pointer to the underlying vectors new address.
+ *ManaArr
+ */
+GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
+  using WORK_EXEC_POLICY = TypeParam;
+
+  gcounts.resetCounters();
+  const int N = 10;
+  const double val = 4.;
+
+  NodeList_t nl = gpu_this->createNodeList(N);
+  int numFields = nl.numFields();
+
+  {
+    std::string field_name = "Field::NodeListValCtor";
+    FieldDouble field(field_name, nl, val);
+    numFields++;
+
+    SPHERAL_ASSERT_EQ(field.name(), field_name);
+    SPHERAL_ASSERT_EQ(field.size(), N);
+
+    auto field_v = field.toView(callback);
+    SPHERAL_ASSERT_EQ(field_v.size(), N);
+
+    RAJA::forall<WORK_EXEC_POLICY>
+      (TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE(int i) {
+         SPHERAL_ASSERT_EQ(field_v[i], val);
+       });
+
+    SPHERAL_ASSERT_EQ(field.numInternalElements(), field.numElements());
+    nl.numInternalNodes(100);
+
+    field_v = field.toView(callback);
+    SPHERAL_ASSERT_EQ(field_v.size(), 100);
+
+    RAJA::forall<WORK_EXEC_POLICY>
+      (TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE(int i) {
+         if (i < N) {SPHERAL_ASSERT_EQ(field_v[i], val);}
+         else { SPHERAL_ASSERT_EQ(field_v[i], 0); }
+       });
+
+    SPHERAL_ASSERT_EQ(field.size(), 100);
+
+    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
+  }
+  numFields--;
+
+  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
+
+  GPUCounters ref_count;
+  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+    ref_count.HToDCopies = 2;
+    ref_count.DNumAlloc = 2;
+    ref_count.DNumFree = 2;
+  }
+
+  gcounts.compareCounters(ref_count);
+}
+
+
+/**
  * Copy CTor test for the Field.
  * - Test w/ double and GeomPolygon.
  */
@@ -262,7 +327,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, AssignmentContainerType) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, NameNodeListValCtor, CopyCtor, MultiViewSemantics,
-                            AssignmentField, AssignmentContainerType);
+                            ResizeField, AssignmentField, AssignmentContainerType);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldViewTypedTest,
                                typename Spheral::Test<EXEC_TYPES>::Types, );
