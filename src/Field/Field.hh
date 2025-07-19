@@ -248,19 +248,12 @@ public:
 
   ViewType toView()
   {
-    return this->toView(
-      [](const chai::PointerRecord *,
-        chai::Action action,
-        chai::ExecutionSpace space) {
-          if (action == chai::ACTION_MOVE) {
-            if (space == chai::CPU)
-              DEBUG_LOG << "FieldView Moved to the CPU\n";
-            if (space == chai::GPU)
-              DEBUG_LOG << "FieldView Moved to the GPU\n";
-          }
-        }
+    auto func = [](
+        const chai::PointerRecord *,
+        chai::Action,
+        chai::ExecutionSpace) {};
 
-    );
+    return this->toView(func);
   }
 
   template<typename T=DataType, typename F>
@@ -275,7 +268,33 @@ public:
       mManagedData = chai::makeManagedArray(
           mDataArray.data(), mDataArray.size(), chai::CPU, false);
 
-      mManagedData.setUserCallback(callback);
+      mManagedData.setUserCallback(
+        [n = this->name(), callback](
+          const chai::PointerRecord * record,
+          chai::Action action,
+          chai::ExecutionSpace space) {
+            if (action == chai::ACTION_MOVE) {
+              if (space == chai::CPU)
+                DEBUG_LOG << "Field :" << n << ": MOVED to the CPU";
+              if (space == chai::GPU)
+                DEBUG_LOG << "Field :" << n << ": MOVED to the GPU";
+            }
+            else if (action == chai::ACTION_ALLOC) {
+              if (space == chai::CPU)
+                DEBUG_LOG << "Field :" << n << ": ALLOC on the CPU";
+              if (space == chai::GPU)
+                DEBUG_LOG << "Field :" << n << ": ALLOC on the GPU";
+            }
+            else if (action == chai::ACTION_FREE) {
+              if (space == chai::CPU)
+                DEBUG_LOG << "Field :" << n << ": FREE on the CPU";
+              if (space == chai::GPU)
+                DEBUG_LOG << "Field :" << n << ": FREE on the GPU";
+            }
+            callback(record, action, space);
+          }
+      );
+
     }
     return ViewType(mManagedData);
   }
