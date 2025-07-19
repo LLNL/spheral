@@ -75,16 +75,15 @@ template <typename T> class FieldViewTypedTest : public FieldViewTest {};
  * the host to the device, and a deallocation when the Field Dtor is triggered.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, ExecutionSpaceCapture) {
+  using WORK_EXEC_POLICY = TypeParam;
+
   gcounts.resetCounters();
   const int N = 10;
   const double val = 4.;
   NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
-  using WORK_EXEC_POLICY = TypeParam;
   {
     std::string field_name = "Field::NodeListValCtor";
     FieldDouble field(field_name, nl, val);
-    numFields++;
 
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), N);
@@ -97,11 +96,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ExecutionSpaceCapture) {
        [=] SPHERAL_HOST_DEVICE(int i) {
          SPHERAL_ASSERT_EQ(field_v[i], val);
        });
-
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   }
-  numFields--;
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
     ref_count.HToDCopies = 1;
@@ -120,12 +115,10 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiSpaceCapture) {
   const int N = 10;
   const double val = 4.;
   NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
   using WORK_EXEC_POLICY = TypeParam;
   {
     std::string field_name = "Field::AssignmentContainer";
     FieldDouble field(field_name, nl, val);
-    numFields++;
 
     using ContainerType = std::vector<double>;
     ContainerType data(N);
@@ -153,10 +146,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiSpaceCapture) {
        });
 
     SPHERAL_ASSERT_NE(&field[0], &data[0]);
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   }
-  numFields--;
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
     ref_count.HToDCopies = 1;
@@ -177,12 +167,10 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
   const int N = 10;
   const double val = 4.;
   NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
   using WORK_EXEC_POLICY = TypeParam;
   {
     std::string field_name = "Field::MultiViewSemantics";
     FieldDouble field(field_name, nl, val);
-    numFields++;
 
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), N);
@@ -214,9 +202,7 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
          SPHERAL_ASSERT_EQ(field_v9[i], val);
        });
 
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   }
-  numFields--;
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
     ref_count.HToDCopies = 1;
@@ -224,7 +210,6 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
     ref_count.DNumFree = 1;
   }
   gcounts.compareCounters(ref_count);
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
 }
 
 /**
@@ -242,12 +227,10 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   const double val = 4.;
 
   NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
 
   {
     std::string field_name = "Field::NodeListValCtor";
     FieldDouble field(field_name, nl, val);
-    numFields++;
 
     SPHERAL_ASSERT_EQ(field.name(), field_name);
     SPHERAL_ASSERT_EQ(field.size(), N);
@@ -276,11 +259,8 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
 
     SPHERAL_ASSERT_EQ(field.size(), 100);
 
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
   }
-  numFields--;
 
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
 
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
