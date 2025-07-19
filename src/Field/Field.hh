@@ -258,7 +258,7 @@ public:
 
   template<typename T=DataType, typename F>
   std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
-  toView(F callback)
+  toView(F&& extension)
   {
     if (mManagedData.size() != mDataArray.size() ||
         mManagedData.data(chai::CPU, false) != mDataArray.data()) {
@@ -269,39 +269,14 @@ public:
           mDataArray.data(), mDataArray.size(), chai::CPU, false);
 
       mManagedData.setUserCallback(
-        [n = this->name(), callback](
-          const chai::PointerRecord * record,
-          chai::Action action,
-          chai::ExecutionSpace space) {
-            if (action == chai::ACTION_MOVE) {
-              if (space == chai::CPU)
-                DEBUG_LOG << "Field :" << n << ": MOVED to the CPU";
-              if (space == chai::GPU)
-                DEBUG_LOG << "Field :" << n << ": MOVED to the GPU";
-            }
-            else if (action == chai::ACTION_ALLOC) {
-              if (space == chai::CPU)
-                DEBUG_LOG << "Field :" << n << ": ALLOC on the CPU";
-              if (space == chai::GPU)
-                DEBUG_LOG << "Field :" << n << ": ALLOC on the GPU";
-            }
-            else if (action == chai::ACTION_FREE) {
-              if (space == chai::CPU)
-                DEBUG_LOG << "Field :" << n << ": FREE on the CPU";
-              if (space == chai::GPU)
-                DEBUG_LOG << "Field :" << n << ": FREE on the GPU";
-            }
-            callback(record, action, space);
-          }
-      );
-
+        getFieldCallback(std::forward<F>(extension)));
     }
     return ViewType(mManagedData);
   }
 
   template<typename T=DataType, typename F>
   std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
-  toView(F callback)
+  toView(F&&)
   {
     ASSERT2(false, "Spheral::Field::toView() Is invalid when Field::DataType is not trivially copyable.");
     return ViewType(mManagedData);
@@ -313,6 +288,34 @@ protected:
   virtual void resizeFieldGhost(unsigned size) override;
   virtual void deleteElement(int nodeID) override;
   virtual void deleteElements(const std::vector<int>& nodeIDs) override;
+
+  template<typename F>
+  auto getFieldCallback(F callback) {
+    return [n = this->name(), callback](
+      const chai::PointerRecord * record,
+      chai::Action action,
+      chai::ExecutionSpace space) {
+        if (action == chai::ACTION_MOVE) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "Field :" << n << ": MOVED to the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "Field :" << n << ": MOVED to the GPU";
+        }
+        else if (action == chai::ACTION_ALLOC) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "Field :" << n << ": ALLOC on the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "Field :" << n << ": ALLOC on the GPU";
+        }
+        else if (action == chai::ACTION_FREE) {
+          if (space == chai::CPU)
+            DEBUG_LOG << "Field :" << n << ": FREE on the CPU";
+          if (space == chai::GPU)
+            DEBUG_LOG << "Field :" << n << ": FREE on the GPU";
+        }
+        callback(record, action, space);
+      };
+  };
 
 private:
   //--------------------------- Private Interface ---------------------------//
