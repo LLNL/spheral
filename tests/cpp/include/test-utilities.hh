@@ -77,32 +77,6 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
   template <typename TypeParam, typename TestFixture>                          \
   static void gpu_test_##X##Y(TestFixture *gpu_this)
 
-struct GPUCounters {
-  int HToDCopies, DToHCopies;
-  int HNumAlloc, DNumAlloc;
-  int HNumFree, DNumFree;
-
-  // Constructor to initialize all counters to zero
-  GPUCounters() {
-    resetCounters();
-  }
-
-  void resetCounters() {
-    HToDCopies = 0, DToHCopies = 0, HNumAlloc = 0;
-    DNumAlloc = 0, HNumFree = 0, DNumFree = 0;
-  }
-
-  // Function to compare with another GPUCounter struct
-  void compareCounters(const GPUCounters& ref) {
-    SPHERAL_ASSERT_EQ_MSG(HToDCopies, ref.HToDCopies);
-    SPHERAL_ASSERT_EQ_MSG(DToHCopies, ref.DToHCopies);
-    SPHERAL_ASSERT_EQ_MSG(HNumAlloc, ref.HNumAlloc);
-    SPHERAL_ASSERT_EQ_MSG(DNumAlloc, ref.DNumAlloc);
-    SPHERAL_ASSERT_EQ_MSG(HNumFree, ref.HNumFree);
-    SPHERAL_ASSERT_EQ_MSG(DNumFree, ref.DNumFree);
-  }
-};
-
 #define COMP_COUNTERS(LHS, RHS) \
     SPHERAL_ASSERT_EQ_MSG(LHS.HToDCopies, RHS.HToDCopies); \
     SPHERAL_ASSERT_EQ_MSG(LHS.DToHCopies, RHS.DToHCopies); \
@@ -111,5 +85,10 @@ struct GPUCounters {
     SPHERAL_ASSERT_EQ_MSG(LHS.HNumFree,   RHS.HNumFree); \
     SPHERAL_ASSERT_EQ_MSG(LHS.DNumFree,   RHS.DNumFree); 
 
+struct GPUCounters {
+  int HToDCopies = 0, DToHCopies = 0;
+  int HNumAlloc = 0, DNumAlloc = 0;
+  int HNumFree = 0, DNumFree = 0;
+};
 
 #endif // SPHERAL_TEST_UTILITIES_HH
