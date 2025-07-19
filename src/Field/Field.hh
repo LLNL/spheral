@@ -246,6 +246,7 @@ public:
 
   using ViewType = FieldView<Dimension, DataType>;
 
+  // Default toView function call without an additionally defined callback.
   ViewType toView()
   {
     auto func = [](
@@ -256,6 +257,14 @@ public:
     return this->toView(func);
   }
 
+  // The Primary toView() implementation. DataType MUST be implicitly copyable
+  // to call toView on a Field. Field::toView() passes the location of the
+  // std::vector allocation to a chai::ManagedArray. the MA does NOT own the
+  // host data. Field is still resposible for deallocation on destruction. On
+  // subsequent calls of toView() a check is made to see if the std::vector has
+  // been resized OR reallocated. If so the current MA object calls free -
+  // releasing any possible device memory that has been allocated. A new MA is
+  // then created with the std::vector pointer.
   template<typename T=DataType, typename F>
   std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
   toView(F&& extension)
@@ -274,6 +283,8 @@ public:
     return ViewType(mManagedData);
   }
 
+  // The inverse SFINAE of the above implementation. This should throw an error
+  // if it is ever called with a type that is not implicitly copyable.
   template<typename T=DataType, typename F>
   std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
   toView(F&&)
