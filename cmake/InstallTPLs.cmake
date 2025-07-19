@@ -182,7 +182,7 @@ else()
   set(chai_DIR "${SPHERAL_ROOT_DIR}/extern/chai")
   set(CHAI_ENABLE_TESTS Off)
   set(CHAI_ENABLE_RAJA_PLUGIN On CACHE BOOL "")
-  add_subdirectory(${chai_DIR} SYSTEM)
+  add_subdirectory(${chai_DIR})
 endif()
 
 list(APPEND SPHERAL_BLT_DEPENDS chai camp RAJA umpire)
