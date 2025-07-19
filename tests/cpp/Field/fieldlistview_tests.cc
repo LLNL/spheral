@@ -30,8 +30,8 @@ public:
   GPUCounters fl_count;
   GPUCounters f_count;
 
-  NodeList_t createNodeList(size_t count) {
-    return NodeList_t("DataNodeList", count, 0);
+  NodeList_t createNodeList(std::string name = "NL", size_t count = N) {
+    return NodeList_t(name, count, 0);
   }
 
   // Increment variables for each action and space
@@ -67,10 +67,11 @@ template <typename T> class FieldListViewTypedTest : public FieldListViewTest {}
 GPU_TYPED_TEST_P(FieldListViewTypedTest, BasicCapture) {
 
   const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
+  NodeList_t nl1 = gpu_this->createNodeList("NL1");
+  NodeList_t nl2 = gpu_this->createNodeList("NL2");
   {
-    FieldDouble field("TestField1", nl, val);
-    FieldDouble field2("TestField2", nl, val);
+    FieldDouble field("TestField1", nl1, val);
+    FieldDouble field2("TestField2", nl2, val);
     FieldListDouble field_list;
 
     field_list.appendField(field);
@@ -105,10 +106,11 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, BasicCapture) {
 GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeAndTouch) {
 
   const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
+  NodeList_t nl1 = gpu_this->createNodeList("NL1");
+  NodeList_t nl2 = gpu_this->createNodeList("NL2");
   {
-    FieldDouble field("TestField1", nl, val);
-    FieldDouble field2("TestField2", nl, val);
+    FieldDouble field("TestField1", nl1, val);
+    FieldDouble field2("TestField2", nl2, val);
     FieldListDouble field_list;
 
     field_list.appendField(field);
@@ -160,10 +162,11 @@ GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeAndTouch) {
 GPU_TYPED_TEST_P(FieldListViewTypedTest, MultiScopeNoTouch) {
 
   const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
+  NodeList_t nl1 = gpu_this->createNodeList("NL1");
+  NodeList_t nl2 = gpu_this->createNodeList("NL2");
   {
-    FieldDouble field("TestField1", nl, val);
-    FieldDouble field2("TestField2", nl, val);
+    FieldDouble field("TestField1", nl1, val);
+    FieldDouble field2("TestField2", nl2, val);
     FieldListDouble field_list;
 
     field_list.appendField(field);
