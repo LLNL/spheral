@@ -244,8 +244,6 @@ public:
 
   using ViewType = FieldView<Dimension, DataType>;
 
-
-
   ViewType toView()
   {
     return this->toView(
@@ -264,7 +262,11 @@ public:
   std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
   toView(F callback)
   {
-    if (!mManagedData.getActivePointer()) {
+    if (mManagedData.size() != mDataArray.size() ||
+        mManagedData.data(chai::CPU, false) != mDataArray.data()) {
+
+      mManagedData.free();
+
       mManagedData = chai::makeManagedArray(
           mDataArray.data(), mDataArray.size(), chai::CPU, false);
 
