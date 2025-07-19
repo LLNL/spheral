@@ -9,7 +9,7 @@ Notable changes include:
       * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
       * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
       * Unit testing to ensure implicitly copyable Spheral data types can be copied to and from the device correctly.
-    * GeomVector has been converted to be used on the GPU direclty.
+    * GeomVector and Geom3Vector have been converted for use on the GPU.
       * CPU & GPU unit testing of the public interface.
     * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
     * Optimizations to RankTensor types:
