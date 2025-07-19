@@ -70,11 +70,11 @@ TYPED_TEST_SUITE_P(FieldViewTypedTest);
 template <typename T> class FieldViewTypedTest : public FieldViewTest {};
 
 /**
- * HOST/Devices CTor test for the Field Ctor that takes a name, nodelist and
- * initial value.
- * - Uses the FieldTest Nodelist constructed for the testing suite above.
+ * Host/Device test for the FieldView being captured in a RAJA execution space.
+ * GPU execution spaces should trigger an allocation on the device, a copy from
+ * the host to the device, and a deallocation when the Field Dtor is triggered.
  */
-GPU_TYPED_TEST_P(FieldViewTypedTest, NameNodeListValCtor) {
+GPU_TYPED_TEST_P(FieldViewTypedTest, ExecutionSpaceCapture) {
   gcounts.resetCounters();
   const int N = 10;
   const double val = 4.;
@@ -105,6 +105,62 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, NameNodeListValCtor) {
   GPUCounters ref_count;
   if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
     ref_count.HToDCopies = 1;
+    ref_count.DNumAlloc = 1;
+    ref_count.DNumFree = 1;
+  }
+  gcounts.compareCounters(ref_count);
+}
+
+/**
+ * This test ensures the FieldView Data is migrated back and forth between
+ * RAJA execution spaces through implicit capture.
+ */
+GPU_TYPED_TEST_P(FieldViewTypedTest, MultiSpaceCapture) {
+  gcounts.resetCounters();
+  const int N = 10;
+  const double val = 4.;
+  NodeList_t nl = gpu_this->createNodeList(N);
+  int numFields = nl.numFields();
+  using WORK_EXEC_POLICY = TypeParam;
+  {
+    std::string field_name = "Field::AssignmentContainer";
+    FieldDouble field(field_name, nl, val);
+    numFields++;
+
+    using ContainerType = std::vector<double>;
+    ContainerType data(N);
+
+    RAJA::forall<LOOP_EXEC_POLICY>
+      (TRS_UINT(0, N),
+       [&] SPHERAL_HOST(int i) {
+         data[i] = i;
+       });
+
+    field = data;
+    auto field_v = field.toView(callback);
+
+    RAJA::forall<WORK_EXEC_POLICY>
+      (TRS_UINT(0, N),
+       [=] SPHERAL_HOST_DEVICE(int i) {
+         field_v[i] *= 2;
+       });
+
+    RAJA::forall<LOOP_EXEC_POLICY>
+      (TRS_UINT(0, N),
+       [=, &field](int i) {
+         SPHERAL_ASSERT_EQ(field_v[i], i * 2);
+         SPHERAL_ASSERT_EQ(field[i], i * 2);
+       });
+
+    SPHERAL_ASSERT_NE(&field[0], &data[0]);
+    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
+  }
+  numFields--;
+  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
+  GPUCounters ref_count;
+  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+    ref_count.HToDCopies = 1;
+    ref_count.DToHCopies = 1;
     ref_count.DNumAlloc = 1;
     ref_count.DNumFree = 1;
   }
@@ -174,7 +230,9 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
 /**
  * Resize the field after a copy to the execution space. The Second toView
  * Call should trigger a free of any GPU memory and reassign the FieldView
- * CPU pointer to the underlying vectors new address.
+ * CPU pointer to the underlying vectors new address. This test should expect
+ * two allocations, two copies to the device and two deallocations on the
+ * device.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   using WORK_EXEC_POLICY = TypeParam;
@@ -234,63 +292,8 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   gcounts.compareCounters(ref_count);
 }
 
-/**
- * Assignment operator of a Field to by a std::vector container.
- */
-GPU_TYPED_TEST_P(FieldViewTypedTest, AssignmentContainerType) {
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
-  using WORK_EXEC_POLICY = TypeParam;
-  {
-    std::string field_name = "Field::AssignmentContainer";
-    FieldDouble field(field_name, nl, val);
-    numFields++;
-
-    using ContainerType = std::vector<double>;
-    ContainerType data(N);
-
-    RAJA::forall<LOOP_EXEC_POLICY>
-      (TRS_UINT(0, N),
-       [&] SPHERAL_HOST(int i) {
-         data[i] = i;
-       });
-
-    field = data;
-    auto field_v = field.toView(callback);
-
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, N),
-       [=] SPHERAL_HOST_DEVICE(int i) {
-         field_v[i] *= 2;
-       });
-
-    RAJA::forall<LOOP_EXEC_POLICY>
-      (TRS_UINT(0, N),
-       [=, &field](int i) {
-         SPHERAL_ASSERT_EQ(field_v[i], i * 2);
-         SPHERAL_ASSERT_EQ(field[i], i * 2);
-       });
-
-    SPHERAL_ASSERT_NE(&field[0], &data[0]);
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-  }
-  numFields--;
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-  GPUCounters ref_count;
-  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
-    ref_count.HToDCopies = 1;
-    ref_count.DToHCopies = 1;
-    ref_count.DNumAlloc = 1;
-    ref_count.DNumFree = 1;
-  }
-  gcounts.compareCounters(ref_count);
-}
-
-REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, NameNodeListValCtor, CopyCtor, MultiViewSemantics,
-                            ResizeField, AssignmentField, AssignmentContainerType);
+REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, ExecutionSpaceCapture, MultiSpaceCapture,
+                            MultiViewSemantics, ResizeField);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Field, FieldViewTypedTest,
                                typename Spheral::Test<EXEC_TYPES>::Types, );
