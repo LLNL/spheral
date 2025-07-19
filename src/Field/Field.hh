@@ -60,6 +60,8 @@ public:
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
 
+  using ViewType = FieldView<Dimension, DataType>;
+
   typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
   typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
 
@@ -244,54 +246,16 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
-  using ViewType = FieldView<Dimension, DataType>;
+  // ViewType controls.
+  ViewType toView();
 
-  // Default toView function call without an additionally defined callback.
-  ViewType toView()
-  {
-    auto func = [](
-        const chai::PointerRecord *,
-        chai::Action,
-        chai::ExecutionSpace) {};
-
-    return this->toView(func);
-  }
-
-  // The Primary toView() implementation. DataType MUST be implicitly copyable
-  // to call toView on a Field. Field::toView() passes the location of the
-  // std::vector allocation to a chai::ManagedArray. the MA does NOT own the
-  // host data. Field is still resposible for deallocation on destruction. On
-  // subsequent calls of toView() a check is made to see if the std::vector has
-  // been resized OR reallocated. If so the current MA object calls free -
-  // releasing any possible device memory that has been allocated. A new MA is
-  // then created with the std::vector pointer.
   template<typename T=DataType, typename F>
   std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
-  toView(F&& extension)
-  {
-    if (mManagedData.size() != mDataArray.size() ||
-        mManagedData.data(chai::CPU, false) != mDataArray.data()) {
+  toView(F&& extension);
 
-      mManagedData.free();
-
-      mManagedData = chai::makeManagedArray(
-          mDataArray.data(), mDataArray.size(), chai::CPU, false);
-
-      mManagedData.setUserCallback(
-        getFieldCallback(std::forward<F>(extension)));
-    }
-    return ViewType(mManagedData);
-  }
-
-  // The inverse SFINAE of the above implementation. This should throw an error
-  // if it is ever called with a type that is not implicitly copyable.
   template<typename T=DataType, typename F>
   std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
-  toView(F&&)
-  {
-    ASSERT2(false, "Spheral::Field::toView() Is invalid when Field::DataType is not trivially copyable.");
-    return ViewType(mManagedData);
-  }
+  toView(F&&);
 
 protected:
   virtual void resizeField(unsigned size) override;
@@ -301,32 +265,7 @@ protected:
   virtual void deleteElements(const std::vector<int>& nodeIDs) override;
 
   template<typename F>
-  auto getFieldCallback(F callback) {
-    return [n = this->name(), callback](
-      const chai::PointerRecord * record,
-      chai::Action action,
-      chai::ExecutionSpace space) {
-        if (action == chai::ACTION_MOVE) {
-          if (space == chai::CPU)
-            DEBUG_LOG << "Field :" << n << ": MOVED to the CPU";
-          if (space == chai::GPU)
-            DEBUG_LOG << "Field :" << n << ": MOVED to the GPU";
-        }
-        else if (action == chai::ACTION_ALLOC) {
-          if (space == chai::CPU)
-            DEBUG_LOG << "Field :" << n << ": ALLOC on the CPU";
-          if (space == chai::GPU)
-            DEBUG_LOG << "Field :" << n << ": ALLOC on the GPU";
-        }
-        else if (action == chai::ACTION_FREE) {
-          if (space == chai::CPU)
-            DEBUG_LOG << "Field :" << n << ": FREE on the CPU";
-          if (space == chai::GPU)
-            DEBUG_LOG << "Field :" << n << ": FREE on the GPU";
-        }
-        callback(record, action, space);
-      };
-  };
+  auto getFieldCallback(F callback);
 
 private:
   //--------------------------- Private Interface ---------------------------//
