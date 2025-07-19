@@ -23,49 +23,30 @@ using FieldDouble = Spheral::Field<DIM3, double>;
 using FieldViewDouble = Spheral::FieldView<DIM3, double>;
 using NodeList_t = Spheral::NodeList<DIM3>;
 
-static GPUCounters gcounts;
+// Default Testing Size.
+static constexpr int N = 100;
 
-// Increment variables for each action and space
-static auto callback = [](const chai::PointerRecord *, chai::Action action,
-                          chai::ExecutionSpace space) {
-  if (action == chai::ACTION_MOVE) {
-    if (space == chai::CPU) {
-      DEBUG_LOG << "Field Moved to the CPU";
-      gcounts.DToHCopies++;
-    }
-    if (space == chai::GPU) {
-      DEBUG_LOG << "Field Moved to the GPU";
-      gcounts.HToDCopies++;
-    }
-  } else if (action == chai::ACTION_ALLOC) {
-    if (space == chai::CPU) {
-      DEBUG_LOG << "Fieldiew Allocated on the CPU";
-      gcounts.HNumAlloc++;
-    }
-    if (space == chai::GPU) {
-      DEBUG_LOG << "Field Allocated on the GPU";
-      gcounts.DNumAlloc++;
-    }
-  } else if (action == chai::ACTION_FREE) {
-    if (space == chai::CPU) {
-      DEBUG_LOG << "Field DeAllocated on the CPU";
-      gcounts.HNumFree++;
-    }
-    if (space == chai::GPU) {
-      DEBUG_LOG << "Field DeAllocated on the GPU";
-      gcounts.DNumFree++;
-    }
-  }
-};
-
+// FieldViewTest is Constructed at the start of each unit test.
 class FieldViewTest : public ::testing::Test {
 public:
-  NodeList_t createNodeList(size_t count) {
-    return NodeList_t("DataNodeList", count, 0);
+  GPUCounters gcounts;
+  NodeList_t nl = NodeList_t("DataNodeList", N, 0);
+
+  // Increment variables for each action and space
+  auto callback() {
+    return [&](const chai::PointerRecord *, chai::Action action,
+                            chai::ExecutionSpace space) {
+    if (action == chai::ACTION_MOVE)
+      (space == chai::CPU) ? gcounts.DToHCopies++ : gcounts.HToDCopies++;
+    if (action == chai::ACTION_ALLOC)
+      (space == chai::CPU) ? gcounts.HNumAlloc++ : gcounts.DNumAlloc++;
+    if (action == chai::ACTION_FREE)
+      (space == chai::CPU) ? gcounts.HNumFree++ : gcounts.DNumFree++;
+    };
   }
 };
 
-// Setting up G Test for Fiedl
+// Setting up Templated Test for FieldView
 TYPED_TEST_SUITE_P(FieldViewTypedTest);
 template <typename T> class FieldViewTypedTest : public FieldViewTest {};
 
@@ -76,34 +57,28 @@ template <typename T> class FieldViewTypedTest : public FieldViewTest {};
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, ExecutionSpaceCapture) {
   using WORK_EXEC_POLICY = TypeParam;
-
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
   {
-    std::string field_name = "Field::NodeListValCtor";
-    FieldDouble field(field_name, nl, val);
-
-    SPHERAL_ASSERT_EQ(field.name(), field_name);
+    FieldDouble field("ExecSpaceCapture", gpu_this->nl, 4.0);
     SPHERAL_ASSERT_EQ(field.size(), N);
 
-    auto field_v = field.toView(callback);
+    auto field_v = field.toView(gpu_this->callback());
     SPHERAL_ASSERT_EQ(field_v.size(), N);
 
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, field.size()),
-       [=] SPHERAL_HOST_DEVICE(int i) {
-         SPHERAL_ASSERT_EQ(field_v[i], val);
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE (int i) {
+         SPHERAL_ASSERT_EQ(field_v[i], 4.0);
        });
-  }
+
+  } // field and any GPU allocation should be released here.
+
   GPUCounters ref_count;
-  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+  if (typeid(WORK_EXEC_POLICY) != typeid(SEQ_EXEC_POLICY)) {
     ref_count.HToDCopies = 1;
     ref_count.DNumAlloc = 1;
     ref_count.DNumFree = 1;
   }
-  gcounts.compareCounters(ref_count);
+
+  gpu_this->gcounts.compareCounters(ref_count);
 }
 
 /**
@@ -111,50 +86,41 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ExecutionSpaceCapture) {
  * RAJA execution spaces through implicit capture.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, MultiSpaceCapture) {
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
   using WORK_EXEC_POLICY = TypeParam;
   {
-    std::string field_name = "Field::AssignmentContainer";
-    FieldDouble field(field_name, nl, val);
+    FieldDouble field("MultiSpaceCapture", gpu_this->nl, 4.0);
 
-    using ContainerType = std::vector<double>;
-    ContainerType data(N);
-
-    RAJA::forall<LOOP_EXEC_POLICY>
-      (TRS_UINT(0, N),
-       [&] SPHERAL_HOST(int i) {
-         data[i] = i;
-       });
-
+    // Setup Field Data w/ iota values.
+    std::vector<double> data(N);
+    std::iota(data.begin(), data.end(), 0.0);
     field = data;
-    auto field_v = field.toView(callback);
 
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, N),
-       [=] SPHERAL_HOST_DEVICE(int i) {
+    auto field_v = field.toView(gpu_this->callback());
+
+    // Execute in working execution space.
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE (int i) {
          field_v[i] *= 2;
        });
 
-    RAJA::forall<LOOP_EXEC_POLICY>
-      (TRS_UINT(0, N),
+    // Execute in a CPU execution space.
+    RAJA::forall<LOOP_EXEC_POLICY>(TRS_UINT(0, field.size()),
        [=, &field](int i) {
          SPHERAL_ASSERT_EQ(field_v[i], i * 2);
          SPHERAL_ASSERT_EQ(field[i], i * 2);
        });
 
-    SPHERAL_ASSERT_NE(&field[0], &data[0]);
-  }
+  } // field and any GPU allocation should be released here.
+
   GPUCounters ref_count;
-  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+  if (typeid(WORK_EXEC_POLICY) != typeid(SEQ_EXEC_POLICY)) {
     ref_count.HToDCopies = 1;
     ref_count.DToHCopies = 1;
     ref_count.DNumAlloc = 1;
     ref_count.DNumFree = 1;
   }
-  gcounts.compareCounters(ref_count);
+
+  gpu_this->gcounts.compareCounters(ref_count);
 }
 
 /**
@@ -163,33 +129,27 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiSpaceCapture) {
  * the same data.
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
-  gcounts.resetCounters();
-  const int N = 10;
   const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
   using WORK_EXEC_POLICY = TypeParam;
   {
-    std::string field_name = "Field::MultiViewSemantics";
-    FieldDouble field(field_name, nl, val);
-
-    SPHERAL_ASSERT_EQ(field.name(), field_name);
+    FieldDouble field("MultiViewSemantics", gpu_this->nl, val);
     SPHERAL_ASSERT_EQ(field.size(), N);
 
-    auto field_v0 = field.toView(callback);
-    auto field_v1 = field.toView(callback);
-    auto field_v2 = field.toView(callback);
-    auto field_v3 = field.toView(callback);
-    auto field_v4 = field.toView(callback);
-    auto field_v5 = field.toView(callback);
-    auto field_v6 = field.toView(callback);
-    auto field_v7 = field.toView(callback);
-    auto field_v8 = field.toView(callback);
-    auto field_v9 = field.toView(callback);
-    SPHERAL_ASSERT_EQ(field.size(), N);
+    // Retreive multiple FieldViews from a Single Field.
+    auto field_v0 = field.toView(gpu_this->callback());
+    auto field_v1 = field.toView(gpu_this->callback());
+    auto field_v2 = field.toView(gpu_this->callback());
+    auto field_v3 = field.toView(gpu_this->callback());
+    auto field_v4 = field.toView(gpu_this->callback());
+    auto field_v5 = field.toView(gpu_this->callback());
+    auto field_v6 = field.toView(gpu_this->callback());
+    auto field_v7 = field.toView(gpu_this->callback());
+    auto field_v8 = field.toView(gpu_this->callback());
+    auto field_v9 = field.toView(gpu_this->callback());
 
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, field.size()),
-       [=] SPHERAL_HOST_DEVICE(int i) {
+    // Capture and execute on all FieldView objs in the working space.
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE (int i) {
          SPHERAL_ASSERT_EQ(field_v0[i], val);
          SPHERAL_ASSERT_EQ(field_v1[i], val);
          SPHERAL_ASSERT_EQ(field_v2[i], val);
@@ -202,14 +162,15 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
          SPHERAL_ASSERT_EQ(field_v9[i], val);
        });
 
-  }
+  } // field and any GPU allocation should be released here.
+
   GPUCounters ref_count;
-  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+  if (typeid(WORK_EXEC_POLICY) != typeid(SEQ_EXEC_POLICY)) {
     ref_count.HToDCopies = 1;
     ref_count.DNumAlloc = 1;
     ref_count.DNumFree = 1;
   }
-  gcounts.compareCounters(ref_count);
+  gpu_this->gcounts.compareCounters(ref_count);
 }
 
 /**
@@ -221,55 +182,51 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, MultiViewSemantics) {
  */
 GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   using WORK_EXEC_POLICY = TypeParam;
-
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-
-  NodeList_t nl = gpu_this->createNodeList(N);
-
   {
-    std::string field_name = "Field::NodeListValCtor";
-    FieldDouble field(field_name, nl, val);
-
-    SPHERAL_ASSERT_EQ(field.name(), field_name);
+    const double val = 4.0;
+    FieldDouble field("ResizeField", gpu_this->nl, val);
     SPHERAL_ASSERT_EQ(field.size(), N);
 
-    auto field_v = field.toView(callback);
+    auto field_v = field.toView(gpu_this->callback());
     SPHERAL_ASSERT_EQ(field_v.size(), N);
 
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, field.size()),
-       [=] SPHERAL_HOST_DEVICE(int i) {
+    // Capture the FieldView in the working execution space.
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0, field.size()),
+       [=] SPHERAL_HOST_DEVICE (int i) {
          SPHERAL_ASSERT_EQ(field_v[i], val);
        });
 
+    // We shouldn't have any ghost nodes, but we double check here.
     SPHERAL_ASSERT_EQ(field.numInternalElements(), field.numElements());
-    nl.numInternalNodes(100);
 
-    field_v = field.toView(callback);
-    SPHERAL_ASSERT_EQ(field_v.size(), 100);
+    // Resize the NodeList to 10x the original size.
+    gpu_this->nl.numInternalNodes(N * 10);
 
-    RAJA::forall<WORK_EXEC_POLICY>
-      (TRS_UINT(0, field.size()),
+    // Assign field_v again. This should trigger a deallocation of the original
+    // GPU data.
+    field_v = field.toView(gpu_this->callback());
+    SPHERAL_ASSERT_EQ(field_v.size(), N * 10);
+
+    // Capture field_v in the working executino space again. This should trigger
+    // a new copy to the Device if executing on the GPU.
+    RAJA::forall<WORK_EXEC_POLICY>(TRS_UINT(0, field.size()),
        [=] SPHERAL_HOST_DEVICE(int i) {
          if (i < N) {SPHERAL_ASSERT_EQ(field_v[i], val);}
          else { SPHERAL_ASSERT_EQ(field_v[i], 0); }
        });
 
-    SPHERAL_ASSERT_EQ(field.size(), 100);
+    SPHERAL_ASSERT_EQ(field.size(), N * 10);
 
-  }
-
+  } // field and any GPU allocation should be released here.
 
   GPUCounters ref_count;
-  if (typeid(RAJA::seq_exec) != typeid(TypeParam)) {
+  if (typeid(WORK_EXEC_POLICY) != typeid(SEQ_EXEC_POLICY)) {
     ref_count.HToDCopies = 2;
     ref_count.DNumAlloc = 2;
     ref_count.DNumFree = 2;
   }
 
-  gcounts.compareCounters(ref_count);
+  gpu_this->gcounts.compareCounters(ref_count);
 }
 
 REGISTER_TYPED_TEST_SUITE_P(FieldViewTypedTest, ExecutionSpaceCapture, MultiSpaceCapture,
