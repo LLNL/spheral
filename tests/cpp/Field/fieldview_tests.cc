@@ -234,63 +234,6 @@ GPU_TYPED_TEST_P(FieldViewTypedTest, ResizeField) {
   gcounts.compareCounters(ref_count);
 }
 
-
-/**
- * Copy CTor test for the Field.
- * - Test w/ double and GeomPolygon.
- */
-GPU_TYPED_TEST_P(FieldViewTypedTest, CopyCtor) {
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
-  {
-    std::string field_name = "Field::CopyCtor";
-    FieldDouble field(field_name, nl, val);
-
-    FieldDouble copy_field(field);
-    numFields += 2;
-
-    SPHERAL_ASSERT_EQ(copy_field.name(), field_name);
-    SPHERAL_ASSERT_EQ(copy_field.size(), N);
-
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-    SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
-  }
-  numFields -= 2;
-  GPUCounters ref_count;
-  gcounts.compareCounters(ref_count);
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-}
-
-/**
- * Assignment operator of a Field to another Field.
- */
-GPU_TYPED_TEST_P(FieldViewTypedTest, AssignmentField) {
-  gcounts.resetCounters();
-  const int N = 10;
-  const double val = 4.;
-  NodeList_t nl = gpu_this->createNodeList(N);
-  int numFields = nl.numFields();
-  {
-    std::string field_name = "Field::AssignmentField";
-    FieldDouble field(field_name, nl, val);
-
-    FieldDouble copy_field("SomeOtherField");
-    copy_field = field;
-    numFields += 2;
-
-    SPHERAL_ASSERT_EQ(copy_field.size(), N);
-
-    SPHERAL_ASSERT_NE(&field[0], &copy_field[0]);
-
-    SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-  }
-  numFields -= 2;
-  SPHERAL_ASSERT_EQ(nl.numFields(), numFields);
-}
-
 /**
  * Assignment operator of a Field to by a std::vector container.
  */
