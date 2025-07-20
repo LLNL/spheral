@@ -16,9 +16,9 @@ using TEST_FIELD_DATATYPES = camp::list<
   //,Spheral::Dim<3>::Vector3d
   //,Spheral::Dim<1>::Tensor
   //Dim<1>::SymTensor,
-  //Dim<1>::ThirdRankTensor,
-  //Dim<1>::FourthRankTensor,
-  //Dim<1>::FifthRankTensor
+  ,Spheral::Dim<3>::ThirdRankTensor
+  ,Spheral::Dim<3>::FourthRankTensor
+  ,Spheral::Dim<3>::FifthRankTensor
 >;
 // clang-format on
 
