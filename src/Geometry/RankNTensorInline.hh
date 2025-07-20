@@ -15,7 +15,7 @@ SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>::
 RankNTensor(const double val) {
-  std::fill(begin(), end(), val);
+  for (size_t i = 0; i < numElements; ++i) mElements[i] = val;
 }
 
 //------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ inline
 RankNTensor<nDim,rank, Descendant>&
 RankNTensor<nDim,rank, Descendant>::
 operator=(const double rhs) {
-  std::fill(begin(), end(), rhs);
+  for (size_t i = 0; i < numElements; ++i) mElements[i] = rhs;
   return *this;
 }
 
@@ -100,7 +100,7 @@ inline
 void
 RankNTensor<nDim,rank, Descendant>::
 Zero() {
-  std::fill(mElements, mElements + numElements, 0.0);
+  for (size_t i = 0; i < numElements; ++i) mElements[i] = 0.0;
 }
 
 //------------------------------------------------------------------------------
