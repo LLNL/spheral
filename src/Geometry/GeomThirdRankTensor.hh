@@ -29,15 +29,12 @@ public:
   static const GeomThirdRankTensor zero;
 
   // Constructors.
-  SPHERAL_HOST_DEVICE GeomThirdRankTensor();
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor() = default;
   SPHERAL_HOST_DEVICE explicit GeomThirdRankTensor(const double val);
-  SPHERAL_HOST_DEVICE GeomThirdRankTensor(const GeomThirdRankTensor& rhs);
-
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~GeomThirdRankTensor();
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor(const GeomThirdRankTensor& rhs) = default;
 
   // Assignment.
-  SPHERAL_HOST_DEVICE GeomThirdRankTensor& operator=(const GeomThirdRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor& operator=(const GeomThirdRankTensor& rhs) = default;
   SPHERAL_HOST_DEVICE GeomThirdRankTensor& operator=(const double rhs);
 
   // Access the elements by indicies.

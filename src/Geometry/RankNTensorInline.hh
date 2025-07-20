@@ -8,15 +8,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<int nDim, int rank, typename Descendant>
-SPHERAL_HOST_DEVICE
-inline
-RankNTensor<nDim,rank, Descendant>::
-RankNTensor() {}
-
-//------------------------------------------------------------------------------
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
@@ -25,40 +16,6 @@ inline
 RankNTensor<nDim,rank, Descendant>::
 RankNTensor(const double val) {
   std::fill(begin(), end(), val);
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<int nDim, int rank, typename Descendant>
-SPHERAL_HOST_DEVICE
-inline
-RankNTensor<nDim,rank, Descendant>::
-RankNTensor(const RankNTensor& ten){
-  std::copy(ten.begin(), ten.end(), this->begin());
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim, int rank, typename Descendant>
-SPHERAL_HOST_DEVICE
-inline
-RankNTensor<nDim,rank, Descendant>::
-~RankNTensor() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<int nDim, int rank, typename Descendant>
-SPHERAL_HOST_DEVICE
-inline
-RankNTensor<nDim,rank, Descendant>&
-RankNTensor<nDim,rank, Descendant>::
-operator=(const RankNTensor& rhs) {
-  if (this != &rhs) std::copy(rhs.begin(), rhs.end(), this->begin());
-  return *this;
 }
 
 //------------------------------------------------------------------------------

@@ -9,17 +9,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomFourthRankTensor<nDim>::
-GeomFourthRankTensor():
-  RankNTensor<nDim, 4, GeomFourthRankTensor>() {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -28,40 +17,6 @@ inline
 GeomFourthRankTensor<nDim>::
 GeomFourthRankTensor(const double val):
   RankNTensor<nDim, 4, GeomFourthRankTensor>(val) {
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomFourthRankTensor<nDim>::
-GeomFourthRankTensor(const GeomFourthRankTensor& rhs):
-  RankNTensor<nDim, 4, GeomFourthRankTensor>(rhs) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomFourthRankTensor<nDim>::
-~GeomFourthRankTensor() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomFourthRankTensor<nDim>&
-GeomFourthRankTensor<nDim>::
-operator=(const GeomFourthRankTensor& rhs) {
-  RankNTensor<nDim, 4, GeomFourthRankTensor>::operator=(rhs);
-  return *this;
 }
 
 //------------------------------------------------------------------------------

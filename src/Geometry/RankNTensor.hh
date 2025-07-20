@@ -27,15 +27,12 @@ public:
   static constexpr size_type numElements = FastMath::calcPower(nDim, rank);
 
   // Constructors.
-  SPHERAL_HOST_DEVICE RankNTensor();
+  SPHERAL_HOST_DEVICE RankNTensor() = default;
   SPHERAL_HOST_DEVICE explicit RankNTensor(const double val);
-  SPHERAL_HOST_DEVICE RankNTensor(const RankNTensor& rhs);
-
-  // Destructor.
-  SPHERAL_HOST_DEVICE virtual ~RankNTensor();
+  SPHERAL_HOST_DEVICE RankNTensor(const RankNTensor& rhs) = default;
 
   // Assignment.
-  SPHERAL_HOST_DEVICE RankNTensor& operator=(const RankNTensor& rhs);
+  SPHERAL_HOST_DEVICE RankNTensor& operator=(const RankNTensor& rhs) = default;
   SPHERAL_HOST_DEVICE RankNTensor& operator=(const double rhs);
 
   // More C++ style indexing.
