@@ -374,8 +374,8 @@ inline
 double
 RankNTensor<nDim,rank, Descendant>::
 maxAbsElement() const {
-  double result = mElements[0];
-  for (size_type i = 1; i != numElements; ++i) result = std::max(result, mElements[i]);
+  double result = std::abs(mElements[0]);
+  for (size_type i = 1; i < numElements; ++i) result = std::max(result, std::abs(mElements[i]));
   return result;
 }
 

@@ -277,9 +277,10 @@ GPU_TYPED_TEST_P(RankNTensorTypedTest, ElementStats) {
 
   EXEC_IN_SPACE_BEGIN(WORK_EXEC_POLICY)
   TensorType t;
-  for (typename TensorType::size_type i = 0; i < TensorType::numElements; ++i) {
-    t[i] = (i % 2 == 0) ? i : -i;
+  for (size_t i = 0; i < TensorType::numElements; ++i) {
+    t[i] = (i % 2 == 0) ? i : -(double)i;
   }
+
   SPHERAL_ASSERT_EQ(t.maxAbsElement(), TensorType::numElements - 1);
   EXEC_IN_SPACE_END()
 }
