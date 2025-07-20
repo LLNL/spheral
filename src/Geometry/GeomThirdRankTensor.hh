@@ -29,20 +29,20 @@ public:
   static const GeomThirdRankTensor zero;
 
   // Constructors.
-  GeomThirdRankTensor();
-  explicit GeomThirdRankTensor(const double val);
-  GeomThirdRankTensor(const GeomThirdRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor();
+  SPHERAL_HOST_DEVICE explicit GeomThirdRankTensor(const double val);
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor(const GeomThirdRankTensor& rhs);
 
   // Destructor.
-  ~GeomThirdRankTensor();
+  SPHERAL_HOST_DEVICE ~GeomThirdRankTensor();
 
   // Assignment.
-  GeomThirdRankTensor& operator=(const GeomThirdRankTensor& rhs);
-  GeomThirdRankTensor& operator=(const double rhs);
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor& operator=(const GeomThirdRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomThirdRankTensor& operator=(const double rhs);
 
   // Access the elements by indicies.
-  double operator()(const size_type i, const size_type j, const size_type k) const;
-  double& operator()(const size_type i, const size_type j, const size_type k);
+  SPHERAL_HOST_DEVICE double operator()(const size_type i, const size_type j, const size_type k) const;
+  SPHERAL_HOST_DEVICE double& operator()(const size_type i, const size_type j, const size_type k);
 
 private:
   //--------------------------- Private Interface ---------------------------//

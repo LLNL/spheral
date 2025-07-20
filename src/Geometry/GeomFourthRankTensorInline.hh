@@ -12,6 +12,7 @@ namespace Spheral {
 // Default constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>::
 GeomFourthRankTensor():
@@ -22,6 +23,7 @@ GeomFourthRankTensor():
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>::
 GeomFourthRankTensor(const double val):
@@ -32,6 +34,7 @@ GeomFourthRankTensor(const double val):
 // Copy constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>::
 GeomFourthRankTensor(const GeomFourthRankTensor& rhs):
@@ -42,6 +45,7 @@ GeomFourthRankTensor(const GeomFourthRankTensor& rhs):
 // Destructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>::
 ~GeomFourthRankTensor() {
@@ -51,6 +55,7 @@ GeomFourthRankTensor<nDim>::
 // Assignment.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>&
 GeomFourthRankTensor<nDim>::
@@ -63,6 +68,7 @@ operator=(const GeomFourthRankTensor& rhs) {
 // Assignment (double).
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFourthRankTensor<nDim>&
 GeomFourthRankTensor<nDim>::
@@ -75,6 +81,7 @@ operator=(const double rhs) {
 // Access the elements by indicies.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomFourthRankTensor<nDim>::
@@ -87,6 +94,7 @@ operator()(const GeomFourthRankTensor::size_type i,
 }
 
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double&
 GeomFourthRankTensor<nDim>::

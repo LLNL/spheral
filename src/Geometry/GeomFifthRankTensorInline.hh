@@ -12,6 +12,7 @@ namespace Spheral {
 // Default constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>::
 GeomFifthRankTensor():
@@ -22,6 +23,7 @@ GeomFifthRankTensor():
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>::
 GeomFifthRankTensor(const double val):
@@ -32,6 +34,7 @@ GeomFifthRankTensor(const double val):
 // Copy constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>::
 GeomFifthRankTensor(const GeomFifthRankTensor& rhs):
@@ -42,6 +45,7 @@ GeomFifthRankTensor(const GeomFifthRankTensor& rhs):
 // Destructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>::
 ~GeomFifthRankTensor() {
@@ -51,6 +55,7 @@ GeomFifthRankTensor<nDim>::
 // Assignment.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>&
 GeomFifthRankTensor<nDim>::
@@ -63,6 +68,7 @@ operator=(const GeomFifthRankTensor& rhs) {
 // Assignment (double).
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomFifthRankTensor<nDim>&
 GeomFifthRankTensor<nDim>::
@@ -75,6 +81,7 @@ operator=(const double rhs) {
 // Access the elements by indicies.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomFifthRankTensor<nDim>::
@@ -88,6 +95,7 @@ operator()(const GeomFifthRankTensor::size_type i,
 }
 
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double&
 GeomFifthRankTensor<nDim>::

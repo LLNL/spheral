@@ -11,6 +11,7 @@ namespace Spheral {
 // Default constructor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>::
 RankNTensor() {}
@@ -19,6 +20,7 @@ RankNTensor() {}
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>::
 RankNTensor(const double val) {
@@ -29,6 +31,7 @@ RankNTensor(const double val) {
 // Copy constructor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>::
 RankNTensor(const RankNTensor& ten){
@@ -39,6 +42,7 @@ RankNTensor(const RankNTensor& ten){
 // Destructor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>::
 ~RankNTensor() {
@@ -48,6 +52,7 @@ RankNTensor<nDim,rank, Descendant>::
 // Assignment.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>&
 RankNTensor<nDim,rank, Descendant>::
@@ -60,6 +65,7 @@ operator=(const RankNTensor& rhs) {
 // Assignment (double).
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 RankNTensor<nDim,rank, Descendant>&
 RankNTensor<nDim,rank, Descendant>::
@@ -72,6 +78,7 @@ operator=(const double rhs) {
 // Return the (index) element using the bracket operator.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 double
 RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) const {
@@ -80,6 +87,7 @@ RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank,
 }
 
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 double&
 RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank, Descendant>::size_type index) {
@@ -91,6 +99,7 @@ RankNTensor<nDim, rank, Descendant>::operator[](typename RankNTensor<nDim, rank,
 // Iterators.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 typename RankNTensor<nDim,rank, Descendant>::iterator
 RankNTensor<nDim,rank, Descendant>::
@@ -99,6 +108,7 @@ begin() {
 }
 
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 typename RankNTensor<nDim,rank, Descendant>::iterator
 RankNTensor<nDim,rank, Descendant>::
@@ -107,6 +117,7 @@ end() {
 }
 
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 typename RankNTensor<nDim,rank, Descendant>::const_iterator
 RankNTensor<nDim,rank, Descendant>::
@@ -115,6 +126,7 @@ begin() const {
 }
 
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 typename RankNTensor<nDim,rank, Descendant>::const_iterator
 RankNTensor<nDim,rank, Descendant>::
@@ -126,6 +138,7 @@ end() const {
 // Zero out the tensor.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 void
 RankNTensor<nDim,rank, Descendant>::
@@ -137,6 +150,7 @@ Zero() {
 // Negative.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim, rank, Descendant>::
@@ -150,6 +164,7 @@ operator-() const {
 // In place addition.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
@@ -162,6 +177,7 @@ operator+=(const RankNTensor& rhs) {
 // In place subtraction.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
@@ -174,6 +190,7 @@ operator-=(const RankNTensor& rhs) {
 // Addition.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
@@ -187,6 +204,7 @@ operator+(const RankNTensor& rhs) const {
 // Subtraction.
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
@@ -200,6 +218,7 @@ operator-(const RankNTensor& rhs) const {
 // In place multiplication (double).
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
@@ -212,6 +231,7 @@ operator*=(const double rhs) {
 // In place division (double).
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant&
 RankNTensor<nDim,rank, Descendant>::
@@ -225,6 +245,7 @@ operator/=(const double rhs) {
 // Multiplication (double).
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
@@ -238,6 +259,7 @@ operator*(const double rhs) const {
 // Division (double).
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
@@ -252,6 +274,7 @@ operator/(const double rhs) const {
 // ==
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -269,6 +292,7 @@ operator==(const RankNTensor& rhs) const {
 // !=
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -280,6 +304,7 @@ operator!=(const RankNTensor& rhs) const {
 // <
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -291,6 +316,7 @@ operator<(const RankNTensor& rhs) const {
 // >
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -302,6 +328,7 @@ operator>(const RankNTensor& rhs) const {
 // <=
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -313,6 +340,7 @@ operator<=(const RankNTensor& rhs) const {
 // >=
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -324,6 +352,7 @@ operator>=(const RankNTensor& rhs) const {
 // == (double)
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -341,6 +370,7 @@ operator==(const double rhs) const {
 // != (double)
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 bool
 RankNTensor<nDim,rank, Descendant>::
@@ -352,6 +382,7 @@ operator!=(const double rhs) const {
 // doubledot
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 double
 RankNTensor<nDim,rank, Descendant>::
@@ -366,6 +397,7 @@ doubledot(const RankNTensor& rhs) const {
 // squareElements
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
@@ -380,6 +412,7 @@ squareElements() const {
 // maxAbsElement
 //------------------------------------------------------------------------------
 template<int nDim, int rank, typename Descendant>
+SPHERAL_HOST_DEVICE
 inline
 double
 RankNTensor<nDim,rank, Descendant>::
