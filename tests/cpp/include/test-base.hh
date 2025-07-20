@@ -2,6 +2,7 @@
 #define SPHERAL_TEST_BASE_HH
 
 #include "gtest/gtest.h"
+#include "camp/camp.hpp"
 
 namespace Spheral {
 
