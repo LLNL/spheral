@@ -29,20 +29,20 @@ public:
   static const GeomFifthRankTensor zero;
 
   // Constructors.
-  GeomFifthRankTensor();
-  explicit GeomFifthRankTensor(const double val);
-  GeomFifthRankTensor(const GeomFifthRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor();
+  SPHERAL_HOST_DEVICE explicit GeomFifthRankTensor(const double val);
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor(const GeomFifthRankTensor& rhs);
 
   // Destructor.
-  ~GeomFifthRankTensor();
+  SPHERAL_HOST_DEVICE ~GeomFifthRankTensor();
 
   // Assignment.
-  GeomFifthRankTensor& operator=(const GeomFifthRankTensor& rhs);
-  GeomFifthRankTensor& operator=(const double rhs);
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor& operator=(const GeomFifthRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor& operator=(const double rhs);
 
   // Access the elements by indicies.
-  double operator()(const size_type i, const size_type j, const size_type k, const size_type m, const size_type n) const;
-  double& operator()(const size_type i, const size_type j, const size_type k, const size_type m, const size_type n);
+  SPHERAL_HOST_DEVICE double operator()(const size_type i, const size_type j, const size_type k, const size_type m, const size_type n) const;
+  SPHERAL_HOST_DEVICE double& operator()(const size_type i, const size_type j, const size_type k, const size_type m, const size_type n);
 
 private:
   //--------------------------- Private Interface ---------------------------//

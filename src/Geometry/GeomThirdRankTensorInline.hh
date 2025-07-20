@@ -12,6 +12,7 @@ namespace Spheral {
 // Default constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>::
 GeomThirdRankTensor():
@@ -22,6 +23,7 @@ GeomThirdRankTensor():
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>::
 GeomThirdRankTensor(const double val):
@@ -32,6 +34,7 @@ GeomThirdRankTensor(const double val):
 // Copy constructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>::
 GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
@@ -42,6 +45,7 @@ GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
 // Destructor.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>::
 ~GeomThirdRankTensor() {
@@ -51,6 +55,7 @@ GeomThirdRankTensor<nDim>::
 // Assignment.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>&
 GeomThirdRankTensor<nDim>::
@@ -63,6 +68,7 @@ operator=(const GeomThirdRankTensor& rhs) {
 // Assignment (double).
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 GeomThirdRankTensor<nDim>&
 GeomThirdRankTensor<nDim>::
@@ -75,6 +81,7 @@ operator=(const double rhs) {
 // Access the elements by indicies.
 //------------------------------------------------------------------------------
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double
 GeomThirdRankTensor<nDim>::
@@ -86,6 +93,7 @@ operator()(const GeomThirdRankTensor::size_type i,
 }
 
 template<int nDim>
+SPHERAL_HOST_DEVICE
 inline
 double&
 GeomThirdRankTensor<nDim>::
