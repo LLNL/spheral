@@ -112,7 +112,7 @@ inline
 Descendant
 RankNTensor<nDim, rank, Descendant>::
 operator-() const {
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   result *= -1.0;
   return result;
 }
@@ -127,7 +127,7 @@ Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator+=(const RankNTensor& rhs) {
   for (size_type i = 0; i != numElements; ++i) mElements[i] += rhs.mElements[i];
-  return dynamic_cast<Descendant&>(*this);
+  return static_cast<Descendant&>(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator-=(const RankNTensor& rhs) {
   for (size_type i = 0; i != numElements; ++i) mElements[i] -= rhs.mElements[i];
-  return dynamic_cast<Descendant&>(*this);
+  return static_cast<Descendant&>(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator+(const RankNTensor& rhs) const {
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   result += rhs;
   return result;
 }
@@ -166,7 +166,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator-(const RankNTensor& rhs) const {
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   result -= rhs;
   return result;
 }
@@ -181,7 +181,7 @@ Descendant&
 RankNTensor<nDim,rank, Descendant>::
 operator*=(const double rhs) {
   for (size_type i = 0; i != numElements; ++i) mElements[i] *= rhs;
-  return dynamic_cast<Descendant&>(*this);
+  return static_cast<Descendant&>(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -195,7 +195,7 @@ RankNTensor<nDim,rank, Descendant>::
 operator/=(const double rhs) {
   REQUIRE(rhs != 0.0);
   for (size_type i = 0; i != numElements; ++i) mElements[i] /= rhs;
-  return dynamic_cast<Descendant&>(*this);
+  return static_cast<Descendant&>(*this);
 }
 
 //------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator*(const double rhs) const {
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   result *= rhs;
   return result;
 }
@@ -222,7 +222,7 @@ Descendant
 RankNTensor<nDim,rank, Descendant>::
 operator/(const double rhs) const {
   REQUIRE(rhs != 0.0);
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   result /= rhs;
   return result;
 }
@@ -359,7 +359,7 @@ inline
 Descendant
 RankNTensor<nDim,rank, Descendant>::
 squareElements() const {
-  Descendant result(dynamic_cast<const Descendant&>(*this));
+  Descendant result(static_cast<const Descendant&>(*this));
   for (size_type i = 1; i != numElements; ++i) 
     *(result.begin() + i) *= mElements[i];
   return result;
@@ -391,7 +391,7 @@ inline
 Descendant
 operator*(const double lhs,
           const RankNTensor<nDim, rank, Descendant>& rhs) {
-  Descendant result(dynamic_cast<const Descendant&>(rhs));
+  Descendant result(static_cast<const Descendant&>(rhs));
   result *= lhs;
   return result;
 }
