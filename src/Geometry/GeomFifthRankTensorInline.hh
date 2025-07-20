@@ -70,21 +70,21 @@ template<int nDim>
 inline
 GeomFifthRankTensor<nDim>
 operator*(const double lhs, const GeomFifthRankTensor<nDim>& rhs) {
-  return lhs * dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs);
+  return lhs * static_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs);
 }
 
 template<int nDim>
 inline
 ::std::istream&
 operator>>(std::istream& is, GeomFifthRankTensor<nDim>& rhs) {
-  return operator>>(is, dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
+  return operator>>(is, static_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
 }
 
 template<int nDim>
 inline
 ::std::ostream&
 operator<<(std::ostream& os, const GeomFifthRankTensor<nDim>& rhs) {
-  return operator<<(os, dynamic_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
+  return operator<<(os, static_cast<const RankNTensor<nDim, 5, GeomFifthRankTensor<nDim> >&>(rhs));
 }
 
 }
