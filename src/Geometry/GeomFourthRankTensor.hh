@@ -29,15 +29,12 @@ public:
   static const GeomFourthRankTensor zero;
 
   // Constructors.
-  SPHERAL_HOST_DEVICE GeomFourthRankTensor();
+  SPHERAL_HOST_DEVICE GeomFourthRankTensor() = default;
   SPHERAL_HOST_DEVICE explicit GeomFourthRankTensor(const double val);
-  SPHERAL_HOST_DEVICE GeomFourthRankTensor(const GeomFourthRankTensor& rhs);
-
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~GeomFourthRankTensor();
+  SPHERAL_HOST_DEVICE GeomFourthRankTensor(const GeomFourthRankTensor& rhs) = default;
 
   // Assignment.
-  SPHERAL_HOST_DEVICE GeomFourthRankTensor& operator=(const GeomFourthRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomFourthRankTensor& operator=(const GeomFourthRankTensor& rhs) = default;
   SPHERAL_HOST_DEVICE GeomFourthRankTensor& operator=(const double rhs);
 
   // Access the elements by indicies.

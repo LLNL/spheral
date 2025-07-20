@@ -29,15 +29,12 @@ public:
   static const GeomFifthRankTensor zero;
 
   // Constructors.
-  SPHERAL_HOST_DEVICE GeomFifthRankTensor();
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor() = default;
   SPHERAL_HOST_DEVICE explicit GeomFifthRankTensor(const double val);
-  SPHERAL_HOST_DEVICE GeomFifthRankTensor(const GeomFifthRankTensor& rhs);
-
-  // Destructor.
-  SPHERAL_HOST_DEVICE ~GeomFifthRankTensor();
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor(const GeomFifthRankTensor& rhs) = default;
 
   // Assignment.
-  SPHERAL_HOST_DEVICE GeomFifthRankTensor& operator=(const GeomFifthRankTensor& rhs);
+  SPHERAL_HOST_DEVICE GeomFifthRankTensor& operator=(const GeomFifthRankTensor& rhs) = default;
   SPHERAL_HOST_DEVICE GeomFifthRankTensor& operator=(const double rhs);
 
   // Access the elements by indicies.

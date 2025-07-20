@@ -9,17 +9,6 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Default constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor():
-  RankNTensor<nDim, 3, GeomThirdRankTensor>() {
-}
-
-//------------------------------------------------------------------------------
 // Construct with the given value filling the tensor.
 //------------------------------------------------------------------------------
 template<int nDim>
@@ -28,40 +17,6 @@ inline
 GeomThirdRankTensor<nDim>::
 GeomThirdRankTensor(const double val):
   RankNTensor<nDim, 3, GeomThirdRankTensor>(val) {
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomThirdRankTensor<nDim>::
-GeomThirdRankTensor(const GeomThirdRankTensor& rhs):
-  RankNTensor<nDim, 3, GeomThirdRankTensor>(rhs) {
-}
-
-//------------------------------------------------------------------------------
-// Destructor.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomThirdRankTensor<nDim>::
-~GeomThirdRankTensor() {
-}
-
-//------------------------------------------------------------------------------
-// Assignment.
-//------------------------------------------------------------------------------
-template<int nDim>
-SPHERAL_HOST_DEVICE
-inline
-GeomThirdRankTensor<nDim>&
-GeomThirdRankTensor<nDim>::
-operator=(const GeomThirdRankTensor& rhs) {
-  RankNTensor<nDim, 3, GeomThirdRankTensor>::operator=(rhs);
-  return *this;
 }
 
 //------------------------------------------------------------------------------
