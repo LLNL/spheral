@@ -11,6 +11,9 @@ Notable changes include:
       * Unit testing to ensure implicitly copyable Spheral data types can be copied to and from the device correctly.
     * GeomVector has been converted to be used on the GPU direclty.
       * CPU & GPU unit testing of the public interface.
+    * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
+    * Optimizations to RankTensor types:
+      * Stack allocation of tensor data; Static casting for CRTP implementation.
     * New Logging utility for runtime debug messages.
 
   * Build changes / improvements:
