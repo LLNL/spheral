@@ -1,17 +1,14 @@
-Version vYYYY.MM.p -- Release date YYYY-MM-DD
+Version v2025.06.1 -- Release date 2025-07-21
 ==============================================
   * Important Notes:
+    * This is a patch release for v2025.06.0.
 
 Notable changes include:
-
-  * New features / API changes:
-
-  * Build changes / improvements:
 
   * Bug Fixes / improvements:
     * The porosity models now restart the full field of initial sound speeds, rather than assuming they are set during problem initialization every time.
     * Set limits on porosity contributions to damage while crushing out porosity.
-    * Added better limits on ANEOS internal eps(rho, T) interpolation, which seems to have improved ANEOS stability.    
+    * Added better limits on ANEOS internal eps(rho, T) interpolation, which seems to have improved ANEOS stability.
 
 Version v2025.06.0 -- Release date 2025-06-18
 ==============================================
