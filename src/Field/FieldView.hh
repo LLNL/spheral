@@ -50,6 +50,8 @@ public:
     return mData.data(space, do_move);
   }
 
+  void move(chai::ExecutionSpace space) { mData.move(space); }
+
   SPHERAL_HOST_DEVICE
   void shallowCopy(FieldView const& other) const {
     mData.shallowCopy(other.mData);
