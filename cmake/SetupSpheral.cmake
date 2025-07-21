@@ -56,7 +56,7 @@ set(ENABLE_1D ON CACHE BOOL "enable 1d")
 set(ENABLE_2D ON CACHE BOOL "enable 2d")
 set(ENABLE_3D ON CACHE BOOL "enable 3d")
 set(ENABLE_INSTANTIATIONS ON CACHE BOOL "enable instantiations")
-set(ENABLE_TIMER OFF CACHE BOOL "enable timer")
+set(SPHERAL_ENABLE_TIMERS OFF CACHE BOOL "enable timer")
 set(ENABLE_ANEOS ON CACHE BOOL "enable the ANEOS equation of state package")
 set(ENABLE_OPENSUBDIV ON CACHE BOOL "enable the Opensubdiv Pixar extension for refining polyhedra")
 set(ENABLE_HELMHOLTZ ON CACHE BOOL "enable the Helmholtz equation of state package")
@@ -174,10 +174,10 @@ endif()
 if (ENABLE_TESTS)
   add_subdirectory(${SPHERAL_ROOT_DIR}/tests)
 
-  spheral_install_python_tests(${SPHERAL_ROOT_DIR}/tests/ ${CMAKE_INSTALL_PREFIX}/${SPHERAL_TEST_INSTALL_PREFIX})
+  spheral_install_python_tests(${SPHERAL_ROOT_DIR}/tests/ ${SPHERAL_TEST_INSTALL_PREFIX})
   # Always install performance.py in the top of the testing script
   install(FILES ${SPHERAL_ROOT_DIR}/tests/performance.py
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${SPHERAL_TEST_INSTALL_PREFIX})
+    DESTINATION ${SPHERAL_TEST_INSTALL_PREFIX})
 endif()
 
 include(${SPHERAL_ROOT_DIR}/cmake/SpheralConfig.cmake)

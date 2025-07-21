@@ -7,6 +7,7 @@
 #ifndef __Spheral_AnyVisitor__
 #define __Spheral_AnyVisitor__
 
+#include <typeindex>
 #include <unordered_map>
 
 namespace Spheral {
