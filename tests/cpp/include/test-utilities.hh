@@ -34,31 +34,31 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
 #define SPHERAL_ASSERT_EQ(LHS, RHS)                                            \
   if (LHS != RHS) {                                                            \
     printf("ERROR @ cuda_assert\n");                                           \
-    assert(0);                                                                 \
+    abort();                                                                   \
   }
 
 #define SPHERAL_ASSERT_NE(LHS, RHS)                                            \
   if (LHS == RHS) {                                                            \
     printf("ERROR @ cuda_assert\n");                                           \
-    assert(0);                                                                 \
+    abort();                                                                   \
   }
 
 #define SPHERAL_ASSERT_TRUE(VAL)                                               \
   if (!(VAL)) {                                                                \
     printf("ERROR @ cuda_assert\n");                                           \
-    assert(0);                                                                 \
+    abort();                                                                   \
   }
 
 #define SPHERAL_ASSERT_FALSE(VAL)                                              \
   if ((VAL)) {                                                                 \
     printf("ERROR @ cuda_assert\n");                                           \
-    assert(0);                                                                 \
+    abort();                                                                   \
   }
 
 #define SPHERAL_ASSERT_FLOAT_EQ(LHS, RHS)                                      \
   if (fabs(LHS - RHS) > 1e-5) {                                                \
     printf("ERROR @ cuda_assert\n");                                           \
-    assert(0);                                                                 \
+    abort();                                                                   \
   }
 
 #endif
