@@ -35,7 +35,14 @@ public:
     return mData[index];
   }
 
-  void move(chai::ExecutionSpace space) { mData.move(space); }
+  void move(chai::ExecutionSpace space, bool recursive = true) {
+    mData.move(space);
+    if (recursive) {
+      for (auto d: mData) {
+        d.move(space);
+      }
+    }
+  }
 
   SPHERAL_HOST_DEVICE size_t size() const { return mData.size(); }
 
