@@ -15,10 +15,6 @@ using LOOP_EXEC_POLICY = RAJA::seq_exec;
 #define EXEC_IN_SPACE_END()                                                    \
   });
 
-#if defined(SPHERAL_ENABLE_HIP) && defined(__HIPCC__)
-#define SPHERAL_GPU_ACTIVE
-#endif // SPHERAL_ENABLE_CUDA && __CUDACC__
-
 // Cannot be called on device
 #define SPHERAL_ASSERT_EQ_MSG(LHS, RHS) ASSERT_EQ(LHS, RHS);
 #if !defined(SPHERAL_GPU_ACTIVE)
