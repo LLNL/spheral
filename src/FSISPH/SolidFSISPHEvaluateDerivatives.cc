@@ -479,7 +479,6 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
         //---------------------------------------------------------------
         const auto rhoij = 0.5*(rhoi+rhoj); 
         const auto cij = 0.5*(ci+cj); 
-        const auto vij = vi - vj;
 
         // raw AV
         Q.QPiij(QPiij, QPiji, Qi, Qj,
