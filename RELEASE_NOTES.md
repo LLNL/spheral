@@ -5,24 +5,29 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
-    * Spheral::FieldView allows for implicit data migration of Spheral::Field data.
-      * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
-      * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
-      * Unit testing to ensure implicitly copyable Spheral data types can be copied to and from the device correctly.
-    * GeomVector and Geom3Vector have been converted for use on the GPU.
-      * CPU & GPU unit testing of the public interface.
-    * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
-    * Optimizations to RankTensor types:
-      * Stack allocation of tensor data; Static casting for CRTP implementation.
-    * GeomTensor & GeomSymmetricTensor have been refactored for use on the GPU.
-    * New Logging utility for runtime debug messages.
+    * GPU Poring Effort:
+      * Spheral::FieldView allows for implicit data migration of Spheral::Field data.
+        * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
+        * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
+        * Unit testing to ensure implicitly copyable Spheral data types can be copied to and from the device correctly.
+      * Spheral::FieldListView enables GPU access to field data while maintaining Field->FieldList associations across
+        execution spaces.
+        * Adds addition functionality to FieldView to expose chai api calls.
+        * Host/Device unit testing for a range of expected patterns and behaviours seen in Spheral.
+      * GeomVector and Geom3Vector have been converted for use on the GPU.
+        * CPU & GPU unit testing of the public interface.
+      * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
+      * Optimizations to RankTensor types:
+        * Stack allocation of tensor data; Static casting for CRTP implementation.
+      * GeomTensor & GeomSymmetricTensor have been refactored for use on the GPU.
+      * New Logging utility for runtime debug messages.
 
-  * Build changes / improvements:
-    * A python virtual environment is installed in the spheral build dir, removing the
-      need to build the `install` target during regular development.
-    * `./spheral` and `./spheral-ats` have been moved to `/bin` for both build and installs.
-    * CMake directly handles all of the installation environment configuration and setup
-      during the install stage.
+    * Build changes / improvements:
+      * A python virtual environment is installed in the spheral build dir, removing the
+        need to build the `install` target during regular development.
+      * `./spheral` and `./spheral-ats` have been moved to `/bin` for both build and installs.
+      * CMake directly handles all of the installation environment configuration and setup
+        during the install stage.
     * The `ENABLE_TIMER` CMake option has been changed to `SPHERAL_ENABLE_TIMERS`.
 
   * Bug Fixes / improvements:
