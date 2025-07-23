@@ -1242,19 +1242,19 @@ Field<Dimension, DataType>::resizeField(size_t size) {
 template<typename Dimension, typename DataType>
 inline
 void
-Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
+Field<Dimension, DataType>::resizeFieldInternal(const size_t newInternalSize,
                                                 const size_t oldFirstGhostNode) {
   const auto currentSize = this->size();
   const auto currentInternalSize = oldFirstGhostNode;
   const auto numGhostNodes = this->nodeList().numGhostNodes();
-  const auto newSize = size + numGhostNodes;
+  const auto newSize = newInternalSize + numGhostNodes;
   REQUIRE(numGhostNodes == currentSize - oldFirstGhostNode);
   REQUIRE(newSize == this->nodeList().numNodes());
 
   // If there is ghost data, we must preserve it.
   std::vector<DataType,DataAllocator<DataType>> oldGhostValues(numGhostNodes);
   if (numGhostNodes > 0u) {
-    std::copy(this->ghostBegin(), this->ghostEnd(), oldGhostValues.begin());
+    std::copy(mDataArray.begin() + oldFirstGhostNode, mDataArray.end(), oldGhostValues.begin());
   }
 
   // Resize the field data.
@@ -1264,13 +1264,13 @@ Field<Dimension, DataType>::resizeFieldInternal(const size_t size,
   if (newSize > currentSize) {
     CHECK(currentInternalSize < this->nodeList().firstGhostNode());
     std::fill(mDataArray.begin() + currentInternalSize,
-              mDataArray.begin() + size,
+              mDataArray.begin() + newInternalSize,
               DataTypeTraits<DataType>::zero());
   }
 
   // Fill the ghost data back in.
   if (numGhostNodes > 0u) {
-    std::copy(oldGhostValues.begin(), oldGhostValues.end(), mDataArray.begin() + size);
+    std::copy(oldGhostValues.begin(), oldGhostValues.end(), mDataArray.begin() + newInternalSize);
   }
 }
 
