@@ -327,7 +327,6 @@ evaluateDerivativesImpl(const Dim<2>::Scalar /*time*/,
     Vector gradWi, gradWj;
     Vector deltagrad, forceij, forceji;
     Vector xij, vij, etai, etaj;
-    SymTensor xijdyad;
 
     typename SpheralThreads<Dimension>::FieldListStack threadStack;
     auto DvDt_thread = DvDt.threadCopy(threadStack);

@@ -12,7 +12,15 @@
 #define __Spheral_Field_hh__
 
 #include "FieldBase.hh"
+#include "FieldView.hh"
+
+#include "Utilities/Logger.hh"
+
 #include "axom/sidre.hpp"
+#include "chai/ExecutionSpaces.hpp"
+#include "chai/ManagedArray.hpp"
+#include "chai/PointerRecord.hpp"
+#include "chai/Types.hpp"
 
 #include <vector>
 
@@ -51,6 +59,8 @@ public:
   typedef Dimension FieldDimension;
   typedef DataType FieldDataType;
   typedef DataType value_type;      // STL compatibility.
+
+  using ViewType = FieldView<Dimension, DataType>;
 
   typedef typename std::vector<DataType,DataAllocator<DataType>>::iterator iterator;
   typedef typename std::vector<DataType,DataAllocator<DataType>>::const_iterator const_iterator;
@@ -236,6 +246,16 @@ public:
   // Functions to help with storing the field in a Sidre datastore.
   axom::sidre::DataTypeId getAxomTypeID() const;
 
+  // ViewType controls.
+  ViewType toView();
+
+  template<typename T=DataType, typename F>
+  std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
+  toView(F&& extension);
+
+  template<typename T=DataType, typename F>
+  std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
+  toView(F&&);
 
 protected:
   virtual void resizeField(unsigned size) override;
@@ -244,11 +264,18 @@ protected:
   virtual void deleteElement(int nodeID) override;
   virtual void deleteElements(const std::vector<int>& nodeIDs) override;
 
+  template<typename F>
+  auto getFieldCallback(F callback);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
-//  std::vector<DataType,std::allocator<DataType> > mDataArray;
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
+
+  // ManagedArray owned by the field to ensure proper lifetime of the GPU data.
+  chai::ManagedArray<DataType> mManagedData;
+
+
   bool mValid;
 
   // No default constructor.

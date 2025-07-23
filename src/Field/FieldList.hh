@@ -12,6 +12,11 @@
 
 #include "FieldListBase.hh"
 #include "Utilities/OpenMP_wrapper.hh"
+#include "Utilities/Logger.hh"
+#include "FieldView.hh"
+#include "FieldListView.hh"
+#include "chai/ExecutionSpaces.hpp"
+#include "chai/Types.hpp"
 
 #include <vector>
 #include <list>
@@ -280,10 +285,26 @@ public:
   // Reduce the values in the FieldList with the passed thread-local values.
   void threadReduce() const;
 
+  // TODO: Good for debugging but not necessary
+  using ViewType = FieldListView<Dimension, DataType>;
+  ViewType toView();
+
+  template<typename FL>
+  ViewType toView(FL&& extension);
+
+  template<typename FL, typename F>
+  ViewType toView(FL&& extension, F&& field_extension);
+
+protected:
+  template<typename F>
+  auto getFieldListCallback(F callback);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   typedef std::list<std::shared_ptr<Field<Dimension, DataType> > > FieldCacheType;
   typedef std::map<const NodeList<Dimension>*, int> HashMapType;
+
+  chai::ManagedArray<FieldView<Dimension, DataType>> mFieldViews;
 
   std::vector<ElementType> mFieldPtrs;
   std::vector<BaseElementType> mFieldBasePtrs;
