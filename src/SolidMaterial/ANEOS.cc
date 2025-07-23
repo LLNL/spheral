@@ -14,7 +14,6 @@
 #include "Utilities/bisectRoot.hh"
 #include "Utilities/DBC.hh"
 
-#include "boost/multi_array.hpp"
 #include <iostream>
 #include <ctime>
 using std::vector;
