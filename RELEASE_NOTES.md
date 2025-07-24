@@ -5,7 +5,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
-    * GPU Poring Effort:
+    * GPU Porting Effort:
       * Spheral::FieldView allows for implicit data migration of Spheral::Field data.
         * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
         * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
@@ -17,6 +17,7 @@ Notable changes include:
       * GeomVector and Geom3Vector have been converted for use on the GPU.
         * CPU & GPU unit testing of the public interface.
       * RankNTensor (Third, Fourth, Fifth) have been refactored to execute on the GPU.
+      * Spheral::NodePairListView allows for implicit data migration of Spheral::NodePairList data.
       * Optimizations to RankTensor types:
         * Stack allocation of tensor data; Static casting for CRTP implementation.
       * GeomTensor & GeomSymmetricTensor have been refactored for use on the GPU.
