@@ -1,10 +1,13 @@
-#ifndef _Spheral_NodePairList_hh_
-#define _Spheral_NodePairList_hh_
+#ifndef Spheral_NodePairList_hh
+#define Spheral_NodePairList_hh
 
 #include "Neighbor/NodePairIdxType.hh"
 
 #include <vector>
 #include <unordered_map>
+#include "NodePairListView.hh"
+#include "config.hh"
+#include "chai/ManagedArray.hpp"
 
 namespace Spheral {
 
@@ -22,7 +25,7 @@ public:
 
   NodePairList()                                                               = default;
   NodePairList(const NodePairList& rhs)                                        = default;
-  ~NodePairList()                                                              = default;
+  ~NodePairList()                                                              { mManagedNPL.free(); }
   NodePairList& operator=(const NodePairList& rhs)                             = default;
   void push_back(NodePairIdxType nodePair)                                     { mNodePairList.push_back(nodePair); }
   void clear()                                                                 { mNodePairList.clear(); mPair2Index.clear(); }
@@ -66,11 +69,36 @@ public:
   // Compute the lookup table for Pair->index
   void computeLookup() const;
 
+  // TODO: Good for debugging but not necessary
+  NodePairListView toView()
+  {
+    return this->toView([](const chai::PointerRecord*,
+                           chai::Action action,
+                           chai::ExecutionSpace) {
+                          if (action == chai::ACTION_MOVE)
+                            std::cout << "NodePairList Moved.\n";
+                        }
+                        );
+  }
+
+  template<typename F>
+  NodePairListView toView(F callback)
+  {
+    if (!(mNodePairList.data() == mManagedNPL.data(chai::CPU, false)
+          && mNodePairList.size() == mManagedNPL.size())) {
+        mManagedNPL.free();
+        mManagedNPL = chai::makeManagedArray(mNodePairList.data(), mNodePairList.size(), chai::CPU, false);
+        mManagedNPL.setUserCallback(callback);
+    }
+    return NodePairListView(mManagedNPL);
+  }
+
 private:
   ContainerType mNodePairList;
+  chai::ManagedArray<NodePairIdxType> mManagedNPL;
   mutable std::unordered_map<NodePairIdxType, size_t> mPair2Index;  // mutable for lazy evaluation in index
 };
 
 }
 
-#endif // _Spheral_NeighbourSpace_NodePairList_hh_
+#endif // Spheral_NeighbourSpace_NodePairList_hh
