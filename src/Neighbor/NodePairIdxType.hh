@@ -16,10 +16,10 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 struct NodePairIdxType {
   using HashType = size_t;
-  size_t i_node = 0;
-  size_t i_list = 0;
-  size_t j_node = 0;
-  size_t j_list = 0;
+  size_t i_node = 0u;
+  size_t i_list = 0u;
+  size_t j_node = 0u;
+  size_t j_list = 0u;
   double f_couple = 0.0; // An arbitrary fraction in [0,1] to hold the effective coupling of the pair
 
   SPHERAL_HOST_DEVICE NodePairIdxType() = default;
