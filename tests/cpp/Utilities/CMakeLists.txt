@@ -3,3 +3,10 @@ spheral_add_test(
   SOURCES offload_tests.cc
   DEBUG_LINKER
 )
+
+spheral_add_test(
+  NAME quadraticinterpolator_tests
+  SOURCES quadraticinterpolator_tests.cc
+  DEPENDS_ON Spheral_Utilities
+  #DEBUG_LINKER
+)

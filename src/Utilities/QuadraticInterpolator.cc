@@ -7,51 +7,40 @@
 // Created by JMO, Fri Dec  4 14:28:08 PST 2020
 //----------------------------------------------------------------------------//
 #include "QuadraticInterpolator.hh"
+#include "umpire/Umpire.hpp"
+#include <algorithm>
+
+#include <Eigen/Dense>
 
 namespace Spheral {
 
 //------------------------------------------------------------------------------
-// Default constructor
-//------------------------------------------------------------------------------
-QuadraticInterpolator::QuadraticInterpolator():
-  mN1(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mcoeffs() {
-}
-
-//------------------------------------------------------------------------------
 // Constructor with sampled values
 //------------------------------------------------------------------------------
-QuadraticInterpolator::QuadraticInterpolator(double xmin,
-                                             double xmax,
-                                             const std::vector<double>& yvals):
-  mN1(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mcoeffs() {
-  this->initialize(xmin, xmax, yvals);
+QIHandler::QIHandler(double xmin,
+                     double xmax,
+                     const std::vector<double>& yvals) {
+  initialize(xmin, xmax, yvals);
 }
 
 //------------------------------------------------------------------------------
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
 void
-QuadraticInterpolator::initialize(double xmin,
-                                  double xmax,
-                                  const std::vector<double>& yvals) {
+QIHandler::initialize(double xmin,
+                      double xmax,
+                      const std::vector<double>& yvals) {
   const auto n = yvals.size();
-  VERIFY2(n > 2, "QuadraticInterpolator::initialize requires at least 3 unique values to fit");
-  VERIFY2(n % 2 == 1, "QuadraticInterpolator::initialize requires an odd number of tabulated values");
-  VERIFY2(xmax > xmin, "QuadraticInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 2, "QIHandler::initialize requires at least 3 unique values to fit");
+  VERIFY2(n % 2 == 1, "QIHandler::initialize requires an odd number of tabulated values");
+  VERIFY2(xmax > xmin, "QIHandler::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
-  mN1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
-  mXmin = xmin;
-  mXmax = xmax;
-  mXstep = (xmax - xmin)/(mN1 + 1u);
-  mcoeffs.resize(3*(mN1 + 1u));
+  double N1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
+  double xstep = (xmax - xmin)/(N1 + 1u);
+  size_t N = 3*(N1 + 1u);
+  auto& rm = umpire::ResourceManager::getInstance();
+  auto host_allocator = rm.getAllocator("HOST");
+  double* vals = static_cast<double*>(host_allocator.allocate(N*sizeof(double)));
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -62,37 +51,42 @@ QuadraticInterpolator::initialize(double xmin,
   double x0, x1, x2;
   EMatrix A;
   EVector X, B;
-  for (auto i0 = 0u; i0 <= mN1; ++i0) {
-    x0 = xmin + i0*mXstep;
-    x1 = x0 + 0.5*mXstep;
-    x2 = x0 + mXstep;
+  for (auto i0 = 0u; i0 <= N1; ++i0) {
+    x0 = xmin + i0*xstep;
+    x1 = x0 + 0.5*xstep;
+    x2 = x0 + xstep;
     A << 1.0, x0, x0*x0,
          1.0, x1, x1*x1,
          1.0, x2, x2*x2;
     B << yvals[2u*i0], yvals[2u*i0 + 1u], yvals[2u*i0 + 2u];
     X = A.inverse()*B;
-    mcoeffs[3*i0     ] = X(0);
-    mcoeffs[3*i0 + 1u] = X(1);
-    mcoeffs[3*i0 + 2u] = X(2);
+    vals[3*i0     ] = X(0);
+    vals[3*i0 + 1u] = X(1);
+    vals[3*i0 + 2u] = X(2);
   }
+#ifdef SPHERAL_GPU_ENABLED
+  auto allocator = rm.getAllocator("DEVICE");
+  mDeviceCoeffs = static_cast<double*>(allocator.allocate(N*sizeof(double)));
+  rm.copy(mDeviceCoeffs, vals, N*sizeof(double));
+#endif
+  mHostCoeffs = vals;
+  mN1 = N1;
+  mXmin = xmin;
+  mXmax = xmax;
+  mXstep = xstep;
 }
 
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-QuadraticInterpolator::~QuadraticInterpolator() {
-}
-
-//------------------------------------------------------------------------------
-// Equivalence
-//------------------------------------------------------------------------------
-bool
-QuadraticInterpolator::
-operator==(const QuadraticInterpolator& rhs) const {
-  return ((mN1 == rhs.mN1) and
-          (mXmin == rhs.mXmin) and
-          (mXmax == rhs.mXmax) and
-          (mcoeffs == rhs.mcoeffs));
+QIHandler::~QIHandler() {
+  auto& rm = umpire::ResourceManager::getInstance();
+#ifdef SPHERAL_GPU_ENABLED
+  auto allocator = rm.getAllocator("DEVICE");
+  allocator.deallocate(mDeviceCoeffs);
+#endif
+  auto host_allocator = rm.getAllocator("HOST");
+  host_allocator.deallocate(mHostCoeffs);
 }
 
 }

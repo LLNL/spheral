@@ -1,7 +1,4 @@
 #include "Utilities/DBC.hh"
-#include <algorithm>
-
-#include <Eigen/Dense>
 
 namespace Spheral {
 
@@ -9,52 +6,61 @@ namespace Spheral {
 // Construct to fit the given function
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
-QuadraticInterpolator::QuadraticInterpolator(double xmin,
-                                             double xmax,
-                                             size_t n,
-                                             const Func& F):
-  mN1(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mcoeffs() {
-  this->initialize(xmin, xmax, n, F);
+QIHandler::QIHandler(double xmin,
+                     double xmax,
+                     size_t n,
+                     const Func& F) {
+  initialize(xmin, xmax, n, F);
 }
 
 //------------------------------------------------------------------------------
 // Initialize to fit the given function
 //------------------------------------------------------------------------------
 template<typename Func>
-inline
 void
-QuadraticInterpolator::initialize(double xmin,
-                                  double xmax,
-                                  size_t n,
-                                  const Func& F) {
+QIHandler::initialize(double xmin,
+                      double xmax,
+                      size_t n,
+                      const Func& F) {
   // Preconditions
   VERIFY2(n > 1, "QuadraticInterpolator requires n > 1 : n=" << n);
   VERIFY2(xmax > xmin, "QuadraticInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
 
   // Build up an array of the function values and use the array based initialization.
   if (n % 2 == 0) ++n;  // Need odd number of samples to hit both endpoints of the range
-  mXstep = (xmax - xmin)/(n - 1u);
+  double xstep = (xmax - xmin)/(n - 1u);
   std::vector<double> yvals(n);
-  for (auto i = 0u; i < n; ++i) yvals[i] = F(xmin + i*mXstep);
-  this->initialize(xmin, xmax, yvals);
+  for (auto i = 0u; i < n; ++i) yvals[i] = F(xmin + i*xstep);
+  initialize(xmin, xmax, yvals);
+}
+
+//------------------------------------------------------------------------------
+// Initialize QuadraticInterpolator
+//------------------------------------------------------------------------------
+SPHERAL_HOST inline
+QuadraticInterpolator::QuadraticInterpolator(size_t N1,
+                                             double xmin,
+                                             double xmax,
+                                             double xstep,
+                                             double* vals) :
+  mN1(N1),
+  mXmin(xmin),
+  mXmax(xmax),
+  mXstep(xstep),
+  mcoeffs(vals) {
 }
 
 //------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::operator()(const double x,
                                   const size_t i0) const {
@@ -65,14 +71,14 @@ QuadraticInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 // Interpolate the first derivative the given x value.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime(const double x,
                              const size_t i0) const {
@@ -84,14 +90,14 @@ QuadraticInterpolator::prime(const double x,
 // Interpolate the second derivative for the given x value.
 // Just a constant value, so not a great fit.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mcoeffs[i0 + 2];
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::prime2(const double /*x*/,
                               const size_t i0) const {
@@ -102,7 +108,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 //------------------------------------------------------------------------------
 // Return the lower bound entry in the table for the given x coordinate
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 size_t
 QuadraticInterpolator::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
@@ -113,34 +119,42 @@ QuadraticInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 // Data accessors
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 size_t
 QuadraticInterpolator::size() const {
-  return mcoeffs.size();
+  return 3*(mN1 + 1u);
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::xmin() const {
   return mXmin;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::xmax() const {
   return mXmax;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
 QuadraticInterpolator::xstep() const {
   return mXstep;
 }
 
+//------------------------------------------------------------------------------
+// Equivalence
+//------------------------------------------------------------------------------
+SPHERAL_HOST_DEVICE
 inline
-const std::vector<double>&
-QuadraticInterpolator::coeffs() const {
-  return mcoeffs;
+bool
+QuadraticInterpolator::
+operator==(const QuadraticInterpolator& rhs) const {
+  return ((mN1 == rhs.mN1) and
+          (mXmin == rhs.mXmin) and
+          (mXmax == rhs.mXmax) and
+          (mcoeffs == rhs.mcoeffs));
 }
 
 }

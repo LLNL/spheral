@@ -96,4 +96,3 @@ Assumes the results is interpolated as y_interp = a + b*x + c*x^2"""
     xmin = PYB11property(doc="Minimum x coordinate for table")
     xmax = PYB11property(doc="Maximum x coordinate for table")
     xstep = PYB11property(doc="delta x between tabulated values")
-    coeffs = PYB11property(doc="the fitting coefficients")
