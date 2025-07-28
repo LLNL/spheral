@@ -9,7 +9,7 @@
 #ifndef __Spheral_QuadraticInterpolator__
 #define __Spheral_QuadraticInterpolator__
 
-#include "chai/ExecutionSpaces.hpp"
+#include "chai/ManagedArray.hpp"
 #include "config.hh"
 
 #include <cstddef>
@@ -19,6 +19,7 @@ namespace Spheral {
 
 class QuadraticInterpolatorBase {
 public:
+  using ContainerType = typename chai::ManagedArray<double>;
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
   SPHERAL_HOST_DEVICE QuadraticInterpolatorBase() = default;
@@ -50,23 +51,24 @@ protected:
                                          double xmin,
                                          double xmax,
                                          double xstep,
-                                         double* vals) :
+                                         ContainerType const& vals) :
     mN1(N1),
     mXmin(xmin),
     mXmax(xmax),
     mXstep(xstep),
-    mcoeffs(vals) { }
+    mcoeffs(vals) { mcoeffs.registerTouch(chai::CPU); }
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1 = 0u;
   double mXmin = 0.;
   double mXmax = 0.;
   double mXstep = 0.;
-  double* mcoeffs = nullptr;
+  ContainerType mcoeffs;
 };
 
 class QuadraticInterpolator : public QuadraticInterpolatorBase {
 public:
+  using ContainerType = typename chai::ManagedArray<double>;
   template<typename Func>
   QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
   QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
@@ -79,21 +81,16 @@ public:
 
   template<typename QIView>
   QIView view(chai::ExecutionSpace space) {
-    if (space == chai::CPU) {
-      return QIView(mN1, mXmin, mXmax, mXstep, mcoeffs);
-    } else {
-      return QIView(mN1, mXmin, mXmax, mXstep, mDeviceCoeffs);
-    }
+    return QIView(mN1, mXmin, mXmax, mXstep, mcoeffs);
   }
-private:
-  double* mDeviceCoeffs = nullptr;
 };
 
 // For use on device
 class QIView : public QuadraticInterpolatorBase {
 public:
+  using ContainerType = typename chai::ManagedArray<double>;
   SPHERAL_HOST_DEVICE QIView() = default;
-  SPHERAL_HOST QIView(size_t N1, double xmin, double xmax, double xstep, double* vals);
+  SPHERAL_HOST QIView(size_t N1, double xmin, double xmax, double xstep, ContainerType const& vals);
   SPHERAL_HOST_DEVICE ~QIView() { }
 };
 }

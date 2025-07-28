@@ -7,7 +7,6 @@
 // Created by JMO, Fri Dec  4 14:28:08 PST 2020
 //----------------------------------------------------------------------------//
 #include "QuadraticInterpolator.hh"
-#include "umpire/Umpire.hpp"
 #include <algorithm>
 
 #include <Eigen/Dense>
@@ -35,12 +34,10 @@ QuadraticInterpolator::initialize(double xmin,
   VERIFY2(n % 2 == 1, "QuadraticInterpolator::initialize requires an odd number of tabulated values");
   VERIFY2(xmax > xmin, "QuadraticInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
-  double N1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
+  size_t N1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
   double xstep = (xmax - xmin)/(N1 + 1u);
   size_t N = 3*(N1 + 1u);
-  auto& rm = umpire::ResourceManager::getInstance();
-  auto host_allocator = rm.getAllocator("HOST");
-  double* vals = static_cast<double*>(host_allocator.allocate(N*sizeof(double)));
+  mcoeffs.allocate(N, chai::CPU);
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -60,16 +57,10 @@ QuadraticInterpolator::initialize(double xmin,
          1.0, x2, x2*x2;
     B << yvals[2u*i0], yvals[2u*i0 + 1u], yvals[2u*i0 + 2u];
     X = A.inverse()*B;
-    vals[3*i0     ] = X(0);
-    vals[3*i0 + 1u] = X(1);
-    vals[3*i0 + 2u] = X(2);
+    mcoeffs[3*i0     ] = X(0);
+    mcoeffs[3*i0 + 1u] = X(1);
+    mcoeffs[3*i0 + 2u] = X(2);
   }
-#ifdef SPHERAL_GPU_ENABLED
-  auto allocator = rm.getAllocator("DEVICE");
-  mDeviceCoeffs = static_cast<double*>(allocator.allocate(N*sizeof(double)));
-  rm.copy(mDeviceCoeffs, vals, N*sizeof(double));
-#endif
-  mcoeffs = vals;
   mN1 = N1;
   mXmin = xmin;
   mXmax = xmax;
@@ -80,13 +71,7 @@ QuadraticInterpolator::initialize(double xmin,
 // Destructor
 //------------------------------------------------------------------------------
 QuadraticInterpolator::~QuadraticInterpolator() {
-  auto& rm = umpire::ResourceManager::getInstance();
-#ifdef SPHERAL_GPU_ENABLED
-  auto allocator = rm.getAllocator("DEVICE");
-  allocator.deallocate(mDeviceCoeffs);
-#endif
-  auto host_allocator = rm.getAllocator("HOST");
-  host_allocator.deallocate(mcoeffs);
+  mcoeffs.free();
 }
 
 }

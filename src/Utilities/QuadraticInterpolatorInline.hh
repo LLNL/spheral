@@ -42,7 +42,7 @@ QIView::QIView(size_t N1,
                double xmin,
                double xmax,
                double xstep,
-               double* vals) :
+               chai::ManagedArray<double> const& vals) :
   QuadraticInterpolatorBase(N1, xmin, xmax, xstep, vals) {
 }
 
