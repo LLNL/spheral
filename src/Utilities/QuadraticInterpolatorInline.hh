@@ -6,10 +6,10 @@ namespace Spheral {
 // Construct to fit the given function
 //------------------------------------------------------------------------------
 template<typename Func>
-QIHandler::QIHandler(double xmin,
-                     double xmax,
-                     size_t n,
-                     const Func& F) {
+QuadraticInterpolator::QuadraticInterpolator(double xmin,
+                                             double xmax,
+                                             size_t n,
+                                             const Func& F) {
   initialize(xmin, xmax, n, F);
 }
 
@@ -18,10 +18,10 @@ QIHandler::QIHandler(double xmin,
 //------------------------------------------------------------------------------
 template<typename Func>
 void
-QIHandler::initialize(double xmin,
-                      double xmax,
-                      size_t n,
-                      const Func& F) {
+QuadraticInterpolator::initialize(double xmin,
+                                  double xmax,
+                                  size_t n,
+                                  const Func& F) {
   // Preconditions
   VERIFY2(n > 1, "QuadraticInterpolator requires n > 1 : n=" << n);
   VERIFY2(xmax > xmin, "QuadraticInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
@@ -38,16 +38,12 @@ QIHandler::initialize(double xmin,
 // Initialize QuadraticInterpolator
 //------------------------------------------------------------------------------
 SPHERAL_HOST inline
-QuadraticInterpolator::QuadraticInterpolator(size_t N1,
-                                             double xmin,
-                                             double xmax,
-                                             double xstep,
-                                             double* vals) :
-  mN1(N1),
-  mXmin(xmin),
-  mXmax(xmax),
-  mXstep(xstep),
-  mcoeffs(vals) {
+QIView::QIView(size_t N1,
+               double xmin,
+               double xmax,
+               double xstep,
+               double* vals) :
+  QuadraticInterpolatorBase(N1, xmin, xmax, xstep, vals) {
 }
 
 //------------------------------------------------------------------------------
@@ -55,14 +51,14 @@ QuadraticInterpolator::QuadraticInterpolator(size_t N1,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::operator()(const double x) const {
+QuadraticInterpolatorBase::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::operator()(const double x,
+QuadraticInterpolatorBase::operator()(const double x,
                                   const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
@@ -73,14 +69,14 @@ QuadraticInterpolator::operator()(const double x,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::prime(const double x) const {
+QuadraticInterpolatorBase::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::prime(const double x,
+QuadraticInterpolatorBase::prime(const double x,
                              const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
@@ -92,14 +88,14 @@ QuadraticInterpolator::prime(const double x,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::prime2(const double x) const {
+QuadraticInterpolatorBase::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mcoeffs[i0 + 2];
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::prime2(const double /*x*/,
+QuadraticInterpolatorBase::prime2(const double /*x*/,
                               const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return 2.0*mcoeffs[i0 + 2];
@@ -110,7 +106,7 @@ QuadraticInterpolator::prime2(const double /*x*/,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 size_t
-QuadraticInterpolator::lowerBound(const double x) const {
+QuadraticInterpolatorBase::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
   ENSURE(result <= 3u*mN1);
   return result;
@@ -121,25 +117,25 @@ QuadraticInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 size_t
-QuadraticInterpolator::size() const {
+QuadraticInterpolatorBase::size() const {
   return 3*(mN1 + 1u);
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::xmin() const {
+QuadraticInterpolatorBase::xmin() const {
   return mXmin;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::xmax() const {
+QuadraticInterpolatorBase::xmax() const {
   return mXmax;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolator::xstep() const {
+QuadraticInterpolatorBase::xstep() const {
   return mXstep;
 }
 
@@ -149,8 +145,8 @@ QuadraticInterpolator::xstep() const {
 SPHERAL_HOST_DEVICE
 inline
 bool
-QuadraticInterpolator::
-operator==(const QuadraticInterpolator& rhs) const {
+QuadraticInterpolatorBase::
+operator==(const QuadraticInterpolatorBase& rhs) const {
   return ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and

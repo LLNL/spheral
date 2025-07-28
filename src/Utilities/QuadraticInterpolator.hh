@@ -17,15 +17,14 @@
 
 namespace Spheral {
 
-class QuadraticInterpolator {
+class QuadraticInterpolatorBase {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
-  SPHERAL_HOST_DEVICE QuadraticInterpolator() = default;
-  SPHERAL_HOST_DEVICE ~QuadraticInterpolator() = default;
+  SPHERAL_HOST_DEVICE QuadraticInterpolatorBase() = default;
 
   // Comparisons
-  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolator& rhs) const;
+  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorBase& rhs) const;
 
   // Interpolate for the y value
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
@@ -46,52 +45,56 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
 
-private:
+protected:
+  SPHERAL_HOST QuadraticInterpolatorBase(size_t N1,
+                                         double xmin,
+                                         double xmax,
+                                         double xstep,
+                                         double* vals) :
+    mN1(N1),
+    mXmin(xmin),
+    mXmax(xmax),
+    mXstep(xstep),
+    mcoeffs(vals) { }
   //--------------------------- Private Interface --------------------------//
-  // Only QIHandler can to a proper construction of this object
-  SPHERAL_HOST QuadraticInterpolator(size_t N1, double xmin, double xmax, double xstep, double* vals);
   // Member data
   size_t mN1 = 0u;
   double mXmin = 0.;
   double mXmax = 0.;
   double mXstep = 0.;
   double* mcoeffs = nullptr;
-  friend class QIHandler;
 };
 
-class QIHandler {
+class QuadraticInterpolator : public QuadraticInterpolatorBase {
 public:
-    // Constructors, destructors
-  QIHandler() = default;
   template<typename Func>
-  QIHandler(double xmin, double xmax, size_t n, const Func& F);
-  QIHandler(double xmin, double xmax, const std::vector<double>& yvals);
-  ~QIHandler();
+  QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
+  QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
+  ~QuadraticInterpolator();
 
   // Initialize after construction, either with a function or tabulated values
   template<typename Func>
   void initialize(double xmin, double xmax, size_t n, const Func& f);
   void initialize(double xmin, double xmax, const std::vector<double>& yvals);
 
-  size_t size() const { return 3*(mN1 + 1u); }
-  using QI = QuadraticInterpolator;
-  QI view(chai::ExecutionSpace space) {
+  template<typename QIView>
+  QIView view(chai::ExecutionSpace space) {
     if (space == chai::CPU) {
-      return QI(mN1, mXmin, mXmax, mXstep, mHostCoeffs);
+      return QIView(mN1, mXmin, mXmax, mXstep, mcoeffs);
     } else {
-      return QI(mN1, mXmin, mXmax, mXstep, mDeviceCoeffs);
+      return QIView(mN1, mXmin, mXmax, mXstep, mDeviceCoeffs);
     }
   }
-
 private:
-  //--------------------------- Private Interface --------------------------//
-  // Member data
-  size_t mN1 = 0u;
-  double mXmin = 0.;
-  double mXmax = 0.;
-  double mXstep = 0.;
-  double* mHostCoeffs = nullptr;
   double* mDeviceCoeffs = nullptr;
+};
+
+// For use on device
+class QIView : public QuadraticInterpolatorBase {
+public:
+  SPHERAL_HOST_DEVICE QIView() = default;
+  SPHERAL_HOST QIView(size_t N1, double xmin, double xmax, double xstep, double* vals);
+  SPHERAL_HOST_DEVICE ~QIView() { }
 };
 }
 

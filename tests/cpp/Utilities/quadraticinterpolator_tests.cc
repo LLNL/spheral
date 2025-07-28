@@ -37,43 +37,39 @@ template <typename T> class QuadraticInterpolatorTypedTest : public QuadraticInt
 
 // Test multiple FieldLists holding the same Field
 GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, FuncCtorTest) {
-
   const size_t NV = 41;
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
-  Spheral::QIHandler qih(xmin, xmax, NV, gpu_this->func);
-  chai::ExecutionSpace space = chai::CPU;
-  if (typeid(TypeParam) != typeid(RAJA::seq_exec)) {
-    space = chai::GPU;
+  QI qih(xmin, xmax, NV, gpu_this->func);
+  {
+    chai::ExecutionSpace space = chai::CPU;
+    if (typeid(TypeParam) != typeid(RAJA::seq_exec)) space = chai::GPU;
+    size_t N = qih.size();
+    Spheral::QIView qi = qih.view<Spheral::QIView>(space);
+    EXEC_IN_SPACE_BEGIN(TypeParam)
+      SPHERAL_ASSERT_EQ(qi.size(), N);
+    EXEC_IN_SPACE_END()
+      const double xstep = (xmax - xmin)/((double)NV - 1.);
+    RAJA::forall<TypeParam>(TRS_UINT(0, NV),
+      [=] (size_t i) {
+        double x = xmin + xstep*(double)i;
+        double rval = gpu_this->func(x);
+        double ival = qi(x);
+        SPHERAL_ASSERT_FLOAT_EQ(rval, ival);
+      });
   }
-  size_t N = qih.size();
-  QI qi = qih.view(space);
-  EXEC_IN_SPACE_BEGIN(TypeParam)
-    SPHERAL_ASSERT_EQ(qi.size(), N);
-  EXEC_IN_SPACE_END()
-  const double xstep = (xmax - xmin)/((double)NV - 1.);
-  RAJA::forall<TypeParam>(TRS_UINT(0, NV),
-    [=] (size_t i) {
-      double x = xmin + xstep*(double)i;
-      double rval = gpu_this->func(x);
-      double ival = qi(x);
-      SPHERAL_ASSERT_FLOAT_EQ(rval, ival);
-    });
 }
 
 GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, VecCtorTest) {
-
   const size_t NV = 41;
   std::vector<double> yvals = gpu_this->makeVec(NV);
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
-  Spheral::QIHandler qih(xmin, xmax, yvals);
+  QI qih(xmin, xmax, yvals);
   chai::ExecutionSpace space = chai::CPU;
-  if (typeid(TypeParam) != typeid(RAJA::seq_exec)) {
-    space = chai::GPU;
-  }
+  if (typeid(TypeParam) != typeid(RAJA::seq_exec)) space = chai::GPU;
   size_t N = qih.size();
-  QI qi = qih.view(space);
+  Spheral::QIView qi = qih.view<Spheral::QIView>(space);
   EXEC_IN_SPACE_BEGIN(TypeParam)
     SPHERAL_ASSERT_EQ(qi.size(), N);
   EXEC_IN_SPACE_END()

@@ -17,9 +17,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Constructor with sampled values
 //------------------------------------------------------------------------------
-QIHandler::QIHandler(double xmin,
-                     double xmax,
-                     const std::vector<double>& yvals) {
+QuadraticInterpolator::QuadraticInterpolator(double xmin,
+                                             double xmax,
+                                             const std::vector<double>& yvals) {
   initialize(xmin, xmax, yvals);
 }
 
@@ -27,13 +27,13 @@ QIHandler::QIHandler(double xmin,
 // Initialize the interpolation to fit the given data
 //------------------------------------------------------------------------------
 void
-QIHandler::initialize(double xmin,
-                      double xmax,
-                      const std::vector<double>& yvals) {
+QuadraticInterpolator::initialize(double xmin,
+                                  double xmax,
+                                  const std::vector<double>& yvals) {
   const auto n = yvals.size();
-  VERIFY2(n > 2, "QIHandler::initialize requires at least 3 unique values to fit");
-  VERIFY2(n % 2 == 1, "QIHandler::initialize requires an odd number of tabulated values");
-  VERIFY2(xmax > xmin, "QIHandler::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
+  VERIFY2(n > 2, "QuadraticInterpolator::initialize requires at least 3 unique values to fit");
+  VERIFY2(n % 2 == 1, "QuadraticInterpolator::initialize requires an odd number of tabulated values");
+  VERIFY2(xmax > xmin, "QuadraticInterpolator::initialize requires a positive domain: [" << xmin << " " << xmax << "]");
 
   double N1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
   double xstep = (xmax - xmin)/(N1 + 1u);
@@ -69,7 +69,7 @@ QIHandler::initialize(double xmin,
   mDeviceCoeffs = static_cast<double*>(allocator.allocate(N*sizeof(double)));
   rm.copy(mDeviceCoeffs, vals, N*sizeof(double));
 #endif
-  mHostCoeffs = vals;
+  mcoeffs = vals;
   mN1 = N1;
   mXmin = xmin;
   mXmax = xmax;
@@ -79,14 +79,14 @@ QIHandler::initialize(double xmin,
 //------------------------------------------------------------------------------
 // Destructor
 //------------------------------------------------------------------------------
-QIHandler::~QIHandler() {
+QuadraticInterpolator::~QuadraticInterpolator() {
   auto& rm = umpire::ResourceManager::getInstance();
 #ifdef SPHERAL_GPU_ENABLED
   auto allocator = rm.getAllocator("DEVICE");
   allocator.deallocate(mDeviceCoeffs);
 #endif
   auto host_allocator = rm.getAllocator("HOST");
-  host_allocator.deallocate(mHostCoeffs);
+  host_allocator.deallocate(mcoeffs);
 }
 
 }
