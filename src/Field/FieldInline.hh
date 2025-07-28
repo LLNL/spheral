@@ -1216,17 +1216,6 @@ allValues() const {
 }
 
 //------------------------------------------------------------------------------
-// getAxomType
-//------------------------------------------------------------------------------
-template<typename Dimension, typename DataType>
-inline
-axom::sidre::DataTypeId
-Field<Dimension, DataType>::
-getAxomTypeID() const {
-  return DataTypeTraits<DataType>::axomTypeID();
-}
-
-//------------------------------------------------------------------------------
 // Resize the field to the given number of nodes.  This operation ignores
 // the distinction between internal and ghost nodes.
 //------------------------------------------------------------------------------
