@@ -13,7 +13,15 @@
 
 #include "Field/FieldBase.hh"
 
+#include "FieldBase.hh"
+#include "FieldView.hh"
+#include "Utilities/Logger.hh"
+
 #include "axom/sidre.hpp"
+#include "chai/ExecutionSpaces.hpp"
+#include "chai/ManagedArray.hpp"
+#include "chai/PointerRecord.hpp"
+#include "chai/Types.hpp"
 
 #ifdef USE_UVM
 #include "uvm_allocator.hh"
@@ -53,6 +61,8 @@ public:
   using FieldDataType = DataType;
   using value_type = DataType;      // STL compatibility.
 
+  using ViewType = FieldView<Dimension, DataType>;
+
   using iterator = typename std::vector<DataType,DataAllocator<DataType>>::iterator;
   using const_iterator = typename std::vector<DataType,DataAllocator<DataType>>::const_iterator;
 
@@ -72,7 +82,7 @@ public:
   virtual std::shared_ptr<FieldBase<Dimension> > clone() const override;
 
   // Destructor.
-  virtual ~Field() = default;
+  virtual ~Field();
 
   // Assignment operator.
   virtual FieldBase<Dimension>& operator=(const FieldBase<Dimension>& rhs) override;
@@ -209,6 +219,17 @@ public:
   // No default constructor.
   Field() = delete;
 
+  // ViewType controls.
+  ViewType toView();
+
+  template<typename T=DataType, typename F>
+  std::enable_if_t<std::is_trivially_copyable<T>::value, ViewType>
+  toView(F&& extension);
+
+  template<typename T=DataType, typename F>
+  std::enable_if_t<!std::is_trivially_copyable<T>::value, ViewType>
+  toView(F&&);
+
 protected:
   virtual void resizeField(size_t size) override;
   virtual void resizeFieldInternal(size_t size, size_t oldFirstGhostNode) override;
@@ -216,10 +237,18 @@ protected:
   virtual void deleteElement(size_t nodeID) override;
   virtual void deleteElements(const std::vector<size_t>& nodeIDs) override;
 
+  template<typename F>
+  auto getFieldCallback(F callback);
+
 private:
   //--------------------------- Private Interface ---------------------------//
   // Private Data
   std::vector<DataType, DataAllocator<DataType>> mDataArray;
+
+  // ManagedArray owned by the field to ensure proper lifetime of the GPU data.
+  chai::ManagedArray<DataType> mManagedData;
+
+  bool mValid;
 };
 
 } // namespace Spheral

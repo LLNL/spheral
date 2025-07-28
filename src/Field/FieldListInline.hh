@@ -122,13 +122,7 @@ FieldList(const FieldList<Dimension, DataType>& rhs):
 template<typename Dimension, typename DataType>
 inline
 FieldList<Dimension, DataType>::~FieldList() {
-
-//   // Unregister this FieldList from each Field we point to.
-//   if (storageType() == FieldStorageType::ReferenceFields) {
-//     for (iterator fieldPtrItr = begin(); fieldPtrItr != end(); ++fieldPtrItr) 
-//       unregisterFromField(**fieldPtrItr);
-//   }
-
+  mFieldViews.free();
 }
 
 //------------------------------------------------------------------------------
@@ -1889,6 +1883,85 @@ operator*(const DataType& lhs,
     result.appendField(lhs * (*(rhs[i])));
   }
   return result;
+}
+
+//------------------------------------------------------------------------------
+// View functions.
+//------------------------------------------------------------------------------
+template<typename Dimension, typename DataType>
+inline
+FieldListView<Dimension, DataType>
+FieldList<Dimension, DataType>::toView() {
+  auto func = [](
+      const chai::PointerRecord *,
+      chai::Action,
+      chai::ExecutionSpace) {};
+
+  return this->toView(func, func);
+}
+
+template<typename Dimension, typename DataType>
+template<typename FL>
+inline
+FieldListView<Dimension, DataType>
+FieldList<Dimension, DataType>::toView(FL&& extension) {
+  auto func = [](
+      const chai::PointerRecord *,
+      chai::Action,
+      chai::ExecutionSpace) {};
+
+  return this->toView(std::forward<FL>(extension), func);
+}
+
+template<typename Dimension, typename DataType>
+template<typename FL, typename F>
+inline
+FieldListView<Dimension, DataType>
+FieldList<Dimension, DataType>::toView(FL&& extension, F&& field_extension) {
+  auto callback = getFieldListCallback(std::forward<FL>(extension));
+
+  if (mFieldViews.size() == 0 && !mFieldViews.getPointer(chai::CPU, false)) {
+    mFieldViews.allocate(size(), chai::CPU, callback);
+  } else {
+    mFieldViews.setUserCallback(callback);
+    mFieldViews.reallocate(size());
+  }
+
+  for (size_t i = 0; i < size(); ++i) {
+    mFieldViews[i] = mFieldPtrs[i]->toView(std::forward<F>(field_extension));
+  }
+
+  mFieldViews.registerTouch(chai::CPU);
+
+  return ViewType(mFieldViews);
+}
+
+template<typename Dimension, typename DataType>
+template<typename F>
+inline
+auto FieldList<Dimension, DataType>::getFieldListCallback(F callback) {
+  return [callback](
+    const chai::PointerRecord * record,
+    chai::Action action,
+    chai::ExecutionSpace space) {
+      if (action == chai::ACTION_MOVE) {
+        if (space == chai::CPU)
+          DEBUG_LOG << "FieldList : MOVED to the CPU";
+        if (space == chai::GPU)
+          DEBUG_LOG << "FieldList : MOVED to the GPU";
+      } else if (action == chai::ACTION_ALLOC) {
+        if (space == chai::CPU)
+          DEBUG_LOG << "FieldList : ALLOC on the CPU";
+        if (space == chai::GPU)
+          DEBUG_LOG << "FieldList : ALLOC on the GPU";
+      } else if (action == chai::ACTION_FREE) {
+        if (space == chai::CPU)
+          DEBUG_LOG << "FieldList : FREE on the CPU";
+        if (space == chai::GPU)
+          DEBUG_LOG << "FieldList : FREE on the GPU";
+      }
+      callback(record, action, space);
+    };
 }
 
 // //------------------------------------------------------------------------------
