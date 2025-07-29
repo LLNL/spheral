@@ -47,9 +47,17 @@ QIBase::operator()(const double x) const {
 SPHERAL_HOST_DEVICE inline
 double
 QIBase::operator()(const double x,
-                                  const size_t i0) const {
+                   const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
+}
+
+SPHERAL_HOST_DEVICE inline
+double
+QIBase::operator[](const size_t i) const {
+  REQUIRE(size() > 0);
+  REQUIRE(i < size());
+  return mcoeffs[i];
 }
 
 //------------------------------------------------------------------------------

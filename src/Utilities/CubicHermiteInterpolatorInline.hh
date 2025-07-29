@@ -126,6 +126,14 @@ CHIBase::operator()(const double x,
                   (t3 - t2)*mVals[mN + i0 + 1u]));     // h11
 }
 
+SPHERAL_HOST_DEVICE inline
+double
+CHIBase::operator[](const size_t i) const {
+  REQUIRE(size() > 0);
+  REQUIRE(i < size());
+  return mVals[i];
+}
+
 //------------------------------------------------------------------------------
 // Interpolate for dy/dx
 //------------------------------------------------------------------------------

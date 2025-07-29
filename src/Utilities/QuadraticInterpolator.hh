@@ -31,6 +31,8 @@ public:
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
   SPHERAL_HOST_DEVICE double prime(const double x) const;    // First derivative
   SPHERAL_HOST_DEVICE double prime2(const double x) const;   // Second derivative
+  // Index access
+  SPHERAL_HOST_DEVICE double operator[](const size_t i) const;
 
   // Same as above, but use a pre-computed table position (from lowerBound)
   SPHERAL_HOST_DEVICE double operator()(const double x, const size_t i0) const;
@@ -72,6 +74,7 @@ public:
   template<typename Func>
   QuadraticInterpolator(double xmin, double xmax, size_t n, const Func& F);
   QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
+  QuadraticInterpolator() = default;
   ~QuadraticInterpolator();
 
   // Initialize after construction, either with a function or tabulated values

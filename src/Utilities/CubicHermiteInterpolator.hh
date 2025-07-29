@@ -28,6 +28,8 @@ public:
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
   SPHERAL_HOST_DEVICE double prime(const double x) const;    // First derivative
   SPHERAL_HOST_DEVICE double prime2(const double x) const;   // Second derivative
+  // Index access
+  SPHERAL_HOST_DEVICE double operator[](const size_t i) const;
 
   // Same as above, but use a pre-computed table position (from lowerBound)
   SPHERAL_HOST_DEVICE double operator()(const double x, const size_t i0) const;
@@ -87,7 +89,7 @@ public:
   CubicHermiteInterpolator(const double xmin,
                            const double xmax,
                            const std::vector<double>& values);
-  CubicHermiteInterpolator();
+  CubicHermiteInterpolator() = default;
   ~CubicHermiteInterpolator();
 
   // (Re)initialize after construction, same options as construction
