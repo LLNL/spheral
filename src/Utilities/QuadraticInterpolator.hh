@@ -47,6 +47,7 @@ public:
   SPHERAL_HOST_DEVICE double xmin() const;                        // Minimum x coordinate for table
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
+  void move(chai::ExecutionSpace space) { mcoeffs.move(space); }
 
   SPHERAL_HOST QIBase(size_t N1,
                       double xmin,
