@@ -8,12 +8,68 @@
 #ifndef __Spheral_CubicHermiteInterpolator__
 #define __Spheral_CubicHermiteInterpolator__
 
+#include "chai/ManagedArray.hpp"
+#include "config.hh"
+
 #include <cstddef>
 #include <vector>
 
 namespace Spheral {
+class CHIBase {
+public:
+  using ContainerType = typename chai::ManagedArray<double>;
+  //--------------------------- Public Interface ---------------------------//
+  // Constructors, destructors
+  SPHERAL_HOST_DEVICE CHIBase() = default;
+  // Comparisons
+  SPHERAL_HOST_DEVICE bool operator==(const CHIBase& rhs) const;
 
-class CubicHermiteInterpolator {
+  // Interpolate for the y value
+  SPHERAL_HOST_DEVICE double operator()(const double x) const;
+  SPHERAL_HOST_DEVICE double prime(const double x) const;    // First derivative
+  SPHERAL_HOST_DEVICE double prime2(const double x) const;   // Second derivative
+
+  // Same as above, but use a pre-computed table position (from lowerBound)
+  SPHERAL_HOST_DEVICE double operator()(const double x, const size_t i0) const;
+  SPHERAL_HOST_DEVICE double prime(const double x, const size_t i0) const;    // First derivative
+  SPHERAL_HOST_DEVICE double prime2(const double x, const size_t i0) const;   // Second derivative
+
+  // Return the lower bound index in the table for the given x coordinate
+  SPHERAL_HOST_DEVICE size_t lowerBound(const double x) const;
+
+  // Compute the Hermite basis functions
+  SPHERAL_HOST_DEVICE double h00(const double x) const;
+  SPHERAL_HOST_DEVICE double h10(const double x) const;
+  SPHERAL_HOST_DEVICE double h01(const double x) const;
+  SPHERAL_HOST_DEVICE double h11(const double x) const;
+
+  // Allow read access the internal data representation
+  SPHERAL_HOST_DEVICE size_t size() const;                        // The number of tabulated values
+  SPHERAL_HOST_DEVICE double xmin() const;                        // Minimum x coordinate for table
+  SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
+  SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
+
+  SPHERAL_HOST CHIBase(size_t N,
+                       double xmin,
+                       double xmax,
+                       double xstep,
+                       ContainerType const& vals) :
+    mN(N),
+    mXmin(xmin),
+    mXmax(xmax),
+    mXstep(xstep),
+    mVals(vals) { mVals.registerTouch(chai::CPU); }
+protected:
+  //--------------------------- Protected Interface --------------------------//
+  // Member data
+  size_t mN = 0u;
+  double mXmin = 0.;
+  double mXmax = 0.;
+  double mXstep = 0.;
+  ContainerType mVals;
+};
+
+class CubicHermiteInterpolator : public CHIBase {
 public:
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
@@ -34,10 +90,6 @@ public:
   CubicHermiteInterpolator();
   ~CubicHermiteInterpolator();
 
-  // Copy and assignment
-  CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs);
-  CubicHermiteInterpolator& operator=(const CubicHermiteInterpolator& rhs);
-
   // (Re)initialize after construction, same options as construction
   template<typename Func>
   void initialize(const double xmin,
@@ -57,49 +109,26 @@ public:
   // Force interpolation to be monotonic (may introduce structure between tabulated points)
   void makeMonotonic();
 
-  // Comparisons
-  bool operator==(const CubicHermiteInterpolator& rhs) const;
+  CHIBase view() {
+    return CHIBase(mN, mXmin, mXmax, mXstep, mVals);
+  }
 
-  // Interpolate for the y value
-  double operator()(const double x) const;
-  double prime(const double x) const;    // First derivative
-  double prime2(const double x) const;   // Second derivative
-
-  // Same as above, but use a pre-computed table position (from lowerBound)
-  double operator()(const double x, const size_t i0) const;
-  double prime(const double x, const size_t i0) const;    // First derivative
-  double prime2(const double x, const size_t i0) const;   // Second derivative
-
-  // Return the lower bound index in the table for the given x coordinate
-  size_t lowerBound(const double x) const;
-
-  // Compute the Hermite basis functions
-  double h00(const double x) const;
-  double h10(const double x) const;
-  double h01(const double x) const;
-  double h11(const double x) const;
-
-  // Allow read access the internal data representation
-  size_t size() const;                        // The number of tabulated values
-  double xmin() const;                        // Minimum x coordinate for table              
-  double xmax() const;                        // Maximum x coordinate for table              
-  double xstep() const;                       // delta x between tabulated values            
-  const std::vector<double>& vals() const;    // the tabulated function values and gradients (sequentially)
-  
 private:
   //--------------------------- Private Interface --------------------------//
-  // Member data
-  size_t mN;
-  double mXmin, mXmax, mXstep;
-  std::vector<double> mVals;
-
   // Initialize the gradient at the interpolation points based on the tabulated
   // interpolation values
   void initializeGradientKnots();
 };
 
+// For use on device
+// class CHIView : public CHIBase {
+// public:
+//   using ContainerType = typename chai::ManagedArray<double>;
+//   SPHERAL_HOST_DEVICE CHIView() = default;
+//   SPHERAL_HOST CHIView(size_t N1, double xmin, double xmax, double xstep, ContainerType const& vals);
+//   SPHERAL_HOST_DEVICE ~CHIView() { }
+// };
 }
-
 #include "CubicHermiteInterpolatorInline.hh"
 
 #endif

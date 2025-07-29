@@ -17,15 +17,15 @@
 
 namespace Spheral {
 
-class QuadraticInterpolatorBase {
+class QIBase {
 public:
   using ContainerType = typename chai::ManagedArray<double>;
   //--------------------------- Public Interface ---------------------------//
   // Constructors, destructors
-  SPHERAL_HOST_DEVICE QuadraticInterpolatorBase() = default;
+  SPHERAL_HOST_DEVICE QIBase() = default;
 
   // Comparisons
-  SPHERAL_HOST_DEVICE bool operator==(const QuadraticInterpolatorBase& rhs) const;
+  SPHERAL_HOST_DEVICE bool operator==(const QIBase& rhs) const;
 
   // Interpolate for the y value
   SPHERAL_HOST_DEVICE double operator()(const double x) const;
@@ -46,17 +46,17 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
 
-protected:
-  SPHERAL_HOST QuadraticInterpolatorBase(size_t N1,
-                                         double xmin,
-                                         double xmax,
-                                         double xstep,
-                                         ContainerType const& vals) :
+  SPHERAL_HOST QIBase(size_t N1,
+                      double xmin,
+                      double xmax,
+                      double xstep,
+                      ContainerType const& vals) :
     mN1(N1),
     mXmin(xmin),
     mXmax(xmax),
     mXstep(xstep),
     mcoeffs(vals) { mcoeffs.registerTouch(chai::CPU); }
+protected:
   //--------------------------- Private Interface --------------------------//
   // Member data
   size_t mN1 = 0u;
@@ -66,7 +66,7 @@ protected:
   ContainerType mcoeffs;
 };
 
-class QuadraticInterpolator : public QuadraticInterpolatorBase {
+class QuadraticInterpolator : public QIBase {
 public:
   using ContainerType = typename chai::ManagedArray<double>;
   template<typename Func>
@@ -79,19 +79,9 @@ public:
   void initialize(double xmin, double xmax, size_t n, const Func& f);
   void initialize(double xmin, double xmax, const std::vector<double>& yvals);
 
-  template<typename QIView>
-  QIView view(chai::ExecutionSpace space) {
-    return QIView(mN1, mXmin, mXmax, mXstep, mcoeffs);
+  QIBase view() {
+    return QIBase(mN1, mXmin, mXmax, mXstep, mcoeffs);
   }
-};
-
-// For use on device
-class QIView : public QuadraticInterpolatorBase {
-public:
-  using ContainerType = typename chai::ManagedArray<double>;
-  SPHERAL_HOST_DEVICE QIView() = default;
-  SPHERAL_HOST QIView(size_t N1, double xmin, double xmax, double xstep, ContainerType const& vals);
-  SPHERAL_HOST_DEVICE ~QIView() { }
 };
 }
 

@@ -22,50 +22,8 @@ namespace Spheral {
 CubicHermiteInterpolator::
 CubicHermiteInterpolator(const double xmin,
                          const double xmax,
-                         const std::vector<double>& yvals):
-  mN(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mVals() {
-  this->initialize(xmin, xmax, yvals);
-}
-
-//------------------------------------------------------------------------------
-// Default constructor
-//------------------------------------------------------------------------------
-CubicHermiteInterpolator::CubicHermiteInterpolator():
-  mN(),
-  mXmin(),
-  mXmax(),
-  mXstep(),
-  mVals() {
-}
-
-//------------------------------------------------------------------------------
-// Copy constructor
-//------------------------------------------------------------------------------
-CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs):
-  mN(rhs.mN),
-  mXmin(rhs.mXmin),
-  mXmax(rhs.mXmax),
-  mXstep(rhs.mXstep),
-  mVals(rhs.mVals) {
-}
-
-//------------------------------------------------------------------------------
-// Assignment
-//------------------------------------------------------------------------------
-CubicHermiteInterpolator&
-CubicHermiteInterpolator::operator=(const CubicHermiteInterpolator& rhs) {
-  if (this != &rhs) {
-    mN = rhs.mN;
-    mXmin = rhs.mXmin;
-    mXmax = rhs.mXmax;
-    mXstep = rhs.mXstep;
-    mVals = rhs.mVals;
-  }
-  return *this;
+                         const std::vector<double>& yvals) {
+  initialize(xmin, xmax, yvals);
 }
 
 //------------------------------------------------------------------------------
@@ -82,13 +40,13 @@ CubicHermiteInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(mN - 1u);
-  mVals.resize(2u*mN);
+  mVals.allocate(2u*mN, chai::CPU);
 
-  // Copy the function values
-  std::copy(yvals.begin(), yvals.end(), mVals.begin());
-
+  for (size_t i = 0; i < mN; ++i) mVals[i] = yvals[i];
   // Estimate the gradients at our lattice points
-  this->initializeGradientKnots();
+  initializeGradientKnots();
+
+
   // const auto dxInv = 1.0/mXstep;
   // for (auto i = 1u; i < mN - 1u; ++i) {
   //   mVals[mN + i] = 0.5*(mVals[i + 1u] - mVals[i - 1u])*dxInv;
@@ -101,14 +59,15 @@ CubicHermiteInterpolator::initialize(const double xmin,
 // Destructor
 //------------------------------------------------------------------------------
 CubicHermiteInterpolator::~CubicHermiteInterpolator() {
+  mVals.free();
 }
 
 //------------------------------------------------------------------------------
 // Equivalence
 //------------------------------------------------------------------------------
-bool
-CubicHermiteInterpolator::
-operator==(const CubicHermiteInterpolator& rhs) const {
+SPHERAL_HOST_DEVICE bool
+CHIBase::
+operator==(const CHIBase& rhs) const {
   return ((mN == rhs.mN) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and

@@ -2,18 +2,17 @@
 // definition below even if Spheral was not configured w/ SPHERAL_ENABLE_LOGGER=On.
 // #define SPHERAL_ENABLE_LOGGER
 
-#include "chai/ExecutionSpaces.hpp"
 #include "chai/Types.hpp"
 #include "test-basic-exec-policies.hh"
 #include "test-utilities.hh"
 
-#include "Utilities/QuadraticInterpolator.hh"
+#include "Utilities/CubicHermiteInterpolator.hh"
 #include <Utilities/Logger.hh>
 #include <functional>
 
-using QI = Spheral::QuadraticInterpolator;
+using QI = Spheral::CubicHermiteInterpolator;
 
-class QuadraticInterpolatorTest : public ::testing::Test {
+class CubicHermiteInterpolatorTest : public ::testing::Test {
 public:
   const double xmin = 10.;
   const double xmax = 100.;
@@ -32,18 +31,18 @@ public:
 };
 
 // Setting up G Test for FieldList
-TYPED_TEST_SUITE_P(QuadraticInterpolatorTypedTest);
-template <typename T> class QuadraticInterpolatorTypedTest : public QuadraticInterpolatorTest {};
+TYPED_TEST_SUITE_P(CubicHermiteInterpolatorTypedTest);
+template <typename T> class CubicHermiteInterpolatorTypedTest : public CubicHermiteInterpolatorTest {};
 
 // Test multiple FieldLists holding the same Field
-GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, FuncCtorTest) {
+GPU_TYPED_TEST_P(CubicHermiteInterpolatorTypedTest, FuncCtorTest) {
   const size_t NV = 41;
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
   QI qih(xmin, xmax, NV, gpu_this->func);
   {
     size_t N = qih.size();
-    Spheral::QIBase qi = qih.view();
+    Spheral::CHIBase qi = qih.view();
     EXEC_IN_SPACE_BEGIN(TypeParam)
       SPHERAL_ASSERT_EQ(qi.size(), N);
     EXEC_IN_SPACE_END()
@@ -58,14 +57,14 @@ GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, FuncCtorTest) {
   }
 }
 
-GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, VecCtorTest) {
+GPU_TYPED_TEST_P(CubicHermiteInterpolatorTypedTest, VecCtorTest) {
   const size_t NV = 41;
   std::vector<double> yvals = gpu_this->makeVec(NV);
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
   QI qih(xmin, xmax, yvals);
   size_t N = qih.size();
-  Spheral::QIBase qi = qih.view();
+  Spheral::CHIBase qi = qih.view();
   EXEC_IN_SPACE_BEGIN(TypeParam)
     SPHERAL_ASSERT_EQ(qi.size(), N);
   EXEC_IN_SPACE_END()
@@ -79,8 +78,8 @@ GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, VecCtorTest) {
     });
 }
 
-REGISTER_TYPED_TEST_SUITE_P(QuadraticInterpolatorTypedTest, FuncCtorTest,
+REGISTER_TYPED_TEST_SUITE_P(CubicHermiteInterpolatorTypedTest, FuncCtorTest,
                             VecCtorTest);
 
-INSTANTIATE_TYPED_TEST_SUITE_P(QuadraticInterpolator, QuadraticInterpolatorTypedTest,
+INSTANTIATE_TYPED_TEST_SUITE_P(CubicHermiteInterpolator, CubicHermiteInterpolatorTypedTest,
                                typename Spheral::Test<EXEC_TYPES>::Types, );

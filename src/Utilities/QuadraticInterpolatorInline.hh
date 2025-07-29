@@ -35,30 +35,18 @@ QuadraticInterpolator::initialize(double xmin,
 }
 
 //------------------------------------------------------------------------------
-// Initialize QuadraticInterpolator
-//------------------------------------------------------------------------------
-SPHERAL_HOST inline
-QIView::QIView(size_t N1,
-               double xmin,
-               double xmax,
-               double xstep,
-               chai::ManagedArray<double> const& vals) :
-  QuadraticInterpolatorBase(N1, xmin, xmax, xstep, vals) {
-}
-
-//------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::operator()(const double x) const {
+QIBase::operator()(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::operator()(const double x,
+QIBase::operator()(const double x,
                                   const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0] + (mcoeffs[i0 + 1] + mcoeffs[i0 + 2]*x)*x;
@@ -69,15 +57,15 @@ QuadraticInterpolatorBase::operator()(const double x,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::prime(const double x) const {
+QIBase::prime(const double x) const {
   const auto i0 = lowerBound(x);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::prime(const double x,
-                             const size_t i0) const {
+QIBase::prime(const double x,
+              const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return mcoeffs[i0 + 1] + 2.0*mcoeffs[i0 + 2]*x;
 }
@@ -88,15 +76,15 @@ QuadraticInterpolatorBase::prime(const double x,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::prime2(const double x) const {
+QIBase::prime2(const double x) const {
   const auto i0 = lowerBound(x);
   return 2.0*mcoeffs[i0 + 2];
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::prime2(const double /*x*/,
-                              const size_t i0) const {
+QIBase::prime2(const double /*x*/,
+               const size_t i0) const {
   REQUIRE(i0 <= 3u*mN1);
   return 2.0*mcoeffs[i0 + 2];
 }
@@ -106,7 +94,7 @@ QuadraticInterpolatorBase::prime2(const double /*x*/,
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 size_t
-QuadraticInterpolatorBase::lowerBound(const double x) const {
+QIBase::lowerBound(const double x) const {
   const auto result = 3u*std::min(mN1, size_t(std::max(0.0, x - mXmin)/mXstep));
   ENSURE(result <= 3u*mN1);
   return result;
@@ -117,25 +105,25 @@ QuadraticInterpolatorBase::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE inline
 size_t
-QuadraticInterpolatorBase::size() const {
+QIBase::size() const {
   return 3*(mN1 + 1u);
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::xmin() const {
+QIBase::xmin() const {
   return mXmin;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::xmax() const {
+QIBase::xmax() const {
   return mXmax;
 }
 
 SPHERAL_HOST_DEVICE inline
 double
-QuadraticInterpolatorBase::xstep() const {
+QIBase::xstep() const {
   return mXstep;
 }
 
@@ -145,8 +133,8 @@ QuadraticInterpolatorBase::xstep() const {
 SPHERAL_HOST_DEVICE
 inline
 bool
-QuadraticInterpolatorBase::
-operator==(const QuadraticInterpolatorBase& rhs) const {
+QIBase::
+operator==(const QIBase& rhs) const {
   return ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and
