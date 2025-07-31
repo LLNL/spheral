@@ -15,6 +15,7 @@ using QI = Spheral::QuadraticInterpolator;
 
 class QuadraticInterpolatorTest : public ::testing::Test {
 public:
+  const size_t NV = 41;
   const double xmin = 10.;
   const double xmax = 100.;
   SPHERAL_HOST_DEVICE static double func(const double x) {
@@ -31,13 +32,38 @@ public:
   }
 };
 
-// Setting up G Test for FieldList
+// Setting up G Test for QI
 TYPED_TEST_SUITE_P(QuadraticInterpolatorTypedTest);
 template <typename T> class QuadraticInterpolatorTypedTest : public QuadraticInterpolatorTest {};
 
-// Test multiple FieldLists holding the same Field
+// Test copy and assignment constructors
+GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, CopyAssign) {
+  const size_t NV = gpu_this->NV;
+  QI qiref(gpu_this->xmin, gpu_this->xmax, NV, gpu_this->func);
+  {
+    QI qi1(qiref);
+    SPHERAL_ASSERT_EQ(qi1.size(), qiref.size());
+    QI qi2 = qiref;
+    SPHERAL_ASSERT_EQ(qi2.size(), qiref.size());
+    Spheral::QIBase qi1_view = qi1.view();
+    Spheral::QIBase qi2_view = qi2.view();
+    Spheral::QIBase qiref_view = qiref;
+    // Ensure the underlying data pointer is different from the initial QI
+    EXEC_IN_SPACE_BEGIN(TypeParam)
+      SPHERAL_ASSERT_NE(qi1_view.data(), qiref_view.data());
+      SPHERAL_ASSERT_NE(qi2_view.data(), qiref_view.data());
+    EXEC_IN_SPACE_END()    
+    RAJA::forall<TypeParam>(TRS_UINT(0, NV),
+      [=] (size_t i) {
+        SPHERAL_ASSERT_EQ(qi1_view[i], qiref_view[i]);
+        SPHERAL_ASSERT_EQ(qi2_view[i], qiref_view[i]);
+      });
+  }
+}
+
+// Test initialize using a func
 GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, FuncCtorTest) {
-  const size_t NV = 41;
+  const size_t NV = gpu_this->NV;
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
   QI qih(xmin, xmax, NV, gpu_this->func);
@@ -58,8 +84,9 @@ GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, FuncCtorTest) {
   }
 }
 
+// Test initialize using a vector
 GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, VecCtorTest) {
-  const size_t NV = 41;
+  const size_t NV = gpu_this->NV;
   std::vector<double> yvals = gpu_this->makeVec(NV);
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
@@ -79,7 +106,7 @@ GPU_TYPED_TEST_P(QuadraticInterpolatorTypedTest, VecCtorTest) {
     });
 }
 
-REGISTER_TYPED_TEST_SUITE_P(QuadraticInterpolatorTypedTest, FuncCtorTest,
+REGISTER_TYPED_TEST_SUITE_P(QuadraticInterpolatorTypedTest, CopyAssign, FuncCtorTest,
                             VecCtorTest);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(QuadraticInterpolator, QuadraticInterpolatorTypedTest,

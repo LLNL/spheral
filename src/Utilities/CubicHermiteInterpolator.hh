@@ -51,6 +51,7 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
   void move(chai::ExecutionSpace space) { mVals.move(space); }
+  SPHERAL_HOST_DEVICE double* data() const { return mVals.data(); }
 
   SPHERAL_HOST CHIBase(size_t N,
                        double xmin,
@@ -90,6 +91,8 @@ public:
   CubicHermiteInterpolator(const double xmin,
                            const double xmax,
                            const std::vector<double>& values);
+  CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs);
+  CubicHermiteInterpolator& operator=(const CubicHermiteInterpolator& rhs);
   CubicHermiteInterpolator() = default;
   ~CubicHermiteInterpolator();
 
@@ -120,17 +123,10 @@ private:
   //--------------------------- Private Interface --------------------------//
   // Initialize the gradient at the interpolation points based on the tabulated
   // interpolation values
+  std::vector<double> mVec;
   void initializeGradientKnots();
+  void initializeMA();
 };
-
-// For use on device
-// class CHIView : public CHIBase {
-// public:
-//   using ContainerType = typename chai::ManagedArray<double>;
-//   SPHERAL_HOST_DEVICE CHIView() = default;
-//   SPHERAL_HOST CHIView(size_t N1, double xmin, double xmax, double xstep, ContainerType const& vals);
-//   SPHERAL_HOST_DEVICE ~CHIView() { }
-// };
 }
 #include "CubicHermiteInterpolatorInline.hh"
 

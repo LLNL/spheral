@@ -48,6 +48,7 @@ public:
   SPHERAL_HOST_DEVICE double xmax() const;                        // Maximum x coordinate for table
   SPHERAL_HOST_DEVICE double xstep() const;                       // delta x between tabulated values
   void move(chai::ExecutionSpace space) { mcoeffs.move(space); }
+  SPHERAL_HOST_DEVICE double* data() const { return mcoeffs.data(); }
 
   SPHERAL_HOST QIBase(size_t N1,
                       double xmin,
@@ -77,6 +78,8 @@ public:
   QuadraticInterpolator(double xmin, double xmax, const std::vector<double>& yvals);
   QuadraticInterpolator() = default;
   ~QuadraticInterpolator();
+  QuadraticInterpolator(const QuadraticInterpolator& rhs);
+  QuadraticInterpolator& operator=(const QuadraticInterpolator& rhs);
 
   // Initialize after construction, either with a function or tabulated values
   template<typename Func>
@@ -86,6 +89,9 @@ public:
   QIBase view() {
     return QIBase(mN1, mXmin, mXmax, mXstep, mcoeffs);
   }
+private:
+  std::vector<double> mVec;
+  void initializeMA();
 };
 }
 

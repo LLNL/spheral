@@ -40,31 +40,10 @@ CubicHermiteInterpolator::initialize(const double xmin,
                                      const double xmax,
                                      const size_t n,
                                      const Func& F) {
-
-  // Preconditions
-  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
-  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
-
-  mN = n;
-  mXmin = xmin;
-  mXmax = xmax;
-  mXstep = (xmax - xmin)/(n - 1u);
-  mVals.allocate(2u*n, chai::CPU);
-
-  // Compute the function values
-  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
-
-  // Initialize the gradient values
-  initializeGradientKnots();
-
-  // const auto dx = 0.001*mXstep;
-  // for (auto i = 0u; i < mN; ++i) {
-  //   const auto xi = xmin + i*mXstep;
-  //   // mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
-  //   const auto x0 = std::max(xmin, xi - dx);
-  //   const auto x1 = std::min(xmax, xi + dx);
-  //   mVals[mN + i] = (F(x1) - F(x0))/(x1 - x0);
-  // }
+  double xstep = (xmax - xmin)/(n - 1u);
+  std::vector<double> yvals(n);
+  for (auto i = 0u; i < n; ++i) yvals[i] = F(xmin + i*xstep);
+  initialize(xmin, xmax, yvals);
 }
 
 //------------------------------------------------------------------------------
@@ -86,14 +65,15 @@ CubicHermiteInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(n - 1u);
-  mVals.allocate(2u*n, chai::CPU);
+  mVec.resize(2u*n);
 
   // Compute the function and gradient values
   for (auto i = 0u; i < mN; ++i) {
     const auto xi = xmin + i*mXstep;
-    mVals[i] = F(xi);
-    mVals[mN + i] = Fgrad(xi);
+    mVec[i] = F(xi);
+    mVec[mN + i] = Fgrad(xi);
   }
+  initializeMA();
 }
 
 //------------------------------------------------------------------------------
@@ -115,7 +95,7 @@ CHIBase::operator()(const double x) const {
 SPHERAL_HOST_DEVICE inline
 double
 CHIBase::operator()(const double x,
-                                     const size_t i0) const {
+                    const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
@@ -153,7 +133,7 @@ CHIBase::prime(const double x) const {
 SPHERAL_HOST_DEVICE inline
 double
 CHIBase::prime(const double x,
-                                const size_t i0) const {
+               const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
@@ -179,7 +159,7 @@ CHIBase::prime2(const double x) const {
 SPHERAL_HOST_DEVICE inline
 double
 CHIBase::prime2(const double x,
-                                 const size_t i0) const {
+                const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   return 2.0*(3.0*(2.0*t - 1.0)*(mVals[i0] - mVals[i0 + 1u])/mXstep +

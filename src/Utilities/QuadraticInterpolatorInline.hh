@@ -141,8 +141,7 @@ QIBase::xstep() const {
 SPHERAL_HOST_DEVICE
 inline
 bool
-QIBase::
-operator==(const QIBase& rhs) const {
+QIBase::operator==(const QIBase& rhs) const {
   return ((mN1 == rhs.mN1) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and

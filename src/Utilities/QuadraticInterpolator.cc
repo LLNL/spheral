@@ -14,6 +14,31 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Copy constructor
+//------------------------------------------------------------------------------
+QuadraticInterpolator::QuadraticInterpolator(const QuadraticInterpolator& rhs) {
+  mN1 = rhs.mN1;
+  mXmin = rhs.mXmin;
+  mXmax = rhs.mXmax;
+  mXstep = rhs.mXstep;
+  mVec = rhs.mVec;
+  initializeMA();
+}
+
+//------------------------------------------------------------------------------
+// Assignment constructor
+//------------------------------------------------------------------------------
+QuadraticInterpolator& QuadraticInterpolator::operator=(const QuadraticInterpolator& rhs) {
+  mN1 = rhs.mN1;
+  mXmin = rhs.mXmin;
+  mXmax = rhs.mXmax;
+  mXstep = rhs.mXstep;
+  mVec = rhs.mVec;
+  initializeMA();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // Constructor with sampled values
 //------------------------------------------------------------------------------
 QuadraticInterpolator::QuadraticInterpolator(double xmin,
@@ -37,7 +62,7 @@ QuadraticInterpolator::initialize(double xmin,
   size_t N1 = (n - 1u)/2u - 1u;  // Maximum index into arrays
   double xstep = (xmax - xmin)/(N1 + 1u);
   size_t N = 3*(N1 + 1u);
-  mcoeffs.allocate(N, chai::CPU);
+  mVec.resize(N);
 
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> EMatrix;
   typedef Eigen::Matrix<double, 3, 1> EVector;
@@ -57,14 +82,20 @@ QuadraticInterpolator::initialize(double xmin,
          1.0, x2, x2*x2;
     B << yvals[2u*i0], yvals[2u*i0 + 1u], yvals[2u*i0 + 2u];
     X = A.inverse()*B;
-    mcoeffs[3*i0     ] = X(0);
-    mcoeffs[3*i0 + 1u] = X(1);
-    mcoeffs[3*i0 + 2u] = X(2);
+    mVec[3*i0     ] = X(0);
+    mVec[3*i0 + 1u] = X(1);
+    mVec[3*i0 + 2u] = X(2);
   }
   mN1 = N1;
   mXmin = xmin;
   mXmax = xmax;
   mXstep = xstep;
+  initializeMA();
+}
+
+void
+QuadraticInterpolator::initializeMA() {
+  mcoeffs = chai::makeManagedArray(mVec.data(), mVec.size(), chai::CPU, false);
 }
 
 //------------------------------------------------------------------------------

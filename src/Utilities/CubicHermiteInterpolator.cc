@@ -17,6 +17,31 @@
 namespace Spheral {
 
 //------------------------------------------------------------------------------
+// Copy constructor
+//------------------------------------------------------------------------------
+CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs) {
+  mN = rhs.mN;
+  mXmin = rhs.mXmin;
+  mXmax = rhs.mXmax;
+  mXstep = rhs.mXstep;
+  mVec = rhs.mVec;
+  initializeMA();
+}
+
+//------------------------------------------------------------------------------
+// Assignment constructor
+//------------------------------------------------------------------------------
+CubicHermiteInterpolator& CubicHermiteInterpolator::operator=(const CubicHermiteInterpolator& rhs) {
+  mN = rhs.mN;
+  mXmin = rhs.mXmin;
+  mXmax = rhs.mXmax;
+  mXstep = rhs.mXstep;
+  mVec = rhs.mVec;
+  initializeMA();
+  return *this;
+}
+
+//------------------------------------------------------------------------------
 // Construct from explicit table of values
 //------------------------------------------------------------------------------
 CubicHermiteInterpolator::
@@ -40,12 +65,11 @@ CubicHermiteInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(mN - 1u);
-  mVals.allocate(2u*mN, chai::CPU);
+  mVec.resize(2u*mN);
 
-  for (size_t i = 0; i < mN; ++i) mVals[i] = yvals[i];
+  for (size_t i = 0; i < mN; ++i) mVec[i] = yvals[i];
   // Estimate the gradients at our lattice points
   initializeGradientKnots();
-
 
   // const auto dxInv = 1.0/mXstep;
   // for (auto i = 1u; i < mN - 1u; ++i) {
@@ -62,12 +86,16 @@ CubicHermiteInterpolator::~CubicHermiteInterpolator() {
   mVals.free();
 }
 
+void
+CubicHermiteInterpolator::initializeMA() {
+  mVals = chai::makeManagedArray(mVec.data(), mVec.size(), chai::CPU, false);
+}
+
 //------------------------------------------------------------------------------
 // Equivalence
 //------------------------------------------------------------------------------
 SPHERAL_HOST_DEVICE bool
-CHIBase::
-operator==(const CHIBase& rhs) const {
+CHIBase::operator==(const CHIBase& rhs) const {
   return ((mN == rhs.mN) and
           (mXmin == rhs.mXmin) and
           (mXmax == rhs.mXmax) and
@@ -152,13 +180,13 @@ initializeGradientKnots() {
   A.insert(0, 1)         = -1.0;
   A.insert(mN-1u, mN-2u) = -1.0;      // Last row
   A.insert(mN-1u, mN-1u) =  4.0;
-  b(0)                   =  3.0*(mVals[1u] - mVals[0u])/mXstep;
-  b(mN-1u)               =  3.0*(mVals[mN-1u] - mVals[mN-2u])/mXstep;
+  b(0)                   =  3.0*(mVec[1u] - mVec[0u])/mXstep;
+  b(mN-1u)               =  3.0*(mVec[mN-1u] - mVec[mN-2u])/mXstep;
   for (auto k = 1u; k < mN-1u; ++k) {      // rows
     A.insert(k, k-1u) = -0.5;
     A.insert(k, k)    =  4.0;
     A.insert(k, k+1u) = -0.5;
-    b(k)              = 1.5*(mVals[k+1u] - mVals[k-1u])/mXstep;
+    b(k)              = 1.5*(mVec[k+1u] - mVec[k-1u])/mXstep;
   }
 
   // Solve for the gradient values
@@ -167,8 +195,8 @@ initializeGradientKnots() {
   CHECK(solver.info() == Eigen::Success);
   const Eigen::VectorXd x = solver.solve(b);
   CHECK(solver.info() == Eigen::Success);
-  for (auto k = 0u; k < mN; ++k) mVals[mN + k] = x(k);
-
+  for (auto k = 0u; k < mN; ++k) mVec[mN + k] = x(k);
+  initializeMA();
   // Old crappy but simple method for comparison
   // mVals[mN] = (mVals[1] - mVals[0])/mXstep;
   // mVals[2*mN-1] = (mVals[mN-1] - mVals[mN-2])/mXstep;

@@ -2,6 +2,7 @@
 // definition below even if Spheral was not configured w/ SPHERAL_ENABLE_LOGGER=On.
 // #define SPHERAL_ENABLE_LOGGER
 
+#include "chai/ExecutionSpaces.hpp"
 #include "chai/Types.hpp"
 #include "test-basic-exec-policies.hh"
 #include "test-utilities.hh"
@@ -10,10 +11,11 @@
 #include <Utilities/Logger.hh>
 #include <functional>
 
-using QI = Spheral::CubicHermiteInterpolator;
+using CHI = Spheral::CubicHermiteInterpolator;
 
 class CubicHermiteInterpolatorTest : public ::testing::Test {
 public:
+  const size_t NV = 41;
   const double xmin = 10.;
   const double xmax = 100.;
   SPHERAL_HOST_DEVICE static double func(const double x) {
@@ -30,55 +32,81 @@ public:
   }
 };
 
-// Setting up G Test for FieldList
+// Setting up G Test for CHI
 TYPED_TEST_SUITE_P(CubicHermiteInterpolatorTypedTest);
 template <typename T> class CubicHermiteInterpolatorTypedTest : public CubicHermiteInterpolatorTest {};
 
-// Test multiple FieldLists holding the same Field
+// Test copy and assignment constructors
+GPU_TYPED_TEST_P(CubicHermiteInterpolatorTypedTest, CopyAssign) {
+  const size_t NV = gpu_this->NV;
+  CHI chiref(gpu_this->xmin, gpu_this->xmax, NV, gpu_this->func);
+  {
+    CHI chi1(chiref);
+    SPHERAL_ASSERT_EQ(chi1.size(), chiref.size());
+    CHI chi2 = chiref;
+    SPHERAL_ASSERT_EQ(chi2.size(), chiref.size());
+    Spheral::CHIBase chi1_view = chi1.view();
+    Spheral::CHIBase chi2_view = chi2.view();
+    Spheral::CHIBase chiref_view = chiref;
+    // Ensure the underlying data pointer is different from the initial CHI
+    EXEC_IN_SPACE_BEGIN(TypeParam)
+      SPHERAL_ASSERT_NE(chi1_view.data(), chiref_view.data());
+      SPHERAL_ASSERT_NE(chi2_view.data(), chiref_view.data());
+    EXEC_IN_SPACE_END()    
+    RAJA::forall<TypeParam>(TRS_UINT(0, NV),
+      [=] (size_t i) {
+        SPHERAL_ASSERT_EQ(chi1_view[i], chiref_view[i]);
+        SPHERAL_ASSERT_EQ(chi2_view[i], chiref_view[i]);
+      });
+  }
+}
+
+// Test initialize using a func
 GPU_TYPED_TEST_P(CubicHermiteInterpolatorTypedTest, FuncCtorTest) {
-  const size_t NV = 41;
+  const size_t NV = gpu_this->NV;
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
-  QI qih(xmin, xmax, NV, gpu_this->func);
+  CHI chih(xmin, xmax, NV, gpu_this->func);
   {
-    size_t N = qih.size();
-    Spheral::CHIBase qi = qih.view();
+    size_t N = chih.size();
+    Spheral::CHIBase chi = chih.view();
     EXEC_IN_SPACE_BEGIN(TypeParam)
-      SPHERAL_ASSERT_EQ(qi.size(), N);
+      SPHERAL_ASSERT_EQ(chi.size(), N);
     EXEC_IN_SPACE_END()
     const double xstep = (xmax - xmin)/((double)NV - 1.);
     RAJA::forall<TypeParam>(TRS_UINT(0, NV),
       [=] (size_t i) {
         double x = xmin + xstep*(double)i;
         double rval = gpu_this->func(x);
-        double ival = qi(x);
+        double ival = chi(x);
         SPHERAL_ASSERT_FLOAT_EQ(rval, ival);
       });
   }
 }
 
+// Test initialize using a vector
 GPU_TYPED_TEST_P(CubicHermiteInterpolatorTypedTest, VecCtorTest) {
-  const size_t NV = 41;
+  const size_t NV = gpu_this->NV;
   std::vector<double> yvals = gpu_this->makeVec(NV);
   const double xmin = gpu_this->xmin;
   const double xmax = gpu_this->xmax;
-  QI qih(xmin, xmax, yvals);
-  size_t N = qih.size();
-  Spheral::CHIBase qi = qih.view();
+  CHI chih(xmin, xmax, yvals);
+  size_t N = chih.size();
+  Spheral::CHIBase chi = chih.view();
   EXEC_IN_SPACE_BEGIN(TypeParam)
-    SPHERAL_ASSERT_EQ(qi.size(), N);
+    SPHERAL_ASSERT_EQ(chi.size(), N);
   EXEC_IN_SPACE_END()
   const double xstep = (xmax - xmin)/((double)NV - 1.);
   RAJA::forall<TypeParam>(TRS_UINT(0, NV),
     [=] (size_t i) {
       double x = xmin + xstep*(double)i;
       double rval = gpu_this->func(x);
-      double ival = qi(x);
+      double ival = chi(x);
       SPHERAL_ASSERT_FLOAT_EQ(rval, ival);
     });
 }
 
-REGISTER_TYPED_TEST_SUITE_P(CubicHermiteInterpolatorTypedTest, FuncCtorTest,
+REGISTER_TYPED_TEST_SUITE_P(CubicHermiteInterpolatorTypedTest, CopyAssign, FuncCtorTest,
                             VecCtorTest);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(CubicHermiteInterpolator, CubicHermiteInterpolatorTypedTest,
