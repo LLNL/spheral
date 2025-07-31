@@ -19,11 +19,8 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
-CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs) {
-  mN = rhs.mN;
-  mXmin = rhs.mXmin;
-  mXmax = rhs.mXmax;
-  mXstep = rhs.mXstep;
+CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolator& rhs) :
+  CHIBase(rhs) {
   mVec = rhs.mVec;
   initializeMA();
 }
@@ -31,13 +28,13 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const CubicHermiteInterpolato
 //------------------------------------------------------------------------------
 // Assignment constructor
 //------------------------------------------------------------------------------
-CubicHermiteInterpolator& CubicHermiteInterpolator::operator=(const CubicHermiteInterpolator& rhs) {
-  mN = rhs.mN;
-  mXmin = rhs.mXmin;
-  mXmax = rhs.mXmax;
-  mXstep = rhs.mXstep;
-  mVec = rhs.mVec;
-  initializeMA();
+CubicHermiteInterpolator&
+CubicHermiteInterpolator::operator=(const CubicHermiteInterpolator& rhs) {
+  if (this != &rhs) {
+    CHIBase::operator=(rhs);
+    mVec = rhs.mVec;
+    initializeMA();
+  }
   return *this;
 }
 

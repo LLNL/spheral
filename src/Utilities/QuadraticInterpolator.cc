@@ -16,11 +16,9 @@ namespace Spheral {
 //------------------------------------------------------------------------------
 // Copy constructor
 //------------------------------------------------------------------------------
-QuadraticInterpolator::QuadraticInterpolator(const QuadraticInterpolator& rhs) {
-  mN1 = rhs.mN1;
-  mXmin = rhs.mXmin;
-  mXmax = rhs.mXmax;
-  mXstep = rhs.mXstep;
+QuadraticInterpolator::QuadraticInterpolator(const QuadraticInterpolator& rhs)
+  :
+  QIBase(rhs) {
   mVec = rhs.mVec;
   initializeMA();
 }
@@ -28,13 +26,13 @@ QuadraticInterpolator::QuadraticInterpolator(const QuadraticInterpolator& rhs) {
 //------------------------------------------------------------------------------
 // Assignment constructor
 //------------------------------------------------------------------------------
-QuadraticInterpolator& QuadraticInterpolator::operator=(const QuadraticInterpolator& rhs) {
-  mN1 = rhs.mN1;
-  mXmin = rhs.mXmin;
-  mXmax = rhs.mXmax;
-  mXstep = rhs.mXstep;
-  mVec = rhs.mVec;
-  initializeMA();
+QuadraticInterpolator&
+QuadraticInterpolator::operator=(const QuadraticInterpolator& rhs) {
+  if (this != &rhs) {
+    QIBase::operator=(rhs);
+    mVec = rhs.mVec;
+    initializeMA();
+  }
   return *this;
 }
 
