@@ -13,13 +13,8 @@ inline
 CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
                                                    const double xmax,
                                                    const size_t n,
-                                                   const Func& F):
-  mN(n),
-  mXmin(xmin),
-  mXmax(xmax),
-  mXstep((xmax - xmin)/(n - 1u)),
-  mVals(2u*n) {
-  this->initialize(xmin, xmax, n, F);
+                                                   const Func& F) {
+  initialize(xmin, xmax, n, F);
 }
 
 //------------------------------------------------------------------------------
@@ -31,13 +26,8 @@ CubicHermiteInterpolator::CubicHermiteInterpolator(const double xmin,
                                                    const double xmax,
                                                    const size_t n,
                                                    const Func& F,
-                                                   const GradFunc& Fgrad):
-  mN(n),
-  mXmin(xmin),
-  mXmax(xmax),
-  mXstep((xmax - xmin)/(n - 1u)),
-  mVals(2u*n) {
-  this->initialize(xmin, xmax, n, F, Fgrad);
+                                                   const GradFunc& Fgrad) {
+  initialize(xmin, xmax, n, F, Fgrad);
 }
 
 //------------------------------------------------------------------------------
@@ -50,31 +40,10 @@ CubicHermiteInterpolator::initialize(const double xmin,
                                      const double xmax,
                                      const size_t n,
                                      const Func& F) {
-
-  // Preconditions
-  VERIFY2(n > 2u, "CubicHermiteInterpolator requires n >= 3 without a gradient function : n=" << n);
-  VERIFY2(xmax > xmin, "CubicHermiteInterpolator requires a positive domain: [" << xmin << " " << xmax << "]");
-
-  mN = n;
-  mXmin = xmin;
-  mXmax = xmax;
-  mXstep = (xmax - xmin)/(n - 1u);
-  mVals.resize(2u*n);
-
-  // Compute the function values
-  for (auto i = 0u; i < mN; ++i) mVals[i] = F(xmin + i*mXstep);
-
-  // Initialize the gradient values
-  this->initializeGradientKnots();
-
-  // const auto dx = 0.001*mXstep;
-  // for (auto i = 0u; i < mN; ++i) {
-  //   const auto xi = xmin + i*mXstep;
-  //   // mVals[mN + i] = (F(xi + dx) - F(xi - dx))/(2.0*dx);
-  //   const auto x0 = std::max(xmin, xi - dx);
-  //   const auto x1 = std::min(xmax, xi + dx);
-  //   mVals[mN + i] = (F(x1) - F(x0))/(x1 - x0);
-  // }
+  double xstep = (xmax - xmin)/(n - 1u);
+  std::vector<double> yvals(n);
+  for (auto i = 0u; i < n; ++i) yvals[i] = F(xmin + i*xstep);
+  initialize(xmin, xmax, yvals);
 }
 
 //------------------------------------------------------------------------------
@@ -96,22 +65,23 @@ CubicHermiteInterpolator::initialize(const double xmin,
   mXmin = xmin;
   mXmax = xmax;
   mXstep = (xmax - xmin)/(n - 1u);
-  mVals.resize(2u*n);
+  mVec.resize(2u*n);
 
   // Compute the function and gradient values
   for (auto i = 0u; i < mN; ++i) {
     const auto xi = xmin + i*mXstep;
-    mVals[i] = F(xi);
-    mVals[mN + i] = Fgrad(xi);
+    mVec[i] = F(xi);
+    mVec[mN + i] = Fgrad(xi);
   }
+  initializeMA();
 }
 
 //------------------------------------------------------------------------------
 // Interpolate for the given x value.
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::operator()(const double x) const {
+CHIBase::operator()(const double x) const {
   if (x < mXmin) {
     return mVals[0] + mVals[mN]*(x - mXmin);
   } else if (x > mXmax) {
@@ -122,10 +92,10 @@ CubicHermiteInterpolator::operator()(const double x) const {
   }
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::operator()(const double x,
-                                     const size_t i0) const {
+CHIBase::operator()(const double x,
+                    const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
@@ -136,12 +106,20 @@ CubicHermiteInterpolator::operator()(const double x,
                   (t3 - t2)*mVals[mN + i0 + 1u]));     // h11
 }
 
+SPHERAL_HOST_DEVICE inline
+double
+CHIBase::operator[](const size_t i) const {
+  REQUIRE(size() > 0);
+  REQUIRE(i < size());
+  return mVals[i];
+}
+
 //------------------------------------------------------------------------------
 // Interpolate for dy/dx
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::prime(const double x) const {
+CHIBase::prime(const double x) const {
   if (x < mXmin) {
     return mVals[mN];
   } else if (x > mXmax) {
@@ -152,10 +130,10 @@ CubicHermiteInterpolator::prime(const double x) const {
   }
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::prime(const double x,
-                                const size_t i0) const {
+CHIBase::prime(const double x,
+               const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   const auto t2 = t*t;
@@ -167,9 +145,9 @@ CubicHermiteInterpolator::prime(const double x,
 //------------------------------------------------------------------------------
 // Interpolate for d^2y/dx^2
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::prime2(const double x) const {
+CHIBase::prime2(const double x) const {
   if (x < mXmin or x > mXmax) {
     return 0.0;
   } else {
@@ -178,10 +156,10 @@ CubicHermiteInterpolator::prime2(const double x) const {
   }
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::prime2(const double x,
-                                 const size_t i0) const {
+CHIBase::prime2(const double x,
+                const size_t i0) const {
   REQUIRE(i0 <= mN - 2u);
   const auto t = std::max(0.0, std::min(1.0, (x - mXmin - i0*mXstep)/mXstep));
   return 2.0*(3.0*(2.0*t - 1.0)*(mVals[i0] - mVals[i0 + 1u])/mXstep +
@@ -192,9 +170,9 @@ CubicHermiteInterpolator::prime2(const double x,
 //------------------------------------------------------------------------------
 // Return the lower bound entry in the table for the given x coordinate
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 size_t
-CubicHermiteInterpolator::lowerBound(const double x) const {
+CHIBase::lowerBound(const double x) const {
   const auto result = std::min(mN - 2u, size_t(std::max(0.0, x - mXmin)/mXstep));
   ENSURE(result <= mN - 2u);
   return result;
@@ -203,61 +181,55 @@ CubicHermiteInterpolator::lowerBound(const double x) const {
 //------------------------------------------------------------------------------
 // Hermite basis functions
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::h00(const double t) const {
+CHIBase::h00(const double t) const {
   return (2.0*t - 3.0)*t*t + 1.0;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::h10(const double t) const {
+CHIBase::h10(const double t) const {
   return (t - 2.0)*t*t + t;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::h01(const double t) const {
+CHIBase::h01(const double t) const {
   return (3.0 - 2.0*t)*t*t;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::h11(const double t) const {
+CHIBase::h11(const double t) const {
   return (t - 1.0)*t*t;
 }
 
 //------------------------------------------------------------------------------
 // Data accessors
 //------------------------------------------------------------------------------
-inline
+SPHERAL_HOST_DEVICE inline
 size_t
-CubicHermiteInterpolator::size() const {
+CHIBase::size() const {
   return mN;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::xmin() const {
+CHIBase::xmin() const {
   return mXmin;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::xmax() const {
+CHIBase::xmax() const {
   return mXmax;
 }
 
-inline
+SPHERAL_HOST_DEVICE inline
 double
-CubicHermiteInterpolator::xstep() const {
+CHIBase::xstep() const {
   return mXstep;
-}
-
-inline
-const std::vector<double>&
-CubicHermiteInterpolator::vals() const {
-  return mVals;
 }
 
 }

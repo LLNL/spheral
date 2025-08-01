@@ -5,7 +5,7 @@ Version vYYYY.MM.p -- Release date YYYY-MM-DD
 Notable changes include:
 
   * New features / API changes:
-    * GPU Poring Effort:
+    * GPU Porting Effort:
       * Spheral::FieldView allows for implicit data migration of Spheral::Field data.
         * Implements FieldView datatypes as handles to be used for migrating data to and from the GPU.
         * Unit testing for semantic behaviour, H/D copy, and allocation / deallocaiton across a range of common pattens.
