@@ -966,7 +966,8 @@ buildDependentArrays() {
     mNodeListIndexMap[nptr] = i++;
   }
   CHECK(i == int(mFieldPtrs.size()));
-  mSpanFieldSpans = SPHERAL_SPAN_TYPE<typename FieldSpanList<Dimension, DataType>::value_type>(mFieldSpanPtrs.begin(), mFieldSpanPtrs.size());
+  mSpanFieldSpans = SPHERAL_SPAN_TYPE<typename FieldSpanList<Dimension, DataType>::value_type>(&mFieldSpanPtrs[0], mFieldSpanPtrs.size());
+  // mSpanFieldSpans = SPHERAL_SPAN_TYPE<typename FieldSpanList<Dimension, DataType>::value_type>(mFieldSpanPtrs.begin(), mFieldSpanPtrs.size());
   ENSURE(mFieldBasePtrs.size() == mFieldPtrs.size());
   ENSURE(mFieldSpanPtrs.size() == mFieldPtrs.size());
   ENSURE(mNodeListPtrs.size() == mFieldPtrs.size());
