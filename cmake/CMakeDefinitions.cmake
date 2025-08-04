@@ -92,10 +92,10 @@ endif()
 include(CheckIncludeFileCXX)
 CHECK_INCLUDE_FILE_CXX(span HAS_STD_SPAN_HEADER)
 
-if(HAS_STD_SPAN_HEADER)
-    message(STATUS "std::span header found.")
+if(HAS_STD_SPAN_HEADER AND CMAKE_CXX_STANDARD GREATER_EQUAL 20)
+    message(STATUS "std::span header found")
     add_definitions("-DSPHERAL_USE_STD_SPAN")
 else()
-    message(STATUS "std::span header not found. Falling back to boost::span")
+    message(STATUS "std::span not available -- falling back to boost::span")
 endif()
 
