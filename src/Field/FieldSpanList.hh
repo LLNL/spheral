@@ -9,7 +9,7 @@
 #ifndef __Spheral__FieldSpanList__
 #define __Spheral__FieldSpanList__
 
-#include <span>
+#include "Utilities/span.hh"
 
 namespace Spheral {
 
@@ -26,14 +26,14 @@ public:
   using FieldDataType = DataType;
 
   using value_type = FieldSpan<Dimension, DataType>*;    // STL compatibility
-  using StorageType = std::span<value_type>;
+  using StorageType = SPHERAL_SPAN_TYPE<value_type>;
 
   using iterator = typename StorageType::iterator;
   using reverse_iterator = typename StorageType::reverse_iterator;
 
   // Constructors, destructor
   FieldSpanList() = default;
-  // FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs);
+  // FieldSpanList(SPHERAL_SPAN_TYPE<FieldSpan<Dimension, DataType>>& rhs);
   FieldSpanList(FieldSpanList& rhs) = default;
   FieldSpanList(FieldSpanList&& rhs) = default;
   virtual ~FieldSpanList() = default;

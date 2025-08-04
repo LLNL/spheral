@@ -7,7 +7,7 @@
 #ifndef __Spheral_FieldSpan__
 #define __Spheral_FieldSpan__
 
-#include <span>
+#include "Utilities/span.hh"
 
 namespace Spheral {
 
@@ -24,8 +24,8 @@ public:
   using FieldDataType = DataType;
   using value_type = DataType;      // STL compatibility.
 
-  using iterator = typename std::span<DataType>::iterator;
-  // using const_iterator = typename std::span<DataType>::const_iterator;  // Not until C++23
+  using iterator = typename SPHERAL_SPAN_TYPE<DataType>::iterator;
+  // using const_iterator = typename SPHERAL_SPAN_TYPE<DataType>::const_iterator;  // Not until C++23
 
   // Constructors, destructor
   FieldSpan(Field<Dimension, DataType>& field);
@@ -113,7 +113,7 @@ public:
 protected:
   //--------------------------- Protected Interface ---------------------------//
   // Private Data
-  std::span<DataType> mDataSpan;
+  SPHERAL_SPAN_TYPE<DataType> mDataSpan;
   size_t mNumInternalElements, mNumGhostElements;
 };
 

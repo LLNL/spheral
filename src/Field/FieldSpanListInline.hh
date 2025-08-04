@@ -15,7 +15,7 @@ namespace Spheral {
 // template<typename Dimension, typename DataType>
 // inline
 // FieldSpanList<Dimension, DataType>::
-// FieldSpanList(std::span<FieldSpan<Dimension, DataType>>& rhs):
+// FieldSpanList(SPHERAL_SPAN_TYPE<FieldSpan<Dimension, DataType>>& rhs):
 //   mSpanFieldSpans(rhs) {
 // }
 
