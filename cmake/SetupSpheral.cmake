@@ -4,6 +4,7 @@ include(ExternalProject)
 # Configure CMake
 #-------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 if (NOT SPHERAL_CMAKE_MODULE_PATH)
