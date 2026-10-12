@@ -25,6 +25,11 @@ Notable changes include:
         * Returns tuple {explicit, implicit, hessian}
     * Adding the ability to create Python ArtificialViscosty implementations (this was inadvertently lost during the conversion of the ArtificialViscosities for use on GPUs).
       * Note: Python overrides only work on CPU runs
+    * ArtificialViscosity value/view design is completely refactored. Initial tests show 15-45% speedups for CPU tests and 5-15% speedup for GPU tests.
+      * Removes the use of CHAI managed pointers.
+      * Eliminates on-device dynamic polymorphism for the virtual function QPiij using an std::variant design.
+      * Allows the value class to inherit from the view class, mirroring our other value/view implementations.
+      * The dynamic stack limit on-device is no longer increased by default.
 
   * Build changes / improvements:
     * Moved GPU and OpenMP code to new "Threading" package (from "Utilities").
