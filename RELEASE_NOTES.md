@@ -25,6 +25,7 @@ Notable changes include:
         * Returns tuple {explicit, implicit, hessian}
     * Adding the ability to create Python ArtificialViscosty implementations (this was inadvertently lost during the conversion of the ArtificialViscosities for use on GPUs).
       * Note: Python overrides only work on CPU runs
+    * FacetedVolumes (Box1d, Polygon, and Polyhedron) now can optionally check if a line segment intersects just the boundary (instead of counting segments on the interior as intersecting). Default is old behavior such that interior segments are counted as intersecting.
 
   * Build changes / improvements:
     * Moved GPU and OpenMP code to new "Threading" package (from "Utilities").
@@ -50,6 +51,7 @@ Notable changes include:
     * Another bugfix for Jaumann rate definition in all solid hydro packages (issue #534)
     * added new strain model PlasticBenzAsphaugStrain to DamageModel physics package
     * Fixed bugs affecting 2D rejecters in RejecterBase helper
+    * Fixed bugs for matplotlib plotting of polygons
 
 Version v2026.06.0 -- Release date 2026-06-22
 ==============================================
