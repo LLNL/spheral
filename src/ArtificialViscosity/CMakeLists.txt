@@ -1,4 +1,3 @@
-include_directories(.)
 set(ArtificialViscosity_inst
   ArtificialViscosity
   CullenDehnenViscosity
@@ -55,4 +54,4 @@ set(ArtificialViscosity_headers
 # MonaghanGingoldViscosityRZ.hh
 # LimitedMonaghanGingoldViscosityRZ.hh
 
-spheral_add_obj_library(ArtificialViscosity SPHERAL_OBJ_LIBS)
+spheral_add_package(ArtificialViscosity)
