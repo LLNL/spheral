@@ -17,6 +17,7 @@
 #include "ArtificialViscosity.hh"
 #include "ArtificialViscosityVariant.hh"
 #include "Field/FieldList.hh"
+#include "PythonArtificialViscosityCallView.hh"
 
 #include <tuple>
 
