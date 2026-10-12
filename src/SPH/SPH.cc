@@ -397,10 +397,10 @@ evaluateDerivativesImpl(const typename Dimension::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       Q.QPiij(QPiij, QPiji, Qi, Qj,
-               nodeListi, i, nodeListj, j,
-               ri, Hi, etai, vi, rhoi, ci,  
-               rj, Hj, etaj, vj, rhoj, cj,
-               fClQView, fCqQView, DvDxQView);
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etai, vi, rhoi, ci,  
+              rj, Hj, etaj, vj, rhoj, cj,
+              fClQView, fCqQView, DvDxQView);
       const auto Qacci = 0.5*(QPiij*gradWQi);
       const auto Qaccj = 0.5*(QPiji*gradWQj);
       // const auto workQi = 0.5*(QPiij*vij).dot(gradWQi);

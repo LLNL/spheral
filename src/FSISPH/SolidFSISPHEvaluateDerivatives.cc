@@ -474,10 +474,10 @@ secondDerivativesLoop(const typename Dimension::Scalar time,
 
         // raw AV
         Q.QPiij(QPiij, QPiji, Qi, Qj,
-                 nodeListi, i, nodeListj, j,
-                 ri, Hij, etaij, vi, rhoij, cij,  
-                 rj, Hij, etaij, vj, rhoij, cij,
-                 fClQView, fCqQView, DvDxQView);
+                nodeListi, i, nodeListj, j,
+                ri, Hij, etaij, vi, rhoij, cij,  
+                rj, Hij, etaij, vj, rhoij, cij,
+                fClQView, fCqQView, DvDxQView);
 
         // slide correction
         if (slides.isSlideSurface(nodeListi,nodeListj)){

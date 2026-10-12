@@ -465,10 +465,10 @@ evaluateDerivativesImpl(const Dim<1>::Scalar time,
       // Compute the pair-wise artificial viscosity.
       const auto vij = vi - vj;
       Q.QPiij(QPiij, QPiji, Qi, Qj,
-               nodeListi, i, nodeListj, j,
-               ri, Hi, etaii - etaji, vi, rhoi, ci,  
-               rj, Hj, etaij - etajj, vj, rhoj, cj,
-               fClQView, fCqQView, DvDxQView);
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etaii - etaji, vi, rhoi, ci,  
+              rj, Hj, etaij - etajj, vj, rhoj, cj,
+              fClQView, fCqQView, DvDxQView);
       maxViscousPressurei = max(maxViscousPressurei, Qi);
       maxViscousPressurej = max(maxViscousPressurej, Qj);
       effViscousPressurei += mj*Qi*WQii/rhoj;

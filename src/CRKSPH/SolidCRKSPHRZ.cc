@@ -454,10 +454,10 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
 
       // Compute the artificial viscous pressure (Pi = P/rho^2 actually).
       Q.QPiij(QPiij, QPiji, Qi, Qj,
-               nodeListi, i, nodeListj, j,
-               posi, Hi, etai, vi, rhoi, ci,  
-               posj, Hj, etaj, vj, rhoj, cj,
-               fClQView, fCqQView, DvDxQView);
+              nodeListi, i, nodeListj, j,
+              posi, Hi, etai, vi, rhoi, ci,  
+              posj, Hj, etaj, vj, rhoj, cj,
+              fClQView, fCqQView, DvDxQView);
       const auto Qaccij = (rhoi*rhoi*QPiij + rhoj*rhoj*QPiji)*deltagrad;
       const auto workQi = (rhoj*rhoj*QPiji*vij).dot(deltagrad);          // CRK
       const auto workQj = (rhoi*rhoi*QPiij*vij).dot(deltagrad);          // CRK

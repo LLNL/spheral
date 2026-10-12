@@ -435,10 +435,10 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
       Scalar Qi = 0.0;
       Scalar Qj = 0.0;
       Q.QPiij(QPiij, QPiji, Qi, Qj,
-               nodeListi, i, nodeListj, j,
-               ri, Hi, etai, vi, rhoi, ci,  
-               rj, Hj, etaj, vj, rhoj, cj,
-               fClQ, fCqQ, DvDxQ);
+              nodeListi, i, nodeListj, j,
+              ri, Hi, etai, vi, rhoi, ci,  
+              rj, Hj, etaj, vj, rhoj, cj,
+              fClQ, fCqQ, DvDxQ);
       // Contribution to the sum density (only if the same material).
       if (nodeListi == nodeListj) {
         GPUUtils::AtomicAddOp::apply(&rhoSumi, mj*Wi);
