@@ -13,7 +13,8 @@ class PythonArtificialViscosity(ArtificialViscosity):
 
     WARNING: Significantly slower than C++ implementations (100-1000x slower).
              Use for prototyping only, not production runs.
-             Forces serial execution (no OpenMP) due to Python GIL.
+             Requires OMP_NUM_THREADS=1 (the Python override takes the GIL inside
+             the threaded pair loops).
 
     Example usage:
         from Spheral1d import *
@@ -22,22 +23,21 @@ class PythonArtificialViscosity(ArtificialViscosity):
             def __init__(self, Cl, Cq, kernel):
                 PythonScalarArtificialViscosity1d.__init__(self, Cl, Cq, kernel)
 
-            def computeQPiij(self, QPiij, QPiji, Qij, Qji,
-                           xi, vi, rhoi, csi,
-                           xj, vj, rhoj, csj,
-                           etai, etaj,
-                           fCli, fCqi, fClj, fCqj):
+            # Returns the tuple (QPiij, QPiji, Qij, Qji)
+            def computeQPiij(self,
+                             xi, vi, rhoi, csi,
+                             xj, vj, rhoj, csj,
+                             etai, etaj,
+                             fCli, fCqi, fClj, fCqj):
                 # Your custom viscosity implementation here
                 vij = vi - vj
                 xij = xi - xj
                 if vij.dot(xij) < 0.0:  # Compression only
-                    mui = vij.dot(etai) / (etai.magnitude2() + self.epsilon2())
+                    mui = vij.dot(etai) / (etai.magnitude2() + self.epsilon2)
                     # ... compute QPiij, QPiji, Qij, Qji
+                    return (QPiij, QPiji, Qij, Qji)
                 else:
-                    QPiij = 0.0
-                    QPiji = 0.0
-                    Qij = 0.0
-                    Qji = 0.0
+                    return (0.0, 0.0, 0.0, 0.0)
 
             def label(self):
                 return "MyViscosity"

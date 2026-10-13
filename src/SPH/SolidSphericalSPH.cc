@@ -752,6 +752,14 @@ evaluateDerivativesImpl(const Dim<1>::Scalar /*time*/,
       const auto deviatoricDeformation = localDvDxi.xx() - divv/3.0;
       DSDti.xx(2.0*mui*deviatoricDeformation);
 
+      // The hoop (theta, phi) strain rates go in the yy and zz components, where the
+      // strain and damage models see them.
+      const auto vr_over_r = vi.x()*riInv;
+      localDvDxi.yy(vr_over_r);
+      localDvDxi.zz(vr_over_r);
+      DSDti.yy(2.0*mui*(vr_over_r - divv/3.0));
+      DSDti.zz(2.0*mui*(vr_over_r - divv/3.0));
+
       // Optionally use damage to ramp down stress on damaged material.
       const auto Di = max(0.0, min(1.0, damage(nodeListi, i).Trace() - 1.0));
       // Hideali = (1.0 - Di)*Hideali + Di*mHfield0(nodeListi, i);
@@ -824,8 +832,7 @@ enforceBoundaries(State<Dimension>& state,
   }
 
   // Apply ordinary SPH BCs.
-  SolidSPH<Dim<1>>::applyGhostBoundaries(state, derivs);
-  for (auto boundaryPtr: range(this->boundaryBegin(), this->boundaryEnd())) boundaryPtr->finalizeGhostBoundary();
+  SolidSPH<Dim<1>>::enforceBoundaries(state, derivs);
 
   // Scale back to mass.
   for (auto nodeListi = 0u; nodeListi < numNodeLists; ++nodeListi) {

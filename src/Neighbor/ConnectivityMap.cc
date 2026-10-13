@@ -208,6 +208,17 @@ patchConnectivity(const FieldList<Dimension, size_t>& flags,
   // PairFields pointing at the original pairs.
   REQUIRE(mNodePairListPtr);
   NodePairList& currentPairs = *mNodePairListPtr;
+
+  // Rebuild the number of neighbors per point.  We count against the old (pre-cull)
+  // indices, since these Fields are compacted when the culled nodes are deleted.
+  mNumNeighbors = 0u;
+  for (const auto& p: currentPairs) {
+    if (flags(p.i_list, p.i_node) != 0 and flags(p.j_list, p.j_node) != 0) {
+      ++mNumNeighbors(p.i_list, p.i_node);
+      ++mNumNeighbors(p.j_list, p.j_node);
+    }
+  }
+
   std::vector<NodePairIdxType> culledPairs;
   culledPairs.reserve(currentPairs.size());
 #pragma omp parallel
@@ -239,13 +250,6 @@ patchConnectivity(const FieldList<Dimension, size_t>& flags,
     sortPairs(pairs, mKeys);
   } else {
     std::sort(pairs.begin(), pairs.end());
-  }
-
-  // Rebuild the number of neighbors per point
-  mNumNeighbors = 0u;
-  for (const auto& p: pairs) {
-    ++mNumNeighbors(p.i_list, p.i_node);
-    ++mNumNeighbors(p.j_list, p.j_node);
   }
 
   // If needed, rebuild the per-point connectivity

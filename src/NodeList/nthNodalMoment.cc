@@ -157,12 +157,12 @@ zerothAndFirstNodalMoments(const NodeListIterator nodeListBegin,
     const auto& Hj = H(kj, j);
 
     const auto etai = Hi*(rj - ri);
-    const auto Wi = W(etai.magnitude(), 1.0);
+    const auto Wi = (useGradientAsKernel ? std::abs(W.gradValue(etai.magnitude(), 1.0)) : W.kernelValue(etai.magnitude(), 1.0));
     zerothMoment(ki, i) += Wi;
     firstMoment(ki, i) += Wi * etai;
 
     const auto etaj = Hj*(ri - rj);
-    const auto Wj = W(etaj.magnitude(), 1.0);
+    const auto Wj = (useGradientAsKernel ? std::abs(W.gradValue(etaj.magnitude(), 1.0)) : W.kernelValue(etaj.magnitude(), 1.0));
     zerothMoment(kj, j) += Wj;
     firstMoment(kj, j) += Wj * etaj;
   }

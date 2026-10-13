@@ -113,12 +113,14 @@ evaluateDerivatives(const Scalar /*time*/,
   auto&       DalphaDt = derivs.field(buildKey(IncrementBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::porosityAlpha), 0.0);
   auto&       fDSnew = derivs.field(buildKey(ReplaceBoundedState<Dimension, Scalar>::prefix() + SolidFieldNames::fDSjutzi), 0.0);
 
-  // Are we working in axisymmetric coordinates?
+  // Are we working in axisymmetric or spherical coordinates?  DvDx.Trace() only has
+  // the in-plane (or radial) components, so the hoop strain rates are added below.
   const bool axisymmetric = (GeometryRegistrar::coords() == CoordinateType::RZ);
+  const bool spherical = (GeometryRegistrar::coords() == CoordinateType::Spherical);
   const Field<Dimension, Vector>* posPtr = nullptr;
   const Field<Dimension, Vector>* velPtr = nullptr;
   const Field<Dimension, SymTensor>* Hptr = nullptr;
-  if (axisymmetric) {
+  if (axisymmetric or spherical) {
     posPtr = &state.field(buildKey(HydroFieldNames::position), Vector::zero());
     velPtr = &state.field(buildKey(HydroFieldNames::velocity), Vector::zero());
     Hptr = &state.field(buildKey(HydroFieldNames::H), SymTensor::zero());
@@ -143,6 +145,13 @@ evaluateDerivatives(const Scalar /*time*/,
         const auto  hri = ri*safeInv(zetai);                  // Always positive
         CHECK(hri >= 0.0);
         DstrainDt(i) += vri*safeInv(ri, 0.01*hri);
+      } else if (spherical) {
+        const auto& posi = (*posPtr)(i);
+        const auto  ri = std::abs(posi.x());
+        const auto  vri = (*velPtr)(i).x();
+        const auto  zetai = std::abs(((*Hptr)(i)*posi).x());
+        const auto  hri = ri*safeInv(zetai);
+        DstrainDt(i) += 2.0*vri*safeInv(ri, 0.01*hri);   // theta and phi hoop strain rates
       }
       const auto epsi = strain(i);
       const auto DuDti = DuDt(i);

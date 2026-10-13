@@ -1,3 +1,4 @@
+#ATS:test(SELF, label="GeomSymmetricTensor unit tests")
 """
 Unit tests for GeomSymmetricTensor classes (SymTensor1d, SymTensor2d, SymTensor3d)
 Tests the Python bindings for the Spheral geometric symmetric tensor types.
@@ -275,10 +276,10 @@ class TestSymTensor1d(unittest.TestCase):
         self.assertEqual(z.yy, 0.0)
         self.assertEqual(z.zz, 0.0)
 
-        o = SymTensor1d.one
+        o = SymTensor1d.one             # one() is the in-plane identity; the out-of-plane diagonal is zero
         self.assertEqual(o.xx, 1.0)
-        self.assertEqual(o.yy, 1.0)
-        self.assertEqual(o.zz, 1.0)
+        self.assertEqual(o.yy, 0.0)
+        self.assertEqual(o.zz, 0.0)
 
 
 class TestSymTensor2d(unittest.TestCase):

@@ -191,7 +191,7 @@ template<typename Dimension>
 inline
 bool
 Integrator<Dimension>::rigorousBoundaries() const {
-  SpheralDeprecationWarning("Integrator::rigorousBoundaries");
+  SpheralDeprecationWarning << "Integrator::rigorousBoundaries" << std::endl;
   return false;
 }
 
@@ -200,7 +200,7 @@ inline
 void
 Integrator<Dimension>::
 rigorousBoundaries(bool value) {
-  SpheralDeprecationWarning("Integrator::rigorousBoundaries");
+  SpheralDeprecationWarning << "Integrator::rigorousBoundaries" << std::endl;
 }
 
 //------------------------------------------------------------------------------

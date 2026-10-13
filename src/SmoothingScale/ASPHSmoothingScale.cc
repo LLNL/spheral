@@ -330,9 +330,9 @@ finalize(const Scalar time,
         // Get the state
         if (useRZmass) {
           mi = massRZ(nodeListi, i);
-          rhoi = rho(nodeListi, i);
+          rhoi = rhoRZ(nodeListi, i);
           mj = massRZ(nodeListj, j);
-          rhoj = rho(nodeListj, j);
+          rhoj = rhoRZ(nodeListj, j);
         } else {
           mi = mass(nodeListi, i);
           rhoi = rho(nodeListi, i);

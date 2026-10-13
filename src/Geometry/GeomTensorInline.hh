@@ -155,7 +155,7 @@ template<>
 template<typename Derived>
 inline
 GeomTensor<1>::GeomTensor(const Eigen::MatrixBase<Derived>& ten):
-  GeomTensorBase<1>(ten(0,0)) {
+  GeomTensorBase<1>(ten(0,0), 0.0, 0.0) {
 }
 
 template<>
@@ -322,8 +322,6 @@ inline
 double
 GeomTensor<nDim>::operator()(const typename GeomTensor<nDim>::size_type row,
                              const typename GeomTensor<nDim>::size_type column) const {
-  REQUIRE(row < nDim or row == nDim);
-  REQUIRE(column < nDim or row == nDim);
   return *(begin() + elementIndex(row, column));
 }
 
@@ -333,8 +331,6 @@ inline
 double&
 GeomTensor<nDim>::operator()(const typename GeomTensor<nDim>::size_type row,
                              const typename GeomTensor<nDim>::size_type column) {
-  REQUIRE(row < nDim or row == nDim);
-  REQUIRE(column < nDim or row == nDim);
   return *(begin() + elementIndex(row, column));
 }
 
@@ -1541,9 +1537,7 @@ inline
 bool
 GeomTensor<1>::
 operator==(const double rhs) const {
-  return (this->mxx == rhs and
-          this->myy == rhs and
-          this->mzz == rhs);
+  return *this == (one() * rhs);
 }
 
 template<>
@@ -1552,11 +1546,7 @@ inline
 bool
 GeomTensor<2>::
 operator==(const double rhs) const {
-  return (this->mxx == rhs and
-          this->mxy == 0.0 and
-          this->myx == 0.0 and
-          this->myy == rhs and
-          this->mzz == rhs);
+  return *this == (one() * rhs);
 }
 
 template<>
@@ -1852,8 +1842,8 @@ GeomTensor<1>
 GeomTensor<1>::Inverse() const {
   CHECK(this->mxx != 0.0);
   return GeomTensor<1>(safeInvVar(this->mxx),
-                       safeInvVar(this->myy),
-                       safeInvVar(this->mzz));
+                       safeInv(this->myy),
+                       safeInv(this->mzz));
 }
 
 template<>
@@ -1865,7 +1855,7 @@ GeomTensor<2>::Inverse() const {
   REQUIRE(D != 0.0);
   return GeomTensor<2>( (this->myy)/D, -(this->mxy)/D,
                        -(this->myx)/D,  (this->mxx)/D,
-                        safeInvVar(this->mzz));
+                        safeInv(this->mzz));
 }
 
 template<>

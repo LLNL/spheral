@@ -123,6 +123,7 @@ SolidCRKSPHRZ(DataBase<Dimension>& dataBase,
                          nTensile,
                          damageRelieveRubble),
   mPairAccelerationsPtr(std::make_unique<PairAccelerationsType>()),
+  mPairWorkPtr(std::make_unique<PairWorkType>()),
   mSelfAccelerations(FieldStorageType::CopyFields) {
 }
 
@@ -200,10 +201,14 @@ registerDerivatives(DataBase<Dimension>& dataBase,
   if (compatibleEnergy) {
     const auto& connectivityMap = dataBase.connectivityMap();
     mPairAccelerationsPtr = std::make_unique<PairAccelerationsType>(connectivityMap);
+    mPairWorkPtr = std::make_unique<PairWorkType>(connectivityMap);
     dataBase.resizeFluidFieldList(mSelfAccelerations, Vector::zero(), HydroFieldNames::selfAccelerations, false);
     derivs.enroll(HydroFieldNames::selfAccelerations, mSelfAccelerations);
   }
   derivs.enroll(HydroFieldNames::pairAccelerations, *mPairAccelerationsPtr);
+  // RZNonSymmetricSpecificThermalEnergyPolicy (registered above for compatible energy)
+  // reads the per-pair work, so it has to be enrolled and filled here as SPHRZ does.
+  derivs.enroll(HydroFieldNames::pairWork, *mPairWorkPtr);
 }
 
 //------------------------------------------------------------------------------
@@ -332,6 +337,7 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
   auto  maxViscousPressure = derivs.fields(HydroFieldNames::maxViscousPressure, 0.0);
   auto  effViscousPressure = derivs.fields(HydroFieldNames::effectiveViscousPressure, 0.0);
   auto& pairAccelerations = derivs.template get<PairAccelerationsType>(HydroFieldNames::pairAccelerations);
+  auto& pairWork = derivs.template get<PairWorkType>(HydroFieldNames::pairWork);
   auto  selfAccelerations = derivs.fields(HydroFieldNames::selfAccelerations, Vector::zero(), true);
   auto  XSPHDeltaV = derivs.fields(HydroFieldNames::XSPHDeltaV, Vector::zero());
   auto  DSDt = derivs.fields(IncrementState<Dimension, SymTensor>::prefix() + SolidFieldNames::deviatoricStress, SymTensor::zero());
@@ -346,6 +352,7 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK(DSDt.size() == numNodeLists);
   CHECK((compatibleEnergy and pairAccelerations.size() == npairs) or not compatibleEnergy);
+  CHECK((compatibleEnergy and pairWork.size() == npairs) or not compatibleEnergy);
   CHECK((compatibleEnergy and selfAccelerations.size() == numNodeLists) or
         (selfAccelerations.size() == 0u));
 
@@ -507,12 +514,18 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
       }
 
       // Energy
-      DepsDti += (true ? // surfacePoint(nodeListi, i) <= 1 ?
-                  0.5*weighti*weightj*(-sigmaj.dot(vij).dot(deltagrad) + workQi)/mRZi :                                      // CRK
-                  (weightj*rhoi*QPiij*vij).dot(gradWj));                                                                     // RK, Q term only -- adiabatic portion added later
-      DepsDtj += (true ? // surfacePoint(nodeListj, j) <= 1 ?
-                  0.5*weighti*weightj*(-sigmai.dot(vij).dot(deltagrad) + workQj)/mRZj :                                      // CRK
-                  (-weighti*rhoj*QPiji*vij).dot(gradWi));                                                                    // RK, Q term only -- adiabatic portion added later
+      const auto worki = (true ? // surfacePoint(nodeListi, i) <= 1 ?
+                          0.5*weighti*weightj*(-sigmaj.dot(vij).dot(deltagrad) + workQi)/mRZi :                              // CRK
+                          (weightj*rhoi*QPiij*vij).dot(gradWj));                                                             // RK, Q term only -- adiabatic portion added later
+      const auto workj = (true ? // surfacePoint(nodeListj, j) <= 1 ?
+                          0.5*weighti*weightj*(-sigmai.dot(vij).dot(deltagrad) + workQj)/mRZj :                              // CRK
+                          (-weighti*rhoj*QPiji*vij).dot(gradWi));                                                            // RK, Q term only -- adiabatic portion added later
+      DepsDti += worki;
+      DepsDtj += workj;
+      if (compatibleEnergy) {
+        pairWork[kk][0] = worki;
+        pairWork[kk][1] = workj;
+      }
 
       // Estimate of delta v (for XSPH).
       XSPHDeltaVi -= fDij*weightj*Wj*vij;
@@ -605,11 +618,12 @@ evaluateDerivativesImpl(const Dimension::Scalar /*time*/,
       // We also adjust the density evolution in the presence of damage.
       if (rho0 > 0.0) DrhoDti = (1.0 - Di)*DrhoDti - 0.25/dt*Di*(rhoi - rho0);
 
-      // Determine the deviatoric stress evolution.
+      // Determine the deviatoric stress evolution.  The hoop strain rate goes in the zz
+      // component of the velocity gradient, where the strain and damage models see it.
+      localDvDxi.zz(vi.y()*riInv);
       const auto deformation = localDvDxi.Symmetric();
-      const auto deformationTT = vi.y()*riInv;
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - ((deformation.Trace() + deformationTT)/3.0)*SymTensor::one();
+      const auto deviatoricDeformation = deformation - (deformation.Trace3D()/3.0)*SymTensor(1.0, 0.0, 0.0, 1.0, 1.0);   // 3D identity, including the hoop (zz) component
       const auto spinCorrection = (spin*Si - Si*spin).Symmetric();
       DSDti = spinCorrection + 2.0*mui*deviatoricDeformation;
 

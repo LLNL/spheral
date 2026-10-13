@@ -351,7 +351,7 @@ preStepInitialize(const DataBase<Dimension>& dataBase,
       const auto mass = state.fields(HydroFieldNames::mass, 0.0);
       const auto volume = state.fields(HydroFieldNames::volume, 0.0);
       auto       massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-      massDensity = mass / volume;
+      massDensity.assignFields(mass / volume);
       for (auto* boundPtr: this->boundaryConditions()) boundPtr->applyFieldListGhostBoundary(massDensity);
       for (auto* boundPtr: this->boundaryConditions()) boundPtr->finalizeGhostBoundary();
     }

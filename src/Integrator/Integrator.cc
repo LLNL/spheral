@@ -480,6 +480,10 @@ Integrator<Dimension>::setGhostNodes() const {
         // Ghost nodes that are control nodes for other ghost nodes we're keeping must
         // be kept as well.
         const auto firstGhostNode = nodeList.firstGhostNode();
+
+        // Internal nodes are always kept, even if they have no neighbors.
+        for (auto i = 0u; i < firstGhostNode; ++i) flags(nodeListi, i) = 1;
+
         for (auto* boundaryPtr: range(boundaries.begin(), boundaries.end())) {
           const auto& boundary = *boundaryPtr;
           const auto& controlNodes = boundary.controlNodes(nodeList);

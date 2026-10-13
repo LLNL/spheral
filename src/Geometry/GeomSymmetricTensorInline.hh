@@ -169,7 +169,7 @@ template<>
 template<typename Derived>
 inline
 GeomSymmetricTensor<1>::GeomSymmetricTensor(const Eigen::MatrixBase<Derived>& ten):
-  GeomSymmetricTensorBase<1>(ten(0,0)) {
+  GeomSymmetricTensorBase<1>(ten(0,0), 0.0, 0.0) {
 }
 
 template<>
@@ -329,8 +329,6 @@ inline
 double
 GeomSymmetricTensor<nDim>::operator()(const typename GeomSymmetricTensor<nDim>::size_type row,
                                       const typename GeomSymmetricTensor<nDim>::size_type column) const {
-  REQUIRE(row < nDim or row == nDim);
-  REQUIRE(column < nDim or row == nDim);
   return *(begin() + elementIndex(row, column));
 }
 
@@ -340,8 +338,6 @@ inline
 double&
 GeomSymmetricTensor<nDim>::operator()(const typename GeomSymmetricTensor<nDim>::size_type row,
                                       const typename GeomSymmetricTensor<nDim>::size_type column) {
-  REQUIRE(row < nDim or row == nDim);
-  REQUIRE(column < nDim or row == nDim);
   return *(begin() + elementIndex(row, column));
 }
 
@@ -1510,8 +1506,8 @@ GeomSymmetricTensor<1>
 GeomSymmetricTensor<1>::Inverse() const {
   CHECK(this->mxx != 0.0);
   return GeomSymmetricTensor<1>(safeInvVar(this->mxx),
-                                safeInvVar(this->myy),
-                                safeInvVar(this->mzz));
+                                safeInv(this->myy),
+                                safeInv(this->mzz));
 }
 
 template<>
@@ -1520,8 +1516,10 @@ inline
 GeomSymmetricTensor<2>
 GeomSymmetricTensor<2>::Inverse() const {
   REQUIRE(Determinant() != 0.0);
-  return GeomSymmetricTensor<2>( (this->myy), -(this->mxy),
-                                -(this->mxy),  (this->mxx))*safeInvVar(this->Determinant());
+  auto result = GeomSymmetricTensor<2>( (this->myy), -(this->mxy),
+                                       -(this->mxy),  (this->mxx))*safeInvVar(this->Determinant());
+  result.zz(safeInv(this->mzz));
+  return result;
 }
 
 template<>
@@ -1668,7 +1666,7 @@ GeomTensor<1>
 GeomSymmetricTensor<1>::dot(const GeomTensor<1>& rhs) const {
   return GeomTensor<1>(this->mxx * rhs.xx(),
                        this->myy * rhs.yy(),
-                       this->mzz + rhs.zz());
+                       this->mzz * rhs.zz());
 }
 
 template<>
@@ -2119,7 +2117,9 @@ GeomSymmetricTensor<2>::eigenVectors() const {
   EigenStruct<2> result;
   if (std::abs(axy) < 1.0e-50) {
     result.eigenValues = diagonalElements();
-    result.eigenVectors = one();
+    result.eigenVectors = GeomTensor<2>(1.0, 0.0,
+                                        0.0, 1.0,
+                                        1.0);
   } else {
     const auto theta = 0.5*atan2(2.0*axy, ayy - axx);
     const auto xhat = cos(theta);

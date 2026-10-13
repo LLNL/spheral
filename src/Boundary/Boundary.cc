@@ -220,7 +220,7 @@ template<typename Dimension>
 bool
 Boundary<Dimension>::isGhostNode(const NodeList<Dimension>& nodeList,
                                  const size_t i) const {
-  if (mBoundaryNodes.empty() or i <= nodeList.firstGhostNode()) return false;
+  if (mBoundaryNodes.empty() or i < nodeList.firstGhostNode()) return false;
   const auto& indices = this->ghostNodes(nodeList);
   return std::find(indices.begin(), indices.end(), i) != indices.end();
 }

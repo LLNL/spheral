@@ -82,7 +82,7 @@ glue(keep=True, independent=True, ngpu=0, nt=1)
 perf_paths = ["", "spheral/tests", "llnlspheral/tests"]
 sys.path.extend([os.path.join(test_path, i) for i in perf_paths])
 import perf_tests as pt
-if(os.path.exists(perf_paths[-1])):
+if(os.path.exists(os.path.join(test_path, perf_paths[-1]))):
     import llnl_perf_tests
 
 all_tests = pt.get_all_tests(num_cores, num_nodes)

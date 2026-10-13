@@ -678,7 +678,7 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
         Mi = Mi.Inverse();
         DvDxi = DvDxi*Mi;
       } else {
-        DvDxi /= rhoi;
+        DvDxi /= rhoRZi;
       }
       if (correctVelocityGradient and
           std::abs(localMi.Determinant()) > 1.0e-10 and
@@ -686,7 +686,7 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
         localMi = localMi.Inverse();
         localDvDxi = localDvDxi*localMi;
       } else {
-        localDvDxi /= rhoi;
+        localDvDxi /= rhoRZi;
       }
 
       // Add the theta-theta contribution to velocity gradient
@@ -703,7 +703,7 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
 
       // Finish the specific thermal energy evolution.
       DepsDti -= (Pi + effViscousPressurei)/rhoi*vr_over_r;
-      DepsDti += (Si(2,2) - Pi)/rhoi*vri*riInv;
+      DepsDti += Si(2,2)/rhoi*vr_over_r;
 
       // If needed finish the total energy derivative.
       if (evolveTotalEnergy) DepsDti = mi*(vi.dot(DvDti) + DepsDti);
@@ -728,7 +728,7 @@ evaluateDerivativesImpl(const Dimension::Scalar time,
       // Determine the deviatoric stress evolution.
       const auto deformation = localDvDxi.Symmetric();
       const auto spin = localDvDxi.SkewSymmetric();
-      const auto deviatoricDeformation = deformation - (deformation.Trace3D()/3.0)*SymTensor::one();
+      const auto deviatoricDeformation = deformation - (deformation.Trace3D()/3.0)*SymTensor(1.0, 0.0, 0.0, 1.0, 1.0);   // 3D identity, including the hoop (zz) component
       const auto spinCorrection = (spin*Si - Si*spin).Symmetric();
       DSDti = spinCorrection + (2.0*mui)*deviatoricDeformation;
 

@@ -80,6 +80,14 @@ updateImpl(const KeyType& key,
 
   const auto tiny = 1.0e-15;
 
+  // The identity in the effective dimensions: in RZ and spherical the out-of-plane
+  // (hoop) diagonal components are part of the 3D strain.
+  auto one = SymTensor::one();
+  if constexpr (Dimension::nDim < 3 and effDims == 3) {
+    one.zz(1.0);
+    if constexpr (Dimension::nDim == 1) one.yy(1.0);
+  }
+
   // Alias for shorter call building State Field keys
   auto buildKey = [&](const std::string& fkey) -> std::string { return StateBase<Dimension>::buildFieldKey(fkey, nodeListKey); };
 
@@ -137,12 +145,12 @@ updateImpl(const KeyType& key,
       // First apply the rotational term to the current strain history.
       const auto gradvi = fDSi * gradv(i);
       const auto spin = gradvi.SkewSymmetric();
-      straini += multiplier*(straini*spin - spin*straini).Symmetric();
+      straini += multiplier*(spin*straini - straini*spin).Symmetric();
 
       // Update the strain history with the current instantaneous deformation.
       // const auto eigenv = gradvi.Symmetric().eigenVectors3D();
       const auto eigenv = std::invoke(EigenVectorsMethod, gradvi.Symmetric());
-      SymTensor sgradvi(eigenv.eigenValues, std::numeric_limits<double>::lowest(), 0.0);
+      SymTensor sgradvi(eigenv.eigenValues, 0.0, std::numeric_limits<double>::max());
       sgradvi.rotationalTransform(eigenv.eigenVectors);
       straini += multiplier*sgradvi;
 
@@ -153,7 +161,7 @@ updateImpl(const KeyType& key,
 
       case(TensorStrainAlgorithm::BenzAsphaugStrain):
         CHECK2(E(i) >= 0.0, "Bad Youngs modulus for " << E.nodeList().name() << " " << i << " : " << E(i));
-        effStraini = (Si - P(i)*SymTensor::one())/(E(i) + tiny);
+        effStraini = (Si - P(i)*one)/(E(i) + tiny);
         break;
 
       case(TensorStrainAlgorithm::StrainHistory):
@@ -161,17 +169,23 @@ updateImpl(const KeyType& key,
         break;
 
       case(TensorStrainAlgorithm::MeloshRyanAsphaugStrain):
-        effStraini = ((K(i) - 2.0*mu(i)/effDims)*volstrain*SymTensor::one() + 2.0*mu(i)*straini)/(E(i) + tiny);
+        effStraini = ((K(i) - 2.0*mu(i)/effDims)*volstrain*one + 2.0*mu(i)*straini)/(E(i) + tiny);
         break;
 
       case(TensorStrainAlgorithm::PlasticStrain):
-        effStraini = plasticStrain(i)*SymTensor::one();
+        effStraini = plasticStrain(i)*one;
         break;
       
       case(TensorStrainAlgorithm::PlasticBenzAsphaugStrain):{
-        const auto benzStrainTensor = (S(i) - P(i)*SymTensor::one())/(E(i) + tiny);
-        const auto benzTension = std::max(benzStrainTensor.eigenValues().maxElement(), 0.0);
-        stateField(i) = std::max(plasticStrain(i),benzTension)*SymTensor::one();
+        const auto benzStrainTensor = (S(i) - P(i)*one)/(E(i) + tiny);
+        double benzMaxEigen;
+        if constexpr (Dimension::nDim < 3 and effDims == 3) {
+          benzMaxEigen = benzStrainTensor.eigenValues3D().maxElement();
+        } else {
+          benzMaxEigen = benzStrainTensor.eigenValues().maxElement();
+        }
+        const auto benzTension = std::max(benzMaxEigen, 0.0);
+        stateField(i) = std::max(plasticStrain(i),benzTension)*one;
         break;
       }
       

@@ -103,7 +103,6 @@ if (SPHERAL_ENABLE_ASAN)
   list(APPEND CXX_LINK_FLAGS -fsanitize=address)
   get_property(SPHERAL_ENV_LINES GLOBAL PROPERTY SPHERAL_ENV_LINES)
   message("------------------------Configuring ASAN------------------------------------")
-  message("-- Found ASAN libraries at ${ASAN_LIBRARIES}")
   # Modify the hip arch if necessary
   if (ENABLE_HIP)
     list(APPEND SPHERAL_ENV_LINES "export HSA_XNACK=1")

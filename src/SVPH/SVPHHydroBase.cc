@@ -743,7 +743,7 @@ finalize(const typename Dimension::Scalar time,
     const FieldList<Dimension, Scalar> mass = state.fields(HydroFieldNames::mass, 0.0);
     const FieldList<Dimension, Scalar> volume = state.fields(HydroFieldNames::hydroVolume, 0.0);
     FieldList<Dimension, Scalar> massDensity = state.fields(HydroFieldNames::massDensity, 0.0);
-    massDensity = mass / volume;
+    massDensity.assignFields(mass / volume);
   }
 }
 

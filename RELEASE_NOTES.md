@@ -53,6 +53,9 @@ Notable changes include:
     * Misc. bugfixes in damage, porosity, CRKSPHRZ, VoronoiCells, DistributedBoundary, node generators, and Python bindings.
       * allReduce of Vector/Tensor/SymTensor returned zero, breaking the global Field sumElements, min, and max for those types.
       * ASPHSmoothingScale now requests volumes updated in finalize, which changes ASPH answers slightly (Noh-RZ ASPH reference norms updated).
+      * Fixes in SPH/SVPH Voronoi density, SolidSPHRZ hoop work, SolidCRKSPHRZ compatible energy, SolidSphericalSPH boundaries, TensorStrainPolicy, ghost culling, and CylindricalSpunGenerator3d masses.
+      * Fixes for the new tensor zz component (1D SymTensor dot, inverses), and the tensor unit tests now run under ATS.
+      * RZ and spherical solid hydros now pass the hoop strain rates to the strain/damage models (changes RZ and spherical damage), and StrainPorosity includes the spherical hoop strain rate.
 
 Version v2026.06.0 -- Release date 2026-06-22
 ==============================================

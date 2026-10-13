@@ -30,6 +30,7 @@ public:
   using FifthRankTensor = Dimension::FifthRankTensor;
 
   using PairAccelerationsType = PairwiseField<Dimension, Vector, 2u>;
+  using PairWorkType = PairwiseField<Dimension, Scalar, 2u>;
   using ConstBoundaryIterator = Physics<Dimension>::ConstBoundaryIterator;
 
   // Constructors.
@@ -106,6 +107,7 @@ public:
 
   // Access our state.
   const PairAccelerationsType& pairAccelerations()        const { VERIFY2(mPairAccelerationsPtr, "SolidCRKSPHRZ ERROR: pairAccelerations not initialized on access"); return *mPairAccelerationsPtr; }
+  const PairWorkType& pairWork()                          const { VERIFY2(mPairWorkPtr, "SolidCRKSPHRZ ERROR: pairWork not initialized"); return *mPairWorkPtr; }
   const FieldList<Dimension, Vector>& selfAccelerations() const { return mSelfAccelerations; }
 
   //****************************************************************************
@@ -116,6 +118,7 @@ public:
 private:
   //--------------------------- Private Interface ---------------------------//
   std::unique_ptr<PairAccelerationsType> mPairAccelerationsPtr;
+  std::unique_ptr<PairWorkType> mPairWorkPtr;
   FieldList<Dimension, Vector> mSelfAccelerations;
 };
 

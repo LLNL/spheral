@@ -35,5 +35,4 @@ function(Spheral_Handle_Ext lib_name)
 
   list(TRANSFORM ${lib_name}_libs APPEND ${_lib_ext})
   set(${lib_name}_libs "${${lib_name}_libs}" PARENT_SCOPE)
-  message("${${lib_name}_libs}")
 endfunction()

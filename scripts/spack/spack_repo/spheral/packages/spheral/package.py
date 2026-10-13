@@ -97,14 +97,12 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on('axom +hdf5 ~lua ~examples ~python ~fortran', type='build')
     depends_on('axom@0.12.0:', type='build', when='@2025.12.0:')
-    depends_on('axom@0.9.0', type='build', when='@2025.01.1:2025.06.1')
+    depends_on('axom@0.9.0', type='build', when='@2025.01.0:2025.06.1')
     depends_on('axom@0.7.0', type='build', when='@:2024.06.1')
 
-    with when('+rocm') or when('+cuda'):
-        depends_on('axom ~shared', type='build')
-
-    with when('~rocm') or when('~cuda'):
-        depends_on('axom +shared', type='build')
+    depends_on('axom ~shared', type='build', when='+rocm')
+    depends_on('axom ~shared', type='build', when='+cuda')
+    depends_on('axom +shared', type='build', when='~rocm ~cuda')
 
     with when('+caliper'):
         depends_on('caliper ~shared +gotcha ~libdw ~papi ~libunwind cppflags="-fPIC"', type='build')
@@ -367,6 +365,6 @@ class Spheral(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         if spec.satisfies("@develop"):
             dev_build_dir = "spack-build-" + str(spec.compiler.name) + "-" + str(spec.compiler.version)
-            return os.path.join(self.pkg.stage.source_path, dev_build_dirname)
+            return os.path.join(self.pkg.stage.source_path, dev_build_dir)
         else:
             return os.path.join(self.pkg.stage.path, self.build_dirname)

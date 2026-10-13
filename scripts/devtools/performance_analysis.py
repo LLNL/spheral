@@ -316,7 +316,7 @@ def main():
         ref_test_files = [i for i in cali_ref_files if test_name in i]
         if (len(ref_test_files) == 0):
             skip_msg = f"No tests named {test_name} found in reference data"
-            test_status.update({test_name: ("SKIPPED-TEST", "No reference data found")})
+            test_status.update({test_name: ("SKIPPED-TEST", [skip_msg])})
             continue
         refdata = th.Thicket.from_caliperreader(ref_test_files, disable_tqdm=True)
         try:
@@ -397,6 +397,7 @@ def main():
         print("ERROR: The following tests have failed:")
         for i in failed_tests:
             print(i)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

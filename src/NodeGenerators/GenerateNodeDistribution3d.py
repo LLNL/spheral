@@ -907,6 +907,7 @@ class CylindricalSpunGenerator3d(NodeGeneratorBase):
         for i in range(n):
             xi = self.x[i]
             yi = self.y[i]
+            self.m[i] *= 2.0*pi*yi       # RZGenerator no longer converts areal to hoop masses
             H2d = self.H[i]
             H2dinv = H2d.Inverse()
 

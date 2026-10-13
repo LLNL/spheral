@@ -67,7 +67,6 @@ public:
   SPHERAL_HOST_DEVICE GeomTensor(const SymTensorType& rhs);
   SPHERAL_HOST_DEVICE explicit GeomTensor(const GeomSymmetricTensor<3>& rhs) requires (nDim < 3);
   SPHERAL_HOST_DEVICE explicit GeomTensor(const GeomTensor<3>& rhs) requires (nDim < 3);
-  GeomTensor(const EigenType& rhs);
   template<typename Derived> GeomTensor(const Eigen::MatrixBase<Derived>& rhs);
 
   // Construct with the given diangonal elements

@@ -129,7 +129,7 @@ preStepInitialize(const HydroPackage& hydro,
   case MassDensityType::VoronoiCellDensity:
     {
       const auto volume = state.fields(HydroFieldNames::volume, 0.0);
-      massDensityRZ = massRZ / volume;
+      massDensityRZ.assignFields(massRZ / volume);
     }
     break;
 

@@ -407,7 +407,7 @@ class SpheralTPL:
             # This should run before doing any install on clean spack repo
             root_dir = os.path.dirname(self.args.tpl_dir)
             if (not root_dir):
-                root_dir = None
+                root_dir = os.getcwd()
             spack_cache = os.path.join(root_dir, self.args.spack_cache_dir)
             base_dir = os.path.basename(self.args.tpl_dir)
             shutil.make_archive(base_name=spack_cache,

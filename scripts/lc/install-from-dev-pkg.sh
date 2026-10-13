@@ -31,7 +31,7 @@ fi
 if [[ ! -d "${TPL_DIR}/spack" ]]; then
     echo "Spack repo must exist in TPL_DIR"
     exit 1
-elif [[ ! -d "${TPL_DIR}/packages" ]]; then
+elif ! compgen -G "${TPL_DIR}/packages*/" > /dev/null; then
     echo "Spack package repo must exist in TPL_DIR"
     exit 1
 fi

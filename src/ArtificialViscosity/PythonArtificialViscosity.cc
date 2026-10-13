@@ -3,10 +3,28 @@
 //----------------------------------------------------------------------------//
 #include "ArtificialViscosity/PythonArtificialViscosity.hh"
 #include "Utilities/SpheralMessage.hh"
+#include "Utilities/DBC.hh"
 
 #include <stdexcept>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace Spheral {
+
+namespace {
+//------------------------------------------------------------------------------
+// The Python override takes the GIL inside the threaded pair loops, which
+// deadlocks with more than one OpenMP thread.
+//------------------------------------------------------------------------------
+inline void
+requireSingleThread() {
+#ifdef _OPENMP
+  VERIFY2(omp_get_max_threads() == 1,
+          "PythonArtificialViscosity ERROR: Python viscosities require OMP_NUM_THREADS=1");
+#endif
+}
+}
 
 //------------------------------------------------------------------------------
 // Constructor
@@ -41,6 +59,7 @@ getScalarView() {
   if constexpr (!std::is_same_v<QPiType, Scalar>) {
     return chai::managed_ptr<ArtViscViewScalar>();
   } else {
+    requireSingleThread();
     if (!mView) {
       mView = chai::make_managed<PythonAVView>(this);
     }
@@ -58,6 +77,7 @@ getTensorView() {
   if constexpr (!std::is_same_v<QPiType, Tensor>) {
     return chai::managed_ptr<ArtViscViewTensor>();
   } else {
+    requireSingleThread();
     if (!mView) {
       mView = chai::make_managed<PythonAVView>(this);
     }
