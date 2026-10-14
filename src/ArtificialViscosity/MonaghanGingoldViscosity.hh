@@ -38,7 +38,7 @@ public:
              quadraticInExpansion) {
   }
 
-  virtual ~MonaghanGingoldViscosity() { }
+  virtual ~MonaghanGingoldViscosity() = default;
 
   // No default construction, copying, or assignment
   MonaghanGingoldViscosity() = delete;

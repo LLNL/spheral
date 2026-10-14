@@ -37,7 +37,8 @@ public:
     mEtaCritFrac(etaCritFrac),
     mEtaFoldFrac(etaFoldFrac) {}
 
-  SPHERAL_HOST_DEVICE ~LimitedMonaghanGingoldViscosityView() = default;
+  SPHERAL_HOST_DEVICE
+  ~LimitedMonaghanGingoldViscosityView() = default;
 
   // Data access
   SPHERAL_HOST_DEVICE

@@ -40,7 +40,8 @@ public:
     mLinearInExpansion(linearInExpansion),
     mQuadraticInExpansion(quadraticInExpansion) {}
 
-  SPHERAL_HOST_DEVICE ~MonaghanGingoldViscosityView() = default;
+  SPHERAL_HOST_DEVICE
+  ~MonaghanGingoldViscosityView() = default;
 
   // Data access
   SPHERAL_HOST_DEVICE

@@ -1,8 +1,8 @@
 //---------------------------------Spheral++----------------------------------//
-// ArtificialViscosityView -- The base class for the ArtificialViscosity view class
-// Spheral++.
+// ArtificialViscosityView -- The base ArtificialViscosity view class.
 //
-// Created by LDO, Wed Oct 15 14:16:43 PDT 2025
+// Created as ArtificialViscosityBase by LDO, Wed Oct 15 14:16:43 PDT 2025
+// Updated to ArtificialViscosityView by LDO, Wed Oct 14 10:25:12 PDT 2026
 //----------------------------------------------------------------------------//
 #ifndef __Spheral_ArtificialViscosityView__
 #define __Spheral_ArtificialViscosityView__
@@ -36,8 +36,8 @@ public:
     mEpsilon2(Epsilon2),
     mNegligibleSoundSpeed(NegligibleSoundSpeed) {}
 
-  // Apparently virtual destructors keep a vptr/vtable in the
-  // device view even after QPiij is not virtual
+  // ArtificialViscosityView is no longer a polymorphic base class
+  // so the destructor should not be polymorphic.
   SPHERAL_HOST_DEVICE
   ~ArtificialViscosityView() = default;
 
