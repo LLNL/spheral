@@ -232,9 +232,6 @@ class SpheralController:
             state.enrollConnectivityMap(db.connectivityMapPtr(requireGhost, requireOverlap, requireIntersect))
 
         # Initialize dependent state
-        self.integrator.setGhostNodes()
-        db.updateConnectivityMap(False)
-        self.integrator.applyGhostBoundaries(state, derivs)
         for package in packages:
             package.initializeProblemStartupDependencies(db, state, derivs)
 
