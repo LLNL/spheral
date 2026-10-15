@@ -52,6 +52,7 @@ Notable changes include:
     * added new strain model PlasticBenzAsphaugStrain to DamageModel physics package
     * Fixed bugs affecting 2D rejecters in RejecterBase helper
     * Fixed bugs for matplotlib plotting of polygons
+    * The default damage coupling (PairMaxDamageNodeCoupling) was decoupling nodes in different NodeLists when damage is on, but this changed the behaviour of nodes without damage. We have removed the NodeList check from the decoupling criterion to avoid this side-effect.
 
 Version v2026.06.0 -- Release date 2026-06-22
 ==============================================
