@@ -13,7 +13,7 @@ Do a performance regression test on LC systems with the following steps:
 
   2. Run this script and point to the directory created by ATS in step 1
 
-     $> ./bin/spheral performance_analysis.py --perfdata1 test_dir_name
+     $> ./bin/spheral scripts/performance_analysis.py --perfdata1 test_dir_name
 
      This compares the local run with the upstream benchmark data.
 """

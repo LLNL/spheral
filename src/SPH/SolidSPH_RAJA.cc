@@ -286,10 +286,6 @@ evaluateDerivativesImpl(const typename Dimension::Scalar /*time*/,
   CHECK(XSPHDeltaV.size() == numNodeLists);
   CHECK((compatibleEnergy and pairAccelerations.size() == npairs) or not compatibleEnergy);
 
-#ifdef SPHERAL_ENABLE_HIP
-  stateMgr.move(chai::GPU);
-  derivsMgr.move(chai::GPU);
-#endif
   // The scale for the tensile correction.
   const auto  nPerh = nodeLists[0]->nodesPerSmoothingScale();
   const auto  WnPerh = W(1.0/nPerh, 1.0);

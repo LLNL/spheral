@@ -10,7 +10,7 @@ set(ArtificialViscosity_inst
   TensorSVPHViscosity
   TensorCRKSPHViscosity)
 
-if (NOT SPHERAL_GPU_ENABLED)
+if (NOT SPHERAL_ENABLE_GPU)
   list(APPEND ArtificialViscosity_inst
       PythonArtificialViscosity
     )

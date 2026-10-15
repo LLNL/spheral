@@ -18,7 +18,7 @@
 #include <utility>
 #include <variant>
 
-#if !defined(SPHERAL_ENABLE_HIP) && !defined(SPHERAL_ENABLE_CUDA)
+#ifndef SPHERAL_ENABLE_GPU
 #include "PythonArtificialViscosityCallView.hh"
 #endif
 
@@ -32,7 +32,10 @@ using DeviceArtificialViscosityVariant = std::variant<
   FiniteVolumeViscosityView<Dimension>,
   TensorMonaghanGingoldViscosityView<Dimension>>;
 
-#if !defined(SPHERAL_ENABLE_HIP) && !defined(SPHERAL_ENABLE_CUDA)
+#ifdef SPHERAL_ENABLE_GPU
+template<typename Dimension>
+using ArtificialViscosityVariant = DeviceArtificialViscosityVariant<Dimension>;
+#else
 template<typename Dimension>
 using ArtificialViscosityVariant = std::variant<
   std::monostate,
@@ -42,9 +45,6 @@ using ArtificialViscosityVariant = std::variant<
   TensorMonaghanGingoldViscosityView<Dimension>,
   PythonArtificialViscosityCallView<Dimension, typename Dimension::Scalar>,
   PythonArtificialViscosityCallView<Dimension, typename Dimension::Tensor>>;
-#else
-template<typename Dimension>
-using ArtificialViscosityVariant = DeviceArtificialViscosityVariant<Dimension>;
 #endif
 
 template<typename Variant, typename Visitor>

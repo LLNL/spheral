@@ -7,6 +7,5 @@ text = """
 
 namespace Spheral {
   template class LimitedMonaghanGingoldViscosity< Dim< %(ndim)s > >;
-  template class LimitedMonaghanGingoldViscosityView< Dim< %(ndim)s > >;
 }
 """
